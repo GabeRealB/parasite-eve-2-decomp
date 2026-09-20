@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
+#include "actors/actor_specimen_init.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"
@@ -10,22 +11,14 @@
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj3`, and the enemy
 /// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
 /// `field_40`.
-extern GpU16Pair  ActorsShared80136938Pair;
-extern GpPairSrcE D_actor_107000_80139EA0;
-
-/// Animation bank `func_800B3F84` seeds the work block's seven slots from.
-extern u8 D_actor_107000_8013F59C[];
+extern GpU16Pair ActorsShared80136938Pair;
 
 /// Message dispatch table this spawn parks in `Task::msgTable`.
 extern u8 D_actor_107000_8013F5E0[];
 
-// actor_207000 (func_actor_207000_8014EE88) carries the same body, refused
-// promotion for the reason the sibling above is: the pair table, the animation
-// bank and message table still name this overlay's own data:
-// D_actor_107000_80139EA0, D_actor_107000_8013F59C and D_actor_107000_8013F5E0.
-// Their twins are D_actor_207000_80151EA0, D_actor_207000_8015759C and
-// D_actor_207000_801575E0. The node-3 contact identity now uses the shared
-// ActorsShared80136938Pair symbol, resolved separately by each carrier.
+// actor_207000 (func_actor_207000_8014EE88) carries the same body. Its message
+// table still uses an overlay-local symbol; the parameter record, animation
+// bank and contact identity now resolve through shared symbols.
 
 /// The variant's spawn handler: allocate the `Actor107000Spawn2Work` block,
 /// rebind the model's light and colour matrices into it, link its three `GpObj`
@@ -81,13 +74,13 @@ void func_actor_107000_80136E88(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vy = 0;
     arg0->bodyPos.vz = 0;
-    arg0->param      = &D_actor_107000_80139EA0;
-    arg0->hp         = D_actor_107000_80139EA0.hpMax;
+    arg0->param      = &ActorSpecimenInitParams;
+    arg0->hp         = ActorSpecimenInitParams.hpMax;
     arg0->recs       = &work->field_24C[0];
     work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360  = 0x100;
     work->field_362  = one;
-    func_800B3F84((GpAnimCtx*)work, D_actor_107000_8013F59C, obj, work->field_12C,
+    func_800B3F84((GpAnimCtx*)work, ActorSpecimenInitAnimBank, obj, work->field_12C,
                   (GpAnimSlot*)&work->slots[0]);
     i = 1;
     do {

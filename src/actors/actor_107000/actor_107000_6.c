@@ -25,8 +25,6 @@ extern GpEnemyTaskFuncTable4 D_actor_107000_80131E5C;
 extern u8      D_801153F4;
 extern SVECTOR D_actor_107000_8013F5D8;
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80134C2C);
-
 /// Per-frame mode handler of the specimen. The `D_801153F4` switch is the same
 /// one `func_actor_107000_801343C4` runs: mode 1 skips to the tail, mode 2 puts
 /// the model in its hidden pose and returns, mode 0 clears both flags and falls

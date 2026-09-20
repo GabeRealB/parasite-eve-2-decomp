@@ -134253,3 +134253,41 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 base_3 input: `4c3c01494a6becc6c218727107dd3bfda45978c6948dabd17dce7a5ff7dda99d`.
 base_5 input: `8b54a3f1353ba76bb14b494db328e0a48ddd8f5540af65ba8c92f3d7bec49c75`.
 base_6 input: `b42a57dddc1e262582acdb93d6e627efd1584108d4c35ed594c6a5752d1ee37f`.
+
+## Nesting one constant's lifetime with a store swap changes local interference (func_actor_107000_80134C2C, 2026-09-20)
+
+The specimen initializer reached 97.383% with two node constants sharing `$v0`:
+`obj2.key = 0x3002A; obj2.pos.vy = -0x15E;`. A bounded permuter exchanged these
+independent stores. Paired normalization emitted identical code, and the changed
+source improved distance 560 -> 540 (97.477%). Controlled `base_3.c` applied only
+that exchange to the normal-header seed and reproduced the predicted key home
+`$v1`, preserving the negative constant in `$v0` and every saved-register home.
+
+The reason is interference, not a blanket statement about declaration order or
+per-pseudo priority. Before the swap, `.lreg` ends the key's lifetime before
+materializing -350. After it, the -350 definition/store sits inside the key's
+lifetime. The observed GCC local quantities in block 4 were:
+
+- q8 [r121 = -350]: 2 references, half-instruction span 2, calculated priority
+  10000, allocated `$v0`.
+- q7 [r122 = 0x3002A]: 2 references, span 12, calculated priority 1666, allocated
+  `$v1`; it overlaps the already allocated q8.
+
+This alone did not fix scheduling: the same trace observes sched2 preferring a
+store over a ready load by potential hazard, then selecting the table address
+while the load is blocked. The follow-up used the already-matched sibling's
+state/record/node grouping (`base_5`, `base_6`), reaching 100% without helpers or
+pins. The final regrouped schedule was checked in dumps but not traced; only
+the isolated interference mechanism above has the controlled traced support.
+An explicit SI `one` and reused table pointer were counterproductive: CSE used
+the SI constant in unrelated shifts/calls and the table became a two-death
+global pseudo. Preserved as failed `base_4`.
+
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Seed input `72a04a190ec8db14cd893de7737942a5ab2993b76ba01290b92808d10d7c0e99`;
+controlled input `ecfce0ba4d0fb999f4760a4b882b22579c557187a994ab0238a879dd6d5ba2f1`;
+traced discovery `d6a8403c018645cdfdae7b4ea03f207543e523224887f8cfd4a348b039ae87e1`.
+Trace manifest verifies unchanged assembly. Retained evidence is under
+`tools/permuter_findings/func_actor_107000_80134C2C/` (run
+`7299304e9c474338/analysis/node_schedule`). Final body `ActorSpecimenInit` serves
+actor_107000 and actor_207000; unscoped build/verification passed for both.
