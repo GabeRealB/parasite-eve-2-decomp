@@ -1471,7 +1471,129 @@ void func_actor_110600_80135194(Actor110600* arg0)
     func_actor_110600_80134728(arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80135454);
+static __inline__ s16 Actor110600_WrapHitAngle(s16 angle)
+{
+    if (angle < 0) {
+    neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto neg;
+        }
+    } else {
+    pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto pos;
+        }
+    }
+    return angle;
+}
+
+static __inline__ s32 Actor110600_TickShake(void)
+{
+    D_actor_110600_8014865C++;
+    if (D_actor_110600_8014865C == 5)
+        D_actor_110600_8014865C = 0;
+    if (!(D_actor_110600_8014865C & 1))
+        Display_ClampField126(0);
+    else
+        Display_ClampField126(1);
+    if (D_actor_110600_8014865C == 0) {
+        Display_ClampField126(0);
+        return 1;
+    }
+    return 0;
+}
+
+void func_actor_110600_80135454(Actor110600* arg0)
+{
+    Actor110600Work*   work;
+    TmdObject*         obj;
+    GpEnemy*           enemy;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     facing;
+    Actor110600Walker* walker;
+    SVECTOR            delta;
+    SVECTOR*           d;
+    s16                angle;
+    u16                ramp;
+    u16                timer;
+    s32                mode;
+    s32                pose;
+    s32                nextPose;
+
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj->flags             = 0;
+        work->field_A90.flags &= 0x7FFF;
+        work->field_950.flags |= 0x4000;
+        enemy->node.flags      = 8;
+        timer                  = work->field_898;
+        work->field_88C        = 1;
+        do {
+            CLOBBER_REG(v0);
+            work->field_B90 = 1;
+            mode            = (s16)work->field_898;
+            work->field_892 = 2;
+        } while (0);
+        work->field_896 = timer;
+        if (mode == 0x38)
+            work->field_B82 = 0x30;
+        work->field_B82 = 0x1C;
+        work->field_BE0 = 0;
+    }
+    if (work->field_88E == 0) {
+        work->field_B86 = (s16)work->field_8B6 * work->field_896 / 16;
+        if ((s16)func_actor_110600_801341A4(arg0->field_2C->coords, 0x1A4, (s16)work->field_B86) == 0)
+            work->field_B86 = 0;
+    } else {
+        work->field_B86 = (u16)(work->field_8B4 * work->field_896 / 1520) / 2;
+        if ((s16)func_actor_110600_801341A4(arg0->field_2C->coords, 0x1A4, (s16)work->field_B86) == 0)
+            work->field_B86 = 0;
+    }
+    coord    = arg0->field_2C->coords;
+    d        = &delta;
+    delta.vx = (u16)D_80073B8C->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)D_80073B8C->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)D_80073B8C->t[2] - (u16)coord->coord.t[2];
+    if (Actor110600_OutsideRadius(&delta, 900) == 0)
+        work->field_B86 = 0;
+    walker           = (Actor110600Walker*)&work->field_B28;
+    ramp             = work->field_B86;
+    walker->field_60 = 0;
+    walker->field_5C = ramp;
+    walker->field_5E = ramp;
+    func_actor_110600_80133A94(walker);
+    work->field_BE0++;
+    facing = arg0->field_2C->coords;
+    angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    angle  = Actor110600_WrapHitAngle(angle);
+    if (abs(angle) < 0x80) {
+        if (Actor110600_OutsideRadius(&delta, 500) != 0) {
+            if (Actor110600_OutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 25)
+                work->field_0 = 5;
+        }
+    }
+    if (Actor110600_OutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 91)
+        work->field_0 = 5;
+    work->field_8A2 = angle;
+    func_actor_110600_80134728(arg0);
+    pose = work->field_4E & 0x3FF;
+    if ((pose == 0x33) && (work->field_888 != pose)) {
+        work->field_BE8 = 1;
+    }
+    nextPose = work->field_4E & 0x3FF;
+    if ((nextPose == 0x26) && (work->field_888 != nextPose)) {
+        work->field_BE8 = 2;
+    }
+    work->field_888 = (s32)(work->field_4E & 0x3FF);
+    if (work->field_BE8 != 0) {
+        if (Actor110600_TickShake() != 0)
+            work->field_BE8 = 0;
+    }
+}
 
 /// Aiming stage: points the model at the camera target. Entering on a live
 /// actor re-arms it — clear the model object, drop bit 0x8000 of
@@ -1698,24 +1820,6 @@ void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2)
     D_actor_110600_80148698.spawnArgHi = 3;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->field_2C->coords[sc->pad], sc, &D_actor_110600_80148698);
     *(u32*)G_SCRATCH_HEAD += 8;
-}
-
-static __inline__ s16 Actor110600_WrapHitAngle(s16 angle)
-{
-    if (angle < 0) {
-    neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto neg;
-        }
-    } else {
-    pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto pos;
-        }
-    }
-    return angle;
 }
 
 static __inline__ s32 Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count)

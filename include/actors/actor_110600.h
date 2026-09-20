@@ -404,7 +404,8 @@ typedef struct Actor110600Work {
     /// on (`field_0 = 3`), bit 1 is the timer gate
     /// `func_actor_110600_80136888` retimes on.
     /* 0x05C */ u16  field_5C;
-    /* 0x05E */ byte pad_5E[0x82E];
+    /* 0x05E */ byte pad_5E[0x82A];
+    /* 0x888 */ s32  field_888;
     /* 0x88C */ s16  field_88C;
     /* 0x88E */ s16  field_88E;
     /* 0x890 */ byte pad_890[2];
@@ -503,7 +504,8 @@ typedef struct Actor110600Work {
     /* 0xBE2 */ s16  field_BE2;
     /* 0xBE4 */ s16  field_BE4;
     /* 0xBE6 */ s16  field_BE6;
-    /* 0xBE8 */ byte pad_BE8[4];
+    /* 0xBE8 */ s16  field_BE8;
+    /* 0xBEA */ byte pad_BEA[2];
 } Actor110600Work;
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
@@ -772,6 +774,8 @@ extern u32 Gp_LcgState;
 /// `Display_ClampField126` with the low bit (0 or 1). Returns 1 on wrap.
 extern s16 D_actor_110600_8014865C;
 s32        func_actor_110600_80138900(void);
+
+s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s32 radius, u32 step);
 
 /// Recoil push stage `func_actor_110600_80137AF4` indexes for the speed it
 /// moves the actor by, and bumps once that push has landed. Reset to 0 first,

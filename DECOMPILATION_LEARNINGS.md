@@ -136587,3 +136587,46 @@ Preprocessed input SHA256:
 - base_2.i: `c1fd7a66ae85577b6f63df59f01c2dcc7715664aff541fd0db4b221b72b6f155`
 - base_4.i: `c955f7edd7d9c7a60d566d4a8f5643404ca3c6673ad5ff9f5823deae453f1f62`
 - base_8.i: `a657633af0851db4af3d63599157dfc4c745b505e077d737546f8249ab51d1ff`
+
+## A once-loop is also a scheduler boundary, and a local clobber can constrain one quantity without a register pin (func_actor_110600_80135454, 2026-09-20)
+
+The bounded permuter changed only three initialization statements by enclosing
+them in `do { ... } while (0)`. Paired verification improved distance 420 -> 40,
+and preplanned `base_10.c` reproduced the gain in ordinary header context.
+The transformation preserved evaluation order and values.
+
+This was not just loop-depth weighting. Patched GCC 2.8.1 `sched.c`,
+`sched_analyze_insn` around line 2085, explicitly prevents scheduling across
+LOOP_BEG/END notes to preserve weighted reference information. It attaches
+register dependencies and flushes pending memory accesses at the instruction
+carrying the notes. In `base_10.i.sched`, byte store UID62 carries the entry
+boundary, signed halfword load67 depends on62, and timer store85 after the
+exit depends on67/70/72. This keeps the signed read before the timer store;
+without the notes sched1 selected the reverse order and the two loads reused
+a register, preventing the target delay-slot store.
+
+Splitting the timer snapshot from a later walker ramp (`base_11.c`) made both
+local quantities and reduced the remaining distance to 15: only the constant
+one's `li/sh/sb` operands differed. The tracer observed its actual local
+quantity, r105, refs4/span4, priority20000 -> v0. A preplanned local
+`CLOBBER_REG(v0)` between its two stores (`base_13.c`) created a conflict
+without emitting code. The trace then observed refs4/span8, priority10000 ->
+v1; timer stayed a0, the signed comparison stayed v1, and reload preference
+order was unchanged. Exactly the three predicted operands changed: distance
+zero. Both traces passed the unchanged-assembly check. The typed-field port
+`base_14.c` and full unscoped build also matched.
+
+A function-local v1 pin (`base_12.c`) fixed those three operands but disturbed
+eight distant HI/LO copies during reload, so it was discarded. Its detailed
+retry mechanism remains unresolved; this is not evidence that local pins
+reserve a register globally. The final implementation has no pins.
+
+Inputs (SHA256): base_10.i
+`a47278b1723b7a474a02f2aec9fac557699eed1ec26be28487b8b85036b4965f`;
+base_11.i `516138a1de2405c6068057a199910f0807d9cd935d52e6c25ffefe874793a9fc`;
+base_13.i `8e9619f2598f8b969300abd26bf750bc7d07c34fb10b86f13a5af3fc78f61448`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Retained under `tools/permuter_findings/func_actor_110600_80135454/`, experiment
+`cbe5d90c1ff54fbe`, with analysis and two complete traces. Register outcomes
+are specific to this compilation; the scheduler boundary rule is supported
+by both compiler source and the controlled dump comparison.
