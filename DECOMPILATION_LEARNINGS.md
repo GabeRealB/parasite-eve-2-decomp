@@ -136740,3 +136740,28 @@ Reload's precise scratch ranking was not traced.
 
 Compiler/input hashes and selected dump excerpts:
 `tools/compiler_evidence/2026-09-20-actor421600-36138.json`.
+
+
+### Promote a cached byte before both its comparison and halfword store (func_actor_421600_801354D8, 2026-09-20)
+
+A `u8 debugMode = D_80072729` compared with 1 then stored to an s16 field
+retained two promotions: `.rtl` UID1590 zero-extends QI r81 to SI for the
+comparison, while UID1606 zero-extends it to HI for the store. The latter
+survives `.combine` as `zero_extendqihi2` and emits an extra `andi 0xff`.
+With an s32 local, UID1587 is `zero_extend:SI(mem:QI)` and UID1605 stores
+`subreg:HI(r81)`, reusing the already-extended value without a mask.
+
+The permuter found this alongside an equivalent member-access spelling and
+a work-pointer alias. Preplanned controlled base_6 changes only the local type
+and reproduces the verified output's assembly exactly: distance 266 -> 90.
+Those other mutations are unnecessary. Subsequent unrelated offset and
+allocation fixes yield the exact typed port base_7; full unscoped build passes.
+This supports this compare/store promotion pattern, not arbitrary widening.
+
+Inputs: base_2.i SHA256
+`55bec621d31a2b71b6f5c32697f67b4674cfafcc9a05eeb98af1109ee2358f59`;
+base_6.i SHA256
+`dd55fac3476bddd696cecacdbf3b7f73340bab1063cd555556325d52229dd331`.
+Retained source/dump evidence and prediction are under
+`tools/permuter_findings/func_actor_421600_801354D8/` for session
+`7b75fcd945f94404a4824f94cc9c63e6`, run `3b900e5d101845f6`.

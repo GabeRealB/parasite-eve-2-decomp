@@ -101,8 +101,9 @@ typedef struct Actor421600Work {
     /* 0x832 */ u16  field_832;
     /// Source `func_actor_421600_8013848C` copies into `field_832`; the anim
     /// view above still reaches it through its own padding.
-    /* 0x834 */ u16  field_834;
-    /* 0x836 */ byte pad_836[4];
+    /* 0x834 */ u16 field_834;
+    /* 0x836 */ s16 field_836;
+    /* 0x838 */ s16 field_838;
     /// Clip id `func_actor_421600_80133B30` copies into the blend slots.
     /* 0x83A */ u16  field_83A;
     /* 0x83C */ byte pad_83C[2];
@@ -141,7 +142,9 @@ typedef struct Actor421600Work {
     /// Reply buffer for message 0x3F8; field_8E4 selects query mode 8.
     /* 0x8D0 */ byte  field_8D0[0x14];
     /* 0x8E4 */ s32   field_8E4;
-    /* 0x8E8 */ byte  pad_8E8[4];
+    /* 0x8E8 */ u8    field_8E8;
+    /* 0x8E9 */ u8    field_8E9;
+    /* 0x8EA */ s16   field_8EA;
     /* 0x8EC */ GpObj field_8EC;
     /// `GpRec18` table paired with `field_8EC`, the same 0x20-byte stride
     /// `field_B8C` keeps after `field_B6C`.
@@ -166,7 +169,10 @@ typedef struct Actor421600Work {
     /* 0xCE4 */ GpRec18           field_CE4[12];
     /* 0xE04 */ MATRIX            field_E04;
     /* 0xE24 */ MATRIX            field_E24;
-    /* 0xE44 */ byte              pad_E44[0x2C];
+    /* 0xE44 */ byte              pad_E44[0x20];
+    /* 0xE64 */ s16               field_E64;
+    /* 0xE66 */ u16               field_E66;
+    /* 0xE68 */ byte              pad_E68[8];
     /* 0xE70 */ s16               field_E70;
     /* 0xE72 */ byte              pad_E72[2];
     /* 0xE74 */ s16               field_E74;
@@ -204,6 +210,27 @@ typedef struct Actor421600Work {
     /* 0xEAE */ byte pad_EAE[2];
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
+
+typedef struct Actor421600DamageScratch {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[2];
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+    /* 0x1C */ s16  field_1C;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ s32  field_20;
+    /* 0x24 */ s32  field_24;
+    /* 0x28 */ s32  field_28;
+    /* 0x2C */ s16  field_2C;
+    /* 0x2E */ s16  field_2E;
+} Actor421600DamageScratch;
+STATIC_ASSERT_SIZEOF(Actor421600DamageScratch, 0x30);
 
 /// Animation view of the same work block, as `func_actor_421600_80133B30`
 /// reads it: the pose context at 0x1C and its blend twin at 0x420, each

@@ -921,7 +921,317 @@ void func_actor_421600_801350BC(Actor421600* arg0, s16 arg1, s32 arg2)
     *(u32*)G_SCRATCH_HEAD += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801354D8);
+static __inline__ s32 Actor421600_FindDamageHit(GpRec18* records,
+                                                SVECTOR* pos)
+{
+    s16 i;
+    for (i = 0; i < 12; i++) {
+        if (!records[i].key)
+            break;
+        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key;
+        }
+    }
+    return 0;
+}
+
+void func_actor_421600_801354D8(Actor421600* arg0)
+{
+    s32                       callAngle;
+    s32                       debugMode;
+    PlayerStatus*             config = &Player_Status;
+    s16                       effect;
+    s16                       delta;
+    s16                       z;
+    s32                       state5;
+    s16                       damageState;
+    s16                       deathState;
+    s16                       hurtState;
+    s16                       poisonState;
+    s16                       state0;
+    s16                       state1;
+    s16                       state2;
+    s16                       state3;
+    s16                       state4;
+    s16                       wrapped;
+    s16                       hitState;
+    s16                       nextDeathState;
+    GsCOORDINATE2*            objectCoord;
+    s32                       tickDamage;
+    s32                       dxSquared;
+    s32                       dySquared;
+    s32                       yaw;
+    s32                       deathSound;
+    s32                       hurtSound;
+    s32                       hitSound;
+    s32                       doubleDamage;
+    s32                       dx;
+    s32                       dy;
+    s32                       dz;
+    s32                       distance;
+    SVECTOR*                  hitPos;
+    s32                       soundBase;
+    s32                       deathPan;
+    s32                       hurtPan;
+    s32                       hitPan;
+    u16                       totalDamage;
+    u32                       kind;
+    Actor421600Work*          work;
+    GpEnemy*                  enemy;
+    Actor421600DamageScratch* scratch;
+    void*                     head;
+    enemy = arg0->field_20;
+    work  = arg0->field_1C;
+    if (enemy->hp > 0) {
+        head              = *(void**)G_SCRATCH_HEAD;
+        scratch           = (*(Actor421600DamageScratch**)G_SCRATCH_HEAD =
+                       (Actor421600DamageScratch*)head - 1);
+        scratch->field_20 = Actor421600_FindDamageHit(
+            &work->field_90C, (SVECTOR*)&scratch->field_18);
+        if (scratch->field_20 == 0) {
+            hitPos            = (SVECTOR*)&scratch->field_18;
+            scratch->field_20 = Actor421600_FindDamageHit(&work->field_A4C, hitPos);
+        }
+        if (scratch->field_20 != 0) {
+            scratch->field_2E = -1;
+            work->field_E64   = Gp_GetIdParam2(scratch->field_20);
+            kind              = Gp_GetIdParam0(scratch->field_20) & 0xFFFF;
+            switch (kind) {
+                case 0:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    state0 = work->field_0;
+                    if (state0 == 24 || state0 == 38 || state0 == 39 || state0 == 1) {
+                        if (work->field_0 == 0x20) {
+                            work->field_0 = 3;
+                        } else {
+                            work->field_0 = 0x1C;
+                        }
+                    }
+                    if (work->field_0 == 0x21) {
+                        work->field_0 = 0x22;
+                    }
+                    if (work->field_82A == 0) {
+                        work->field_E66 = 0U;
+                    }
+                    state1 = work->field_0;
+                    if ((state1 != 0x22) && (state1 != 0x14) && (state1 != 0x11) &&
+                        (state1 != 0x15) && (state1 != 0x16) && (state1 != 4) &&
+                        (state1 != 0xB) && (state1 != 0x24) && (state1 != 7)) {
+                        work->field_82A = 1;
+                        work->field_838 = 9;
+                        work->field_836 = 2;
+                    }
+                    break;
+                case 4:
+                case 5:
+                    state2 = work->field_0;
+                    if (state2 == 4 || state2 == 11 || state2 == 20 || state2 == 17) {
+                        work->field_0 = 11;
+                        work->field_2 = -1;
+                    } else if (state2 != 21 && state2 != 7) {
+                        work->field_0 = 20;
+                    }
+                    break;
+                case 2:
+                    state3 = work->field_0;
+                    if (state3 == 33 || state3 == 4 || state3 == 11 || state3 == 17) {
+                        work->field_0 = 11;
+                        work->field_2 = -1;
+                    } else if (state3 != 21 && state3 != 7) {
+                        work->field_0 = 20;
+                    }
+                    Gp_SetObjFlag2((GpObj5D*)enemy, scratch->field_20, 0);
+                    break;
+                case 3:
+                    state4 = work->field_0;
+                    if ((state4 == 0x18) || (state4 == 0x26) || (state4 == 1) ||
+                        (state4 == 0x20)) {
+                        work->field_0 = 0x1C;
+                    }
+                    if (work->field_0 == 0x21) {
+                        work->field_0 = 0x22;
+                    }
+                    Gp_SetObjFlag4((GpObj5C*)enemy, scratch->field_20, 0);
+                    break;
+                case 1:
+                    state5 = work->field_0;
+                    if (state5 != 7) {
+                        if (state5 == 4 || state5 == 11 || state5 == 20 || state5 == 17 ||
+                            (state5 == 36 && (s16)work->field_6 < 10)) {
+                            hitState      = 11;
+                            work->field_0 = hitState;
+                        } else if (state5 != 21 && state5 != 0 && state5 != 22 &&
+                                   state5 != 7) {
+                            hitState      = 20;
+                            work->field_0 = hitState;
+                        }
+                    }
+                    break;
+            }
+            dx                          = config->coordMtx->t[0] - arg0->field_2C->coords->coord.t[0];
+            dxSquared                   = dx * dx;
+            scratch->field_0            = dx;
+            dy                          = config->coordMtx->t[1] - arg0->field_2C->coords->coord.t[1];
+            dySquared                   = dy * dy;
+            scratch->field_4            = dy;
+            dz                          = config->coordMtx->t[2] - arg0->field_2C->coords->coord.t[2];
+            scratch->field_8            = dz;
+            distance                    = SquareRoot0(dxSquared + dySquared + (dz * dz));
+            scratch->field_28           = distance;
+            scratch->field_24           = Gp_ComputeDamage(scratch->field_20, distance, 0, 0);
+            arg0->field_2C->coords->flg = 0;
+            Gp_UpdateCoord(arg0->field_2C->coords);
+            scratch->field_10 = (u16)arg0->field_2C->coords->workm.t[0];
+            scratch->field_12 = (u16)arg0->field_2C->coords->workm.t[1];
+            scratch->field_14 = (u16)arg0->field_2C->coords->workm.t[2];
+            scratch->field_10 =
+                (u16)(scratch->field_18 - arg0->field_2C->coords->workm.t[0]);
+            scratch->field_12 =
+                (u16)(scratch->field_1A - arg0->field_2C->coords->workm.t[1]);
+            z                 = scratch->field_1C - arg0->field_2C->coords->workm.t[2];
+            scratch->field_14 = (u16)z;
+            yaw               = ratan2((s16)scratch->field_10, z);
+            objectCoord       = arg0->field_2C->coords;
+            delta =
+                yaw - ratan2(-objectCoord->workm.m[2][0], objectCoord->workm.m[2][2]);
+            wrapped           = delta;
+            scratch->field_2C = delta;
+            if (delta < 0) {
+                while (1) {
+                    if (wrapped >= -0x800)
+                        break;
+                    wrapped += 0x1000;
+                }
+            } else {
+                while (1) {
+                    if (wrapped <= 0x800)
+                        break;
+                    wrapped -= 0x1000;
+                }
+            }
+            callAngle         = wrapped;
+            scratch->field_2C = callAngle;
+            func_actor_421600_801350BC(arg0, callAngle, scratch->field_20);
+            work->field_844 = 0;
+            work->field_840 = 0;
+            if (Gp_RollEnemyChance(enemy, scratch->field_20, 0) != 0) {
+                scratch->field_2E = 0;
+                scratch->field_24 = (s32)(scratch->field_24 * 4);
+            }
+            damageState = work->field_0;
+            if ((damageState == 4) || (damageState == 0xB) || (damageState == 0x11) ||
+                (damageState == 0x24)) {
+                doubleDamage      = scratch->field_24 * 2;
+                scratch->field_24 = doubleDamage;
+                if (doubleDamage != 0) {
+                    scratch->field_2E = 3;
+                }
+            }
+            func_800E2C78((GpObj40*)enemy, scratch->field_20, scratch->field_24, 0);
+            effect = scratch->field_2E;
+            if (effect != -1) {
+                Gp_SpawnEff(0x6009C, arg0->field_2C->coords + 2, effect, 0);
+            }
+            scratch->field_24 = (s32)(scratch->field_24 * 2);
+            enemy->hp         = (s16)((u16)enemy->hp - (u16)scratch->field_24);
+            func_800DA6E8(&enemy->node, scratch->field_24, 0);
+            totalDamage     = work->field_E66 + (u16)scratch->field_24;
+            work->field_E66 = totalDamage;
+            if (enemy->hp <= 0) {
+                D_actor_421600_80151268 -= 1;
+                if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
+                    nextDeathState = 8;
+                    goto setDeathState;
+                }
+                deathState = work->field_0;
+                if (deathState == 33 || deathState == 17 || deathState == 11 ||
+                    deathState == 4) {
+                    work->field_0 = 11;
+                    work->field_2 = -1;
+                } else if (deathState == 7) {
+                    work->field_0 = 21;
+                    deathSound    = (((u16)enemy->placeKey >> 12) << 8) | 0x40010008;
+                    deathPan      = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+                    SndEvt_EnqueueType6(deathSound, deathPan,
+                                        (s8)gpGetObjDepth(arg0->field_2C->coords));
+                } else {
+                    hurtSound = (((u16)enemy->placeKey >> 12) << 8) | 0x40010008;
+                    hurtPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+                    SndEvt_EnqueueType6(hurtSound, hurtPan,
+                                        (s8)gpGetObjDepth(arg0->field_2C->coords));
+                    nextDeathState = 20;
+                setDeathState:
+                    work->field_0 = nextDeathState;
+                }
+                work->field_8E8 = 9;
+                work->field_8E9 = 1;
+                work->field_8EA = 3;
+                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&work->field_8E8, 0x7DB);
+            } else {
+                if ((s16)totalDamage >= 0x47) {
+                    hurtState = work->field_0;
+                    if ((hurtState != 0x21) && (hurtState != 0x14) &&
+                        (hurtState != 0x11) && (hurtState != 7) &&
+                        (work->field_E90.bytes[2] != 1)) {
+                        soundBase     = 0x40010008;
+                        work->field_0 = 0x14;
+                    } else {
+                        goto normalHitSound;
+                    }
+                } else {
+                normalHitSound:
+                    soundBase = 0x40010007;
+                }
+                hitSound = (((u16)enemy->placeKey >> 0xC) << 8) | soundBase;
+                hitPan   = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+                SndEvt_EnqueueType6(hitSound, hitPan,
+                                    (s8)gpGetObjDepth(arg0->field_2C->coords));
+            }
+            debugMode = D_80072729;
+            if (debugMode == 1) {
+                enemy->hp       = 0x64;
+                work->field_838 = 9;
+                work->field_82A = (s16)debugMode;
+                work->field_836 = 2;
+            }
+        }
+        if (enemy->reactionFlags & 0xC) {
+            scratch->field_24 = Gp_TickObjFlag4((GpObj5C*)enemy);
+            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+                enemy->reactionFlags = (u8)(enemy->reactionFlags & 0xF3);
+            }
+            enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->field_24);
+            tickDamage = scratch->field_24;
+            if (tickDamage != 0) {
+                func_800DA6E8(&enemy->node, tickDamage, 0);
+                if (enemy->hp <= 0) {
+                    D_actor_421600_80151268 -= 1;
+                    poisonState              = work->field_0;
+                    if ((poisonState != 4) && (poisonState != 0xB) &&
+                        (poisonState != 0x11)) {
+                        work->field_0 = 0xC;
+                    } else {
+                        work->field_0 = 0x15;
+                    }
+                } else {
+                    if (work->field_0 == 0x1C) {
+                        work->field_0 = 0x26;
+                    }
+                    work->field_82A = 1;
+                    work->field_838 = 0x12;
+                    work->field_836 = 2;
+                }
+            }
+        }
+        *(u32*)G_SCRATCH_HEAD += 0x30;
+    }
+}
 
 void func_actor_421600_80135F6C(Actor421600* arg0)
 {
