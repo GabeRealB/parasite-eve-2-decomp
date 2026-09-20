@@ -394,4 +394,6 @@ s32 func_actor_403200_801344C4(Task* arg0, s16 arg1);
 /// `work` slot, as `func_actor_403200_8014123C` does.
 void func_actor_403200_80133DD8(Task* task);
 
+extern MATRIX* D_80073B8C;
+
 #endif

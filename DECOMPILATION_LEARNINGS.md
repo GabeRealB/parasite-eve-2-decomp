@@ -134947,3 +134947,42 @@ Plans, source delta, compiler/input hashes and selected dump blocks are retained
 in `tools/compiler_evidence/2026-09-20-actor403200-e2fc.json`. No tracer was
 needed; internal scheduler comparisons were not investigated. The router
 skipped stale incompatible archived candidates and contributed no discovery.
+
+
+## Consistent local-vector pointer reads preserve CSE forwarding (func_actor_403200_8013F700, 2026-09-20)
+
+A retry reproduced 99.206% with all control-flow/call diagnostics matching.
+Its only differences were the absent vector-base address and two stores:
+target vy/vz use `a3+2/+4`, while direct `vec` fields use `sp+18/+20`.
+The already-matched actor_444000_80141DFC supplied the successful spelling:
+`v = &vec`, three stores through `v`, and `ratan2(v->vx, v->vz)`.
+This preplanned candidate matched exactly and passed the full unscoped build.
+
+At cse, UID502 retains the vector pointer r89=fp+16; vx UID515 uses fp+16,
+while vy/vz UID528/541 use r89+2/+4. UID554 consumes the vz subtraction r217
+directly. greg places the pointer in a3 and the subtraction/shifts in a1.
+
+A controlled counterfactual changed only the two ratan2 arguments back to
+`vec.vx, vec.vz`: 98.534%, distance406. The vz read UID553 survives cse as
+fp+20 despite the store using r89+4. lreg already contains the sign-extending
+load at UID559; r217 dies at its store and is allocated v0 instead of a1.
+Thus the previous retry's extra read was not introduced by reload, and
+register-pinning would address a downstream symptom. Check whether stores
+and reads present the same address expression to CSE before adjusting homes.
+This establishes the source-form/forwarding result for this function; the
+internal path declining to canonicalize these two addresses was not traced.
+
+The router independently found a valid translation-array alias on the source
+coordinate, improving distance220 to40. A minimal normal-header port reproduced
+identical assembly: cse materializes coord+24 in a2, then reads +4/+8, while
+vector stores remain sp-relative. This lower score did not solve the target's
+vector-address requirement. The final match uses the sibling idiom above.
+
+Evidence: tools/permuter_findings/func_actor_403200_8013F700/sessions/
+6f3b62826bdc4518a2abadfee6876884/5205167bcc17aa0b04c5, including notes,
+retained router run 1ef7d478de864c11, and planned base_1/base_2/base_3 probes.
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Preprocessed SHA256s:
+- exact base_1: 47b73439b1c476d44eb426eba24ae0523b8c5cf3b21a28937615ab244004adc1
+- source-alias base_2: 4b94b39d906873cff6bbef5f0e054bf08021aa6c36085bdb15b3e983b23dc44c
+- direct-read base_3: add60566a4eeaa8b72492967e254e158c2b6a54ae5e5a81febaba112af36ffc3

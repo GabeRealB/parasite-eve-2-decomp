@@ -2248,7 +2248,142 @@ void func_actor_403200_8013EB64(Task* arg0)
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013EF6C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013F700);
+void func_actor_403200_8013F700(Task* arg0)
+{
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
+    GpEnemy*         enemy;
+    GpEnemy*         spawned;
+    GpAreaKey*       sessionKey;
+    GpAreaKey*       keyp;
+    u8               areaByte0;
+    SVECTOR          vec;
+    SVECTOR*         v;
+    GpAreaKey        key;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   rot;
+    GpAreaPlace*     entry;
+    TmdObject*       model;
+    s16              i;
+    s16              j;
+    s16              angle;
+    s32              sfx;
+    s32              pan;
+
+    work  = (Actor403200Work*)arg0->work;
+    enemy = arg0->spawnArg2;
+    if (work->field_4 != 0) {
+        work->field_7B3                  = 0xE;
+        work->field_7B0                  = 1;
+        escorts                          = (Actor403200Work*)arg0->work;
+        escorts->field_7F3               = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =
+                    ((TmdObject*)arg0->extra)->flags;
+            }
+        }
+        dying = (Actor403200Work*)arg0->work;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_EF6 = 1;
+        work->field_EF4 = 0;
+        work->field_EFA = 0;
+        work->field_EFE = 0;
+        work->field_E96 = 0xC80;
+    }
+    switch (work->field_6) {
+        case 0x64:
+        case 0x104:
+            if ((s8)work->field_F1A > 0) {
+                work->field_7B3 = 0x10;
+                work->field_7B0 = 1;
+                work->field_EF4 = 1;
+                work->field_F1A--;
+            } else {
+                work->field_0   = 0xA;
+                work->field_EFE = 0;
+            }
+            break;
+        case 0x74:
+            sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200017;
+            pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords);
+            SndEvt_EnqueueType6(
+                sfx, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords));
+            break;
+        case 0x1A4:
+            work->field_0   = 0xA;
+            work->field_EFE = 0;
+            work->field_F1A = 0;
+            break;
+        case 0x9B:
+        case 0x113:
+            work->field_EFE = 0x80;
+            break;
+        case 0xAF:
+        case 0x145:
+            spawned           = Gp_SpawnEnemyFromTable(&D_actor_403200_8015E858, 3, 0, arg0->spawnArg2);
+            spawned->workType = 0x900;
+            work->field_EF0   = spawned;
+            if (spawned != NULL) {
+                model      = (TmdObject*)spawned->task->extra;
+                sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
+                key.stage  = sessionKey->stage;
+                key.area   = sessionKey->area;
+                key.room   = sessionKey->room;
+                areaByte0  = sessionKey->view;
+                SOFT_BARRIER();
+                keyp = &key;
+                TOUCH_REG(keyp);
+                key.view = areaByte0;
+                Gp_SyncAreaKeyIndex(keyp);
+                entry        = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+                model->tpage = entry->tpage;
+                model->clut  = entry->clut;
+                if (model->buffer != NULL) {
+                    tmdProcessStream(model);
+                    tmdProcessStream(model);
+                }
+                work->field_EFE = 0;
+            }
+            break;
+    }
+    coord = ((TmdObject*)arg0->extra)->coords;
+    v     = &vec;
+    v->vx = D_80073B8C->t[0] - coord->coord.t[0];
+    v->vy = D_80073B8C->t[1] - coord->coord.t[1];
+    v->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    rot   = ((TmdObject*)arg0->extra)->coords;
+    angle = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+    if (angle < 0) {
+    wrapUp:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto wrapUp;
+        }
+    } else {
+    wrapDown:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto wrapDown;
+        }
+    }
+    work->field_7C4 = angle;
+    func_actor_403200_80133DD8(arg0);
+    if (work->field_7B3 == 0x10 && (work->field_58 & 1)) {
+        work->field_7B3 = 0xE;
+        work->field_7B0 = 1;
+    }
+    if (work->field_6 >= 0x15) {
+        work->field_F06 = 3;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013FB54);
 
