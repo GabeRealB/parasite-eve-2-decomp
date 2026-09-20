@@ -319,7 +319,147 @@ void func_actor_110600_80132D54(Actor110600Walker* work)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80132FE0);
+static __inline__ s16 Actor110600BearingXZ(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                    head;
+    Actor110600AvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (Actor110600AvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vz);
+}
+
+static __inline__ s16 Actor110600BearingXY(SVECTOR3* p, SVECTOR3* eye)
+{
+    u8*                    head;
+    Actor110600AvoidDelta* d;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (Actor110600AvoidDelta*)(head - 0x10);
+    d->vx                 = p->vx - eye->vx;
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = p->vy - eye->vy;
+    d->vz                 = p->vz - eye->vz;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vy);
+}
+
+void func_actor_110600_80132FE0(Actor110600Walker* work)
+{
+    u8*                      head;
+    Actor110600AvoidScratch* s;
+    s16                      diff;
+    s16                      t;
+    s32                      mag;
+
+    if (D_80072729 == 1) {
+        return;
+    }
+
+    work->blocked = 0;
+    work->push.vz = 0;
+    work->push.vy = 0;
+    work->push.vx = 0;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor110600AvoidScratch);
+    s                     = (Actor110600AvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
+    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
+
+    if (ABS(s->dir.vz) < 0x818) {
+        s->face = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
+    } else {
+        s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
+    }
+
+    s->eye.vx = *(u16*)&work->coord->workm.t[0];
+    s->eye.vy = *(u16*)&work->coord->workm.t[1];
+    s->eye.vz = *(u16*)&work->coord->workm.t[2];
+    s->count  = 0;
+
+    for (s->i = 0; s->i < work->avoidCount; s->i++) {
+        if (work->avoidRecs[s->i].key == 0) {
+            break;
+        }
+        s->kind = work->avoidRecs[s->i].key & 0xFFFF0000;
+        if (s->kind != 0x10000) {
+            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key != 0) {
+                continue;
+            }
+        } else {
+            work->blocked = 1;
+        }
+
+        if (ABS(s->dir.vz) < 0x818) {
+            s->angle[s->count] =
+                Actor110600BearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
+        } else {
+            s->angle[s->count] =
+                Actor110600BearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
+        }
+        s->ok[s->count] = 1;
+        s->count++;
+        if (s->count >= 8) {
+            break;
+        }
+    }
+
+    for (s->i = 0; s->i < s->count; s->i++) {
+        for (s->j = s->i + 1; s->j < s->count; s->j++) {
+            diff = (u16)s->angle[s->i] - (u16)s->angle[s->j];
+            t    = diff;
+            if (diff < 0) {
+            wrapUp:
+                if (t < -0x800) {
+                    t += 0x1000;
+                    goto wrapUp;
+                }
+            } else {
+            wrapDown:
+                if (t > 0x800) {
+                    t -= 0x1000;
+                    goto wrapDown;
+                }
+            }
+            mag     = t;
+            s->diff = mag;
+            SOFT_BARRIER();
+            if (mag < 0) {
+                mag = -mag;
+            }
+            if (mag >= 0x401) {
+                s->ok[s->i] = 0;
+                s->ok[s->j] = 0;
+            }
+        }
+        if (s->ok[s->i] != 0) {
+            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+                   ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
+            s->diff = diff;
+            Gfx_RotMatrixY(&s->m, diff, 1);
+            Gfx_MatrixCol2(&s->m, &s->dir);
+            VectorNormalSS(&s->dir, &s->dir);
+            gte_lddp(-10);
+            gte_ldsv(&s->dir);
+            gte_gpf12_real();
+            gte_stsv(&s->dir);
+            work->push.vx           += s->dir.vx;
+            work->push.vz           += s->dir.vz;
+            work->coord->coord.t[0] += s->dir.vx;
+            work->coord->coord.t[2] += s->dir.vz;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD =
+        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(Actor110600AvoidScratch);
+}
 
 /// Bearing of `pos` from the walker's coordinate translation in the XZ plane,
 /// measured in a delta block of its own that is released before `ratan2` runs.

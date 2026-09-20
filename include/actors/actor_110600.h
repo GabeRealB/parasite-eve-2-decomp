@@ -87,14 +87,18 @@ typedef struct Actor110600Walker {
     /// `work + 0x970`). The acropolis bridge room's walker type names the same
     /// slot `field_C`.
     /* 0x0C */ GpRec18* recs;
-    /* 0x10 */ byte     pad_10[0xC];
+    /// Contact records inspected by the avoidance step.
+    /* 0x10 */ GpRec18* avoidRecs;
+    /* 0x14 */ byte     pad_14[0x8];
     /// How far the walker moves this frame, rebuilt every tick by the
     /// ramp-scaling step and left zeroed while the game is frozen.
     /* 0x1C */ SVECTOR moveStep;
     /// The whole-unit step the per-frame behaviour step applied to `coord` this
     /// frame, kept for the state handlers that follow.
     /* 0x24 */ SVECTOR moveDelta;
-    /* 0x2C */ byte    pad_2C[0x8];
+    /// Accumulated XZ displacement applied by the avoidance step.
+    /* 0x2C */ SVECTOR3 push;
+    /* 0x32 */ byte     pad_32[0x2];
     /// The model's saved rotation, which the turn step copies back onto
     /// `coord` before rebuilding it around the yaw it just turned to.
     /* 0x34 */ MATRIX scaleMtx;
@@ -102,8 +106,9 @@ typedef struct Actor110600Walker {
     /// Number of `GpRec18` records in `recs`, handed to `func_800E0C10`
     /// alongside it and 12 at spawn; the acropolis bridge room's walker type
     /// names the same slot `field_56`.
-    /* 0x56 */ s16  field_56;
-    /* 0x58 */ byte pad_58[0x2];
+    /* 0x56 */ s16 field_56;
+    /// Number of records available in `avoidRecs`.
+    /* 0x58 */ s16  avoidCount;
     /* 0x5A */ s16  field_5A;
     /* 0x5C */ u16  field_5C;
     /* 0x5E */ u16  field_5E;
@@ -140,14 +145,34 @@ typedef struct Actor110600Walker {
     /// leaves `field_73` to carry the cursor across the gap.
     /* 0x75 */ u8 field_75;
     /// Index into `nav`'s byte table of the patrol node the walker heads for.
-    /* 0x76 */ u8   cursor;
-    /* 0x77 */ byte pad_77[0x1];
+    /* 0x76 */ u8 cursor;
+    /// Set when an avoidance record has kind 0x10000.
+    /* 0x77 */ u8 blocked;
     /// Whether the per-frame behaviour step left the coordinate translation
     /// non-zero in XZ, i.e. whether the walker moved at all this frame.
     /* 0x78 */ u8   moving;
     /* 0x79 */ byte pad_79[0x33];
 } Actor110600Walker;
 STATIC_ASSERT_SIZEOF(Actor110600Walker, 0xAC);
+
+/// Scratch frame for collecting up to eight obstacle bearings, rejecting
+/// pairs more than 0x400 angle units apart, and applying the surviving pushes.
+typedef struct Actor110600AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ byte     pad_53[0x1];
+} Actor110600AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor110600AvoidScratch, 0x54);
 
 /// 0x10-byte scratch block the turn step carves off the frame it already
 /// holds to stage the XZ offset between the position it is turning towards and
