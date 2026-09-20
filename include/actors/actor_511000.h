@@ -57,7 +57,8 @@ typedef struct Actor511000ParentWork {
     /* 0x43C */ MATRIX     field_43C; ///< colour matrix, handed to TmdObject::colorMtx
     /* 0x45C */ MATRIX     field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ s32        field_47C; ///< cleared by the spawn handler
-    /* 0x480 */ byte       pad_480[8];
+    /* 0x480 */ s16        field_480; ///< frame counter; fades both matrices every third tick in state 3+
+    /* 0x482 */ byte       pad_482[6];
 } Actor511000ParentWork;
 STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 
@@ -114,5 +115,7 @@ void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 i
 void func_actor_511000_80133760(Task* task);
 void func_actor_511000_801337F0(Task* task);
 s32  func_actor_511000_80133DEC(Task* task, s32 arg1, Actor511000AnimPreset* preset);
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 #endif // ACTOR_511000_H

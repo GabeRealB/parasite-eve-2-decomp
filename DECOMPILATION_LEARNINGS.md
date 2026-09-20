@@ -3,6 +3,39 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Delay the scratch-position copy through a flag load, with scalar accesses separating memory dependencies (func_actor_511000_80133B80, 2026-09-20)
+
+The archived 99.652% body had the right instruction order but assigned the
+scratch address to v1, the model pointer to a0 and the first flag load to v0.
+That last home also let jump threading skip the next flag reload. A struct
+view of the scratch head constrained all later struct reads after its store;
+moving that store after the flag fixed one lifetime but prevented sched2 from
+restoring the target order.
+
+The successful unpinned source uses scalar head accesses and
+`extra = *(TmdObject**)&task->extra`. The latter preserves the field access
+while making just this read scalar MEM. It conflicts with the scalar head
+store, while later struct work/coords/flag reads can move independently.
+This alone produced identical assembly (base_2), but changed dependencies.
+Then initialize `coord`, read `flag = work->field_47C`, and only afterwards
+assign `pos = (VECTOR*)*(u32*)G_SCRATCH_HEAD` (base_7).
+
+In base_7's backward sched1, copy UID41 wins at T-2 over coordinate calculation
+UID33; flag UID36 follows at T-3. Thus the computed head remains live through
+the flag in forward order. The lreg homes become head=v0, flag=v1, extra=v1
+and scratch=a0. Sched2 subsequently picks loads UID30/27 and store UID24 over
+the copy on greater potential hazard, restoring the required forward order.
+The predicted lifetime/scheduling change gives an exact scratch match and
+passes the unscoped integration build, without any asm helpers.
+
+This is an observed dependency and lifetime intervention, not a claim that
+declaration order or per-pseudo ratios predict local quantity allocation.
+Exact quantity priorities were not traced. Sources, plans, build records,
+input hashes and selected dumps are retained in
+`tools/compiler_evidence/2026-09-20-actor511000-33b80.json`.
+Input SHA256s: base_2 `b5698a43f1d454ac361262867c1310ef5e322a1149e755b5ce1559e093596bd1`;
+base_7 `10e27d2490ce2a449f9ef8d8811833b66a862ecd7b4dbbdd749225ea4792b408`.
+
 ## Carry loop-produced masks into the tail as ordinary pseudos, then rank the local tag quantities (func_actor_403600_80132A18, 2026-09-19)
 
 The archived 96.7% screen-grid candidate rematerialized tag masks after its

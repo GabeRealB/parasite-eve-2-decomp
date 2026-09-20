@@ -4,6 +4,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
@@ -253,4 +254,58 @@ void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     task->state = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_511000/actor_511000_5", func_actor_511000_80133B80);
+void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
+{
+    TmdObject*             extra;
+    VECTOR*                pos;
+    VECTOR*                out;
+    Actor511000ParentWork* work;
+    GsCOORDINATE2*         coords;
+    GsCOORDINATE2*         coord;
+    s32                    i;
+    s32                    j;
+    s32                    flag;
+
+    extra                  = *(TmdObject**)&task->extra;
+    *(u32*)G_SCRATCH_HEAD -= 0x20;
+    work                   = (Actor511000ParentWork*)task->work;
+    coords                 = extra->coords;
+    coord                  = &coords[1];
+    flag                   = work->field_47C;
+    pos                    = (VECTOR*)*(u32*)G_SCRATCH_HEAD;
+    if (flag != 0) {
+        for (i = 1; i < 19; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (work->field_47C < 3) {
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        pos->vx = coord->workm.t[0];
+        pos->vy = coord->workm.t[1];
+        pos->vz = coord->workm.t[2];
+        Gp_UpdateActorColor(enemy, pos, 0, 0);
+        pos->vx = coord->workm.t[0];
+        pos->vy = coord->workm.t[1];
+        pos->vz = coord->workm.t[2];
+        out     = pos + 1;
+        if (func_800EA1A8((VECTOR3*)pos, (VECTOR3*)out) != 0) {
+            Gp_DrawEffGroundQuad((VECTOR3*)out, 0x400, Gp_State1C->groundShade);
+        }
+    } else {
+        if ((s16)(work->field_480 % 3) == 0) {
+            for (i = 0; i < 3; i++) {
+                for (j = 0; j < 3; j++) {
+                    work->field_43C.m[i][j] = (work->field_43C.m[i][j] * 15) >> 4;
+                    work->field_45C.m[i][j] = (work->field_45C.m[i][j] * 15) >> 4;
+                }
+            }
+        }
+        if (work->field_480 > 96) {
+            task->state = 2;
+        }
+    }
+    work->field_480++;
+    coords->flg             = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
