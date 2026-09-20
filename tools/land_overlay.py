@@ -135,13 +135,21 @@ def merge_difficult(current: str, incoming: str, base: str = "") -> str:
     difficult function *removes* its line in the worktree, and unioning that
     with trunk's copy puts the give-up straight back, so the list keeps
     advertising a give-up for a function that is now matched - which is exactly
-    what vacuum.sh's forget_difficult_entry exists to prevent. Take trunk's
-    lines, apply the worktree's additions and better scores, and honour the ones
-    the worktree deleted since `base`.
+    what vacuum.sh's forget_difficult_entry exists to prevent.
+
+    Both sides diverge, so trunk is the authority and only the worktree's own
+    changes since `base` are applied to it. A worktree is cut once and lives for
+    a whole sweep, during which other sweeps land: taking every line it carries
+    would let its stale copy of an untouched entry overwrite trunk's newer one,
+    re-adding give-ups trunk had cleared and reinstating worse scores. Carrying
+    the deltas keeps both sides' work, because a name neither side touched has
+    only one value to take.
     """
     keyed = lambda text: {l.split()[0]: l for l in text.splitlines() if l.strip()}
     have, mine, was = keyed(current), keyed(incoming), keyed(base)
-    have.update(mine)
+    for name, line in mine.items():
+        if was.get(name) != line:
+            have[name] = line
     for name in was:
         if name not in mine:
             have.pop(name, None)
