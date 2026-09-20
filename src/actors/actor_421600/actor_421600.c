@@ -1,8 +1,10 @@
 #include "common.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #include "actors/actor_421600.h"
+#include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -177,7 +179,48 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132EC0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133334);
+/// Moves an interior coordinate to the nearest padded X or Z edge.
+/// Returns 1 when moved, or 0 when already outside the rectangle.
+s32 func_actor_421600_80133334(GsCOORDINATE2* arg0)
+{
+    s16 dx;
+    s16 dz;
+    s32 adx;
+    s32 adz;
+    s32 x;
+    s32 z;
+    s32 z2;
+
+    x = arg0->coord.t[0];
+    if ((x >= -0xC4D) && (x < 0xD16)) {
+        z = arg0->coord.t[2];
+        if (z < 0xC4E) {
+            if (z >= -0xC4D) {
+                if ((0xD16 - x) > (x + 0xC4E)) {
+                    dx = -(((GpCoordXZ*)arg0)->field_18 + 0xCE4);
+                } else {
+                    dx = 0xDAC - ((GpCoordXZ*)arg0)->field_18;
+                }
+                z2 = arg0->coord.t[2];
+                if ((0xC4E - z2) > (z2 + 0xC4E)) {
+                    dz = -(((GpCoordXZ*)arg0)->field_20 + 0xCE4);
+                } else {
+                    dz = 0xCE4 - ((GpCoordXZ*)arg0)->field_20;
+                }
+                adx = ABS(dx);
+                adz = ABS(dz);
+                if (adz < adx) {
+                    arg0->coord.t[2] += dz;
+                } else {
+                    arg0->coord.t[0] += dx;
+                }
+                arg0->flg = 0;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 void func_actor_421600_80133444(GsCOORDINATE2* arg0)
 {

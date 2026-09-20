@@ -134291,3 +134291,52 @@ Trace manifest verifies unchanged assembly. Retained evidence is under
 `tools/permuter_findings/func_actor_107000_80134C2C/` (run
 `7299304e9c474338/analysis/node_schedule`). Final body `ActorSpecimenInit` serves
 actor_107000 and actor_207000; unscoped build/verification passed for both.
+
+
+## ABS lowering makes the result local; remove an obsolete carrier afterward (func_actor_421600_80133334, 2026-09-20)
+
+A retry started at 99.412%, distance 40, eight register penalties and matching
+object topology. Its archived permuter carrier `z = dx; adx = z;` reused the
+earlier Z range-check local as a signed X delta. This helped the old explicit
+absolute-value branches, but prevented a match after changing their lowering.
+
+**Observed correction to the earlier ABS explanation:** the positive-first
+`ABS(x)` macro becomes a single `abs:SI` in the initial RTL, not just a copy
+whose canonical CSE representative differs. Patched `expr.c:6503` expands
+ABS_EXPR; `config/mips/mips.md:1800` (`abssi2`) emits a branch, a delay-slot
+copy, and a self-negation when its source and destination differ. Those
+instructions stay hidden inside one RTL operation through allocation.
+The explicit if version instead exposes copies and negations to CSE2.
+
+Planned experiment `base_1.c` replaced both if forms with ABS and retained the
+carrier. Both self-negations became correct, but the score fell to 98.456%
+(distance 105). The abs results became block-local in v1/v0. The reused z/dx
+pseudo now conflicted with local v1, so its early Z load and the X/Z delta
+homes moved. `.lreg` reports z at six refs/13 insns; `.greg` records its v1
+hard conflict and a1 home. Object topology still matched, while compiler
+basic blocks fell from 19 to 15: assembly structure alone concealed the cause.
+
+Planned experiment `base_2.c` removed only `z = dx` and used `adx = ABS(dx)`.
+It reached 100.000%, all penalties zero. The early z pseudo became three
+refs/four insns, lost the v1 hard conflict, and returned to v1. The separate
+X promotion occupied a2; the Z promotion and earlier x occupied a1.
+The local abs results stayed v1/v0 as predicted. The normal-header port
+`base_3.c` also matched and the full unscoped build passed.
+
+A register nudge that improved explicit control flow can become the remaining
+obstacle when an expression lowers to one machine pattern. Recheck local
+eligibility and hard conflicts before keeping the nudge or adding another.
+No pins, asm helpers or dead stores were needed. The router's separate
+70 -> 65 improvement on a lower-scoring seed was retained but not used;
+its precise preference propagation remains unresolved.
+
+Bundled cc1 SHA-256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Preprocessed inputs:
+
+- base_1.i: `7eba67f170fb85afca3c6a1b0992442e0cb2412673e11fcb54c6de8573dfde21`
+- base_2.i: `2ae83188d3d6fe2d38826f95bb7a0b593e70b2ffa3bf0eda1f39e6b25d985885`
+
+Evidence is retained under `tools/permuter_findings/func_actor_421600_80133334/`,
+session `2227953e97dc4d63b91305e4b104e6af`, including plans, source, RTL,
+allocation dumps, scores, and the independent unresolved router result.

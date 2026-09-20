@@ -295,11 +295,10 @@ void func_actor_421600_8013E9D8(Actor421600* arg0);
 
 void func_actor_421600_80134604(Actor421600* arg0);
 
-/// Pull the coordinate back inside the 0xC4D-square arena its XZ span is
-/// measured against, folding the X clamp into Z when the actor is only out on
-/// one axis; `func_actor_421600_8013947C` runs it while `field_E90`'s third
-/// byte is not 2.
-void func_actor_421600_80133334(GsCOORDINATE2* arg0);
+/// Moves an interior coordinate to the nearest padded X or Z edge; returns
+/// 1 when moved, or 0 when already outside. `func_actor_421600_8013947C`
+/// runs it while `field_E90`'s third byte is not 2.
+s32 func_actor_421600_80133334(GsCOORDINATE2* arg0);
 
 s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 
