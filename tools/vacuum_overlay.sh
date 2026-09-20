@@ -862,6 +862,22 @@ PYEOF
     # would credit this landing with another lane's match.
     removed=$(git -C "$WT" diff "$BASE" HEAD -- "$f" \
               | awk '/^-[^-]/{sub(/^-/,""); print $1}' | paste -sd, | sed 's/,/, /g')
+    # Replace the pick for this file rather than committing on top of it. The
+    # union driver turns a commit that removes one line into one that adds
+    # several, so leaving it in place records a `cleared after <fn> matched`
+    # that clears nothing and adds give-ups - twice over, since the correction
+    # lands under the same subject. Dropping it leaves one honest commit.
+    if [[ -n "${DIFFICULT_REPLAY_FROM:-}" ]] \
+       && [[ "$(git -C "$ROOT" rev-parse HEAD)" != "$DIFFICULT_REPLAY_FROM" ]] \
+       && [[ "$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r HEAD)" == "$f" ]]; then
+        git -C "$ROOT" reset -q --soft HEAD^
+    fi
+    git -C "$ROOT" add -- "$f"
+    if git -C "$ROOT" diff --cached --quiet -- "$f"; then
+        git -C "$ROOT" reset -q -- "$f"
+        log "difficult_functions: already reconciled"
+        return 0
+    fi
     git -C "$ROOT" commit -q -m "difficult_functions: cleared after ${removed:-$OVERLAY} matched" \
         -- "$f" >>"$LOG_FILE" 2>&1 \
         && log "difficult_functions: cleared ${removed:-(none)}"
@@ -871,6 +887,7 @@ replay_branch() {                       # $1 = range, returns 0 if fully replaye
     local range="$1" rc gitdir unmerged guard=0
     gitdir=$(git rev-parse --git-dir)
     DIFFICULT_BEFORE=$(mktemp)
+    DIFFICULT_REPLAY_FROM=$(git rev-parse HEAD)
     git show HEAD:tools/difficult_functions >"$DIFFICULT_BEFORE" 2>/dev/null \
         || : >"$DIFFICULT_BEFORE"
     if git cherry-pick "$range" >>"$LOG_FILE" 2>&1; then
