@@ -36,7 +36,11 @@ typedef struct Actor123200Work {
     /* 0x178 */ s16        field_178;
     /* 0x17A */ byte       pad_17A[0x4];
     /* 0x17E */ s16        field_17E;
-    /* 0x180 */ byte       pad_180[0x18];
+    /* 0x180 */ byte       pad_180[0x14];
+    /* 0x194 */ u8         field_194;
+    /* 0x195 */ u8         field_195;
+    /* 0x196 */ u8         field_196;
+    /* 0x197 */ byte       pad_197[0x1];
     /* 0x198 */ u16        field_198;
     /* 0x19A */ u16        field_19A;
     /* 0x19C */ byte       pad_19C[0xC];
@@ -102,6 +106,20 @@ typedef struct Actor123200Ctx {
     /* 0x14 */ s8   field_14;
 } Actor123200Ctx;
 
+typedef union Actor123200Msg {
+    struct {
+        u8 b0;
+        u8 b1;
+        u8 b2;
+        u8 b3;
+    } bytes;
+    struct {
+        u16 type;
+        u16 cmd;
+    } words;
+} Actor123200Msg;
+STATIC_ASSERT_SIZEOF(Actor123200Msg, 0x4);
+
 /// Handler signature of the display table `D_actor_123200_80131E24`: the shared
 /// `ActorsShared80134178`, this overlay's per-frame step
 /// `func_actor_123200_80133820` and `func_actor_123200_801339F0`.
@@ -144,6 +162,11 @@ void func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
 /// and 4 restart it at 0. `arg1` is unused; it exists because the dispatch
 /// passes three arguments.
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2);
+
+/// Copies the message's first three bytes and handles type 0xB02 commands:
+/// 1 selects state 2 with a context-dependent scale, 2 selects state 1 at
+/// full scale, and 3 clears the state.
+s32 func_actor_123200_80133EDC(Task* task, s32 arg1, Actor123200Msg* msg);
 
 /// Per-frame handler. A pending restart on the work block's `field_4` re-arms
 /// the model and returns; otherwise `field_6` counts frames and, unless the

@@ -344,4 +344,36 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80133EDC);
+s32 func_actor_123200_80133EDC(Task* task, s32 arg1, Actor123200Msg* msg)
+{
+    Actor123200Work* work;
+    Actor123200Ctx*  ctx;
+
+    work            = (Actor123200Work*)task->work;
+    ctx             = (Actor123200Ctx*)task->spawnArg2;
+    work->field_194 = msg->bytes.b0;
+    work->field_195 = msg->bytes.b1;
+    work->field_196 = msg->bytes.b2;
+    if (msg->words.type == 0xB02) {
+        switch ((s32)msg->words.cmd) {
+            case 1:
+                if ((ctx->field_8 >> 12) == 1) {
+                    work->field_21C = 0x1000;
+                } else {
+                    work->field_21C = 0x400;
+                }
+                work->field_0 = 2;
+                break;
+            case 2:
+                work->field_21C = 0x1000;
+                work->field_0   = 1;
+                break;
+            case 3:
+                work->field_0 = 0;
+                break;
+            case 0:
+                break;
+        }
+    }
+    return 0;
+}

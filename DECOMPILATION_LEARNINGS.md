@@ -66801,6 +66801,21 @@ chain produced the same object. Writing the store into all three arms - no temp
 (209/209). Same tail: the target's two `addiu v0,6` turn out to be one insn,
 duplicated by `reorg` into the branch delay slot.
 
+`func_actor_123200_80133EDC` confirms the same mechanism without a call
+(2026-09-20). The archived ternary seed scored 94.591% with matching topology
+and predicates. Its `.jump` UID 136 defined the scale before the condition;
+`.greg` listed the scale's r91 as conflicting with hard v0. Replacing only
+the ternary store with stores in both arms kept r97/r98 local to blocks 7/8;
+`.lreg` allocated both to v0. `.jump2` deleted duplicate store UID 62, and
+`.dbr` put the else constant in the branch delay slot. Removing that global
+scale value also restored the shared constant 1 to v1 and the context pointer
+to a0. This was a preplanned experiment, `base_1.c`, and scored 100%; the
+router independently rebuilt it at zero distance without running a search.
+Preprocessed input hashes: baseline
+`6b97962b69a991345daf32ab65a3671e45c551464261b1d1e53ff65b3ca6de17`,
+matching candidate
+`43cb06c7c77d8b20d0a5a9731acaf8b9623cb90434de9a6bbd1fe90e971db940`.
+
 ## `promote` still sees a just-landed body as unmatched until the stale `.s` is gone
 
 **Problem:** `overlay_dup_index.py promote <fn>` refuses with `cannot be shared
