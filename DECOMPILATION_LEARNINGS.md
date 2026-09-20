@@ -135280,3 +135280,38 @@ Reusing one task temporary across both blocks was predicted before base_1 and co
 The task then became global and gained preferences v0/a0: its death at the model load allowed global.c:expand_preferences to merge the model argument preference. The stage byte allocated first (13333 versus task12000), skipped the lower-priority task preferences, and received a1; session consequently received a0. Keeping the task live with SOFT_USE_REG immediately after the model load both introduced a task/model conflict (removing a0 preference) and raised task rank (8refs/12 versus6refs/10). That controlled base_3 matched, as did the current-header base_4 port. The two allocation effects are coupled; this experiment does not establish which alone is sufficient. SOFT_USE_REG is implicitly volatile here and its scheduling effects must also be checked.
 
 Evidence and compiler/preprocessed-input hashes: tools/compiler_evidence/2026-09-20-actor105700-35ae4.json. Scratch keeps TRACE_BASE, TRACE_SHARED, planned base_1/base_3, and all dumps. The bounded router retained no discovery; the match came from manual experiments.
+## A later scalar byte load can displace an earlier store/load pair in sched2
+
+`func_actor_800100_80166F50` (2026-09-20) resolves another instance of the
+fixed-scalar/varying-struct alias exemption. Its archived seed was 95.301%
+(`regs=2 reorder=3 insert=1 delete=1`). Earlier retries rearranged stores to
+`GpActorD4Rec` but could not move the `end1.vx` store/load pair earlier while
+keeping both loads and the target's register homes.
+
+The deciding access was later: `D_80112F60[D_80073BA9]`. UID 113's bare scalar
+byte load was `mem:QI`, with dependencies only on its address and the prior
+call. A preplanned controlled variant changed only the global declaration to
+an array and its use to `[0]`. RTL made it `mem/s:QI`; sched1 added dependencies
+on the preceding struct stores, including UIDs 97 and 107 (end0.vx/end0.vy).
+Sched1's instruction order and every .greg register disposition remained
+unchanged. Sched2 then placed the earlier store/load pair and argument copy
+exactly as the target: 100.000%, all-zero penalties, without asm helpers.
+This supports the `true_dependence` exemption described in CODEGEN_MODEL §11;
+there is no new scheduler-priority rule.
+
+The normal source uses `Player_Status.weapon`, the existing member at
+`0x80073B88+0x21=0x80073BA9`. Raw object comparison reports 99.880% solely for
+the two changed relocation names; the instruction order is identical.
+
+Reproduction is retained in the function's vacuum scratch: base.c versus
+base_1.c; base_2.c is the normal-style port. Preprocessed SHA256 values:
+base `d61589283102099fd7f8917612f472aa817bf956a7ee59bd7008ffbf42fb973d`,
+base_1 `32ad6d85a9ee9f7cc79cd8140d6a99981ea125fb70043b0ceadb871c3596839d`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: the `.rtl` MEM flag, `.sched`/`.sched2` dependency lists for UID 113,
+identical `.greg` dispositions, and the recorded plan/conclusion.
+
+The canonical-member port passed unscoped `./tools/build-and-verify.sh`
+with `✅ BUILD SUCCEEDED`. Selected sources, plans, hashes, UID 113 dumps,
+scheduling orders, register dispositions and verification output are retained
+in `tools/compiler_evidence/2026-09-20-actor800100-66f50.json`.

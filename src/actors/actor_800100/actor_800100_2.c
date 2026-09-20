@@ -5,6 +5,7 @@
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -1717,7 +1718,43 @@ void func_actor_800100_80166EE8(GpActorWork* arg0)
     sp.funcs[D_8007272F](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80166F50);
+void func_actor_800100_80166F50(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpObj*         obj;
+    GpActorD4Rec*  rec;
+    GsCOORDINATE2* src;
+    Task*          task;
+
+    actor = arg0->actor;
+    task  = actor->field_91C;
+    if (task != NULL) {
+        obj                               = (GpObj*)actor->field_12C;
+        rec                               = (GpActorD4Rec*)actor->pad_164;
+        src                               = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+        *(GsCOORDINATE2*)actor->field_3D4 = *src;
+        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);
+        obj->coord      = (GsCOORDINATE2*)actor->field_3D4;
+        obj->ctx.d4rec  = (GpActorD4Rec*)actor->pad_164;
+        obj->key        = 0x60000;
+        obj->flags      = 3;
+        obj->pos.vx     = 0;
+        obj->pos.vy     = 0;
+        obj->pos.vz     = 0;
+        rec->end1.vx    = 0;
+        rec->end1.vy    = -0x10;
+        rec->end0.vx    = rec->end1.vx;
+        rec->end1.vz    = 0x20;
+        rec->end0.vy    = rec->end1.vy;
+        rec->end0.vz    = rec->end1.vz + D_80112F60[Player_Status.weapon];
+        rec->end1Radius = 1;
+        rec->end0Radius = 1;
+        rec->recs       = (GpRec18*)actor->pad_3BC;
+        Gp_LinkObj(1, obj);
+        Gp_InitRec18Table(rec->recs, 1, 0);
+        obj->flags |= 0x800;
+    }
+}
 
 s32 func_actor_800100_8016709C(GsCOORDINATE2* arg0, GpRec18* arg1, GpRec18* arg2)
 {

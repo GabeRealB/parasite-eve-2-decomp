@@ -1,0 +1,312 @@
+{
+  "function": "func_actor_800100_80166F50",
+  "date": "2026-09-20",
+  "status": "supported",
+  "scope": "MEM_IN_STRUCT dependency change, observed dumps and preplanned controlled build; no tracer used",
+  "compiler_source": {
+    "path": "local/gcc/gcc-2.8.1-psx/sched.c",
+    "sha256": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+    "mechanism": "true_dependence fixed-scalar/varying-struct exemption"
+  },
+  "experiments": [
+    {
+      "at": "2026-09-20T07:05:32.293777+00:00",
+      "event": "plan",
+      "expected": "Byte load becomes mem/s:QI and depends on stores to end0; sched2 puts the load after those stores and keeps a1=obj early while preserving s0/s1/s2 homes",
+      "hypothesis": "The bare scalar weapon load lacks memory dependencies on rec stores; using an aggregate access restores them",
+      "parent": "base.c",
+      "pass_name": "sched2",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:06:02.722506+00:00",
+      "event": "conclude",
+      "next": "Port aggregate byte access to existing Player_Status.weapon at the same address",
+      "result": "100%; UID 113 becomes mem/s:QI from rtl onward and sched adds store dependencies 60,65,70,75,78,81,84,87,92,97,102,107; all register dispositions unchanged and a1=obj remains early in sched2",
+      "source": "base_1.c",
+      "source_sha256": "265457b1d282212daf07f642271e6e8c6e73df6bdb3bfa05accabd0c7bbfa48e"
+    },
+    {
+      "at": "2026-09-20T07:06:02.776211+00:00",
+      "event": "plan",
+      "expected": "100% with Player_Status+0x21 relocation; identical instruction stream and no new helpers",
+      "hypothesis": "Existing Player_Status.weapon represents the same aggregate byte and preserves the demonstrated memory dependencies",
+      "parent": "base_1.c",
+      "pass_name": "sched2",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:06:16.255091+00:00",
+      "event": "conclude",
+      "next": "Verify linked host with canonical Player_Status member",
+      "result": "99.880% raw object score with only symbol/addend relocation differences; UID 113 retains all predicted store dependencies and all instruction order matches; inspect linked integration to verify Player_Status+33 equals D_80073BA9",
+      "source": "base_2.c",
+      "source_sha256": "4033ae49bf2072e7c742c81d708d192228f166077bbc4dc991c56642d92e0aa0"
+    }
+  ],
+  "candidates": {
+    "base": {
+      "source": "#include \"common.h\"\n#include \"actors/actor_800100.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"m2c_macros.h\"\n\nextern u8 D_80073BA9;\nextern u16 D_80112F60[];\n\nvoid func_actor_800100_80166F50(GpActorWork* arg0)\n{\n    GameActor*     actor;\n    GpObj*         obj;\n    GpActorD4Rec*  rec;\n    GsCOORDINATE2* src;\n    Task*          task;\n\n    actor = arg0->actor;\n    task  = actor->field_91C;\n    if (task != NULL) {\n        obj   = (GpObj*)actor->field_12C;\n        rec   = (GpActorD4Rec*)actor->pad_164;\n        src   = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;\n        *(GsCOORDINATE2*)actor->field_3D4 = *src;\n        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);\n        obj->coord  = actor->field_3D4;\n        obj->ctx.recs  = (GpRec18*)actor->pad_164;\n        obj->key = 0x60000;\n        obj->flags    = 3;\n        obj->pos.vx = 0;\n        obj->pos.vy = 0;\n        obj->pos.vz = 0;\n        rec->end1.vx  = 0;\n        rec->end1.vy  = -0x10;\n        rec->end0.vx  = rec->end1.vx;\n        rec->end1.vz  = 0x20;\n        rec->end0.vy  = rec->end1.vy;\n        rec->end0.vz  = rec->end1.vz + D_80112F60[D_80073BA9];\n        rec->end1Radius = 1;\n        rec->end0Radius = 1;\n        rec->recs = (GpRec18*)actor->pad_3BC;\n        Gp_LinkObj(1, obj);\n        Gp_InitRec18Table(rec->recs, 1, 0);\n        obj->flags |= 0x800;\n    }\n}\n",
+      "build": {
+        "assembly_sha256": "2ac0486c823bfe51f78b0f54ac250b95dc50789120ebe157d5d0cbe0a6def101",
+        "at": "2026-09-20T07:04:04.889448+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 390,
+        "duplicate_of": "base.c",
+        "expected": null,
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": null,
+        "parent": null,
+        "pass_name": null,
+        "penalties": {
+          "branch": 0,
+          "delete": 1,
+          "insert": 1,
+          "regs": 2,
+          "reorder": 3,
+          "stack": 0
+        },
+        "preprocessed_sha256": "d61589283102099fd7f8917612f472aa817bf956a7ee59bd7008ffbf42fb973d",
+        "project": "/home/gabriel/pe2-ov-actor_800100",
+        "score": 95.3012048192771,
+        "source": "base.c",
+        "source_sha256": "55315dfb49e78e4a3d8fce00f30dd563751fcb28b73af1870c1886234b8c9965",
+        "target_sha256": "48864d1287343470c8fb3f1c012dba4d95137a0cf76b0ca903c73ec58955b1a2"
+      },
+      "uid_113": {
+        "rtl": "(insn 113 112 115 (set (reg:SI 103)\n        (zero_extend:SI (mem:QI (reg:SI 101)))) -1 (nil)\n    (nil))",
+        "sched": "(insn 113 111 110 (set (reg:SI 103)\n        (zero_extend:SI (mem:QI (lo_sum:SI (reg:SI 102)\n                    (symbol_ref:SI (\"D_80073BA9\")))))) 128 {zero_extendqisi2} (insn_list:REG_DEP_ANTI 55 (insn_list 111 (nil)))\n    (expr_list:REG_DEAD (reg:SI 102)\n        (nil)))",
+        "sched2": "(insn 113 203 204 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem:QI (lo_sum:SI (reg:SI 2 v0)\n                    (symbol_ref:SI (\"D_80073BA9\")))))) 128 {zero_extendqisi2} (insn_list:REG_DEP_ANTI 55 (insn_list 111 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))"
+      },
+      "order": {
+        "rtl": [
+          87,
+          95,
+          97,
+          100,
+          102,
+          105,
+          107,
+          109,
+          110,
+          111,
+          112,
+          113,
+          144,
+          146
+        ],
+        "sched": [
+          144,
+          146,
+          87,
+          95,
+          105,
+          100,
+          102,
+          97,
+          107,
+          109,
+          111,
+          113,
+          110
+        ],
+        "sched2": [
+          144,
+          105,
+          100,
+          102,
+          111,
+          87,
+          95,
+          113,
+          146,
+          107,
+          97,
+          109,
+          110
+        ]
+      },
+      "register_dispositions": "81 in 18  82 in 17  83 in 16  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 4  91 in 2  92 in 2  93 in 2  94 in 2  \n95 in 2  96 in 3  97 in 2  98 in 6  99 in 3  100 in 3  \n102 in 2  103 in 2  105 in 2  106 in 2  107 in 2  108 in 6  \n109 in 2  110 in 2  112 in 3  113 in 2  114 in 2"
+    },
+    "base_1": {
+      "source": "#include \"common.h\"\n#include \"actors/actor_800100.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"m2c_macros.h\"\n\nextern u8 D_80073BA9[];\nextern u16 D_80112F60[];\n\nvoid func_actor_800100_80166F50(GpActorWork* arg0)\n{\n    GameActor*     actor;\n    GpObj*         obj;\n    GpActorD4Rec*  rec;\n    GsCOORDINATE2* src;\n    Task*          task;\n\n    actor = arg0->actor;\n    task  = actor->field_91C;\n    if (task != NULL) {\n        obj   = (GpObj*)actor->field_12C;\n        rec   = (GpActorD4Rec*)actor->pad_164;\n        src   = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;\n        *(GsCOORDINATE2*)actor->field_3D4 = *src;\n        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);\n        obj->coord  = actor->field_3D4;\n        obj->ctx.recs  = (GpRec18*)actor->pad_164;\n        obj->key = 0x60000;\n        obj->flags    = 3;\n        obj->pos.vx = 0;\n        obj->pos.vy = 0;\n        obj->pos.vz = 0;\n        rec->end1.vx  = 0;\n        rec->end1.vy  = -0x10;\n        rec->end0.vx  = rec->end1.vx;\n        rec->end1.vz  = 0x20;\n        rec->end0.vy  = rec->end1.vy;\n        rec->end0.vz  = rec->end1.vz + D_80112F60[D_80073BA9[0]];\n        rec->end1Radius = 1;\n        rec->end0Radius = 1;\n        rec->recs = (GpRec18*)actor->pad_3BC;\n        Gp_LinkObj(1, obj);\n        Gp_InitRec18Table(rec->recs, 1, 0);\n        obj->flags |= 0x800;\n    }\n}\n",
+      "build": {
+        "assembly_sha256": "a9808ee1f875a426faf9294aa1597124cf4ee15597e05d4a2b06431b5fe5adc0",
+        "at": "2026-09-20T07:05:32.824236+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": null,
+        "expected": "Byte load becomes mem/s:QI and depends on stores to end0; sched2 puts the load after those stores and keeps a1=obj early while preserving s0/s1/s2 homes",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "The bare scalar weapon load lacks memory dependencies on rec stores; using an aggregate access restores them",
+        "parent": "base.c",
+        "pass_name": "sched2",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "32ad6d85a9ee9f7cc79cd8140d6a99981ea125fb70043b0ceadb871c3596839d",
+        "project": "/home/gabriel/pe2-ov-actor_800100",
+        "score": 100.0,
+        "source": "base_1.c",
+        "source_sha256": "265457b1d282212daf07f642271e6e8c6e73df6bdb3bfa05accabd0c7bbfa48e",
+        "target_sha256": "48864d1287343470c8fb3f1c012dba4d95137a0cf76b0ca903c73ec58955b1a2"
+      },
+      "uid_113": {
+        "rtl": "(insn 113 112 115 (set (reg:SI 103)\n        (zero_extend:SI (mem/s:QI (reg:SI 101)))) -1 (nil)\n    (nil))",
+        "sched": "(insn 113 111 110 (set (reg:SI 103)\n        (zero_extend:SI (mem/s:QI (lo_sum:SI (reg:SI 102)\n                    (symbol_ref:SI (\"D_80073BA9\")))))) 128 {zero_extendqisi2} (insn_list 60 (insn_list 65 (insn_list 70 (insn_list 75 (insn_list 78 (insn_list 81 (insn_list 84 (insn_list 87 (insn_list 92 (insn_list 97 (insn_list 102 (insn_list 107 (insn_list:REG_DEP_ANTI 55 (insn_list 111 (nil)))))))))))))))\n    (expr_list:REG_DEAD (reg:SI 102)\n        (nil)))",
+        "sched2": "(insn 113 109 110 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem/s:QI (lo_sum:SI (reg:SI 2 v0)\n                    (symbol_ref:SI (\"D_80073BA9\")))))) 128 {zero_extendqisi2} (insn_list 60 (insn_list 65 (insn_list 70 (insn_list 75 (insn_list 78 (insn_list 81 (insn_list 84 (insn_list 87 (insn_list 92 (insn_list 97 (insn_list 102 (insn_list 107 (insn_list:REG_DEP_ANTI 55 (insn_list 111 (nil)))))))))))))))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))"
+      },
+      "order": {
+        "rtl": [
+          87,
+          95,
+          97,
+          100,
+          102,
+          105,
+          107,
+          109,
+          110,
+          111,
+          112,
+          113,
+          144,
+          146
+        ],
+        "sched": [
+          144,
+          146,
+          87,
+          95,
+          105,
+          100,
+          102,
+          97,
+          107,
+          109,
+          111,
+          113,
+          110
+        ],
+        "sched2": [
+          144,
+          146,
+          105,
+          87,
+          95,
+          100,
+          102,
+          111,
+          107,
+          97,
+          109,
+          113,
+          110
+        ]
+      },
+      "register_dispositions": "81 in 18  82 in 17  83 in 16  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 4  91 in 2  92 in 2  93 in 2  94 in 2  \n95 in 2  96 in 3  97 in 2  98 in 6  99 in 3  100 in 3  \n102 in 2  103 in 2  105 in 2  106 in 2  107 in 2  108 in 6  \n109 in 2  110 in 2  112 in 3  113 in 2  114 in 2"
+    },
+    "base_2": {
+      "source": "#include \"common.h\"\n#include \"actors/actor_800100.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/gfx.h\"\n#include \"main/mem.h\"\n#include \"main/wipsys.h\"\n\nextern u16 D_80112F60[];\n\nvoid func_actor_800100_80166F50(GpActorWork* arg0)\n{\n    GameActor*     actor;\n    GpObj*         obj;\n    GpActorD4Rec*  rec;\n    GsCOORDINATE2* src;\n    Task*          task;\n\n    actor = arg0->actor;\n    task  = actor->field_91C;\n    if (task != NULL) {\n        obj   = (GpObj*)actor->field_12C;\n        rec   = (GpActorD4Rec*)actor->pad_164;\n        src   = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;\n        *(GsCOORDINATE2*)actor->field_3D4 = *src;\n        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);\n        obj->coord  = (GsCOORDINATE2*)actor->field_3D4;\n        obj->ctx.d4rec  = (GpActorD4Rec*)actor->pad_164;\n        obj->key = 0x60000;\n        obj->flags    = 3;\n        obj->pos.vx = 0;\n        obj->pos.vy = 0;\n        obj->pos.vz = 0;\n        rec->end1.vx  = 0;\n        rec->end1.vy  = -0x10;\n        rec->end0.vx  = rec->end1.vx;\n        rec->end1.vz  = 0x20;\n        rec->end0.vy  = rec->end1.vy;\n        rec->end0.vz  = rec->end1.vz + D_80112F60[Player_Status.weapon];\n        rec->end1Radius = 1;\n        rec->end0Radius = 1;\n        rec->recs = (GpRec18*)actor->pad_3BC;\n        Gp_LinkObj(1, obj);\n        Gp_InitRec18Table(rec->recs, 1, 0);\n        obj->flags |= 0x800;\n    }\n}\n",
+      "build": {
+        "assembly_sha256": "acffe106e817e1e41c6b4c99e23a65385ff92893fdc173174a2b8eb0476450ed",
+        "at": "2026-09-20T07:06:03.544759+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 10,
+        "duplicate_of": null,
+        "expected": "100% with Player_Status+0x21 relocation; identical instruction stream and no new helpers",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Existing Player_Status.weapon represents the same aggregate byte and preserves the demonstrated memory dependencies",
+        "parent": "base_1.c",
+        "pass_name": "sched2",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 2,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "52760b00a06a1b338054fc1420ff2aec87cb96608c6938fe4baa3c87d3fa3160",
+        "project": "/home/gabriel/pe2-ov-actor_800100",
+        "score": 99.87951807228916,
+        "source": "base_2.c",
+        "source_sha256": "4033ae49bf2072e7c742c81d708d192228f166077bbc4dc991c56642d92e0aa0",
+        "target_sha256": "48864d1287343470c8fb3f1c012dba4d95137a0cf76b0ca903c73ec58955b1a2"
+      },
+      "uid_113": {
+        "rtl": "(insn 113 112 115 (set (reg:SI 103)\n        (zero_extend:SI (mem/s:QI (plus:SI (reg:SI 101)\n                    (const_int 33))))) -1 (nil)\n    (nil))",
+        "sched": "(insn 113 112 110 (set (reg:SI 103)\n        (zero_extend:SI (mem/s:QI (lo_sum:SI (reg:SI 101)\n                    (const:SI (plus:SI (symbol_ref:SI (\"Player_Status\"))\n                            (const_int 33))))))) 128 {zero_extendqisi2} (insn_list 60 (insn_list 65 (insn_list 70 (insn_list 75 (insn_list 78 (insn_list 81 (insn_list 84 (insn_list 87 (insn_list 92 (insn_list 97 (insn_list 102 (insn_list 107 (insn_list:REG_DEP_ANTI 55 (insn_list 112 (nil)))))))))))))))\n    (expr_list:REG_DEAD (reg:SI 101)\n        (nil)))",
+        "sched2": "(insn 113 109 110 (set (reg:SI 2 v0)\n        (zero_extend:SI (mem/s:QI (lo_sum:SI (reg:SI 2 v0)\n                    (const:SI (plus:SI (symbol_ref:SI (\"Player_Status\"))\n                            (const_int 33))))))) 128 {zero_extendqisi2} (insn_list 60 (insn_list 65 (insn_list 70 (insn_list 75 (insn_list 78 (insn_list 81 (insn_list 84 (insn_list 87 (insn_list 92 (insn_list 97 (insn_list 102 (insn_list 107 (insn_list:REG_DEP_ANTI 55 (insn_list 112 (nil)))))))))))))))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))"
+      },
+      "order": {
+        "rtl": [
+          87,
+          95,
+          97,
+          100,
+          102,
+          105,
+          107,
+          109,
+          110,
+          111,
+          112,
+          113,
+          144,
+          146
+        ],
+        "sched": [
+          144,
+          146,
+          87,
+          95,
+          105,
+          100,
+          102,
+          97,
+          107,
+          109,
+          112,
+          113,
+          110
+        ],
+        "sched2": [
+          144,
+          146,
+          105,
+          87,
+          95,
+          100,
+          102,
+          112,
+          107,
+          97,
+          109,
+          113,
+          110
+        ]
+      },
+      "register_dispositions": "81 in 18  82 in 17  83 in 16  85 in 2  86 in 2  87 in 3  \n88 in 2  89 in 4  91 in 2  92 in 2  93 in 2  94 in 2  \n95 in 2  96 in 3  97 in 2  98 in 6  99 in 3  100 in 3  \n101 in 2  103 in 2  105 in 2  106 in 2  107 in 2  108 in 6  \n109 in 2  110 in 2  112 in 3  113 in 2  114 in 2"
+    }
+  },
+  "integration_verification": "OK: all 7397 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
+  "router_result": "status=search finished without a discovery\nbase.c: setup failed: /home/gabriel/pe2-ov-actor_800100/nonmatchings/func_actor_800100_80166F50-vacuum/base.c:6:10: fatal error: m2c_macros.h: No such file or directory\n    6 | #include \"m2c_macros.h\"\n      |          ^~~~~~~~~~~~~~\ncompilation terminated. block connections, predicates and call targets match; bounded allocation/scheduling trial\n",
+  "limitation": "Object scorer treats canonical Player_Status+0x21 relocation differently; full linked build verified identical bytes."
+}
