@@ -134804,3 +134804,31 @@ scores and selected dump evidence are retained in
 `tools/compiler_evidence/2026-09-20-actor403200-408d8.json`.
 Preprocessed SHA256: baseline `c1195ecf016ef670cdec4f19404595fa1511e15a677945dae84ca2a09f2d8a9e`;
 matching experiment `ffac8c66400cc55ab9ce246e0885b81ade2e6266577a210e4c84cdb24ee83a34`.
+
+## Shared return cleanup can make a result conflict with its guard (actor_403200_801344C4, 2026-09-20)
+
+Routing duplicated switch results through one final `return value` moved the
+shared tails to their target anchors, but converting `return 3` to
+`value = 3; goto done` introduced a hard-v0 conflict. The first jump pass
+hoisted the constant assignment before its guard; sched1 placed result r87
+before comparison r133, locally allocated to v0. Global allocation then put
+the result in a0. A preplanned experiment restoring only the two direct
+`return 3` statements removed that conflict and restored result v0 while
+keeping both later shared tails: 93.475% to 99.280%. Inspect local overlap
+before trying to change global priority.
+
+The final missing `flag = view` copy was deleted by combine, not CSE.
+`SOFT_TOUCH_REG(flag)` after the assignment reached 100% without pins. Combine
+still folded the original copy into the asm input, but the output/input `0`
+constraint required the value in flag's v1 home; reload inserted a new
+`move v1,s2`. This demonstrates operand tying, not preservation of the original
+copy UID. The full unscoped build passed.
+
+Sources, preplanned experiments, exact input/compiler hashes, selected RTL
+histories and global conflicts are retained in
+`tools/compiler_evidence/2026-09-20-actor403200-344c4.json`. Input hashes:
+base_1 `a40bb67c08886a7b279293d65a6c01aa3cb876c54f0b34f2eb67b6f94a427386`;
+base_3 `1dfc43d8528317c99ea0569dadc3fcf6196159ee4f7d0a9f225a50f7a76a814b`;
+base_4 `ceba5e1c543128c271c24605cce2915d2ba3fd8ea16d3a929f0fc325e2dd6b02`.
+The independent partial permuter discovery and its remaining jump-hoist
+question stay in the retained permuter findings and scratch session notes.

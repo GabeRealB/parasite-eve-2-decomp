@@ -1,0 +1,170 @@
+{
+  "function": "func_actor_403200_801344C4",
+  "date": "2026-09-20",
+  "scope": "Observed GCC 2.8.1 jump/liveness conflict and tied empty-asm copy; no general scheduling rule inferred",
+  "validation": "Unscoped ./tools/build-and-verify.sh: BUILD SUCCEEDED",
+  "cases": {
+    "base_1": {
+      "build": {
+        "assembly_sha256": "d4f3131c7eecb03453cec0457dda8c019750aa515f6749d9f3224a87b9e871ee",
+        "at": "2026-09-20T05:56:33.283609+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 1057,
+        "duplicate_of": "base_1.c",
+        "expected": "Shared 4 tail moves to case1 and shared 37 tail moves to case3 while value remains v0 and flag v1",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "Explicit shared value return changes the return-label jump chain used by jump2; correct obsolete Game_GetPtrSlot spelling too",
+        "parent": "base.c",
+        "pass_name": "jump2",
+        "penalties": {
+          "branch": 2,
+          "delete": 4,
+          "insert": 5,
+          "regs": 19,
+          "reorder": 1,
+          "stack": 0
+        },
+        "preprocessed_sha256": "a40bb67c08886a7b279293d65a6c01aa3cb876c54f0b34f2eb67b6f94a427386",
+        "project": "/home/gabriel/pe2-ov-actor_403200",
+        "score": 93.4753086419753,
+        "source": "base_1.c",
+        "source_sha256": "8fb65c64a573ebbde81464293886189e155b2ffb7201f57e79a91224cb3ccc31",
+        "target_sha256": "81ca71960d843cb9f29eedd8d332369758e0faadfd9b73b8d6ca3562176ae75a"
+      },
+      "source": "#include \"common.h\"\n#include \"gameplay/D4.h\"\n#include \"main/session.h\"\n#include \"main/tmd.h\"\n\nextern MATRIX* D_80073B8C;\n\ns32 func_actor_403200_801344C4(Task* arg0, s16 arg1)\n{\n    SVECTOR        vec;\n    SVECTOR*       vp;\n    GsCOORDINATE2* coords;\n    Task*          task;\n    s32            dist;\n    s32            value;\n    s32            view;\n    s32            flag;\n\n    view   = Gp_GetViewIndex() & 0xFF;\n    task   = (Task*)gameGetPtrSlot(3);\n    vp     = &vec;\n    coords = ((TmdObject*)arg0->extra)->coords;\n    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];\n    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];\n    dist   = vec.vx * vec.vx;\n    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];\n    dist  += vec.vy * vec.vy;\n    dist   = SquareRoot0(dist + (vec.vz * vec.vz));\n    switch (arg1) {\n        case 0:\n            if ((view != 2) && (view != 3) && (view != 4)) {\n                if (dist < 0x2261) {\n                    value = 3; goto done;\n                }\n                value = 2;\n                flag  = dist < 0x2FA8;\n                if (!flag) {\n                    value = 4;\n                }\n                goto done;\n            } else {\n                flag = view;\n                if (flag == 3) {\n                    value = 2;\n                    flag  = dist < 0x2262;\n                    if (flag) {\n                        value = 3;\n                    }\n                    goto done;\n                }\n                if (flag == 2) {\n                    if (dist < 0x1E14) {\n                        value = 3; goto done;\n                    }\n                    flag = dist < 0x2FA9;\n                    if (flag) {\n                        value = 2;\n                    } else {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 2;\n                    flag  = dist < 0x2E18;\n                    if (!flag) {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                value = 1; goto done;\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 1:\n            flag = view;\n            if ((flag != 0x22) && (flag != 4)) {\n                value = 0x22;\n                flag  = dist < 0x2455;\n            } else {\n                if (flag == 0x22) {\n                    value = 4;\n                    flag  = dist < 0x2456;\n                    if (flag) {\n                        value = 0x22;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 0x22;\n                    flag  = dist < 0x2260;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 2:\n            flag = view;\n            if ((flag != 0x25) && (flag != 0x19)) {\n                value = 0x25;\n                flag  = dist < 0x1E5A;\n            } else {\n                if (flag == 0x25) {\n                    value = 0x19;\n                    flag  = dist < 0x1E5B;\n                    if (flag) {\n                        value = 0x25;\n                    }\n                    goto done;\n                }\n                if (flag == 0x19) {\n                    value = 0x25;\n                    flag  = dist < 0x1B58;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 0x19;\n            }\n            goto done;\n        case 3:\n            flag = view;\n            if (flag == 0x25) {\n                flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n                value = 0x1E;\n                flag  = flag < 0x4651;\n                if (flag) {\n                    value = 0x25;\n                }\n                goto done;\n            }\n            flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n            value = 0x25;\n            flag  = flag < 0x4268;\n            if (!flag) {\n                value = 0x1E;\n            }\n            goto done;\n    }\n    value = 1; goto done;\ndone:\n    return value;\n}\n",
+      "events": [
+        {
+          "at": "2026-09-20T05:53:10.701298+00:00",
+          "event": "plan",
+          "expected": "Shared 4 tail moves to case1 and shared 37 tail moves to case3 while value remains v0 and flag v1",
+          "hypothesis": "Explicit shared value return changes the return-label jump chain used by jump2; correct obsolete Game_GetPtrSlot spelling too",
+          "parent": "base.c",
+          "pass_name": "jump2",
+          "source": "base_1.c",
+          "source_sha256": null
+        },
+        {
+          "at": "2026-09-20T05:53:51.316190+00:00",
+          "event": "conclude",
+          "next": "Keep shared exit for cases0-2 but restore case3 direct returns to end value lifetime before local pointer reloads",
+          "result": "Both tails moved to target anchors; topology matches. Value r87 gained hard-v0 conflict and moved to a0 (27 refs/64); case3 copy still absent.",
+          "source": "base_1.c",
+          "source_sha256": "8fb65c64a573ebbde81464293886189e155b2ffb7201f57e79a91224cb3ccc31"
+        }
+      ],
+      "insn_history": "# base_1\n\n=== insn 584 ===\n  jump    (insn 584 585 586 (set (reg/v:SI 87)\n                  (const_int 3)) -1 (nil)\n              (nil))\n  cse     (insn 584 585 586 (set (reg/v:SI 87)\n                  (const_int 3)) 172 {movsi_internal2} (nil)\n              (expr_list:REG_EQUAL (const_int 3)\n                  (nil)))\n  sched   (insn 584 585 612 (set (reg/v:SI 87)\n                  (const_int 3)) 172 {movsi_internal2} (nil)\n              (expr_list:REG_EQUAL (const_int 3)\n                  (nil)))\n  greg    (insn 584 585 612 (set (reg/v:SI 4 a0)\n                  (const_int 3)) 172 {movsi_internal2} (nil)\n              (expr_list:REG_EQUAL (const_int 3)\n                  (nil)))\n  dbr      GONE (deleted by this pass)\n\n=== insn 129 ===\n  rtl     (insn 129 127 130 (set (reg:SI 133)\n                  (lt:SI (reg/v:SI 86)\n                      (const_int 8801))) -1 (nil)\n              (nil))\n  jump    (insn 129 127 585 (set (reg:SI 133)\n                  (lt:SI (reg/v:SI 86)\n                      (const_int 8801))) -1 (nil)\n              (nil))\n  cse     (insn 129 127 585 (set (reg:SI 133)\n                  (lt:SI (reg/v:SI 86)\n                      (const_int 8801))) 280 {slt_si} (nil)\n              (nil))\n  sched   (insn 129 612 130 (set (reg:SI 133)\n                  (lt:SI (reg/v:SI 86)\n                      (const_int 8801))) 280 {slt_si} (nil)\n              (nil))\n  greg    (insn 129 612 130 (set (reg:SI 2 v0)\n                  (lt:SI (reg/v:SI 8 t0)\n                      (const_int 8801))) 280 {slt_si} (nil)\n              (nil))\n  dbr     (insn 129 612 665 (set (reg:SI 2 v0)\n                  (lt:SI (reg/v:SI 8 t0)\n                      (const_int 8801))) 280 {slt_si} (nil)\n              (nil))\n\n=== insn 130 ===\n  rtl     (jump_insn 130 129 131 (set (pc)\n                  (if_then_else (eq:SI (reg:SI 133)\n                          (const_int 0))\n                      (label_ref 138)\n                      (pc))) 243 {branch_zero} (nil)\n              (nil))\n  jump    (jump_insn 130 586 131 (set (pc)\n                  (if_then_else (ne:SI (reg:SI 133)\n                          (const_int 0))\n                      (label_ref 572)\n                      (pc))) 243 {branch_zero} (nil)\n              (nil))\n  flow    (jump_insn 130 586 131 (set (pc)\n                  (if_then_else (ne:SI (reg:SI 133)\n                          (const_int 0))\n                      (label_ref 572)\n                      (pc))) 243 {branch_zero} (insn_list 129 (nil))\n              (expr_list:REG_DEAD (reg:SI 133)\n                  (nil)))\n  sched   (jump_insn 130 129 131 (set (pc)\n                  (if_then_else (ne:SI (reg:SI 133)\n                          (const_int 0))\n                      (label_ref 572)\n                      (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 584 (insn_list 129 (nil)))\n              (expr_list:REG_DEAD (reg:SI 133)\n                  (nil)))\n  greg    (jump_insn 130 129 131 (set (pc)\n                  (if_then_else (ne:SI (reg:SI 2 v0)\n                          (const_int 0))\n                      (label_ref 572)\n                      (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 584 (insn_list 129 (nil)))\n              (expr_list:REG_DEAD (reg:SI 2 v0)\n                  (nil)))\n  dbr      GONE (deleted by this pass)\n",
+      "global_allocation_header": "\n;; Function func_actor_403200_801344C4\n\n;; 8 regs to allocate: 89 87 163 86 129 122 88 85\n;; 85 conflicts: 85 86 88 163 2 4 17 29\n;; 86 conflicts: 85 86 87 88 89 122 129 163 2 3 4 5 6 7 17 29\n;; 87 conflicts: 86 87 89 2 29\n;; 88 conflicts: 85 86 88 122 129 163 2 3 4 5 6 7 16 17 29\n;; 89 conflicts: 86 87 89 2 29\n;; 122 conflicts: 86 88 122 129 2 3 17 29\n;; 129 conflicts: 86 88 122 129 2 17 29\n;; 163 conflicts: 85 86 88 163 2 29\n;; 163 preferences: 17\n\n;; Need 1 reg of class GR_REGS (for insn 111).\n;; Need 1 reg of class HI_REG (for insn 70).\n;; Need 1 reg of class LO_REG (for insn 70).\n;; Need 1 reg of class HILO_REG (for insn 70)."
+    },
+    "base_3": {
+      "build": {
+        "assembly_sha256": "991cf69fff817020750033a5a6c336172000f39169acdf156615f527688a973e",
+        "at": "2026-09-20T05:55:03.308223+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 116,
+        "duplicate_of": "base_3.c",
+        "expected": "Restoring the two direct return3 sites removes that conflict, result gets v0, shared tail anchors survive",
+        "failure": 0,
+        "first_changed_pass": "rtl",
+        "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "lreg block8 defines result r87=3 before local comparison r133 in v0; the converted constant return caused the hard-v0 conflict",
+        "parent": "base_1.c",
+        "pass_name": "lreg",
+        "penalties": {
+          "branch": 11,
+          "delete": 1,
+          "insert": 0,
+          "regs": 1,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "1dfc43d8528317c99ea0569dadc3fcf6196159ee4f7d0a9f225a50f7a76a814b",
+        "project": "/home/gabriel/pe2-ov-actor_403200",
+        "score": 99.27950310559007,
+        "source": "base_3.c",
+        "source_sha256": "bff283d17960d2f9dd8a700728f2c1f4336dabd0e4863fc72bfbd74183193f1c",
+        "target_sha256": "81ca71960d843cb9f29eedd8d332369758e0faadfd9b73b8d6ca3562176ae75a"
+      },
+      "source": "#include \"common.h\"\n#include \"gameplay/D4.h\"\n#include \"main/session.h\"\n#include \"main/tmd.h\"\n\nextern MATRIX* D_80073B8C;\n\ns32 func_actor_403200_801344C4(Task* arg0, s16 arg1)\n{\n    SVECTOR        vec;\n    SVECTOR*       vp;\n    GsCOORDINATE2* coords;\n    Task*          task;\n    s32            dist;\n    s32            value;\n    s32            view;\n    s32            flag;\n\n    view   = Gp_GetViewIndex() & 0xFF;\n    task   = (Task*)gameGetPtrSlot(3);\n    vp     = &vec;\n    coords = ((TmdObject*)arg0->extra)->coords;\n    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];\n    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];\n    dist   = vec.vx * vec.vx;\n    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];\n    dist  += vec.vy * vec.vy;\n    dist   = SquareRoot0(dist + (vec.vz * vec.vz));\n    switch (arg1) {\n        case 0:\n            if ((view != 2) && (view != 3) && (view != 4)) {\n                if (dist < 0x2261) {\n                    return 3;\n                }\n                value = 2;\n                flag  = dist < 0x2FA8;\n                if (!flag) {\n                    value = 4;\n                }\n                goto done;\n            } else {\n                flag = view;\n                if (flag == 3) {\n                    value = 2;\n                    flag  = dist < 0x2262;\n                    if (flag) {\n                        value = 3;\n                    }\n                    goto done;\n                }\n                if (flag == 2) {\n                    if (dist < 0x1E14) {\n                        return 3;\n                    }\n                    flag = dist < 0x2FA9;\n                    if (flag) {\n                        value = 2;\n                    } else {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 2;\n                    flag  = dist < 0x2E18;\n                    if (!flag) {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                value = 1; goto done;\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 1:\n            flag = view;\n            if ((flag != 0x22) && (flag != 4)) {\n                value = 0x22;\n                flag  = dist < 0x2455;\n            } else {\n                if (flag == 0x22) {\n                    value = 4;\n                    flag  = dist < 0x2456;\n                    if (flag) {\n                        value = 0x22;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 0x22;\n                    flag  = dist < 0x2260;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 2:\n            flag = view;\n            if ((flag != 0x25) && (flag != 0x19)) {\n                value = 0x25;\n                flag  = dist < 0x1E5A;\n            } else {\n                if (flag == 0x25) {\n                    value = 0x19;\n                    flag  = dist < 0x1E5B;\n                    if (flag) {\n                        value = 0x25;\n                    }\n                    goto done;\n                }\n                if (flag == 0x19) {\n                    value = 0x25;\n                    flag  = dist < 0x1B58;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 0x19;\n            }\n            goto done;\n        case 3:\n            flag = view;\n            if (flag == 0x25) {\n                flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n                value = 0x1E;\n                flag  = flag < 0x4651;\n                if (flag) {\n                    value = 0x25;\n                }\n                goto done;\n            }\n            flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n            value = 0x25;\n            flag  = flag < 0x4268;\n            if (!flag) {\n                value = 0x1E;\n            }\n            goto done;\n    }\n    value = 1; goto done;\ndone:\n    return value;\n}\n",
+      "events": [
+        {
+          "at": "2026-09-20T05:54:44.501374+00:00",
+          "event": "plan",
+          "expected": "Restoring the two direct return3 sites removes that conflict, result gets v0, shared tail anchors survive",
+          "hypothesis": "lreg block8 defines result r87=3 before local comparison r133 in v0; the converted constant return caused the hard-v0 conflict",
+          "parent": "base_1.c",
+          "pass_name": "lreg",
+          "source": "base_3.c",
+          "source_sha256": null
+        },
+        {
+          "at": "2026-09-20T05:55:01.988089+00:00",
+          "event": "conclude",
+          "next": "Run bounded router and inspect case3 copy elimination",
+          "result": "99.280%; predicted hard-v0 conflict removed, r87 now prefers and receives v0, both target tail anchors retained. Only case3 view-to-flag copy missing.",
+          "source": "base_3.c",
+          "source_sha256": "bff283d17960d2f9dd8a700728f2c1f4336dabd0e4863fc72bfbd74183193f1c"
+        }
+      ],
+      "insn_history": "# base_3\n\n=== insn 481 ===\n  rtl     (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) -1 (nil)\n              (nil))\n  cse     (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) 172 {movsi_internal2} (nil)\n              (nil))\n  flow    (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) 172 {movsi_internal2} (nil)\n              (expr_list:REG_DEAD (reg/v:SI 88)\n                  (nil)))\n  combine  GONE (deleted by this pass)\n\n=== insn 485 ===\n  rtl     (jump_insn 485 484 486 (set (pc)\n                  (if_then_else (ne:SI (reg/v:SI 89)\n                          (reg:SI 158))\n                      (label_ref 516)\n                      (pc))) 245 {branch_equality} (nil)\n              (nil))\n  flow    (jump_insn 485 484 486 (set (pc)\n                  (if_then_else (ne:SI (reg/v:SI 89)\n                          (reg:SI 158))\n                      (label_ref 516)\n                      (pc))) 245 {branch_equality} (insn_list 481 (insn_list 484 (nil)))\n              (expr_list:REG_DEAD (reg/v:SI 89)\n                  (expr_list:REG_DEAD (reg:SI 158)\n                      (nil))))\n  combine (jump_insn 485 484 486 (set (pc)\n                  (if_then_else (ne:SI (reg/v:SI 88)\n                          (reg:SI 158))\n                      (label_ref 516)\n                      (pc))) 245 {branch_equality} (insn_list 484 (nil))\n              (expr_list:REG_DEAD (reg/v:SI 88)\n                  (expr_list:REG_DEAD (reg:SI 158)\n                      (nil))))\n  greg    (jump_insn 485 484 486 (set (pc)\n                  (if_then_else (ne:SI (reg/v:SI 18 s2)\n                          (reg:SI 2 v0))\n                      (label_ref 516)\n                      (pc))) 245 {branch_equality} (insn_list 484 (nil))\n              (expr_list:REG_DEAD (reg/v:SI 18 s2)\n                  (expr_list:REG_DEAD (reg:SI 2 v0)\n                      (nil))))\n",
+      "global_allocation_header": "\n;; Function func_actor_403200_801344C4\n\n;; 8 regs to allocate: 89 87 165 86 129 122 88 85\n;; 85 conflicts: 85 86 88 165 2 4 17 29\n;; 86 conflicts: 85 86 87 88 89 122 129 165 2 3 4 5 6 7 17 29\n;; 87 conflicts: 86 87 89 29\n;; 87 preferences: 2\n;; 88 conflicts: 85 86 88 122 129 165 2 3 4 5 6 7 16 17 29\n;; 89 conflicts: 86 87 89 2 29\n;; 122 conflicts: 86 88 122 129 2 3 17 29\n;; 129 conflicts: 86 88 122 129 2 17 29\n;; 165 conflicts: 85 86 88 165 2 29\n;; 165 preferences: 17\n\n;; Need 1 reg of class GR_REGS (for insn 111).\n;; Need 1 reg of class HI_REG (for insn 70).\n;; Need 1 reg of class LO_REG (for insn 70)."
+    },
+    "base_4": {
+      "build": {
+        "assembly_sha256": "6f45b3453e968255fd3317bcbd6ea493f242fc012c437ba31452d42725e14248",
+        "at": "2026-09-20T06:00:27.114121+00:00",
+        "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "distance": 0,
+        "duplicate_of": null,
+        "expected": "case3 retains move v1,s2, flag remains v1, result v0 and both shared tail anchors remain unchanged",
+        "failure": 0,
+        "first_changed_pass": null,
+        "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+        "hypothesis": "combine deletes copy UID481 into branch UID485; a read/write SOFT_TOUCH_REG on flag requires the value in the flag pseudo before the compare",
+        "parent": "base_3.c",
+        "pass_name": "combine",
+        "penalties": {
+          "branch": 0,
+          "delete": 0,
+          "insert": 0,
+          "regs": 0,
+          "reorder": 0,
+          "stack": 0
+        },
+        "preprocessed_sha256": "ceba5e1c543128c271c24605cce2915d2ba3fd8ea16d3a929f0fc325e2dd6b02",
+        "project": "/home/gabriel/pe2-ov-actor_403200",
+        "score": 100.0,
+        "source": "base_4.c",
+        "source_sha256": "6568e556b811093505f0bd3eabd0fb6eae6b7223b6b6fb0b3e55c1b2813de15c",
+        "target_sha256": "81ca71960d843cb9f29eedd8d332369758e0faadfd9b73b8d6ca3562176ae75a"
+      },
+      "source": "#include \"common.h\"\n#include \"gameplay/D4.h\"\n#include \"main/session.h\"\n#include \"main/tmd.h\"\n\nextern MATRIX* D_80073B8C;\n\ns32 func_actor_403200_801344C4(Task* arg0, s16 arg1)\n{\n    SVECTOR        vec;\n    SVECTOR*       vp;\n    GsCOORDINATE2* coords;\n    Task*          task;\n    s32            dist;\n    s32            value;\n    s32            view;\n    s32            flag;\n\n    view   = Gp_GetViewIndex() & 0xFF;\n    task   = (Task*)gameGetPtrSlot(3);\n    vp     = &vec;\n    coords = ((TmdObject*)arg0->extra)->coords;\n    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];\n    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];\n    dist   = vec.vx * vec.vx;\n    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];\n    dist  += vec.vy * vec.vy;\n    dist   = SquareRoot0(dist + (vec.vz * vec.vz));\n    switch (arg1) {\n        case 0:\n            if ((view != 2) && (view != 3) && (view != 4)) {\n                if (dist < 0x2261) {\n                    return 3;\n                }\n                value = 2;\n                flag  = dist < 0x2FA8;\n                if (!flag) {\n                    value = 4;\n                }\n                goto done;\n            } else {\n                flag = view;\n                if (flag == 3) {\n                    value = 2;\n                    flag  = dist < 0x2262;\n                    if (flag) {\n                        value = 3;\n                    }\n                    goto done;\n                }\n                if (flag == 2) {\n                    if (dist < 0x1E14) {\n                        return 3;\n                    }\n                    flag = dist < 0x2FA9;\n                    if (flag) {\n                        value = 2;\n                    } else {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 2;\n                    flag  = dist < 0x2E18;\n                    if (!flag) {\n                        value = 4;\n                    }\n                    goto done;\n                }\n                value = 1; goto done;\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 1:\n            flag = view;\n            if ((flag != 0x22) && (flag != 4)) {\n                value = 0x22;\n                flag  = dist < 0x2455;\n            } else {\n                if (flag == 0x22) {\n                    value = 4;\n                    flag  = dist < 0x2456;\n                    if (flag) {\n                        value = 0x22;\n                    }\n                    goto done;\n                }\n                if (flag == 4) {\n                    value = 0x22;\n                    flag  = dist < 0x2260;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 4;\n            }\n            goto done;\n        case 2:\n            flag = view;\n            if ((flag != 0x25) && (flag != 0x19)) {\n                value = 0x25;\n                flag  = dist < 0x1E5A;\n            } else {\n                if (flag == 0x25) {\n                    value = 0x19;\n                    flag  = dist < 0x1E5B;\n                    if (flag) {\n                        value = 0x25;\n                    }\n                    goto done;\n                }\n                if (flag == 0x19) {\n                    value = 0x25;\n                    flag  = dist < 0x1B58;\n                } else {\n                    value = 1; goto done;\n                }\n            }\n            if (!flag) {\n                value = 0x19;\n            }\n            goto done;\n        case 3:\n            flag = view;\n            SOFT_TOUCH_REG(flag);\n            if (flag == 0x25) {\n                flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n                value = 0x1E;\n                flag  = flag < 0x4651;\n                if (flag) {\n                    value = 0x25;\n                }\n                goto done;\n            }\n            flag  = ((TmdObject*)task->extra)->coords->coord.t[0];\n            value = 0x25;\n            flag  = flag < 0x4268;\n            if (!flag) {\n                value = 0x1E;\n            }\n            goto done;\n    }\n    value = 1; goto done;\ndone:\n    return value;\n}\n",
+      "events": [
+        {
+          "at": "2026-09-20T05:56:57.593321+00:00",
+          "event": "plan",
+          "expected": "case3 retains move v1,s2, flag remains v1, result v0 and both shared tail anchors remain unchanged",
+          "hypothesis": "combine deletes copy UID481 into branch UID485; a read/write SOFT_TOUCH_REG on flag requires the value in the flag pseudo before the compare",
+          "parent": "base_3.c",
+          "pass_name": "combine",
+          "source": "base_4.c",
+          "source_sha256": null
+        },
+        {
+          "at": "2026-09-20T06:00:59.695201+00:00",
+          "event": "conclude",
+          "next": "Port function, remove unreachable seed tail and fix overlay-local prototype/caller argument type",
+          "result": "100.000% all penalties zero; SOFT_TOUCH_REG forces case3 flag copy and keeps all allocation, branches and shared tails exact.",
+          "source": "base_4.c",
+          "source_sha256": "6568e556b811093505f0bd3eabd0fb6eae6b7223b6b6fb0b3e55c1b2813de15c"
+        }
+      ],
+      "insn_history": "# base_4\n\n=== insn 481 ===\n  rtl     (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) -1 (nil)\n              (nil))\n  cse     (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) 172 {movsi_internal2} (nil)\n              (nil))\n  flow    (insn 481 479 482 (set (reg/v:SI 89)\n                  (reg/v:SI 88)) 172 {movsi_internal2} (nil)\n              (expr_list:REG_DEAD (reg/v:SI 88)\n                  (nil)))\n  combine  GONE (deleted by this pass)\n\n=== insn 483 ===\n  rtl     (insn 483 482 484 (set (reg/v:SI 89)\n                  (asm_operands (\"\") (\"=r\") 0[ \n                          (reg/v:SI 89)\n                      ] \n                      [ \n                          (asm_input:SI (\"0\"))\n                      ]  (\"/home/gabriel/pe2-ov-actor_403200/nonmatchings/func_actor_403200_801344C4-vacuum/base_4.i\") 2727)) -1 (nil)\n              (nil))\n  flow    (insn 483 482 484 (set (reg/v:SI 89)\n                  (asm_operands (\"\") (\"=r\") 0[ \n                          (reg/v:SI 89)\n                      ] \n                      [ \n                          (asm_input:SI (\"0\"))\n                      ]  (\"/home/gabriel/pe2-ov-actor_403200/nonmatchings/func_actor_403200_801344C4-vacuum/base_4.i\") 2727)) -1 (insn_list 481 (nil))\n              (nil))\n  combine (insn 483 482 484 (set (reg/v:SI 89)\n                  (asm_operands (\"\") (\"=r\") 0[ \n                          (reg/v:SI 88)\n                      ] \n                      [ \n                          (asm_input:SI (\"0\"))\n                      ]  (\"/home/gabriel/pe2-ov-actor_403200/nonmatchings/func_actor_403200_801344C4-vacuum/base_4.i\") 2727)) -1 (nil)\n              (expr_list:REG_DEAD (reg/v:SI 88)\n                  (nil)))\n  greg     GONE (deleted by this pass)\n\n=== insn 627 ===\n  greg    (insn 627 482 483 (set (reg/v:SI 3 v1)\n                  (reg/v:SI 18 s2)) 172 {movsi_internal2} (nil)\n              (nil))\n",
+      "global_allocation_header": "\n;; Function func_actor_403200_801344C4\n\n;; 8 regs to allocate: 89 87 165 86 129 122 88 85\n;; 85 conflicts: 85 86 88 89 165 2 4 17 29\n;; 86 conflicts: 85 86 87 88 89 122 129 165 2 3 4 5 6 7 17 29\n;; 87 conflicts: 86 87 89 29\n;; 87 preferences: 2\n;; 88 conflicts: 85 86 88 122 129 165 2 3 4 5 6 7 16 17 29\n;; 89 conflicts: 85 86 87 89 2 29\n;; 122 conflicts: 86 88 122 129 2 3 17 29\n;; 129 conflicts: 86 88 122 129 2 17 29\n;; 165 conflicts: 85 86 88 165 2 29\n;; 165 preferences: 17\n\n;; Need 1 reg of class GR_REGS (for insn 111).\n;; Need 1 reg of class HI_REG (for insn 70).\n;; Need 1 reg of class LO_REG (for insn 70)."
+    }
+  }
+}

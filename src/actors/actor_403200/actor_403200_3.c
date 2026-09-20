@@ -180,7 +180,148 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801344C4);
+s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
+{
+    SVECTOR        vec;
+    SVECTOR*       vp;
+    GsCOORDINATE2* coords;
+    Task*          task;
+    s32            dist;
+    s32            value;
+    s32            view;
+    s32            flag;
+
+    view   = Gp_GetViewIndex() & 0xFF;
+    task   = (Task*)gameGetPtrSlot(3);
+    vp     = &vec;
+    coords = ((TmdObject*)arg0->extra)->coords;
+    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
+    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    dist   = vec.vx * vec.vx;
+    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    dist  += vec.vy * vec.vy;
+    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
+    switch (arg1) {
+        case 0:
+            if ((view != 2) && (view != 3) && (view != 4)) {
+                if (dist < 0x2261) {
+                    return 3;
+                }
+                value = 2;
+                flag  = dist < 0x2FA8;
+                if (!flag) {
+                    value = 4;
+                }
+                goto done;
+            } else {
+                flag = view;
+                if (flag == 3) {
+                    value = 2;
+                    flag  = dist < 0x2262;
+                    if (flag) {
+                        value = 3;
+                    }
+                    goto done;
+                }
+                if (flag == 2) {
+                    if (dist < 0x1E14) {
+                        return 3;
+                    }
+                    flag = dist < 0x2FA9;
+                    if (flag) {
+                        value = 2;
+                    } else {
+                        value = 4;
+                    }
+                    goto done;
+                }
+                if (flag == 4) {
+                    value = 2;
+                    flag  = dist < 0x2E18;
+                    if (!flag) {
+                        value = 4;
+                    }
+                    goto done;
+                }
+                value = 1;
+                goto done;
+            }
+        case 1:
+            flag = view;
+            if ((flag != 0x22) && (flag != 4)) {
+                value = 0x22;
+                flag  = dist < 0x2455;
+            } else {
+                if (flag == 0x22) {
+                    value = 4;
+                    flag  = dist < 0x2456;
+                    if (flag) {
+                        value = 0x22;
+                    }
+                    goto done;
+                }
+                if (flag == 4) {
+                    value = 0x22;
+                    flag  = dist < 0x2260;
+                } else {
+                    value = 1;
+                    goto done;
+                }
+            }
+            if (!flag) {
+                value = 4;
+            }
+            goto done;
+        case 2:
+            flag = view;
+            if ((flag != 0x25) && (flag != 0x19)) {
+                value = 0x25;
+                flag  = dist < 0x1E5A;
+            } else {
+                if (flag == 0x25) {
+                    value = 0x19;
+                    flag  = dist < 0x1E5B;
+                    if (flag) {
+                        value = 0x25;
+                    }
+                    goto done;
+                }
+                if (flag == 0x19) {
+                    value = 0x25;
+                    flag  = dist < 0x1B58;
+                } else {
+                    value = 1;
+                    goto done;
+                }
+            }
+            if (!flag) {
+                value = 0x19;
+            }
+            goto done;
+        case 3:
+            flag = view;
+            SOFT_TOUCH_REG(flag);
+            if (flag == 0x25) {
+                flag  = ((TmdObject*)task->extra)->coords->coord.t[0];
+                value = 0x1E;
+                flag  = flag < 0x4651;
+                if (flag) {
+                    value = 0x25;
+                }
+                goto done;
+            }
+            flag  = ((TmdObject*)task->extra)->coords->coord.t[0];
+            value = 0x25;
+            flag  = flag < 0x4268;
+            if (!flag) {
+                value = 0x1E;
+            }
+            goto done;
+    }
+    value = 1;
+done:
+    return value;
+}
 
 s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
 {

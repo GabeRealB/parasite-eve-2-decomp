@@ -39,7 +39,7 @@ s32 func_actor_403200_80141124(Actor403200Obj* arg0, s16 arg1)
     return 1;
 }
 
-s16 func_actor_403200_80141180(Actor403200Obj* arg0, s16 arg1)
+s16 func_actor_403200_80141180(Task* arg0, s16 arg1)
 {
     return func_actor_403200_801344C4(arg0, arg1);
 }

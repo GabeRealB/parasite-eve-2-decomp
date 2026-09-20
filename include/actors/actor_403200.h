@@ -342,7 +342,7 @@ typedef struct Actor403200GrabWork {
 } Actor403200GrabWork;
 STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 
-s16 func_actor_403200_801344C4(Actor403200Obj* arg0, s16 arg1);
+s32 func_actor_403200_801344C4(Task* arg0, s16 arg1);
 
 /// The actor's per-frame body: runs the animation resets and the collision /
 /// damage ticks. Takes the task, and reaches the work block through its
