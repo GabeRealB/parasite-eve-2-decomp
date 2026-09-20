@@ -134340,3 +134340,42 @@ Preprocessed inputs:
 Evidence is retained under `tools/permuter_findings/func_actor_421600_80133334/`,
 session `2227953e97dc4d63b91305e4b104e6af`, including plans, source, RTL,
 allocation dumps, scores, and the independent unresolved router result.
+
+## A u16 call conversion can reverse an OR before allocation; keep the full expression in its own local (func_actor_421600_801369A0, 2026-09-20)
+
+The remaining 99.946% mismatch was `or a0,v0,a0` instead of `or a0,a0,v0`.
+The callee takes u16. In `Find((stage << 8) | area)`, convert.c:269-318
+pushes the narrowing conversion through BIT_IOR_EXPR. The stage result becomes
+a HI subreg while area loads directly into a HI register; expand_binop's
+REG-before-non-REG commutative canonicalization (optabs.c:413-437) puts area
+first. The reversal is already visible in initial RTL, before allocation.
+
+The permuter found a zero-distance declaration change from u16 to unsigned int.
+Its normalized baseline was unchanged. Preserve the actual callee contract by
+computing the entire expression at full width first:
+
+```c
+s32 stageAreaId;
+/* ... */
+stageAreaId = (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
+found = (GpEnemy*)Gp_FindWorkById(stageAreaId);
+```
+
+Both fields are u8, so the full value fits u16 and the later truncation vanishes
+in combine. Controlled base_2 confirmed stage-first SI RTL and the final OR,
+but reusing another switch case's `id` made that pseudo global (four references
+across blocks rather than two in one block), moved it from a0 to v0, and reduced
+the score to 99.758%. A separately named value in base_3 restored the other
+case's local allocation and matched 100%. This is a real live-range split,
+not a declaration-order or renaming trick. Typed base_4 retained 100%, and the
+unscoped build-and-verify passed. No pins or changed shared prototypes landed.
+
+Evidence is retained under tools/permuter_findings/func_actor_421600_801369A0/:
+run 8d2a08f99f694d50, LEARNINGS.md, PERMUTER_ANALYSIS.md, planned base_2/base_3
+experiments, and .rtl/.lreg/.greg dumps. Compiler SHA256:
+60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Preprocessed inputs: base_1 896c25931b6d38a9d85196f32e80b5db732a46ec5c9a37747ba9ae39403886f3;
+base_2 e18042f9fff079e9f474e256e43853f5cce6206c9f369f22983d62ddb05f8cfe;
+base_3 f641f2088848525d7ab9985fd35d7cd4a895241ee4f8420291dccdd997abe3ce.
+Scope: observed expression ordering and allocation eligibility for these cases;
+exact allocator suggestion calls were not traced.

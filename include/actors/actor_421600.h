@@ -245,6 +245,18 @@ typedef struct Actor421600 {
     /* 0x2C */ TmdObject*       field_2C;
 } Actor421600;
 
+/// Shared gameplay mode record. This overlay reads the unsigned halfword at
+/// +2 before releasing the actor's state; the leading byte is the mode other
+/// actors use to gate their updates.
+typedef struct Actor421600ModeState {
+    /* 0x00 */ u8   mode;
+    /* 0x01 */ byte pad_1;
+    /* 0x02 */ u16  field_2;
+} Actor421600ModeState;
+STATIC_ASSERT_SIZEOF(Actor421600ModeState, 0x4);
+
+extern Actor421600ModeState D_801153F4;
+
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
 /// caller's id. `actor_403000` keeps a table of the same shape at 0x80158CE0

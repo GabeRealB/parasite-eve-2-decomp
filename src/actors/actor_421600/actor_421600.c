@@ -556,7 +556,92 @@ void func_actor_421600_801366F4(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801369A0);
+void func_actor_421600_801369A0(Actor421600* arg0)
+{
+    Actor421600Work* work;
+    GpEnemy*         ctx;
+    GpEnemy*         found;
+    s32              hi;
+    s32              id;
+    s32              stageAreaId;
+
+    work = arg0->field_1C;
+    ctx  = arg0->field_20;
+    if (work->field_4 != 0) {
+        if (work->field_E9C == 1) {
+            work->field_2 = -1;
+            work->field_6 = 0;
+            return;
+        }
+        work->field_6 = 0;
+        do {
+        } while (0);
+        if (D_801153F4.field_2 >= 2U) {
+            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 1);
+        }
+        if (D_actor_421600_80151268 <= 0) {
+            Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+            work->field_8A0 = 1;
+            work->field_0   = 0;
+            return;
+        }
+    }
+    if ((s16)work->field_6 < 0x80) {
+        work->field_6 = work->field_6 + 1;
+    }
+    if (work->field_EAC > 0) {
+        work->field_EAC = work->field_EAC - 1;
+    }
+    if (work->field_E90.bytes[2] != 2) {
+        work->field_0 = 0;
+        return;
+    }
+    found = NULL;
+    switch (ctx->placeKey >> 0xC) {
+        case 0:
+            hi    = gGameSession->at4.loc.stage << 8;
+            id    = gGameSession->at4.loc.area | 0x1000;
+            found = (GpEnemy*)Gp_FindWorkById(id | hi);
+            break;
+        case 1:
+            stageAreaId = (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
+            found       = (GpEnemy*)Gp_FindWorkById(stageAreaId);
+            break;
+    }
+    if (found != NULL) {
+        if (found->hp > 0) {
+            if (D_actor_421600_80151268 == 1) {
+                work->field_0 = 0;
+            }
+        }
+        if ((D_actor_421600_80151268 >= 2) || ((found->hp <= 0) && (D_actor_421600_80151268 == 1))) {
+            switch (ctx->placeKey >> 0xC) {
+                case 0:
+                    arg0->field_2C->coords->coord.t[0] = -0xD40;
+                    arg0->field_2C->coords->coord.t[2] = 0x104F;
+                    arg0->field_2C->coords->flg        = 0;
+                    Gp_UpdateCoord(arg0->field_2C->coords);
+                    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, -0x76C, 1);
+                    Gp_SetLightMode((GpObj4C*)ctx, 0);
+                    ctx->reactionFlags = 0;
+                    ctx->hp            = D_actor_421600_8013EF3C;
+                    work->field_0      = 6;
+                    break;
+                case 1:
+                    arg0->field_2C->coords->coord.t[0] = 0x138C;
+                    arg0->field_2C->coords->coord.t[2] = 0x4B2;
+                    arg0->field_2C->coords->flg        = 0;
+                    Gp_UpdateCoord(arg0->field_2C->coords);
+                    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, 0x7BC, 1);
+                    Gp_SetLightMode((GpObj4C*)ctx, 0);
+                    ctx->reactionFlags = 0;
+                    ctx->hp            = D_actor_421600_8013EF3C;
+                    work->field_0      = 6;
+                    break;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80136C88);
 
