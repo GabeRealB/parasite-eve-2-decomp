@@ -135119,3 +135119,42 @@ base_3 `5a82c26c2c056aaa98ea45078238d657bb7e634405bd02f583fb66b4c8c57180`.
 Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 The permuter's separate 99.783% route used an entry constant rematerialized
 in t0; its exact reload choice remains unresolved and is not this finding.
+
+
+## Reserve the forward-vector address before retaining its alias (func_actor_356100_80167A7C, 2026-09-20)
+
+A rescale helper releases 0x34 scratch bytes immediately before a forward-step
+helper reserves eight. Keeping `head = *scratch; vec = head - 1` and reading
+`head[-1].vx` after the GTE calls retained the *released* pointer in s2 and used
+`-8(s2)`. The target retained the earlier raw scratch base and used `44(s2)`.
+Re-spelling only the release arithmetic had produced identical objects in the
+previous session.
+
+The controlled change was `head = *scratch - 1; vec = head`, then `head->vx`.
+In base_1.i.cse the vx read uses r256-8; base_2.i.cse folds it to r255+44.
+The lreg statistics change r255 from 3 refs/12 insns to 4 refs/25 insns crossing
+two calls, while r256 drops from 3 refs/23 insns to 2 refs/2 insns. Their final
+homes change from s0/s2 to s2/v0, respectively. This was predicted before the
+build; the score rose from 97.976% to 99.678%. The same addresses are computed.
+
+An inherited SOFT_TOUCH_REG(vec) left an extra copy. Moving it before the
+scratch store made its input die there but did not coalesce the two pseudos:
+base_3.i.lreg still assigns its input r270=v0 and output r271=s0. The asm has
+recognition code -1; local-alloc.c's operand-tying path requires a recognized
+instruction. Removing this unnecessary helper produced 100%, preserving the
+raw-base vx read and assigning both pointer pseudos s0. This is evidence about
+this specific input/output split, not a promise that all empty asm needs copies.
+
+A separate control-flow fix removed a redundant caller freeze check around
+PushRecords, which already checks the same byte. The first forward freeze
+branch then retained the second check's label through CSE instead of threading
+to the final release. Its precise CSE eligibility mechanism was not traced.
+The final function and isolated forward helper passed unscoped verification.
+
+Evidence: nonmatchings/func_actor_356100_80167A7C-vacuum/LEARNINGS.md,
+experiments.jsonl, and base_1 through base_4 RTL dumps. Input SHA256 values:
+base_1.i `12c81d34f9d77869c44d89a94f2300799bde36796e8236c61f7cda64cd5661b1`;
+base_2.i `1b06462b1305e46352e8ec5892ccc9fd8e9f34e68e5abfab567fa4bdfb07ba27`;
+base_3.i `f4a2793c5db0aa7b105e60f2d0d82020e762b467f937265b18e64f9e42f1ca53`;
+base_4.i `67f0a048b780c1daf57a64b8c7f46d013a4be5269b5da3c7dd0ed50f9520d685`.
+Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

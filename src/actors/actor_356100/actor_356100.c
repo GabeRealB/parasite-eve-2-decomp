@@ -1395,7 +1395,87 @@ void func_actor_356100_80167818(Actor356100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_356100/actor_356100", func_actor_356100_80167A7C);
+static __inline__ void Actor356100_MoveForward(GsCOORDINATE2* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD - 1;
+        vec                        = head;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        if (amount != 0) {
+            Gfx_MatrixCol2(&coord->coord, vec);
+            VectorNormalSS(vec, vec);
+            gte_lddp(amount);
+            gte_ldsv(vec);
+            gte_gpf12_real();
+            gte_stsv(vec);
+            coord->coord.t[0] += head->vx;
+            coord->coord.t[1] += vec->vy;
+            coord->coord.t[2] += vec->vz;
+            coord->flg         = 0;
+        }
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+void func_actor_356100_80167A7C(Actor356100* arg0)
+{
+    Actor356100Work*        work;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    u8*                     head;
+    Actor356100TurnScratch* turn;
+    s16                     angle;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_9BC = 0x180;
+        work->field_978 = 1;
+        work->field_982 = 0x10;
+        work->field_97A = 0;
+        work->field_97E = 2;
+        func_actor_356100_80163508(arg0);
+        return;
+    }
+    head                                              = *(u8**)G_SCRATCH_HEAD;
+    ((Actor356100TurnScratch*)(head - 0xC))->delta.vx = work->field_C[work->field_14].x - arg0->field_2C->coords->coord.t[0];
+    turn                                              = (Actor356100TurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
+    turn->delta.vy                                    = 0;
+    turn->delta.vz                                    = work->field_C[work->field_14].z - arg0->field_2C->coords->coord.t[2];
+    if (!Actor356100_OutOfRange(&turn->delta, 0xA0)) {
+        if (work->field_14 == 0) {
+            work->field_14 = 1;
+        } else {
+            work->field_14 = 0;
+        }
+    }
+    func_actor_356100_80163508(arg0);
+    coord           = arg0->field_2C->coords;
+    angle           = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    turn->angle     = Actor356100_NormalizeYaw(angle);
+    work->field_98E = turn->angle;
+    if (turn->angle >= 0x21) {
+        turn->angle = 0x20;
+    }
+    if (turn->angle < -0x20) {
+        turn->angle = -0x20;
+    }
+    turn->angle = (u16)turn->angle + ratan2(-arg0->field_2C->coords->coord.m[2][0], arg0->field_2C->coords->coord.m[2][2]);
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, turn->angle, 1);
+    Actor356100_RescaleYaw(arg0->field_2C->coords, 0x1194);
+    if (work->field_97A == 0) {
+        Actor356100_MoveForward(arg0->field_2C->coords, 10);
+    }
+    Actor356100_PushRecords(arg0->field_2C->coords, &work->field_A58, 3, 0x10);
+    *(Actor356100TurnScratch**)G_SCRATCH_HEAD += 1;
+    arg0->field_2C->coords->flg                = 0;
+}
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
 /// movement is frozen (`D_80072729`) or `amount` is zero, the column
