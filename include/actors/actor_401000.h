@@ -100,7 +100,9 @@ typedef struct Actor401000Work {
     /* 0x8A0 */ byte                pad_8A0[2];
     /* 0x8A2 */ s16                 field_8A2;
     /* 0x8A4 */ s16                 field_8A4;
-    /* 0x8A6 */ byte                pad_8A6[8];
+    /* 0x8A6 */ s16                 field_8A6;
+    /* 0x8A8 */ s16                 field_8A8;
+    /* 0x8AA */ byte                pad_8AA[4];
     /* 0x8AE */ s16                 field_8AE;
     /* 0x8B0 */ s16                 field_8B0;
     /* 0x8B2 */ byte                pad_8B2[2];
@@ -136,7 +138,9 @@ typedef struct Actor401000Work {
     /// Cleared by `func_actor_401000_80133274` right after the `field_A10`
     /// node is linked; the same slot `Actor401300Work` keeps at +0xC88.
     /* 0xBE8 */ s16  field_BE8;
-    /* 0xBEA */ byte pad_BEA[6];
+    /* 0xBEA */ s16  field_BEA;
+    /* 0xBEC */ s16  field_BEC;
+    /* 0xBEE */ byte pad_BEE[2];
     /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
     /// turn toward the player: `Gfx_RotMatrixY` on the turn then its second
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
@@ -254,6 +258,25 @@ typedef struct Actor401000StateTable {
     void (*fn[34])(Actor401000*);
 } Actor401000StateTable;
 STATIC_ASSERT_SIZEOF(Actor401000StateTable, 0x88);
+
+/// Hit-resolution scratch: knockback matrix, contact and damage reaction.
+typedef struct Actor401000HitScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ s32     dx;
+    /* 0x24 */ s32     dy;
+    /* 0x28 */ s32     dz;
+    /* 0x2C */ s32     pad_2C;
+    /* 0x30 */ SVECTOR dir;
+    /* 0x38 */ SVECTOR hitPos;
+    /* 0x40 */ s32     id;
+    /* 0x44 */ s32     damage;
+    /* 0x48 */ s32     dist;
+    /* 0x4C */ s16     yaw;
+    /* 0x4E */ s16     crit;
+    /* 0x50 */ s16     effect;
+    /* 0x52 */ s16     pad_52;
+} Actor401000HitScratch;
+STATIC_ASSERT_SIZEOF(Actor401000HitScratch, 0x54);
 
 /// 0x18-byte scratch `func_actor_401000_8013D044` takes from `G_SCRATCH_HEAD`;
 /// `pos` receives a model coordinate in view space. Same shape as

@@ -1,0 +1,107 @@
+{
+  "function": "func_actor_401000_80133D50",
+  "date": "2026-09-20",
+  "scope": "Observed GCC 2.8.1 conditional-store expansion and late tail merging; no scheduler or allocator trace.",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "candidates": {
+    "base": {
+      "source_sha256": "ffa29c8338ab7337fc575b1923100574c7659a08974e0c9401eca37bb9bf15cc",
+      "preprocessed_sha256": "8d1d768aedf75118796bb17597a20214d6ff37f32aa1a9d675d24cbcaffa6d12",
+      "yaw_test_counts": {
+        "sched2": 7,
+        "jump2": 3
+      }
+    },
+    "base_1": {
+      "source_sha256": "6f61c2227cce5310c044bb4fec6fe7cc1119aa13fc8c149150cd5b769172af59",
+      "preprocessed_sha256": "2716cf9a2b086f7c898fb7efb7a287bb29ec69365d8c549748cb49f1eb868c94",
+      "yaw_test_counts": {
+        "sched2": 7,
+        "jump2": 3
+      },
+      "selected_rtl": {
+        "rtl": [
+          "(insn 1239 1237 1240 (set (reg:SI 475)\n        (lt:SI (reg/v:SI 99)\n            (const_int 1024))) -1 (nil)\n    (nil))",
+          "(jump_insn 1240 1239 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 475)\n                (const_int 0))\n            (label_ref 1245)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+          "(insn 1242 1240 1243 (set (reg/v:HI 103)\n        (const_int 19)) -1 (nil)\n    (nil))",
+          "(insn 1247 1245 1248 (set (reg/v:HI 103)\n        (const_int 20)) -1 (nil)\n    (nil))",
+          "(insn 1253 1251 1254 (set (mem/s:HI (reg/v:SI 83))\n        (reg/v:HI 103)) -1 (nil)\n    (nil))"
+        ],
+        "jump": [
+          "(insn 1239 1237 2703 (set (reg:SI 475)\n        (lt:SI (reg/v:SI 99)\n            (const_int 1024))) -1 (nil)\n    (nil))",
+          "(insn 2703 1239 1240 (set (reg/v:HI 103)\n        (const_int 20)) -1 (nil)\n    (nil))",
+          "(jump_insn 1240 2703 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 475)\n                (const_int 0))\n            (label_ref 1245)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+          "(insn 1242 1240 1245 (set (reg/v:HI 103)\n        (const_int 19)) -1 (nil)\n    (nil))",
+          "(insn 1253 1251 1254 (set (mem/s:HI (reg/v:SI 83))\n        (reg/v:HI 103)) -1 (nil)\n    (nil))"
+        ],
+        "sched2": [
+          "(insn 2703 1237 1239 (set (reg/v:HI 3 v1)\n        (const_int 20)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 20)\n        (nil)))",
+          "(insn 1239 2703 1240 (set (reg:SI 2 v0)\n        (lt:SI (reg/v:SI 2 v0)\n            (const_int 1024))) 280 {slt_si} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))",
+          "(jump_insn 1240 1239 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 2 v0)\n                (const_int 0))\n            (label_ref 1250)\n            (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 2703 (insn_list 1239 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+          "(insn 1242 1240 1249 (set (reg/v:HI 3 v1)\n        (const_int 19)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 19)\n        (nil)))",
+          "(insn 1253 1251 1258 (set (mem/s:HI (reg/v:SI 18 s2))\n        (reg/v:HI 3 v1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:HI 3 v1)\n        (nil)))"
+        ],
+        "jump2": []
+      }
+    },
+    "base_2": {
+      "source_sha256": "9ac144ddcc4f71a178433d6e758f6e59932d5868f9c6050aaa26be37f8761d6a",
+      "preprocessed_sha256": "0a6164f87630bc8885e8ba8ad1630f7206cbddabdac1b75061afe73a58d6c987",
+      "yaw_test_counts": {
+        "sched2": 7,
+        "jump2": 7
+      },
+      "selected_rtl": {
+        "rtl": [
+          "(insn 1239 1237 1240 (set (reg:SI 476)\n        (lt:SI (reg/v:SI 99)\n            (const_int 1024))) -1 (nil)\n    (nil))",
+          "(jump_insn 1240 1239 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 476)\n                (const_int 0))\n            (label_ref 1247)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+          "(insn 1242 1240 1244 (set (reg:HI 477)\n        (const_int 19)) -1 (nil)\n    (expr_list:REG_EQUAL (const_int 19)\n        (nil)))",
+          "(insn 1244 1242 1245 (set (mem/s:HI (reg/v:SI 83))\n        (reg:HI 477)) -1 (nil)\n    (nil))",
+          "(insn 1249 1247 1251 (set (reg:HI 478)\n        (const_int 20)) -1 (nil)\n    (expr_list:REG_EQUAL (const_int 20)\n        (nil)))",
+          "(insn 1251 1249 1252 (set (mem/s:HI (reg/v:SI 83))\n        (reg:HI 478)) -1 (nil)\n    (nil))"
+        ],
+        "jump": [
+          "(insn 1239 1237 1240 (set (reg:SI 476)\n        (lt:SI (reg/v:SI 99)\n            (const_int 1024))) -1 (nil)\n    (nil))",
+          "(jump_insn 1240 1239 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 476)\n                (const_int 0))\n            (label_ref 1247)\n            (pc))) 243 {branch_zero} (nil)\n    (nil))",
+          "(insn 1242 1240 1244 (set (reg:HI 477)\n        (const_int 19)) -1 (nil)\n    (expr_list:REG_EQUAL (const_int 19)\n        (nil)))",
+          "(insn 1244 1242 1245 (set (mem/s:HI (reg/v:SI 83))\n        (reg:HI 477)) -1 (nil)\n    (nil))",
+          "(insn 1249 1247 1251 (set (reg:HI 478)\n        (const_int 20)) -1 (nil)\n    (expr_list:REG_EQUAL (const_int 20)\n        (nil)))",
+          "(insn 1251 1249 1253 (set (mem/s:HI (reg/v:SI 83))\n        (reg:HI 478)) -1 (nil)\n    (nil))"
+        ],
+        "sched2": [
+          "(insn 1239 1237 1240 (set (reg:SI 2 v0)\n        (lt:SI (reg/v:SI 2 v0)\n            (const_int 1024))) 280 {slt_si} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))",
+          "(jump_insn 1240 1239 1242 (set (pc)\n        (if_then_else (eq:SI (reg:SI 2 v0)\n                (const_int 0))\n            (label_ref 1247)\n            (pc))) 243 {branch_zero} (insn_list 1239 (nil))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+          "(insn 1242 1240 1244 (set (reg:HI 2 v0)\n        (const_int 19)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (reg/v:SI 18 s2))\n        (expr_list:REG_EQUIV (const_int 19)\n            (nil))))",
+          "(insn 1244 1242 1245 (set (mem/s:HI (reg/v:SI 18 s2))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 1242 (nil))\n    (expr_list:REG_DEAD (reg:HI 2 v0)\n        (nil)))",
+          "(insn 1249 1247 1251 (set (reg:HI 2 v0)\n        (const_int 20)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (reg/v:SI 18 s2))\n        (expr_list:REG_EQUIV (const_int 20)\n            (nil))))",
+          "(insn 1251 1249 1258 (set (mem/s:HI (reg/v:SI 18 s2))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 1249 (nil))\n    (expr_list:REG_DEAD (reg:HI 2 v0)\n        (nil)))",
+          "(insn 2703 2173 2150 (use (reg:SI 736)) -1 (nil)\n    (expr_list:REG_DEAD (reg:SI 736)\n        (nil)))"
+        ],
+        "jump2": []
+      }
+    },
+    "base_3": {
+      "source_sha256": "29ea5fe19b894272ac6f94722bfea2af3b37cd2833243f64522f9f8cf0ea0870",
+      "preprocessed_sha256": "1cf0e653304432bcfb5989a3abda83f96bc6f257a7b176f3bfd03cb5a44840e8",
+      "yaw_test_counts": {
+        "sched2": 7,
+        "jump2": 7
+      }
+    },
+    "base_4": {
+      "source_sha256": "6a520beb2da4752b9085b77a07582276e48f3b51bf3557d41cf38bc748bfec8a",
+      "preprocessed_sha256": "01f4b721ced5e05173a0e53ebd2b50f2778f242e4cccc2d283787e30bc0272b8",
+      "yaw_test_counts": {}
+    }
+  },
+  "observed": [
+    "base_1 timer r102 has 3 refs over 4 insns without calls; baseline has 3 refs over 299 insns and crosses 3 calls.",
+    "base_1 RTL assigns 19/20 to shared reg/v:HI 103 and stores once. Jump creates UID2703 next=20 before branch; sched1 moves it before the comparison. greg allocates next to v1.",
+    "base_2 RTL direct field ternary expands to separate constants r477/r478 with a mem/s:HI store in each arm. Those constants use v0 in sched2, after the comparison. Seven 1024 tests survive jump2, compared with three in base_1.",
+    "base_3 direct per-arm stores for death-state 33/29 remove shared state r100 from that choice; constants use v0 and final store merges. Exact 1049 instructions/223 blocks.",
+    "base_4 production includes/layout and wrapper retain exact match. Unscoped build-and-verify succeeds."
+  ],
+  "unresolved": [
+    "Exact sequence of greedy jump2 cross-jump candidates was not traced; no claim that the store-form edit prevents all cross-jumping in other functions."
+  ]
+}
