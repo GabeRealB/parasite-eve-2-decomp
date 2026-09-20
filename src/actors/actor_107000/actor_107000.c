@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
+#include "actors/actor_107000_anim.h"
 #include "actors/actors_shared_8013454c.h"
 #include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
@@ -535,7 +536,95 @@ void func_actor_107000_80132E9C(Task* arg0)
     *(u32*)0x1F8003FC += 0x18;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000", func_actor_107000_80132FD4);
+void func_actor_107000_80132FD4(GpEnemy* enemy, Task* task)
+{
+    TmdObject*       model;
+    Actor107000Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    s32              soundId;
+
+    obj   = task->extra;
+    work  = (Actor107000Work*)task->work;
+    coord = obj->coords;
+    model = obj;
+    switch (D_801153F4) {
+        case 1:
+            break;
+        case 2:
+            model->flags     |= 0x80;
+            enemy->node.flags = 1;
+            break;
+        case 0:
+        default:
+            switch (work->field_2B4) {
+                case 0:
+                    work->field_20A &= 0x7FFF;
+                    work->field_2AC -= 0x12C;
+                    task->killCountdown--;
+                    if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
+                        model->flags = 0x80;
+                    }
+                    if (work->field_2B2 == 6) {
+                        work->field_2B8 = 1;
+                        Actor107000_TickAnim(task);
+                    }
+                    if (task->killCountdown <= 0) {
+                        if (work->field_2D6 != 0) {
+                            soundId = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x4046000D;
+                            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                        } else {
+                            soundId = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x402E0005;
+                            SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                        }
+                        task->killCountdown = 0;
+                        Gp_ReleaseStateF0Add(task, 0x2E);
+                        if (work->field_2DA != 0) {
+                            Gp_SpawnEff(0x6009E, ((TmdObject*)task->extra)->coords, 0, NULL);
+                        }
+                        work->field_2B4 = 1;
+                        work->field_2B6 = 0;
+                        work->field_2CA = 0x1000;
+                        work->field_28C = coord->coord;
+                        enemy->recs     = NULL;
+                        Gp_UnlinkNode(&enemy->node);
+                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->objFC);
+                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj134);
+                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj1B4);
+                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj1EC);
+                    }
+                    break;
+                case 1:
+                    if ((u32)((u16)work->field_2B2 - 5) >= 2) {
+                        work->field_2B4 = 2;
+                    }
+                    work->field_2B6++;
+                    if (work->field_2B6 >= 0x3D) {
+                        work->field_2B4 = 2;
+                    }
+                    ActorsShared801349d8(task);
+                    if (work->field_2B6 == 0xA) {
+                        ((TmdObject*)task->extra)->flags = 2;
+                    }
+                    break;
+                case 2:
+                    work->field_2B6++;
+                    if (work->field_2B6 >= 0x3D) {
+                        Gp_DestroyEnemy(enemy, task);
+                    }
+                    return;
+            }
+            if ((u32)((u16)work->field_2B2 - 5) >= 2) {
+                Actor107000_TickAnim(task);
+                func_actor_107000_80134810(task, &((TmdObject*)task->extra)->coords[1]);
+                ((TmdObject*)task->extra)->coords[0].flg = 0;
+                ((TmdObject*)task->extra)->coords[1].flg = 0;
+                Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+                Actor107000_UpdateColor(enemy, &((TmdObject*)task->extra)->coords[1]);
+            }
+            break;
+    }
+}
 
 void func_actor_107000_801334C8(Task* arg0, u8 arg1)
 {
