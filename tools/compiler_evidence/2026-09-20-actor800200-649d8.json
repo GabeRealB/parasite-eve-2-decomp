@@ -1,0 +1,1538 @@
+{
+  "function": "func_actor_800200_801649D8",
+  "date": "2026-09-20",
+  "result": "100% and unscoped BUILD SUCCEEDED",
+  "scope": "Local quantity eligibility by reusing a global temporary; branch default initialization",
+  "traces": {
+    "baseline_trace": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f",
+        "input_origin": "/home/gabriel/pe2-ov-actor_800200/nonmatchings/func_actor_800200_801649D8-vacuum/base.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "3ce2b6d2554ca74ecc65009dc94ed4a23a69c3c816e22e951fd7a79f848ed07a",
+        "traced_assembly_sha256": "3ce2b6d2554ca74ecc65009dc94ed4a23a69c3c816e22e951fd7a79f848ed07a"
+      },
+      "selected_events": [
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 183
+              },
+              "before": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 2,
+                "tick": 0,
+                "uid": 183
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 179
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 3,
+                "tick": 0,
+                "uid": 179
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 11,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 185
+              },
+              "before": {
+                "luid": 11,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 185
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 197
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 185
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 185
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 185,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 185
+        },
+        {
+          "clock": 2,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 179
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 179
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 10,
+                "priority": 2130706433,
+                "refs": 0,
+                "tick": 3,
+                "uid": 183
+              },
+              "before": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 183
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 185
+        },
+        {
+          "after": [
+            {
+              "luid": 10,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 183
+            }
+          ],
+          "before": [
+            {
+              "luid": 10,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 183
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 183,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 183
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 7,
+                "priority": 1,
+                "refs": 0,
+                "tick": 4,
+                "uid": 179
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 179
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 183
+        },
+        {
+          "after": [
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 4,
+              "uid": 179
+            }
+          ],
+          "before": [
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 4,
+              "uid": 179
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 179,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 179
+        },
+        {
+          "birth": 10,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            128
+          ],
+          "priority": 40000,
+          "qty": 2,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 10,
+          "searched_death": 12,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 8,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            125
+          ],
+          "priority": 20000,
+          "qty": 1,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 8,
+          "searched_death": 12,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            124
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "allocno": 6,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            87
+          ],
+          "preferences": [
+            2,
+            3
+          ],
+          "priority": 30000,
+          "refs": 6,
+          "reg": 87,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 183
+              },
+              "before": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 2,
+                "tick": 0,
+                "uid": 183
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 179
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 3,
+                "tick": 0,
+                "uid": 179
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 185
+              },
+              "before": {
+                "luid": 6,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 185
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 197
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 185
+            }
+          ],
+          "before": [
+            {
+              "luid": 6,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 185
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 185,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 185
+        },
+        {
+          "clock": 2,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 179
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 179
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 0,
+                "tick": 3,
+                "uid": 183
+              },
+              "before": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 183
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 185
+        },
+        {
+          "after": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 183
+            }
+          ],
+          "before": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 183
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 183,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 183
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 0,
+                "tick": 4,
+                "uid": 179
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 179
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 183
+        },
+        {
+          "after": [
+            {
+              "luid": 4,
+              "priority": 2,
+              "refs": 0,
+              "tick": 4,
+              "uid": 179
+            }
+          ],
+          "before": [
+            {
+              "luid": 4,
+              "priority": 2,
+              "refs": 0,
+              "tick": 4,
+              "uid": 179
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 179,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 179
+        }
+      ],
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1 scheduled 197: uid 183 refs 2->1, priority 3->3, tick=3\nsched1 cycle 1 scheduled 197: uid 179 refs 3->2, priority 2->2, tick=3\nsched1 cycle 1 scheduled 197: uid 185 refs 1->0, priority 4->4, tick=0\nsched1 cycle 2: ready [185] -> selects 185; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 185, 'unit': -1}]\nsched1 cycle 2 scheduled 185: uid 179 refs 2->1, priority 2->2, tick=4\nsched1 cycle 2 scheduled 185: uid 183 refs 1->0, priority 3->2130706433, tick=3\nsched1 cycle 4: ready [183] -> selects 183; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 183, 'unit': 0}]\nsched1 cycle 4 scheduled 183: uid 179 refs 1->0, priority 2->1, tick=4\nsched1 cycle 6: ready [179] -> selects 179; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 179, 'unit': 0}]\nlocal b16 q2 [128]: refs=4 span=2 priority=40000 copy=[] arithmetic=[] suggested_only=0 -> $v0\nlocal b16 q1 [125]: refs=4 span=4 priority=20000 copy=[] arithmetic=[] suggested_only=0 -> $v1\nglobal a6 [87]: refs=6 span=4 priority=30000 calls=0 retry=0 caller_save=0 -> $v0\nreload preference: $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s4 $s5 $s6 $s7 $t1 $s2 $s3 $t0 $s0\nsched2 cycle 1 scheduled 197: uid 183 refs 2->1, priority 3->3, tick=3\nsched2 cycle 1 scheduled 197: uid 179 refs 3->2, priority 2->2, tick=3\nsched2 cycle 1 scheduled 197: uid 185 refs 1->0, priority 4->4, tick=0\nsched2 cycle 2: ready [185] -> selects 185; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 185, 'unit': -1}]\nsched2 cycle 2 scheduled 185: uid 179 refs 2->1, priority 2->2, tick=4\nsched2 cycle 2 scheduled 185: uid 183 refs 1->0, priority 3->3, tick=3\nsched2 cycle 4: ready [183] -> selects 183; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 183, 'unit': 0}]\nsched2 cycle 4 scheduled 183: uid 179 refs 1->0, priority 2->2, tick=4\nsched2 cycle 6: ready [179] -> selects 179; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 179, 'unit': 0}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n"
+    },
+    "match_trace": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd",
+        "input_origin": "/home/gabriel/pe2-ov-actor_800200/nonmatchings/func_actor_800200_801649D8-vacuum/base_3.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "9f23418d23ab913317eff23f62c8a46e2e6f61ba40680f504b2facbf472c2a98",
+        "traced_assembly_sha256": "9f23418d23ab913317eff23f62c8a46e2e6f61ba40680f504b2facbf472c2a98"
+      },
+      "selected_events": [
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 184
+              },
+              "before": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 2,
+                "tick": 0,
+                "uid": 184
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 180
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 3,
+                "tick": 0,
+                "uid": 180
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 11,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 186
+              },
+              "before": {
+                "luid": 11,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 186
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 198
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 186
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 186
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 186,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 186
+        },
+        {
+          "clock": 2,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 180
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 180
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 0,
+                "tick": 3,
+                "uid": 184
+              },
+              "before": {
+                "luid": 10,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 184
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 186
+        },
+        {
+          "after": [
+            {
+              "luid": 10,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 184
+            }
+          ],
+          "before": [
+            {
+              "luid": 10,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 184
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 184,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 184
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 7,
+                "priority": 1,
+                "refs": 0,
+                "tick": 4,
+                "uid": 180
+              },
+              "before": {
+                "luid": 7,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 180
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 184
+        },
+        {
+          "after": [
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 4,
+              "uid": 180
+            }
+          ],
+          "before": [
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 4,
+              "uid": 180
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 180,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 180
+        },
+        {
+          "birth": 8,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            91
+          ],
+          "priority": 20000,
+          "qty": 1,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 8,
+          "searched_death": 12,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            125
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "allocno": 6,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            88
+          ],
+          "preferences": [
+            2
+          ],
+          "priority": 30000,
+          "refs": 6,
+          "reg": 88,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 7,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            29
+          ],
+          "members": [
+            89
+          ],
+          "preferences": [],
+          "priority": 24545,
+          "refs": 9,
+          "reg": 89,
+          "result": 3,
+          "retry": 0,
+          "size": 1,
+          "span": 11
+        },
+        {
+          "clock": 1,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 184
+              },
+              "before": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 2,
+                "tick": 0,
+                "uid": 184
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 180
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 3,
+                "tick": 0,
+                "uid": 180
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 186
+              },
+              "before": {
+                "luid": 6,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 186
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 198
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 186
+            }
+          ],
+          "before": [
+            {
+              "luid": 6,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 186
+            }
+          ],
+          "clock": 2,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 186,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 186
+        },
+        {
+          "clock": 2,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 180
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 2,
+                "tick": 3,
+                "uid": 180
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 0,
+                "tick": 3,
+                "uid": 184
+              },
+              "before": {
+                "luid": 5,
+                "priority": 3,
+                "refs": 1,
+                "tick": 3,
+                "uid": 184
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 186
+        },
+        {
+          "after": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 184
+            }
+          ],
+          "before": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 3,
+              "uid": 184
+            }
+          ],
+          "clock": 4,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 184,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 184
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 0,
+                "tick": 4,
+                "uid": 180
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 180
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 184
+        },
+        {
+          "after": [
+            {
+              "luid": 4,
+              "priority": 2,
+              "refs": 0,
+              "tick": 4,
+              "uid": 180
+            }
+          ],
+          "before": [
+            {
+              "luid": 4,
+              "priority": 2,
+              "refs": 0,
+              "tick": 4,
+              "uid": 180
+            }
+          ],
+          "clock": 6,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 180,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 180
+        }
+      ],
+      "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 1 scheduled 198: uid 184 refs 2->1, priority 3->3, tick=3\nsched1 cycle 1 scheduled 198: uid 180 refs 3->2, priority 2->2, tick=3\nsched1 cycle 1 scheduled 198: uid 186 refs 1->0, priority 4->4, tick=0\nsched1 cycle 2: ready [186] -> selects 186; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 186, 'unit': -1}]\nsched1 cycle 2 scheduled 186: uid 180 refs 2->1, priority 2->2, tick=4\nsched1 cycle 2 scheduled 186: uid 184 refs 1->0, priority 3->3, tick=3\nsched1 cycle 4: ready [184] -> selects 184; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 184, 'unit': 0}]\nsched1 cycle 4 scheduled 184: uid 180 refs 1->0, priority 2->1, tick=4\nsched1 cycle 6: ready [180] -> selects 180; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 180, 'unit': 0}]\nlocal b16 q1 [91]: refs=4 span=4 priority=20000 copy=[] arithmetic=[] suggested_only=0 -> $v0\nglobal a6 [88]: refs=6 span=4 priority=30000 calls=0 retry=0 caller_save=0 -> $v0\nglobal a7 [89]: refs=9 span=11 priority=24545 calls=0 retry=0 caller_save=0 -> $v1\nreload preference: $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 64 65 66 $s4 $s5 $s6 $s7 $t1 $s2 $s3 $t0 $s0\nsched2 cycle 1 scheduled 198: uid 184 refs 2->1, priority 3->3, tick=3\nsched2 cycle 1 scheduled 198: uid 180 refs 3->2, priority 2->2, tick=3\nsched2 cycle 1 scheduled 198: uid 186 refs 1->0, priority 4->4, tick=0\nsched2 cycle 2: ready [186] -> selects 186; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 186, 'unit': -1}]\nsched2 cycle 2 scheduled 186: uid 180 refs 2->1, priority 2->2, tick=4\nsched2 cycle 2 scheduled 186: uid 184 refs 1->0, priority 3->3, tick=3\nsched2 cycle 4: ready [184] -> selects 184; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 184, 'unit': 0}]\nsched2 cycle 4 scheduled 184: uid 180 refs 1->0, priority 2->2, tick=4\nsched2 cycle 6: ready [180] -> selects 180; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 180, 'unit': 0}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n"
+    }
+  },
+  "experiments": [
+    {
+      "at": "2026-09-20T04:39:01.288953+00:00",
+      "event": "plan",
+      "expected": "li a1,5 enters the blez delay slot; both arm stores and case-1 register allocation remain unchanged",
+      "hypothesis": "Initialize the default animation after the angle call and before the branch so dbr can fill the branch slot from before it",
+      "parent": "base.c",
+      "pass_name": "dbr",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T04:39:35.186287+00:00",
+      "event": "conclude",
+      "next": "Split the first load into the subtraction result inside the existing loop notes; preserve the single post-ABS slti",
+      "result": "99.874%: dbr sequence 485 contains UID128 anim0=5 beside blez; only the original field-load register swap remains",
+      "source": "base_1.c",
+      "source_sha256": "6f853d5eae8beb91396992decd7a48c2ae3a8fac10ae8b3bd3d4377f940ebdb4"
+    },
+    {
+      "at": "2026-09-20T04:39:35.233604+00:00",
+      "event": "plan",
+      "expected": "field_52 and subtraction use v0, field_C8 uses v1; load order and single post-ABS slti survive",
+      "hypothesis": "Assign field_52 directly to the global subtraction result while retaining existing loop notes, removing its independent lower-priority local quantity",
+      "parent": "base_1.c",
+      "pass_name": "lreg",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T04:40:17.557411+00:00",
+      "event": "conclude",
+      "next": "Make the second load global instead by reusing state; keep field_52 local and the subtraction result separate",
+      "result": "98.453%: field_52 became global as predicted, but local field_C8 took v0 and added v0 to result conflicts, forcing result v1; dbr then duplicated slti because its v0 destination no longer clobbered the value",
+      "source": "base_2.c",
+      "source_sha256": "48b14c72530206ec25b68741ebd8ab058c43ad71d4b9b4ff960ea9728c3ceb02"
+    },
+    {
+      "at": "2026-09-20T04:40:17.603073+00:00",
+      "event": "plan",
+      "expected": "field_52 local gets v0; state/field_C8 stays global in v1; result v0 prevents slti speculation in bgez slot",
+      "hypothesis": "Reusing the already-global state temporary for field_C8 leaves field_52 as the only local load and preserves a separate subtraction result",
+      "parent": "base_1.c",
+      "pass_name": "greg",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T04:40:48.275145+00:00",
+      "event": "conclude",
+      "next": "Verify trace membership and port readable function with current headers",
+      "result": "100% all-zero penalties: .greg shows first load v0, state/second load v1, separate result v0; original bgez/nop and single slti preserved",
+      "source": "base_3.c",
+      "source_sha256": "c4415ef004d8ab3b7bc4de9c9dd1e14309776724bf96462e40808a8d63cdffc1"
+    },
+    {
+      "at": "2026-09-20T04:41:16.970895+00:00",
+      "event": "plan",
+      "expected": "Removing the phony loop preserves load allocation, load order, bgez nop, and the 100% object",
+      "hypothesis": "The corrected v0 result prevents unsafe slti speculation; the archived do/while loop notes are no longer needed",
+      "parent": "base_3.c",
+      "pass_name": "dbr",
+      "source": "base_4.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T04:41:38.038939+00:00",
+      "event": "conclude",
+      "next": "Port exact base_3 with readable names and current headers; no further causal variants",
+      "result": "99.811%: homes and single slti survive, but without loop notes sched1 schedules targetHeading before current heading; retain the archived loop wrapper",
+      "source": "base_4.c",
+      "source_sha256": "51cf54bd82a0218c0074e723b35ab2bb871b360e35b5941cfad09f2cd7c1b32f"
+    },
+    {
+      "at": "2026-09-20T04:42:49.753349+00:00",
+      "event": "plan",
+      "expected": "Current typed headers and formatting preserve 100% with no register pins or asm helpers",
+      "hypothesis": "Port the exact control/data flow to current overlay headers and readable local names; cast the formerly unsigned heading where required",
+      "parent": "base_3.c",
+      "pass_name": "rtl",
+      "source": "base_5.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T04:42:57.406505+00:00",
+      "event": "plan",
+      "source": "base_perm_2881012bb15346c4_parent.c",
+      "source_sha256": "32a9aa011071498707e6ffc1ed9d9fd5585117ffa4cbd5cf8d121746d162bf20",
+      "parent": "seed_6efa2cd01560bfdd46fb.c",
+      "hypothesis": "permuter source normalization",
+      "expected": "same generated code as seed",
+      "pass_name": null,
+      "origin": "permuter-verification"
+    },
+    {
+      "at": "2026-09-20T04:42:58.213089+00:00",
+      "event": "plan",
+      "source": "base_perm_2881012bb15346c4.c",
+      "source_sha256": "65a606518514a1eebb9bd664dd5859fe9f2d4fca2aeed0f84cfc9f14dd0fbdcf",
+      "parent": "base_perm_2881012bb15346c4_parent.c",
+      "hypothesis": "permuter transformation improves distance; mechanism unresolved",
+      "expected": "lower distance than paired baseline",
+      "pass_name": null,
+      "origin": "permuter-verification"
+    },
+    {
+      "at": "2026-09-20T04:43:09.165538+00:00",
+      "event": "conclude",
+      "next": "Require unscoped build-and-verify success and preserve investigation evidence",
+      "result": "Readable port with current headers is 100%, exact same object as base_3; added only overlay-local declarations and replaced the target INCLUDE_ASM",
+      "source": "base_5.c",
+      "source_sha256": "6a4466b937dab37ce547f0bd3aae622a961a41295c736d225c872c6d4e23596c"
+    }
+  ],
+  "builds": [
+    {
+      "assembly_sha256": "d33d0b04e49ae3b104a999ea45e567f22fa0e75df82c984aa81c8f2855ed1c3f",
+      "at": "2026-09-20T04:36:35.940607+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 226,
+      "duplicate_of": "base_perm_849e338ed65b4c21.c",
+      "expected": null,
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": null,
+      "parent": null,
+      "pass_name": null,
+      "penalties": {
+        "branch": 1,
+        "delete": 1,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 98.57861635220125,
+      "source": "base.c",
+      "source_sha256": "11ff7215f2763d2c284d5d2aa7653fe8b7b2e2ef28238cea65616834c7092960",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "d33d0b04e49ae3b104a999ea45e567f22fa0e75df82c984aa81c8f2855ed1c3f",
+      "at": "2026-09-20T04:37:00.997563+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 226,
+      "duplicate_of": "base.c",
+      "expected": null,
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": null,
+      "parent": null,
+      "pass_name": null,
+      "penalties": {
+        "branch": 1,
+        "delete": 1,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 98.57861635220125,
+      "source": "base.c",
+      "source_sha256": "11ff7215f2763d2c284d5d2aa7653fe8b7b2e2ef28238cea65616834c7092960",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "d33d0b04e49ae3b104a999ea45e567f22fa0e75df82c984aa81c8f2855ed1c3f",
+      "at": "2026-09-20T04:37:28.944366+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 226,
+      "duplicate_of": "base.c",
+      "expected": null,
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": null,
+      "parent": null,
+      "pass_name": null,
+      "penalties": {
+        "branch": 1,
+        "delete": 1,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 98.57861635220125,
+      "source": "base.c",
+      "source_sha256": "11ff7215f2763d2c284d5d2aa7653fe8b7b2e2ef28238cea65616834c7092960",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "ad8c59a0fd6a7533981310f58957038819060d89eae8326c0c09833f82ef2e42",
+      "at": "2026-09-20T04:39:02.092691+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 20,
+      "duplicate_of": null,
+      "expected": "li a1,5 enters the blez delay slot; both arm stores and case-1 register allocation remain unchanged",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Initialize the default animation after the angle call and before the branch so dbr can fill the branch slot from before it",
+      "parent": "base.c",
+      "pass_name": "dbr",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 4,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "a3478afc50a38be533b36386af01e1724c94e90d05daffc65f229446d331553f",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 99.87421383647799,
+      "source": "base_1.c",
+      "source_sha256": "6f853d5eae8beb91396992decd7a48c2ae3a8fac10ae8b3bd3d4377f940ebdb4",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "01cd15a48a50bea1de0e85eca2767da9c73b6109ba90710fca4146e2fab4a0a7",
+      "at": "2026-09-20T04:39:36.081234+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 246,
+      "duplicate_of": null,
+      "expected": "field_52 and subtraction use v0, field_C8 uses v1; load order and single post-ABS slti survive",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Assign field_52 directly to the global subtraction result while retaining existing loop notes, removing its independent lower-priority local quantity",
+      "parent": "base_1.c",
+      "pass_name": "lreg",
+      "penalties": {
+        "branch": 1,
+        "delete": 1,
+        "insert": 1,
+        "regs": 9,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "64f238b9e6ea55d2e36d35f965ba0320a4dbff568228aca7276e6aa037929f21",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 98.45283018867924,
+      "source": "base_2.c",
+      "source_sha256": "48b14c72530206ec25b68741ebd8ab058c43ad71d4b9b4ff960ea9728c3ceb02",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "b73ed119c1528786d71e05054c7e40d5d9e2df680c6c630bd3ae635eaec2fb70",
+      "at": "2026-09-20T04:40:18.105569+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": null,
+      "expected": "field_52 local gets v0; state/field_C8 stays global in v1; result v0 prevents slti speculation in bgez slot",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Reusing the already-global state temporary for field_C8 leaves field_52 as the only local load and preserves a separate subtraction result",
+      "parent": "base_1.c",
+      "pass_name": "greg",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 100.0,
+      "source": "base_3.c",
+      "source_sha256": "c4415ef004d8ab3b7bc4de9c9dd1e14309776724bf96462e40808a8d63cdffc1",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "d20594fd412112daa3ce0ce3da20297837573cd8c6aedbbfb417852799e176f3",
+      "at": "2026-09-20T04:41:17.749796+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 30,
+      "duplicate_of": null,
+      "expected": "Removing the phony loop preserves load allocation, load order, bgez nop, and the 100% object",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "The corrected v0 result prevents unsafe slti speculation; the archived do/while loop notes are no longer needed",
+      "parent": "base_3.c",
+      "pass_name": "dbr",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 6,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "388776c9409f68acf2b118f689c5b770bcd656f4c4dc93c243cd8d81289a7f18",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 99.81132075471699,
+      "source": "base_4.c",
+      "source_sha256": "51cf54bd82a0218c0074e723b35ab2bb871b360e35b5941cfad09f2cd7c1b32f",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    },
+    {
+      "assembly_sha256": "b73ed119c1528786d71e05054c7e40d5d9e2df680c6c630bd3ae635eaec2fb70",
+      "at": "2026-09-20T04:42:50.302236+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_3.c",
+      "expected": "Current typed headers and formatting preserve 100% with no register pins or asm helpers",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800200/include -I /home/gabriel/pe2-ov-actor_800200/build -I /home/gabriel/pe2-ov-actor_800200/include/psyq -I /home/gabriel/pe2-ov-actor_800200/include/decomp -I /home/gabriel/pe2-ov-actor_800200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Port the exact control/data flow to current overlay headers and readable local names; cast the formerly unsigned heading where required",
+      "parent": "base_3.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "898bee59832fe3d611120bf6a9093e02b292c8a2b9221c2c40c359433448fc5d",
+      "project": "/home/gabriel/pe2-ov-actor_800200",
+      "score": 100.0,
+      "source": "base_5.c",
+      "source_sha256": "6a4466b937dab37ce547f0bd3aae622a961a41295c736d225c872c6d4e23596c",
+      "target_sha256": "e10ffb99d2c89afc78bd30104ad77f3d29f054f926e0c2ca2721d7bba3019a94"
+    }
+  ]
+}

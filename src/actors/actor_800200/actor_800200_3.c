@@ -975,7 +975,101 @@ void func_actor_800200_801647A8(GpActorWork* arg0)
     *(u32*)0x1F8003FC += 0x10;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200_3", func_actor_800200_801649D8);
+void func_actor_800200_801649D8(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpActorD4* d4;
+    s32        distance;
+    s32        one;
+    s32        turnAnim;
+    s32        turn;
+    s32        idleAnim;
+    s32        delta;
+    s32        value;
+    s32        tick;
+    s32        heading;
+    u32        random;
+    u16        target;
+
+    actor    = arg0->actor;
+    d4       = actor->field_910;
+    distance = func_actor_800200_801660E8(arg0->extra->coords, &d4->contact, 0);
+    value    = actor->field_95E;
+    one      = 1;
+    switch (value) {
+        case 0:
+            if (d4->scanAngle < 0x1000) {
+                if ((d4->scanDist != 0) && ((d4->scanDist < distance) || (distance == 0))) {
+                    d4->scanDist      = (s16)distance;
+                    d4->targetHeading = (u16)d4->scanAngle;
+                }
+                d4->scanAngle = (u16)d4->scanAngle + 0x80;
+                return;
+            }
+            actor->field_95E  = one;
+            target            = ((u16)d4->targetHeading + actor->field_52) & 0xFFF;
+            d4->targetHeading = target;
+            turn              = func_80103E7C((s16)actor->field_52, (s16)target) << 0x10;
+            turnAnim          = 5;
+            if (turn > 0) {
+                turnAnim    = 6;
+                d4->turnDir = 1;
+            } else {
+                d4->turnDir = -1;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, turnAnim, 0, 3);
+            return;
+
+        case 1:
+            actor->field_975 = d4->turnDir;
+            do {
+                heading = (s16)actor->field_52;
+                value   = (s16)d4->targetHeading;
+                delta   = heading - value;
+            } while (0);
+            if (delta < 0) {
+                delta = -delta;
+            }
+            if (delta < 0x40) {
+                actor->field_95E += 1;
+                actor->field_52   = (u16)d4->targetHeading;
+                actor->field_975  = 0;
+                if (Gp_StateF0.field_0 == 1) {
+                    idleAnim         = 4;
+                    actor->field_958 = 6;
+                    random           = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState      = random;
+                    random           = ((random >> 0x10) & 0x1F) + 0x14;
+                    actor->field_934 = random;
+                    Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);
+                } else {
+                    idleAnim         = 2;
+                    actor->field_958 = 5;
+                    random           = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState      = random;
+                    random           = ((random >> 0x10) & 0x7F) + 0x3C;
+                    actor->field_934 = random;
+                    Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);
+                }
+                return;
+            }
+            return;
+
+        case 2:
+            if ((distance >= 0x341) || (distance == 0)) {
+                tick             = actor->field_934 - 1;
+                actor->field_934 = tick;
+                if (tick <= 0) {
+                reset:
+                    Gp_ResetActorMove(arg0, 0);
+                    break;
+                }
+                actor->field_973 = 1;
+                break;
+            }
+            goto reset;
+    }
+}
 
 void func_actor_800200_80164C54(GpActorWork* arg0)
 {

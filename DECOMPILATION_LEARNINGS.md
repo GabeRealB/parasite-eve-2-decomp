@@ -134669,3 +134669,40 @@ dumps, journal and trace retained under `tools/permuter_findings/func_actor_8002
 Inputs: base_1 `f2385cf9a9bf81c5e61818f5c2375e5ce05d14ea58ce8f4832017baf56cd914b`,
 base_2 `e199d5967294a882733d9bc2e15f2eb59f1d1a4fdd5f2a5238f4d235cb29c43a`;
 compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## Reusing a global temporary can reverse two local load homes without a tie (func_actor_800200_801649D8, 2026-09-20)
+
+The archived 98.579% seed loaded signed headings in the correct order but into
+v1/v0 instead of v0/v1. Earlier notes attributed this to subtraction operand
+tying. Actual tracing disproved that: the first load was local q1/r125,
+refs4/span4, priority20000; the second was q2/r128, refs4/span2, priority40000.
+Both quantities had one member and no suggestions. The result r87 was global.
+The later, shorter-lived load therefore took v0 independently of subtraction.
+
+After fixing an unrelated animation default (initialize 5 after the call but
+before the condition, so dbr fills blez from before it), distance was 20.
+Controlled base_3 loaded the first heading into a fresh local, reused the
+already-global switch variable for the second heading, and subtracted into
+a separate result. Prediction: the sole competing local load takes v0; the
+second heading stays global in v1; result v0 preserves the bgez nop and one
+post-absolute-value slti. The exact trace and 100% object confirm all three:
+local q1/r91 refs4/span4 -> v0; global a7/r89 refs9/length11 -> v1; global
+a6/r88 refs6/length4 -> v0. No tied load/result quantity was created.
+
+The opposite change, loading the first heading directly into the global
+result, failed: the remaining local second load occupied v0, conflicting with
+the result and forcing it into v1. The slti destination could then use v0 and
+was duplicated into the bgez delay slot. Allocation and delay filling must be
+checked together. Removing the inherited do/while(0) also failed: homes stayed
+correct, but sched1 reversed the loads. Its notes remain in the final function;
+the exact internal scheduling decision behind that counterfactual is untraced.
+
+Readable current-header port base_5 is exact; unscoped BUILD SUCCEEDED. No pins
+or asm helpers. The concurrent bounded router's alternate reproduced no gain
+(distance407 ->407); the manual experiments supplied this match. Evidence:
+`tools/compiler_evidence/2026-09-20-actor800200-649d8.json`; full inputs/dumps and
+traces archived in `tools/permuter_findings/func_actor_800200_801649D8/`.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input base: `c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f`;
+base_3: `9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd`.
+Both traced compilations emitted byte-identical assembly with/without observation.
