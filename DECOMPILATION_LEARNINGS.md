@@ -134785,3 +134785,22 @@ Using the matched sibling's direct `work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
 The final death-state selection similarly reused a state local and stored once, choosing v1 and a separate tail. Direct stores of 0x21 and 0x1d in the two arms gave v0 and the expected shared tail, reaching 100%. Moving timer=5 after the switch had first removed its three call crossings and brought 89.786% -> 90.763%. Production-style source remained exact and unscoped build verification passed. No pins, empty asm or permutation discoveries were used; the required router skipped on differing block connections.
 
 Evidence, including preprocessed-input and compiler hashes plus selected RTL: `tools/compiler_evidence/2026-09-20-actor401000-33d50.json`. The exact greedy jump2 merge sequence was not traced; these observations do not imply that direct field stores generally prevent cross-jumping.
+
+
+## Aggregate constructors resolve the actor_403200 face-store plateau (2026-09-20)
+
+The 2026-09-19 `GpGridFace` constructor result also closes
+`func_actor_403200_801408D8`: 97.731% (810) to 100%, all 357 instructions
+identical, without pins. Preserve pool/verts/faces pointer initializers before
+the two aggregate initializers. A prediction recorded before the build was
+confirmed: second-face BLK clobbers UID92/93 retain output dependencies on all
+six first-face stores. Backward sched2 selects the clobbers at T-268/269 and
+releases those stores at T-270. The field stores have priority 4 alongside
+vertex arithmetic, whereas the baseline field stores had priority 3. The old
+retry explanation that only equal-priority LUID ties mattered was incomplete.
+
+Normal-style port and full unscoped verification pass. Source, plans, hashes,
+scores and selected dump evidence are retained in
+`tools/compiler_evidence/2026-09-20-actor403200-408d8.json`.
+Preprocessed SHA256: baseline `c1195ecf016ef670cdec4f19404595fa1511e15a677945dae84ca2a09f2d8a9e`;
+matching experiment `ffac8c66400cc55ab9ce246e0885b81ade2e6266577a210e4c84cdb24ee83a34`.

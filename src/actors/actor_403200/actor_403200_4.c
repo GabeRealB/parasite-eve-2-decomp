@@ -2118,7 +2118,95 @@ INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200
 
 INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013FB54);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_801408D8);
+void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
+{
+    SVECTOR     dir;
+    SVECTOR     normal;
+    SVECTOR*    pool  = Gp_GridParams->field_4;
+    SVECTOR*    verts = Gp_GridParams->field_8;
+    GpGridFace* faces = Gp_GridParams->field_C;
+    GpGridFace  face  = {
+        { index * 4, index * 4 + 1, index * 4 + 2, index * 4 + 3 }, index, 3
+    };
+    GpGridFace face2 = {
+        { (index + 1) * 4, (index + 1) * 4 + 1, (index + 1) * 4 + 2, (index + 1) * 4 + 3 }, index + 1, 3
+    };
+    SVECTOR* d;
+
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &normal);
+    Gfx_MatrixCol0(&((TmdObject*)task->extra)->coords->coord, &dir);
+    d = &dir;
+    VectorNormalSS(d, d);
+    VectorNormalSS(&normal, &normal);
+    gte_lddp(scale);
+    gte_ldsv(&normal);
+    gte_gpf12_real();
+    gte_stsv(&normal);
+    gte_lddp(0xBB8);
+    gte_ldsv(d);
+    gte_gpf12_real();
+    gte_stsv(d);
+
+    verts[index * 4].vx = verts[index * 4 + 2].vx =
+        ((TmdObject*)task->extra)->coords->coord.t[0] + dir.vx + normal.vx;
+    verts[index * 4].vy = verts[index * 4 + 2].vy =
+        ((TmdObject*)task->extra)->coords->coord.t[1] + dir.vy + normal.vy;
+    verts[index * 4].vz = verts[index * 4 + 2].vz =
+        ((TmdObject*)task->extra)->coords->coord.t[2] + dir.vz + normal.vz;
+
+    verts[index * 4 + 1].vx = verts[index * 4 + 3].vx =
+        ((TmdObject*)task->extra)->coords->coord.t[0] + normal.vx;
+    verts[index * 4 + 1].vy = verts[index * 4 + 3].vy =
+        ((TmdObject*)task->extra)->coords->coord.t[1] + normal.vy;
+    verts[index * 4 + 1].vz = verts[index * 4 + 3].vz =
+        ((TmdObject*)task->extra)->coords->coord.t[2] + normal.vz;
+
+    verts[(index + 1) * 4].vx = verts[(index + 1) * 4 + 2].vx =
+        ((TmdObject*)task->extra)->coords->coord.t[0] + normal.vx;
+    verts[(index + 1) * 4].vy = verts[(index + 1) * 4 + 2].vy =
+        ((TmdObject*)task->extra)->coords->coord.t[1] + normal.vy;
+    verts[(index + 1) * 4].vz = verts[(index + 1) * 4 + 2].vz =
+        ((TmdObject*)task->extra)->coords->coord.t[2] + normal.vz;
+
+    verts[(index + 1) * 4 + 1].vx = verts[(index + 1) * 4 + 3].vx =
+        ((TmdObject*)task->extra)->coords->coord.t[0] + normal.vx - dir.vx;
+    verts[(index + 1) * 4 + 1].vy = verts[(index + 1) * 4 + 3].vy =
+        ((TmdObject*)task->extra)->coords->coord.t[1] + normal.vy - dir.vy;
+    verts[(index + 1) * 4 + 1].vz = verts[(index + 1) * 4 + 3].vz =
+        ((TmdObject*)task->extra)->coords->coord.t[2] + normal.vz - dir.vz;
+
+    gte_lddp(0x3E8);
+    gte_ldsv(&normal);
+    gte_gpf12_real();
+    gte_stsv(&normal);
+
+    verts[index * 4].vx = verts[index * 4 + 2].vx += normal.vx;
+    verts[index * 4].vy = verts[index * 4 + 2].vy += normal.vy;
+    verts[index * 4].vz = verts[index * 4 + 2].vz += normal.vz;
+    verts[index * 4 + 5].vx = verts[index * 4 + 7].vx += normal.vx;
+    verts[index * 4 + 5].vy = verts[index * 4 + 7].vy += normal.vy;
+    verts[index * 4 + 5].vz = verts[index * 4 + 7].vz += normal.vz;
+
+    pool[index].vz = verts[index * 4].vx - verts[index * 4 + 1].vx;
+    pool[index].vy = verts[index * 4 + 1].vy - verts[index * 4].vy;
+    pool[index].vx = verts[index * 4 + 1].vz - verts[index * 4].vz;
+    VectorNormalSS(&pool[index], &pool[index]);
+
+    (&pool[index])[1].vz = verts[(index + 1) * 4].vx - verts[(index + 1) * 4 + 1].vx;
+    (&pool[index])[1].vy = verts[(index + 1) * 4 + 1].vy - verts[(index + 1) * 4].vy;
+    (&pool[index])[1].vx = verts[(index + 1) * 4 + 1].vz - verts[(index + 1) * 4].vz;
+    VectorNormalSS(&(&pool[index])[1], &(&pool[index])[1]);
+
+    verts[index * 4].vy     -= drop;
+    verts[index * 4 + 1].vy -= drop;
+    verts[index * 4 + 4].vy -= drop;
+    verts[index * 4 + 5].vy -= drop;
+
+    face.field_A     = 3;
+    face2.field_A    = 3;
+    faces[index]     = face;
+    faces[index + 1] = face2;
+}
 
 /// The enemy's upkeep tick, run by the dispatcher through the same
 /// `D_actor_403200_801321B8` table the other tasks in this overlay use. It drops
