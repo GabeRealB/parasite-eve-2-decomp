@@ -135234,3 +135234,38 @@ CSE/combine/greg/dbr dumps and compare_3_7.txt. Input SHA256 base_3.i
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Full unscoped build and lost-match check passed. The router skipped the earlier
 95.832% candidate for differing block connections; no permuter gain contributed.
+
+
+## A read-only use reproduces a permuter loop-weight gain without its wrapper (func_actor_105100_80135278, 2026-09-20)
+
+The 99.712% retry had only nine register penalties: arg0 in s6 instead of
+s5, and the table address in s5 instead of s6. The two global allocnos had
+identical initial conflict sets. `.lreg` reported arg0 at 2 refs / 48 insns,
+table at 3 / 68; `.greg` allocated table first.
+
+The permuter reached zero by wrapping the failure cleanup in do/while(0)
+and adding a radius constant temporary. Flow's retained loop notes made
+arg0's reference count 3, and global allocation placed it before the table.
+A controlled alternative, planned before compilation, adds only
+`USE_REG(arg0);` immediately before `Gp_DestroyEnemy(arg0, arg1);`.
+No loop wrapper or radius temporary is needed. It reports 3 refs / 50 insns
+for arg0, table unchanged at 3 / 68, and preserves the initial conflicts.
+Priorities become 600 versus 441 (arg0 previously 416), flipping the global
+order and final s5/s6 homes. Every instruction matches. The helper is a
+volatile scheduling boundary as well as a use; this placement was verified,
+not assumed harmless. The full unscoped build passed after normal header
+integration. No register pins were used.
+
+The archived alternative, late `TOUCH_REG(tbl)`, failed: it made the table
+5 refs / 104 insns and moved it ahead of arg1 into s4 (99.423%, regs=18).
+The observed counts refute a lifetime-only prediction; the precise changed
+equivalence bookkeeping was not traced. Always inspect both references and
+span when extending a pointer's lifetime.
+
+Inputs: base_1.i `41d710f5aa63ae19e4aca98fa1e2212f00cb5483083bcb697def2e9e2533442c`;
+base_3.i `99c92777aa792646283e3fee90dc9215856d44322e03e2bca359bac617e4d2d5`;
+ported base_4.i `53b554614d3001ca589d9bd18284472f8f5ba4fd34ddd394cfb54cd5109bbc08`.
+Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected observations and full
+conflict/disposition excerpts: `tools/compiler_evidence/2026-09-20-actor105100-35278.json`.
+Retained paired sources/dumps: `PERMUTER_EVIDENCE/5c9f8231875b41c9` in the scratch
+and the immutable `tools/permuter_findings/func_actor_105100_80135278` archive.

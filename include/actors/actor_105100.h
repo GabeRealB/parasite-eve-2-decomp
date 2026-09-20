@@ -88,7 +88,7 @@ typedef struct Actor105100Work {
     /* 0x5AA */ s16        field_5AA;
     /* 0x5AC */ s16        field_5AC;
     /* 0x5AE */ u16        field_5AE;
-    /* 0x5B0 */ byte       pad_5B0[2];
+    /* 0x5B0 */ s16        field_5B0;
     /* 0x5B2 */ s16        field_5B2;
     /* 0x5B4 */ s16        field_5B4;
     /* 0x5B6 */ s16        field_5B6;
@@ -100,7 +100,9 @@ typedef struct Actor105100Work {
     /* 0x5C4 */ byte       pad_5C4[4];
 } Actor105100Work;
 
-/// Second view of the work area's 0x38 record, held by the per-frame handler
+/// The child spawner allocates this 0x50-byte collision and reaction block:
+/// a GpObj, one contact record, and the state the reaction handlers drive.
+/// It is also a second view of the work area's 0x38 record, held by the per-frame handler
 /// `func_actor_105100_801354E8`: `field_40` is the reaction it dispatches on,
 /// `field_48` the countdown that reaction runs for and `field_4E` the pose the
 /// schedule is stepped through. Those bytes are `obj38`, a `GpObj`, to the
@@ -115,15 +117,18 @@ typedef struct Actor105100Work {
 /// `func_actor_105100_801359B4` reads them here and takes the aim vector
 /// itself from `Actor105100Work::obj38`.
 typedef struct Actor105100Rec {
-    /* 0x00 */ byte pad_0[0x40];
-    /* 0x40 */ s16  field_40;
-    /* 0x42 */ byte pad_42[2];
-    /* 0x44 */ s16  field_44;
-    /* 0x46 */ s16  field_46;
-    /* 0x48 */ s16  field_48;
-    /* 0x4A */ byte pad_4A[4];
-    /* 0x4E */ u16  field_4E;
+    /* 0x00 */ GpObj   obj;
+    /* 0x20 */ GpRec18 rec[1];
+    /* 0x38 */ byte    pad_38[8];
+    /* 0x40 */ s16     field_40;
+    /* 0x42 */ s16     field_42;
+    /* 0x44 */ s16     field_44;
+    /* 0x46 */ s16     field_46;
+    /* 0x48 */ s16     field_48;
+    /* 0x4A */ byte    pad_4A[4];
+    /* 0x4E */ u16     field_4E;
 } Actor105100Rec;
+STATIC_ASSERT_SIZEOF(Actor105100Rec, 0x50);
 
 /// Third view of the work area, held by the schedule entry
 /// `func_actor_105100_8013329C`: the `field_5A8` / `field_5AA` pair taken as

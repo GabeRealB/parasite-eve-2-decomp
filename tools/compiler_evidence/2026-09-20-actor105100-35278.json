@@ -1,0 +1,134 @@
+{
+  "function": "func_actor_105100_80135278",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "evidence": "PERMUTER_EVIDENCE/5c9f8231875b41c9",
+  "observations": {
+    "base_1": {
+      "source_sha256": "212f17c17985b77d6fea45fe778304d4211a9a049fa182d675c6430a4f02148c",
+      "input_sha256": "41d710f5aa63ae19e4aca98fa1e2212f00cb5483083bcb697def2e9e2533442c",
+      "score": {
+        "score": 99.71153846153847,
+        "distance": 45,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 9,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      },
+      "lreg": [
+        "Register 80 used 2 times across 48 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 81 used 7 times across 218 insns; dies in 2 places; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 82 used 3 times across 30 insns in block 0; GR_REGS or none; pointer.",
+        "Register 89 used 3 times across 68 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 90 used 2 times across 6 insns in block 0; GR_REGS or none; pointer."
+      ],
+      "greg_order_and_conflicts": ";; Function func_actor_105100_80135278\n\n;; 7 regs to allocate: 84 83 85 86 81 89 80\n;; 80 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 81 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 84 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 85 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 86 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 89 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29",
+      "greg_dispositions": "80 in 22  81 in 20  82 in 5  83 in 16  84 in 17  85 in 18  \n86 in 19  87 in 3  88 in 3  89 in 21  90 in 2  91 in 4  \n95 in 2  96 in 2  97 in 3  100 in 2  102 in 2  103 in 2  \n105 in 2  107 in 4  109 in 2  110 in 2  111 in 2  112 in 2  \n115 in 4  119 in 2  120 in 2  121 in 3  124 in 2  126 in 2  \n127 in 2  128 in 2  129 in 3  130 in 3  131 in 2  135 in 2  \n136 in 2  137 in 3  138 in 2  139 in 2  140 in 2  143 in 4  \n144 in 4  145 in 2  149 in 2  150 in 2  151 in 3  154 in 2  \n155 in 2  158 in 2  162 in 2  163 in 2  164 in 3  167 in 2  \n168 in 2  171 in 2  175 in 2  176 in 2  177 in 3  180 in 2  \n181 in 2  182 in 2  183 in 2  184 in 16  186 in 4  187 in 5  \n192 in 2  193 in 2  195 in 2  196 in 2  197 in 2"
+    },
+    "base_perm_5c9f8231875b41c9": {
+      "source_sha256": "2a94fc79e4e50d03664b60530433bf0c6da0cc5ed3cabff6805129f31560874f",
+      "input_sha256": "0a210217972bf17372f97eca2393c43a798b6f495fbd61c0afc29e995090a215",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      },
+      "lreg": [
+        "Register 80 used 3 times across 48 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 81 used 8 times across 218 insns; dies in 2 places; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 82 used 3 times across 30 insns in block 0; GR_REGS or none; pointer.",
+        "Register 89 used 2 times across 3 insns in block 0; GR_REGS or none; pointer.",
+        "Register 90 used 3 times across 68 insns; crosses 1 call; GR_REGS or none; pointer."
+      ],
+      "greg_order_and_conflicts": ";; Function func_actor_105100_80135278\n\n;; 7 regs to allocate: 84 83 86 87 81 80 90\n;; 80 conflicts: 80 81 83 84 86 87 90 2 3 4 5 29\n;; 81 conflicts: 80 81 83 84 86 87 90 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 83 84 86 87 90 2 3 4 5 29\n;; 84 conflicts: 80 81 83 84 86 87 90 2 3 4 5 6 16 29\n;; 86 conflicts: 80 81 83 84 86 87 90 2 3 4 5 29\n;; 87 conflicts: 80 81 83 84 86 87 90 2 3 4 5 29\n;; 90 conflicts: 80 81 83 84 86 87 90 2 3 4 5 29",
+      "greg_dispositions": "80 in 21  81 in 20  82 in 5  83 in 16  84 in 17  85 in 2  \n86 in 18  87 in 19  88 in 3  89 in 3  90 in 22  91 in 2  \n92 in 4  96 in 2  97 in 2  98 in 3  101 in 2  103 in 2  \n104 in 2  106 in 2  108 in 4  110 in 2  111 in 2  112 in 2  \n113 in 2  116 in 4  120 in 2  121 in 2  122 in 3  125 in 2  \n127 in 2  128 in 2  129 in 2  130 in 3  131 in 3  132 in 2  \n136 in 2  137 in 2  138 in 3  139 in 2  140 in 2  141 in 2  \n144 in 4  145 in 4  146 in 2  150 in 2  151 in 2  152 in 3  \n155 in 2  156 in 2  159 in 2  163 in 2  164 in 2  165 in 3  \n168 in 2  169 in 2  172 in 2  176 in 2  177 in 2  178 in 3  \n181 in 2  182 in 2  183 in 2  184 in 2  185 in 16  187 in 4  \n188 in 5  193 in 2  195 in 2  196 in 2  197 in 2"
+    },
+    "base_2": {
+      "source_sha256": "9729de0b8b652a040fc706be099dd2eea7800f587d9995304499fee460f67203",
+      "input_sha256": "db9303c75747c19d1ba50cd5e40dde4bb2c32a213a274b66b06378272a36be9f",
+      "score": {
+        "score": 99.42307692307692,
+        "distance": 90,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 18,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      },
+      "lreg": [
+        "Register 80 used 2 times across 48 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 81 used 7 times across 218 insns; dies in 2 places; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 82 used 5 times across 104 insns; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 89 used 2 times across 6 insns in block 0; GR_REGS or none; pointer.",
+        "Register 90 used 2 times across 3 insns in block 0; GR_REGS or none; pointer."
+      ],
+      "greg_order_and_conflicts": ";; Function func_actor_105100_80135278\n\n;; 7 regs to allocate: 85 84 86 87 82 81 80\n;; 80 conflicts: 80 81 82 84 85 86 87 2 3 4 5 29\n;; 81 conflicts: 80 81 82 84 85 86 87 2 3 4 5 6 16 29\n;; 82 conflicts: 80 81 82 84 85 86 87 2 3 4 5 6 16 29\n;; 84 conflicts: 80 81 82 84 85 86 87 2 3 4 5 29\n;; 85 conflicts: 80 81 82 84 85 86 87 2 3 4 5 6 16 29\n;; 86 conflicts: 80 81 82 84 85 86 87 2 3 4 5 29\n;; 87 conflicts: 80 81 82 84 85 86 87 2 3 4 5 29",
+      "greg_dispositions": "80 in 22  81 in 21  82 in 20  83 in 5  84 in 16  85 in 17  \n86 in 18  87 in 19  88 in 2  89 in 3  90 in 3  91 in 4  \n94 in 3  98 in 2  99 in 2  100 in 2  102 in 2  103 in 2  \n105 in 2  107 in 4  109 in 2  110 in 2  111 in 2  112 in 2  \n113 in 4  116 in 3  120 in 2  121 in 2  122 in 2  124 in 2  \n125 in 2  126 in 2  127 in 3  128 in 3  129 in 2  133 in 2  \n134 in 2  135 in 3  136 in 2  137 in 2  138 in 2  141 in 4  \n142 in 4  143 in 2  147 in 2  148 in 2  149 in 3  152 in 2  \n153 in 2  156 in 2  160 in 2  161 in 2  162 in 3  165 in 2  \n166 in 2  169 in 2  173 in 2  174 in 2  175 in 3  178 in 2  \n179 in 2  180 in 2  181 in 2  182 in 16  184 in 4  185 in 5  \n190 in 2  191 in 2  193 in 2  194 in 2  195 in 2"
+    },
+    "base_3": {
+      "source_sha256": "21f691ad276d8367c78f22716314a6acd13f2e0a1406e348b71b0a698b3a0bed",
+      "input_sha256": "99c92777aa792646283e3fee90dc9215856d44322e03e2bca359bac617e4d2d5",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      },
+      "lreg": [
+        "Register 80 used 3 times across 50 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 81 used 7 times across 220 insns; dies in 2 places; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 82 used 3 times across 30 insns in block 0; GR_REGS or none; pointer.",
+        "Register 89 used 3 times across 68 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 90 used 2 times across 6 insns in block 0; GR_REGS or none; pointer."
+      ],
+      "greg_order_and_conflicts": ";; Function func_actor_105100_80135278\n\n;; 7 regs to allocate: 84 83 85 86 81 80 89\n;; 80 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 81 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 84 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 85 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 86 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 89 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29",
+      "greg_dispositions": "80 in 21  81 in 20  82 in 5  83 in 16  84 in 17  85 in 18  \n86 in 19  87 in 3  88 in 3  89 in 22  90 in 2  91 in 4  \n95 in 2  96 in 2  97 in 3  100 in 2  102 in 2  103 in 2  \n105 in 2  107 in 4  109 in 2  110 in 2  111 in 2  112 in 2  \n115 in 4  119 in 2  120 in 2  121 in 3  124 in 2  126 in 2  \n127 in 2  128 in 2  129 in 3  130 in 3  131 in 2  135 in 2  \n136 in 2  137 in 3  138 in 2  139 in 2  140 in 2  143 in 4  \n144 in 4  145 in 2  149 in 2  150 in 2  151 in 3  154 in 2  \n155 in 2  158 in 2  162 in 2  163 in 2  164 in 3  167 in 2  \n168 in 2  171 in 2  175 in 2  176 in 2  177 in 3  180 in 2  \n181 in 2  182 in 2  183 in 2  184 in 16  186 in 4  187 in 5  \n192 in 2  193 in 2  195 in 2  196 in 2  197 in 2"
+    },
+    "base_4": {
+      "source_sha256": "24df30fad61d194d91f7f248591af7f2f5d0b32924fb2e421226e6ddcbaf9660",
+      "input_sha256": "53b554614d3001ca589d9bd18284472f8f5ba4fd34ddd394cfb54cd5109bbc08",
+      "score": {
+        "score": 100.0,
+        "distance": 0,
+        "penalties": {
+          "stack": 0,
+          "branch": 0,
+          "regs": 0,
+          "reorder": 0,
+          "insert": 0,
+          "delete": 0
+        }
+      },
+      "lreg": [
+        "Register 80 used 3 times across 50 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 81 used 7 times across 220 insns; dies in 2 places; crosses 4 calls; GR_REGS or none; pointer.",
+        "Register 82 used 3 times across 30 insns in block 0; GR_REGS or none; pointer.",
+        "Register 89 used 3 times across 68 insns; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 90 used 2 times across 6 insns in block 0; GR_REGS or none; pointer."
+      ],
+      "greg_order_and_conflicts": ";; Function func_actor_105100_80135278\n\n;; 7 regs to allocate: 84 83 85 86 81 80 89\n;; 80 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 81 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 83 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 84 conflicts: 80 81 83 84 85 86 89 2 3 4 5 6 16 29\n;; 85 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 86 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29\n;; 89 conflicts: 80 81 83 84 85 86 89 2 3 4 5 29",
+      "greg_dispositions": "80 in 21  81 in 20  82 in 5  83 in 16  84 in 17  85 in 18  \n86 in 19  87 in 3  88 in 3  89 in 22  90 in 2  91 in 4  \n95 in 2  96 in 2  97 in 3  100 in 2  102 in 2  103 in 2  \n105 in 2  107 in 4  109 in 2  110 in 2  111 in 2  112 in 2  \n115 in 4  119 in 2  120 in 2  121 in 3  124 in 2  126 in 2  \n127 in 2  128 in 2  129 in 3  130 in 3  131 in 2  135 in 2  \n136 in 2  137 in 3  138 in 2  139 in 2  140 in 2  143 in 4  \n144 in 4  145 in 2  149 in 2  150 in 2  151 in 3  154 in 2  \n155 in 2  158 in 2  162 in 2  163 in 2  164 in 3  167 in 2  \n168 in 2  171 in 2  175 in 2  176 in 2  177 in 3  180 in 2  \n181 in 2  182 in 2  183 in 2  184 in 16  186 in 4  187 in 5  \n192 in 2  193 in 2  195 in 2  196 in 2  197 in 2"
+    }
+  },
+  "supported_prediction": "base_3: one read-only arg0 reference raises refs from 2 to 3, ranks it before table, preserves schedule and matches exactly",
+  "limits": "No trace was needed; global order, initial conflicts, and final homes observed in dumps. Initial find_reg decisions not directly traced. Structural diagnostics unavailable because target carries an internal text symbol; unscoped linked verification passed."
+}

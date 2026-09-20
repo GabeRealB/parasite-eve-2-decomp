@@ -5,6 +5,8 @@
 #include "actors/actor_105100.h"
 #include "actors/actors_shared_80134ff0.h"
 #include "actors/actors_shared_80136574.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/sound.h"
 
 #include "main/task.h"
@@ -79,6 +81,10 @@ extern u8 D_actor_105100_80141488[];
 /// reaction subtracts the model's current position and walks the resulting
 /// planar delta.
 extern SVECTOR D_actor_105100_80141418[6];
+
+extern SVECTOR D_actor_105100_801413E8[];
+extern s16     D_actor_105100_80141448[];
+extern s16     D_actor_105100_80141450[];
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80131EBC);
 
@@ -639,7 +645,52 @@ INCLUDE_RODATA("actors/nonmatchings/actor_105100/actor_105100", D_actor_105100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80134B00);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135278);
+void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
+{
+    Task*            parent;
+    Actor105100Work* work;
+    Actor105100Rec*  obj;
+    GsCOORDINATE2*   dst;
+    GsCOORDINATE2*   src;
+
+    parent = arg1->parent;
+    work   = (Actor105100Work*)parent->work;
+    dst    = ((TmdObject*)arg1->extra)->coords;
+    src    = ((TmdObject*)parent->extra)->coords;
+
+    if (D_actor_105100_80141450[work->field_5B0 * 3 + (s16)work->field_5AE] == -1 ||
+        (obj = (Actor105100Rec*)memCalloc(0x50, 0)) == NULL) {
+        USE_REG(arg0);
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+
+    arg1->work    = obj;
+    obj->field_40 = work->field_5B0;
+    obj->field_42 = work->field_5AE;
+    work->field_5AE++;
+    obj->field_44     = D_actor_105100_80141450[work->field_5B0 * 3 + obj->field_42];
+    obj->field_48     = D_actor_105100_80141448[obj->field_40];
+    obj->field_4E     = 3;
+    dst->sub          = &gGfxViewCoord;
+    dst->coord        = src->coord;
+    dst->coord.t[0]   = src->coord.t[0] + D_actor_105100_801413E8[obj->field_44].vx;
+    dst->coord.t[1]   = src->coord.t[1] + D_actor_105100_801413E8[obj->field_44].vy;
+    dst->coord.t[2]   = src->coord.t[2] + D_actor_105100_801413E8[obj->field_44].vz;
+    dst->flg          = 0;
+    obj->obj.coord    = ((TmdObject*)arg1->extra)->coords;
+    obj->obj.ctx.recs = obj->rec;
+    obj->obj.pos.vx   = 0;
+    obj->obj.pos.vy   = 0;
+    obj->obj.pos.vz   = 0;
+    obj->obj.key      = Gp_PackPair(&D_actor_105100_80141380, obj->field_40 + 2);
+    obj->obj.radius   = 0xC8;
+    obj->obj.flags    = 1;
+    Gp_LinkObj(3, &obj->obj);
+    Gp_InitRec18Table(obj->rec, 1, 0);
+    obj->obj.flags |= 0x8000;
+    arg1->state     = 1;
+}
 
 /// The per-frame handler the `state == 1` dispatch runs: it hands the reaction
 /// `field_40` selects to one of the `80135674` / `801359B4` / `80135B40`
