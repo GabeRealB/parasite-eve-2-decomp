@@ -653,9 +653,9 @@ s32 func_actor_110600_80134040(Actor110600* arg0, s32 arg1, Actor110600Event* ar
 {
     Actor110600Work* work = arg0->field_1C;
 
-    work->field_BDC[0] = arg2->b[0];
-    work->field_BDC[1] = arg2->b[1];
-    work->field_BDC[2] = arg2->b[2];
+    work->field_BDC.b[0] = arg2->b[0];
+    work->field_BDC.b[1] = arg2->b[1];
+    work->field_BDC.b[2] = arg2->b[2];
     if (arg2->w[0] == 0x301) {
         if (arg2->w[1] == 1) {
             work->field_0 = 0x14;
@@ -1592,7 +1592,113 @@ void func_actor_110600_80136ECC(Actor110600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801372CC);
+INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", D_actor_110600_80131F1C);
+
+static __inline__ void Actor110600_RescaleRoot(Actor110600* arg0, s16 scale)
+{
+    ActorShared80135a60Scratch* blk;
+    GsCOORDINATE2*              coord;
+    u8*                         head;
+    s16                         ang;
+    u16                         m22;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    coord                                         = arg0->field_2C->coords;
+    blk                                           = (ActorShared80135a60Scratch*)(head - 0x34);
+    *(ActorShared80135a60Scratch**)G_SCRATCH_HEAD = blk;
+    ang                                           = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                                    = ang;
+    Gfx_RotMatrixY(&blk->m, ang, 1);
+    blk->scale.vz = (s16)scale;
+    blk->scale.vy = (s16)scale;
+    blk->scale.vx = (s16)scale;
+    ScaleMatrix(&blk->m, &blk->scale);
+    coord->coord.m[0][0]  = *(u16*)&((ActorShared80135a60Scratch*)(head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1]  = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2]  = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0]  = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1]  = *(u16*)&blk->m.m[2][1];
+    m22                   = *(u16*)&blk->m.m[2][2];
+    coord->flg            = 0;
+    coord->coord.m[2][2]  = m22;
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;
+}
+
+void func_actor_110600_801372CC(Actor110600* arg0)
+{
+    Actor110600Work* work;
+    GpEnemy*         enemy;
+    SVECTOR          vec;
+    GpEffArg*        d;
+    GpEffArg*        tailEffect;
+    GsCOORDINATE2*   effectCoord;
+    GsCOORDINATE2*   effectCoord2;
+    GsCOORDINATE2*   effectCoord3;
+    u32              rng;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        enemy                 = arg0->field_20;
+        work->field_A90.flags = (u16)(work->field_A90.flags & 0x7FFF);
+        enemy->node.flags     = 1;
+        work->field_88C       = 2;
+        work->field_896       = 0x10;
+        work->field_8A2       = 0;
+        work->field_8A4       = 0;
+        if ((work->field_BDC.raw & 0xFFFFFF) == 0x60401) {
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = rng;
+            if ((rng >> 16) & 1) {
+                vec.vx                             = -0xE;
+                vec.vy                             = 0;
+                vec.vz                             = 0;
+                effectCoord                        = arg0->field_2C->coords;
+                D_actor_110600_80148698.spawnArgLo = 0x100;
+                D_actor_110600_80148698.spawnArgHi = 3;
+                D_actor_110600_80148698.coord      = effectCoord;
+                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[9], &vec, &D_actor_110600_80148698);
+            } else {
+                d             = &D_actor_110600_80148698;
+                vec.vx        = -0x19;
+                vec.vy        = 0;
+                vec.vz        = 0;
+                effectCoord2  = arg0->field_2C->coords;
+                d->spawnArgLo = 0x100;
+                d->spawnArgHi = 3;
+                d->coord      = effectCoord2;
+                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[2], &vec, &D_actor_110600_80148698);
+            }
+        }
+    }
+    work->field_88E = 0;
+    func_actor_110600_80134728(arg0);
+
+    Actor110600_RescaleRoot(arg0, work->field_B7C);
+
+    if (((work->field_BDC.raw & 0xFFFFFF) == 0x30401) && (work->field_892 != 0x1E)) {
+        if ((work->field_4E & 0x3FF) == 0xB) {
+            D_actor_110600_80148392 = 6;
+            work->field_892         = 0x1E;
+            work->field_88C         = 1;
+        }
+        if (work->field_892 != 0x1E) {
+            if (((work->field_4E & 0x3FF) == 4) && (work->field_8AC != (work->field_4E & 0x3FF))) {
+                vec                    = D_actor_110600_80131F1C;
+                tailEffect             = &D_actor_110600_80148698;
+                effectCoord3           = arg0->field_2C->coords;
+                tailEffect->spawnArgLo = 0x100;
+                tailEffect->spawnArgHi = 3;
+                tailEffect->coord      = effectCoord3;
+                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[6], &vec, &D_actor_110600_80148698);
+                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[6], &vec, &D_actor_110600_80148698);
+                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->field_2C->coords[6], &vec, &D_actor_110600_80148698);
+            }
+        }
+    }
+}
 
 /// The turn-away stage, the pick-up twin of the `field_892` == 0x16 leg of
 /// `func_actor_110600_80136888`: entering on a live actor clears the model

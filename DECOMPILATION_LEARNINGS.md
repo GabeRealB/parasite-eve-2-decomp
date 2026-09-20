@@ -134062,3 +134062,38 @@ base_9.i `0fdc4c47292fe4cfc65ed869fed9f3475d1ba82ea7ce0b9e0107c711d1ce3acd`. Com
 Evidence: scratch LEARNINGS.md, base_9 plan and dumps, and
 PERMUTER_EVIDENCE/6039bf3ba6464942/analysis/final/REPORT.txt and manifest.json;
 retained under tools/permuter_findings/func_actor_401800_801381E4/.
+
+## Splitting a shared coordinate temporary changes local eligibility and a neighboring saved-register tie
+
+`func_actor_110600_801372CC` reached 100% without pins by keeping each of its
+three effect-coordinate reads in a separate local. The stores still write the
+same global record, and each pointer read precedes its two halfword stores while
+the pointer store follows them. A shared temporary was global (6 references,
+three deaths); each split value is local (2 references, one death). The actual
+base_5 allocation trace places each coordinate quantity in v1 at priority 2000,
+then its effect-symbol high address in a1 at priority 1875. In base_3 the high
+address was allocated locally to v1 before the shared coordinate was allocated
+globally to a1. This is a local/global eligibility change, not declaration order.
+
+There is also an observed scheduling consequence. The tail effect pointer and
+stack-vector pointer initially tie at priority 2000: 6 refs / 60 half-insns
+versus 4 / 40, so the earlier effect quantity takes s0. After splitting the
+coordinate values, the effect quantity spans 62 half-insns (priority 1935),
+while the vector stays 4 / 40 and wins s0, leaving s1 to the effect. This
+secondary tie-breaking change was observed in the trace; it was not independently
+predicted, and should not be generalized into a source-order scheduling rule.
+
+The preceding permuter discovery replaced only the first branch's pointer-based
+record writes with the identical named global fields. That split the reused
+record pointer's lifetimes: its remaining use became local with 4 refs instead
+of global with 8 refs/two deaths. Paired normalized builds scored 1008 -> 205;
+the preplanned normal-C reproduction base_4 produced identical assembly at 205.
+The separately planned coordinate split base_5 then scored 0; the overlay-header
+port base_6 also scored 0. No values, masks, stores or calls were removed.
+
+Evidence is retained under
+`tools/permuter_findings/func_actor_110600_801372CC/` (run `7655216881f1456c`),
+including source deltas, paired builds and assembly-preserving traces.
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Traced base_3 input: `e87b6b499f116fe62e7aff10edf457c429fee3ccbaeeef31bafa3042634ebd25`.
+Traced base_5 input: `adb585d1973d8e39f396f75fd9f8d35b8faeba6523ec02c1afe2a0ab8040ecd3`.

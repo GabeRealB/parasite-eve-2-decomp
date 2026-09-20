@@ -331,6 +331,16 @@ STATIC_ASSERT_SIZEOF(Actor110600WalkScratch, 0x28);
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
 void func_actor_110600_80133550(Actor110600Walker* work, SVECTOR3* pos);
 
+/// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
+/// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
+/// also copied raw into `Actor110600Work::field_BDC`. Same shape as
+/// `Actor401300Event`, which is the same body one overlay over.
+typedef union Actor110600Event {
+    u8  b[3];
+    u16 w[2];
+    u32 raw;
+} Actor110600Event;
+
 /// Work block this overlay parks in the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_110600_80134AB4` allocates it
 /// with `memCalloc(0xBEC, 0)`, so the size below is the allocation.
@@ -385,7 +395,8 @@ typedef struct Actor110600Work {
     /// handing off to `func_actor_110600_80136210` on the frame it reaches
     /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
     /* 0x8AA */ s16  field_8AA;
-    /* 0x8AC */ byte pad_8AC[5];
+    /* 0x8AC */ s32  field_8AC;
+    /* 0x8B0 */ byte pad_8B0[1];
     /// Live flag `func_actor_110600_80137F2C` raises once the model root's
     /// coordinate has been cleared at the end of the tick.
     /* 0x8B1 */ s8   field_8B1;
@@ -438,9 +449,8 @@ typedef struct Actor110600Work {
     /* 0xBD8 */ Task* field_BD8;
     /// Copy of the first three bytes of the last event
     /// `func_actor_110600_80134040` handled.
-    /* 0xBDC */ u8   field_BDC[3];
-    /* 0xBDF */ byte pad_BDF[1];
-    /* 0xBE0 */ s16  field_BE0;
+    /* 0xBDC */ Actor110600Event field_BDC;
+    /* 0xBE0 */ s16              field_BE0;
     /// Death-shrink stage: `func_actor_110600_80137DB0` runs its idle half at
     /// 0 and its halving tail at 1, advancing from 0 once `field_4E` lands on
     /// pose 4.
@@ -527,15 +537,6 @@ typedef struct Actor110600Msg7D3 {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
 } Actor110600Msg7D3;
-
-/// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
-/// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
-/// also copied raw into `Actor110600Work::field_BDC`. Same shape as
-/// `Actor401300Event`, which is the same body one overlay over.
-typedef union Actor110600Event {
-    u8  b[3];
-    u16 w[2];
-} Actor110600Event;
 
 /// One of the model objects `func_actor_110600_80134040` parks in the four
 /// display slots below. They live in main's data; this overlay only ever takes
@@ -717,6 +718,8 @@ extern s16 D_actor_110600_80148688;
 /// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
 /// model part 1's coordinate, scale 0x100 and count 3.
 extern GpEffArg D_actor_110600_80148698;
+extern s8       D_actor_110600_80148392;
+extern SVECTOR  D_actor_110600_80131F1C;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
