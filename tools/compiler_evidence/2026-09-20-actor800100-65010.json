@@ -1,0 +1,683 @@
+{
+  "function": "func_actor_800100_80165010",
+  "date": "2026-09-20",
+  "scope": "Once-loop scheduling dependencies and global reuse for heading load allocation",
+  "traces": {
+    "baseline_trace": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30",
+        "input_origin": "/home/gabriel/pe2-ov-actor_800100/nonmatchings/func_actor_800100_80165010-vacuum/base_1.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "217480f8625b7408cd38dd4454c6a963020435e02b6b50e8bfe94bbf7f7dc739",
+        "traced_assembly_sha256": "217480f8625b7408cd38dd4454c6a963020435e02b6b50e8bfe94bbf7f7dc739"
+      },
+      "selected_events": [
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 0,
+                "uid": 182
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 0,
+                "uid": 182
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 191
+        },
+        {
+          "birth": 4,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            124
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 10,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            128
+          ],
+          "priority": 10000,
+          "qty": 2,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 10,
+          "searched_death": 12,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 8,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            125
+          ],
+          "priority": 5000,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 8,
+          "searched_death": 12,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "allocno": 7,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            89
+          ],
+          "preferences": [
+            2,
+            3
+          ],
+          "priority": 25000,
+          "refs": 5,
+          "reg": 89,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 180
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 180
+              },
+              "kind": 15
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 0,
+                "uid": 182
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 0,
+                "uid": 182
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 191
+        }
+      ]
+    },
+    "final_trace": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "23a9e3564e2a4522ad42704e1b890ca076cf2f1bac47d8113f2e7cdb445a6965",
+        "input_origin": "/home/gabriel/pe2-ov-actor_800100/nonmatchings/func_actor_800100_80165010-vacuum/base_4.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "01feed1ba832815c746f5608fe92f6545947f2dca4937e70ad1269a57d1cc437",
+        "traced_assembly_sha256": "01feed1ba832815c746f5608fe92f6545947f2dca4937e70ad1269a57d1cc437"
+      },
+      "selected_events": [
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 8,
+                "priority": 1,
+                "refs": 0,
+                "tick": 4,
+                "uid": 194
+              },
+              "before": {
+                "luid": 8,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 194
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 199
+        },
+        {
+          "clock": 6,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 8,
+                "uid": 183
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 183
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 0,
+                "uid": 185
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 0,
+                "uid": 185
+              },
+              "kind": 14
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched1",
+          "scheduled": 194
+        },
+        {
+          "birth": 8,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 12,
+          "event": "local_choice",
+          "members": [
+            93
+          ],
+          "priority": 20000,
+          "qty": 1,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 8,
+          "searched_death": 12,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 4,
+          "block": 16,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 6,
+          "event": "local_choice",
+          "members": [
+            126
+          ],
+          "priority": 10000,
+          "qty": 0,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 4,
+          "searched_death": 6,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "allocno": 7,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            29
+          ],
+          "members": [
+            89
+          ],
+          "preferences": [
+            2
+          ],
+          "priority": 67500,
+          "refs": 9,
+          "reg": 89,
+          "result": 2,
+          "retry": 0,
+          "size": 1,
+          "span": 4
+        },
+        {
+          "allocno": 9,
+          "alternate": 0,
+          "caller_save": 0,
+          "calls": 0,
+          "copy_preferences": [],
+          "event": "global_choice",
+          "hard_conflicts": [
+            2,
+            29
+          ],
+          "members": [
+            92
+          ],
+          "preferences": [],
+          "priority": 24545,
+          "refs": 9,
+          "reg": 92,
+          "result": 3,
+          "retry": 0,
+          "size": 1,
+          "span": 11
+        },
+        {
+          "clock": 4,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 0,
+                "tick": 4,
+                "uid": 194
+              },
+              "before": {
+                "luid": 4,
+                "priority": 2,
+                "refs": 1,
+                "tick": 4,
+                "uid": 194
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 199
+        },
+        {
+          "clock": 6,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 8,
+                "uid": 183
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 183
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 0,
+                "uid": 185
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 0,
+                "uid": 185
+              },
+              "kind": 14
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 194
+        }
+      ]
+    }
+  },
+  "controlled_builds": [
+    {
+      "assembly_sha256": "7824ab18a532723fc4e58d6d4d8f0af49ee973b979a98d7f5f103f156d447236",
+      "at": "2026-09-20T07:31:14.026791+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 393,
+      "duplicate_of": null,
+      "expected": "Calls agree and score returns to historical 97.661 without changing instruction bytes",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetPtrSlot",
+      "parent": "base.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 8,
+        "delete": 2,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 1,
+        "stack": 0
+      },
+      "preprocessed_sha256": "f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 97.66071428571429,
+      "source": "base_1.c",
+      "source_sha256": "909ba5fdc6239f06bab1861ed531c1eaac95f8973128fc5790be0539a58f62ae",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    },
+    {
+      "assembly_sha256": "7824ab18a532723fc4e58d6d4d8f0af49ee973b979a98d7f5f103f156d447236",
+      "at": "2026-09-20T07:31:15.396329+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 393,
+      "duplicate_of": "base_1.c",
+      "expected": "Calls agree and score returns to historical 97.661 without changing instruction bytes",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetPtrSlot",
+      "parent": "base.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 8,
+        "delete": 2,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 1,
+        "stack": 0
+      },
+      "preprocessed_sha256": "f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 97.66071428571429,
+      "source": "base_1.c",
+      "source_sha256": "909ba5fdc6239f06bab1861ed531c1eaac95f8973128fc5790be0539a58f62ae",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    },
+    {
+      "assembly_sha256": "fdb36ee36fefb45292f57213fc1628913ef29a061d2be08b3fcc9cb49f483400",
+      "at": "2026-09-20T07:33:52.861795+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 226,
+      "duplicate_of": "base_perm_f0ab4a41330143e5.c",
+      "expected": "Port only the loop around difference and abs; distance 226, lbu nop restored, load homes remain v1/v0",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Permuter once-loop preserves a loop-begin dependency from heading load onto the byte store through sched2",
+      "parent": "base_1.c",
+      "pass_name": "sched2",
+      "penalties": {
+        "branch": 1,
+        "delete": 1,
+        "insert": 1,
+        "regs": 5,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "24c6cc42e43ede5446ec6152eb4ba15c00b5036152b175069cd99d56558da46b",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 98.6547619047619,
+      "source": "base_2.c",
+      "source_sha256": "9c5a7edab77bf81f5cc82f433da3d6fc1a33d673b58ff20ea4d2e08d691d3c0e",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    },
+    {
+      "assembly_sha256": "e7a608c5f9cd436b1d5e9421f6bb87432fd5afd0505bfc79e5b852c1e7f0ba73",
+      "at": "2026-09-20T07:34:09.838335+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 20,
+      "duplicate_of": null,
+      "expected": "blez delay slot loads 5, positive arm still loads 6; remaining mismatch only heading homes",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Default animation defined after call but before branch gives dbr a preceding a1=5 candidate without making it call-crossing",
+      "parent": "base_2.c",
+      "pass_name": "dbr",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 4,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "f4b7eb95b602066a6c580d468db697a094e4d072e2a1911f0a838b90d0472ab1",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 99.88095238095238,
+      "source": "base_3.c",
+      "source_sha256": "03679094efef7747184ac5abc055b40afcbca6b4e273a80beb9b903c909334e5",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    },
+    {
+      "assembly_sha256": "a9791907f7e4c99dfb2386e1c539debe020f2c62297be307c9f57b1ef9f2a00b",
+      "at": "2026-09-20T07:34:34.468728+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": null,
+      "expected": "First heading local v0, target heading global v1, diff v0; loop dependencies retain load order and all other code matches",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Reusing multi-block switch state for target heading removes it from local allocation; first heading then wins v0",
+      "parent": "base_3.c",
+      "pass_name": "lreg",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "23a9e3564e2a4522ad42704e1b890ca076cf2f1bac47d8113f2e7cdb445a6965",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 100.0,
+      "source": "base_4.c",
+      "source_sha256": "8876e5314c315aa23662c83bd0b441dec5ff7b7427e496a1dd0ba92a3bd06ab3",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    },
+    {
+      "assembly_sha256": "a9791907f7e4c99dfb2386e1c539debe020f2c62297be307c9f57b1ef9f2a00b",
+      "at": "2026-09-20T07:35:15.356017+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_4.c",
+      "expected": "Readable current-header port remains exact with no pins or asm helpers",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Formatting, dropping stale narrative and unused reset label, and naming the setFlag label do not alter surviving RTL",
+      "parent": "base_4.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "7a97b3c03c77a4a5d5ec336312ba01fb3a7b8e92ca0346fcefbdd52671c418d4",
+      "project": "/home/gabriel/pe2-ov-actor_800100",
+      "score": 100.0,
+      "source": "base_5.c",
+      "source_sha256": "7bb3589b7163919820822d057417bb168e23f9778a838839d5830d81dcb3496c",
+      "target_sha256": "3c973bde7545f69ca16ac5d6f870f9696b28f7296c14d264ac0ea338f271c9c7"
+    }
+  ],
+  "observations": [
+    "Baseline sched1 preserves byte-load, byte-store, first-heading, second-heading order; sched2 hoists the first heading after local allocation assigned it v1.",
+    "base_2 adds only do/while(0) around subtraction and abs and reproduces the permuter gain 393 to 226. Its loop-begin note adds dependence from first heading onto byte load and anti-dependence onto byte store in sched and sched2. Heading homes remain v1/v0.",
+    "base_3 initializes animation 5 after the angle call and before the branch. sched2 keeps it after the call; dbr moves it into the blez slot. Distance 226 to 20.",
+    "base_4 reuses switch state for second heading, leaving first heading in a one-member local quantity q1/r93 (refs4/span4 -> v0), state global r92 (refs9/length11 -> v1), and result global r89 (refs9/length4 -> v0). Distance 20 to 0.",
+    "base_5 ports formatting and removes obsolete comments and unused label; remains exact. No pins or asm helpers."
+  ]
+}

@@ -752,7 +752,99 @@ void func_actor_800100_80164E60(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800100/actor_800100_2", func_actor_800100_80165010);
+void func_actor_800100_80165010(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GpActorD4*     d4;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    s32            dist;
+    u32            rng;
+    s32            arg;
+    s32            slot;
+    s32            diff;
+    s32            flag;
+    s32            turn;
+    s32            state;
+    s32            heading;
+    u16            angle;
+
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords;
+    actor  = arg0->actor;
+    d4     = actor->field_910;
+    dist   = func_actor_800100_8016709C(coord, &d4->contact, NULL);
+    state  = actor->field_95E;
+    flag   = 1;
+
+    switch (state) {
+        case 0:
+            if (d4->scanAngle < 0x1000) {
+                if (d4->scanDist != 0 && (d4->scanDist < dist || dist == 0)) {
+                    d4->scanDist      = dist;
+                    d4->targetHeading = d4->scanAngle;
+                }
+                d4->scanAngle += 0x80;
+            } else {
+                actor->field_95E  = flag;
+                angle             = (d4->targetHeading + actor->field_52) & 0xFFF;
+                d4->targetHeading = angle;
+                turn              = func_80103E7C(actor->field_52, angle);
+                arg               = 5;
+                if (turn > 0) {
+                    arg         = 6;
+                    d4->turnDir = flag;
+                } else {
+                    d4->turnDir = -1;
+                }
+                Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
+            }
+            break;
+        case 1:
+            actor->field_975 = (u8)d4->turnDir;
+            do {
+                heading = actor->field_52;
+                state   = d4->targetHeading;
+                diff    = heading - state;
+                if (diff < 0) {
+                    diff = -diff;
+                }
+            } while (0);
+            if (diff < 0x40) {
+                actor->field_95E++;
+                actor->field_52  = d4->targetHeading;
+                actor->field_975 = 0;
+                if (Gp_StateF0.field_0 == 1) {
+                    slot             = 4;
+                    actor->field_958 = 3;
+                    rng              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = rng;
+                    actor->field_934 = ((rng >> 16) & 0x3F) + 0x14;
+                    Gp_AnimPlayChildSlotsEx(arg0, slot, 0, 3);
+                } else {
+                    slot             = 2;
+                    actor->field_958 = 1;
+                    rng              = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState      = rng;
+                    actor->field_934 = ((rng >> 16) & 0x7F) + 0x28;
+                    Gp_AnimPlayChildSlotsEx(arg0, slot, 0, 3);
+                }
+            }
+            break;
+        case 2:
+            if (dist >= 0x301 || dist == 0) {
+                if (--actor->field_934 > 0) {
+                    goto setFlag;
+                }
+            }
+            Gp_ResetActorMove(arg0, 0);
+            break;
+        setFlag:
+            actor->field_973 = 1;
+            break;
+    }
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+}
 
 void func_actor_800100_801652B0(GpActorWork* arg0)
 {

@@ -135377,3 +135377,38 @@ base_12 `a31a7db8e6d531f37fe83c9f78debc117c6cbaee8b1bd2dc5abf8cf8ad92b26e`.
 Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 No pins, empty asm or permuter discovery; unscoped build verification passed.
+
+
+## Confirm allocation before explaining a load hoist (func_actor_800100_80165010, 2026-09-20)
+
+The 97.661% retry had two independent leftovers: the animation default in a
+blez slot, and a heading load hoisted into the previous byte-load delay.
+Earlier notes blamed sched1 for the hoist. Current dumps and trace show sched1
+keeps byte-load/store/heading/target/subtraction order. Local allocation puts
+the later, shorter-lived target load in v0 and first heading in v1; sched2 then
+moves that independent v1 load before the byte store. No tied load/result
+quantity exists: baseline q2/r128 refs2/span2 -> v0, q1/r125 refs2/span4 -> v1,
+and the subtraction result is global r89 -> v0.
+
+The bounded permuter wrapped subtraction and absolute value in do/while(0).
+Preplanned base_2 ports only this change and reproduces distance 393 -> 226.
+The LOOP_BEG note adds first-heading dependencies on the byte load and store
+(UID180 and REG_DEP_ANTI UID182), present through sched2; the target load also
+depends on the first heading. The load-delay nop returns while v1/v0 homes
+remain unchanged. This supports the loop-note dependency mechanism in patched
+sched.c:2086-2112 independently of its reference-count effect.
+
+The already-matched actor_800200 sibling supplies the remaining fixes:
+initialize animation 5 after the angle call and before its test (226 -> 20),
+then reuse the switch-state temporary for the target heading (20 -> 0).
+The first heading is now local q1/r93 refs4/span4 -> v0, state global r92
+refs9/length11 -> v1, and difference global r89 refs9/length4 -> v0. The loop
+dependencies preserve load order. Current-header port base_5 is exact, with
+no register pins or asm helpers, and the unscoped build passed.
+
+Controlled plans, selected trace events, compiler/source hashes and input
+hashes are in tools/compiler_evidence/2026-09-20-actor800100-65010.json.
+Baseline input: f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30.
+Exact input: 23a9e3564e2a4522ad42704e1b890ca076cf2f1bac47d8113f2e7cdb445a6965.
+Both traces preserved assembly. Full evidence is archived through
+`tools/permuter_findings/func_actor_800100_80165010/`.
