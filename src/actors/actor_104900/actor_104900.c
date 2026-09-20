@@ -24,7 +24,6 @@ extern GpU16Pair D_actor_104900_801392F0[];
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
-void func_actor_104900_80137FB8(Task* task);
 s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80131F08);
@@ -489,13 +488,7 @@ void func_actor_104900_80137C88(Task* task)
     task->exitCallback     = ActorsShared801511c8;
     *(u8**)G_SCRATCH_HEAD += 8;
     task->state           += 1;
-    func_actor_104900_80137FB8(task);
+    ActorsShared80137fb8(task);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80137FB8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", ActorsShared8013845cSub0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80138374);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_104900/actor_104900", ActorsShared80138404Table);

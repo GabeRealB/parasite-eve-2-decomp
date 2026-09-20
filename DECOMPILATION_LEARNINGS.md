@@ -135567,3 +135567,55 @@ Full sources, traces and manifests are retained in
 `tools/permuter_findings/ActorsShared8013845cSub0/sessions/7ad60b48093e4a05ad7c3c84080dea76/ef54025d91212b46f3e3/PERMUTER_EVIDENCE/followup-20260920/`.
 The four-build follow-up concluded supported. It confirms CODEGEN_MODEL §11
 within this non-QI-store/fixed-scalar-load scope; no broader rule is proposed.
+
+
+## A read/write mask quantity can reserve v0 before the map comparison chain (func_actor_104900_80137FB8, 2026-09-20)
+
+The 99.720% retry seed had two independent register differences. For child
+spawn arguments, assigning 2/3 to a temporary before a compare makes that
+value global and live while the compare's local quantity owns v0. Following
+matched sibling ActorsShared80136c80, writing the store in each branch removes
+that conflict; late cross-jumping and delay filling recover the shared store
+and the constant 2 in the branch slot (base_1, 99.840%).
+
+For the map check, the Boolean assignment expands its AND into the saved flag
+pseudo. Separating the intermediate avoids s4, but lets the load/AND/XOR chain
+allocate v0 ahead of the constants. The matching source is:
+
+```c
+map = *(u32*)&D_8007216C;
+mask = 0xFFFF0000;
+SOFT_TOUCH_REG(mask);
+map &= mask;
+flag = map == 0x03200000;
+```
+
+Observed trace for exact base_3: mask q2[88] has 4 references/span 2,
+priority 40000 and takes v0; map/XOR q1[96,87] has 6/span 12, priority 10000
+and takes v1; comparison constant q3[94] has 2/span 2, priority 10000 and
+reuses v0. None has a suggestion. The helper's constant input is folded into
+the asm operand before allocation and materialized by reload. It emits no
+instruction. No scheduling penalty remains.
+
+The preplanned base_3 experiment predicted these register homes and an
+increased map interval. Only the first prediction held: the interval stays
+12; mask reference count and chain membership change. Do not explain this
+result as interval growth. Earlier explicit in-place XOR base_2 instead had
+a tied chain q1[97,93,87] with 8/span 12, priority 20000, taking v0 ahead of
+both 10000-priority constants. This is not the earlier retry's claimed tie.
+
+The real-header port base_4 is exact. Controlled base_5 removes only the helper
+and returns to 99.600%, regs=10, the same object as base_2; all other penalty
+classes remain zero. That isolates the helper from merely naming the mask.
+Both focused traces confirm byte-identical assembly under observation. The
+router found no discovery in this session; these were manual experiments.
+
+Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Inputs: base_2.i 01a1fa474d14e8f50fc674a5e31964d79a3b81a16ff7bb3fbad01bace6c32e54;
+base_3.i 280e04a49b9ae54acc2044518f63214f0f47aa07610c76468896a1489c610c88;
+base_4.i 014b1574945d3be9ef8aefdf28cfa51487457412e7fa7d1bd65fab06df9135fc;
+base_5.i 87d9434b416d61cc25b98bdf250b1d37eecd4902237e4051cf1aa9dfe38e6dff.
+Evidence: tools/permuter_findings/func_actor_104900_80137FB8/, session
+00711bebd77d41c38d01208128d4251f; PERMUTER_EVIDENCE/manual-map-mask/analysis/.
+Scope: this allocation decision is observed and counterfactually tested;
+read/write helpers are not universally free of scheduling effects.

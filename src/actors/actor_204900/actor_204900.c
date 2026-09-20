@@ -46,10 +46,4 @@ INCLUDE_ASM("actors/nonmatchings/actor_204900/actor_204900", func_actor_204900_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_204900/actor_204900", func_actor_204900_8014FC88);
 
-INCLUDE_ASM("actors/nonmatchings/actor_204900/actor_204900", func_actor_204900_8014FFB8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204900/actor_204900", ActorsShared8013845cSub0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_204900/actor_204900", func_actor_204900_80150374);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_204900/actor_204900", ActorsShared80138404Table);

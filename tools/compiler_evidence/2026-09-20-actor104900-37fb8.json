@@ -1,0 +1,90 @@
+{
+  "function": "func_actor_104900_80137FB8",
+  "shared_function": "ActorsShared80137fb8",
+  "session": "00711bebd77d41c38d01208128d4251f",
+  "router": "miss; no active bounded follow-up",
+  "mechanism": "Read/write mask quantity allocates v0 first, forcing the overlapping map/XOR quantity to v1. Branch-local child stores avoid the former global temporary conflict.",
+  "prediction_limit": "Predicted register homes were confirmed; predicted map-interval growth was disproved (span stays 12).",
+  "traces": {
+    "base_2": {
+      "input_sha256": "01a1fa474d14e8f50fc674a5e31964d79a3b81a16ff7bb3fbad01bace6c32e54",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "assembly_identical": true,
+      "observed_quantities": [
+        "local b0 q1 [97, 93, 87]: refs=8 span=12 priority=20000 copy=[] arithmetic=[] suggested_only=0 -> $v0",
+        "local b0 q2 [94]: refs=2 span=2 priority=10000 copy=[] arithmetic=[] suggested_only=0 -> $v1",
+        "local b0 q3 [95]: refs=2 span=2 priority=10000 copy=[] arithmetic=[] suggested_only=0 -> $v1"
+      ]
+    },
+    "base_3": {
+      "input_sha256": "280e04a49b9ae54acc2044518f63214f0f47aa07610c76468896a1489c610c88",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "assembly_identical": true,
+      "observed_quantities": [
+        "local b0 q2 [88]: refs=4 span=2 priority=40000 copy=[] arithmetic=[] suggested_only=0 -> $v0",
+        "local b0 q1 [96, 87]: refs=6 span=12 priority=10000 copy=[] arithmetic=[] suggested_only=0 -> $v1",
+        "local b0 q3 [94]: refs=2 span=2 priority=10000 copy=[] arithmetic=[] suggested_only=0 -> $v0"
+      ]
+    }
+  },
+  "controlled_removal": {
+    "assembly_sha256": "d0c2e87c4f7ad012facb45091f6f084f4809cd529f0e90ff200ac1cf69261e03",
+    "at": "2026-09-20T07:28:04.212260+00:00",
+    "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+    "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+    "distance": 50,
+    "duplicate_of": "base_2.c",
+    "expected": "Mask no longer outranks the map quantity: chain returns to v0 and mask to v1; child stores and schedule remain exact",
+    "failure": 0,
+    "first_changed_pass": null,
+    "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+    "hypothesis": "The mask read/write helper is the deciding quantity-rank lever; removing it alone should restore the map-first allocation",
+    "parent": "base_4.c",
+    "pass_name": "lreg",
+    "penalties": {
+      "branch": 0,
+      "delete": 0,
+      "insert": 0,
+      "regs": 10,
+      "reorder": 0,
+      "stack": 0
+    },
+    "preprocessed_sha256": "87d9434b416d61cc25b98bdf250b1d37eecd4902237e4051cf1aa9dfe38e6dff",
+    "project": "/home/gabriel/pe2-ov-actor_104900",
+    "score": 99.6,
+    "source": "base_5.c",
+    "source_sha256": "36f7ff8b1771e89f0a158cc89d65f143c6ddab2ad809a64f1788b6199014f72e",
+    "target_sha256": "66d5fcd5884fd1c5db308bf4d8dfb21aab8ff6a8e77f71ffd137c1d61e2a5f8b"
+  },
+  "matching_port": {
+    "assembly_sha256": "fd6a50210f70ee117ed82db5bbfd3028e859ff478afc5e57fb7a6c2ae653c280",
+    "at": "2026-09-20T07:27:31.311261+00:00",
+    "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+    "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+    "distance": 0,
+    "duplicate_of": "base_3.c",
+    "expected": "All penalties remain zero with the real overlay header and no duplicate work struct",
+    "failure": 0,
+    "first_changed_pass": null,
+    "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+    "hypothesis": "Use the existing Actor104900Work layout and current prototypes without changing RTL; cast the signed velocity increment through u16 to retain lhu",
+    "parent": "base_3.c",
+    "pass_name": "rtl",
+    "penalties": {
+      "branch": 0,
+      "delete": 0,
+      "insert": 0,
+      "regs": 0,
+      "reorder": 0,
+      "stack": 0
+    },
+    "preprocessed_sha256": "014b1574945d3be9ef8aefdf28cfa51487457412e7fa7d1bd65fab06df9135fc",
+    "project": "/home/gabriel/pe2-ov-actor_104900",
+    "score": 100.0,
+    "source": "base_4.c",
+    "source_sha256": "6628d1d087a4faab9057f84f188b000e717996ab4144a6ddc175a1ecd56d6b0d",
+    "target_sha256": "66d5fcd5884fd1c5db308bf4d8dfb21aab8ff6a8e77f71ffd137c1d61e2a5f8b"
+  },
+  "archive": "tools/permuter_findings/func_actor_104900_80137FB8/",
+  "verification": "Unscoped build-and-verify succeeded after sharing across five overlays; all 7398 prior matches retained."
+}
