@@ -67,9 +67,10 @@ typedef struct ActorsShared80138efcWork {
     /* 0xB8C */ s16 field_B8C;
     /// Walking offset `func_actor_104900_80138B5C` steps 0x30 back toward zero
     /// from either end of the +-0x30 band, one frame at a time.
-    /* 0xB8E */ s16  field_B8E;
-    /* 0xB90 */ byte pad_B90[0x2];
-    /* 0xB92 */ s16  field_B92;
+    /* 0xB8E */ s16 field_B8E;
+    /// Yaw toward actor slot 0 in this model's frame, written by ActorsShared801357f0.
+    /* 0xB90 */ s16 field_B90;
+    /* 0xB92 */ s16 field_B92;
     /// Decay counters the 0x80138B5C body subtracts from - 0x400 for the axis
     /// pair and 0x100 for the next two - clamping each at zero.
     /* 0xB94 */ s16  field_B94;

@@ -135651,3 +135651,23 @@ Sources, plans, dump observations, compiler hash and verification logs are in
 `tools/compiler_evidence/2026-09-20-actor104900-38c6c.json`.
 The shared body serves five actor overlays; unscoped verification passed both
 before and after promotion.
+
+## Moving arithmetic across volatile asm can remove the load-delay gap another instruction needs (actor 104900 yaw, 2026-09-20)
+
+`func_actor_104900_801357F0` retried at 99.496%, with only the Y subtraction before the absolute scratch-head publish instead of after it. Its volatile publish UID 81 depends on subtraction UID 74 in both scheduling dumps. Patched `sched.c:1973-2001` makes volatile asm depend on all preceding register definitions as well as memory; removing only a `memory` clobber cannot free that subtraction. Input-only asm also remains implicitly volatile.
+
+Capturing the two Y values as `(u16)` into `s32` locals and subtracting after publish produces the correct halfword loads and subtraction placement, but initially drops to 96.867%. The traces explain the coupled change: baseline sched2 schedules the subtraction at backward cycle 21, queues its loads until cycle 23, and fills cycle 22 with the matrix address. With the subtraction beyond the volatile asm, both loads become ready immediately after publish and outrank the matrix (priority 4 versus 3). The matrix moves before the X calculation; subsequent load-delay spacing moves the self-X load out of the earlier pointer-load gap and inserts a nop. Register homes still match.
+
+The preplanned counterfactual keeps the explicit address-formation idiom and makes it depend on the two captured Y values:
+
+```c
+otherY = (u16)other->workm.t[1];
+selfY = (u16)self->workm.t[1];
+__asm__("addiu %0, %1, -0x20" : "=r"(matrix) : "r"(head), "r"(otherY), "r"(selfY));
+__asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
+*(s16*)((s8*)vec + 2) = (s16)(otherY - selfY);
+```
+
+This creates observed load-to-address dependencies in `base_6.i.sched2`, restores both scheduling requirements without pins, and scores 100% with all-zero penalties. Zero-extending the low halves before subtraction preserves the stored halfword modulo 65536. This is a supported solution for this scheduling graph, not evidence of the original C spelling or a universal need for more asm. A nonvolatile read/write publish also freed the subtraction but changed pointer lifetimes, argument conflicts and delay filling, so it was not sufficient.
+
+Both baseline and split-load traces preserve their ordinary assembly. Compiler hash: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Input hashes: baseline `d0640b6a22eaa857a96e4886f1f0df93e3aa6f8821f366753099692055ae97d7`; split `75a323173e356be40d7ce0fb50e1d9e2f518f2685aab9051bb91366f91c92218`. Plans, scores, selected raw events and fingerprints are in `tools/compiler_evidence/2026-09-20-actor104900-357f0.json`; full evidence is retained under this function's `tools/permuter_findings/` snapshots.

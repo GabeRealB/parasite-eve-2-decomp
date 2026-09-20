@@ -35,24 +35,6 @@ INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801356BC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801357F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801359CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80135FDC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80136230);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_801366E8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80136BD4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80136F8C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80137498);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80137B1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80137C88);
+INCLUDE_RODATA("actors/nonmatchings/actor_101100/actor_101100", D_actor_101100_80131EEC);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_101100/actor_101100", ActorsShared80138404Table);

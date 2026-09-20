@@ -1,0 +1,2838 @@
+{
+  "function": "func_actor_104900_801357F0",
+  "date": "2026-09-20",
+  "status": "supported",
+  "scope": "Manual retry of the archived permuter-derived seed. Current bounded router produced no retained outputs; no follow-up allowance was activated.",
+  "controlled_prediction": [
+    {
+      "at": "2026-09-20T07:52:06.377055+00:00",
+      "event": "plan",
+      "expected": "matrix addiu remains immediately after Y loads and before publish; corrected spacing restores baseline first X schedule and all homes; Y subtraction remains after publish",
+      "hypothesis": "split-load variant loses the subtraction latency gap that kept matrix materialization after Y loads; an address-formation asm dependent on both Y values restores that edge",
+      "parent": "base_5.c",
+      "pass_name": "sched",
+      "source": "base_6.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T07:52:36.712831+00:00",
+      "event": "conclude",
+      "next": "port clean names and existing host GTE macro, then integrate and verify",
+      "result": "100.000%, all penalties zero; sched2 retains both Y lhu loads before matrix addiu before publish before Y subtraction, all target register homes and X-delta schedule restored; controlled prediction succeeded",
+      "source": "base_6.c",
+      "source_sha256": "62a5382e40f377dad8e06ed392b8c78230b7c500c3db7cb10d897e7e59e91742"
+    }
+  ],
+  "builds": {
+    "base.c": {
+      "assembly_sha256": "ecf3bacbe385d938e963fcaf12288eae1bf15721da27ef548f04fb4464aa39d7",
+      "at": "2026-09-20T07:44:36.780082+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 60,
+      "duplicate_of": "base.c",
+      "expected": null,
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": null,
+      "parent": null,
+      "pass_name": null,
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "preprocessed_sha256": "d0640b6a22eaa857a96e4886f1f0df93e3aa6f8821f366753099692055ae97d7",
+      "project": "/home/gabriel/pe2-ov-actor_104900",
+      "score": 99.49579831932773,
+      "source": "base.c",
+      "source_sha256": "1abdf9b99ed1b26e1f3d89da23b5526d632dc7636111fb0ec83b2aede02b38c4",
+      "target_sha256": "b0776a170919beb63ba87b0bbb242a52498cc1a266d64f983a39a2b1be951f20"
+    },
+    "base_5.c": {
+      "assembly_sha256": "b23fe1081778f4154c9056156e5bf28dfe2df44cb5302440c8d18d0f1fe0d1b2",
+      "at": "2026-09-20T07:50:33.811385+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 376,
+      "duplicate_of": "base_17.c",
+      "expected": "Y loads narrow to lhu, subtraction remains after publish, pointer homes survive; inspect matrix and self X-load scheduling separately",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "u16 casts on full-width Y captures retain lhu across the volatile publish without named HI locals or sign-extension instructions",
+      "parent": "base_2.c",
+      "pass_name": "combine",
+      "penalties": {
+        "branch": 6,
+        "delete": 1,
+        "insert": 2,
+        "regs": 2,
+        "reorder": 1,
+        "stack": 0
+      },
+      "preprocessed_sha256": "75a323173e356be40d7ce0fb50e1d9e2f518f2685aab9051bb91366f91c92218",
+      "project": "/home/gabriel/pe2-ov-actor_104900",
+      "score": 96.86666666666666,
+      "source": "base_5.c",
+      "source_sha256": "4aae839d80e5acd717aa5293d8fb47f89a4114c04c35441e86750f02a6e91e4b",
+      "target_sha256": "b0776a170919beb63ba87b0bbb242a52498cc1a266d64f983a39a2b1be951f20"
+    },
+    "base_6.c": {
+      "assembly_sha256": "2895765dbf7621c2461d9dfa84b7f538b82d2a0fe6356f1961b74ab756ee278c",
+      "at": "2026-09-20T07:52:06.961959+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": null,
+      "expected": "matrix addiu remains immediately after Y loads and before publish; corrected spacing restores baseline first X schedule and all homes; Y subtraction remains after publish",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "split-load variant loses the subtraction latency gap that kept matrix materialization after Y loads; an address-formation asm dependent on both Y values restores that edge",
+      "parent": "base_5.c",
+      "pass_name": "sched",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "70867356171e1c507b070101bd93d16d2ef96f15a4b8f71e500bc79760ef0f99",
+      "project": "/home/gabriel/pe2-ov-actor_104900",
+      "score": 100.0,
+      "source": "base_6.c",
+      "source_sha256": "62a5382e40f377dad8e06ed392b8c78230b7c500c3db7cb10d897e7e59e91742",
+      "target_sha256": "b0776a170919beb63ba87b0bbb242a52498cc1a266d64f983a39a2b1be951f20"
+    },
+    "base_7.c": {
+      "assembly_sha256": "2895765dbf7621c2461d9dfa84b7f538b82d2a0fe6356f1961b74ab756ee278c",
+      "at": "2026-09-20T07:52:37.312041+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_6.c",
+      "expected": "all-zero penalties and identical assembly; no pins or new compiler constraints",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_104900/include -I /home/gabriel/pe2-ov-actor_104900/build -I /home/gabriel/pe2-ov-actor_104900/include/psyq -I /home/gabriel/pe2-ov-actor_104900/include/decomp -I /home/gabriel/pe2-ov-actor_104900/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "renaming the byte pointer and using the host GTE macro name preserves the matched RTL and emits the same object",
+      "parent": "base_6.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "1a1e57ab4094df523ebeccb390fd7042484d5b6232d30c8cb8e19c749a9818ff",
+      "project": "/home/gabriel/pe2-ov-actor_104900",
+      "score": 100.0,
+      "source": "base_7.c",
+      "source_sha256": "a2e387f119455cc10f301f1e1ff3a00a5fd96626f0f9d4101d3fd35ea312c683",
+      "target_sha256": "b0776a170919beb63ba87b0bbb242a52498cc1a266d64f983a39a2b1be951f20"
+    }
+  },
+  "traces": {
+    "TRACE_BASE": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "d0640b6a22eaa857a96e4886f1f0df93e3aa6f8821f366753099692055ae97d7",
+        "input_origin": "/home/gabriel/pe2-ov-actor_104900/nonmatchings/func_actor_104900_801357F0-vacuum/base.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "f3ab560f7d4144f0d6de0da72e1c158ff969931b7ba6f3561949b662e11d58a3",
+        "traced_assembly_sha256": "f3ab560f7d4144f0d6de0da72e1c158ff969931b7ba6f3561949b662e11d58a3"
+      },
+      "events": [
+        {
+          "after": [
+            {
+              "luid": 26,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 81
+            }
+          ],
+          "before": [
+            {
+              "luid": 26,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 81
+            }
+          ],
+          "clock": 20,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 81,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 81
+        },
+        {
+          "clock": 20,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 22,
+                "priority": 5,
+                "refs": 0,
+                "tick": 0,
+                "uid": 74
+              },
+              "before": {
+                "luid": 22,
+                "priority": 5,
+                "refs": 1,
+                "tick": 0,
+                "uid": 74
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 24,
+                "priority": 3,
+                "refs": 0,
+                "tick": 0,
+                "uid": 79
+              },
+              "before": {
+                "luid": 24,
+                "priority": 3,
+                "refs": 1,
+                "tick": 0,
+                "uid": 79
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 47
+              },
+              "before": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 47
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 4,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 4,
+                "tick": 0,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 5,
+                "tick": 0,
+                "uid": 44
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 4,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 18,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 72
+              },
+              "before": {
+                "luid": 18,
+                "priority": 4,
+                "refs": 2,
+                "tick": 0,
+                "uid": 72
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 81
+        },
+        {
+          "after": [
+            {
+              "luid": 22,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 24,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 79
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 22,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 24,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 79
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 21,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 74,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 74
+        },
+        {
+          "clock": 21,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 18,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 72
+              },
+              "before": {
+                "luid": 18,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 72
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 74
+        },
+        {
+          "after": [
+            {
+              "luid": 24,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 79
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 24,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 79
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 22,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 79,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 55,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 79,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 55,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 79
+        },
+        {
+          "after": [
+            {
+              "luid": 18,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 72
+            },
+            {
+              "luid": 17,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 70
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 18,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 72
+            },
+            {
+              "luid": 17,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 70
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 23,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 72,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 70,
+              "unit": 0
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 72,
+              "unit": 0
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 70,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 72
+        },
+        {
+          "clock": 23,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 15
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 72
+        },
+        {
+          "after": [
+            {
+              "luid": 17,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 70
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 17,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 70
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 24,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 70,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 70
+        },
+        {
+          "clock": 24,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 3,
+                "tick": 26,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 4,
+                "tick": 0,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 70
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 67
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 67
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 25,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 67,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 67
+        },
+        {
+          "clock": 25,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 2,
+                "tick": 26,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 3,
+                "tick": 26,
+                "uid": 44
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 14
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 67
+        },
+        {
+          "after": [
+            {
+              "luid": 10,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 65
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 10,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 65
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 26,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 65,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 65
+        },
+        {
+          "clock": 26,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 65
+        },
+        {
+          "after": [
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 27,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 55,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 55
+        },
+        {
+          "after": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 61
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 61
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 28,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 61,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 61
+        },
+        {
+          "clock": 28,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 30,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 2,
+                "tick": 26,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 61
+        },
+        {
+          "after": [
+            {
+              "luid": 8,
+              "priority": 2,
+              "refs": 0,
+              "tick": 27,
+              "uid": 52
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 8,
+              "priority": 2,
+              "refs": 0,
+              "tick": 27,
+              "uid": 52
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 29,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 52,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 52
+        },
+        {
+          "after": [
+            {
+              "luid": 3,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 49
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 3,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 49
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 30,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 49,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 49
+        },
+        {
+          "clock": 30,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 30,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 30,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 49
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 2,
+              "refs": 0,
+              "tick": 30,
+              "uid": 44
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 1,
+              "priority": 2,
+              "refs": 0,
+              "tick": 30,
+              "uid": 44
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 31,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 44,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 44
+        },
+        {
+          "clock": 31,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 44
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 32,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 63,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 63,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 63
+        },
+        {
+          "after": [
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 42
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 42
+            }
+          ],
+          "clock": 33,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 42,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 42,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 42
+        },
+        {
+          "after": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 34,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 47,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 47
+        }
+      ]
+    },
+    "TRACE_SPLIT": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "75a323173e356be40d7ce0fb50e1d9e2f518f2685aab9051bb91366f91c92218",
+        "input_origin": "/home/gabriel/pe2-ov-actor_104900/nonmatchings/func_actor_104900_801357F0-vacuum/base_5.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "659ffc38c4ff80b74abd06bf95a0c027e5eeacb628b087f4a3f5a4a2800c08de",
+        "traced_assembly_sha256": "659ffc38c4ff80b74abd06bf95a0c027e5eeacb628b087f4a3f5a4a2800c08de"
+      },
+      "events": [
+        {
+          "after": [
+            {
+              "luid": 29,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 83
+            }
+          ],
+          "before": [
+            {
+              "luid": 29,
+              "priority": 5,
+              "refs": 0,
+              "tick": 0,
+              "uid": 83
+            }
+          ],
+          "clock": 20,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 83,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 83
+        },
+        {
+          "clock": 20,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 25,
+                "priority": 4,
+                "refs": 0,
+                "tick": 0,
+                "uid": 76
+              },
+              "before": {
+                "luid": 25,
+                "priority": 4,
+                "refs": 1,
+                "tick": 0,
+                "uid": 76
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 21,
+                "priority": 4,
+                "refs": 1,
+                "tick": 22,
+                "uid": 69
+              },
+              "before": {
+                "luid": 21,
+                "priority": 4,
+                "refs": 2,
+                "tick": 0,
+                "uid": 69
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 23,
+                "priority": 4,
+                "refs": 1,
+                "tick": 22,
+                "uid": 71
+              },
+              "before": {
+                "luid": 23,
+                "priority": 4,
+                "refs": 2,
+                "tick": 0,
+                "uid": 71
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 83
+        },
+        {
+          "after": [
+            {
+              "luid": 25,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 76
+            }
+          ],
+          "before": [
+            {
+              "luid": 25,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 76
+            }
+          ],
+          "clock": 21,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 76,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 76
+        },
+        {
+          "clock": 21,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 19,
+                "priority": 3,
+                "refs": 0,
+                "tick": 0,
+                "uid": 74
+              },
+              "before": {
+                "luid": 19,
+                "priority": 3,
+                "refs": 1,
+                "tick": 0,
+                "uid": 74
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 47
+              },
+              "before": {
+                "luid": 13,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 47
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 4,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 4,
+                "tick": 0,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 5,
+                "tick": 0,
+                "uid": 44
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 4,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 21,
+                "priority": 4,
+                "refs": 0,
+                "tick": 22,
+                "uid": 69
+              },
+              "before": {
+                "luid": 21,
+                "priority": 4,
+                "refs": 1,
+                "tick": 22,
+                "uid": 69
+              },
+              "kind": 0
+            },
+            {
+              "after": {
+                "luid": 23,
+                "priority": 4,
+                "refs": 0,
+                "tick": 22,
+                "uid": 71
+              },
+              "before": {
+                "luid": 23,
+                "priority": 4,
+                "refs": 1,
+                "tick": 22,
+                "uid": 71
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 76
+        },
+        {
+          "after": [
+            {
+              "luid": 23,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 71
+            },
+            {
+              "luid": 21,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 69
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 23,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 71
+            },
+            {
+              "luid": 21,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 69
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 22,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 71,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 69,
+              "unit": 0
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 71,
+              "unit": 0
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 69,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 71
+        },
+        {
+          "clock": 22,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 15
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 71
+        },
+        {
+          "after": [
+            {
+              "luid": 21,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 69
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 21,
+              "priority": 4,
+              "refs": 0,
+              "tick": 22,
+              "uid": 69
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 23,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 69,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 69
+        },
+        {
+          "clock": 23,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 3,
+                "tick": 25,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 4,
+                "tick": 0,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 69
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 67
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 67
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 24,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 67,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 67
+        },
+        {
+          "clock": 24,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 3,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 2,
+                "tick": 25,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 3,
+                "tick": 25,
+                "uid": 44
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 14
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 67
+        },
+        {
+          "after": [
+            {
+              "luid": 10,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 65
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 10,
+              "priority": 4,
+              "refs": 0,
+              "tick": 0,
+              "uid": 65
+            },
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 25,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 65,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 65
+        },
+        {
+          "clock": 25,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 63
+              },
+              "before": {
+                "luid": 6,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 63
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 65
+        },
+        {
+          "after": [
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 19,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 74
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 26,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 74,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 55,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 74,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 55,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 74
+        },
+        {
+          "after": [
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 61
+            },
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 5,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 61
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 27,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 55,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 61,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 55,
+              "unit": -1
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 61,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 61
+        },
+        {
+          "clock": 27,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 2,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 14
+            },
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 29,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 2,
+                "tick": 25,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 61
+        },
+        {
+          "after": [
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "before": [
+            {
+              "luid": 15,
+              "priority": 3,
+              "refs": 0,
+              "tick": 0,
+              "uid": 55
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 28,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 55,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 55
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 63
+            }
+          ],
+          "clock": 29,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 63,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 47,
+              "unit": -1
+            },
+            {
+              "cost": 3784704,
+              "kind": "potential",
+              "uid": 63,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 63
+        },
+        {
+          "after": [
+            {
+              "luid": 8,
+              "priority": 2,
+              "refs": 0,
+              "tick": 28,
+              "uid": 52
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 8,
+              "priority": 2,
+              "refs": 0,
+              "tick": 28,
+              "uid": 52
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 30,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 52,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 52
+        },
+        {
+          "after": [
+            {
+              "luid": 3,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 49
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 3,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 49
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 31,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 49,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 49
+        },
+        {
+          "clock": 31,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 0,
+                "tick": 29,
+                "uid": 44
+              },
+              "before": {
+                "luid": 1,
+                "priority": 2,
+                "refs": 1,
+                "tick": 29,
+                "uid": 44
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 49
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 2,
+              "refs": 0,
+              "tick": 29,
+              "uid": 44
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 1,
+              "priority": 2,
+              "refs": 0,
+              "tick": 29,
+              "uid": 44
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 32,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 44,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 44
+        },
+        {
+          "clock": 32,
+          "dependencies": [
+            {
+              "after": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 0,
+                "tick": 0,
+                "uid": 42
+              },
+              "before": {
+                "luid": 0,
+                "priority": 1,
+                "refs": 1,
+                "tick": 0,
+                "uid": 42
+              },
+              "kind": 0
+            }
+          ],
+          "event": "schedule_release",
+          "pass": "sched2",
+          "scheduled": 44
+        },
+        {
+          "after": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 47
+            }
+          ],
+          "clock": 33,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 47,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 47
+        },
+        {
+          "after": [
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 42
+            }
+          ],
+          "before": [
+            {
+              "luid": 0,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 42
+            }
+          ],
+          "clock": 34,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 42,
+              "unit": 0
+            }
+          ],
+          "pass": "sched2",
+          "selected": 42
+        }
+      ]
+    }
+  },
+  "observation": "Baseline volatile publish depends on Y subtraction. Splitting low-halfword Y captures crosses the barrier but removes the subtraction latency gap that scheduled matrix materialization after the loads. Adding both captured Y values as inputs to the existing address-formation idiom creates explicit load-to-matrix edges and preserves all register homes, producing an exact match.",
+  "limits": "No target compiler input exists. The reconstructed original C source and historical pointer-type allocation explanation are not established. The new edges and final schedules are observed in base_6 dumps; no third trace was needed."
+}
