@@ -205,14 +205,14 @@ typedef struct Actor521100Work {
     /// 12-bit angles. The step-1 entry body `func_actor_521100_80135680`
     /// subtracts them, wraps the difference into [-0x800, 0x800] and reads
     /// `field_6AA` when the result is under 0x200.
-    /* 0x696 */ u16  field_696;
-    /* 0x698 */ u16  field_698;
-    /* 0x69A */ s16  field_69A; // forward speed, in 12-bit fixed point
-    /* 0x69C */ s16  field_69C; // cleared together with the forward speed
-    /* 0x69E */ s16  field_69E;
-    /* 0x6A0 */ s16  field_6A0;
-    /* 0x6A2 */ s16  field_6A2;
-    /* 0x6A4 */ byte pad_6A4[2];
+    /* 0x696 */ u16 field_696;
+    /* 0x698 */ u16 field_698;
+    /* 0x69A */ s16 field_69A; // forward speed, in 12-bit fixed point
+    /* 0x69C */ s16 field_69C; // cleared together with the forward speed
+    /* 0x69E */ s16 field_69E;
+    /* 0x6A0 */ s16 field_6A0;
+    /* 0x6A2 */ s16 field_6A2;
+    /* 0x6A4 */ s16 field_6A4;
     /// Parked animation the burn-out body `func_actor_521100_80133104` clears
     /// on its own frame, the same slot `actor_102000` and `actor_105700` park
     /// into.
@@ -293,6 +293,44 @@ typedef struct Actor521100AnimPreset {
     /* 0x0C */ s32  field_C;
 } Actor521100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor521100AnimPreset, 0x10);
+
+typedef struct Actor521100FireRow {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor521100FireRow;
+
+extern Actor521100FireRow D_actor_521100_8015F80C[][17];
+
+typedef struct Actor521100FireMsg {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor521100FireMsg;
+
+typedef struct Actor521100FireAim {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor521100FireAim;
+
+typedef struct Actor521100FireScratch {
+    /* 0x00 */ VECTOR             pos;
+    /* 0x10 */ VECTOR             delta;
+    /* 0x20 */ SVECTOR            vec;
+    /* 0x28 */ Actor521100FireMsg msg;
+    /* 0x3C */ Actor521100FireAim aim;
+} Actor521100FireScratch;
+STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
+
+extern MATRIX*  D_80073B8C;
+extern u8       D_8011541B;
+extern s16      D_actor_521100_8015F570[];
+extern u16      D_actor_521100_8015F564;
+extern u8       D_actor_521100_8015F7CC[];
+extern GpEffArg D_actor_521100_8015F804;
+
+void func_actor_521100_801339B0(Actor521100* arg0);
 
 extern Actor521100Work* D_actor_521100_8016A3D8;
 

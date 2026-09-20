@@ -3,6 +3,7 @@
 #include "main/sound.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
 
 #include "gameplay/3A34.h"
@@ -21,6 +22,8 @@
  * this toolchain assembles correctly. */
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
+#define gte_rtv0_tr_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern s16 D_80073BA0;
@@ -30,7 +33,6 @@ void func_actor_521100_80134C38(Actor521100* arg0);
 void func_actor_521100_80134D88(Actor521100* arg0);
 void func_actor_521100_80134EDC(Actor521100* arg0);
 void func_actor_521100_80135024(Actor521100* arg0);
-void func_actor_521100_801339B0(void);
 void func_actor_521100_80134658(Actor521100* arg0);
 /* Reads the caller's `Actor521100*` from $a0; the call passes no argument. */
 void func_actor_521100_80134774();
@@ -819,9 +821,304 @@ void func_actor_521100_801335B4(Actor521100* arg0)
     }
     SCRATCH_SP += 0x18;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", D_actor_521100_80131E20);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_801339B0);
+void func_actor_521100_801339B0(Actor521100* arg0)
+{
+    Actor521100Work*        work;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          pcoord;
+    Task*                   player;
+    Actor521100FireScratch* sc;
+    s32                     flag;
+    s32                     i;
+    s32                     snd;
+    s32                     absDiff;
+    s32                     angle;
+    s16                     state;
+    s16                     turn;
+    u16                     timer;
+    u32                     rng;
+    u16*                    tbl;
+
+    work        = arg0->field_1C;
+    coord       = arg0->field_2C->field_8;
+    player      = gameGetPtrSlot(3);
+    SCRATCH_SP -= 0x54;
+    sc          = (Actor521100FireScratch*)SCRATCH_SP;
+
+    switch (work->field_6A0) {
+        case 0:
+            if ((s16)work->field_68A == 0xA) {
+                snd = (((u16)arg0->field_20->placeKey >> 12) << 8) | 6;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+            } else if ((s16)work->field_68A == 0xC) {
+                flag             = (D_80073B8C->m[0][2] * coord->coord.m[0][2] + D_80073B8C->m[1][2] * coord->coord.m[1][2] + D_80073B8C->m[2][2] * coord->coord.m[2][2]);
+                work->field_6A4  = (u32)flag >> 31;
+                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4  = work->field_6A4 ? 2 : 6;
+                sc->msg.field_8  = 0;
+                sc->msg.field_C  = 0;
+                sc->msg.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+            } else if ((s16)work->field_68A >= 0x2B) {
+                work->field_6A0  = 1;
+                work->field_686  = 0xB;
+                work->field_68E  = 0;
+                work->field_690  = 0;
+                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4  = work->field_6A4 ? 3 : 7;
+                sc->msg.field_8  = 0;
+                sc->msg.field_C  = 0;
+                sc->msg.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+            }
+            if ((u16)(work->field_68A - 4) < 9) {
+                sc->vec.vz = 0x4E2;
+                sc->vec.vx = 0;
+                sc->vec.vy = 0;
+                gte_SetRotMatrix(&coord->coord);
+                gte_ldv0(&sc->vec);
+                gte_rtv0_tr_real();
+                gte_stlvnl(&sc->pos);
+                sc->pos.vx   = coord->coord.t[0] + sc->pos.vx;
+                sc->pos.vy   = coord->coord.t[1] + sc->pos.vy;
+                sc->pos.vz   = coord->coord.t[2] + sc->pos.vz;
+                pcoord       = ((GpActorWork*)player)->extra->coords;
+                sc->delta.vx = sc->pos.vx - pcoord->coord.t[0];
+                sc->delta.vy = 0;
+                sc->delta.vz = sc->pos.vz - pcoord->coord.t[2];
+                if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x32) || ((s16)work->field_68A == 0xC)) {
+                    sc->aim.pos.vx = sc->pos.vx;
+                    sc->aim.pos.vy = sc->pos.vy;
+                    sc->aim.pos.vz = sc->pos.vz;
+                } else {
+                    VectorNormal(&sc->delta, &sc->pos);
+                    sc->aim.pos.vx = pcoord->coord.t[0] + ((sc->pos.vx * 0x32) >> 12);
+                    sc->aim.pos.vy = pcoord->coord.t[1] + ((sc->pos.vy * 0x32) >> 12);
+                    sc->aim.pos.vz = pcoord->coord.t[2] + ((sc->pos.vz * 0x32) >> 12);
+                }
+                angle          = ratan2(pcoord->coord.m[0][2], pcoord->coord.m[2][2]) & 0xFFF;
+                flag           = (s16)work->field_696 - angle;
+                sc->aim.rot.vx = 0;
+                sc->aim.rot.vz = 0;
+                if ((s16)work->field_68A == 0xC) {
+                    sc->aim.rot.vy = work->field_696;
+                } else {
+                    absDiff = flag >= 0 ? flag : -flag;
+                    if ((u32)(absDiff - 0x400) >= 0x801U) {
+                        if (absDiff < 0x65) {
+                            sc->aim.rot.vy = work->field_696;
+                        } else if (flag > 0) {
+                            sc->aim.rot.vy = angle + 0x64;
+                        } else {
+                            sc->aim.rot.vy = angle - 0x64;
+                        }
+                    } else {
+                        if (absDiff < 0x65) {
+                            sc->aim.rot.vy = (work->field_696 + 0x800) & 0xFFF;
+                        } else if (flag > 0) {
+                            sc->aim.rot.vy = angle - 0x64;
+                        } else {
+                            sc->aim.rot.vy = angle + 0x64;
+                        }
+                    }
+                }
+                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+            }
+            break;
+        case 1:
+            flag = 0;
+            if (work->field_68E == 2) {
+                Gp_SpawnPadLerp(5, 0xC0, 0x80);
+            }
+            timer           = work->field_68E - 1;
+            work->field_68E = timer;
+            if ((s16)timer <= 0) {
+                if (D_80073BA0 <= D_actor_521100_8015F570[D_8011541B]) {
+                    work->field_686  = 0x14;
+                    work->field_6A0  = 5;
+                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4  = work->field_6A4 ? 0xC : 0xD;
+                    sc->msg.field_8  = 0;
+                    sc->msg.field_C  = 0;
+                    sc->msg.field_10 = 1;
+                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                    flag = 1;
+                } else {
+                    work->field_68E = 0x20;
+                    Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_521100_8015F550, 3), 0);
+                }
+            }
+            if (flag != 1) {
+                flag = 0;
+                if ((work->field_6A8 == 1) && (D_80073BA0 < 0x3D) && (((D_actor_521100_8015F564 / 3) & 0xFFFF) >= arg0->field_20->hp)) {
+                    flag = work->field_6A4 == 1;
+                }
+                if (flag != 0) {
+                    work->field_6A0  = 3;
+                    work->field_6A8  = 0;
+                    work->field_68A  = 0;
+                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4  = 5;
+                    sc->msg.field_8  = 0;
+                    sc->msg.field_C  = 0;
+                    sc->msg.field_10 = 1;
+                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                } else {
+                    if (work->field_6A8 == 0) {
+                        timer           = work->field_690 + 1;
+                        work->field_690 = timer;
+                        if ((s16)timer < 0x97) {
+                            break;
+                        }
+                    }
+                    work->field_6A0  = 2;
+                    work->field_686  = 0x13;
+                    work->field_6A8  = 0;
+                    sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                    sc->msg.field_4  = work->field_6A4 ? 9 : 0xA;
+                    sc->msg.field_8  = 0;
+                    sc->msg.field_C  = 0;
+                    sc->msg.field_10 = 1;
+                    Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+                }
+            }
+            break;
+        case 2:
+            if ((s16)work->field_68A == 0x22) {
+                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+            }
+            if ((s16)work->field_68A == 0x25) {
+                snd = (((u16)arg0->field_20->placeKey >> 12) << 8) | 0x401C000F;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_68A < 0x45) {
+                for (i = 0; i < 0x11; i++) {
+                    if ((s16)work->field_68A < D_actor_521100_8015F80C[work->field_6A4][i].field_0) {
+                        sc->vec.vx = D_actor_521100_8015F80C[work->field_6A4][i].field_2;
+                        break;
+                    }
+                }
+                sc->vec.vy = 0;
+                sc->vec.vz = 0;
+                gte_SetRotMatrix(&coord->coord);
+                gte_ldv0(&sc->vec);
+                gte_rtv0_tr_real();
+                gte_stlvnl(&sc->pos);
+                pcoord         = ((GpActorWork*)player)->extra->coords;
+                sc->aim.pos.vx = pcoord->coord.t[0] + sc->pos.vx;
+                sc->aim.pos.vy = pcoord->coord.t[1] + sc->pos.vy;
+                sc->aim.pos.vz = pcoord->coord.t[2] + sc->pos.vz;
+                sc->aim.rot.vx = 0;
+                sc->aim.rot.vy = work->field_696;
+                sc->aim.rot.vz = 0;
+                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+            }
+            if ((s16)work->field_68A == 0x23) {
+                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
+                Gp_SpawnEff(0x60054, ((GpActorWork*)player)->extra->coords + 3, 0x80003400, NULL);
+            }
+            if ((s16)work->field_68A == 0x45) {
+                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4  = 0xB;
+                sc->msg.field_8  = 0;
+                sc->msg.field_C  = 0;
+                sc->msg.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+            }
+            turn = 0;
+            if ((s16)work->field_68A < 0x5F) {
+                turn = -0x10;
+            }
+            work->field_69A = turn;
+            if ((s16)work->field_68A == 0x6F) {
+                coord          = ((GpActorWork*)player)->extra->coords;
+                sc->aim.pos.vx = coord->coord.t[0];
+                sc->aim.pos.vy = coord->coord.t[1];
+                sc->aim.pos.vz = coord->coord.t[2];
+                sc->aim.rot.vx = 0;
+                sc->aim.rot.vy = (work->field_696 + 0x800) & 0xFFF;
+                sc->aim.rot.vz = 0;
+                Gp_DispatchMsg(player, 0x3E9, (s32)&sc->aim, 0);
+            }
+            if (((s16)work->field_68A >= 0x6F) && (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0)) {
+                Gp_DispatchMsg(player, 0x3F1, 0, 0);
+            }
+            if ((s16)work->field_68A >= 0xA4) {
+                tbl             = D_actor_521100_8015F5F4;
+                work->field_686 = 1;
+                work->field_69E = 0;
+                work->field_6A0 = 0;
+                rng             = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_68E = tbl[(rng >> 16) & 0xF];
+            }
+            break;
+        case 3:
+            if ((s16)work->field_68A == 0x20) {
+                Gp_SpawnEff(0x60273, ((Actor521100*)gameGetPtrSlot(3))->field_2C->field_8 + 0xC, 0, NULL);
+                snd = (((u16)arg0->field_20->placeKey >> 12) << 8) | 0x401C000E;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+                work->field_6A0  = 4;
+                work->field_686  = 0xD;
+                sc->msg.field_0  = (void*)&D_actor_521100_8015F7CC;
+                sc->msg.field_4  = 4;
+                sc->msg.field_8  = 0;
+                sc->msg.field_C  = 0;
+                sc->msg.field_10 = 1;
+                Gp_DispatchMsg(player, 0x3FF, (s32)&sc->msg, 0);
+            }
+            break;
+        case 4:
+            if ((s16)work->field_68A == 0xF) {
+                snd = (((u16)arg0->field_20->placeKey >> 12) << 8) | 0x401C000C;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_68A == 0x64) {
+                arg0->field_20->hp = 0;
+            }
+            break;
+        case 5:
+            if ((s16)work->field_68A == 0x1A) {
+                ((GpActorWork*)player)->actor->field_956 = 0xA;
+                work->field_6A0                          = 6;
+                work->field_68E                          = 0;
+                gGameSession->deathRestartDelay          = 0x5A;
+                gGameSession->areaBgmCountdown           = 0x7F;
+                sc->vec.vx                               = 0;
+                sc->vec.vy                               = -0x96;
+                sc->vec.vz                               = 0xC8;
+                func_800FDB18(1, ((Actor521100*)gameGetPtrSlot(3))->field_2C->field_8 + 4, &sc->vec,
+                              &D_actor_521100_8015F804);
+                Gp_SpawnPadLerp(0xA, 0xFF, 8);
+                Gp_DispatchMsg(player, 0x400, 0, 0);
+                D_80073BA0 = 0;
+            }
+            break;
+        case 6:
+            state = (s16)work->field_68E;
+            if (state != 1) {
+                if (state < 2) {
+                    if (state == 0) {
+                        CdCmd_EnqueueLoadFile(9, 0x1E, 3);
+                        work->field_68E = 1;
+                    }
+                }
+            } else if ((CdCmd_IsIdle() & 0xFFFF) == state) {
+                coord = ((Actor521100*)gameGetPtrSlot(3))->field_2C->field_8;
+                SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+                work->field_68E = 2;
+            }
+            break;
+    }
+    SCRATCH_SP += 0x54;
+}
 
 /// Step-4 body of the burn-out sequence, the fourth of the ones the dispatcher
 /// `func_actor_521100_801355C8` runs off `field_69E`. `field_6A0` is a

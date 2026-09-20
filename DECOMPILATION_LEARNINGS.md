@@ -134549,3 +134549,52 @@ Parent input SHA256:
 `d26c7801f51b91c6dbbcc051397133cec51f9de86d491848d86599d9912cd0d1`.
 Controlled matching input SHA256:
 `fb8e0a07a6ef77d9b98de4347c176a14e2cfc05e88bc8739aa13f0e892f5b4f7`.
+
+
+## Disjoint scalar phases can reuse a call-crossing local to inherit its saved register
+
+`func_actor_521100_801339B0` matched on 2026-09-20 without pins. The archived
+seed put an angle difference in a1: `.lreg` showed its global pseudo r91 with
+4 references/14 instructions and no calls. Target s0 did not mean that this
+particular value crossed a call. Reusing the existing case-1 flag local for
+both that difference and the earlier dot-product result merged disjoint ranges
+into r87: 12 references/73 instructions/3 calls. `.greg` assigned s0, fixing
+both target regions while preserving every read and call's position. The
+controlled base_1 -> base_2 experiment improved 98.214% -> 98.257%.
+
+The actual per-value lifetime and the pseudo's aggregate call count are
+different facts. Check for a compatible reused scalar before moving a read
+across a call to force a saved register. This example supports reuse of three
+nonoverlapping integer roles; it does not prove the target difference itself
+was live across SquareRoot0 or VectorNormal, as the old retry notes proposed.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input SHA256 base_1: `6cf51f54d3b7dfb22ed3c2968e1febe773581cbb40f2187db7351f72b1d38184`;
+base_2: `1395d325f605a1a1c2f6bb869afd0e1f0fde46db34e84b681d2b99cecca54483`.
+Evidence: matching scratch base_1/base_2 `.lreg`/`.greg`, experiments.jsonl and
+LEARNINGS.md. Final header-based base_9 reproduced 100%, and the unscoped build
+verified the integrated function.
+
+## Direct two-dimensional table fields can change which loop offset is strength-reduced
+
+In the same function, the target scans 17 rows with a separate table base and
+an offset initialized to side*68, incrementing that offset by 4. A precomputed
+row pointer produced a walking address. Moving `row = &table[side*17+i]` into
+the loop left the multiply inside it. Declaring `table[][17]` exposed separate
+strides but the address-local form `row = &table[side][i]` still walked the
+base instead of the side offset (base_4, 98.344%).
+
+Replacing both `row->field` uses with direct `table[side][i].field` accesses
+changed the first meaningful address expansion and then loop.c's selected GIV.
+Base_6 `.loop` reduces r638 from i*4+side*68 and keeps the symbol base separately;
+all scan instructions, register homes and backedge now match (98.710%). An
+explicit second index was a counterexample: its exit-live address had lifetime
+66 and the dump rejected the combined GIV as unprofitable, leaving a shift in
+the loop. A named address can change induction analysis even when the memory
+accesses and runtime values are the same.
+
+Input SHA256 base_4: `ff9b46ad998af7f7da898de195abbbe0cebd7ff62bae57c3934ba67228d02ea3`;
+base_6: `6cf39601eb4bd60e0dbb0dbebfdec6c665201a435a3d6287805a9663e2e715f2`.
+Evidence: base_4/base_6 `.rtl`, `.loop`, `.cse2`, `.greg` and experiment plans.
+This is an observed result for this table and compiler; it is not a universal
+rule that removing pointer locals improves loop code.
