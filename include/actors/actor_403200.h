@@ -11,6 +11,33 @@
 
 typedef struct Actor403200Obj Actor403200Obj;
 
+/// Scratch coordinate with word access to its identity rotation matrix.
+typedef union Actor403200DropCoord {
+    GsCOORDINATE2 c;
+    struct {
+        /* 0x00 */ s32 flg;
+        /* 0x04 */ s32 m00_m01;
+        /* 0x08 */ s32 m02_m10;
+        /* 0x0C */ s32 m11_m12;
+        /* 0x10 */ s32 m20_m21;
+        /* 0x14 */ s16 m22;
+    } ident;
+} Actor403200DropCoord;
+STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);
+
+/// Rotation matrix view used for the aligned identity stores.
+typedef union Actor403200Matrix {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor403200Matrix;
+STATIC_ASSERT_SIZEOF(Actor403200Matrix, 0x20);
+
 /// Reference positions used by the distance-based view selector.
 typedef struct Actor403200ViewPoints {
     /* 0x00 */ SVECTOR v[4];
@@ -273,7 +300,9 @@ typedef struct Actor403200Work {
     /// Cleared by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFE`.
     /* 0xEFE */ s16  field_EFE;
-    /* 0xF00 */ byte pad_F00[0x6];
+    /* 0xF00 */ byte pad_F00[0x4];
+    /// Armed by the model-reset path in func_actor_403200_8013E2FC.
+    /* 0xF04 */ s16 field_F04;
     /// Cleared by the per-frame body once `field_6` has passed 0x14. Same slot
     /// and role as `Actor444000Work::field_F06`.
     /* 0xF06 */ s16 field_F06;

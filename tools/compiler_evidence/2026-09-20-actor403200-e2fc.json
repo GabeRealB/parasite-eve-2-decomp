@@ -1,0 +1,225 @@
+{
+  "function": "func_actor_403200_8013E2FC",
+  "date": "2026-09-20",
+  "status": "supported by preplanned exact-match experiment and RTL dumps",
+  "scope": "GCC 2.8.1 bundled PSX compiler; no pins, asm helpers, traces, or permuter discovery",
+  "observation": "Peeling the first call permits sched2 to separate its argument setup from its call with the field_7B6 store. jump2 shares the initial call/test suffix with the repeated call/test, placing a new label immediately before the repeated call. dbr then leaves the call delay empty, removes the entry jump, and moves the repeated argument setup into the backedge delay slot.",
+  "limits": "This establishes the source transformation and pass interval for this function; it is not a universal rule for peeled loops. No tracer was needed to resolve internal scheduler comparisons.",
+  "experiments": [
+    {
+      "at": "2026-09-20T06:28:22.341986+00:00",
+      "event": "plan",
+      "expected": "regs returns to zero; loop still lacks pre-header argument setup",
+      "hypothesis": "Remove archived redundant pointer copy to restore exact work register allocation",
+      "parent": "base.c",
+      "pass_name": "greg",
+      "source": "base_1.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:29:50.347450+00:00",
+      "event": "conclude",
+      "next": "Peel first call so jump2 can merge call tails after scheduling",
+      "result": "As predicted, pointer-copy removal restores regs=0; argument setup UID377 remains between loop label and call in sched2, then enters call delay slot in dbr; 98.450%.",
+      "source": "base_1.c",
+      "source_sha256": "c2c27cd8f0b1d385ad84a703e9408ceba6cc201af90ecefbd47f9e74571e2d0e"
+    },
+    {
+      "at": "2026-09-20T06:29:50.389503+00:00",
+      "event": "plan",
+      "expected": "jump2 merges loop call with initial call, leaving a0 setup before loop label; work=s0 and task=s3 survive",
+      "hypothesis": "Peeling the first call allows late cross-jumping of two call tails after scheduling",
+      "parent": "base_1.c",
+      "pass_name": "jump2",
+      "source": "base_2.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:31:40.214455+00:00",
+      "event": "conclude",
+      "next": "Port declarations into overlay header and verify the host-style source",
+      "result": "100% with zero penalties. sched2 retains first call375 plus repeated call394; setup373 is before store370. jump2 deletes first call/test and redirects jump472 to new label524 immediately before call394, stopping the suffix merge at store370 versus setup392. dbr leaves call394 without a filled slot and moves setup392 into backedge385. Work stays s0, task s3 as predicted.",
+      "source": "base_2.c",
+      "source_sha256": "e540ae5b824522eb4ba7b5be2b4b8ea9c601c83d21c32290b90bc33770fc6129"
+    },
+    {
+      "at": "2026-09-20T06:31:40.255418+00:00",
+      "event": "plan",
+      "expected": "100% remains with all penalties zero",
+      "hypothesis": "Using the integrated overlay header for the restored unions preserves the matched body",
+      "parent": "base_2.c",
+      "pass_name": "rtl",
+      "source": "base_3.c",
+      "source_sha256": null
+    },
+    {
+      "at": "2026-09-20T06:31:40.771363+00:00",
+      "event": "conclude",
+      "next": "Record compiler evidence and commit the verified match",
+      "result": "Host-header port remains 100%, all penalties zero; unpinned candidate retained as base_3.c. Full unscoped integration verification separately passed.",
+      "source": "base_3.c",
+      "source_sha256": "bea9f6067f9deae0cfc8eceffa2cf3675549bf71a1b266ebf0908a9695868e92"
+    }
+  ],
+  "builds": [
+    {
+      "assembly_sha256": "7301e5ec2ea659aa07c84b4c90930719a42aed1f7f43e68099761d1665b6616f",
+      "at": "2026-09-20T06:28:23.101925+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 265,
+      "duplicate_of": "base_1.c",
+      "expected": "regs returns to zero; loop still lacks pre-header argument setup",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Remove archived redundant pointer copy to restore exact work register allocation",
+      "parent": "base.c",
+      "pass_name": "greg",
+      "penalties": {
+        "branch": 5,
+        "delete": 2,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 1,
+        "stack": 0
+      },
+      "preprocessed_sha256": "e1ac77b9a2855e59ebed4f66c7b1168775d66615f0e7032d4e3c0f5f8fd687ea",
+      "project": "/home/gabriel/pe2-ov-actor_403200",
+      "score": 98.45029239766082,
+      "source": "base_1.c",
+      "source_sha256": "c2c27cd8f0b1d385ad84a703e9408ceba6cc201af90ecefbd47f9e74571e2d0e",
+      "target_sha256": "46c73984146d24ac8cb9ceac7e494559e757a69a1c3a1f088e5c17d5eddae887"
+    },
+    {
+      "assembly_sha256": "2eb7e12566d686c627ebe2c3c00b5ee85fe981f466ce729481c2defa788ea8db",
+      "at": "2026-09-20T06:29:50.854065+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": null,
+      "expected": "jump2 merges loop call with initial call, leaving a0 setup before loop label; work=s0 and task=s3 survive",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Peeling the first call allows late cross-jumping of two call tails after scheduling",
+      "parent": "base_1.c",
+      "pass_name": "jump2",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "3068dbe00af3cfc2b06ef01e5ead99f9e2655fdd6c44f05757a4496b1dc19ef5",
+      "project": "/home/gabriel/pe2-ov-actor_403200",
+      "score": 100.0,
+      "source": "base_2.c",
+      "source_sha256": "e540ae5b824522eb4ba7b5be2b4b8ea9c601c83d21c32290b90bc33770fc6129",
+      "target_sha256": "46c73984146d24ac8cb9ceac7e494559e757a69a1c3a1f088e5c17d5eddae887"
+    },
+    {
+      "assembly_sha256": "2eb7e12566d686c627ebe2c3c00b5ee85fe981f466ce729481c2defa788ea8db",
+      "at": "2026-09-20T06:31:40.724808+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_2.c",
+      "expected": "100% remains with all penalties zero",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_403200/include -I /home/gabriel/pe2-ov-actor_403200/build -I /home/gabriel/pe2-ov-actor_403200/include/psyq -I /home/gabriel/pe2-ov-actor_403200/include/decomp -I /home/gabriel/pe2-ov-actor_403200/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Using the integrated overlay header for the restored unions preserves the matched body",
+      "parent": "base_2.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "daff857eae38cf9c62c193fae0b34980ff9a417a51f1988a60a17f97510e015c",
+      "project": "/home/gabriel/pe2-ov-actor_403200",
+      "score": 100.0,
+      "source": "base_3.c",
+      "source_sha256": "bea9f6067f9deae0cfc8eceffa2cf3675549bf71a1b266ebf0908a9695868e92",
+      "target_sha256": "46c73984146d24ac8cb9ceac7e494559e757a69a1c3a1f088e5c17d5eddae887"
+    }
+  ],
+  "source_delta": "--- base_1.c\n+++ base_2.c\n@@ -105,9 +105,10 @@\n         }\n         if (work->field_7B3 == state && work->field_7B0 == 2) {\n             work->field_7B6   = 0x60;\n-            do {\n+            func_actor_403200_80133DD8(arg0);\n+            while ((u32)(work->field_4A & 0x3FF) < 0x34) {\n                 func_actor_403200_80133DD8(arg0);\n-            } while ((u32)(work->field_4A & 0x3FF) < 0x34);\n+            }\n             work->field_7B6 = 0x10;\n         }\n     }\n",
+  "sources": {
+    "base_1.c": "#include \"common.h\"\n#include \"actors/actor_403200.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/display.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\ntypedef union Actor403200DropCoord {\n    GsCOORDINATE2 c;\n    struct {\n        /* 0x00 */ s32 flg;\n        /* 0x04 */ s32 m00_m01;\n        /* 0x08 */ s32 m02_m10;\n        /* 0x0C */ s32 m11_m12;\n        /* 0x10 */ s32 m20_m21;\n        /* 0x14 */ s16 m22;\n    } ident;\n} Actor403200DropCoord;\n\ntypedef union Actor403200Matrix {\n    MATRIX mat;\n    struct {\n        /* 0x00 */ s32 m00_m01;\n        /* 0x04 */ s32 m02_m10;\n        /* 0x08 */ s32 m11_m12;\n        /* 0x0C */ s32 m20_m21;\n        /* 0x10 */ s16 m22;\n    } ident;\n} Actor403200Matrix;\n\nextern s16 D_actor_403200_80141C58;\n\n\nextern s32 D_actor_403200_80141C6C;\nextern s32 D_actor_403200_80141C74;\n\nextern Actor403200DropCoord D_actor_403200_8015F970;\n\nvoid func_actor_403200_8013E2FC(Task* arg0)\n{\n    Actor403200Work*   work;\n    Actor403200Work*   escorts;\n    Actor403200Work*   dying;\n    Actor403200Matrix* mtx;\n    GsCOORDINATE2*     coords;\n    s32                state;\n    s32                frame;\n    s16                i;\n    s16                j;\n\n    work = (Actor403200Work*)arg0->work;\n    if (work->field_4 != 0) {\n        escorts                            = (Actor403200Work*)arg0->work;\n        work->field_7F3                    = 0;\n        ((TmdObject*)arg0->extra)->flags = 0;\n        for (i = 0; i < 7; i++) {\n            if (escorts->field_ECC[i] != NULL) {\n                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =\n                    ((TmdObject*)arg0->extra)->flags;\n            }\n        }\n        dying = (Actor403200Work*)arg0->work;\n        Tmd_AllocBuffers((TmdObject*)arg0->extra);\n        for (j = 0; j < 7; j++) {\n            if (dying->field_ECC[j] != NULL) {\n                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);\n            }\n        }\n        work->field_7B6 = 0x10;\n        work->field_F04 = 1;\n        work->field_7A4 = 0;\n        work->field_E96 = 0xFA0;\n    }\n    if (work->field_7B3 == 0xD) {\n        frame = work->field_72 & 0x3FF;\n        if (frame == 0x15 && work->field_7D8 != frame) {\n            work->field_EAC = 3;\n            Gp_SpawnScript18((s32)&D_actor_403200_80141C6C, (s32)&D_actor_403200_80141C74);\n        }\n        work->field_7D8 = work->field_72 & 0x3FF;\n    }\n    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {\n        coords                                = ((TmdObject*)arg0->extra)->coords;\n        D_actor_403200_8015F970.ident.m00_m01 = 0x1000;\n        mtx                                   = (Actor403200Matrix*)&D_actor_403200_8015F970.c.coord;\n        mtx->ident.m02_m10                    = 0;\n        mtx->ident.m11_m12                    = 0x1000;\n        mtx->ident.m20_m21                    = 0;\n        mtx->ident.m22                        = 0x1000;\n        D_actor_403200_8015F970.c.coord.t[1]  = -0x64;\n        D_actor_403200_8015F970.c.coord.t[0]  = 0;\n        D_actor_403200_8015F970.c.coord.t[2]  = 0x64;\n        D_actor_403200_8015F970.c.flg         = 0;\n        D_actor_403200_8015F970.c.sub         = &coords[4];\n        Gp_UpdateCoord(&D_actor_403200_8015F970.c);\n    }\n    state = work->field_7B3;\n    if (state == 0x14) {\n        if (work->field_58 & 1) {\n            work->field_7B3 = 0xD;\n            work->field_7B0 = 1;\n        }\n        if (work->field_7B3 == state && work->field_7B0 == 2) {\n            work->field_7B6   = 0x60;\n            do {\n                func_actor_403200_80133DD8(arg0);\n            } while ((u32)(work->field_4A & 0x3FF) < 0x34);\n            work->field_7B6 = 0x10;\n        }\n    }\n    if (D_actor_403200_80141C58 >= 0x191) {\n        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;\n    }\n    func_actor_403200_80133DD8(arg0);\n    ((TmdObject*)arg0->extra)->coords->flg = 0;\n}\n",
+    "base_2.c": "#include \"common.h\"\n#include \"actors/actor_403200.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/display.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\ntypedef union Actor403200DropCoord {\n    GsCOORDINATE2 c;\n    struct {\n        /* 0x00 */ s32 flg;\n        /* 0x04 */ s32 m00_m01;\n        /* 0x08 */ s32 m02_m10;\n        /* 0x0C */ s32 m11_m12;\n        /* 0x10 */ s32 m20_m21;\n        /* 0x14 */ s16 m22;\n    } ident;\n} Actor403200DropCoord;\n\ntypedef union Actor403200Matrix {\n    MATRIX mat;\n    struct {\n        /* 0x00 */ s32 m00_m01;\n        /* 0x04 */ s32 m02_m10;\n        /* 0x08 */ s32 m11_m12;\n        /* 0x0C */ s32 m20_m21;\n        /* 0x10 */ s16 m22;\n    } ident;\n} Actor403200Matrix;\n\nextern s16 D_actor_403200_80141C58;\n\n\nextern s32 D_actor_403200_80141C6C;\nextern s32 D_actor_403200_80141C74;\n\nextern Actor403200DropCoord D_actor_403200_8015F970;\n\nvoid func_actor_403200_8013E2FC(Task* arg0)\n{\n    Actor403200Work*   work;\n    Actor403200Work*   escorts;\n    Actor403200Work*   dying;\n    Actor403200Matrix* mtx;\n    GsCOORDINATE2*     coords;\n    s32                state;\n    s32                frame;\n    s16                i;\n    s16                j;\n\n    work = (Actor403200Work*)arg0->work;\n    if (work->field_4 != 0) {\n        escorts                            = (Actor403200Work*)arg0->work;\n        work->field_7F3                    = 0;\n        ((TmdObject*)arg0->extra)->flags = 0;\n        for (i = 0; i < 7; i++) {\n            if (escorts->field_ECC[i] != NULL) {\n                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =\n                    ((TmdObject*)arg0->extra)->flags;\n            }\n        }\n        dying = (Actor403200Work*)arg0->work;\n        Tmd_AllocBuffers((TmdObject*)arg0->extra);\n        for (j = 0; j < 7; j++) {\n            if (dying->field_ECC[j] != NULL) {\n                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);\n            }\n        }\n        work->field_7B6 = 0x10;\n        work->field_F04 = 1;\n        work->field_7A4 = 0;\n        work->field_E96 = 0xFA0;\n    }\n    if (work->field_7B3 == 0xD) {\n        frame = work->field_72 & 0x3FF;\n        if (frame == 0x15 && work->field_7D8 != frame) {\n            work->field_EAC = 3;\n            Gp_SpawnScript18((s32)&D_actor_403200_80141C6C, (s32)&D_actor_403200_80141C74);\n        }\n        work->field_7D8 = work->field_72 & 0x3FF;\n    }\n    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {\n        coords                                = ((TmdObject*)arg0->extra)->coords;\n        D_actor_403200_8015F970.ident.m00_m01 = 0x1000;\n        mtx                                   = (Actor403200Matrix*)&D_actor_403200_8015F970.c.coord;\n        mtx->ident.m02_m10                    = 0;\n        mtx->ident.m11_m12                    = 0x1000;\n        mtx->ident.m20_m21                    = 0;\n        mtx->ident.m22                        = 0x1000;\n        D_actor_403200_8015F970.c.coord.t[1]  = -0x64;\n        D_actor_403200_8015F970.c.coord.t[0]  = 0;\n        D_actor_403200_8015F970.c.coord.t[2]  = 0x64;\n        D_actor_403200_8015F970.c.flg         = 0;\n        D_actor_403200_8015F970.c.sub         = &coords[4];\n        Gp_UpdateCoord(&D_actor_403200_8015F970.c);\n    }\n    state = work->field_7B3;\n    if (state == 0x14) {\n        if (work->field_58 & 1) {\n            work->field_7B3 = 0xD;\n            work->field_7B0 = 1;\n        }\n        if (work->field_7B3 == state && work->field_7B0 == 2) {\n            work->field_7B6   = 0x60;\n            func_actor_403200_80133DD8(arg0);\n            while ((u32)(work->field_4A & 0x3FF) < 0x34) {\n                func_actor_403200_80133DD8(arg0);\n            }\n            work->field_7B6 = 0x10;\n        }\n    }\n    if (D_actor_403200_80141C58 >= 0x191) {\n        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;\n    }\n    func_actor_403200_80133DD8(arg0);\n    ((TmdObject*)arg0->extra)->coords->flg = 0;\n}\n",
+    "base_3.c": "#include \"common.h\"\n#include \"actors/actor_403200.h\"\n#include \"gameplay/1BC.h\"\n#include \"gameplay/3A34.h\"\n#include \"gameplay/3CD8.h\"\n#include \"main/display.h\"\n#include \"main/session.h\"\n#include \"main/sound.h\"\n#include \"main/task.h\"\n#include \"main/tmd.h\"\nextern s16 D_actor_403200_80141C58;\n\n\nextern s32 D_actor_403200_80141C6C;\nextern s32 D_actor_403200_80141C74;\n\nextern Actor403200DropCoord D_actor_403200_8015F970;\n\nvoid func_actor_403200_8013E2FC(Task* arg0)\n{\n    Actor403200Work*   work;\n    Actor403200Work*   escorts;\n    Actor403200Work*   dying;\n    Actor403200Matrix* mtx;\n    GsCOORDINATE2*     coords;\n    s32                state;\n    s32                frame;\n    s16                i;\n    s16                j;\n\n    work = (Actor403200Work*)arg0->work;\n    if (work->field_4 != 0) {\n        escorts                            = (Actor403200Work*)arg0->work;\n        work->field_7F3                    = 0;\n        ((TmdObject*)arg0->extra)->flags = 0;\n        for (i = 0; i < 7; i++) {\n            if (escorts->field_ECC[i] != NULL) {\n                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =\n                    ((TmdObject*)arg0->extra)->flags;\n            }\n        }\n        dying = (Actor403200Work*)arg0->work;\n        Tmd_AllocBuffers((TmdObject*)arg0->extra);\n        for (j = 0; j < 7; j++) {\n            if (dying->field_ECC[j] != NULL) {\n                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);\n            }\n        }\n        work->field_7B6 = 0x10;\n        work->field_F04 = 1;\n        work->field_7A4 = 0;\n        work->field_E96 = 0xFA0;\n    }\n    if (work->field_7B3 == 0xD) {\n        frame = work->field_72 & 0x3FF;\n        if (frame == 0x15 && work->field_7D8 != frame) {\n            work->field_EAC = 3;\n            Gp_SpawnScript18((s32)&D_actor_403200_80141C6C, (s32)&D_actor_403200_80141C74);\n        }\n        work->field_7D8 = work->field_72 & 0x3FF;\n    }\n    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {\n        coords                                = ((TmdObject*)arg0->extra)->coords;\n        D_actor_403200_8015F970.ident.m00_m01 = 0x1000;\n        mtx                                   = (Actor403200Matrix*)&D_actor_403200_8015F970.c.coord;\n        mtx->ident.m02_m10                    = 0;\n        mtx->ident.m11_m12                    = 0x1000;\n        mtx->ident.m20_m21                    = 0;\n        mtx->ident.m22                        = 0x1000;\n        D_actor_403200_8015F970.c.coord.t[1]  = -0x64;\n        D_actor_403200_8015F970.c.coord.t[0]  = 0;\n        D_actor_403200_8015F970.c.coord.t[2]  = 0x64;\n        D_actor_403200_8015F970.c.flg         = 0;\n        D_actor_403200_8015F970.c.sub         = &coords[4];\n        Gp_UpdateCoord(&D_actor_403200_8015F970.c);\n    }\n    state = work->field_7B3;\n    if (state == 0x14) {\n        if (work->field_58 & 1) {\n            work->field_7B3 = 0xD;\n            work->field_7B0 = 1;\n        }\n        if (work->field_7B3 == state && work->field_7B0 == 2) {\n            work->field_7B6   = 0x60;\n            func_actor_403200_80133DD8(arg0);\n            while ((u32)(work->field_4A & 0x3FF) < 0x34) {\n                func_actor_403200_80133DD8(arg0);\n            }\n            work->field_7B6 = 0x10;\n        }\n    }\n    if (D_actor_403200_80141C58 >= 0x191) {\n        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;\n    }\n    func_actor_403200_80133DD8(arg0);\n    ((TmdObject*)arg0->extra)->coords->flg = 0;\n}\n"
+  },
+  "dumps": {
+    "base_1.i.sched2": {
+      "sha256": "575c06e7e8f9c1c3fa7c5fbfa0b3c1e799586f802b41d56b0fd9e973de148b01",
+      "selected_blocks": [
+        "(code_label 373 372 374 21 \"\")",
+        "(insn 377 385 379 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(call_insn 379 377 380 (parallel[ \n            (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                (const_int 16))\n            (clobber (reg:SI 31 ra))\n        ] ) 340 {call_internal1} (insn_list 377 (nil))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))"
+      ]
+    },
+    "base_1.i.dbr": {
+      "sha256": "825fd5244457ab0b2631d3c7bffec64a608411996c995c4900b40fe95ddc8c5c",
+      "selected_blocks": [
+        ";; Insn is in multiple basic blocks\n(insn 514 385 380 (sequence[ \n            (call_insn 379 385 377 (parallel[ \n                        (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                            (const_int 16))\n                        (clobber (reg:SI 31 ra))\n                    ] ) 340 {call_internal1} (insn_list 377 (nil))\n                (expr_list:REG_DEAD (reg:SI 4 a0)\n                    (expr_list:REG_UNUSED (reg:SI 31 ra)\n                        (nil)))\n                (expr_list (use (reg:SI 4 a0))\n                    (nil)))\n            (insn 377 379 380 (set (reg:SI 4 a0)\n                    (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n                (nil))\n        ] ) -1 (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 542 388 395 (sequence[ \n            (jump_insn 389 388 399 (set (pc)\n                    (if_then_else (ne:SI (reg:SI 2 v0)\n                            (const_int 0))\n                        (label_ref 373)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 379 (insn_list 388 (nil)))\n                (expr_list:REG_DEAD (reg:SI 2 v0)\n                    (nil)))\n            (insn 399 389 395 (set (reg:HI 2 v0)\n                    (const_int 16)) 187 {movhi_internal2} (nil)\n                (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                            (const_int 1974)))\n                    (expr_list:REG_EQUIV (const_int 16)\n                        (nil))))\n        ] ) -1 (nil)\n    (nil))"
+      ]
+    },
+    "base_2.i.sched2": {
+      "sha256": "7ab219c917d186476e749ee4e00d66720a6bbe3e97f500d66412fcabf17ab63a",
+      "selected_blocks": [
+        "(insn 373 371 487 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(insn 368 487 370 (set (reg:HI 2 v0)\n        (const_int 96)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 1974)))\n        (expr_list:REG_EQUIV (const_int 96)\n            (nil))))",
+        "(insn 370 368 488 (set (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 1974)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 368 (nil))\n    (expr_list:REG_DEAD (reg:HI 2 v0)\n        (nil)))",
+        "(call_insn 375 488 376 (parallel[ \n            (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                (const_int 16))\n            (clobber (reg:SI 31 ra))\n        ] ) 340 {call_internal1} (insn_list:REG_DEP_ANTI 368 (insn_list:REG_DEP_ANTI 370 (insn_list 373 (nil))))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))",
+        "(insn 468 376 470 (set (reg:HI 2 v0)\n        (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 74)))) 187 {movhi_internal2} (insn_list:REG_DEP_ANTI 375 (nil))\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 74)))\n        (nil)))",
+        "(insn 470 468 471 (set (reg:SI 2 v0)\n        (and:SI (subreg:SI (reg:HI 2 v0) 0)\n            (const_int 1023))) 99 {andsi3} (insn_list:REG_DEP_ANTI 375 (insn_list 468 (nil)))\n    (expr_list:REG_DEAD (reg:HI 2 v0)\n        (nil)))",
+        "(insn 471 470 472 (set (reg:SI 2 v0)\n        (ltu:SI (reg:SI 2 v0)\n            (const_int 52))) 298 {sltu_si} (insn_list:REG_DEP_ANTI 375 (insn_list 470 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+        "(jump_insn 472 471 377 (set (pc)\n        (if_then_else (eq:SI (reg:SI 2 v0)\n                (const_int 0))\n            (label_ref 403)\n            (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 375 (insn_list 471 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+        "(code_label 388 377 389 23 \"\")",
+        "(insn 392 381 394 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(call_insn 394 392 395 (parallel[ \n            (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                (const_int 16))\n            (clobber (reg:SI 31 ra))\n        ] ) 340 {call_internal1} (insn_list 392 (nil))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))",
+        "(jump_insn 385 384 402 (set (pc)\n        (if_then_else (ne:SI (reg/s:SI 2 v0)\n                (const_int 0))\n            (label_ref 388)\n            (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 394 (insn_list 384 (nil)))\n    (expr_list:REG_DEAD (reg/s:SI 2 v0)\n        (nil)))"
+      ]
+    },
+    "base_2.i.jump2": {
+      "sha256": "82104291f398d6df6ed4a3c5d8ee1230ef365542528e471d9f06bc30331b4f5a",
+      "selected_blocks": [
+        "(insn 373 371 487 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(insn 368 487 370 (set (reg:HI 2 v0)\n        (const_int 96)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUIV (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 1974)))\n        (expr_list:REG_EQUIV (const_int 96)\n            (nil))))",
+        "(insn 370 368 488 (set (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 1974)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 368 (nil))\n    (expr_list:REG_DEAD (reg:HI 2 v0)\n        (nil)))",
+        "(jump_insn 472 376 525 (set (pc)\n        (label_ref 524)) -1 (insn_list:REG_DEP_ANTI 375 (insn_list 471 (nil)))\n    (expr_list:REG_DEAD (reg:SI 2 v0)\n        (nil)))",
+        "(code_label 388 377 389 23 \"\")",
+        "(insn 392 381 524 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        "(code_label 524 392 394 26 \"\")",
+        "(call_insn 394 524 395 (parallel[ \n            (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                (const_int 16))\n            (clobber (reg:SI 31 ra))\n        ] ) 340 {call_internal1} (insn_list 392 (nil))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))",
+        "(jump_insn 385 384 402 (set (pc)\n        (if_then_else (ne:SI (reg/s:SI 2 v0)\n                (const_int 0))\n            (label_ref 388)\n            (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 394 (insn_list 384 (nil)))\n    (expr_list:REG_DEAD (reg/s:SI 2 v0)\n        (nil)))"
+      ]
+    },
+    "base_2.i.dbr": {
+      "sha256": "06a15fea1c97d6c641572db708c436b09f2784740f6e7fe58ca57c055af5b621",
+      "selected_blocks": [
+        ";; Insn is in multiple basic blocks\n(insn 373 371 487 (set (reg:SI 4 a0)\n        (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n    (nil))",
+        ";; Insn is in multiple basic blocks\n(insn 370 376 377 (set (mem/s:HI (plus:SI (reg/v:SI 16 s0)\n                (const_int 1974)))\n        (reg:HI 2 v0)) 187 {movhi_internal2} (insn_list 368 (nil))\n    (expr_list:REG_DEAD (const_int 0)\n        (nil)))",
+        ";; Insn is in multiple basic blocks\n(code_label 388 377 389 23 \"\")",
+        ";; Insn is in multiple basic blocks\n(call_insn 394 381 395 (parallel[ \n            (call (mem:SI (symbol_ref:SI (\"func_actor_403200_80133DD8\")))\n                (const_int 16))\n            (clobber (reg:SI 31 ra))\n        ] ) 340 {call_internal1} (insn_list 392 (nil))\n    (expr_list:REG_DEAD (reg:SI 4 a0)\n        (expr_list:REG_UNUSED (reg:SI 31 ra)\n            (nil)))\n    (expr_list (use (reg:SI 4 a0))\n        (nil)))",
+        ";; Insn is in multiple basic blocks\n(insn 562 384 402 (sequence[ \n            (jump_insn 385 384 392 (set (pc)\n                    (if_then_else (ne:SI (reg/s:SI 2 v0)\n                            (const_int 0))\n                        (label_ref 388)\n                        (pc))) 243 {branch_zero} (insn_list:REG_DEP_ANTI 394 (insn_list 384 (nil)))\n                (expr_list:REG_DEAD (reg/s:SI 2 v0)\n                    (nil)))\n            (insn/s 392 385 402 (set (reg:SI 4 a0)\n                    (reg/v:SI 19 s3)) 172 {movsi_internal2} (nil)\n                (nil))\n        ] ) -1 (nil)\n    (nil))"
+      ]
+    }
+  },
+  "verification": {
+    "command": "./tools/build-and-verify.sh",
+    "exit_code": 0,
+    "result": "\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors",
+    "log_sha256": "ca9b4d10224f243d238a12d56e9ae0decf78d19e84f0456b06b843468743e4fb"
+  },
+  "duplicate_check": "overlay_dup_index.py find reports only this function; no sharing promotion needed",
+  "router_result": "status=all candidates skipped\nseed_ca018d1950c6fa98dc16.c: skipped candidate rebuild failed (33)\nseed_b1c549b89fb1a73d5299.c: skipped candidate rebuild failed (33)\nseed_9fd0ce8c959605f76b22.c: skipped candidate rebuild failed (33)\n"
+}

@@ -134898,3 +134898,52 @@ The complete router evidence and conclusions are retained under
 This is evidence for inspecting a neighbor's interval after a mode change,
 not a rule that every halfword clamp retains a copy or every input-only asm
 preserves the schedule. No helper-free original spelling was established.
+
+## A peeled first call lets late cross-jumping put argument setup outside the loop (actor_403200 E2FC, 2026-09-20)
+
+`func_actor_403200_8013E2FC` stalled at 98.450% with exact register allocation.
+The target sets `a0 = s3` before the loop, has an empty `jal` delay slot, and
+sets `a0 = s3` again in the backedge delay slot. An ordinary `do/while` instead
+puts the argument move in the `jal` slot and the exit's constant 0x10 in the
+backedge slot. Several equivalent simple loop spellings emitted the same code.
+
+The successful preplanned experiment peels the mandatory first call:
+
+```c
+work->field_7B6 = 0x60;
+func_actor_403200_80133DD8(arg0);
+while ((u32)(work->field_4A & 0x3FF) < 0x34) {
+    func_actor_403200_80133DD8(arg0);
+}
+work->field_7B6 = 0x10;
+```
+
+Observed in the matching `base_2` dumps:
+
+- `.sched2` still has both calls. Initial argument setup UID373 is separated
+  from call375 by the constant/store UID368/370. Repeated setup392 immediately
+  precedes call394.
+- `.jump2` merges the initial call/test suffix into the repeated one, creates
+  label524 directly before call394, and turns the initial test's branch472
+  into an unconditional jump there. The suffix cannot extend through the
+  preceding instructions: initial store370 differs from repeated setup392.
+- `.dbr` leaves call394 without a delay sequence. Sequence562 contains
+  backedge385 and setup392; the initial jump disappears. Work stays in s0 and
+  the task stays in s3, satisfying the independent allocation requirement.
+
+Thus the argument setup was never hoisted out of a loop: the first setup was
+outside it from expansion, and late cross-jumping introduced the label that
+keeps the remaining call's delay slot empty. This corrects the prior session's
+assumption that the answer required moving a hard argument register across a
+loop boundary. The mergeable duplicated suffix, its differing predecessor,
+and its placement after scheduling are the relevant conditions; peeling an
+arbitrary loop is not guaranteed to produce this shape.
+
+The controlled source change reached 100% without pins or asm helpers, and
+the normal-header port plus full unscoped verifier passed. Preprocessed hashes:
+unpeeled `e1ac77b9a2855e59ebed4f66c7b1168775d66615f0e7032d4e3c0f5f8fd687ea`,
+peeled `3068dbe00af3cfc2b06ef01e5ead99f9e2655fdd6c44f05757a4496b1dc19ef5`.
+Plans, source delta, compiler/input hashes and selected dump blocks are retained
+in `tools/compiler_evidence/2026-09-20-actor403200-e2fc.json`. No tracer was
+needed; internal scheduler comparisons were not investigated. The router
+skipped stale incompatible archived candidates and contributed no discovery.

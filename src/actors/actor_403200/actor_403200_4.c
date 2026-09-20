@@ -45,6 +45,10 @@ extern s32 Gp_LcgState;
 extern s32 D_actor_403200_80141C5C;
 extern s32 D_actor_403200_80141C64;
 
+extern s32                  D_actor_403200_80141C6C;
+extern s32                  D_actor_403200_80141C74;
+extern Actor403200DropCoord D_actor_403200_8015F970;
+
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
 extern TaskDesc D_actor_403200_8015E858;
@@ -1834,7 +1838,85 @@ void func_actor_403200_8013DC3C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013E2FC);
+void func_actor_403200_8013E2FC(Task* arg0)
+{
+    Actor403200Work*   work;
+    Actor403200Work*   escorts;
+    Actor403200Work*   dying;
+    Actor403200Matrix* mtx;
+    GsCOORDINATE2*     coords;
+    s32                state;
+    s32                frame;
+    s16                i;
+    s16                j;
+
+    work = (Actor403200Work*)arg0->work;
+    if (work->field_4 != 0) {
+        escorts                          = (Actor403200Work*)arg0->work;
+        work->field_7F3                  = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =
+                    ((TmdObject*)arg0->extra)->flags;
+            }
+        }
+        dying = (Actor403200Work*)arg0->work;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        work->field_7B6 = 0x10;
+        work->field_F04 = 1;
+        work->field_7A4 = 0;
+        work->field_E96 = 0xFA0;
+    }
+    if (work->field_7B3 == 0xD) {
+        frame = work->field_72 & 0x3FF;
+        if (frame == 0x15 && work->field_7D8 != frame) {
+            work->field_EAC = 3;
+            Gp_SpawnScript18((s32)&D_actor_403200_80141C6C, (s32)&D_actor_403200_80141C74);
+        }
+        work->field_7D8 = work->field_72 & 0x3FF;
+    }
+    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
+        coords                                = ((TmdObject*)arg0->extra)->coords;
+        D_actor_403200_8015F970.ident.m00_m01 = 0x1000;
+        mtx                                   = (Actor403200Matrix*)&D_actor_403200_8015F970.c.coord;
+        mtx->ident.m02_m10                    = 0;
+        mtx->ident.m11_m12                    = 0x1000;
+        mtx->ident.m20_m21                    = 0;
+        mtx->ident.m22                        = 0x1000;
+        D_actor_403200_8015F970.c.coord.t[1]  = -0x64;
+        D_actor_403200_8015F970.c.coord.t[0]  = 0;
+        D_actor_403200_8015F970.c.coord.t[2]  = 0x64;
+        D_actor_403200_8015F970.c.flg         = 0;
+        D_actor_403200_8015F970.c.sub         = &coords[4];
+        Gp_UpdateCoord(&D_actor_403200_8015F970.c);
+    }
+    state = work->field_7B3;
+    if (state == 0x14) {
+        if (work->field_58 & 1) {
+            work->field_7B3 = 0xD;
+            work->field_7B0 = 1;
+        }
+        if (work->field_7B3 == state && work->field_7B0 == 2) {
+            work->field_7B6 = 0x60;
+            func_actor_403200_80133DD8(arg0);
+            while ((u32)(work->field_4A & 0x3FF) < 0x34) {
+                func_actor_403200_80133DD8(arg0);
+            }
+            work->field_7B6 = 0x10;
+        }
+    }
+    if (D_actor_403200_80141C58 >= 0x191) {
+        D_actor_403200_80141C58 = (u16)D_actor_403200_80141C58 - 0xC8;
+    }
+    func_actor_403200_80133DD8(arg0);
+    ((TmdObject*)arg0->extra)->coords->flg = 0;
+}
 
 /// State 0x12, the enemy's death sequence: the model is torn down and rebuilt
 /// so the collapse animation can run on it.
