@@ -134012,3 +134012,53 @@ The matching source fences the previous-state store, preloads a separate local d
 The successful prediction is visible in `base_3.i.sched2`: store 481 -> basic asm 483 -> signed load 488 -> basic asm 490 -> reload constant 914 -> stop touch 495 -> shift 499. `base_3.i.greg` keeps the index in v0 and stop in s3. The output is `lhu v0; nop; sh v0; lh v0; li s3,21; sll v0`, and the integrated function/table pass the unscoped build. There are no register pins.
 
 This supports the dependency intervention for this function, not a universal need for two fences. The exact unfenced hazard-selection decision and individual necessity of each fence remain untested. Candidate hashes, penalties, observed UIDs and scope are retained in `tools/compiler_evidence/2026-09-20-actor401800-d64c.json`; matching preprocessed SHA256 is `6f5046c79ed0a885a498c0fc0cf1ca13164d97e1e8ff4fa34d63f50f2a61d8a6` (bundled compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`). Full dumps and conclusions remain in the session scratch.
+
+
+### Keep-live placement must preserve the scheduler region as well as allocation (func_actor_401800_801381E4, 2026-09-20)
+
+This retry matched 100% and passed the unscoped integration build. The two
+coordinate walks needed cursor/outp in a1/a2 and dir/svp/coord in s0/s1/s2.
+A multi-input empty asm reproduced those register homes but moved the address
+calculations and several independent loads: the deciding inputs improved while
+the complete function regressed from distance 514 to 2838.
+
+The final source makes the temporary SVECTOR caller-owned and passes its
+address before dir in the inline helper argument list. A loop-tail
+SOFT_TOUCH_REG(p) adds cursor references without changing the emitted walk.
+SOFT_USE_REG(svp) adds one reference on the successful view-hit exit, immediately
+before copying the transformed vector to outp. Keeping that use in the entry
+instead creates an implicitly volatile asm whose scheduler dependencies capture
+the dir address, forcing it before gameGetPtrSlot. Moving the use to the exit
+avoids those entry dependencies. The base_9 plan predicted both the remaining
+priority advantage and the restored entry schedule; both were observed.
+
+Final compiler trace (ordinary and observed assembly identical):
+
+| Value | Refs / span | Priority | Home |
+|---|---:|---:|---|
+| cursor r147 | 8 / 20 | 12000 | a1 |
+| outp r137 | 11 / 48 | 6875 | a2 |
+| dir r131 | 4 / 57 | 1403 | s0 |
+| svp r130 | 3 / 46 | 652 | s1 |
+| coord r129 | 3 / 56 | 535 | s2 |
+
+Sched1 selects dir-address UID201 at backward cycle 20, head load UID211 at
+21, call UID207 at 22, and svp-address UID199 at 27. Sched2 preserves that
+order. Thus svp precedes the call and dir fills the head load's delay slot.
+This is a controlled placement result, not a claim that an input-only asm is a
+soft barrier or that adding references alone suffices.
+
+Other useful source constraints: publishing head-8 before deriving outp keeps
+the target pointer copy; writing scratch zeros before loading the player model
+reverses the observed memory dependency. A first version moved outp to a2 by
+adding a local a1 conflict, not by reversing its global priority. Explicit
+if/else animation stores match where a ternary materializes an extra full
+address. The permuter's single-assignment do/while gain was reproduced but its
+mechanism remains unresolved; that wrapper is absent from the final source.
+
+Inputs: base_7.i `4370510177304fc62053aecceb17a1e0cca837a192bcc417fe05d83b5dfe21e9`, base_8.i `208fa077a81a275ddff6b6b0f3d57135a0167c88f7f6d4d5d21286725dfb7ac2`,
+base_9.i `0fdc4c47292fe4cfc65ed869fed9f3475d1ba82ea7ce0b9e0107c711d1ce3acd`. Compiler
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Evidence: scratch LEARNINGS.md, base_9 plan and dumps, and
+PERMUTER_EVIDENCE/6039bf3ba6464942/analysis/final/REPORT.txt and manifest.json;
+retained under tools/permuter_findings/func_actor_401800_801381E4/.

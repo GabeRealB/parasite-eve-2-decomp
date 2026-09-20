@@ -1126,7 +1126,177 @@ void func_actor_401800_80137DDC(Actor401800* arg0)
     *(Actor401800AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_2", func_actor_401800_801381E4);
+static __inline__ void Actor401800_ViewWalk(GsCOORDINATE2* coord, SVECTOR* svp, SVECTOR* dir)
+{
+    VECTOR         vec;
+    SVECTOR*       outp;
+    u8*            head;
+    VECTOR*        vecp;
+    GsCOORDINATE2* p;
+    GsCOORDINATE2* view;
+    s32            flag;
+    s32*           flagp;
+    Task*          player;
+
+    player                = gameGetPtrSlot(3);
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 8;
+    outp                  = (SVECTOR*)(head - 8);
+    view                  = &gGfxViewCoord;
+    vecp                  = &vec;
+    flagp                 = &flag;
+    outp->vx              = 0;
+    outp->vy              = 0;
+    outp->vz              = 0;
+    p                     = &((TmdObject*)player->extra)->coords[1];
+    svp->vx               = outp->vx;
+    svp->vy               = outp->vy;
+    svp->vz               = outp->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            svp->vx = vec.vx;
+            svp->vy = vec.vy;
+            svp->vz = vec.vz;
+            p       = p->sub;
+            SOFT_TOUCH_REG(p);
+            goto loop;
+        }
+        SOFT_USE_REG(svp);
+        outp->vx = svp->vx;
+        outp->vy = svp->vy;
+        outp->vz = svp->vz;
+    }
+    dir->vx                 = outp->vx - coord->coord.t[0];
+    dir->vy                 = 0;
+    dir->vz                 = outp->vz - coord->coord.t[2];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
+
+static __inline__ s16 Actor401800_ViewYaw(GsCOORDINATE2* coord, SVECTOR* dir)
+{
+    s32 angle;
+
+    angle = ratan2(dir->vx, dir->vz);
+    return Actor401800_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+}
+
+static __inline__ void Actor401800_SetGrabAnim(void)
+{
+    if (D_8007218A == 1) {
+        D_actor_401800_80155A0C.field_0 = D_actor_401800_801559F8;
+    } else {
+        D_actor_401800_80155A0C.field_0 = D_actor_401800_801559F0;
+    }
+}
+
+void func_actor_401800_801381E4(Actor401800* arg0)
+{
+    GpEnemy*         enemy;
+    Task*            player;
+    GameActor*       gactor;
+    PlayerStatus*    config;
+    Actor401800Work* work;
+    SVECTOR          dir;
+    SVECTOR          sv;
+    s32              ang;
+    u16              step;
+
+    enemy  = arg0->field_20;
+    work   = arg0->field_1C;
+    player = gameGetPtrSlot(3);
+    gactor = (GameActor*)player->work;
+    config = &Player_Status;
+    if (work->field_4 != 0) {
+        work->field_8C2        = 0xA;
+        work->field_8C8.radius = 0x12C;
+        work->field_C1E        = 0;
+        work->field_C20        = 0;
+        work->field_B48.flags  = (u16)(work->field_B48.flags & 0x7FFF);
+        work->field_A08.flags  = (u16)(work->field_A08.flags | 0x4000);
+        enemy->node.flags      = 0;
+        work->field_898        = 1;
+        work->field_8A2        = 0x10;
+        work->field_89E        = 4;
+        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        func_actor_401800_80132C68(arg0->field_2C->coords, &work->field_A28, 0xC);
+        work->field_BF0 = arg0->field_2C->coords->coord.t[0];
+        work->field_BF2 = arg0->field_2C->coords->coord.t[1];
+        work->field_BF4 = arg0->field_2C->coords->coord.t[2];
+        work->field_6   = 0;
+        return;
+    }
+    step          = (u16)work->field_6 + 1;
+    work->field_6 = step;
+    if ((s16)step == 1) {
+        func_actor_401800_80132C68(arg0->field_2C->coords, &work->field_A28, 0xC);
+        work->field_BF0 = arg0->field_2C->coords->coord.t[0];
+        work->field_BF2 = arg0->field_2C->coords->coord.t[1];
+        work->field_BF4 = arg0->field_2C->coords->coord.t[2];
+        Actor401800_ViewWalk(arg0->field_2C->coords, &sv, &dir);
+        ang = Actor401800_ViewYaw(arg0->field_2C->coords, &dir);
+        Gfx_RotMatrixY(&arg0->field_2C->coords[0].coord, ang, 0);
+        Actor401800_RescaleYaw(arg0->field_2C->coords, 0x1194);
+        dir.vx                      = arg0->field_2C->coords->coord.t[0] - config->coordMtx->t[0];
+        dir.vy                      = 0;
+        dir.vz                      = arg0->field_2C->coords->coord.t[2] - config->coordMtx->t[2];
+        work->field_8AE             = 0;
+        work->field_8B0             = 0;
+        arg0->field_2C->coords->flg = 0;
+        work->field_C1E             = 0;
+        work->field_C20             = 0;
+        work->field_8C2             = 0xA;
+    }
+    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    if ((work->field_5A & 0x3FF) == 0x10 && gactor->field_954 != 2) {
+        Actor401800_ViewWalk(arg0->field_2C->coords, &sv, &dir);
+        ang = Actor401800_ViewYaw(arg0->field_2C->coords, &dir);
+        if (ang < 0) {
+            ang = -ang;
+        }
+        if (ang < 0x20) {
+            if (!Actor401800_OutOfRange(&dir, 0x5DC)) {
+                Actor401800_SetGrabAnim();
+                D_actor_401800_80155AF8.field_14 = 8;
+                do {
+                    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_401800_80155AF8, 0) == 0) {
+                        work->field_0                   = 0xC;
+                        work->field_C20                 = 1;
+                        D_actor_401800_80155A0C.field_4 = 1;
+                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_401800_80155A0C, 0);
+                    }
+                } while (0);
+            }
+        }
+    }
+    if (work->field_89E == 4 && (work->field_68 & 1)) {
+        work->field_0 = 7;
+    }
+    if ((u32)(work->field_5A & 0x3FF) >= 0x11U) {
+        dir.vx = arg0->field_2C->coords->coord.t[0] - config->coordMtx->t[0];
+        dir.vy = 0;
+        dir.vz = arg0->field_2C->coords->coord.t[2] - config->coordMtx->t[2];
+        if (!Actor401800_OutOfRange(&dir, 0x578)) {
+            VectorNormalSS(&dir, &dir);
+            gte_lddp(0xA);
+            gte_ldsv(&dir);
+            gte_gpf12_real();
+            gte_stsv(&dir);
+            arg0->field_2C->coords->coord.t[0] += dir.vx;
+            arg0->field_2C->coords->coord.t[2] += dir.vz;
+            arg0->field_2C->coords->flg         = 0;
+        }
+        if (func_actor_401800_80132C68(arg0->field_2C->coords, &work->field_A28, 0xC) != 1) {
+            func_actor_401800_8013629C(arg0, &work->field_8E8, 0xC);
+        }
+    }
+}
 
 /// Live-actor body: arms the animation slots and the two `field_8C8` /
 /// `field_A08` nodes, then aims the actor at the `gameGetPtrSlot(3)` task's
