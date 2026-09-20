@@ -719,9 +719,83 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
     return s->moved;
 }
 
-void func_actor_401000_80135704(Actor401000* arg0, GpRec18* rec, s32 arg2);
+static __inline__ void Actor401000_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
+{
+    VECTOR d;
+    VECTOR n;
+    s32    t;
+    s32    pen;
 
-INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_80135704);
+    d.vx = pos->vx - rec->point.vx;
+    d.vy = 0;
+    d.vz = pos->vz - rec->point.vz;
+    pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
+    pen  = rec->depth - pen;
+    if (pen <= 0) {
+        t = 0;
+    } else {
+        t = pen;
+    }
+    pen  = t;
+    d.vx = pos->vx - rec->point.vx;
+    d.vy = pos->vy - rec->point.vy;
+    d.vz = pos->vz - rec->point.vz;
+    VectorNormal(&d, &n);
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
+    out->vx = (pen * d.vx) >> 12;
+    out->vy = 0;
+    out->vz = (pen * d.vz) >> 12;
+}
+
+s32 func_actor_401000_80135704(Actor401000* arg0, GpRec18* recs, s16 count)
+{
+    Actor401000PushScratch* head;
+    Actor401000PushScratch* s;
+    Actor401000PushScratch* blk;
+
+    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
+        return 0;
+    }
+    arg0->field_2C->coords[1].flg             = 0;
+    head                                      = *(Actor401000PushScratch**)G_SCRATCH_HEAD;
+    blk                                       = head - 1;
+    *(Actor401000PushScratch**)G_SCRATCH_HEAD = blk;
+    s                                         = blk;
+    Gp_UpdateCoord(&arg0->field_2C->coords[1]);
+    s->pos.vx = arg0->field_2C->coords[1].workm.t[0];
+    s->pos.vy = arg0->field_2C->coords[1].workm.t[1];
+    s->pos.vz = arg0->field_2C->coords[1].workm.t[2];
+    s->hit    = 0;
+    for (s->i = 0; s->i < count; s->i++) {
+        if (recs[s->i].key == 0) {
+            s->dist[s->i] = 0x7FFE;
+            break;
+        }
+        s->kind = recs[s->i].key & 0xFFFF0000;
+        if (s->kind == 0x10000 || s->kind == 0x30000) {
+            s->hit = 1;
+            Actor401000_CalcPush(&s->pos, &recs[s->i], &s->offset);
+            s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
+            s->len = SquareRoot0(s->len);
+            if (s->len >= 0x6B) {
+                s->offset.vy = 0;
+                VectorNormalSS(&s->offset, &s->offset);
+                gte_lddp(0x6B);
+                gte_ldsv(&s->offset);
+                gte_gpf12_real();
+                gte_stsv(&s->offset);
+                arg0->field_2C->coords->coord.t[0] += s->offset.vx >> 2;
+                arg0->field_2C->coords->coord.t[2] += s->offset.vz >> 2;
+            } else {
+                arg0->field_2C->coords->coord.t[0] += s->offset.vx >> 2;
+                arg0->field_2C->coords->coord.t[2] += s->offset.vz >> 2;
+            }
+            arg0->field_2C->coords->flg = 0;
+        }
+    }
+    *(Actor401000PushScratch**)G_SCRATCH_HEAD += 1;
+    return s->hit;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_401000/actor_401000_2", func_actor_401000_80135AA4);
 

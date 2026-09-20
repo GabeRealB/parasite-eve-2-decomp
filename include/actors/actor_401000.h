@@ -302,6 +302,17 @@ typedef struct Actor401000Delta {
 } Actor401000Delta;
 STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
 
+typedef struct Actor401000PushScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     kind;
+    /* 0x14 */ s32     len;
+    /* 0x18 */ s16     i;
+    /* 0x1A */ s16     hit;
+    /* 0x1C */ s16     dist[12];
+} Actor401000PushScratch;
+STATIC_ASSERT_SIZEOF(Actor401000PushScratch, 0x34);
+
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401000_80134F98` carves off
 /// for the offset from the actor to `Player_Status.coordMtx`, the wrapped turn
 /// toward it and the facing yaw. Same shape as `Actor01900AimScratch` /

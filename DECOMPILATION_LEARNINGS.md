@@ -134706,3 +134706,56 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Input base: `c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f`;
 base_3: `9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd`.
 Both traced compilations emitted byte-identical assembly with/without observation.
+
+
+## Later memory operations change an earlier call delay slot through block-wide potential weighting (func_actor_401000_80135704, 2026-09-20)
+
+A pre-call zero store followed by two argument copies had the wrong order:
+`sh; move a0; jal; move a1`, while the target wanted the store in the call
+slot. Merely moving the store after the call improved the score to 99.741%
+but made it depend on the call; it could not fill a slot that executes before
+the callee. The faithful pre-call control, base_1, was 99.483% (reorder=2).
+
+The matched 401300 sibling supplied the useful source shape: duplicate both
+coordinate updates in the long and short arms of the length test. In base_2
+this leaves ten extra ordinary loads/stores after the GTE asm in the long
+arm through scheduling, then jump2 cross-jumps the duplicate tails. Both X/Z
+updates still execute on each hit. The prediction that this would sink the
+pre-call store past the argument copies was recorded before building base_2;
+it reached 100%, keeping every register home and the 0x50 frame. Current-header
+port base_3 has identical assembly; unscoped BUILD SUCCEEDED.
+
+The two neutral compiler traces distinguish selection from comparator order:
+
+* base_1 sched1 cycle 6: ready [384,382,379], all priority 1, actual hazards 0,
+  potential weights 0. Comparator selects argument copy 384.
+* base_2 sched1 cycle 23: the same ready order, priorities and actual hazards.
+  Store 379 has potential weight 2744320; both copies still have zero.
+  schedule_select chooses 379 despite comparator preference for 384.
+* Backward scheduling therefore produces forward order a0,a1,store,call.
+  sched2 retains it; dbr puts the store in the call slot.
+
+The patched sched.c counter explains why code after a call/asm can affect an
+instruction before it. clear_units (1200) resets unit_n_insns at each block;
+priority (1528) calls prepare_unit (1210), and the counter is never decremented
+during scheduling. Despite the counter's comment saying "remain", the
+potential_hazard multiplier (1372) depends on the whole scheduling block's
+unit users. A lone memory-unit store has a zero multiplier; adding memory
+operations later in that block changes its weight even once those operations
+have already been scheduled. Repeating the LUID explanation would miss this:
+the sched1 comparator gives the same answer in both candidates.
+
+The previous session's rejected permuter output moved X into only the long
+arm. Its behavior change remains invalid; it provided a clue about block
+extent. This session's router found no discovery and opened no follow-up;
+the sibling-shaped manual experiment and two traces supplied the resolution.
+Scope: this measured scheduler decision, not a universal tail-duplication fix.
+
+Evidence: `tools/compiler_evidence/2026-09-20-actor401000-35704.json`, including
+plans, scores, source/compiler hashes and selected raw events. Full sources,
+dumps and traces are retained in
+`tools/permuter_findings/func_actor_401000_80135704/` and the scratch.
+Compiler: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Input base_1: `6aaa8a5c2cb06b31bd5c6f63afffad4615041cc43e34bf66d23e4e35f81ca84d`.
+Input base_2: `61faca5d9755b13ba0b9e7a6a6e7d2c242201bad5a83358cc99327e295add754`.
+Both traces confirmed byte-identical assembly with and without observation.

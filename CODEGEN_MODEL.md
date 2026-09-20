@@ -97,6 +97,17 @@ instruction can therefore be selected. Potential weights are ranking values,
 not latency cycles. Repeated stores can keep a ready load blocked on successive
 cycles; changing its priority or original order cannot remove that hazard.
 
+Potential weighting also depends on the whole scheduling block. Despite its
+"remain" comment, `unit_n_insns` is populated by `priority`/`prepare_unit` and
+never decremented during scheduling. Loads and stores after a call or inline
+asm can therefore change selection before it. In `func_actor_401000_80135704`,
+duplicating coordinate updates in both arms keeps ten additional memory-unit
+instructions in the long arm until late cross-jumping. The earlier zero store's
+potential weight rises from 0 to 2744320, beating two argument copies with the
+same priority and comparator order. It then fills the call delay slot. Both
+traces and the preplanned exact-match experiment are retained in
+`tools/compiler_evidence/2026-09-20-actor401000-35704.json`.
+
 Trace a misplaced instruction through three decisions: its last dependency is
 released in `schedule_insn`, its ready-list ranking, and hazard selection. In
 sched1, `adjust_priority` can promote a newly ready register definition to
