@@ -1,0 +1,253 @@
+{
+  "function": "func_actor_202600_80149E8C",
+  "status": "supported",
+  "prediction_source": "base_3.c",
+  "observations": {
+    "base": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "a600fb832542012ce3dd5f9ffff6dbb7f02f0781ea524fd8db782f0c0f725cee",
+        "input_origin": "/home/gabriel/pe2-ov-actor_202600/nonmatchings/func_actor_202600_80149E8C-vacuum/base.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "6f3531b762d8b057acbfa839c64c2e9fffc84c38a80f2ac3a37311bfe0ccb635",
+        "traced_assembly_sha256": "6f3531b762d8b057acbfa839c64c2e9fffc84c38a80f2ac3a37311bfe0ccb635"
+      },
+      "local_block0": [
+        {
+          "birth": 8,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 34,
+          "event": "local_choice",
+          "members": [
+            106
+          ],
+          "priority": 1153,
+          "qty": 0,
+          "refs": 3,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 8,
+          "searched_death": 34,
+          "size": 1,
+          "span": 26,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 22,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 24,
+          "event": "local_choice",
+          "members": [
+            108
+          ],
+          "priority": 10000,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 22,
+          "searched_death": 24,
+          "size": 1,
+          "span": 2,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 26,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 30,
+          "event": "local_choice",
+          "members": [
+            110
+          ],
+          "priority": 5000,
+          "qty": 2,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 26,
+          "searched_death": 30,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        }
+      ],
+      "source_sha256": "83f352e0b0aaab4d500f7aa450aae3feabeed22fadbe7fbf6899f1589b61fb86"
+    },
+    "base_3": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "e881b9b4857718e5e1e595c1d4fd2f5c2058fd0b4150a8edc5eff1fc731e9dde",
+        "input_origin": "/home/gabriel/pe2-ov-actor_202600/nonmatchings/func_actor_202600_80149E8C-vacuum/base_3.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "5e50d4e47392daa55aa51fad74f283e2c8eddad4f678e926547965a64ced2bb1",
+        "traced_assembly_sha256": "5e50d4e47392daa55aa51fad74f283e2c8eddad4f678e926547965a64ced2bb1"
+      },
+      "local_block0": [
+        {
+          "birth": 8,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 34,
+          "event": "local_choice",
+          "members": [
+            107
+          ],
+          "priority": 1153,
+          "qty": 0,
+          "refs": 3,
+          "reg_class": 1,
+          "result": 2,
+          "searched_birth": 8,
+          "searched_death": 34,
+          "size": 1,
+          "span": 26,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 22,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 26,
+          "event": "local_choice",
+          "members": [
+            109
+          ],
+          "priority": 5000,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 3,
+          "searched_birth": 22,
+          "searched_death": 26,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 24,
+          "block": 0,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 28,
+          "event": "local_choice",
+          "members": [
+            106
+          ],
+          "priority": 5000,
+          "qty": 2,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 5,
+          "searched_birth": 24,
+          "searched_death": 28,
+          "size": 1,
+          "span": 4,
+          "suggested_only": 0,
+          "suggestions": []
+        }
+      ],
+      "source_sha256": "2307326f42986c1b9fc2586dba8c62c4f2f2e01c54c44528a8bcc05cb1944563"
+    }
+  },
+  "scope": "One prologue. Earlier coordinate read makes scratch decrement and model-pointer quantities overlap in sched1; no argument suggestion or pin. Sched2 restores target order. Exact scratch distance10->0.",
+  "evidence_in_scratch": "PERMUTER_EVIDENCE/manual_model_overlap/analysis/"
+}

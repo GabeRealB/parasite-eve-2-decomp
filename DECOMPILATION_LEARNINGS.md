@@ -135930,3 +135930,34 @@ zero, without pins. Full unscoped build verification passed. Compiler/input
 hashes and selected observations are retained in
 `tools/compiler_evidence/2026-09-20-actor160900-32844.json`; full retry notes
 remain in the scratch and its archived findings.
+## Move the coordinate read earlier to overlap two local quantities, while sched2 restores the target order (func_actor_202600_80149E8C, 2026-09-20)
+
+An archived 99.977% seed differed only in a model-pointer load/use: v1 instead
+of a1. Its final instruction order was already exact. Moving
+`coord = arg0->field_2C->field_8` before the scratch-head allocation matched
+without adding helpers or pins. The preplanned prediction was that sched1
+would overlap the model pointer with the scratch decrement, while preserving
+scratch-address=v0, decrement=v1 and the final instruction order.
+
+Paired compiler traces confirm the prediction. Baseline block0 q1 decrement
+r108 has birth22/death24, and q2 model r110 birth26/death30: both use v1.
+The reordered source gives q1 r109 birth22/death26 and q2 r106
+birth24/death28. Their ranges now overlap. q0 scratch address remains v0
+through both; a0 already contains the call argument. The model therefore
+chooses a1, with no copy/arithmetic suggestion. Sched2 restores the target's
+copy-before-model-load order after allocation. An identical final order does
+not imply identical allocation-time interference.
+
+Reusing a model/call-argument variable failed: combine folded its soft asm
+into hard a1 setup, deleting the intended second definition. A parallel asm
+retained two deaths and produced global a1 preference, but disturbed both
+scratch register homes and scheduling. These are unnecessary in the match.
+
+Evidence and exact input hashes: `tools/compiler_evidence/2026-09-20-actor202600-model-overlap.json`.
+Baseline input `a600fb832542012ce3dd5f9ffff6dbb7f02f0781ea524fd8db782f0c0f725cee`;
+matched input `e881b9b4857718e5e1e595c1d4fd2f5c2058fd0b4150a8edc5eff1fc731e9dde`.
+Full trace evidence is retained in the session
+`PERMUTER_EVIDENCE/manual_model_overlap/analysis/{base,base_3}/` and archived
+under `tools/permuter_findings/func_actor_202600_80149E8C/`. Both traces verified
+byte-identical assembly with and without observation. Scope: this prologue;
+no general promise that moving any load changes the needed interval.

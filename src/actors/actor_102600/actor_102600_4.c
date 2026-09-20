@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actors_shared_80149e8c.h"
 #include "actors/actors_shared_fn03674.h"
 
 #include "actors/actor_102600.h"
@@ -7,7 +8,6 @@
 #include "actors/actors_shared_80135730.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_actor_102600_80131E8C(Actor102600* arg0);
 void ActorsSharedFn020d4(Actor102600* arg0);
 void ActorsSharedFn02214(Actor102600* arg0);
 void func_actor_102600_801357C4(Actor102600* arg0);
@@ -57,7 +57,7 @@ default_body:
     if (arg0->field_4C != 0) {
         ActorsSharedFn03674((Actor105500*)arg1, (Actor105500Obj2C*)obj, one);
     }
-    func_actor_102600_80131E8C(arg1);
+    ActorsShared80149e8c((struct Actor202600*)arg1);
     ActorsShared801355a4((ActorShared801355a4*)arg1);
     if (work->field_3B0 != 0) {
         ActorsSharedFn020d4(arg1);

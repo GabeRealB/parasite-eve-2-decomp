@@ -5,10 +5,6 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_202600/actor_202600", D_actor_202600_80149E20);
-
-INCLUDE_ASM("actors/nonmatchings/actor_202600/actor_202600", func_actor_202600_80149E8C);
-
 void func_actor_202600_8014A574(Actor202600* arg0)
 {
     Actor202600Work* work;
