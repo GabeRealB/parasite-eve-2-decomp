@@ -99,6 +99,29 @@ typedef struct Actor521100 {
     /* 0x2C */ Actor521100Obj2C*       field_2C;
 } Actor521100;
 
+typedef struct Actor521100HitScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ byte           pad_30[0x18];
+} Actor521100HitScratch;
+STATIC_ASSERT_SIZEOF(Actor521100HitScratch, 0x48);
+
+/// The saved attach rotation overlaps the contact record at work + 0x49C.
+typedef union Actor521100AttachRot {
+    struct {
+        /* 0x00 */ MATRIX mat;
+        /* 0x20 */ byte   pad_20[2];
+        /* 0x22 */ u16    yaw;
+        /* 0x24 */ byte   pad_24[2];
+        /* 0x26 */ s16    travel;
+    } rot;
+    struct {
+        /* 0x00 */ byte    pad_0[0x10];
+        /* 0x10 */ GpRec18 rec;
+    } hit;
+} Actor521100AttachRot;
+STATIC_ASSERT_SIZEOF(Actor521100AttachRot, 0x28);
+
 /// Per-actor work block. `memCalloc(0x4B4, 0)` in `func_actor_521100_80135DDC`
 /// stores the pointer both in `D_actor_521100_8016A3D8` and in the task's
 /// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
@@ -107,7 +130,7 @@ typedef struct Actor521100 {
 /// clear-flag fields at 0x47C / 0x47E / 0x480 / 0x482 are the same layout
 /// `Actor202900Work` uses.
 ///
-/// `yaw` and `travel` are the cache the "walk to" placement opcode writes:
+/// `field_48C.rot.yaw` and `travel` are the cache the "walk to" placement opcode writes:
 /// the heading it applied to the root coordinate and the remaining distance,
 /// scaled by 20. Same offsets as `ActorsShared80133678Work`.
 typedef struct Actor521100Work {
@@ -116,24 +139,21 @@ typedef struct Actor521100Work {
     /// family's other work blocks), but the overlay's own step bodies view the
     /// same bytes as their animation context plus slots, so the region stays
     /// byte-addressed.
-    /* 0x000 */ byte       pad_0[0x40];
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       pad_34C[0x130];
-    /* 0x47C */ s16        field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ u16        field_47E; // animation id currently playing
-    /* 0x480 */ u16        animId;    // animation id the slots are seeded with
-    /* 0x482 */ s16        field_482; // cleared when a step body is started
-    /* 0x484 */ s16        field_484; // scale-in step func_actor_521100_801360C4 switches on: 0 seeds, 1 shrinks, 2 is done
-    /* 0x486 */ u16        field_486; // frames the shrink has run, counted to 0xA and 0xF by the step-1 body
-    /* 0x488 */ u16        field_488; // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
-    /* 0x48A */ byte       pad_48A[2];
-    /* 0x48C */ MATRIX     field_48C; // attach rotation the step-0 body snapshots and the step-1 body scales
-    /* 0x4AC */ byte       pad_4AC[2];
-    /* 0x4AE */ u16        yaw;
-    /* 0x4B0 */ byte       pad_4B0[0x2];
-    /* 0x4B2 */ s16        travel;
-    /* 0x4B4 */ byte       pad_4B4[0xC8];
+    /* 0x000 */ byte                 pad_0[0x40];
+    /* 0x040 */ GpAnimCtx            anim;
+    /* 0x054 */ GpAnimSlot           slots[0x13];
+    /* 0x34C */ byte                 pad_34C[0x130];
+    /* 0x47C */ s16                  field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x47E */ u16                  field_47E; // animation id currently playing
+    /* 0x480 */ u16                  animId;    // animation id the slots are seeded with
+    /* 0x482 */ s16                  field_482; // cleared when a step body is started
+    /* 0x484 */ s16                  field_484; // scale-in step func_actor_521100_801360C4 switches on: 0 seeds, 1 shrinks, 2 is done
+    /* 0x486 */ u16                  field_486; // frames the shrink has run, counted to 0xA and 0xF by the step-1 body
+    /* 0x488 */ u16                  field_488; // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
+    /* 0x48A */ byte                 pad_48A[2];
+    /* 0x48C */ Actor521100AttachRot field_48C;
+    /* 0x4B4 */ byte                 pad_4B4[0x80];
+    /* 0x534 */ GpRec18              rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
     /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `ActorsShared80131e24Sub0`
     /// fills both - the two pointers, `pos` and
@@ -143,8 +163,10 @@ typedef struct Actor521100Work {
     /// `Gp_PackPair` returns into `key`.
     /* 0x57C */ GpObj obj57C;
     /// See `obj57C`.
-    /* 0x59C */ GpObj obj59C;
-    /* 0x5BC */ byte  pad_5BC[0x88];
+    /* 0x59C */ GpObj   obj59C;
+    /* 0x5BC */ GpRec18 rec5BC[1];
+    /* 0x5D4 */ byte    pad_5D4[0x58];
+    /* 0x62C */ GpRec18 rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.
     /* 0x644 */ GpEffArg     eff;
@@ -165,7 +187,7 @@ typedef struct Actor521100Work {
     /* 0x678 */ SVECTOR field_678;
     /* 0x680 */ s16     field_680;
     /* 0x682 */ s16     field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C
-    /* 0x684 */ byte    pad_684[2];
+    /* 0x684 */ s16     field_684;
     /// The clip the slots are blended to and the clip they currently carry.
     /// The preset handler `func_actor_521100_80135C14` stores one clip id into
     /// both, so the blend is skipped; `func_actor_521100_80135964` later walks
@@ -194,10 +216,10 @@ typedef struct Actor521100Work {
     /// Parked animation the burn-out body `func_actor_521100_80133104` clears
     /// on its own frame, the same slot `actor_102000` and `actor_105700` park
     /// into.
-    /* 0x6A6 */ s16  field_6A6;
-    /* 0x6A8 */ s16  field_6A8;
-    /* 0x6AA */ s16  field_6AA;
-    /* 0x6AC */ byte pad_6AC[2];
+    /* 0x6A6 */ s16 field_6A6;
+    /* 0x6A8 */ s16 field_6A8;
+    /* 0x6AA */ s16 field_6AA;
+    /* 0x6AC */ s16 field_6AC;
     /// Armed by `func_actor_521100_80133104` on the frame the burn-out sound
     /// fires and cleared again when the sequence advances.
     /* 0x6AE */ s16 field_6AE;
@@ -283,6 +305,7 @@ extern u32 Gp_LcgState;
 /// with when the clip changes, indexed by the incoming clip id; ids from 0x15
 /// up keep the zero `val` starts at.
 extern s16 D_actor_521100_8015F894[];
+extern s16 D_actor_521100_8015F684[];
 
 /// The three waypoints the state-6 body `func_actor_521100_80134774` walks the
 /// actor to, one per phase `field_6A0` it switches on: `(-4000, 0, -2000)` for
@@ -368,7 +391,7 @@ typedef struct Actor521100DispatchCtx {
 STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
 /// Steps `coord` `amount` units along its local Z axis unless movement is
-/// frozen. The walk-to cache `Actor521100Work::yaw` / `travel` scales by 20,
+/// frozen. The walk-to cache `Actor521100Work::field_48C.rot.yaw` / `travel` scales by 20,
 /// which is the step `func_actor_521100_80135F2C` hands this body. Same body
 /// as `Actor01900_MoveForward`, `Actor01900_StepForward` and
 /// `Actor00100_MoveForward`, which take the same 8-byte SVECTOR off

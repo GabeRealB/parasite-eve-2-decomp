@@ -134504,3 +134504,48 @@ base_1/base_5/base_6/base_8 dumps and journal for observations and limits.
 Inputs: base_5 `bbc49ba32c98767971d14d2cb9da3b378025422af8307984f0b3ecbca0eee0c2`,
 base_6 `2e82ef32ae7ddccee32373ccb699d9f01cc2dea9dbfe16e3e2c50c46d9a9975a`,
 ported base_8 `129bbd54e24c5722fd229c0a86a2e7bcfc44ea51d464b439f6b7ab2da56ab52a`.
+
+### Swapping two pointer-read chains changes a third value's lifetime and the call delay slot (func_actor_521100_801322F8)
+
+The 99.534% candidate had only a prologue mismatch: the object pointer was
+in v0, `move s7,v0` happened early, and `addiu a0,s2,1180` occupied the first
+call's delay slot. The target needed the object pointer in v1 and the scratch
+copy in that slot. The permuter found one source change: move
+`coord = arg0->field_2C->field_8;` before `enemy = arg0->field_20;`.
+These are independent nonvolatile reads, with no intervening call or store.
+
+A planned controlled reproduction in readable `base_11.c` reached 100%; the
+real-header port `base_12.c` and full unscoped build also passed. No pins or
+empty asm were needed. Normalizing the parent had preserved its distance 190,
+so this was the read swap, not a preprocessing effect.
+
+Observed in sched1 block 0:
+
+- Before: coordinate UID 41 at backward T-5, enemy UID 36 at T-6, object
+  pointer UID 39 launched at T-7, scratch copy UID 33 at T-8.
+- After: enemy UID 41 at T-5, coordinate UID 38 at T-6, scratch copy UID 33
+  at T-7, object pointer UID 36 launched at T-8.
+
+Thus the object-pointer load moves before the scratch copy in forward order.
+The allocation temporary r115 grows from three to four instructions and stays
+in v0; object-pointer r117 now overlaps it and its local/final home changes
+from v0 to v1. The persistent scratch pointer stays s7. The dbr dump then
+places the scratch copy in the call delay slot, leaving the record address
+calculation early enough to cover the scratch-head load hazard.
+
+Counterexample: `base_10` merely delayed the scratch alias assignment in C.
+It ranked ahead of the loads, but the loads won potential-hazard selection at
+T-5 through T-7, yielding identical assembly. This result supports inspecting
+the load chains and the resulting live overlap, not assuming a ready-list
+ranking or an explicit alias assignment determines the final schedule.
+
+Retained evidence: `tools/permuter_findings/func_actor_521100_801322F8/`, run
+`99fe9be8195348a0`; its `PERMUTER_ANALYSIS.md` and conclusion retain the paired
+sources, scheduling/allocation/dbr dumps, and integration log. No trace was
+needed for the limited dump-observed chain; exact hazard weights were not
+measured. Compiler SHA256:
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+Parent input SHA256:
+`d26c7801f51b91c6dbbcc051397133cec51f9de86d491848d86599d9912cd0d1`.
+Controlled matching input SHA256:
+`fb8e0a07a6ef77d9b98de4347c176a14e2cfc05e88bc8739aa13f0e892f5b4f7`.

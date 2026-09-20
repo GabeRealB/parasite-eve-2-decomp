@@ -37,7 +37,215 @@ void func_actor_521100_80134774();
 
 INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", ActorsShared80131e24Sub0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", func_actor_521100_801322F8);
+static __inline__ s32 Actor521100_GetHitType(s32 key)
+{
+    if (key & 0x8000) {
+        return 1;
+    }
+    return D_actor_521100_8015F684[key & 0x3F];
+}
+
+void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2)
+{
+    Actor521100HitScratch* scratch;
+    Actor521100Work*       work;
+    GpEnemy*               enemy;
+    GsCOORDINATE2*         coord;
+    u32                    lastId;
+    u32                    sound;
+    u32                    kind;
+    u32                    damage;
+    u32                    rng;
+    u32                    rng2;
+    u32                    r;
+    s32                    result;
+    s32                    dx;
+    s32                    coordX;
+    s32                    dz;
+    s32                    absDiff;
+    s32                    r2;
+    s32                    angle;
+    s32                    angle2;
+    s32                    hitType;
+    s32                    i;
+    s16                    diff;
+    s16                    wrap;
+    s16                    cooldown;
+    s32                    pan;
+    s32                    pan1;
+    s32                    pan2;
+    s32                    depth;
+    s16                    wait;
+
+    lastId  = 0;
+    work    = arg0->field_1C;
+    scratch = (Actor521100HitScratch*)(SCRATCH_SP -= 0x48);
+    coord   = arg0->field_2C->field_8;
+    enemy   = arg0->field_20;
+    result  = func_800E0C10((GpRec18*)&work->field_48C.hit.rec, &scratch->delta, 5, NULL);
+    switch (result) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0] += scratch->delta.vx.h.hi;
+            coord->coord.t[1] += scratch->delta.vy.h.hi;
+            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            break;
+        case 2:
+            coord->coord.t[0] = work->field_64C;
+            coord->coord.t[1] = work->field_64E;
+            coord->coord.t[2] = work->field_650;
+            break;
+    }
+    Gp_ClearRec18Occupied(&work->field_48C.hit.rec);
+    if (work->field_684 != 0) {
+        cooldown        = (u16)work->field_684 - 1;
+        work->field_684 = cooldown;
+        if ((cooldown << 0x10) <= 0) {
+            work->field_684 = 0;
+        }
+    }
+    if (work->field_6AC != 0) {
+        work->field_6AC = (u16)work->field_6AC - 1;
+    }
+    for (i = 0; i < 3; i++) {
+        kind = (u16)(work->rec534[i].key >> 0x10);
+        if (kind < 2) {
+            continue;
+        }
+        if (kind != 2) {
+            continue;
+        }
+        if (work->field_684 != 0) {
+            continue;
+        }
+        coordX              = coord->coord.t[0];
+        dx                  = Player_Status.coordMtx->t[0] - coordX;
+        scratch->delta.vx.w = dx;
+        scratch->delta.vy.w = 0;
+        dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        scratch->delta.vz.w = dz;
+        damage              = Gp_ComputeDamage(work->rec534[i].key, SquareRoot0(dx * dx + dz * dz), 0, 0);
+        hitType             = Actor521100_GetHitType(work->rec534[i].key);
+        if (hitType == 1) {
+            if (work->field_69E == 2) {
+                hitType = 0;
+            } else {
+                diff    = work->field_696 - (ratan2((s16)scratch->delta.vx.w, (s16)scratch->delta.vz.w) & 0xFFF);
+                absDiff = abs(diff);
+                if (absDiff < 0x800) {
+                    wrap = absDiff;
+                } else if (diff > 0) {
+                    wrap = 0x1000 - diff;
+                } else {
+                    wrap = diff + 0x1000;
+                }
+                if ((wrap >= 0x301) || (work->field_6AE == 1)) {
+                    hitType = 2;
+                }
+            }
+        }
+        switch (hitType) {
+            case 0:
+                rng         = Gp_LcgState * 5 + 0x71357911;
+                r           = rng >> 0x10;
+                angle       = (r & 0x7F) + 0x40;
+                Gp_LcgState = rng;
+                if (!(r & 1)) {
+                    angle = -angle;
+                }
+                work->field_678.vx = angle;
+                r2                 = (s16)r >> 8;
+                angle2             = (r2 & 0x7F) + 0x40;
+                if (!(r2 & 1)) {
+                    angle2 = -angle2;
+                }
+                work->field_678.vy = angle2;
+                work->field_680    = 1;
+                damage           >>= 1;
+                if ((Gp_GetIdParam0(work->rec534[i].key) & 0xFFFF) == 5) {
+                    damage *= 2;
+                    Gp_SpawnEff(0x6009C, &arg0->field_2C->field_8[3], 2, NULL);
+                }
+                if ((work->field_69E == 0) && (work->field_6AC <= 0)) {
+                    work->field_69E = 5;
+                    work->field_6A0 = 0;
+                    rng2            = Gp_LcgState * 5 + 0x71357911;
+                    work->field_6AC = ((rng2 >> 0x10) & 0xFF) + 0x96;
+                    Gp_LcgState     = rng2;
+                    sound           = (((u16)enemy->placeKey >> 12) << 8) | 0x401C0006;
+                    pan             = (s8)Gp_GetObjPan(coord);
+                    depth           = (s8)gpGetObjDepth(coord);
+                    SndEvt_EnqueueType6((s32)sound, pan, depth);
+                    goto damage_done;
+                }
+                goto damage_done;
+            case 1:
+                work->field_69E = 4;
+                work->field_6A0 = 0;
+                if (work->rec534[i].key & 0x8000) {
+                    damage >>= 2;
+                } else {
+                    damage >>= 3;
+                }
+                sound = (((u16)enemy->placeKey >> 12) << 8) | 0x401C0003;
+                pan1  = (s8)Gp_GetObjPan(coord);
+                depth = (s8)gpGetObjDepth(coord);
+                SndEvt_EnqueueType6((s32)sound, pan1, depth);
+                goto damage_done;
+            case 2:
+                work->field_69E = 3;
+                work->field_6A0 = 0;
+                work->field_6AE = 0;
+                if (work->rec534[i].key & 0x8000) {
+                    damage *= 2;
+                } else {
+                    damage >>= 1;
+                }
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((Gp_LcgState >> 16) & 1) {
+                    sound = (((u16)enemy->placeKey >> 12) << 8) | 0x401C0004;
+                } else {
+                    sound = (((u16)enemy->placeKey >> 12) << 8) | 0x401C0005;
+                }
+                pan2  = (s8)Gp_GetObjPan(coord);
+                depth = (s8)gpGetObjDepth(coord);
+                SndEvt_EnqueueType6((s32)sound, pan2, depth);
+        }
+    damage_done:
+        func_800E2C78((GpObj40*)enemy, (s32)work->rec534[i].key, (s32)damage, 0);
+        func_800DA6E8(&enemy->node, (s32)damage, 0);
+        enemy->hp = (u16)enemy->hp - damage;
+        if (lastId != work->rec534[i].key) {
+            lastId = work->rec534[i].key;
+            func_800FDB18(Gp_GetIdParam1(work->rec534[i].key) & 0xFFFF, &arg0->field_2C->field_8[3], NULL, &work->eff);
+        }
+        wait = Gp_GetIdParam2(work->rec534[i].key);
+        if (wait > 0) {
+            work->field_684 = wait;
+        }
+    }
+    Gp_ClearRec18Occupied(work->rec534);
+    if (work->rec5BC[0].flags & 1) {
+        work->obj57C.flags &= 0x7FFF;
+        work->obj59C.flags &= 0x7FFF;
+        Gp_ClearRec18Occupied(work->rec5BC);
+        work->field_6A6 = 1;
+    }
+    work->field_6BE = 0;
+    if (work->rec62C[0].flags & 1) {
+        work->field_6BE = 1;
+        Gp_ClearRec18Occupied(work->rec62C);
+    }
+    if (enemy->hp <= 0) {
+        if (D_80073BA0 > 0) {
+            work->field_6B2 = 0;
+        } else {
+            enemy->hp = 1;
+        }
+    }
+    SCRATCH_SP += 0x48;
+}
 
 void func_actor_521100_80132958(Actor521100* arg0)
 {

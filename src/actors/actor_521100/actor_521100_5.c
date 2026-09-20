@@ -144,9 +144,9 @@ void func_actor_521100_80135F2C(Task* task)
     }
     if (work->field_47C == 3) {
         animId = work->animId;
-        if (animId == 1 && work->travel != 0) {
+        if (animId == 1 && work->field_48C.rot.travel != 0) {
             Actor521100_MoveForward(((TmdObject*)task->extra)->coords, 0x14);
-            D_actor_521100_8016A3D8->travel = (u16)D_actor_521100_8016A3D8->travel - 1;
+            D_actor_521100_8016A3D8->field_48C.rot.travel = (u16)D_actor_521100_8016A3D8->field_48C.rot.travel - 1;
         }
         func_actor_521100_80136724();
         return;
@@ -177,9 +177,9 @@ void func_actor_521100_801360C4(void* spawnArg2, Task* task)
         case 0:
             work->field_486 = 0;
             work->field_488 = 0x1000;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
-            work->field_48C = coord->coord;
-            work->field_484 = 1;
+            Gfx_RotMatrixY(&coord->coord, (s16)work->field_48C.rot.yaw, 1);
+            work->field_48C.rot.mat = coord->coord;
+            work->field_484         = 1;
             break;
 
         case 1:
