@@ -1380,7 +1380,165 @@ void func_actor_421600_801369A0(Actor421600* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80136C88);
+/// Scans the 12 0x18-byte records at 0xCE4 for one whose `field_4` carries the
+/// 0x100000 kind, stopping at the first empty record. The 5-record twin of
+/// this body is `Actor00100_HasRecord10`, which reads the same halves of
+/// `field_0` instead; `func_actor_421600_80138D24` picks its aim scale with it.
+static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
+{
+    Actor421600Work* work  = arg0->field_1C;
+    s16              found = 0;
+    s16              i;
+
+    for (i = 0; i < 0xC; i++) {
+        if (!work->field_CE4[i].key) {
+            break;
+        }
+        if ((work->field_CE4[i].key & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
+
+static __inline__ s16 Actor421600_NormalizeYaw(s16 input)
+{
+    s16 value = input;
+    if (input < 0) {
+        while (1) {
+            if (value >= -0x800)
+                break;
+            value += 0x1000;
+        }
+    } else {
+        while (1) {
+            if (value <= 0x800)
+                break;
+            value -= 0x1000;
+        }
+    }
+    return value;
+}
+
+static __inline__ s32 Actor421600_OutsideRadius(SVECTOR* pos, s16 radius)
+{
+    Actor421600RadiusScratch* head;
+    Actor421600RadiusScratch* scratch;
+    head                                         = *(Actor421600RadiusScratch**)G_SCRATCH_HEAD;
+    scratch                                      = head - 1;
+    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD  = scratch;
+    scratch->x                                   = pos->vx;
+    scratch->z                                   = pos->vz;
+    scratch->radius                              = radius;
+    scratch->x                                  *= scratch->x;
+    scratch->z                                  *= scratch->z;
+    scratch->radius                             *= scratch->radius;
+    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD += 1;
+    return scratch->x + scratch->z >= scratch->radius;
+}
+
+void func_actor_421600_80136C88(Actor421600* arg0)
+{
+    Actor421600Work*        work;
+    GpEnemy*                ctx;
+    Actor421600Work*        move;
+    Actor421600SeekScratch* head;
+    Actor421600SeekScratch* scratch;
+    TmdObject*              obj;
+    GsCOORDINATE2*          coord;
+    GsCOORDINATE2*          playerCoord;
+    GsCOORDINATE2*          turnCoord;
+    GpRec18*                records;
+    u16                     angle;
+    s16                     delta;
+    s32                     value;
+    s32                     magnitude;
+    s16                     yaw;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        ctx             = arg0->field_20;
+        obj             = arg0->field_2C;
+        ctx->node.flags = 0;
+        obj->flags      = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_8EC.radius = 0x19C;
+        work->field_828        = 1;
+        work->field_832        = 0x10;
+        work->field_82A        = 0;
+        work->field_82E        = 0;
+        work->field_83E        = 0;
+        work->field_B6C.flags |= 0x4000;
+        func_actor_421600_80134604(arg0);
+        func_actor_421600_80134604(arg0);
+        work->field_6           = 0;
+        work->field_CCC.end1.vz = 0x26C;
+        return;
+    }
+    head            = *(Actor421600SeekScratch**)G_SCRATCH_HEAD;
+    scratch         = (*(Actor421600SeekScratch**)G_SCRATCH_HEAD = head - 1);
+    move            = (Actor421600Work*)work;
+    head[-1].vec.vx = move->field_C[move->field_14].x - arg0->field_2C->coords->coord.t[0];
+    scratch->vec.vy = 0;
+    scratch->vec.vz = move->field_C[move->field_14].z - arg0->field_2C->coords->coord.t[2];
+    if (!Actor421600_OutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+        if (move->field_14 == 0)
+            move->field_14 = 1;
+        else
+            move->field_14 = 0;
+        work->field_6 = 0;
+    }
+    func_actor_421600_80134604(arg0);
+    coord           = arg0->field_2C->coords;
+    angle           = ratan2(scratch->vec.vx, scratch->vec.vz);
+    delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    value           = Actor421600_NormalizeYaw(delta);
+    scratch->angle  = value;
+    work->field_840 = value;
+    if (scratch->angle >= 0x11)
+        scratch->angle = 0x10;
+    if (scratch->angle < -0x10)
+        scratch->angle = -0x10;
+    work->field_83E = scratch->angle;
+    turnCoord       = arg0->field_2C->coords;
+    yaw             = (u16)scratch->angle + ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]);
+    scratch->angle  = yaw;
+    Gfx_RotMatrixY(&arg0->field_2C->coords->coord, yaw, 1);
+    records = &work->field_90C;
+    if ((s16)work->field_82A == 0) {
+        if (Actor421600_HasRecord10(arg0)) {
+            Actor421600_MoveForward(arg0->field_2C->coords, 20);
+        } else {
+            Actor421600_MoveForward(arg0->field_2C->coords, 20);
+        }
+        records = &work->field_90C;
+    }
+    func_actor_421600_80132310(arg0->field_2C->coords, records, 0xC, &scratch->vec);
+    if (func_actor_421600_8013285C(arg0->field_2C->coords, &work->field_B8C, 0xC) == 1) {
+        magnitude = abs((s16)work->field_840);
+        if (magnitude < 0x80)
+            work->field_6 = (u16)work->field_6 + 1;
+    }
+    arg0->field_2C->coords->flg = 0;
+    playerCoord                 = arg0->field_2C->coords;
+    scratch->vec.vx             = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
+    scratch->vec.vy             = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
+    scratch->vec.vz             = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
+    if (!Actor421600_OutsideRadius(&scratch->vec, 2000)) {
+        work->field_0 = 0x1C;
+    } else if (!Actor421600_OutsideRadius(&scratch->vec, 4000)) {
+        coord          = arg0->field_2C->coords;
+        angle          = ratan2(scratch->vec.vx, scratch->vec.vz);
+        delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+        value          = Actor421600_NormalizeYaw(delta);
+        scratch->angle = value;
+        value          = abs(value);
+        if (value < 0x300) {
+            work->field_0 = 0x1C;
+        }
+    }
+    *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_801373D4);
 
@@ -1473,46 +1631,6 @@ void func_actor_421600_8013848C(Actor421600* arg0)
     *(SVECTOR**)G_SCRATCH_HEAD += 2;
 }
 
-/// Scans the 12 0x18-byte records at 0xCE4 for one whose `field_4` carries the
-/// 0x100000 kind, stopping at the first empty record. The 5-record twin of
-/// this body is `Actor00100_HasRecord10`, which reads the same halves of
-/// `field_0` instead; `func_actor_421600_80138D24` picks its aim scale with it.
-static __inline__ s16 Actor421600_HasRecord10(Actor421600* arg0)
-{
-    Actor421600Work* work  = arg0->field_1C;
-    s16              found = 0;
-    s16              i;
-
-    for (i = 0; i < 0xC; i++) {
-        if (!work->field_CE4[i].key) {
-            break;
-        }
-        if ((work->field_CE4[i].key & 0xFFFF0000) == 0x100000) {
-            found = 1;
-        }
-    }
-    return found;
-}
-
-static __inline__ s16 Actor421600_NormalizeYaw(s16 input)
-{
-    s16 value = input;
-    if (input < 0) {
-        while (1) {
-            if (value >= -0x800)
-                break;
-            value += 0x1000;
-        }
-    } else {
-        while (1) {
-            if (value <= 0x800)
-                break;
-            value -= 0x1000;
-        }
-    }
-    return value;
-}
-
 static __inline__ void Actor421600_ConfigPositionDelta(PlayerStatus* config, GsCOORDINATE2* coord, SVECTOR* pos)
 {
     pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
@@ -1528,23 +1646,6 @@ static __inline__ s16 Actor421600_PositionYaw(Actor421600* actor, SVECTOR* pos, 
     coord = actor->field_2C->coords;
     angle = ratan2(pos->vx, pos->vz);
     return Actor421600_NormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
-static __inline__ s32 Actor421600_OutsideRadius(SVECTOR* pos, s16 radius)
-{
-    Actor421600RadiusScratch* head;
-    Actor421600RadiusScratch* scratch;
-    head                                         = *(Actor421600RadiusScratch**)G_SCRATCH_HEAD;
-    scratch                                      = head - 1;
-    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->x                                   = pos->vx;
-    scratch->z                                   = pos->vz;
-    scratch->radius                              = radius;
-    scratch->x                                  *= scratch->x;
-    scratch->z                                  *= scratch->z;
-    scratch->radius                             *= scratch->radius;
-    *(Actor421600RadiusScratch**)G_SCRATCH_HEAD += 1;
-    return scratch->x + scratch->z >= scratch->radius;
 }
 
 void func_actor_421600_80138750(Actor421600* arg0)
