@@ -365,6 +365,20 @@ typedef struct Actor421600MoveScratch {
 } Actor421600MoveScratch;
 STATIC_ASSERT_SIZEOF(Actor421600MoveScratch, 0x38);
 
+/// Waypoint steering scratch with a zone-table index at the tail.
+typedef struct Actor421600RouteScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ SVECTOR target;
+    /* 0x10 */ MATRIX  matrix;
+    /* 0x30 */ s16     delta;
+    /* 0x32 */ s16     original;
+    /* 0x34 */ s16     yaw;
+    /* 0x36 */ s16     playerYaw;
+    /* 0x38 */ s16     zone;
+    /* 0x3A */ s16     pad;
+} Actor421600RouteScratch;
+STATIC_ASSERT_SIZEOF(Actor421600RouteScratch, 0x3C);
+
 typedef struct Actor421600RadiusScratch {
     /* 0x0 */ s32 x;
     /* 0x4 */ s32 z;
@@ -430,6 +444,9 @@ extern SVECTOR D_actor_421600_801510B8[];
 
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
+
+/// Two XZ waypoint pairs for each place-key mode, indexed by zone.
+extern s32 D_actor_421600_801511D4[][8];
 
 /// Effect callback the spawning code points `D_80114B78` at before each
 /// `Gp_SpawnEff` on a death-tick frame, so the spawn knows which tick follows.
