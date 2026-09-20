@@ -1,0 +1,997 @@
+{
+  "function": "func_actor_401000_80135AA4",
+  "date": "2026-09-20",
+  "scope": "dedicated ABS condition temp and transferred init scheduling boundaries",
+  "manifest": {
+    "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+    "input_sha256": "43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795",
+    "input_origin": "/home/gabriel/pe2-ov-actor_401000/nonmatchings/func_actor_401000_80135AA4-vacuum/base_3.i",
+    "flags": [
+      "-O2",
+      "-mips1",
+      "-mcpu=3000",
+      "-w",
+      "-funsigned-char",
+      "-fpeephole",
+      "-ffunction-cse",
+      "-fpcc-struct-return",
+      "-fcommon",
+      "-fverbose-asm",
+      "-msoft-float",
+      "-mgas",
+      "-fgnu-linker",
+      "-quiet",
+      "-gcoff",
+      "-dp",
+      "-G0",
+      "-da"
+    ],
+    "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+    "source_sha256": {
+      "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+      "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+      "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+      "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+      "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+      "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+      "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+      "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+      "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+      "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+      "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+      "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+      "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+      "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+      "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+      "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+      "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+      "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+      "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+    },
+    "assembly_identical": true,
+    "trace_complete": true,
+    "baseline_assembly_sha256": "065896f6d57dad5071a9b198694994532281f4e9ac7eac3be79de5779ad76157",
+    "traced_assembly_sha256": "065896f6d57dad5071a9b198694994532281f4e9ac7eac3be79de5779ad76157"
+  },
+  "prediction": "dedicated diff with ABS at condition stays block-local and ties first subtract operand through abs/compare chain; preserve bgez/nop/negu and init",
+  "builds": {
+    "base_1.c": {
+      "assembly_sha256": "15c637cae117a54c86b54864184b7f32545172eed98ab4802c0e91f86c10440f",
+      "at": "2026-09-20T05:16:21.098902+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 580,
+      "duplicate_of": "base_1.c",
+      "expected": "calls match with otherwise identical RTL and assembly",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "shared callee alias changed since archive; both names map to 80132EF0",
+      "parent": "base.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 2,
+        "insert": 2,
+        "regs": 12,
+        "reorder": 2,
+        "stack": 0
+      },
+      "preprocessed_sha256": "7421cef379af5f943ad4c5b8f2ac59ada595e17f08c47248613179f315c9ffee",
+      "project": "/home/gabriel/pe2-ov-actor_401000",
+      "score": 99.18653576437588,
+      "source": "base_1.c",
+      "source_sha256": "af8ca54fc5efb90d76ec0596db75f4b542e86e5ff923b01f034d33688c231b7b",
+      "target_sha256": "43aea2846b882683a315cfb3809dbd0803bcdca69048316f9be30b199eec9bdb"
+    },
+    "base_2.c": {
+      "assembly_sha256": "376f3ad94a96d730c7c8573f87402646049daf99a626c2843fd178f087f613bd",
+      "at": "2026-09-20T05:21:59.029960+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 20,
+      "duplicate_of": null,
+      "expected": "B50 and A10 reuse v0; constant 3 and speed reuse v1; init exactly matches and yaw swap remains",
+      "failure": 0,
+      "first_changed_pass": "rtl",
+      "flags": "-I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "As in matched 401300_365F8, boundaries after initial radius/state and B50 update separate the two flag quantities while a u16 speed bridges the second boundary",
+      "parent": "base_1.c",
+      "pass_name": "sched",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 4,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "64756a02251a8bff8b36db0adf7162f9735f88763e213888ac2a827f4d6eea19",
+      "project": "/home/gabriel/pe2-ov-actor_401000",
+      "score": 99.97194950911641,
+      "source": "base_2.c",
+      "source_sha256": "fe4f892b39a086462f23f12923063110c751f3c447aa64d862477c258baf15d5",
+      "target_sha256": "43aea2846b882683a315cfb3809dbd0803bcdca69048316f9be30b199eec9bdb"
+    },
+    "base_3.c": {
+      "assembly_sha256": "2ea686f4d35bccf845607c1a9dd5979750b749f99e17e28fe5e7ab55aaa18d50",
+      "at": "2026-09-20T05:22:25.777250+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": null,
+      "expected": "pad_A in v0 then pad_8 in v1, same bgez/nop/negu and slti, no init regression",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "The shared explicit-if angle is global; dedicated diff consumed by ABS in condition stays local and ties first subtract operand through abs/compare chain",
+      "parent": "base_2.c",
+      "pass_name": "lreg",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795",
+      "project": "/home/gabriel/pe2-ov-actor_401000",
+      "score": 100.0,
+      "source": "base_3.c",
+      "source_sha256": "5dc0c837d0d05de290daff0fc67e215b34d61f8ecc49d61368494cb33635f196",
+      "target_sha256": "43aea2846b882683a315cfb3809dbd0803bcdca69048316f9be30b199eec9bdb"
+    },
+    "base_4.c": {
+      "assembly_sha256": "2ea686f4d35bccf845607c1a9dd5979750b749f99e17e28fe5e7ab55aaa18d50",
+      "at": "2026-09-20T05:23:54.025196+00:00",
+      "build_script_sha256": "3819b4b06510e0a23a8d5e45245ce540fcaae72476777af29d0558b003d8836e",
+      "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+      "distance": 0,
+      "duplicate_of": "base_3.c",
+      "expected": "100% with all zero penalties preserved",
+      "failure": 0,
+      "first_changed_pass": null,
+      "flags": "-I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_401000/include -I /home/gabriel/pe2-ov-actor_401000/build -I /home/gabriel/pe2-ov-actor_401000/include/psyq -I /home/gabriel/pe2-ov-actor_401000/include/decomp -I /home/gabriel/pe2-ov-actor_401000/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
+      "hypothesis": "Port the exact matching body into normal TU style with existing helper definitions; formatting is semantically neutral",
+      "parent": "base_3.c",
+      "pass_name": "rtl",
+      "penalties": {
+        "branch": 0,
+        "delete": 0,
+        "insert": 0,
+        "regs": 0,
+        "reorder": 0,
+        "stack": 0
+      },
+      "preprocessed_sha256": "b016d37f548acd6129c79d5fd7dd69cba3cde1019bb97bd010597bee14353aef",
+      "project": "/home/gabriel/pe2-ov-actor_401000",
+      "score": 100.0,
+      "source": "base_4.c",
+      "source_sha256": "0a4f76c90ec99cc25ce8dadb95a70731a9587ef915cb66b0361bde84fe8ab4b2",
+      "target_sha256": "43aea2846b882683a315cfb3809dbd0803bcdca69048316f9be30b199eec9bdb"
+    }
+  },
+  "observations": [
+    {
+      "clock": 2,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 19,
+            "priority": 2130706433,
+            "refs": 0,
+            "tick": 0,
+            "uid": 530
+          },
+          "before": {
+            "luid": 19,
+            "priority": 2,
+            "refs": 1,
+            "tick": 0,
+            "uid": 530
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched1",
+      "scheduled": 532
+    },
+    {
+      "after": [
+        {
+          "luid": 19,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 530
+        }
+      ],
+      "before": [
+        {
+          "luid": 19,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 530
+        }
+      ],
+      "clock": 3,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 530,
+          "unit": -1
+        }
+      ],
+      "pass": "sched1",
+      "selected": 530
+    },
+    {
+      "clock": 3,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 17,
+            "priority": 2130706433,
+            "refs": 0,
+            "tick": 0,
+            "uid": 528
+          },
+          "before": {
+            "luid": 17,
+            "priority": 2,
+            "refs": 1,
+            "tick": 0,
+            "uid": 528
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched1",
+      "scheduled": 530
+    },
+    {
+      "after": [
+        {
+          "luid": 17,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 528
+        }
+      ],
+      "before": [
+        {
+          "luid": 17,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 528
+        }
+      ],
+      "clock": 4,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 528,
+          "unit": -1
+        }
+      ],
+      "pass": "sched1",
+      "selected": 528
+    },
+    {
+      "clock": 4,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 13,
+            "priority": 2130706433,
+            "refs": 0,
+            "tick": 0,
+            "uid": 522
+          },
+          "before": {
+            "luid": 13,
+            "priority": 1,
+            "refs": 1,
+            "tick": 0,
+            "uid": 522
+          },
+          "kind": 0
+        },
+        {
+          "after": {
+            "luid": 16,
+            "priority": 2130706433,
+            "refs": 0,
+            "tick": 0,
+            "uid": 526
+          },
+          "before": {
+            "luid": 16,
+            "priority": 1,
+            "refs": 1,
+            "tick": 0,
+            "uid": 526
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched1",
+      "scheduled": 528
+    },
+    {
+      "costs": {
+        "522": 2,
+        "526": 2
+      },
+      "dependency_classes": {
+        "522": 1,
+        "526": 1
+      },
+      "dependency_kinds": {
+        "522": 0,
+        "526": 0
+      },
+      "event": "schedule_compare",
+      "last": 528,
+      "pass": "sched1",
+      "reason": "original RTL order",
+      "result": -3,
+      "winner": 526,
+      "x": {
+        "luid": 16,
+        "priority": 2130706433,
+        "uid": 526
+      },
+      "y": {
+        "luid": 13,
+        "priority": 2130706433,
+        "uid": 522
+      }
+    },
+    {
+      "after": [
+        {
+          "luid": 16,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 526
+        },
+        {
+          "luid": 13,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "before": [
+        {
+          "luid": 16,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 526
+        },
+        {
+          "luid": 13,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "clock": 6,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 526,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 522,
+          "unit": 0
+        },
+        {
+          "cost": 811008,
+          "kind": "potential",
+          "uid": 526,
+          "unit": 0
+        },
+        {
+          "cost": 811008,
+          "kind": "potential",
+          "uid": 522,
+          "unit": 0
+        }
+      ],
+      "pass": "sched1",
+      "selected": 526
+    },
+    {
+      "after": [
+        {
+          "luid": 13,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "before": [
+        {
+          "luid": 13,
+          "priority": 2130706433,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "clock": 7,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 522,
+          "unit": 0
+        }
+      ],
+      "pass": "sched1",
+      "selected": 522
+    },
+    {
+      "birth": 2,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [
+        4
+      ],
+      "death": 6,
+      "event": "local_choice",
+      "members": [
+        84
+      ],
+      "priority": 5000,
+      "qty": 0,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 4,
+      "searched_birth": 2,
+      "searched_death": 6,
+      "size": 1,
+      "span": 4,
+      "suggested_only": 1,
+      "suggestions": []
+    },
+    {
+      "birth": 14,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 16,
+      "event": "local_choice",
+      "members": [
+        99
+      ],
+      "priority": 10000,
+      "qty": 2,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 14,
+      "searched_death": 16,
+      "size": 1,
+      "span": 2,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 18,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 20,
+      "event": "local_choice",
+      "members": [
+        100
+      ],
+      "priority": 10000,
+      "qty": 3,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 18,
+      "searched_death": 20,
+      "size": 1,
+      "span": 2,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 24,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 32,
+      "event": "local_choice",
+      "members": [
+        103,
+        102
+      ],
+      "priority": 10000,
+      "qty": 4,
+      "refs": 4,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 24,
+      "searched_death": 32,
+      "size": 1,
+      "span": 8,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 26,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 28,
+      "event": "local_choice",
+      "members": [
+        101
+      ],
+      "priority": 10000,
+      "qty": 5,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 3,
+      "searched_birth": 26,
+      "searched_death": 28,
+      "size": 1,
+      "span": 2,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 38,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 48,
+      "event": "local_choice",
+      "members": [
+        105,
+        104
+      ],
+      "priority": 8000,
+      "qty": 7,
+      "refs": 4,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 38,
+      "searched_death": 48,
+      "size": 1,
+      "span": 10,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 4,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 8,
+      "event": "local_choice",
+      "members": [
+        98
+      ],
+      "priority": 5000,
+      "qty": 1,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 4,
+      "searched_death": 8,
+      "size": 1,
+      "span": 4,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 34,
+      "block": 3,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 44,
+      "event": "local_choice",
+      "members": [
+        89
+      ],
+      "priority": 2000,
+      "qty": 6,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 3,
+      "searched_birth": 34,
+      "searched_death": 44,
+      "size": 1,
+      "span": 10,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 4,
+      "block": 16,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 10,
+      "event": "local_choice",
+      "members": [
+        221,
+        220
+      ],
+      "priority": 16666,
+      "qty": 0,
+      "refs": 5,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 4,
+      "searched_death": 10,
+      "size": 1,
+      "span": 6,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 12,
+      "block": 16,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 22,
+      "event": "local_choice",
+      "members": [
+        230,
+        229,
+        87,
+        223
+      ],
+      "priority": 24000,
+      "qty": 1,
+      "refs": 8,
+      "reg_class": 1,
+      "result": 2,
+      "searched_birth": 12,
+      "searched_death": 22,
+      "size": 1,
+      "span": 10,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "birth": 14,
+      "block": 16,
+      "caller_save": 0,
+      "copy_suggestions": [],
+      "death": 16,
+      "event": "local_choice",
+      "members": [
+        226
+      ],
+      "priority": 10000,
+      "qty": 2,
+      "refs": 2,
+      "reg_class": 1,
+      "result": 3,
+      "searched_birth": 14,
+      "searched_death": 16,
+      "size": 1,
+      "span": 2,
+      "suggested_only": 0,
+      "suggestions": []
+    },
+    {
+      "clock": 2,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 11,
+            "priority": 2,
+            "refs": 0,
+            "tick": 0,
+            "uid": 530
+          },
+          "before": {
+            "luid": 11,
+            "priority": 2,
+            "refs": 1,
+            "tick": 0,
+            "uid": 530
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 532
+    },
+    {
+      "after": [
+        {
+          "luid": 11,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 530
+        }
+      ],
+      "before": [
+        {
+          "luid": 11,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 530
+        }
+      ],
+      "clock": 3,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 530,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 530
+    },
+    {
+      "clock": 3,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 9,
+            "priority": 2,
+            "refs": 0,
+            "tick": 0,
+            "uid": 528
+          },
+          "before": {
+            "luid": 9,
+            "priority": 2,
+            "refs": 1,
+            "tick": 0,
+            "uid": 528
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 530
+    },
+    {
+      "after": [
+        {
+          "luid": 9,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 528
+        }
+      ],
+      "before": [
+        {
+          "luid": 9,
+          "priority": 2,
+          "refs": 0,
+          "tick": 0,
+          "uid": 528
+        }
+      ],
+      "clock": 4,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 528,
+          "unit": -1
+        }
+      ],
+      "pass": "sched2",
+      "selected": 528
+    },
+    {
+      "clock": 4,
+      "dependencies": [
+        {
+          "after": {
+            "luid": 7,
+            "priority": 1,
+            "refs": 0,
+            "tick": 0,
+            "uid": 522
+          },
+          "before": {
+            "luid": 7,
+            "priority": 1,
+            "refs": 1,
+            "tick": 0,
+            "uid": 522
+          },
+          "kind": 0
+        },
+        {
+          "after": {
+            "luid": 8,
+            "priority": 1,
+            "refs": 0,
+            "tick": 0,
+            "uid": 526
+          },
+          "before": {
+            "luid": 8,
+            "priority": 1,
+            "refs": 1,
+            "tick": 0,
+            "uid": 526
+          },
+          "kind": 0
+        }
+      ],
+      "event": "schedule_release",
+      "pass": "sched2",
+      "scheduled": 528
+    },
+    {
+      "costs": {
+        "522": 2,
+        "526": 2
+      },
+      "dependency_classes": {
+        "522": 1,
+        "526": 1
+      },
+      "dependency_kinds": {
+        "522": 0,
+        "526": 0
+      },
+      "event": "schedule_compare",
+      "last": 528,
+      "pass": "sched2",
+      "reason": "original RTL order",
+      "result": -1,
+      "winner": 526,
+      "x": {
+        "luid": 8,
+        "priority": 1,
+        "uid": 526
+      },
+      "y": {
+        "luid": 7,
+        "priority": 1,
+        "uid": 522
+      }
+    },
+    {
+      "after": [
+        {
+          "luid": 8,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 526
+        },
+        {
+          "luid": 7,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "before": [
+        {
+          "luid": 8,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 526
+        },
+        {
+          "luid": 7,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "clock": 6,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 526,
+          "unit": 0
+        },
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 522,
+          "unit": 0
+        },
+        {
+          "cost": 811008,
+          "kind": "potential",
+          "uid": 526,
+          "unit": 0
+        },
+        {
+          "cost": 811008,
+          "kind": "potential",
+          "uid": 522,
+          "unit": 0
+        }
+      ],
+      "pass": "sched2",
+      "selected": 526
+    },
+    {
+      "after": [
+        {
+          "luid": 7,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "before": [
+        {
+          "luid": 7,
+          "priority": 1,
+          "refs": 0,
+          "tick": 0,
+          "uid": 522
+        }
+      ],
+      "clock": 7,
+      "event": "schedule_select",
+      "hazards": [
+        {
+          "cost": 0,
+          "kind": "actual",
+          "uid": 522,
+          "unit": 0
+        }
+      ],
+      "pass": "sched2",
+      "selected": 522
+    }
+  ],
+  "report": "Observed compiler decisions (quantity IDs are local to each block; priorities calculated from observed inputs).\nScheduler cycles run backward within each block. Actual hazard costs are delays; potential hazard costs are ranking weights, not cycles.\nsched1 cycle 2 scheduled 532: uid 530 refs 1->0, priority 2->2130706433, tick=0\nsched1 cycle 3: ready [530] -> selects 530; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 530, 'unit': -1}]\nsched1 cycle 3 scheduled 530: uid 528 refs 1->0, priority 2->2130706433, tick=0\nsched1 cycle 4: ready [528] -> selects 528; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 528, 'unit': -1}]\nsched1 cycle 4 scheduled 528: uid 522 refs 1->0, priority 1->2130706433, tick=0\nsched1 cycle 4 scheduled 528: uid 526 refs 1->0, priority 1->2130706433, tick=0\nsched1 comparator uid 526 / 522: original RTL order; prefers uid 526\nsched1 cycle 6: ready [526, 522] -> selects 526; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 526, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 522, 'unit': 0}, {'cost': 811008, 'kind': 'potential', 'uid': 526, 'unit': 0}, {'cost': 811008, 'kind': 'potential', 'uid': 522, 'unit': 0}]\nsched1 cycle 7: ready [522] -> selects 522; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 522, 'unit': 0}]\nlocal b16 q1 [230, 229, 87, 223]: refs=8 span=10 priority=24000 copy=[] arithmetic=[] suggested_only=0 -> $v0\nlocal b16 q2 [226]: refs=2 span=2 priority=10000 copy=[] arithmetic=[] suggested_only=0 -> $v1\nreload preference: $t0 $t1 $t2 $t3 $t7 $t8 $t9 66 $s7 $s6 64 65 $s2 $s5 $s3 $s4 $s1 $s0 $v1 $a3\nsched2 cycle 2 scheduled 532: uid 530 refs 1->0, priority 2->2, tick=0\nsched2 cycle 3: ready [530] -> selects 530; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 530, 'unit': -1}]\nsched2 cycle 3 scheduled 530: uid 528 refs 1->0, priority 2->2, tick=0\nsched2 cycle 4: ready [528] -> selects 528; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 528, 'unit': -1}]\nsched2 cycle 4 scheduled 528: uid 522 refs 1->0, priority 1->1, tick=0\nsched2 cycle 4 scheduled 528: uid 526 refs 1->0, priority 1->1, tick=0\nsched2 comparator uid 526 / 522: original RTL order; prefers uid 526\nsched2 cycle 6: ready [526, 522] -> selects 526; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 526, 'unit': 0}, {'cost': 0, 'kind': 'actual', 'uid': 522, 'unit': 0}, {'cost': 811008, 'kind': 'potential', 'uid': 526, 'unit': 0}, {'cost': 811008, 'kind': 'potential', 'uid': 522, 'unit': 0}]\nsched2 cycle 7: ready [522] -> selects 522; hazards=[{'cost': 0, 'kind': 'actual', 'uid': 522, 'unit': 0}]\nA -1 disposition means no hard-register home at that stage; reload may use memory equivalence or rematerialize a constant.\n",
+  "integration": "./tools/build-and-verify.sh: BUILD SUCCEEDED",
+  "limitations": [
+    "The independent router do/while wrapper plus fused resets gain was not causally isolated.",
+    "The two init scheduling boundaries were tested as a combined intervention; individual minimality was not tested."
+  ]
+}

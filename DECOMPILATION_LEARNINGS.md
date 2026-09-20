@@ -134764,3 +134764,14 @@ Compiler: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Input base_1: `6aaa8a5c2cb06b31bd5c6f63afffad4615041cc43e34bf66d23e4e35f81ca84d`.
 Input base_2: `61faca5d9755b13ba0b9e7a6a6e7d2c242201bad5a83358cc99327e295add754`.
 Both traces confirmed byte-identical assembly with and without observation.
+
+
+## A dedicated ABS condition joins the first load, subtraction, abs and compare into one local quantity (func_actor_401000_80135AA4, 2026-09-20)
+
+The archived 99.187% seed was stuck on init scheduling and `pad_A - pad_8` registers. Retrieval found two newer solutions. Transferring the two SOFT_BARRIER boundaries plus u16 speed preload from func_actor_401300_801365F8 fixed all init differences (99.972%, regs=4 only). Both flag chains now reuse v0; constant3 and speed reuse v1. As in that sibling, sched1 places the speed load after the first flag store, and sched2 moves it before the mask. Individual boundary minimality was not tested.
+
+The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `diff = chase->pad_A - chase->pad_8; if (ABS(diff) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from func_actor_356100_80164158, not another load-order permutation.
+
+A tracer on the exact candidate observes block16 q1=[230,229,87,223], refs8/span10/priority24000 -> v0 (compare, abs, diff, pad_A load); q2=[226], refs2/span2/priority10000 -> v1 (pad_8 load). Both scheduler passes keep pad_A before pad_8. The older session's inference that the target needed reversed sched1 loads followed by a sched2 swap was false: tying the longer chain changes priority while preserving load order. `abssi2` with equal input/output registers emits the target bgez/nop/negu.
+
+Unscoped build verification succeeded. Compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd; traced input 43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795. Observer assembly was unchanged. Selected events, plans/build fingerprints and limits: tools/compiler_evidence/2026-09-20-actor401000-35aa4.json. Full trace and the independent unresolved permuter wrapper gain are retained under tools/permuter_findings/func_actor_401000_80135AA4/.
