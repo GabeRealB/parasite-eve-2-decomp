@@ -1,7 +1,6 @@
 // Overlay-local symbols for actor_201500.
 ActorsShared801344f8 = 0x8014C4F8; // shared body, see src/actors/lib/
 ActorsShared801344f8_Fn345D0 = 0x8014C5D0; // type:func absolute:True
-ActorsShared801344f8_Fn32FD0 = 0x8014AFD0; // type:func absolute:True
 ActorsShared801344f8_Fn346D0 = 0x8014C6D0; // type:func absolute:True
 ActorsShared801344f8_Fn33528 = 0x8014B528; // type:func absolute:True
 ActorsShared801344f8_Fn33EF8 = 0x8014BEF8; // type:func absolute:True
@@ -23,3 +22,5 @@ ActorsShared80132de4 = 0x8014ADE4; // shared body, see src/actors/lib/
 ActorsShared80132ac4 = 0x8014AAC4; // shared body, see src/actors/lib/
 ActorsShared80132ac4Durations = 0x80153DE8; // absolute:True shared duration table
 ActorsShared80132ac4MaxHp = 0x80153DDC; // absolute:True shared maximum HP
+ActorsShared80132fd0 = 0x8014AFD0; // shared body, see src/actors/lib/
+ActorsShared80132fd0Durations = 0x80153E08; // absolute:True shared duration table

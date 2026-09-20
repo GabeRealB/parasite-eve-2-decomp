@@ -135998,3 +135998,16 @@ headers are in `tools/compiler_evidence/2026-09-20-actor101500-32ac4.json`;
 full session evidence is retained under
 `tools/permuter_findings/func_actor_101500_80132AC4/`. This is a manually
 predicted follow-up, distinct from the router's retained alternate improvement.
+
+
+## A later constant store can free a load-hazard slot for an unrelated ori (func_actor_101500_80132FD0, 2026-09-20)
+
+The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the Gp_LcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->field_380 = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
+
+The important movement is in reverse scheduling time. Baseline sched1 cycle 7 blocks table load UID 356 for one memory-unit cycle and selects newly ready li15 UID 359; load 356 wins cycle 8, and ori701 does not win until cycle 21. In the port, the moved store causes li15 UID369 to issue at cycle 5. At cycle 7, blocked load356 loses to Gp store361. That store blocks the load again at cycle 8, letting ori701 issue; the load follows at cycle 9. The table low's launch priority is unchanged.
+
+Sched2 now prefers ori701 over table-low327 by original RTL order at cycle 15. At cycle 16 table-low327 wins the comparator but Gp load337 wins potential hazard (1892352 vs 0); the field_352 store332 wins cycle 17 (1921024), then table-low327 wins cycle 18. Reversing these cycles yields the target address/store/load/ori sequence. This is a concrete instance of why ready-list priority alone is insufficient and why adjacent independent store order can affect far earlier instructions.
+
+Allocation survived independently: table quantity {88,196}, refs=4/span=18/priority=4444, stayed a0; flag quantity went refs=2/span=36/priority=555 -> refs=2/span=32/priority=625 and stayed a3. Both observed compiles produced byte-identical assembly with and without tracing. Controlled input SHA-256 `2818be190798cb18077a32e830e1c54b203e025c49361b2b17ccb7d1e784ac55`; baseline `451fe0defe54602bb991559800b89fc203474d96030f0169a83448bd8d52768f`. Selected direct observations and compiler fingerprints: `tools/compiler_evidence/2026-09-20-actor101500-32fd0.json`. Full trace/input evidence and the pre-build prediction are archived under `tools/permuter_findings/func_actor_101500_80132FD0/`.
+
+Scope: this supports the documented hazard-selection mechanism, not a universal rule for ordering field stores. A lower-ranked alternate also improved by hoisting 15 so local allocation rematerializes it after sched1; that variation was retained but not independently isolated, so its full causal explanation remains unclaimed.

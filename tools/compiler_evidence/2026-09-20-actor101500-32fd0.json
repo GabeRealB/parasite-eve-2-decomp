@@ -1,0 +1,1927 @@
+{
+  "function": "func_actor_101500_80132FD0",
+  "prediction_source": "base_1.c",
+  "result": "100%, all penalties zero; unscoped full build passed; body shared across three overlays",
+  "transformation": "Move case-2 field_380 = 15 after field_34C = 0x400F0002, keeping Gp_LcgState store before both.",
+  "traces": {
+    "baseline": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "451fe0defe54602bb991559800b89fc203474d96030f0169a83448bd8d52768f",
+        "input_origin": "/home/gabriel/pe2-ov-actor_101500/nonmatchings/func_actor_101500_80132FD0-vacuum/base.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "cc4b80d9ab6ed274c34f7b7e691eae402f4683d6bfc82ea643c005e7bfaae2ad",
+        "traced_assembly_sha256": "cc4b80d9ab6ed274c34f7b7e691eae402f4683d6bfc82ea643c005e7bfaae2ad"
+      },
+      "selected_events": [
+        {
+          "after": [
+            {
+              "luid": 20,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 359
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "before": [
+            {
+              "luid": 20,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 359
+            },
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "clock": 7,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 359,
+              "unit": -1
+            },
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 356,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 359
+        },
+        {
+          "after": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "before": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "clock": 8,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 356,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 356
+        },
+        {
+          "after": [
+            {
+              "luid": 17,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 354
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "before": [
+            {
+              "luid": 17,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 354
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "clock": 9,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 354,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 354
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "before": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "clock": 15,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 327
+        },
+        {
+          "after": [
+            {
+              "luid": 7,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "before": [
+            {
+              "luid": 7,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 0,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "clock": 16,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 1892352,
+              "kind": "potential",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 326,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 337
+        },
+        {
+          "after": [
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 26,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 21,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 701
+        },
+        {
+          "birth": 14,
+          "block": 14,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 32,
+          "event": "local_choice",
+          "members": [
+            88,
+            196
+          ],
+          "priority": 4444,
+          "qty": 3,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 4,
+          "searched_birth": 14,
+          "searched_death": 32,
+          "size": 1,
+          "span": 18,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 6,
+          "block": 14,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 42,
+          "event": "local_choice",
+          "members": [
+            213
+          ],
+          "priority": 555,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 7,
+          "searched_birth": 6,
+          "searched_death": 42,
+          "size": 1,
+          "span": 36,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "after": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 14,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 15,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 327
+        },
+        {
+          "after": [
+            {
+              "luid": 12,
+              "priority": 1,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 12,
+              "priority": 1,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 16,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 1892352,
+              "kind": "potential",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 337
+        },
+        {
+          "after": [
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 7,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 17,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 332,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 1921024,
+              "kind": "potential",
+              "uid": 332,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 332
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 330
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 9,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 326
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 330
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 18,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 330,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 326,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 330,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 334
+        }
+      ]
+    },
+    "match": {
+      "manifest": {
+        "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+        "input_sha256": "2818be190798cb18077a32e830e1c54b203e025c49361b2b17ccb7d1e784ac55",
+        "input_origin": "/home/gabriel/pe2-ov-actor_101500/nonmatchings/func_actor_101500_80132FD0-vacuum/base_1.i",
+        "flags": [
+          "-O2",
+          "-mips1",
+          "-mcpu=3000",
+          "-w",
+          "-funsigned-char",
+          "-fpeephole",
+          "-ffunction-cse",
+          "-fpcc-struct-return",
+          "-fcommon",
+          "-fverbose-asm",
+          "-msoft-float",
+          "-mgas",
+          "-fgnu-linker",
+          "-quiet",
+          "-gcoff",
+          "-dp",
+          "-G0",
+          "-da"
+        ],
+        "observer_sha256": "77cb0d5085171db98faa03ebfb594d06f2d5c35ffc74c94baf33321b75bad352",
+        "source_sha256": {
+          "toplev.c": "85d0569e8f45077a134cde261722fdfba50b931f56721fea595e9cacdfd37342",
+          "expr.c": "0fe8a52f732aa4e31189f2b43868ea2bb1a449ee8abd8a6d1df2abaf3c4fa9dd",
+          "local-alloc.c": "fdd6d71ac39016d4bc2bdb88c5ce43c4918fef1516ed92307fa48b46cf3c8aa9",
+          "global.c": "b212dc73f692869415c7127b3a21b9a0def17451bed6e8c4053546de259cb80a",
+          "reload1.c": "faff614e6ab06a9b0bd2bd3756c24f899dde30f56966757669d063d6d4cc735f",
+          "reload.c": "8422750518d60cfa17aeac8ec6e5a5d9ca20a8f4c9f3393af37c66693e694fad",
+          "sched.c": "258f23766747b7e4557ed7652667bd2858b5910b02766f4d4f768c043c1bb3c5",
+          "cse.c": "6363162e2baf0c247963d4e5b22f0358d51a8ffb4eb0f0a9c3031b2a14bc8a69",
+          "combine.c": "dfccbf127869c8b1350703e818a3de06790c4830efde9ffe6b2feddb471af8e9",
+          "loop.c": "515f989313964a0b88c636b5b870129fe611f42387258d4dc3f0a9ac1cd4f660",
+          "stmt.c": "155532aed16a4bf88934b45467053fff1de073342a321830163ff46f4a9a5a60",
+          "varasm.c": "faba2d10d7fabfb79f23992c768af6b0d41e6f751c917d359a486785d070f0df",
+          "flow.c": "fdc87a15d843dbaaf6ff0ffcb137e027bb395b4fdd24d73b4159cea7a3493e23",
+          "regclass.c": "2f539dd12655a8ab72b5203ca846ba4a95d3e8429a2dfc23ba17268809ce4ba6",
+          "reorg.c": "677da8d60f1e4322447a9dd9c7247c49fdb770420e9d1f213398e00ec9bdca80",
+          "rtl.h": "ed4f222eed30af56caf474f4f21f9ccece1afe350147d870c2c2ca338d25a980",
+          "regs.h": "8c868310404f25bbfd40865e1b4cbd40349768768154fffc1747c552f2f8094b",
+          "config/mips/mips.c": "f4bfe3ece504822ee944da3f7282adc8530d9076df4854995ad80e2d47c80db1",
+          "config/mips/mips.h": "23a021232e05c6c081e0d54d91c64ff0a34dc80296d6f12e40c4d018ba608db0"
+        },
+        "assembly_identical": true,
+        "trace_complete": true,
+        "baseline_assembly_sha256": "f8c3303044e36a32d5c867345f8272667a08b776bbbf951bd2762d2f965b95b2",
+        "traced_assembly_sha256": "f8c3303044e36a32d5c867345f8272667a08b776bbbf951bd2762d2f965b95b2"
+      },
+      "selected_events": [
+        {
+          "after": [
+            {
+              "luid": 20,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 361
+            },
+            {
+              "luid": 23,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "before": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 20,
+              "priority": 2,
+              "refs": 0,
+              "tick": 0,
+              "uid": 361
+            },
+            {
+              "luid": 23,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "clock": 7,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 356,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 361,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 361
+        },
+        {
+          "after": [
+            {
+              "luid": 23,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "before": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 23,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            }
+          ],
+          "clock": 8,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 1,
+              "kind": "actual",
+              "uid": 356,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 701
+        },
+        {
+          "after": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            }
+          ],
+          "before": [
+            {
+              "luid": 18,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 3,
+              "uid": 356
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            }
+          ],
+          "clock": 9,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 356,
+              "unit": 0
+            }
+          ],
+          "pass": "sched1",
+          "selected": 356
+        },
+        {
+          "after": [
+            {
+              "luid": 8,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 340
+            },
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "before": [
+            {
+              "luid": 8,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 340
+            },
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "clock": 15,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 340,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 340,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 340
+        },
+        {
+          "after": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "before": [
+            {
+              "luid": 1,
+              "priority": 2130706433,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 22,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            },
+            {
+              "luid": 4,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            }
+          ],
+          "clock": 16,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            }
+          ],
+          "pass": "sched1",
+          "selected": 327
+        },
+        {
+          "birth": 12,
+          "block": 14,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 30,
+          "event": "local_choice",
+          "members": [
+            88,
+            196
+          ],
+          "priority": 4444,
+          "qty": 3,
+          "refs": 4,
+          "reg_class": 1,
+          "result": 4,
+          "searched_birth": 12,
+          "searched_death": 30,
+          "size": 1,
+          "span": 18,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "birth": 6,
+          "block": 14,
+          "caller_save": 0,
+          "copy_suggestions": [],
+          "death": 38,
+          "event": "local_choice",
+          "members": [
+            212
+          ],
+          "priority": 625,
+          "qty": 1,
+          "refs": 2,
+          "reg_class": 1,
+          "result": 7,
+          "searched_birth": 6,
+          "searched_death": 38,
+          "size": 1,
+          "span": 32,
+          "suggested_only": 0,
+          "suggestions": []
+        },
+        {
+          "after": [
+            {
+              "luid": 24,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 24,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 701
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 15,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 701,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 701
+        },
+        {
+          "after": [
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 11,
+              "priority": 1,
+              "refs": 0,
+              "tick": 15,
+              "uid": 337
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 16,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 1892352,
+              "kind": "potential",
+              "uid": 337,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 337
+        },
+        {
+          "after": [
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            },
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 10,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 10,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 6,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 332
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 17,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 332,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 1921024,
+              "kind": "potential",
+              "uid": 332,
+              "unit": 0
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 332
+        },
+        {
+          "after": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 10,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 5,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 330
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "before": [
+            {
+              "luid": 13,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 327
+            },
+            {
+              "luid": 10,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 334
+            },
+            {
+              "luid": 5,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 330
+            },
+            {
+              "luid": 3,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 700
+            },
+            {
+              "luid": 1,
+              "priority": 1,
+              "refs": 0,
+              "tick": 0,
+              "uid": 699
+            }
+          ],
+          "clock": 18,
+          "event": "schedule_select",
+          "hazards": [
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 330,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "actual",
+              "uid": 699,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 327,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 334,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 330,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 700,
+              "unit": -1
+            },
+            {
+              "cost": 0,
+              "kind": "potential",
+              "uid": 699,
+              "unit": -1
+            }
+          ],
+          "pass": "sched2",
+          "selected": 327
+        }
+      ]
+    }
+  }
+}

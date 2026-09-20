@@ -1,11 +1,11 @@
 #include "common.h"
 
+#include "actors/actors_shared_80132fd0.h"
 #include "actors/actors_shared_801344f8.h"
 #include "actors/actors_shared_801346ac.h"
 
 void ActorsShared80132ac4(void);
 void ActorsShared80132de4(void);
-void ActorsShared801344f8_Fn32FD0(void);
 void ActorsShared801333fc(ActorShared801344f8* arg0);
 void ActorsShared801344f8_Fn33528(void);
 void ActorsShared801344f8_Fn33EF8(void);
@@ -25,7 +25,7 @@ void ActorsShared801344f8(ActorShared801344f8* arg0)
             ActorsShared80132de4();
             break;
         case 3:
-            ActorsShared801344f8_Fn32FD0();
+            ActorsShared80132fd0((struct Actor101500*)arg0);
             break;
         case 4:
             ActorsShared801346ac((ActorShared801346ac*)arg0);
