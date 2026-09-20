@@ -20,13 +20,16 @@ extern s32 D_8017A99C;
 extern s8  D_actor_450900_80135E70;
 extern s32 D_actor_450900_80135E74;
 extern s32 D_actor_450900_80135F00;
+extern s32 D_actor_450900_80135F08;
 extern s32 D_actor_450900_80135F24;
+extern s32 D_actor_450900_80135FEC;
 extern s32 D_actor_450900_801360B4;
 extern s32 D_actor_450900_80136470;
 extern s32 D_actor_450900_80136680;
 extern s32 D_actor_450900_80136890;
 extern s32 D_actor_450900_80136B00;
 extern s32 D_actor_450900_80136BD8;
+extern s32 D_actor_450900_80136C98;
 
 /// The save-point capture task spawned by `func_actor_450900_80131E38`, kept
 /// alive until `func_actor_450900_80132548` kills it. Script opcode 0xD reaches
@@ -105,7 +108,58 @@ void func_actor_450900_80131E38(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_8013207C);
+void func_actor_450900_8013207C(Task* task)
+{
+    GsCOORDINATE2* coord;
+    Task*          slot;
+    Task*          msgTask;
+    s32            msgId;
+    s32            msgArg;
+    s32            value;
+    s8             pan;
+    s8             depth;
+
+    slot  = gameGetPtrSlot(3);
+    value = task->state;
+    switch (value) {
+        case 0:
+            task->killCountdown = 0;
+            task->state         = task->state + 1;
+            return;
+        case 1:
+            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (D_801153F4 == 0) && ((D_8017A99C - 0x456) >= 0)) {
+                if ((D_8017A99C - 0x456) % 210 == 0) {
+                    coord = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+                    pan   = (s8)Gp_GetObjPan(coord);
+                    depth = (s8)gpGetObjDepth(coord);
+                    if (rand() & 1) {
+                        SndEvt_EnqueueType6(0x55170003, pan, depth);
+                    } else {
+                        SndEvt_EnqueueType6(0x55170004, pan, depth);
+                    }
+                    Gp_DispatchMsg(slot, 0x3F7, (s32)&D_actor_450900_80135F08, 0);
+                    Gp_PlayerWeaponId(&D_actor_450900_80135FEC);
+                    msgTask = slot;
+                    msgId   = 0x3E8;
+                    msgArg  = (s32)&D_actor_450900_80135FEC;
+                    goto dispatch;
+                }
+                if ((D_8017A99C - 0x456) % 210 == 0x46) {
+                    value = D_actor_450900_80136C98;
+                    value++;
+                    D_actor_450900_80136C98 = value;
+                    SCHED_BARRIER();
+                    msgTask = slot;
+                    msgId   = 0x3F1;
+                    msgArg  = 0;
+                    TOUCH_MEM(D_actor_450900_80136C98);
+                dispatch:
+                    Gp_DispatchMsg(msgTask, msgId, msgArg, 0);
+                }
+            }
+            return;
+    }
+}
 
 void func_actor_450900_8013223C(Task* task)
 {
