@@ -59,6 +59,7 @@ extern s8       D_80114C12;
 void func_actor_136100_80132748(Task* arg0);
 void func_actor_136100_80133238(Task* arg0);
 void func_actor_136100_80134A18(Task* task);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 s32 func_actor_136100_80131EC4(Task* arg0)
 {
@@ -105,7 +106,44 @@ s32 func_actor_136100_80131EC4(Task* arg0)
     return 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_136100/actor_136100", func_actor_136100_80131FBC);
+s32 func_actor_136100_80131FBC(Task* arg0)
+{
+    Actor136100Work* work;
+    Actor136100Work* animWork;
+    u16              i;
+    u16              done;
+    u16              anim;
+    u16              id;
+
+    work = (Actor136100Work*)arg0->work;
+    for (i = 1; i < 20; i++) {
+        Gp_AnimTickIndex(&work->anim, i);
+    }
+    for (done = i = 1; i < 20; i++) {
+        if (!(work->slots[i].flags & 0x100)) {
+            goto fail;
+        }
+    }
+check:
+    if (done) {
+        anim = D_actor_136100_8013F1FC[(u16)work->field_4E0];
+        if (D_actor_136100_8013F1FC[(u16)work->field_4E0] >= 0) {
+            id                  = anim;
+            animWork            = (Actor136100Work*)arg0->work;
+            animWork->field_4E0 = id;
+            goto loop;
+        fail:
+            done = 0;
+            goto check;
+        loop:
+            for (i = 1; i < 20; i++) {
+                func_800B4114(&animWork->anim, i, id, 0, 0xA);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
 
 /// Spawn tick of the cutscene actor's second phase: allocates the 0x4F0-byte
 /// `Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires

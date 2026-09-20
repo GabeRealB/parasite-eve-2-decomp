@@ -90,6 +90,10 @@ extern u16 D_actor_136100_8013F17C;
 /// the chain, and live entries are sent as animation ids with 0x2F added.
 extern s16 D_actor_136100_8013F1EC[];
 
+/// Next animation indexed by field_4E0; negative entries skip the restart.
+extern s16 D_actor_136100_8013F1FC[];
+
 s32 func_actor_136100_80131EC4(Task* task);
+s32 func_actor_136100_80131FBC(Task* task);
 
 #endif // ACTOR_136100_H
