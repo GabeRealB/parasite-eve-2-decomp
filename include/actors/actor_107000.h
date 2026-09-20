@@ -180,7 +180,9 @@ typedef struct Actor107000Spawn2Work {
     /* 0x2AC */ GpObj          obj3;
     /* 0x2CC */ GpRec18        field_2CC[1];
     /* 0x2E4 */ SVECTOR        rotation;  // reaction rotation applied to model coordinates 3 and 5
-    /* 0x2EC */ byte           pad_2EC[0x70];
+    /* 0x2EC */ byte           pad_2EC[0x50];
+    /* 0x33C */ VECTOR3        field_33C; // saved position restored by collision response 2
+    /* 0x348 */ byte           pad_348[0x14];
     /* 0x35C */ GsCOORDINATE2* field_35C; // the model's second coordinate
     /* 0x360 */ u16            field_360;
     /* 0x362 */ u16            field_362;
@@ -188,12 +190,18 @@ typedef struct Actor107000Spawn2Work {
     /* 0x366 */ u16            field_366; // spawn arg's low half
     /* 0x368 */ byte           pad_368[0x2];
     /* 0x36A */ s16            field_36A; // reaction sub-state, as Actor107000Work::field_36A
-    /* 0x36C */ byte           pad_36C[0x4];
+    /* 0x36C */ s16            field_36C;
+    /* 0x36E */ u16            field_36E;
     /* 0x370 */ s16            field_370; // animation id the work is playing
     /* 0x372 */ u16            field_372; // id the six helper slots last saw
-    /* 0x374 */ byte           pad_374[0x4];
+    /* 0x374 */ u16            field_374;
+    /* 0x376 */ byte           pad_376[2];
     /* 0x378 */ s16            field_378; // seeded to 0xC8 by the reveal arm
-    /* 0x37A */ byte           pad_37A[0xA];
+    /* 0x37A */ s16            field_37A;
+    /* 0x37C */ byte           pad_37C[2];
+    /* 0x37E */ s16            field_37E;
+    /* 0x380 */ byte           pad_380[2];
+    /* 0x382 */ s16            field_382;
     /* 0x384 */ s16            field_384;
     /* 0x386 */ s16            field_386;
     /* 0x388 */ s16            field_388;

@@ -136630,3 +136630,31 @@ Retained under `tools/permuter_findings/func_actor_110600_80135454/`, experiment
 `cbe5d90c1ff54fbe`, with analysis and two complete traces. Register outcomes
 are specific to this compilation; the scheduler boundary rule is supported
 by both compiler source and the controlled dump comparison.
+
+
+## Swapping adjacent loads can preserve the raw scratch head through a local object temporary (func_actor_107000_80135C28, 2026-09-20)
+
+The helper-free candidate was 98.535% with all differences confined to the
+opening scratch allocation. It read `enemy = task->spawnArg2` before
+`coord = ((TmdObject*)task->extra)->coords`. Sched1 selected the coordinate
+load, enemy load, then launched the intermediate object load before the enemy
+in its backward schedule. The scratch copy preceded all three in forward
+order. Thus the raw carved head died before the object load, and both received
+v0. Sched2 had to copy the head into s5 early, leaving an extra nop and the
+wrong instruction in the call delay slot.
+
+Reversing just those two source statements scored 100% without helpers or pins.
+Sched1 selected enemy UID34 then coordinate UID31, selected scratch copy
+UID37 next, and launched object UID29 before the copy. Now the raw head and
+object overlap before allocation: .greg keeps raw pseudo102 in v0 and scratch
+pseudo97 in s5, but object pseudo104 receives v1. The emitted load order is
+still object, enemy, coordinate; dbr can finally put `move s5,v0` in the
+call delay slot. This is a source-order effect on dependency release and
+allocation, even though the target's final memory-load order is unchanged.
+
+The successful counterfactual was preplanned as base_16 from base_3; base_17
+ported the types to existing overlay headers and also matched. Full unscoped
+verification passed. Input hashes, actual schedule logs and register homes
+are retained in `tools/compiler_evidence/2026-09-20-actor107000-35c28.json`.
+No tracer was needed; these dumps establish the changed overlap and final
+homes, not unobserved local quantity priorities.

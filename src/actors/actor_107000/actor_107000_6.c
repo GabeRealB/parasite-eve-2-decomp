@@ -9,13 +9,19 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
+#include "gameplay/3CD8.h"
+#include "actors/actors_shared_8013777c.h"
 #include "actors/actors_shared_80136614.h"
 
-void ActorsShared8014fda4(Task* arg0);
-void func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2);
-void func_actor_107000_8013560C(Task* arg0, TmdObject* arg1, s32 arg2);
-void func_actor_107000_80135C28(Task* arg0);
-void func_actor_107000_8013844C(Task* arg0);
+void           ActorsShared8014fda4(Task* arg0);
+void           func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2);
+void           func_actor_107000_8013560C(Task* arg0, TmdObject* arg1, s32 arg2);
+void           func_actor_107000_80135C28(Task* arg0);
+void           func_actor_107000_80136094(Task* arg0, s32 arg1);
+void           func_actor_107000_801367E0(Task* arg0);
+extern SVECTOR D_actor_107000_8013F5D0;
+void           func_actor_107000_8013844C(Task* arg0);
 
 /// The enemy's four main-body handlers, dispatched through by state. Two
 /// separate state machines in this overlay run the same dispatch shape over
@@ -152,7 +158,131 @@ INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000
 
 INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_8013560C);
 
-INCLUDE_ASM("actors/nonmatchings/actor_107000/actor_107000_6", func_actor_107000_80135C28);
+void func_actor_107000_80135C28(Task* arg0)
+{
+    s32                          movement;
+    s32                          dx;
+    s32                          dy;
+    s32                          dz;
+    s32                          reaction;
+    s32                          cooldown;
+    u32                          random;
+    u32                          kind;
+    u32                          damage;
+    s32                          i;
+    Actor107000Spawn2Work*       work;
+    GsCOORDINATE2*               coord;
+    GpEnemy*                     enemy;
+    void*                        head;
+    ActorsShared8013777cScratch* scratch;
+
+    work     = arg0->work;
+    head     = (void*)(*(u32*)0x1F8003FC -= 0x38);
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    enemy    = arg0->spawnArg2;
+    scratch  = head;
+    movement = func_800E0C10(work->field_24C, &scratch->delta, 4, NULL);
+    switch (movement) {
+        case 0:
+            break;
+        case 1:
+            coord->coord.t[0]  = (s32)(coord->coord.t[0] + scratch->delta.vx.h.hi);
+            coord->coord.t[1]  = (s32)(coord->coord.t[1] + scratch->delta.vy.h.hi);
+            coord->coord.t[2] += scratch->delta.vz.h.hi;
+            break;
+        case 2:
+            coord->coord.t[0] = (s32)work->field_33C.vx;
+            coord->coord.t[1] = (s32)work->field_33C.vy;
+            coord->coord.t[2] = work->field_33C.vz;
+            break;
+    }
+    if (work->field_38A != 0) {
+        if (--work->field_38A <= 0) {
+            work->field_38A = 0;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        kind = work->field_24C[i].key & 0xFFFF0000;
+        switch (kind) {
+            case 0x20000:
+                if (work->field_38A == 0) {
+                    dx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                    scratch->delta.vx.w = dx;
+                    dy                  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                    scratch->delta.vy.w = dy;
+                    dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                    scratch->delta.vz.w = dz;
+                    damage              = Gp_ComputeDamage(work->field_24C[i].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    if (Gp_RollEnemyChance((GpEnemy*)arg0->spawnArg2, work->field_24C[i].key, 0) != 0) {
+                        Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords, 0, 0);
+                        damage *= 4;
+                    }
+                    func_800E2C78((GpObj40*)enemy, (s32)work->field_24C[i].key, (s32)damage, 0);
+                    func_actor_107000_80136094(arg0, (s32)damage);
+                    reaction = Gp_GetIdParam0((s32)work->field_24C[i].key) & 0xFFFF;
+                    switch (reaction) {
+                        case 1:
+                        case 7:
+                            if (work->field_36A < 2) {
+                                work->field_374 = 0;
+                                work->field_36A = 1;
+                                work->field_36E = 0;
+                                work->field_382 = 4;
+                            }
+                            break;
+                        case 3:
+                            Gp_SetObjFlag4((GpObj5C*)enemy, (s32)work->field_24C[i].key, 0);
+                            break;
+                        case 2:
+                        case 8:
+                        case 9:
+                            Gp_SetObjFlag2((GpObj5D*)enemy, (s32)work->field_24C[i].key, 0);
+                            break;
+                        case 4:
+                        case 6:
+                            if (enemy->hp < 0) {
+                                func_actor_107000_801367E0(arg0);
+                                work->field_394 = 1;
+                            }
+                            break;
+                    }
+                    work->field_38E = 1;
+                    func_800FDB18(Gp_GetIdParam1((s32)work->field_24C[i].key) & 0xFFFF, (((TmdObject*)arg0->extra)->coords + 1), &D_actor_107000_8013F5D0, (GpEffArg*)&work->field_35C);
+                    cooldown = Gp_GetIdParam2((s32)work->field_24C[i].key);
+                    if ((cooldown << 0x10) > 0) {
+                        work->field_38A = (s16)cooldown;
+                    }
+                    work->field_38C   = 1;
+                    random            = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState       = random;
+                    work->rotation.vx = (s16)(((random >> 0xB) & 0x60) + 0x100);
+                }
+                break;
+            case 0x10000:
+                if (work->field_36A == 0) {
+                    work->field_36A = 1;
+                    work->field_36E = 0;
+                    work->field_382 = 2;
+                }
+                break;
+            case 0x30000:
+                if (work->field_37E == 0) {
+                    if ((Gp_CountRec18Hi(work->field_24C, 0x30000) != 0) && (work->field_37A == 0)) {
+                        work->field_378 = 0;
+                        work->field_37A = 1;
+                        work->field_370 = 1;
+                        work->field_37E = 1;
+                    }
+                } else if (work->field_37A == 0) {
+                    work->field_37E = (s16)((u16)work->field_37E - 1);
+                }
+                break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->field_24C);
+    Gp_ClearRec18Occupied(work->field_2CC);
+    *(u32*)0x1F8003FC += 0x38;
+}
 
 /// Hit reaction of the specimen. `arg1` comes off the context's HP countdown
 /// and is pushed through the lock-slot updater by the same amount. A spent
