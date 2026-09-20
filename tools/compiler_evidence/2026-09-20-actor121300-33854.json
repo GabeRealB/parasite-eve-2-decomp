@@ -1,0 +1,87 @@
+{
+  "function": "func_actor_121300_80133854",
+  "scope": "Observed sched1 dependency barrier and global conflict removal; original source construct unknown. Manual prediction, independent of the router gain.",
+  "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
+  "prediction_source": "base_2.c",
+  "sources": {
+    "base_1": {
+      ".c": "19f964c7dd4ac4118d209082983dd8d4147249e434bfb0f9c7d72a0606f37fa6",
+      ".i": "7b74b6ed162d722d298079cafa5d3beb67a0eee1146750b94055971aa19b9751",
+      ".o": "772c2b1c66586702e76f3ec9605b2f6ae97325a18d5baa75dec8482557111035"
+    },
+    "base_2": {
+      ".c": "bdf6a91c743186905b7561af9a6803e51dffcf84b459747f1aa805daa10ccc40",
+      ".i": "8858a01c4a2260885d2bebcf77ae2be3755f25430045968aea0b27565696fb2a",
+      ".o": "808a71d8a853aa333c8bee4f53840a7c6f1ab19f8ba9a9ed32b8e69852bca64e"
+    },
+    "base_3": {
+      ".c": "870066f0f338524cd0c2e6bdb8e80dce57f4a077444bc5526b26301647dd2ba2",
+      ".i": "87808ebf6a178bd7fd53d2d5ba504df9dc63a15226ad354a08bce4054e1122a0",
+      ".o": "97c07b92a2b2b61d4bf5f1a678cf0aeed494adc93a32a9c50f25becafc5052ef"
+    }
+  },
+  "observations": {
+    "base_1": {
+      "sched": {
+        "127": "(insn 127 656 133 (set (reg/v:SI 103)\n        (const_int 2)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 2)\n        (nil)))",
+        "132": "(insn/i 132 131 656 (set (reg/v:SI 104)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 80)\n        (nil)))",
+        "134": "(insn/i 134 133 137 (set (mem/s:HI (plus:SI (reg/v:SI 104)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 103) 0)) 187 {movhi_internal2} (insn_list 127 (insn_list 132 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 103)\n        (nil)))",
+        "136": "(insn/i 136 135 649 (set (reg/v:HI 105)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "649": "(insn 649 136 131 (set (reg:SI 107)\n        (const_int 10)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))"
+      },
+      "sched2": {
+        "127": "(insn 127 656 133 (set (reg/v:SI 2 v0)\n        (const_int 2)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUIV (const_int 2)\n        (nil)))",
+        "132": "(insn/i 132 131 656 (set (reg/v:SI 18 s2)\n        (mem/s:SI (plus:SI (reg/v:SI 19 s3)\n                (const_int 28)))) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 19 s3)\n        (nil)))",
+        "134": "(insn/i 134 133 137 (set (mem/s:HI (plus:SI (reg/v:SI 18 s2)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 2 v0) 0)) 187 {movhi_internal2} (insn_list 127 (insn_list 132 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))",
+        "136": "(insn/i 136 135 649 (set (reg/v:HI 16 s0)\n        (const_int 1)) 187 {movhi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "649": "(insn 649 136 131 (set (reg:SI 20 s4)\n        (const_int 10)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUIV (const_int 10)\n        (nil)))"
+      },
+      "greg_header": "\n;; Function func_actor_121300_80133854\n\n;; 17 regs to allocate: 105 151 135 81 91 90 134 175 104 150 178 80 107 153 99 82 143\n;; 80 conflicts: 80 81 82 91 105 107 134 135 143 150 151 153 178 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 90 91 99 104 105 107 150 151 153 175 178 2 3 4 5 6 7 29\n;; 82 conflicts: 80 81 82 178 2 3 4 29\n;; 90 conflicts: 81 90 91 99 2 3 4 5 6 29\n;; 91 conflicts: 80 81 90 91 99 2 3 4 5 6 7 29\n;; 99 conflicts: 81 90 91 99 2 3 4 5 6 29\n;; 104 conflicts: 81 104 105 107 2 4 5 6 7 29\n;; 105 conflicts: 80 81 104 105 107 2 4 5 6 7 29\n;; 107 conflicts: 80 81 104 105 107 2 4 5 6 7 29\n;; 134 conflicts: 80 134 135 143 2 4 5 6 29\n;; 135 conflicts: 80 134 135 143 2 4 5 6 29\n;; 143 conflicts: 80 134 135 143 2 4 5 6 29\n;; 150 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 151 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 153 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 175 conflicts: 81 175 2 29\n;; 178 conflicts: 80 81 82 178 2 29\n;; 178 preferences: 3\n\n;; Register dispositions:\n80 in 19  81 in 17  82 in 16  83 in 2  85 in 6  86 in 2  \n88 in 2  89 in 3  90 in 18  91 in 16  93 in 5  95 in 2  \n96 in 2  97 in 2  98 in 2  99 in 19  101 in 2  102 in 2  \n103 in 2  104 in 18  105 in 16  107 in 20  109 in 2  110 in 2  \n112 in 2  113 in 3  114 in 2  116 in 2  117 in 2  119 in 4  \n122 in 3  123 in 3  124 in 3  125 in 2  127 in 2  129 in 2  \n131 in 2  133 in 6  134 in 17  135 in 16  136 in 2  137 in 5  \n139 in 2  140 in 2  141 in 2  142 in 2  143 in 18  145 in 2  \n146 in 2  148 in 2  149 in 2  150 in 18  151 in 16  153 in 20  \n155 in 2  156 in 2  157 in 2  158 in 2  159 in 2  160 in 2  \n162 in 4  165 in 3  166 in 3  167 in 2  168 in 2  170 in 2  \n171 in 2  172 in 2  174 in 2  175 in 3  176 in 2  177 in 2  \n178 in 3  179 in 2  180 in 2  181 in 2  183 in 3  184 in 3  \n185 in 2  \n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 20 29 31\n\n",
+      "lreg_stats": [
+        "Register 80 used 17 times across 236 insns; dies in 8 places; crosses 10 calls; GR_REGS or none; pointer.",
+        "Register 104 used 4 times across 13 insns; dies in 0 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 105 used 9 times across 15 insns; dies in 0 places; crosses 1 call; 2 bytes; GR_REGS or none.",
+        "Register 107 used 3 times across 28 insns; dies in 0 places; crosses 1 call; GR_REGS or none.",
+        "Register 150 used 4 times across 13 insns; dies in 0 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 151 used 9 times across 15 insns; dies in 0 places; crosses 1 call; 2 bytes; GR_REGS or none.",
+        "Register 153 used 3 times across 28 insns; dies in 0 places; crosses 1 call; GR_REGS or none."
+      ]
+    },
+    "base_2": {
+      "sched": {
+        "127": "(insn 127 660 133 (set (reg/v:SI 103)\n        (const_int 2)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUAL (const_int 2)\n        (nil)))",
+        "132": "(insn/i 132 131 660 (set (reg/v:SI 104)\n        (mem/s:SI (plus:SI (reg/v:SI 80)\n                (const_int 28)))) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 80)\n        (nil)))",
+        "134": "(insn/i 134 133 135 (set (mem/s:HI (plus:SI (reg/v:SI 104)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 103) 0)) 187 {movhi_internal2} (insn_list 127 (insn_list 132 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 103)\n        (nil)))",
+        "136": "(insn/i 136 135 137 (asm_input (\"\")) -1 (insn_list 127 (insn_list:REG_DEP_ANTI 134 (insn_list 132 (nil))))\n    (nil))",
+        "138": "(insn/i 138 137 653 (set (reg/v:HI 105)\n        (const_int 1)) 187 {movhi_internal2} (insn_list:REG_DEP_OUTPUT 136 (nil))\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "653": "(insn 653 138 139 (set (reg:SI 107)\n        (const_int 10)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 136 (nil))\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))",
+        "413": "(insn/i 413 412 414 (set (mem/s:HI (plus:SI (reg/v:SI 150)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 149) 0)) 187 {movhi_internal2} (insn_list 406 (insn_list 411 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 149)\n        (nil)))",
+        "415": "(insn/i 415 414 416 (asm_input (\"\")) -1 (insn_list 406 (insn_list:REG_DEP_ANTI 413 (insn_list 411 (nil))))\n    (nil))",
+        "417": "(insn/i 417 416 649 (set (reg/v:HI 151)\n        (const_int 1)) 187 {movhi_internal2} (insn_list:REG_DEP_OUTPUT 415 (nil))\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "649": "(insn 649 417 418 (set (reg:SI 153)\n        (const_int 10)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 415 (nil))\n    (expr_list:REG_EQUAL (const_int 10)\n        (nil)))"
+      },
+      "sched2": {
+        "127": "(insn 127 660 133 (set (reg/v:SI 2 v0)\n        (const_int 2)) 172 {movsi_internal2} (nil)\n    (expr_list:REG_EQUIV (const_int 2)\n        (nil)))",
+        "132": "(insn/i 132 131 660 (set (reg/v:SI 18 s2)\n        (mem/s:SI (plus:SI (reg/v:SI 19 s3)\n                (const_int 28)))) 172 {movsi_internal2} (nil)\n    (expr_list:REG_DEAD (reg/v:SI 19 s3)\n        (nil)))",
+        "134": "(insn/i 134 133 135 (set (mem/s:HI (plus:SI (reg/v:SI 18 s2)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 2 v0) 0)) 187 {movhi_internal2} (insn_list 127 (insn_list 132 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))",
+        "136": "(insn/i 136 135 137 (asm_input (\"\")) -1 (insn_list 127 (insn_list:REG_DEP_ANTI 134 (insn_list 132 (nil))))\n    (nil))",
+        "138": "(insn/i 138 137 653 (set (reg/v:HI 16 s0)\n        (const_int 1)) 187 {movhi_internal2} (insn_list:REG_DEP_OUTPUT 136 (nil))\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "653": "(insn 653 138 139 (set (reg:SI 19 s3)\n        (const_int 10)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 136 (nil))\n    (expr_list:REG_EQUIV (const_int 10)\n        (nil)))",
+        "413": "(insn/i 413 412 414 (set (mem/s:HI (plus:SI (reg/v:SI 18 s2)\n                (const_int 1184)))\n        (subreg:HI (reg/v:SI 2 v0) 0)) 187 {movhi_internal2} (insn_list 406 (insn_list 411 (nil)))\n    (expr_list:REG_DEAD (reg/v:SI 2 v0)\n        (nil)))",
+        "415": "(insn/i 415 414 416 (asm_input (\"\")) -1 (insn_list 406 (insn_list:REG_DEP_ANTI 413 (insn_list 411 (nil))))\n    (nil))",
+        "417": "(insn/i 417 416 649 (set (reg/v:HI 16 s0)\n        (const_int 1)) 187 {movhi_internal2} (insn_list:REG_DEP_OUTPUT 415 (nil))\n    (expr_list:REG_EQUAL (const_int 1)\n        (nil)))",
+        "649": "(insn 649 417 418 (set (reg:SI 20 s4)\n        (const_int 10)) 172 {movsi_internal2} (insn_list:REG_DEP_OUTPUT 415 (nil))\n    (expr_list:REG_EQUIV (const_int 10)\n        (nil)))"
+      },
+      "greg_header": "\n;; Function func_actor_121300_80133854\n\n;; 17 regs to allocate: 105 151 135 81 91 90 134 175 104 150 178 80 107 153 99 82 143\n;; 80 conflicts: 80 81 82 91 134 135 143 150 151 153 178 2 3 4 5 6 7 29\n;; 81 conflicts: 80 81 82 90 91 99 104 105 107 150 151 153 175 178 2 3 4 5 6 7 29\n;; 82 conflicts: 80 81 82 178 2 3 4 29\n;; 90 conflicts: 81 90 91 99 2 3 4 5 6 29\n;; 91 conflicts: 80 81 90 91 99 2 3 4 5 6 7 29\n;; 99 conflicts: 81 90 91 99 2 3 4 5 6 29\n;; 104 conflicts: 81 104 105 107 2 4 5 6 7 29\n;; 105 conflicts: 81 104 105 107 2 4 5 6 7 29\n;; 107 conflicts: 81 104 105 107 2 4 5 6 7 29\n;; 134 conflicts: 80 134 135 143 2 4 5 6 29\n;; 135 conflicts: 80 134 135 143 2 4 5 6 29\n;; 143 conflicts: 80 134 135 143 2 4 5 6 29\n;; 150 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 151 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 153 conflicts: 80 81 150 151 153 2 4 5 6 7 29\n;; 175 conflicts: 81 175 2 29\n;; 178 conflicts: 80 81 82 178 2 29\n;; 178 preferences: 3\n\n;; Register dispositions:\n80 in 19  81 in 17  82 in 16  83 in 2  85 in 6  86 in 2  \n88 in 2  89 in 3  90 in 18  91 in 16  93 in 5  95 in 2  \n96 in 2  97 in 2  98 in 2  99 in 19  101 in 2  102 in 2  \n103 in 2  104 in 18  105 in 16  107 in 19  109 in 2  110 in 2  \n112 in 2  113 in 3  114 in 2  116 in 2  117 in 2  119 in 4  \n122 in 3  123 in 3  124 in 3  125 in 2  127 in 2  129 in 2  \n131 in 2  133 in 6  134 in 17  135 in 16  136 in 2  137 in 5  \n139 in 2  140 in 2  141 in 2  142 in 2  143 in 18  145 in 2  \n146 in 2  148 in 2  149 in 2  150 in 18  151 in 16  153 in 20  \n155 in 2  156 in 2  157 in 2  158 in 2  159 in 2  160 in 2  \n162 in 4  165 in 3  166 in 3  167 in 2  168 in 2  170 in 2  \n171 in 2  172 in 2  174 in 2  175 in 3  176 in 2  177 in 2  \n178 in 3  179 in 2  180 in 2  181 in 2  183 in 3  184 in 3  \n185 in 2  \n\n;; Hard regs used:  2 3 4 5 6 7 16 17 18 19 20 29 31\n\n",
+      "lreg_stats": [
+        "Register 80 used 17 times across 234 insns; dies in 8 places; crosses 10 calls; GR_REGS or none; pointer.",
+        "Register 104 used 4 times across 16 insns; dies in 0 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 105 used 9 times across 12 insns; dies in 0 places; crosses 1 call; 2 bytes; GR_REGS or none.",
+        "Register 107 used 3 times across 22 insns; dies in 0 places; crosses 1 call; GR_REGS or none.",
+        "Register 150 used 4 times across 16 insns; dies in 0 places; crosses 1 call; GR_REGS or none; pointer.",
+        "Register 151 used 9 times across 12 insns; dies in 0 places; crosses 1 call; 2 bytes; GR_REGS or none.",
+        "Register 153 used 3 times across 22 insns; dies in 0 places; crosses 1 call; GR_REGS or none."
+      ]
+    }
+  }
+}

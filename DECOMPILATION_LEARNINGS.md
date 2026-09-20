@@ -136124,3 +136124,14 @@ Evidence, pre-build predictions, source/input hashes and selected raw events:
 `tools/compiler_evidence/2026-09-20-actor121300-33064.json`.
 Matched input SHA256:
 `15dc0cb26721f30253eba484d4683ff91222eeb436e4d9382756fec74c9f6a14`.
+
+
+## A store/preheader scheduling boundary can remove a global register conflict (func_actor_121300_80133854, 2026-09-20)
+
+The unpinned retry reproduced 98.355% (`regs=1 reorder=3 insert=1 delete=1`). Both inline animation helpers stored the animation id before a loop, but sched1 moved counter=1 and loop-hoisted blend=10 ahead of the work-pointer load/store. In case 2 this extended the 10 constant across the task's last use: .greg recorded r107 conflicting with task r80, so the constant occupied s4 instead of the target's reusable s3. Case 7 still needed task after its loop, so s4 was correct there.
+
+A preplanned `SCHED_BARRIER()` immediately after the field_4A0 store matched exactly. In base_2.i.sched, basic asm UID 136 depends on store 134, and both counter 138 and constant 653 have REG_DEP_OUTPUT to 136. The analogous case-7 chain is 413 -> 415 -> 417/649. The barrier stays inside the same block; a new CODE_LABEL is unnecessary. Patched sched.c:1973-2000 handles basic asm by adding register dependencies and flushing pending memory accesses.
+
+The allocation prediction also held: global order stayed unchanged, task remained s3, the case-2 r80/r107 conflict disappeared and r107 took s3; case-7 r153 retained s4. The constants' spans fell 28 -> 22. A normal-style port with for loops remained exact. This supports the local dependency/conflict mechanism, not a claim about the original source spelling. The bounded router improved a lower-scoring alternate but contributed no transformation to this match.
+
+Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected .sched/.sched2 nodes, allocation headers and complete input/source/object hashes: [2026-09-20-actor121300-33854.json](tools/compiler_evidence/2026-09-20-actor121300-33854.json). Full inputs and dumps are retained with the scratch/permuter findings.

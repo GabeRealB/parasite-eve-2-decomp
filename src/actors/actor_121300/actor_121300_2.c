@@ -235,7 +235,141 @@ void func_actor_121300_80133730(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_121300/actor_121300_2", func_actor_121300_80133854);
+void            func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern s32      func_actor_121300_80132818(Task* arg0);
+extern void     func_8017F438(s32 arg0);
+extern TaskDesc D_actor_121300_8013BBCC;
+extern s16      D_actor_121300_8013CC04;
+extern s32      D_actor_121300_8013CCA0;
+
+static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim)
+{
+    Actor121300Work* work;
+    u16              i;
+
+    work            = (Actor121300Work*)arg0->work;
+    work->field_4A0 = anim;
+    SCHED_BARRIER();
+    for (i = 1; i < 0x13; i++) {
+        func_800B4114(&work->anim, i, anim, 0, 10);
+    }
+}
+
+static inline void func_actor_121300_SetCC04(s32 v)
+{
+    D_actor_121300_8013CC04 = v;
+}
+
+void func_actor_121300_80133854(Task* arg0)
+{
+    Actor121300Work* work;
+    CdCmdQueue*      queue;
+
+    work  = (Actor121300Work*)arg0->work;
+    queue = &CdCmd_Queue;
+    func_actor_121300_80132818(arg0);
+    switch ((u16)work->field_498) {
+        case 1:
+            Gp_DispatchMsg(work->field_488, 0x3F3, 2, 0);
+            Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_121300_8013CCA0, 0);
+            gGameSession->viewDirty = 1;
+            {
+                Actor121300Work* slotsWork;
+                s32              i;
+
+                slotsWork            = (Actor121300Work*)arg0->work;
+                slotsWork->field_4A0 = 1;
+                for (i = 1; (u16)i < 0x13U; i++) {
+                    slotsWork->slots[(u16)i].rate = 0x10;
+                    Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+                }
+            }
+            work->field_498 = 0;
+            break;
+        case 2:
+            func_actor_121300_PlayAll(arg0, 2);
+            work->field_498 = 0;
+            break;
+        case 4:
+            if ((u16)work->field_49A == 0) {
+                func_actor_121300_SetCC04(10);
+                work->field_47C = 0x3C;
+                work->field_47E = 0x100;
+                work->field_48C = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->field_47C);
+                work->field_49A++;
+            }
+        case 3:
+            func_actor_121300_80133730(arg0);
+            break;
+        case 8:
+            func_actor_121300_SetCC04(0x1E);
+            func_actor_121300_80133730(arg0);
+            break;
+        case 5:
+            work->field_480         = 2;
+            queue->field_22A        = 0;
+            D_actor_121300_8013D41C = 0;
+            work->field_498         = 0;
+            break;
+        case 6:
+            if ((u16)work->field_49A == 0) {
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_121300_8013CCA0, 0);
+                {
+                    Actor121300Work* slotsWork;
+                    s32              i;
+
+                    slotsWork            = (Actor121300Work*)arg0->work;
+                    slotsWork->field_4A0 = 1;
+                    for (i = 1; (u16)i < 0x13U; i++) {
+                        slotsWork->slots[(u16)i].rate = 0x10;
+                        Gp_AnimResetSlot(&slotsWork->anim, (u16)i, 1);
+                    }
+                }
+                func_8017F438(1);
+            }
+            func_actor_121300_8013343C(arg0, 0);
+            func_actor_121300_80133580(arg0, 0);
+            break;
+        case 7:
+            if ((u16)work->field_49A == 0) {
+                func_actor_121300_PlayAll(arg0, 3);
+                work->field_49A++;
+            }
+            func_actor_121300_8013343C(arg0, 0);
+            break;
+        case 9:
+            func_actor_121300_80133580(arg0, 1);
+            func_actor_121300_8013343C(arg0, 0);
+            break;
+        case 10:
+            switch ((u16)work->field_49A) {
+                case 0:
+                    work->field_47C = 8;
+                    work->field_47E = 0x100;
+                    work->field_48C = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->field_47C);
+                    work->field_49C = 0;
+                    work->field_49A++;
+                    break;
+                case 1:
+                    if (++work->field_49C >= 8) {
+                        work->field_480 = 1;
+                        work->field_47C = 8;
+                        work->field_498 = 0;
+                    }
+                    break;
+            }
+            break;
+        case 11:
+            func_actor_121300_8013343C(arg0, 1);
+            break;
+        case 12:
+            queue->field_22A = 2;
+        case 0:
+        default:
+            work->field_498 = 0;
+            break;
+    }
+}
 
 extern s32   D_actor_121300_8013CC08;
 extern s32   D_actor_121300_8013CC88;

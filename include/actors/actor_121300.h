@@ -31,22 +31,24 @@ typedef struct Actor121300Work {
     /* 0x30C */ byte       field_30C[0x130]; // pose buffer, `func_800B3F84` arg3
     /* 0x43C */ MATRIX     field_43C;        // light matrix, into TmdObject::lightMtx
     /* 0x45C */ MATRIX     field_45C;        // colour matrix, into TmdObject::colorMtx
-    /* 0x47C */ byte       pad_47C[0x4];
-    /* 0x480 */ s16        field_480;        // state index driven by func_actor_121300_80133854
+    /* 0x47C */ s16        field_47C;
+    /* 0x47E */ s16        field_47E;
+    /* 0x480 */ s16        field_480; // state index driven by func_actor_121300_80133854
     /* 0x482 */ byte       pad_482[0x6];
-    /* 0x488 */ Task*      field_488;        // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
-    /* 0x48C */ byte       pad_48C[0xC];
-    /* 0x498 */ s16        field_498;        // set by func_actor_121300_80134250
-    /* 0x49A */ s16        field_49A;        // cleared alongside field_498
-    /* 0x49C */ byte       pad_49C[0x2];
-    /* 0x49E */ s16        field_49E;        // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ u16        field_4A0;        // animation slot count, set by func_actor_121300_80133BFC
-    /* 0x4A2 */ u16        field_4A2;        // state of the waypoint walker func_actor_121300_80133730
-    /* 0x4A4 */ u16        field_4A4;        // frames spent on the current waypoint
-    /* 0x4A6 */ s16        field_4A6;        // waypoint index handed to func_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ s16        field_4A8;        // effect-count reduction, bumped by func_actor_121300_80133580
-    /* 0x4AA */ s16        field_4AA;        // frame counter for field_4A8 (wraps at 20)
-    /* 0x4AC */ s16        field_4AC;        // GpAreaPlace::tpage, the TmdObject texture page
+    /* 0x488 */ Task*      field_488; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x48C */ Task*      field_48C;
+    /* 0x490 */ byte       pad_490[0x8];
+    /* 0x498 */ s16        field_498; // set by func_actor_121300_80134250
+    /* 0x49A */ s16        field_49A; // cleared alongside field_498
+    /* 0x49C */ s16        field_49C;
+    /* 0x49E */ s16        field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
+    /* 0x4A0 */ u16        field_4A0; // animation slot count, set by func_actor_121300_80133BFC
+    /* 0x4A2 */ u16        field_4A2; // state of the waypoint walker func_actor_121300_80133730
+    /* 0x4A4 */ u16        field_4A4; // frames spent on the current waypoint
+    /* 0x4A6 */ s16        field_4A6; // waypoint index handed to func_8017F334 / Task_SpawnFromTable
+    /* 0x4A8 */ s16        field_4A8; // effect-count reduction, bumped by func_actor_121300_80133580
+    /* 0x4AA */ s16        field_4AA; // frame counter for field_4A8 (wraps at 20)
+    /* 0x4AC */ s16        field_4AC; // GpAreaPlace::tpage, the TmdObject texture page
     /* 0x4AE */ byte       pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
