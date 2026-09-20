@@ -3,6 +3,7 @@
 #include "actors/actor_107000.h"
 #include "actors/actors_shared_801381b0.h"
 #include "actors/actors_shared_80137cf4.h"
+#include "actors/actors_shared_80137f1c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
@@ -14,7 +15,6 @@ void ActorsShared8014fda4(Task* arg0);
 void func_actor_107000_80135280(Task* arg0, TmdObject* arg1, s32 arg2);
 void func_actor_107000_8013560C(Task* arg0, TmdObject* arg1, s32 arg2);
 void func_actor_107000_80135C28(Task* arg0);
-void func_actor_107000_80137F1C(Task* arg0);
 void func_actor_107000_8013844C(Task* arg0);
 
 /// The enemy's four main-body handlers, dispatched through by state. Two
@@ -132,7 +132,7 @@ default_body:
     func_actor_107000_8013844C(arg1);
     func_actor_107000_80135C28(arg1);
     ActorsShared80137cf4(arg1);
-    func_actor_107000_80137F1C(arg1);
+    ActorsShared80137f1c(arg1);
     ActorsShared801381b0(arg1);
     ((TmdObject*)arg1->extra)->coords[0].flg = 0;
     ((TmdObject*)arg1->extra)->coords[1].flg = 0;

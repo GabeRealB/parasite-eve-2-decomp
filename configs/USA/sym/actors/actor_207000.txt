@@ -33,3 +33,4 @@ ActorSpecimenInitAnimBank = 0x8015759C; // animation bank for shared specimen in
 ActorSpecimenInit = 0x8014CC2C; // shared body, see src/actors/lib/
 ActorsShared801381b0 = 0x801501B0; // shared body, see src/actors/lib/
 ActorsShared801339c0 = 0x8014B9C0; // shared body, see src/actors/lib/
+ActorsShared80137f1c = 0x8014FF1C; // shared body, see src/actors/lib/

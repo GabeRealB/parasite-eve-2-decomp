@@ -7,8 +7,6 @@
 
 extern TaskDesc D_actor_207000_801575F0;
 
-INCLUDE_ASM("actors/nonmatchings/actor_207000/actor_207000_11", func_actor_207000_8014FF1C);
-
 void func_actor_207000_801500C8(Actor207000* arg0)
 {
     SVECTOR        sp10;
