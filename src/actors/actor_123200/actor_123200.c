@@ -245,7 +245,58 @@ void func_actor_123200_80133820(Actor123200Ctx* arg0, Task* task)
     ((TmdObject*)task->extra)->coords->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_801339F0);
+static __inline__ void Actor123200_MoveForward(GsCOORDINATE2* coord)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        SOFT_TOUCH_REG(vec);
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(5);
+        gte_ldsv(vec);
+        gte_gpf12_real();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
+
+void func_actor_123200_801339F0(Actor123200Ctx* arg0, Task* task)
+{
+    Actor123200Work* work;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+
+    work = (Actor123200Work*)task->work;
+    if (work->field_4 != 0) {
+        obj            = (TmdObject*)task->extra;
+        arg0->field_14 = 1;
+        obj->flags     = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_1B0 = 0x115D;
+        work->field_1B2 = 1;
+        work->field_1B4 = 0x12D5;
+        work->field_174 = 2;
+        work->field_170 = 2;
+        func_actor_123200_801332E0(task);
+        ((TmdObject*)task->extra)->coords->flg = 0;
+        work->field_6                          = 0;
+        return;
+    }
+    work->field_6++;
+    coord = ((TmdObject*)task->extra)->coords;
+    Actor123200_MoveForward(coord);
+    func_actor_123200_801332E0(task);
+    ((TmdObject*)task->extra)->coords->flg = 0;
+}
 
 /// Per-frame tick: flags the model's coordinate for rebuild, refreshes its
 /// colour from the part matrix's translation, then scales that matrix from the

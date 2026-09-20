@@ -174,4 +174,8 @@ s32 func_actor_123200_80133EDC(Task* task, s32 arg1, Actor123200Msg* msg);
 /// between a 0xC-byte scratch reservation and the animation update.
 void func_actor_123200_80133820(Actor123200Ctx* arg0, Task* task);
 
+/// Per-frame handler: re-arms a pending model restart, or counts the frame,
+/// steps the model along its facing unless frozen, and updates its animation.
+void func_actor_123200_801339F0(Actor123200Ctx* arg0, Task* task);
+
 #endif
