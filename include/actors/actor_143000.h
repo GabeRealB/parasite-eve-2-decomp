@@ -56,6 +56,17 @@ typedef struct Actor143000Rect {
 } Actor143000Rect;
 STATIC_ASSERT_SIZEOF(Actor143000Rect, 0xC);
 
+/// Spawn argument for the task that captures successive horizontal image strips.
+typedef struct Actor143000CaptureArgs {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ u16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s32 total;
+    /* 0xC */ s32 count;
+} Actor143000CaptureArgs;
+STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
+
 /// State table of the actor's `Task::callback`, `func_actor_143000_801335C8`:
 /// eleven `TaskFunc` entries, one per `Task::state`, which that body copies
 /// onto its stack before indexing. Entry 7 is the step-switch body
@@ -67,6 +78,7 @@ void func_actor_143000_80132A04(Actor143000* arg0);
 void func_actor_143000_80132D10(Actor143000* arg0);
 s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
 void func_actor_143000_80133C2C(void);
+void func_actor_143000_80133CF0(Task* arg0);
 void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
 void func_actor_143000_80133EE4(Task* arg0);
 
