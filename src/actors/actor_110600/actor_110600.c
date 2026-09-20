@@ -1303,7 +1303,177 @@ void func_actor_110600_80135E20(Actor110600* arg0, s16 arg1, s32 arg2)
     *(u32*)G_SCRATCH_HEAD += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_80136210);
+static __inline__ s16 Actor110600_WrapHitAngle(s16 angle)
+{
+    if (angle < 0) {
+    neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto neg;
+        }
+    } else {
+    pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto pos;
+        }
+    }
+    return angle;
+}
+
+static __inline__ s32 Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count)
+{
+    s16 i;
+    for (i = 0; i < count; i++) {
+        if (!recs[i].key)
+            break;
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            point->vx = recs[i].point.vx;
+            point->vy = recs[i].point.vy;
+            point->vz = recs[i].point.vz;
+            return recs[i].key;
+        }
+    }
+    return 0;
+}
+
+void func_actor_110600_80136210(Actor110600* arg0)
+{
+    Actor110600Work*       work;
+    GpEnemy*               enemy;
+    GsCOORDINATE2*         facing;
+    s16                    angle;
+    s16                    dz;
+    s16                    state;
+    s32                    magnitude;
+    s32                    yaw;
+    s32                    x;
+    s32                    y;
+    s32                    z;
+    s32                    distance;
+    s32                    pan;
+    u32                    kind;
+    Actor110600HitScratch* sc;
+    PlayerStatus*          player;
+
+    enemy  = arg0->field_20;
+    work   = arg0->field_1C;
+    player = &Player_Status;
+    if (player->hp <= 0) {
+        work->field_A90.flags &= 0x7FFF;
+        return;
+    }
+    sc      = (Actor110600HitScratch*)(*(u32*)G_SCRATCH_HEAD -= 0x30);
+    sc->key = Actor110600_FindHit(&sc->point, work->recs_8D8, 5);
+    if (!sc->key) {
+        sc->key = Actor110600_FindHit(&sc->point, work->recs_970, 12);
+    }
+    if (sc->key) {
+        state = work->field_0;
+        if ((state == 2) || (state == 6) || (state == 0x14)) {
+            work->field_0 = 4;
+        }
+        x            = player->coordMtx->t[0] - arg0->field_2C->coords->coord.t[0];
+        sc->delta.vx = x;
+        y            = player->coordMtx->t[1] - arg0->field_2C->coords->coord.t[1];
+        sc->delta.vy = y;
+        z            = player->coordMtx->t[2] - arg0->field_2C->coords->coord.t[2];
+        sc->delta.vz = z;
+        distance     = SquareRoot0((x * x) + (y * y) + (z * z));
+        sc->distance = distance;
+        sc->damage   = Gp_ComputeDamage((u32)sc->key, (u32)distance, 0, 0);
+        if (Gp_RollEnemyChance(enemy, (u32)sc->key, 0) != 0) {
+            sc->damage = (u32)(sc->damage * 5);
+            Gp_SpawnEff(0x6009C, arg0->field_2C->coords + 2, 0, NULL);
+        }
+        magnitude = sc->angle;
+        if (magnitude < 0) {
+            magnitude = -magnitude;
+        }
+        if (magnitude >= 0x501) {
+            sc->damage = (u32)(sc->damage * 2);
+        }
+        if (work->field_BE6 == 1) {
+            sc->damage = (u32)((u32)sc->damage >> 1);
+        }
+        func_800E2C78((GpObj40*)enemy, sc->key, (s32)sc->damage, 0);
+        enemy->hp = (u16)enemy->hp - (u16)sc->damage;
+        func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
+        arg0->field_2C->coords->flg = 0;
+        Gp_UpdateCoord(arg0->field_2C->coords);
+        sc->direction.vx = (s16)(sc->point.vx - *(u16*)&arg0->field_2C->coords->workm.t[0]);
+        sc->direction.vy = (s16)(sc->point.vy - *(u16*)&arg0->field_2C->coords->workm.t[1]);
+        dz               = sc->point.vz - *(u16*)&arg0->field_2C->coords->workm.t[2];
+        sc->direction.vz = dz;
+        yaw              = ratan2((s32)sc->direction.vx, (s32)dz);
+        facing           = arg0->field_2C->coords;
+        angle            = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
+        sc->angle        = angle;
+        sc->angle        = Actor110600_WrapHitAngle(sc->angle);
+        func_actor_110600_80135E20(arg0, sc->angle, sc->key);
+        work->field_8A4 = 0;
+        work->field_8A2 = 0;
+        if ((work->field_BE6 == 0) && (enemy->hp < (s32)((u16)D_actor_110600_80138F18 >> 1))) {
+            work->field_0   = 0x18;
+            work->field_BE6 = 1;
+        }
+        if (enemy->hp <= 0) {
+            work->field_8B8.pos.vx = 0;
+            work->field_8B8.pos.vy = 0;
+            work->field_8B8.pos.vz = 0;
+            work->field_A90.flags &= 0x7FFF;
+            work->field_8B8.coord  = arg0->field_2C->coords + 2;
+            work->field_8A4        = 0;
+            work->field_8A2        = 0;
+            Display_ClampField126(0);
+        } else {
+            pan = (s8)Gp_GetObjPan(arg0->field_2C->coords);
+            SndEvt_EnqueueType6(0x401D0007, (s32)pan, (s32)(s8)gpGetObjDepth(arg0->field_2C->coords));
+        }
+        work->field_8AA = Gp_GetIdParam2(sc->key);
+        kind            = Gp_GetIdParam0(sc->key) & 0xFFFF;
+        switch (kind) {
+            case 0:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                work->field_88E = 1;
+                work->field_89C = 0xB;
+                work->field_89A = 2;
+                break;
+            case 1:
+            case 8:
+            case 9:
+                break;
+            case 2:
+                Gp_SetObjFlag2((GpObj5D*)enemy, sc->key, 0);
+                work->field_0 = 0xE;
+                break;
+            case 3:
+                Gp_SetObjFlag4((GpObj5C*)enemy, sc->key, 0);
+                break;
+        }
+    }
+    if (enemy->reactionFlags & 0xC) {
+        sc->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            enemy->reactionFlags &= 0xF3;
+        }
+        if (sc->damage != 0) {
+            enemy->hp = (u16)enemy->hp - (u16)sc->damage;
+            func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
+            if (work->field_0 != 0xE) {
+                work->field_88E = 1;
+                work->field_89C = 0xB;
+                work->field_89A = 2;
+            } else {
+                work->field_2 = -1;
+            }
+        }
+    }
+    *(u32*)G_SCRATCH_HEAD += 0x30;
+}
 
 /// Timer stage that walks between the two long `field_892` values. Entering on
 /// a live actor re-arms it: clear the model object, take 0x8000 off

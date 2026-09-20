@@ -387,7 +387,9 @@ typedef struct Actor110600Work {
     /* 0x894 */ s16  field_894;
     /* 0x896 */ s16  field_896;
     /* 0x898 */ u16  field_898;
-    /* 0x89A */ byte pad_89A[8];
+    /* 0x89A */ s16  field_89A;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ byte pad_89E[4];
     /* 0x8A2 */ s16  field_8A2;
     /* 0x8A4 */ s16  field_8A4;
     /* 0x8A6 */ u16  field_8A6;
@@ -519,6 +521,23 @@ typedef struct Actor110600 {
     /* 0x24 */ byte             pad_24[8];
     /* 0x2C */ TmdObject*       field_2C;
 } Actor110600;
+
+/// Damage and hit-direction values in the 0x30-byte scratchpad frame used by
+/// func_actor_110600_80136210.
+typedef struct Actor110600HitScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR direction;
+    /* 0x18 */ SVECTOR point;
+    /* 0x20 */ s32     key;
+    /* 0x24 */ u32     damage;
+    /* 0x28 */ s32     distance;
+    /* 0x2C */ s16     angle;
+    /* 0x2E */ s16     pad;
+} Actor110600HitScratch;
+
+STATIC_ASSERT_SIZEOF(Actor110600HitScratch, 0x30);
+
+extern u16 D_actor_110600_80138F18;
 
 /// The actor's state handlers, indexed by `Actor110600Work::field_0`.
 /// `func_actor_110600_80137F2C` copies the table to its frame before
