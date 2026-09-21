@@ -137191,3 +137191,55 @@ and case 4 wants `li s0, 1` in the *previous* branch delay, then the same
 the `sh` leaves the delay empty. Case 4 still needs `i = 1` *before* the reload
 so dbr can put it in the `bnez` delay; a barrier there instead leaves a `nop` in
 the branch and an extra `li s0, 1` after the store.
+
+## A run of three or more identical guards with per-guard constants: CSE extended one hop at a time (`func_actor_421600_80133CAC`)
+
+Four consecutive `if (mode == 2) call();` blocks want
+
+```
+li   s3,2 ; bne v0,s3        # guard 1
+bne  v0,s3 ; li s4,2 (delay) # guard 2 loads guard 3's constant
+bne  v0,s4 ; li s3,2 (delay) # guard 3 loads guard 4's
+bne  v0,s3                   # guard 4
+```
+
+The plain spelling gives one `li` shared by all four, two instructions and one
+saved register short. Inlines, predicates, `switch`, early returns and
+whole-spawn `do {} while (0)` wrappers all compile to that same merged form.
+
+Mechanism. cse rescans from the start of every block and, with
+`-fcse-skip-blocks`, follows each branch around a call for as long as the join
+label has exactly one use (`cse_end_of_basic_block`). The first scan therefore
+covers all four guards and canonicalises every constant onto the first pseudo.
+The target is what a scan limited to *one* hop leaves: guard k+1 is rewritten
+onto guard k's own constant, which then has to live across call k - hence the
+`li` before branch k, which dbr moves into its delay slot. Those early `li`s are
+not hoisted; they are each guard's natural constant, orphaned by its own guard
+and adopted by the next.
+
+One hop per scan needs a second use of each join label that the scan itself
+deletes (a second guard condition cse can fold), and it has to happen in cse2
+only: if cse1 does it, cse2 runs unrestricted and re-merges, and one-hop in both
+passes flips guard 2 onto guard 3's constant (`make_regs_eqv` prefers a pseudo
+that outlives the scan). The only code difference between the passes is that
+cse1 stops at `NOTE_INSN_LOOP_END`, so the knowledge the extra condition folds
+on must sit behind a loop end. An *empty* loop at the head of the block is the
+placement that costs nothing: a loop note between the stores and the load is a
+scheduler barrier, and a loop around live code reweights its pseudos.
+
+```c
+flag = 0; do { } while (0);          /* before the block's first statement */
+...
+if (flag == 0 && mode == 2) { call(); }
+```
+
+Only the guards that must not merge need it (2 and 3 of 4). Addresses are
+unaffected: a `lui`/`lo_sum` is dearer than a register, so cse turns later ones
+into copies and they chain back to the first even under one-hop scans, while a
+small constant is cheaper than a register and stays an independent `li`.
+
+This is a **carrier**: it reproduces the grouping with well-defined C, and the
+original spelling is unknown. The uninitialised-read candidates the permuter
+ranks highest here only buy the frame layout; they never produce the two `li`s.
+`func_actor_323400_80163448` has the same run. Watching `cse_end_of_basic_block`
+and `make_regs_eqv` under gdb shows the paths directly; `-da` dumps do not.
