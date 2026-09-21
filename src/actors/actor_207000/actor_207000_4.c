@@ -17,13 +17,3 @@ void func_actor_207000_8014CB30(Task* arg0)
     sp = D_actor_207000_80149E30;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149E84);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149E9C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149EC4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", jtbl_actor_207000_80149EDC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207000/actor_207000_4", ActorsShared80138404Table);
