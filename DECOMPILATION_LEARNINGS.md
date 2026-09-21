@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Unroll identical calls in a count switch; gotos to a shared last call over-share (func_actor_105100_801336B8, 2026-09-21)
+
+A switch whose cases make 2, 3 and 1 copies of the same `Gp_SpawnEnemyFromTable`
+call looks in the ROM like m2c's reconstruction: case 0 one call then jump to a
+shared last call, case 1 two calls then the same jump, case 2 falling into that
+shared tail (plus a leftover unpaired `lui` of the address). Writing those
+gotos in the source makes `jump_optimize` share *more* than the last call —
+case 0 becomes `j` into the middle of case 1, the s0-held address is lost, and
+the score sits around 83% with `calls_match=False`.
+
+Unroll the calls and let cross-jumping common only the last one:
+
+```
+switch (kind) {
+case 0:
+    spawn();
+    spawn();
+    break;
+case 1:
+    spawn();
+    spawn();
+    spawn();
+    break;
+case 2:
+    spawn();
+    break;
+}
+```
+
+That is the 0/1/2 body order with a shared tail after case 2. The leftover
+`lui a0,0x8014` vs `lui a0,%hi(D)` on that tail is splat's unpaired-`lui`
+rendering, not a codegen gap (see `func_actor_160900_80133A84`). Nested-block
+`rnd` locals per outer case keep the two LCG draws from sharing an allocno.
+
+Preprocessed inputs: `base_1.c`
+`d1ed698f1c68ce3701da0e5219f6abb526b2f3df7344ac1b27b01c1de5326158`
+(83.307%, gotos); `base_2.c`
+`819e1abd37acf45f8a8b44654455195e675ed6402dde28f0549078855f55953d`
+(99.977%, unrolled; linked overlay matches). Compiler `60d886cd...`.
+
 ## An independent address addiu takes the latest unique-constant li/sh gap before its use (func_actor_403200_80138AFC, 2026-09-20)
 
 A pointer computed as `work + 0xD84` and stored only after a run of field

@@ -518,7 +518,134 @@ void func_actor_105100_8013345C(Actor105100* arg0, Actor105100Ctx* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801336B8);
+/// The 16-entry run at 0x801413C8 this step's LCG draw picks `field_5B0`
+/// from. Four entries are 0 (two children), five are 1 (three), seven are 2
+/// (one).
+extern u16 D_actor_105100_801413C8[16];
+
+/// The enemy's split-spawn step, run every frame the schedule is on step 2.
+/// It sits between the summon (`func_actor_105100_8013345C`) and the show
+/// (`func_actor_105100_80133A14`).
+///
+/// Sub-step 0 seeds the closing pose (3), arms the `field_5AC` gate to 3,
+/// zeroes the spawned count `field_5AE`, and draws the LCG into `field_5B0`
+/// from `D_actor_105100_801413C8`.
+///
+/// Sub-step 1 holds on the animation frame counter `field_592`: the single
+/// frame `field_592 == 0x1E` spawns the `0x800601A8` puff at the model's
+/// coordinate -- offset 0/-0x6D6/0x320, life 0x3C -- and plays `...0007`.
+/// Once the frame reaches `0x5A` it emits 2, 3 or 1 children through
+/// `Gp_SpawnEnemyFromTable` according to `field_5B0`, loads the hold timer
+/// from `D_actor_105100_80141448`, and plays `...0008` into `field_584`.
+///
+/// Sub-step 2 waits out `field_59A`, or bails as soon as `field_5AE` is still
+/// 0, then moves on to pose `0xA` and fires the type-7 event on the id
+/// sub-step 1 built.
+///
+/// Sub-step 3 waits `field_592` to `0x1A`, kills the puff, drops the gate,
+/// and rerolls `field_59A` to a `0` .. `0x3F` window.
+void func_actor_105100_801336B8(Actor105100* arg0, Actor105100Ctx* arg1)
+{
+    Actor105100Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          pos;
+    s16              step;
+    s32              pan;
+    s32              pan2;
+    s32              snd;
+    u16              timer;
+
+    work  = arg0->field_1C;
+    step  = work->field_598;
+    coord = arg0->field_2C->field_8;
+    switch (step) {
+        case 0: {
+            u16* tbl;
+            u32  rnd;
+            s16  kind;
+
+            work->field_58E = 3;
+            work->field_598 = 1;
+            tbl             = D_actor_105100_801413C8;
+            rnd             = (Gp_LcgState * 5) + 0x71357911;
+            kind            = tbl[(rnd >> 16) & 0xF];
+            Gp_LcgState     = rnd;
+            work->field_5AE = 0;
+            work->field_5AC = 3;
+            work->field_5B0 = kind;
+            return;
+        }
+        case 1:
+            if ((s16)work->field_592 == 0x1E) {
+                pos.vx          = 0;
+                pos.vy          = -0x6D6;
+                pos.vz          = 0x320;
+                work->field_55C = Gp_SpawnEff(0x800601A8, arg0->field_2C->field_8, 0x3C, &pos);
+                snd             = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40330007;
+                pan             = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+            }
+            if ((s16)work->field_592 >= 0x5A) {
+                switch (work->field_5B0) {
+                    case 0:
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        break;
+                    case 1:
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        break;
+                    case 2:
+                        Gp_SpawnEnemyFromTable(&D_actor_105100_80141464, 2, 0,
+                                               (GpEnemy*)arg0->field_20);
+                        break;
+                }
+                work->field_59A = D_actor_105100_80141448[work->field_5B0];
+                work->field_598 = 2;
+                work->field_584 = (((u16)arg0->field_20->field_8 >> 12) << 8) | 0x40330008;
+                pan2            = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(work->field_584, pan2, (s8)gpGetObjDepth(coord));
+                return;
+            }
+            return;
+        case 2:
+            timer           = work->field_59A - 1;
+            work->field_59A = timer;
+            if ((timer << 16) <= 0 || (s16)work->field_5AE == 0) {
+                work->field_598 = 3;
+                work->field_58E = 0xA;
+                SndEvt_EnqueueType7(work->field_584, 1);
+                work->field_584 = 0;
+            }
+            break;
+        case 3: {
+            u32        rnd;
+            GpEffWork* eff;
+
+            if ((s16)work->field_592 >= 0x1A) {
+                work->field_58E = 1;
+                work->field_596 = 0;
+                work->field_598 = 0;
+                rnd             = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = rnd;
+                eff             = work->field_55C;
+                work->field_59A = (rnd >> 16) & 0x3F;
+                if (eff != NULL) {
+                    eff->task->state = 4;
+                }
+                work->field_55C = NULL;
+                work->field_5AC = 0;
+            }
+            break;
+        }
+    }
+}
 
 /// The appearance handler, the step the aim-retry schedule hands to once it
 /// wants the enemy to show up. `field_598` is the sub-state it walks through:
