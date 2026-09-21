@@ -3,6 +3,26 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Copy a parameter into a local to drop REG_EQUIV live-length doubling (func_actor_105100_80134284, 2026-09-21)
+
+`$s3`/`$s4` were swapped between the `Actor105100*` parameter and a `GsCOORDINATE2*` loaded from it at the top of the function. Topology already matched; the leftover was global allocation.
+
+`.lreg` had the parameter at 15 refs / 546 insns and the coordinate at 6 / 90. `update_equiv_regs` doubles nonnegative live length when the arrival copy carries `REG_EQUIV (mem arg-slot)`, so the parameter ranked below the shorter-lived local (`3*15/546 < 2*6/90`) and took `$s4`. Copying the parameter into a non-parameter local and using that name everywhere drops the note: the local is not doubled, outranks the coordinate, and takes `$s3`.
+
+```
+void f(Actor105100Ctx* arg0, Actor105100* arg1)
+{
+    Actor105100* actor;
+    GsCOORDINATE2* coord;
+
+    actor = arg1;
+    coord = actor->field_2C->field_8;
+    /* use actor, not arg1 */
+}
+```
+
+Do not pin `$s3`. The copy is the live-length lever in `CODEGEN_MODEL.md` §10.1 / §10.4.
+
 ## Unroll identical calls in a count switch; gotos to a shared last call over-share (func_actor_105100_801336B8, 2026-09-21)
 
 A switch whose cases make 2, 3 and 1 copies of the same `Gp_SpawnEnemyFromTable`

@@ -117,7 +117,7 @@ typedef struct Actor105100Work {
     /* 0x5B4 */ s16        field_5B4;
     /* 0x5B6 */ s16        field_5B6;
     /* 0x5B8 */ u16        field_5B8;
-    /* 0x5BA */ byte       pad_5BA[2];
+    /* 0x5BA */ s16        field_5BA; // 1 while the death cutscene message is pending; cleared after 0x13F4, gates step 3
     /* 0x5BC */ s16        field_5BC;
     /* 0x5BE */ u16        field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
     /* 0x5C0 */ u16        field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit

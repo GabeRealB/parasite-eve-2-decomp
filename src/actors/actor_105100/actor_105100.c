@@ -28,6 +28,7 @@ void func_actor_105100_801336B8(Actor105100* arg0, Actor105100Ctx* arg1);
 void func_actor_105100_80133A14(Actor105100* arg0, Actor105100Ctx* arg1);
 void func_actor_105100_80133CE4(Actor105100* arg0);
 void func_actor_105100_80134130(Actor105100* arg0);
+void func_actor_105100_80134284(Actor105100Ctx* arg0, Actor105100* arg1);
 void func_actor_105100_80135674(Actor105100* arg0);
 void func_actor_105100_801359B4(Actor105100* arg0);
 void func_actor_105100_80135B40(Actor105100* arg0);
@@ -43,6 +44,12 @@ void func_actor_105100_80136524(Actor105100* arg0);
 void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern u8 D_801153F4;
+
+/// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
+/// live `D_80071075` means a cutscene is already up, so the death handler skips
+/// message 0x13F4.
+extern u8 D_80071075;
+extern s8 D_80114C12;
 
 /// Main-executable global with no module header yet: bit 2 asks the per-frame
 /// handler for the post-hit reaction, which is why `func_actor_105100_80133134`
@@ -1040,7 +1047,153 @@ void func_actor_105100_80134130(Actor105100* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80134284);
+/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `D_801153F4` only
+/// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
+/// walks `field_598`: unlink the collision bodies, play the death clip, fire
+/// the 0x13F4 cutscene, shrink the model, then destroy the enemy.
+void func_actor_105100_80134284(Actor105100Ctx* arg0, Actor105100* arg1)
+{
+    SVECTOR           dir;
+    VECTOR            pos;
+    Actor105100*      actor;
+    Actor105100Obj2C* obj;
+    Actor105100Work*  work;
+    GsCOORDINATE2*    coord;
+    Task*             player;
+    s32               state;
+    s32               i;
+    s32               val;
+    s32               snd;
+    s16               flag;
+    GsCOORDINATE2*    colorCoord;
+
+    actor  = arg1;
+    obj    = actor->field_2C;
+    work   = actor->field_1C;
+    coord  = obj->field_8;
+    player = gameGetPtrSlot(3);
+    state  = D_801153F4;
+    if (state == 1) {
+        goto color_update;
+    }
+    if (state >= 2) {
+        if (state == 2) {
+            actor->field_2C->field_C = 0x80;
+            return;
+        }
+    }
+    if (work->field_5A2 != 0) {
+        func_actor_105100_80133CE4(actor);
+    }
+    switch (work->field_598) {
+        case 0:
+            work->field_58E = 1;
+            work->field_594 = 0x1000;
+            work->field_560 = coord->coord;
+            arg0->field_54  = 0;
+            Gp_UnlinkNode(&arg0->node);
+            Gp_UnlinkObj(&work->obj47C);
+            Gp_UnlinkObj(&work->obj51C);
+            Gp_UnlinkObj(&work->obj4E4);
+            Gp_SetLightMode((GpObj4C*)arg0, 1);
+            work->field_59A = 0;
+            work->field_598 = 1;
+            goto color_update;
+        case 1:
+            if ((s16)++work->field_59A == 0xA) {
+                obj->field_C = (u16)obj->field_C | 2;
+            }
+            if ((s16)work->field_59A >= 0x1F) {
+                work->field_58E = 7;
+                work->field_598 = 2;
+                Gp_ReleaseStateF0Add((GpObj20E*)actor, 0x33);
+                work->field_5BA = 1;
+            }
+            work = actor->field_1C;
+            i    = 1;
+            if ((s16)work->field_58E != work->field_590) {
+                work->field_590 = work->field_58E;
+                work->field_592 = 0;
+                val             = D_actor_105100_801414C8[(s16)work->field_58E];
+                do {
+                    func_800B4114(work, i, (s16)work->field_58E, 0, val);
+                    i++;
+                } while (i < 0x13);
+            } else {
+                TOUCH_REG(i);
+                work->field_592 += i;
+                do {
+                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                    i++;
+                } while (i < 0x13);
+            }
+            goto color_update;
+        case 2:
+            flag = work->field_5BA;
+            if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (D_80114C12 != flag) &&
+                (D_80071075 == 0)) {
+                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+                work->field_5BA = 0;
+            }
+            if ((s16)work->field_592 == 0xB) {
+                snd = ((actor->field_20->field_8 >> 12) << 8) | 0x4033000E;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_SpawnPadLerp(0xA, 0xFF, 0x40);
+            }
+            if ((s16)work->field_592 == 0x28) {
+                snd = ((actor->field_20->field_8 >> 12) << 8) | 0x40330003;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+            }
+            if ((s16)work->field_592 == 0x36) {
+                dir.vx = 0;
+                dir.vy = 0;
+                dir.vz = 0x96;
+                Gp_SpawnEff(0x600A5, &actor->field_2C->field_8[3], 5, &dir);
+                work->field_59A = 0;
+            }
+            if (((s16)work->field_592 >= 0x36) && (work->field_5BA == 0)) {
+                work->field_598 = 3;
+            }
+            work = actor->field_1C;
+            i    = 1;
+            if ((s16)work->field_58E != work->field_590) {
+                work->field_590 = work->field_58E;
+                work->field_592 = 0;
+                val             = D_actor_105100_801414C8[(s16)work->field_58E];
+                do {
+                    func_800B4114(work, i, (s16)work->field_58E, 0, val);
+                    i++;
+                } while (i < 0x13);
+            } else {
+                TOUCH_REG(i);
+                work->field_592 += i;
+                do {
+                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                    i++;
+                } while (i < 0x13);
+            }
+            goto color_update;
+        case 3:
+            if (work->field_594 >= 0x201) {
+                work->field_594 = (u16)work->field_594 - 0x50;
+            }
+            ActorsShared80136574((ActorShared80136574*)actor, &work->field_560, work->field_594, 0);
+            if ((s16)++work->field_59A >= 0x3C) {
+                work->field_598 = 4;
+            }
+        color_update:
+            colorCoord = actor->field_2C->field_8;
+            pos.vx     = colorCoord->workm.t[0];
+            pos.vy     = colorCoord->workm.t[1];
+            pos.vz     = colorCoord->workm.t[2];
+            Gp_UpdateActorColor((GpEnemy*)actor->field_20, &pos, 0, 0);
+            return;
+        case 4:
+            Gp_DestroyEnemy((GpEnemy*)arg0, (Task*)actor);
+            return;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_801347D4);
 
