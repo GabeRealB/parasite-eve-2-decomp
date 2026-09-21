@@ -388,5 +388,3 @@ void func_actor_120300_801335D8(Task* arg0)
     Task_Reparent(arg0, work->field_4B8);
     Task_Reparent(arg0, work->field_4BC);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_120300/actor_120300", func_actor_120300_801337C4);

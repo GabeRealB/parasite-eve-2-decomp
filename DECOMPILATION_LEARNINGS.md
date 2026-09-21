@@ -19,6 +19,25 @@ if (pulse == 1) {
 
 A same-block nested `if (work->field_2E != 0) { work->field_24 = 3; if (work->field_2E != 0) ... }` keeps a copy+`beqz` of the first load (`move $v1,$v0; li $v0,3; beqz $v1`). Naming the load once as `s16 temp` lets jump_optimize delete the inner test.
 
+## Two `&vec` takes across a call CSE into `$s2` and bump `arg0` to `$s3` (func_actor_120300_801337C4, 2026-09-21)
+
+`func_800D7A9C(tmd, &vec, …)` then `ScaleMatrix(tmd->colorMtx, &vec)` CSE the stack address into one pseudo that crosses the call. Local-alloc homes that pseudo in `$s2`; `arg0` then conflicts with `$s2` and takes `$s3`. Target rematerializes `addiu $a1, $sp, 0x18` and keeps `arg0` in `$s2`.
+
+Same split `func_actor_136100_UpdateShadow` already uses: pass `VECTOR* vec` into an inline that uses it only for `func_800D7A9C`. The caller's later `&vec` is a different CSE class and rematerializes. A function-wide `VECTOR *p = &vec` also frees `$s2` but saves `$s4`. Declaring the VECTOR first rematerializes too, but moves the slot to `0x10`.
+
+An independent `D_8007272D = 2` next to `arg0->state += 1` is overlapped by sched1 (`lw` of state before `sb` of 2). `SCHED_BARRIER()` between them restores `li $v0, 2; sb; lw $v0, 0x30($s2); nop`.
+
+```
+static inline void fill(Task* arg0, TmdObject* tmd, VECTOR* vec)
+{
+    vec->vx = tmd->coords[1].workm.t[0];
+    vec->vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
+    vec->vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    func_800D7A9C(tmd, vec, 0, 3);
+}
+/* caller: fill(arg0, tmd, &vec); ScaleMatrix(tmd->colorMtx, &vec); */
+```
+
 ## Reused `s16` loop bound reloads into `$v0`; `s32` keeps `$t2` (func_actor_323300_80162A6C, 2026-09-21)
 
 A count loaded from an `s16` field, used as `if (count > 0) do … while (i < count)`, then reassigned for a second loop, was sunk to the branch as `lh $v0` and copied (`move $t3, $v0` / `move $a0, $v0`) because `$v0` is the loop's `lhu` dest. That also left `field_14 * 8` in `$a1` and rotated the walking-pointer homes.
