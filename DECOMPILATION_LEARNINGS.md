@@ -3,6 +3,12 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A single-set `lui` loses `LAUNCH_PRIORITY` when the same local is loaded next (`ActorsShared801359cc`, 2026-09-21)
+
+sched1 raises a `REG_N_SETS == 1` definition to `LAUNCH_PRIORITY` (`0x7f000001`). The scratch `lui` that writes `sv`, then `sv = *(sv + 0x3FC)`, is two sets of one local, so it stays at priority 1 while the two `lhu`s of `t[0]` are births. Backward scheduling then emits the `lui` *before* the loads. Holding each half in its own local and naming both as unused inputs of `lui %0, 0x1F80` makes the loads predecessors. The template does not read them, so maspsx inserts no load-delay nop and the `lui` lands after both `lhu`s.
+
+The same function's state constants only share `$v0` with the `slti` when `jump.c`'s const-hoist is blocked. `asm("")` on the *else* arm (`state = 0xB`) leaves `state = 0xD` as the fallthrough; dbr inverts that into `bnez` / `li $v0, 0xD` / `j` / `li $v0, 0xB`. Putting the empty asm on the `0xD` arm instead yields `beqz` and the constants swapped.
+
 ## An empty asm blocks the jump.c const-hoist; a `$v1` pin has to be the loaded pointer (`func_actor_104900_80136F8C`, 2026-09-21)
 
 `jump.c` rewrites `if (cond) { x = a; goto L; } x = b` into `x = b; if (cond) goto L; x = a` when `x = b` is one `REG = CONST` set. That hoist put the countdown's 3 in the delay of a `beqz` and left the LCG nibble in `$a0`. `asm("")` immediately before `count = 3` is not a `single_set`, emits no instruction, and leaves 3 as the fallthrough `li $v0` so the nibble's `andi` stays in `$v1`.
