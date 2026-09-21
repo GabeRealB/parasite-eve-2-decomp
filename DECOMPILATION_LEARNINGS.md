@@ -137333,3 +137333,68 @@ the matched `func_actor_300700_801626C0` is written - moved this function
 earlier 71.5% seed were actively wrong once the body around them was rewritten;
 removing them fixed the placement of a `li` and a `$v0`/`$v1` pair twenty
 instructions away.
+
+## `ABS()` is one RTL insn on MIPS, so the abs does not split the basic block (func_actor_105100_80134B00, 2026-09-21)
+
+**Symptom.** A clamp of the form "take the step only while the accumulated
+value stays inside a bound" written with an explicit temp:
+
+```c
+t = accum + (s16)step;
+if (t < 0) { t = -t; }
+if (t < 0x1F4) { accum += step; ... }
+```
+
+produced the target's instructions in the target's order, and still missed on
+two counts at every one of the three sites: the sign-extension of `step` and
+the load of `accum` held each other's register, and the body's re-read of
+`accum` was hoisted into the block that computes the sum instead of being
+issued between the compare and the branch.
+
+**Cause.** `abssi2` in `mips.md` is a `define_insn`, not an expander: its
+template prints `bgez %1,1f%#` followed by `subu %0,$0,%0`, delay slot and
+all. Written with the psyq macro `ABS(x)` the abs is therefore a *single* RTL
+insn and the surrounding statements are one basic block; written out as an
+`if`, the same three instructions are three blocks. Everything downstream sees
+a different problem:
+
+* `sched1` may move an insn from after the compare to before it, and back,
+  because there is no block boundary in between. That is how the target issues
+  the body's re-read of `accum` between the `slti` and the `beqz`.
+* `local-alloc` quantity spans are measured in insns within the block, so the
+  longer block re-ranks them. Here the sign-extension quantity (`sll`+`sra`,
+  four refs) beat the load (two refs) for `$v0` while the abs split the block,
+  and lost once it did not.
+
+**Tell.** The target has `bgez`/`nop`/`negu` where the `nop` is never filled -
+`%#` emits the compiler's own delay-slot nop, which `dbr` does not revisit -
+and an instruction belonging to a *later* statement scheduled between the
+compare and its branch. Both say the abs was one insn.
+
+**Fix.** Use the macro in the condition, exactly as the matched
+`Gp_AimPitchDirect` does:
+
+```c
+if (ABS(accum + (s16)step) < 0x1F4) {
+    accum += step;
+    ...
+}
+```
+
+99.05% -> 100%, with the operand order `accum + step` (not `step + accum`) to
+tie the add's destination to the load.
+
+**What did not work, and why it is still worth knowing.** Before the abs was
+understood, the register half was chased through `local-alloc`. The two local
+quantities were the extension (`sll` dying into `sra`, four refs summed) and
+the load (two refs): `QTY_CMP_PRI` ranks the extension higher, so it takes
+`$v0`. Naming the extension in a variable used by all three sites makes the
+`sra`'s destination global and splits the quantity, but the surviving `sll`
+and the load then tie at equal refs and span, and `qty_compare_1` breaks the
+tie by quantity number, which the earlier-born `sll` wins. Only writing the
+extension as two statements on one variable (`ext = step << 16; ext >>= 16;`)
+gives that pseudo two sets, which drops it out of `local-alloc` entirely
+(`REG_N_DEATHS == 1` is the entry condition) and leaves the load as the only
+local quantity in the block. That did reproduce the target's registers at
+99.18% - the point being that a tie in that sort is broken by birth order, so
+the lever is the *number of sets*, not the number of refs.

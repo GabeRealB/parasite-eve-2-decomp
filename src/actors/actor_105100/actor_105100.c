@@ -14,9 +14,11 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -1333,7 +1335,197 @@ INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105100/actor_105100", D_actor_105100_80131E90);
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80134B00);
+/// Per-frame handler of the glowing projectile this overlay spawns as its
+/// second enemy task, the middle entry of `D_actor_105100_80131E90`. Mode 1 of
+/// `D_801153F4` only redraws the billboard and mode 2 skips the frame.
+///
+/// `field_7A` steps the projectile through its life. It first hovers, jittering
+/// its coordinate by a per-axis offset the gameplay LCG draws and taking each
+/// offset only while the accumulated jitter stays inside its bound, and waits
+/// there for the parent's state: gone, and the task ends; ready, and a
+/// countdown launches it. It then turns onto its heading and starts
+/// accelerating, aims itself at the player, and flies, arming its two
+/// collision bodies once it is clear of the ground. The flight ends when the
+/// contact record reports a hit or the time runs out: the projectile is
+/// re-keyed and widened to the burst, which is spawned with its own effect and
+/// sound, and a last step fades the body out and destroys the task.
+void func_actor_105100_80134B00(Actor105100Ctx* arg0, Actor105100* arg1)
+{
+    Actor105100ProjWork*    work;
+    Actor105100Work*        parentWork;
+    GsCOORDINATE2*          coord;
+    Actor105100ProjScratch* scratch;
+    s32                     state;
+    u32                     rng;
+    u32                     hi;
+    s32                     val;
+    u16                     speed;
+    u16                     timer;
+    s32                     snd;
+    s32                     n;
+
+    work       = (Actor105100ProjWork*)arg1->field_1C;
+    coord      = arg1->field_2C->field_8;
+    parentWork = ((Actor105100*)arg1->parent)->field_1C;
+    state      = D_801153F4;
+    if (state == 1) {
+        func_actor_105100_80131EBC(coord, work->field_7E);
+        return;
+    }
+    if (state < 2) {
+        goto body;
+    }
+    if (state == 2) {
+        return;
+    }
+body:
+    *(Actor105100ProjScratch**)G_SCRATCH_HEAD -= 1;
+    scratch                                    = *(Actor105100ProjScratch**)G_SCRATCH_HEAD;
+    switch (work->field_7A) {
+        case 0:
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            hi          = rng >> 16;
+            val         = hi & 0x3F;
+            Gp_LcgState = rng;
+            if (!(hi & 0x40)) {
+                val = -val;
+            }
+            scratch->rot.vx = val;
+            if (ABS(work->field_70.vx + (s16)val) < 0x1F4) {
+                work->field_70.vx += val;
+                coord->coord.t[0] += scratch->rot.vx;
+            }
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            hi          = rng >> 16;
+            val         = hi & 0x3F;
+            Gp_LcgState = rng;
+            if (!(hi & 0x40)) {
+                val = -val;
+            }
+            scratch->rot.vy = val;
+            if (ABS(work->field_70.vy + (s16)val) < 0x1F4) {
+                work->field_70.vy += val;
+                coord->coord.t[1] += scratch->rot.vy;
+            }
+            rng         = Gp_LcgState * 5 + 0x71357911;
+            hi          = rng >> 16;
+            val         = hi & 0x3F;
+            Gp_LcgState = rng;
+            if (!(hi & 0x40)) {
+                val = -val;
+            }
+            scratch->rot.vz = val;
+            if (ABS(work->field_70.vz + (s16)val) < 0x1F4) {
+                work->field_70.vz += val;
+                coord->coord.t[2] += scratch->rot.vz;
+            }
+            if (parentWork->field_5AC == 0) {
+                arg1->state = 2;
+            }
+            if (parentWork->field_5AC == 2) {
+                timer          = work->field_78 - 1;
+                work->field_78 = timer;
+                if ((timer << 16) <= 0) {
+                    work->field_7A = 1;
+                    work->field_7C = 1;
+                    work->field_78 = 0;
+                }
+            }
+            goto update;
+        case 1:
+            scratch->rot.vx = 0x20;
+            scratch->rot.vy = 0;
+            scratch->rot.vz = 0;
+            RotMatrix(&scratch->rot, &scratch->mat);
+            gte_SetRotMatrix(&coord->coord);
+            gte_ldclmv(&scratch->mat);
+            gte_rtir_real();
+            gte_stclmv(&coord->coord);
+            gte_ldclmv((char*)&scratch->mat + 2);
+            gte_rtir_real();
+            gte_stclmv((char*)&coord->coord + 2);
+            gte_ldclmv((char*)&scratch->mat + 4);
+            gte_rtir_real();
+            gte_stclmv((char*)&coord->coord + 4);
+            speed          = work->field_7C * 2;
+            work->field_7C = speed;
+            if ((s16)speed >= 0x33) {
+                work->field_7C = 0x32;
+            }
+            coord->coord.t[0] += (coord->coord.m[0][2] * (s16)work->field_7C) >> 12;
+            coord->coord.t[1] += (coord->coord.m[1][2] * (s16)work->field_7C) >> 12;
+            coord->coord.t[2] += (coord->coord.m[2][2] * (s16)work->field_7C) >> 12;
+            timer              = work->field_78 + 1;
+            work->field_78     = timer;
+            if ((s16)timer >= 0x10) {
+                work->field_7A = 2;
+                work->field_78 = 0;
+            }
+            goto update;
+        case 2:
+            timer          = work->field_78 + 1;
+            work->field_78 = timer;
+            if ((s16)timer >= 3) {
+                scratch->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                scratch->vec.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                scratch->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                Gp_OrientAlong(&scratch->vec, &coord->coord, 0);
+                work->field_7A = 3;
+                work->field_78 = 0;
+                work->field_7C = 1;
+            }
+            goto update;
+        update:
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            func_actor_105100_80131EBC(coord, work->field_7E);
+            break;
+        case 3:
+            n = 4;
+            if ((s16)++work->field_78 == n) {
+                snd = ((arg1->field_20->field_8 >> 12) << 8) | 0x40330005;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            if (coord->coord.t[1] >= -0xF9F) {
+                work->obj0.flags  |= 0x8000;
+                work->obj38.flags |= 0x4000;
+            }
+            speed          = work->field_7C * 2;
+            work->field_7C = speed;
+            if ((s16)speed >= 0x12D) {
+                work->field_7C = 0x12C;
+            }
+            coord->coord.t[0] += (coord->coord.m[0][2] * (s16)work->field_7C) >> 12;
+            coord->coord.t[1] += (coord->coord.m[1][2] * (s16)work->field_7C) >> 12;
+            coord->coord.t[2] += (coord->coord.m[2][2] * (s16)work->field_7C) >> 12;
+            coord->flg         = 0;
+            Gp_UpdateCoord(coord);
+            func_actor_105100_80131EBC(coord, work->field_7E);
+            if (work->rec20.key != 0 || (s16)work->field_78 >= 0x1A) {
+                work->obj38.flags &= 0xBFFF;
+                Gp_ClearRec18Occupied(&work->rec20);
+                work->obj0.key    = Gp_PackPair(&D_actor_105100_80141380, 1);
+                work->obj0.radius = 0x1F4;
+                work->field_78    = 0x1E;
+                work->field_7A    = n;
+                Gp_SpawnEff(0x601A7, coord, 0, NULL);
+                snd = ((arg1->field_20->field_8 >> 12) << 8) | 0x40330006;
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            }
+            break;
+        case 4:
+            if ((s16)work->field_78 == 0x14) {
+                work->obj0.flags &= 0x7FFF;
+            }
+            timer          = work->field_78 - 1;
+            work->field_78 = timer;
+            if ((timer << 16) <= 0) {
+                arg1->state = 2;
+            }
+            break;
+    }
+    *(Actor105100ProjScratch**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
 {

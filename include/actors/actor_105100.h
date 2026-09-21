@@ -37,6 +37,47 @@ typedef struct Actor105100HitScratch {
 } Actor105100HitScratch;
 STATIC_ASSERT_SIZEOF(Actor105100HitScratch, 0x30);
 
+/// The work block of the glowing projectile this overlay spawns as a second
+/// enemy task, the 0x80 bytes its spawn handler asks `memCalloc` for. `obj0`
+/// is the body the collision lists carry and `rec20` the contact record whose
+/// key ends the flight; `obj38` is the second body, unlinked beside the first
+/// when the task is destroyed. The teardown handler reaches both of them
+/// through `Actor105100Work`, whose two bodies sit at the same offsets --
+/// whether the two blocks are really one type is unsettled, since nothing
+/// else in this overlay reads the bytes they have in common.
+///
+/// `field_70` accumulates the per-axis jitter the hover step applies to the
+/// coordinate, and the step holds that accumulation inside a fixed bound.
+/// `field_78` counts frames within the current step and `field_7A` selects
+/// it, `field_7C` is the speed the flight doubles each frame up to a cap, and
+/// `field_7E` is the size the billboard is drawn at.
+typedef struct Actor105100ProjWork {
+    /* 0x00 */ GpObj        obj0;
+    /* 0x20 */ GpRec18      rec20;
+    /* 0x38 */ GpObj        obj38;
+    /* 0x58 */ GpActorD4Rec pose;
+    /* 0x70 */ SVECTOR      field_70;
+    /* 0x78 */ u16          field_78;
+    /* 0x7A */ s16          field_7A;
+    /* 0x7C */ u16          field_7C;
+    /* 0x7E */ s16          field_7E;
+} Actor105100ProjWork;
+STATIC_ASSERT_SIZEOF(Actor105100ProjWork, 0x80);
+
+/// 0x38-byte scratch the projectile's per-frame handler takes from
+/// `G_SCRATCH_HEAD`: `rot` is the jitter offset it adds to the coordinate and,
+/// in the launch step, the rotation `RotMatrix` turns into `mat` before the
+/// GTE multiplies it into the coordinate; `vec` is the offset to the player
+/// the aiming step orients along. The size is pinned by the handler, which
+/// claims and releases the block by decrementing and incrementing the scratch
+/// head a whole element at a time.
+typedef struct Actor105100ProjScratch {
+    /* 0x00 */ MATRIX  mat;
+    /* 0x20 */ VECTOR  vec;
+    /* 0x30 */ SVECTOR rot;
+} Actor105100ProjScratch;
+STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
+
 /// The model object in `Actor105100::field_2C` (`Task::extra`), seen through
 /// this overlay: `field_8` is the object's trailing `GsCOORDINATE2` array and
 /// `field_1C` / `field_20` the light and colour matrices the spawn hands the
