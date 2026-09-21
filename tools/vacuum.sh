@@ -598,8 +598,7 @@ run_agent() {
   # {model}), so passing it again would hand the inner CLI a name it does not
   # know - claude answers "unrecognized_model" and falls back.
   [[ -n "${VACUUM_LAUNCH:-}" ]] && model=""
-  # Same precedence as model: a per-call override, then the role default. A
-  # legacy per-CLI variable still wins if someone set one explicitly.
+  # Same precedence as model: a per-call override, then the role default.
   local effort="${AGENT_EFFORT-${VACUUM_MATCH_EFFORT:-}}"
   local grok_rules=""
   if [[ -n "${AGENT_MAX_TURNS:-}" ]]; then
@@ -651,6 +650,13 @@ run_agent() {
         # auto-loaded. --rules injects MATCH_LOOP.md into the system prompt.
         # xhigh (VACUUM_MATCH_EFFORT) is closer to claude ultrathink.
         extra+=(--effort "${effort:-xhigh}" --cwd "$cwd")
+        # Named explicitly, like the other two arms: left out, the lane runs
+        # whatever ~/.grok/config.toml resolves, so a profile's model column or
+        # VACUUM_MODEL would be set and silently ignored. Empty when a launch
+        # wrapper already named the model, as the other arms handle it too.
+        if [[ -n "$model" ]]; then
+          extra+=(-m "$model")
+        fi
         if [[ -n "$grok_rules" ]]; then
           extra+=(--rules "$grok_rules")
         fi

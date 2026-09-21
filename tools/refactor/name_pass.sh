@@ -374,7 +374,8 @@ run_agent() {
       # grok emits the same NDJSON wire format on request, so the one formatter
       # renders both arms and a grok step reports its cost and turn count the
       # way a claude step does.
-      cmd=("${LAUNCH_CMD[@]}" --always-approve ${EFFORT:+--effort "$EFFORT"}
+      cmd=("${LAUNCH_CMD[@]}" --always-approve ${MODEL:+-m "$MODEL"}
+           ${EFFORT:+--effort "$EFFORT"}
            --cwd "$dir" ${RULES:+--rules "$ROOT/$RULES"})
       if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
         cmd+=(--output-format streaming-messages-json --include-partial-messages)
