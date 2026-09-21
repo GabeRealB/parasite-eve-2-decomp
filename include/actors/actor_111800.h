@@ -51,5 +51,6 @@ extern MATRIX* D_80073B8C[1];
 
 void func_actor_111800_8013214C(Task* task);
 void func_actor_111800_80132390(Task* task);
+void func_actor_111800_8013251C(Task* task);
 
 #endif

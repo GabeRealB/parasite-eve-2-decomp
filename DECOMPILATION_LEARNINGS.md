@@ -3,6 +3,41 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (func_actor_111800_8013251C, 2026-09-21)
+
+A three-state task handler whose cases 0 and 1 both increment `task->state` and
+then join a long common tail compiled with the task pointer in `$s3` and the
+part pointer in `$s2` (`regs=24` at 98.7%). `.lreg` had task `14/260` vs part
+`5/52`: `floor_log2(14)*14/260 = 0.161` loses to `2*5/52 = 0.192`. m2c's shared
+`advance:` label is one mention. Writing the increment in both arms is two:
+
+```
+case 0:
+    func_actor_111800_80132390(task);
+    task->state += 1;
+    break;
+case 1:
+    ...
+    func_80182360(x);
+    task->state += 1;
+    break;
+```
+
+`jump.c` still cross-jumps them into one block, so the object is the same
+shared increment the target has, but the pseudo is now `16/266` and
+`floor_log2(16)=4` flips the rank (`4*16/266 = 0.241`). A permuter
+`do { call; advance: inc; } while (0)` was the same lever via loop-weighted
+refs; the duplicated statements are the source form.
+
+The leftover `lw $a0, extra` vs `lw $v0, extra` was a second, independent
+two-definition pseudo: one `obj` holding `task->extra` both before the rotation
+calls and after them crosses those calls and conflicts with `$v0`. A separate
+`extra` that dies at `coords = extra->coords` puts the first load in `$v0` and
+lets `%hi(gGfxViewCoord)` reuse it after the coords load.
+
+Inputs: `base_5.i` (98.725%), `base_6.i` (99.111%), `base_7.i` (100%).
+
+
 ## `s16` compare-and-store emits `lh`+`lhu`; an `s32` temp is one `lh` (ActorsShared80131e24Sub1, 2026-09-21)
 
 An `s16` field used both as `if (field == 1)` and as the value stored to another `s16` expands to `lh` (`extendhisi2`, the compare) plus `lhu` (`movhi`, `-fforce-mem` reloading the HI store). Copying it into an `s32` first sign-extends once; the `sh` reuses that SI register, which is the target's `lh $v1` / `sh $v1`.

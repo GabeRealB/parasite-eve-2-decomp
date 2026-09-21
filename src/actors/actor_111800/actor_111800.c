@@ -6,11 +6,21 @@
 #include "main/tmd.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/gameplay.h"
 
 #include "actors/actor_111800.h"
+#include "actors/actors_shared_80132808.h"
+#include "psyq/inline_c.h"
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Main-executable globals with no module header yet: `D_80114C12` is the
+/// cutscene-mode flag and `D_80071075` is a live cutscene. `func_80182360` is
+/// the room overlay's handler the view-matrix test calls with `t[0]`.
+extern u8 D_80071075;
+extern s8 D_80114C12;
+void      func_80182360(s32);
 
 /// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].curRec`
 /// into `field_492`, then runs the seven-step sequence in `field_484` (reseed,
@@ -168,4 +178,108 @@ void func_actor_111800_80132390(Task* task)
     Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_111800/actor_111800", func_actor_111800_8013251C);
+/// `ActorsShared80132808_Accumulate` with the seed copy taken from `src`
+/// (`coords[5].coord`) rather than `arg0->coord`, so the 8-word load is
+/// `0x194(coords)` while `arg0` stays the part pointer.
+static __inline__ s32 Actor111800_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, MATRIX* src)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+
+    coord = arg0->sub;
+    view  = &gGfxViewCoord;
+    *arg1 = *src;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == view) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(arg1);
+        MatrixNormal(arg1, &matrix);
+        *arg1 = matrix;
+        coord = coord->sub;
+    }
+}
+
+/// Per-frame state machine. State 0 waits until no cutscene is up, then runs
+/// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
+/// `field_492`, and advances after `func_80182360` when the view matrix is in
+/// range. State 2 runs the sequence handler and kills the task once the
+/// session is idle. Every path but the state-0 wait then pitches part 5 by
+/// `field_494`, writes it back, yaws it through `ActorsShared80132808`, and
+/// rebuilds the colour matrix around part 1's translation.
+void func_actor_111800_8013251C(Task* task)
+{
+    MATRIX           mtx;
+    Actor111800Work* work;
+    Actor111800Work* ctx;
+    Actor111800Work* work2;
+    TmdObject*       extra;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   part;
+    MATRIX*          viewMtx;
+    s32              state;
+    s32              i;
+    s32              x;
+    u16              angle;
+
+    state = task->state;
+    work  = (Actor111800Work*)task->work;
+    switch (state) {
+        case 0:
+            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
+                func_actor_111800_80132390(task);
+                task->state += 1;
+                break;
+            }
+            return;
+        case 1:
+            ctx = work;
+            i   = 1;
+            do {
+                Gp_AnimTickIndex(&ctx->anim, i & 0xFFFF);
+                i += 1;
+            } while ((u32)(i & 0xFFFF) < 0x13U);
+            ctx->field_492 = ctx->slots[1].curRec;
+            viewMtx        = work->field_480;
+            x              = viewMtx->t[0];
+            if ((x >= 0x5DD && viewMtx->t[2] >= -0x513) || (x >= 0xC81 && viewMtx->t[2] < -0x514)) {
+                work->field_484 = 0;
+                func_80182360(x);
+                task->state += 1;
+            }
+            break;
+        case 2:
+            func_actor_111800_8013214C(task);
+            if (gGameSession->eventState == 0) {
+                taskKill(task);
+            }
+            break;
+    }
+    extra  = (TmdObject*)task->extra;
+    angle  = *(u16*)&work->field_494;
+    coords = extra->coords;
+    part   = coords + 5;
+    Actor111800_Accumulate(part, &mtx, &coords[5].coord);
+    RotMatrixX((s32)(s16)angle, &mtx);
+    ActorsShared80132808_Localize(part, &mtx);
+    Mem_CopyUnaligned(&mtx, &part->coord, 0x12U);
+    part->flg = 0;
+    Gp_UpdateCoord(part);
+    ActorsShared80132808(((TmdObject*)task->extra)->coords + 5, work->field_48C);
+    obj                 = (TmdObject*)task->extra;
+    work2               = (Actor111800Work*)task->work;
+    ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];
+    ((VECTOR*)&mtx)->vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
+    ((VECTOR*)&mtx)->vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+    func_800D7A9C(obj, (VECTOR*)&mtx, 0, 3);
+    ((VECTOR*)&mtx)->vz = 0x555;
+    ((VECTOR*)&mtx)->vy = 0x555;
+    ((VECTOR*)&mtx)->vx = 0x555;
+    ScaleMatrix(&work2->field_45C, (VECTOR*)&mtx);
+}
