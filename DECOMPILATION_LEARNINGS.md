@@ -137398,3 +137398,24 @@ gives that pseudo two sets, which drops it out of `local-alloc` entirely
 local quantity in the block. That did reproduce the target's registers at
 99.18% - the point being that a tie in that sort is broken by birth order, so
 the lever is the *number of sets*, not the number of refs.
+## A single-set compare is launched ahead of the load it should separate (`func_actor_104900_80135FDC`)
+
+Backward `sched1` gives `LAUNCH_PRIORITY` to a set whose pseudo has
+`REG_N_SETS == 1` and is live (`birthing_insn_p`). A `slti` of `field_B90`
+was that set, so it was scheduled before `extra->coords` and the pointer load
+could not sit in the compare's delay. Giving the coordinate its own local,
+written *after* the compare, makes both birth; the load's later LUID wins the
+tie, and the pointer stays in `$v0` across `slti`, which then takes `$v1`.
+
+An `addiu` straight into `$a0` does not birth: that hard register is set all
+over the function. At priority 1 it loses a tie to a `sh` on
+`potential_hazard` and comes out first. `SCHED_BARRIER()` after the store
+does not raise the addiu's priority; it only moves the earliest legal slot to
+just after the store, which is where a priority-1 insn sinks.
+
+The same hazard then put `addiu a0, a0, -8` before two single-set `lhu`s.
+`SOFT_TOUCH_REG2` on those temps is a second set and emits nothing, so
+`REG_N_SETS` stays 2, the loads lose the launch boost, and the still
+single-set addiu is placed after them. A `u16` temp used on the far side of
+the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
+`s32`.

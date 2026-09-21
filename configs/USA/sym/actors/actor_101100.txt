@@ -19,3 +19,4 @@ ActorsShared80137fb8ActorId = 0x80147490; // shared body data, see src/actors/li
 ActorsShared80137fb8 = 0x80137FB8; // shared body, see src/actors/lib/
 ActorsShared80138c6c = 0x80138C6C; // shared body, see src/actors/lib/
 ActorsShared801357f0 = 0x801357F0; // shared body, see src/actors/lib/
+ActorsShared80135fdc = 0x80135FDC; // shared body, see src/actors/lib/

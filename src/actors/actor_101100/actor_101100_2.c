@@ -10,19 +10,3 @@
 extern Actor101100StateFuncTable3 D_actor_101100_80131E24;
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_801359CC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80135FDC);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80136230);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_801366E8);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80136BD4);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80136F8C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80137498);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80137B1C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100_2", func_actor_101100_80137C88);
