@@ -195,6 +195,7 @@ void func_actor_323300_8016269C(Task* arg0);
 /// `func_actor_323300_801626F4` that re-dispatches on `field_4FE`.
 void func_actor_323300_801626EC(Task* arg0);
 void func_actor_323300_801626F4(Task* arg0);
+/// Re-aim one joint by `angle` about Y, then half that about X, in world space.
 void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);

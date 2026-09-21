@@ -3,6 +3,7 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_323300.h"
+#include "actors/actors_shared_80132808.h"
 
 #include "gameplay/3CD8.h"
 
@@ -460,7 +461,24 @@ void func_actor_323300_80162DF0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80163188);
+/// Same walk as `ActorsShared80132808`, then an extra `RotMatrixX(angle / 2)`
+/// after the yaw so the joint is pitched as well as turned.
+void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    ActorsShared80132808_Accumulate(coord, rotation, &gGfxViewCoord);
+    func_8004BFF8(angle, rotation);
+    RotMatrixX(angle / 2, rotation);
+    out = ActorsShared80132808_Localize(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 void func_actor_323300_801634B0(Task* arg0)
 {
