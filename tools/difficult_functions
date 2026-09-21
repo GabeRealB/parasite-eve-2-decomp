@@ -1,12 +1,15 @@
+func_actor_104900_80132D78 16 94.847
+func_actor_104900_80134780 13 94.873
+func_actor_104900_801359CC 29 99.755
+func_actor_104900_80135FDC 25 97.550
+func_actor_104900_80136BD4 28 98.782
+func_actor_104900_80136F8C 11 94.978
+func_actor_104900_80137498 22 95.710
 func_actor_105100_801347D4 14 71.512
 func_actor_105100_80134B00 19 99.052
 func_actor_361100_80161FF8 16 70.692
 func_actor_403200_8013B8C4 24 98.934
 func_actor_403200_8013FB54 17 99.676
-func_actor_104900_80132D78 16 94.847
-func_actor_104900_80134780 13 94.873
-func_actor_104900_801359CC 29 99.755
-func_actor_104900_80135FDC 25 97.550
 func_actor_421600_80133CAC 13 99.503
 func_dryfield_dilapidated_house_8017E8E8 13 92.000
 func_dryfield_dilapidated_house_801803A4 23 96.891
@@ -32,6 +35,3 @@ func_neo_ark_submarine_gallery_8017EABC 12 89.657
 func_shelter_b1_golem_freezer_1_8017DA7C 6 ~85%
 func_shelter_b1_golem_freezer_1_8017E254 5 ~87%
 func_shelter_b3_dumping_hole_80181560 7 98%
-func_actor_104900_80136BD4 28 98.782
-func_actor_104900_80136F8C 11 94.978
-func_actor_104900_80137498 22 95.710
