@@ -109,7 +109,12 @@ typedef struct ActorsShared80138efcWork {
     /// Compared against 1 (`lbu`) by the 0x80138B5C body, which skips its whole
     /// decay block while it is set.
     /* 0xBAB */ u8   field_BAB;
-    /* 0xBAC */ byte pad_BAC[0x2];
+    /// Lunge-exit gate read with `lbu` and compared against 0xB. Unsigned,
+    /// unlike the signed byte that follows it.
+    /* 0xBAC */ u8 field_BAC;
+    /// Frame within the lunge. Armed to -1, then stepped with an unsigned
+    /// read (`lbu`/`sb`) and tested signed (`lb`) against 1 and 0x2E.
+    /* 0xBAD */ s8 field_BAD;
     /* 0xBAE */ u8   field_BAE;
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
     /// trigger then compares against. The 0x80138B5C body gates the `field_B8E`

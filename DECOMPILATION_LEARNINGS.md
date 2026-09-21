@@ -3,6 +3,12 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## An empty asm blocks the jump.c const-hoist; a `$v1` pin has to be the loaded pointer (`func_actor_104900_80136F8C`, 2026-09-21)
+
+`jump.c` rewrites `if (cond) { x = a; goto L; } x = b` into `x = b; if (cond) goto L; x = a` when `x = b` is one `REG = CONST` set. That hoist put the countdown's 3 in the delay of a `beqz` and left the LCG nibble in `$a0`. `asm("")` immediately before `count = 3` is not a `single_set`, emits no instruction, and leaves 3 as the fallthrough `li $v0` so the nibble's `andi` stays in `$v1`.
+
+A block-scope `register MATRIX* mtx asm("v1")` at the caller was deleted: the copy into the inline argument is not a use that keeps the hard reg. The pin has to be the inline local the `lhu`s read (`src = arg0`), which emits `addiu $v1, $a1, 4` with no extra move. The destination must be born inside that inline, after the matrix address; `asm("" : "+r"(out))` emits nothing and stops sched1 sinking `addiu $v0` past the loads, so the first `sh` is `0($v0)`. The GTE ops have to use that same pointer. A second address expression after the barrier is not CSE'd and emits another `addiu`. Unpinning `$t4`..`$t6` spills the column copy (`stack=5`). Forcing the two pointers to overlap without the pin gives the shorter matrix local `$v0`, which is the home the target does not want.
+
 ## A call-free copy keeps `$a2`; declaration order picks the spill slot (`func_actor_104900_80136BD4`, 2026-09-21)
 
 `expand_preferences` merges hard-reg preferences along a dying copy *before*

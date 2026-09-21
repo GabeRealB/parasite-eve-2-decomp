@@ -11,8 +11,12 @@
 #include "main/sound.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/rand.h>
 
-extern u32       Gp_LcgState;
+extern u32 Gp_LcgState;
+/// Nonzero suppresses the step along the model's facing. This handler tests
+/// it against zero.
+extern u8        D_80072729;
 extern u8        D_actor_104900_80147480[];
 extern GpU16Pair D_actor_104900_801392F0[];
 extern TaskDesc  D_actor_104900_80147400[];
@@ -539,7 +543,225 @@ void func_actor_104900_80136BD4(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80136F8C);
+/// Distance to actor slot 3, squared, through the scratch pool. Each access of
+/// `G_SCRATCH_HEAD` is its own inline so the address stays a rematerialized
+/// `lui`/`lw` of `0x1F8003FC`, and the macro writes the caller's variable so
+/// the distance is one pseudo.
+static __inline__ u8* Actor104900_ScratchRead(void)
+{
+    return *(u8**)G_SCRATCH_HEAD;
+}
+
+static __inline__ void Actor104900_ScratchWrite(u8* p)
+{
+    *(u8**)G_SCRATCH_HEAD = p;
+}
+
+#define Actor104900_DistToPlayer(arg0, out)                           \
+    {                                                                 \
+        u8*            head;                                          \
+        SVECTOR*       vec;                                           \
+        GsCOORDINATE2* coord;                                         \
+        Task*          slot;                                          \
+                                                                      \
+        slot = gameGetPtrSlot(3);                                     \
+        if (slot == NULL) {                                           \
+            out = 0x7FFFFFFF;                                         \
+        } else {                                                      \
+            coord   = ((TmdObject*)slot->extra)->coords;              \
+            head    = Actor104900_ScratchRead();                      \
+            vec     = (SVECTOR*)(head - 8);                           \
+            vec->vx = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0]; \
+            vec->vy = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1]; \
+            Actor104900_ScratchWrite((u8*)vec);                       \
+            vec->vz = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2]; \
+            out     = Gfx_ApplyMatrixNoSf(vec, vec);                  \
+            Actor104900_ScratchWrite(Actor104900_ScratchRead() + 8);  \
+        }                                                             \
+    }
+
+/// Inlined `Gfx_MatrixCol2` plus the GPF that scales the copied column. The
+/// matrix is pinned to `$v1` and the destination is born next; the empty `+r`
+/// keeps that `addiu` ahead of the loads, and the GTE ops stay on the same
+/// pointer. `$t4`..`$t6` are the column, as in the out-of-line copy.
+static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* arg1, s32 scale)
+{
+    register MATRIX*  src asm("v1");
+    register short    t4 asm("t4");
+    register short    t5 asm("t5");
+    register short    t6 asm("t6");
+    volatile SVECTOR* out;
+
+    src = arg0;
+    out = arg1;
+    asm("" : "+r"(out));
+    t4      = src->m[0][2];
+    t5      = src->m[1][2];
+    t6      = src->m[2][2];
+    out->vx = t4;
+    out->vy = t5;
+    out->vz = t6;
+    gte_lddp(scale);
+    gte_ldsv((SVECTOR*)out);
+    gte_gpf12_real();
+    gte_stsv((SVECTOR*)out);
+}
+
+/// Lunge. The first frame, while the latch at 0xBA8 is clear, measures the
+/// squared distance to actor slot 3. No spawn argument and a target inside
+/// 0xA62B0F, or any target inside 0x1DE83F, consumes one `rand` in the first
+/// of those cases and stages state 0xF. Otherwise motion 9 is armed, a nibble
+/// of `Gp_LcgState` picks a 1/2/3 countdown at 0xB8C (under 5, under 0xC,
+/// else), the frame at 0xBAD is armed to -1 and the latch is stepped. The
+/// empty asm before the 3 is not a single set, so that arm stays a fallthrough
+/// `li`.
+///
+/// Later frames step 0xBAD while the motion id still matches and the clip has
+/// not finished, then `ActorsShared801357f0` supplies the yaw at 0xB90. While
+/// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
+/// at most 0x10 and the Y rotation is rebuilt. The same window steps
+/// `((frame - 13) * 900) / 33` and, while `D_80072729` is clear, adds the
+/// scaled facing column's X/Z onto the translation through the frame block's
+/// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
+///
+/// Frame 0x2E remeasures the distance. Seven draws in eight leave the lunge:
+/// `field_BAC` below 0xB and a yaw inside ±0x300 stage 0xC or 0xD from the
+/// sign, flipped by a further one draw in eight, and only while the new
+/// distance is inside 0xA62B0F. Anything else stages 0xB inside 0x89543F and
+/// 0xF beyond it.
+///
+/// Same body as the four twins — `func_actor_101100_80136F8C` at the same
+/// address, `func_actor_201100_8014EF8C` / `func_actor_204900_8014EF8C` 0x18000
+/// past it and `func_actor_301100_80166F8C` 0x30000 past. A shared span here
+/// would sit inside `_3`, ahead of `func_actor_104900_80137498`, and insert a
+/// new overlay-local run that renames `_4`..`_7`.
+void func_actor_104900_80136F8C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    GsCOORDINATE2*              actorCoords;
+    GsCOORDINATE2*              coords;
+    GpCoordPose*                pose;
+    ActorsShared80138efcMotion* motion;
+    s32                         dist;
+    s32                         dist2;
+    s32                         turn;
+    s32                         yaw;
+    s32                         yaw2;
+    s32                         scale;
+    s32                         frame;
+    s32                         n;
+    s32                         snd;
+    s16                         count;
+    u16                         angle;
+    u32                         rng;
+
+    if (work->field_BA8 == 0) {
+        actorCoords = ((TmdObject*)task->extra)->coords;
+        Actor104900_DistToPlayer(actorCoords, dist);
+        if ((task->spawnArg1 == 0) && (dist <= 0xA62B0F)) {
+            rand();
+            work->state     = 0xF;
+            work->field_BA8 = 0;
+            return;
+        }
+        if (dist <= 0x1DE83F) {
+            work->state     = 0xF;
+            work->field_BA8 = 0;
+            return;
+        }
+        rng             = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState     = rng;
+        work->field_BA4 = 9;
+        n               = (rng >> 16) & 0xF;
+        if (n < 5) {
+            count = 1;
+        } else if (n < 0xC) {
+            count = 2;
+        } else {
+            asm("");
+            count = 3;
+        }
+        work->field_B8C = count;
+        work->field_BAD = -1;
+        work->field_BA8 = (u8)work->field_BA8 + 1;
+    } else {
+        motion = &work->motion;
+        if ((work->motion.field_0 != work->field_BA4) ||
+            (work->field_BAD = (u8)work->field_BAD + 1, ((u16)motion->field_2 > (u16)motion->field_6))) {
+            work->field_BAD = -1;
+        }
+    }
+
+    ActorsShared801357f0(enemy, task, work, arg);
+    if ((u32)((u8)work->field_BAD - 1) < 0x2EU) {
+        turn = work->field_B90;
+        pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+        if (turn >= 0x11) {
+            pose->field_46 = (u16)pose->field_46 + 0x10;
+        } else if (turn < -0x10) {
+            pose->field_46 = (u16)pose->field_46 - 0x10;
+        } else {
+            pose->field_46 = (u16)pose->field_46 + turn;
+        }
+        angle          = (u16)pose->field_46 & 0xFFF;
+        pose->field_46 = angle;
+        Gfx_RotMatrixY(&pose->coord, angle, 1);
+        pose->flg = 0;
+        frame     = work->field_BAD;
+        scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
+        coords    = ((TmdObject*)task->extra)->coords;
+        if (D_80072729 == 0) {
+            Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->pad_0[0x10], scale);
+            coords->coord.t[0] += ((SVECTOR*)&arg->pad_0[0x10])->vx;
+            coords->coord.t[2] += ((SVECTOR*)&arg->pad_0[0x10])->vz;
+            coords->flg         = 0;
+        }
+    }
+    if (work->field_BAD == 0x2E) {
+        snd = 0x400B0001;
+        goto do_sound;
+    }
+    if (work->field_BAD == 1) {
+        snd = 0x400B0002;
+    do_sound:
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | snd | (work->field_B88 << 8), arg->pan, arg->depth);
+    }
+    if (work->field_BAD == 0x2E) {
+        actorCoords = ((TmdObject*)task->extra)->coords;
+        Actor104900_DistToPlayer(actorCoords, dist2);
+        if (rand() & 7) {
+            if (work->field_BAC < 0xBU) {
+                yaw = work->field_B90;
+                if (yaw < -0x300) {
+                    goto far_state;
+                }
+                if (yaw < 0x301) {
+                    goto close_state;
+                }
+            }
+        far_state:
+            if (dist2 <= 0x89543F) {
+                work->state = 0xB;
+            } else {
+                work->state = 0xF;
+            }
+            work->field_BA8 = 0;
+            return;
+        close_state:
+            if (dist2 <= 0xA62B0F) {
+                yaw2 = yaw;
+                if (!(rand() & 7)) {
+                    yaw2 = -yaw2;
+                }
+                if (yaw2 < 0) {
+                    work->state = 0xC;
+                } else {
+                    work->state = 0xD;
+                }
+                work->field_BA8 = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80137498);
 
