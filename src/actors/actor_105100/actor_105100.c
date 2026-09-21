@@ -1173,7 +1173,76 @@ done:
     return;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100", func_actor_105100_80135674);
+/// Reaction 0's handler (`field_40 == 0`), which walks the model along a
+/// two-leg path through `D_actor_105100_80141418`: `field_44`, then
+/// `field_44 + 3`. Pass 0 builds the first-leg aim, measures both legs and
+/// stores the per-frame step (total length over `obj38.pos.vx`) plus how many
+/// frames the first leg takes; pass 1 walks that step and re-aims at the
+/// second point when the countdown hits 0; pass 2 keeps walking.
+void func_actor_105100_80135674(Actor105100* arg0)
+{
+    Actor105100Work* work;
+    Actor105100Rec*  rec;
+    GsCOORDINATE2*   coord;
+    VECTOR*          head;
+    VECTOR*          vec;
+    s16              state;
+    s32              dx;
+    s32              dz;
+    s32              dx2;
+    s32              dz2;
+    s32              dist;
+    s32              speed;
+    s16              timer;
+
+    head                  = *(VECTOR**)0x1F8003FC;
+    vec                   = head - 1;
+    *(VECTOR**)0x1F8003FC = vec;
+    work                  = arg0->field_1C;
+    rec                   = (Actor105100Rec*)work;
+    state                 = rec->field_46;
+    coord                 = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
+            vec->vy = 0;
+            vec->vz = D_actor_105100_80141418[rec->field_44].vz - coord->coord.t[2];
+            VectorNormalS(vec, (SVECTOR*)&work->obj38);
+            dx      = vec->vx;
+            dz      = vec->vz;
+            dist    = SquareRoot0(dx * dx + dz * dz);
+            vec->vx = D_actor_105100_80141418[rec->field_44 + 3].vx -
+                      D_actor_105100_80141418[rec->field_44].vx;
+            vec->vy = 0;
+            dz2     = D_actor_105100_80141418[rec->field_44 + 3].vz -
+                  D_actor_105100_80141418[rec->field_44].vz;
+            vec->vz            = dz2;
+            dx2                = vec->vx;
+            speed              = (dist + SquareRoot0(dx2 * dx2 + dz2 * dz2)) / work->obj38.pos.vx;
+            rec->field_46      = 1;
+            work->obj38.pos.vz = speed;
+            work->obj38.pos.vy = dist / (s16)speed;
+            break;
+        case 1:
+            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
+            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
+            timer              = (u16)work->obj38.pos.vy - 1;
+            work->obj38.pos.vy = timer;
+            if ((timer << 16) <= 0) {
+                vec->vx = D_actor_105100_80141418[rec->field_44 + 3].vx - coord->coord.t[0];
+                vec->vy = 0;
+                vec->vz = D_actor_105100_80141418[rec->field_44 + 3].vz - coord->coord.t[2];
+                VectorNormalS(vec, (SVECTOR*)&work->obj38);
+                rec->field_46 = 2;
+            }
+            break;
+        case 2:
+            coord->coord.t[0] += (((SVECTOR*)&work->obj38)->vx * work->obj38.pos.vz) >> 12;
+            coord->coord.t[2] += (((SVECTOR*)&work->obj38)->vz * work->obj38.pos.vz) >> 12;
+            break;
+    }
+    *(VECTOR**)0x1F8003FC += 1;
+}
 
 /// Reaction 1's handler (`field_40 == 1`), which walks the model towards the
 /// approach point `field_44` selects from `D_actor_105100_80141418`. The first
