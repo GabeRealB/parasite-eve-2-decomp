@@ -85,6 +85,15 @@ typedef struct Actor403200Msg3F8 {
 } Actor403200Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor403200Msg3F8, 0x18);
 
+/// Position and Euler rotation the launch tick sends slot 3 as message 0x3E9.
+/// `rot.vy` is also named `D_actor_403200_8015F9D2`, which the same tick stores
+/// the placement yaw through.
+typedef struct Actor403200MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor403200MsgPos;
+STATIC_ASSERT_SIZEOF(Actor403200MsgPos, 0x18);
+
 /// One of the nine back-to-back collision groups in `Actor403200Work` at
 /// 0x7F4. `obj` is the `GpObj` the gameplay collision list carries and `recs`
 /// is the `GpRec18` table it fills in for that part, which is why the stride is
@@ -142,6 +151,30 @@ typedef struct Actor403200TurnScratch {
     /* 0x08 */ s32     field_8;
 } Actor403200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
+
+/// 0x54-byte scratchpad frame the launch tick carves off `SCRATCH_SP`. `dir`
+/// starts as the player-relative offset in the arena plane, is renormalised
+/// and then scaled by the per-frame pull the animation frame selects; `pos` is
+/// the host's fifth part in view space, which the yaw `angle` and the message
+/// 0x3E9 placement are both built from. `push` is the 32-bit triple
+/// `func_80105B74` copies onto the player, `dist` is the offset's length, and
+/// `pull` / `period` are the phase strength and the script-spawn interval.
+typedef struct Actor403200DragScratch {
+    /* 0x00 */ VECTOR3 push;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ SVECTOR pos;
+    /* 0x20 */ byte    pad_20[0x20];
+    /* 0x40 */ s32     dist;
+    /* 0x44 */ byte    pad_44[0x4];
+    /* 0x48 */ s16     angle;
+    /* 0x4A */ byte    pad_4A[0x2];
+    /* 0x4C */ s16     pull;
+    /* 0x4E */ s16     i;
+    /* 0x50 */ s16     period;
+    /* 0x52 */ byte    pad_52[0x2];
+} Actor403200DragScratch;
+STATIC_ASSERT_SIZEOF(Actor403200DragScratch, 0x54);
 
 /// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
 /// `SCRATCH_SP` for the escort-spawn tick: `delta` is the player-relative
@@ -342,7 +375,10 @@ typedef struct Actor403200Work {
     /// Cleared by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFE`.
     /* 0xEFE */ s16  field_EFE;
-    /* 0xF00 */ byte pad_F00[0x4];
+    /* 0xF00 */ byte pad_F00[0x2];
+    /// Raised to 1 with the message 0x3F4 the launch tick sends the player
+    /// once the hold has been taken. Same slot as `Actor444000Work::field_F02`.
+    /* 0xF02 */ s16 field_F02;
     /// Armed by the model-reset path in func_actor_403200_8013E2FC.
     /* 0xF04 */ s16 field_F04;
     /// Cleared by the per-frame body once `field_6` has passed 0x14. Same slot

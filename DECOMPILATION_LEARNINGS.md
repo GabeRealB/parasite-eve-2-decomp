@@ -3,6 +3,24 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `+m` on the stored field stops CSE forwarding; a full memory clobber is wider (`func_actor_403200_8013B8C4`, 2026-09-21)
+
+A `sh` of `dir.vz` followed by `ratan2(dir.vx, dir.vz)` lets CSE substitute the
+SI subtraction for the argument load. The call then keeps that value in `$a1`
+and sign-extends it with `sll`/`sra` instead of `lh`. `TOUCH_MEM` (`"m"`
+input only) does not invalidate the entry. `asm("" : "+m"(dir.vz))` is a write
+of that MEM, so `cse.c` invalidates it: the subtraction dies at the `sh` in
+`$v0` (same shape as the `vx` half) and the call reloads `lh $a1`. A
+`::: "memory"` clobber does the invalidation too, but it also blocks a
+non-aliasing `lh` of a sibling field from scheduling into the middle of the
+subtraction, which the target still does.
+
+An `s16` temporary for the same kind of reload is a HI load (`lhu`) plus
+`sll`/`sra` before the `addu`. Declaring it `s32` makes the load
+`extendhisi2` (`lh`) straight into the add. Storing `s32 ext = ang` and then
+`abs(ext)` ties the `sh` to the `sra` result in `$v0`, so delay-slot filling
+cannot sink it past `abs`'s `negu` the way a surviving HI copy in `$v1` can.
+
 ## A `u16` `|=` is a new SI temporary, so `ori` cannot be in-place (`func_actor_403200_8013FB54`, 2026-09-21)
 
 `a = flags | 0x8000` and `b |= 0x8000` on a `u16` promote through `iorsi3` in

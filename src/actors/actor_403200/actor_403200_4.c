@@ -59,9 +59,22 @@ extern Task* D_actor_403200_8015F8F0;
 
 void func_8010C980(GsCOORDINATE2* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 
-/// World point the launch tick hands the player as message 0x3E9, built from
-/// the host model's root coordinate.
-extern VECTOR3 D_actor_403200_8015F9C0;
+/// Position and Euler rotation the launch tick sends the player as message
+/// 0x3E9. The yaw halfword at `rot.vy` is also `D_actor_403200_8015F9D2`.
+extern Actor403200MsgPos D_actor_403200_8015F9C0;
+extern s16               D_actor_403200_8015F9D2;
+
+/// View-space point the launch tick clears and fills from the host's fourth
+/// model part on a state change.
+extern SVECTOR D_actor_403200_8015F8F8;
+
+/// Animation table handed to the player when the placement yaw is outside
+/// +/-0x400; `D_actor_403200_8015E6AC` is the table inside that range.
+extern GpAnimSet* D_actor_403200_8015E6CC[];
+
+/// Script pair the launch tick spawns on the frames its phase selects.
+extern s32 D_actor_403200_80141C7C;
+extern s32 D_actor_403200_80141C88;
 
 /// Non-zero while the overlay is shutting down, which is what makes the
 /// state-selecting tick below hold `field_6` at zero and re-roll its sub-state.
@@ -1895,7 +1908,360 @@ spawnNext:
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_8013B8C4);
+/// Per-frame body of the launch state's pull. A state change re-arms the
+/// escorts and tells the scene (message 0x7DA, action 0x2C). Each tick yaws
+/// the enemy toward the player and scales a pull from the animation frame;
+/// inside the swipe window, once the player accepts message 0x3F8, it places
+/// them (0x3E9) and hands over an animation (0x3F4).
+void func_actor_403200_8013B8C4(Task* arg0)
+{
+    Actor403200Work*        work;
+    Actor403200Work*        escorts;
+    Actor403200Work*        dying;
+    GpEnemy*                enemy;
+    Task*                   task;
+    PlayerStatus*           cfg;
+    Actor403200DragScratch* sc;
+    SVECTOR*                posp;
+    s16                     i;
+    s16                     j;
+
+    work  = (Actor403200Work*)arg0->work;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    task  = gameGetPtrSlot(3);
+    cfg   = &Player_Status;
+    sc    = (Actor403200DragScratch*)(SCRATCH_SP -= sizeof(Actor403200DragScratch));
+
+    if (work->field_4 != 0) {
+        work->field_F1D                  = 3;
+        work->field_7B3                  = 3;
+        work->field_7B0                  = 2;
+        escorts                          = (Actor403200Work*)arg0->work;
+        escorts->field_7F3               = 0;
+        ((TmdObject*)arg0->extra)->flags = 0;
+        for (i = 0; i < 7; i++) {
+            if (escorts->field_ECC[i] != NULL) {
+                ((TmdObject*)escorts->field_ECC[i]->task->extra)->flags =
+                    ((TmdObject*)arg0->extra)->flags;
+            }
+        }
+        dying = (Actor403200Work*)arg0->work;
+        Tmd_AllocBuffers((TmdObject*)arg0->extra);
+        for (j = 0; j < 7; j++) {
+            if (dying->field_ECC[j] != NULL) {
+                Tmd_AllocBuffers((TmdObject*)dying->field_ECC[j]->task->extra);
+            }
+        }
+        {
+            SVECTOR* p = &D_actor_403200_8015F8F8;
+            SOFT_USE_REG(p);
+            posp = p;
+            SOFT_USE_REG(posp);
+        }
+        work->field_EFE = 0;
+        work->field_EF4 = 1;
+        work->field_EF6 = 1;
+        work->field_F04 = 0;
+        work->field_EFA = 0;
+        posp->vz        = 0;
+        posp->vy        = 0;
+        posp->vx        = 0;
+        Actor403200_LocalToView(&((TmdObject*)arg0->extra)->coords[3], posp);
+        D_actor_403200_8015F8F4.field_0 = 0;
+        D_actor_403200_8015F8F4.field_1 = 0x2C;
+        D_actor_403200_8015F8F4.field_2 = 2;
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        {
+            s16 armed               = 1;
+            work->field_E96         = 0xC80;
+            D_actor_403200_80141C5A = armed;
+        }
+    }
+
+    func_actor_403200_80133DD8(arg0);
+
+    {
+        GsCOORDINATE2* facing;
+        GsCOORDINATE2* yawCoord;
+        SVECTOR*       dirp;
+        s16            dz;
+        s16            ang;
+
+        facing     = ((TmdObject*)arg0->extra)->coords;
+        dirp       = &sc->dir;
+        sc->dir.vx = *(u16*)&Player_Status.coordMtx->t[0] - *(u16*)&facing->coord.t[0];
+        dirp->vy   = *(u16*)&Player_Status.coordMtx->t[1] - *(u16*)&facing->coord.t[1];
+        dz         = *(u16*)&Player_Status.coordMtx->t[2] - *(u16*)&facing->coord.t[2];
+        dirp->vz   = dz;
+        yawCoord   = ((TmdObject*)arg0->extra)->coords;
+        ang        = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
+        if (ang < 0) {
+        wrapUp:
+            if (ang < -0x800) {
+                ang += 0x1000;
+                goto wrapUp;
+            }
+        } else {
+        wrapDown:
+            if (ang > 0x800) {
+                ang -= 0x1000;
+                goto wrapDown;
+            }
+        }
+        work->field_7C4 = ang;
+    }
+
+    sc->dir.vz = 0;
+    sc->dir.vy = 0;
+    sc->dir.vx = 0;
+    Actor403200_LocalToView(&((TmdObject*)arg0->extra)->coords[4], &sc->dir);
+
+    sc->dir.vx = *(u16*)&((TmdObject*)task->extra)->coords->coord.t[0] - (u16)sc->dir.vx;
+    sc->dir.vy = *(u16*)&((TmdObject*)task->extra)->coords->coord.t[1] - (u16)sc->dir.vy;
+    sc->dir.vz = *(u16*)&((TmdObject*)task->extra)->coords->coord.t[2] - (u16)sc->dir.vz;
+    sc->dist   = sc->dir.vx * sc->dir.vx;
+    sc->dist  += sc->dir.vz * sc->dir.vz;
+    sc->dist   = SquareRoot0(sc->dist);
+    VectorNormalSS(&sc->dir, &sc->dir);
+
+    switch (work->field_F08) {
+        case 0:
+            sc->period = 0x14;
+            break;
+        case 1:
+            sc->period = 0x10;
+            break;
+        case 2:
+        default:
+            sc->period = 0xC;
+            break;
+    }
+    if (((u32)((work->field_4A & 0x3FF) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
+        Gp_SpawnScript18((s32)&D_actor_403200_80141C7C, (s32)&D_actor_403200_80141C88);
+    }
+
+    switch (work->field_F08) {
+        case 0:
+            sc->pull = 0;
+            break;
+        case 1:
+            sc->pull = 5;
+            break;
+        case 2:
+        default:
+            sc->pull = 0xA;
+            break;
+    }
+
+    if (work->field_6 == 0xA) {
+        s32 sfx;
+        s32 pan;
+
+        sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200017;
+        pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    }
+    if (work->field_6 == 0x3C) {
+        s32 sfx;
+        s32 pan;
+
+        sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x4020000A;
+        pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    }
+    if (work->field_6 == 0xE8) {
+        SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
+    }
+
+    work->field_EFA = 1;
+    switch (work->field_4A & 0x3FF) {
+        case 9:
+            gte_lddp(-(sc->pull + 0x19) / 4);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x180;
+            break;
+        case 10:
+            gte_lddp(-(sc->pull + 0x19) / 2);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            break;
+        case 11:
+        case 13:
+        case 15:
+            gte_lddp(-(sc->pull + 0x19));
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x2B2;
+            break;
+        case 12:
+        case 14:
+            gte_lddp(-((sc->pull + 0x19) * 3) / 2);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x500;
+            break;
+        case 16:
+            gte_lddp(-(sc->pull + 0x19) / 3);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x100;
+            break;
+        case 17:
+        case 18:
+            gte_lddp(-(sc->pull + 0x19) / 3);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0x400;
+            break;
+        case 19:
+        case 20:
+            sc->dir.vz = 0;
+            sc->dir.vx = 0;
+            gte_lddp(-(sc->pull + 0x19) / 6);
+            gte_ldsv(&sc->dir);
+            gte_gpf12_real();
+            gte_stsv(&sc->dir);
+            work->field_EFE = 0;
+            break;
+        default:
+            work->field_EFA = 0;
+            sc->dir.vz      = 0;
+            sc->dir.vx      = 0;
+            break;
+    }
+
+    if (((u32)((work->field_4A & 0x3FF) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
+        (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0)) {
+        GsCOORDINATE2* yawCoord;
+        GsCOORDINATE2* facing;
+        SVECTOR*       dirp;
+        s16            ang;
+
+        work->field_0   = 0xD;
+        work->field_EC8 = 1;
+        sc->pos.vz      = 0;
+        sc->pos.vy      = 0;
+        sc->pos.vx      = 0;
+        Actor403200_LocalToView(&((TmdObject*)arg0->extra)->coords[4], &sc->pos);
+
+        sc->dir.vx = *(u16*)&((TmdObject*)task->extra)->coords->coord.t[0] - (u16)sc->pos.vx;
+        sc->dir.vy = 0;
+        sc->dir.vz = *(u16*)&((TmdObject*)task->extra)->coords->coord.t[2] - (u16)sc->pos.vz;
+        __asm__("" : "+m"(sc->dir.vz));
+        yawCoord = ((TmdObject*)arg0->extra)->coords;
+        ang      = ratan2(sc->dir.vx, sc->dir.vz) -
+              ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
+        if (ang < 0) {
+        wrapUp2:
+            if (ang < -0x800) {
+                ang += 0x1000;
+                goto wrapUp2;
+            }
+        } else {
+        wrapDown2:
+            if (ang > 0x800) {
+                ang -= 0x1000;
+                goto wrapDown2;
+            }
+        }
+        dirp            = &sc->dir;
+        work->field_7C4 = ang;
+        VectorNormalSS(dirp, dirp);
+        gte_lddp(0x384);
+        gte_ldsv(dirp);
+        gte_gpf12_real();
+        gte_stsv(dirp);
+
+        D_actor_403200_8015F9C0.pos.vx = sc->pos.vx + sc->dir.vx;
+        D_actor_403200_8015F9C0.pos.vy = ((TmdObject*)task->extra)->coords->coord.t[1];
+        {
+            s32 pz = sc->pos.vz;
+            s32 dz = sc->dir.vz;
+
+            D_actor_403200_8015F9C0.rot.vx = 0;
+            D_actor_403200_8015F9C0.rot.vz = 0;
+            D_actor_403200_8015F9C0.pos.vz = pz + dz;
+        }
+        {
+            u16 px = (u16)sc->pos.vx;
+            u16 mx = (u16)D_actor_403200_8015F9C0.pos.vx;
+
+            sc->dir.vy = 0;
+            sc->dir.vx = px - mx;
+        }
+        sc->dir.vz = (u16)sc->pos.vz - (u16)D_actor_403200_8015F9C0.pos.vz;
+        facing     = ((TmdObject*)task->extra)->coords;
+        ang        = ratan2(sc->dir.vx, dirp->vz) -
+              ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        if (ang < 0) {
+        wrapUp3:
+            if (ang < -0x800) {
+                ang += 0x1000;
+                goto wrapUp3;
+            }
+        } else {
+        wrapDown3:
+            if (ang > 0x800) {
+                ang -= 0x1000;
+                goto wrapDown3;
+            }
+        }
+        {
+            s32 ext = ang;
+
+            sc->angle = ext;
+            if (abs(ext) < 0x400) {
+                D_actor_403200_8015F9D2 = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
+                work->field_EB0.field_0 = D_actor_403200_8015E6AC;
+            } else {
+                D_actor_403200_8015F9D2 = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
+                work->field_EB0.field_0 = D_actor_403200_8015E6CC;
+            }
+        }
+        if (cfg->hp > 0) {
+            Gp_DispatchMsg(task, 0x3E9, (s32)&D_actor_403200_8015F9C0, 0);
+        }
+        work->field_EB0.field_4 = 1;
+        work->field_EB0.field_8 = 0;
+        work->field_EB0.field_C = 0;
+        work->field_F02         = 1;
+        Gp_DispatchMsg(task, 0x3F4, (s32)&work->field_EB0, 0);
+        work->field_7CA = 0;
+    }
+
+    if (sc->dir.vx != 0 || sc->dir.vz != 0) {
+        sc->push.vx = sc->dir.vx;
+        sc->push.vy = 0;
+        sc->push.vz = sc->dir.vz;
+        func_80105B74(&sc->push);
+    }
+
+    if (work->field_58 & 1) {
+        D_actor_403200_8015F8F4.field_0 = 0;
+        D_actor_403200_8015F8F4.field_1 = 0x2C;
+        D_actor_403200_8015F8F4.field_2 = 3;
+        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
+        D_actor_403200_80141C5A = 0;
+        work->field_7F2         = 0;
+        work->field_0           = 0xA;
+        for (sc->i = 0; sc->i < 2; sc->i++) {
+            work->field_EE8[sc->i] = NULL;
+        }
+        work->field_F1C = 0;
+    }
+    if (work->field_6 == 0x14) {
+        work->field_F06 = 2;
+    }
+
+    SCRATCH_SP += sizeof(Actor403200DragScratch);
+}
 
 /// State-change reset for the enemy's launch state, and the tick that walks it
 /// out of sub-state 0xF into 0xE.
@@ -2077,9 +2443,9 @@ void func_actor_403200_8013C84C(Task* arg0)
         work->field_7A8 = work->field_9A & 0x3FF;
     }
     if ((Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
-        D_actor_403200_8015F9C0.vx = ((TmdObject*)arg0->extra)->coords[0].coord.t[0];
-        D_actor_403200_8015F9C0.vy = ((TmdObject*)arg0->extra)->coords[0].coord.t[1];
-        D_actor_403200_8015F9C0.vz = ((TmdObject*)arg0->extra)->coords[0].coord.t[2];
+        D_actor_403200_8015F9C0.pos.vx = ((TmdObject*)arg0->extra)->coords[0].coord.t[0];
+        D_actor_403200_8015F9C0.pos.vy = ((TmdObject*)arg0->extra)->coords[0].coord.t[1];
+        D_actor_403200_8015F9C0.pos.vz = ((TmdObject*)arg0->extra)->coords[0].coord.t[2];
         Gp_DispatchMsg(task, 0x3E9, (s32)&D_actor_403200_8015F9C0, 0);
         D_actor_403200_8015F8E0 = 1;
     }
