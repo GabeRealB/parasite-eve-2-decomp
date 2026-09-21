@@ -18,6 +18,24 @@ if (pulse == 1) {
 ```
 
 A same-block nested `if (work->field_2E != 0) { work->field_24 = 3; if (work->field_2E != 0) ... }` keeps a copy+`beqz` of the first load (`move $v1,$v0; li $v0,3; beqz $v1`). Naming the load once as `s16 temp` lets jump_optimize delete the inner test.
+## Named loop-invariant hoists before a preceding `jal`; a literal rematerializes in the delay slot (func_actor_120300_80132C60, 2026-09-21)
+
+Case 8 does `Gp_DispatchMsg(…); i = 1; loop { slots[i].rate = 0x10; … }`. Writing `n = 0x10` after the jal still placed `li $s2, 0x10` *before* the call and `li $s0, 1` in the delay slot. Inlining the literal (`slots[(u16)i].rate = 0x10` with no `n` in that case) schedules `i = 1` with the argument setup and rematerializes `0x10` in the delay slot.
+
+```
+Gp_DispatchMsg(arg0, 0x7D4, msg, 0);
+Gp_DispatchMsg(work->field_4BC, 0x7D4, msg + 0x30, 0);
+animWork = arg0->work;
+animWork->field_4D4 = 8;
+i = 1;
+do {
+    animWork->slots[(u16)i].rate = 0x10; /* not n */
+    Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+    i++;
+} while ((u16)i < 0x14U);
+```
+
+A switch on an unsigned halfword that includes `case 0:` (even empty, shared with `default`) keeps `sltiu 0x14`. Dropping case 0 emits `addiu -1; sltiu 0x13`. Merging per-case `10`/`0x10` literals into one `s32 n` can swap `$s2`/`$s3` with a long-lived pointer (`work`) by raising the constant's weighted refs.
 
 ## Two `&vec` takes across a call CSE into `$s2` and bump `arg0` to `$s3` (func_actor_120300_801337C4, 2026-09-21)
 
