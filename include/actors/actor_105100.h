@@ -14,6 +14,18 @@ typedef struct Actor105100TurnScratch {
 } Actor105100TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor105100TurnScratch, 0x18);
 
+/// 0x44 bytes `func_actor_105100_80133CE4` carves from `G_SCRATCH_HEAD`: the
+/// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the
+/// player delta with its normalised direction.
+typedef struct Actor105100AttackScratch {
+    /* 0x00 */ GpAnimArg anim;
+    /* 0x14 */ VECTOR    pos;
+    /* 0x24 */ SVECTOR   rot;
+    /* 0x2C */ VECTOR    delta;
+    /* 0x3C */ SVECTOR   dir;
+} Actor105100AttackScratch;
+STATIC_ASSERT_SIZEOF(Actor105100AttackScratch, 0x44);
+
 /// The model object in `Actor105100::field_2C` (`Task::extra`), seen through
 /// this overlay: `field_8` is the object's trailing `GsCOORDINATE2` array and
 /// `field_1C` / `field_20` the light and colour matrices the spawn hands the
@@ -81,9 +93,10 @@ typedef struct Actor105100Work {
     /* 0x59A */ u16        field_59A;
     /* 0x59C */ u16        field_59C;
     /* 0x59E */ u16        field_59E;
-    /* 0x5A0 */ byte       pad_5A0[2];
-    /* 0x5A2 */ s16        field_5A2;
-    /* 0x5A4 */ byte       pad_5A4[4];
+    /* 0x5A0 */ s16        field_5A0; // sign of the player offset dotted with the player's facing axis
+    /* 0x5A2 */ s16        field_5A2; // non-zero while the attack body is running; the body clears it when it finishes
+    /* 0x5A4 */ s16        field_5A4; // state of the attack body `func_actor_105100_80133CE4`
+    /* 0x5A6 */ u16        field_5A6; // its frame counter
     /* 0x5A8 */ s16        field_5A8;
     /* 0x5AA */ s16        field_5AA;
     /* 0x5AC */ s16        field_5AC;
