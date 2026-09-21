@@ -15,20 +15,28 @@
 /// 0x1C slot, so the size below is the allocation and not a guess. Every
 /// other function in the overlay reaches the block through the global.
 ///
-/// `anim` is the animation context `Gp_AnimTickIndex` and friends walk.
+/// The leading matrices are the ones the actor renders through — the overlay's
+/// spawn handler hands `&light` and `&color` to the object's `lightMtx` /
+/// `colorMtx`. `anim` / `slots` / `field_34C` are what `func_800B3F84` fills in.
 /// `field_480` is the animation id the slots are seeded from; once they are
 /// started it is latched into `field_47E`.
 typedef struct Actor151000Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
-    /* 0x34C */ byte       pad_34C[0x132];
-    /* 0x47E */ u16        field_47E;   // animation id currently playing
-    /* 0x480 */ u16        field_480;   // animation id the slots are seeded with
+    /* 0x34C */ byte       field_34C;
+    /* 0x34D */ byte       pad_34D[0x12F];
+    /* 0x47C */ s16        field_47C;
+    /* 0x47E */ u16        field_47E; // animation id currently playing
+    /* 0x480 */ u16        field_480; // animation id the slots are seeded with
     /* 0x482 */ byte       pad_482[0x2C];
-    /* 0x4AE */ u16        yaw;         // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4B0 */ byte       pad_4B0[0x8];
-    /* 0x4B8 */ GpAnimRec* field_4B8;   // last `Gp_AnimGetRec` result, to detect a change
+    /* 0x4AE */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        field_4B2;
+    /* 0x4B4 */ s16        field_4B4;
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ GpAnimRec* field_4B8; // last `Gp_AnimGetRec` result, to detect a change
     /* 0x4BC */ byte       pad_4BC[0x4];
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
