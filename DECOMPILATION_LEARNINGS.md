@@ -3,6 +3,20 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reused `s16` loop bound reloads into `$v0`; `s32` keeps `$t2` (func_actor_323300_80162A6C, 2026-09-21)
+
+A count loaded from an `s16` field, used as `if (count > 0) do … while (i < count)`, then reassigned for a second loop, was sunk to the branch as `lh $v0` and copied (`move $t3, $v0` / `move $a0, $v0`) because `$v0` is the loop's `lhu` dest. That also left `field_14 * 8` in `$a1` and rotated the walking-pointer homes.
+
+`s32 count = arg1->field_16` allocates a SI temp (`$t2`) at the assignment. The early `lh $t2` lives through both loops, `$v0` stays free for the scaled offset, and the first-loop registers fall out as `$a0`/`$t0`/`$a1`.
+
+```
+s32 count;
+s32 i;
+
+i = 0;
+count = arg1->field_16; /* s16 field, s32 local */
+```
+
 ## Copy a parameter into a local to drop REG_EQUIV live-length doubling (func_actor_105100_80134284, 2026-09-21)
 
 `$s3`/`$s4` were swapped between the `Actor105100*` parameter and a `GsCOORDINATE2*` loaded from it at the top of the function. Topology already matched; the leftover was global allocation.

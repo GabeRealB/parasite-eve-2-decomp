@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 
 #include "actors/actor_323300.h"
 #include "actors/actors_shared_80132808.h"
@@ -9,6 +10,9 @@
 
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `GpRec18` collision table and the display node at +0x480, then
@@ -297,7 +301,73 @@ INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_801629F0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300", func_actor_323300_80162A6C);
+void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
+{
+    s32        i;
+    s32        count;
+    s32        off;
+    TmdSource* src;
+    u16*       dst;
+    u16*       from;
+    u16*       dstMid;
+    u16*       fromMid;
+    SVECTOR*   nrm;
+    SVECTOR*   nrmA;
+    SVECTOR*   nrmB;
+    SVECTOR*   nrmDst;
+    s32        blend;
+    s32        inv;
+    u16        vx;
+    u16        vz;
+
+    i     = 0;
+    count = arg1->field_16;
+    src   = ((TmdObject*)arg0->extra)->source;
+    off   = arg1->field_14 * 8;
+    from  = (u16*)((u8*)arg1->field_8 + off);
+    nrm   = src->normals;
+    dst   = (u16*)((u8*)src->verts + off);
+    if (count > 0) {
+        fromMid = from + 2;
+        dstMid  = dst + 2;
+        do {
+            vx         = *from;
+            from      += 4;
+            i         += 1;
+            *dst       = vx;
+            dst       += 4;
+            dstMid[-1] = fromMid[-1];
+            vz         = fromMid[0];
+            fromMid   += 4;
+            dstMid[0]  = vz;
+            dstMid    += 4;
+        } while (i < count);
+    }
+    blend = arg2;
+    inv   = 0x1000 - blend;
+    gteMIMefunc(src->verts + arg1->field_14, arg1->field_0, arg1->field_16, blend);
+    nrmA = (SVECTOR*)arg1->field_4;
+    if (nrmA != NULL) {
+        count = arg1->field_12;
+        nrmB  = arg1->field_C;
+        i     = 0;
+        if (count > 0) {
+            do {
+                gte_lddp(blend);
+                gte_ldsv(nrmA);
+                gte_gpf12_real();
+                nrmDst = nrm + i;
+                gte_lddp(inv);
+                gte_ldsv(nrmB);
+                gte_gpl12_real();
+                nrmB++;
+                i++;
+                nrmA++;
+                gte_stsv(nrmDst);
+            } while (i < count);
+        }
+    }
+}
 
 void func_actor_323300_80162BE4(Task* arg0)
 {
