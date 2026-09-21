@@ -26,6 +26,17 @@ typedef struct Actor105100AttackScratch {
 } Actor105100AttackScratch;
 STATIC_ASSERT_SIZEOF(Actor105100AttackScratch, 0x44);
 
+/// 0x30-byte scratch `func_actor_105100_80132C2C` takes from `G_SCRATCH_HEAD`:
+/// `delta` is the player offset whose length feeds `Gp_ComputeDamage`, and
+/// `ofs` is the spark offset handed to `Gp_SpawnEff`.
+typedef struct Actor105100HitScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ byte    pad_10[0x10];
+    /* 0x20 */ SVECTOR ofs;
+    /* 0x28 */ byte    pad_28[8];
+} Actor105100HitScratch;
+STATIC_ASSERT_SIZEOF(Actor105100HitScratch, 0x30);
+
 /// The model object in `Actor105100::field_2C` (`Task::extra`), seen through
 /// this overlay: `field_8` is the object's trailing `GsCOORDINATE2` array and
 /// `field_1C` / `field_20` the light and colour matrices the spawn hands the
@@ -83,7 +94,7 @@ typedef struct Actor105100Work {
     /* 0x580 */ s32        field_580;
     /* 0x584 */ s32        field_584;
     /* 0x588 */ s32        field_588;
-    /* 0x58C */ byte       pad_58C[2];
+    /* 0x58C */ s16        field_58C; // hit cooldown; armed from `Gp_GetIdParam2` of the hitting record
     /* 0x58E */ u16        field_58E;
     /* 0x590 */ s16        field_590;
     /* 0x592 */ u16        field_592;
@@ -108,7 +119,8 @@ typedef struct Actor105100Work {
     /* 0x5B8 */ u16        field_5B8;
     /* 0x5BA */ byte       pad_5BA[2];
     /* 0x5BC */ s16        field_5BC;
-    /* 0x5BE */ byte       pad_5BE[4];
+    /* 0x5BE */ u16        field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
+    /* 0x5C0 */ u16        field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
     /* 0x5C2 */ s16        field_5C2;
     /* 0x5C4 */ byte       pad_5C4[4];
 } Actor105100Work;
