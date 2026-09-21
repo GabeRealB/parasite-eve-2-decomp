@@ -73,12 +73,16 @@ typedef struct ActorsShared80138efcWork {
     /* 0xB92 */ s16 field_B92;
     /// Decay counters the 0x80138B5C body subtracts from - 0x400 for the axis
     /// pair and 0x100 for the next two - clamping each at zero.
-    /* 0xB94 */ s16  field_B94;
-    /* 0xB96 */ s16  field_B96;
-    /* 0xB98 */ s16  field_B98;
-    /* 0xB9A */ s16  field_B9A;
-    /* 0xB9C */ s16  field_B9C;
-    /* 0xB9E */ byte pad_B9E[0x6];
+    /* 0xB94 */ s16 field_B94;
+    /* 0xB96 */ s16 field_B96;
+    /* 0xB98 */ s16 field_B98;
+    /* 0xB9A */ s16 field_B9A;
+    /* 0xB9C */ s16 field_B9C;
+    /// Distance-mapped pitch the 0x80136230 body writes on the first frame:
+    /// 0 inside 0x384, 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
+    /// `field_B94` ramps toward it while the countdown sits in `[0x1E, 0x2B]`.
+    /* 0xB9E */ u16  field_B9E;
+    /* 0xBA0 */ byte pad_BA0[0x4];
     /// Motion id armed for the frame; every sibling writes a different pair
     /// here (0xB/0xE here, 0x15/0x16 next door, 5 in the setup handler).
     /* 0xBA4 */ s8 field_BA4;

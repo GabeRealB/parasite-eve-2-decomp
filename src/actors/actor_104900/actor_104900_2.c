@@ -25,12 +25,192 @@ extern GpU16Pair D_actor_104900_801392F0[];
 
 void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
+void ActorsShared801357f0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_2", func_actor_104900_801359CC);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_2", func_actor_104900_80135FDC);
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_2", func_actor_104900_80136230);
+/// First-frame distance handler: while the latch at 0xBA8 is still clear it
+/// sets motion 6, zeroes the countdown at 0xB8C and steps the latch. If actor
+/// slot 3 is live it rotates `(0x12C, 0, 0)` through model part 10's `workm`,
+/// adds the player-part-1 versus part-10 translation, and maps
+/// `SquareRoot0(Gfx_ApplyMatrixNoSf)` into `field_B9E` — 0 inside 0x384, 0x2000
+/// past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
+///
+/// Every later frame increments the countdown, asks `ActorsShared801357f0` for
+/// the yaw at 0xB90 and turns the model's `field_46` toward it by at most 0x10,
+/// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into the first motion
+/// node and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the
+/// countdown sits in `[0x17, 0x2B]` and the latch is still 1, a high-bit hit on
+/// the recs at 0xA70 steps the latch to 3. `field_B98` / `field_B94` ramp with
+/// the countdown, the frame block's scratch byte at 0x64 takes 0xC, and frame
+/// 0x2C masks those bits back out of both motion nodes. The trigger at 0xBA9
+/// writes rate 0x10 onto slots `[1, 0x14]` of both animation runs and then
+/// either stages state 0xE, or, while the latch is 3, a 1-in-4 draw of that
+/// state versus restarting the motion through `field_BA5`.
+///
+/// The stack copy of the offset is what the first `lwc2` pair reads, and it is
+/// written with the sibling bodies' raw asm: `gte_ldv0` of a stack local leaves
+/// its `addiu` free for sched2 to hoist. `vec` is assigned only inside the
+/// player-present arm so it is a local quantity and keeps `$a0` for
+/// `Gfx_ApplyMatrixNoSf`.
+///
+/// Same body as the four twins - `func_actor_101100_80136230` at the same
+/// address, `func_actor_201100_8014E230` / `func_actor_204900_8014E230` 0x18000
+/// past it and `func_actor_301100_80166230` 0x30000 past. A shared span here
+/// would sit inside `_2`, ahead of the rest of this unit, and insert a new
+/// overlay-local run that renames `_3`..`_6`.
+void func_actor_104900_80136230(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    SVECTOR        local;
+    SVECTOR*       vec;
+    GsCOORDINATE2* actorCoords;
+    GsCOORDINATE2* playerCoords;
+    GsCOORDINATE2* actorPart;
+    GsCOORDINATE2* playerPart;
+    GpCoordPose*   pose;
+    GpObj*         obj;
+    GpAnimSlot*    slotA;
+    GpAnimSlot*    slotB;
+    Task*          player;
+    s32            dist;
+    s32            i;
+    s32            off;
+    s32            off2;
+    s32            yaw;
+    s32            rate;
+    u16            angle;
+    u16            time;
+    u16            reach;
+    u32            rng;
+
+    if (work->field_BA8 == 0) {
+        work->field_BA4 = 6;
+        work->field_B8C = 0;
+        work->field_BA8 = (u8)work->field_BA8 + 1;
+        player          = gameGetPtrSlot(3);
+        if (player == NULL) {
+            work->field_B9E = 0;
+        } else {
+            vec                      = (SVECTOR*)&arg->pad_0[0x10];
+            actorCoords              = ((TmdObject*)task->extra)->coords;
+            playerCoords             = ((TmdObject*)player->extra)->coords;
+            *(s16*)&arg->pad_0[0x10] = 0x12C;
+            *(s16*)&arg->pad_0[0x12] = 0;
+            *(s16*)&arg->pad_0[0x14] = 0;
+            local                    = *(SVECTOR*)&arg->pad_0[0x10];
+            actorPart                = &actorCoords[10];
+            playerPart               = &playerCoords[1];
+            gte_SetRotMatrix(&actorPart->workm);
+            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+            gte_rtv0_real();
+            gte_stsv(vec);
+            *(s16*)&arg->pad_0[0x10] += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
+            *(s16*)&arg->pad_0[0x12] += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
+            *(s16*)&arg->pad_0[0x14] += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
+            dist                      = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            if (dist < 0x384) {
+                work->field_B9E = 0;
+            } else if (dist >= 0xA8D) {
+                work->field_B9E = 0x2000;
+            } else {
+                work->field_B9E = ((dist - 0x384) << 9) / 100;
+            }
+        }
+    }
+    work->field_B8C = (u16)work->field_B8C + 1;
+    ActorsShared801357f0(enemy, task, work, arg);
+    yaw  = work->field_B90;
+    pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
+    if (yaw >= 0x11) {
+        pose->field_46 = (u16)pose->field_46 + 0x10;
+    } else if (yaw < -0x10) {
+        pose->field_46 = (u16)pose->field_46 - 0x10;
+    } else {
+        pose->field_46 = (u16)pose->field_46 + yaw;
+    }
+    angle          = (u16)pose->field_46 & 0xFFF;
+    pose->field_46 = angle;
+    Gfx_RotMatrixY(&pose->coord, angle, 1);
+    pose->flg = 0;
+    if (work->field_B8C == 0x16) {
+        obj         = &work->motion.objs[0];
+        obj->key    = Gp_PackObjPair((GpObj50*)enemy, 3);
+        obj->flags |= 0xC000;
+    } else if (work->field_B8C == 0x20) {
+        SndEvt_EnqueueType6((work->field_BB8 << 22) | ((work->field_B88 << 8) | 0x400B0008), arg->pan, arg->depth);
+    }
+    if (((u32)((u16)work->field_B8C - 0x17) < 0x15U) && (work->field_BA8 == 1) &&
+        (Gp_CountRec18Hi((GpRec18*)((u8*)work + 0xA70), 0x10000) != 0)) {
+        work->field_BA8 = 3;
+    }
+    time = work->field_B8C;
+    if ((u32)(time - 1) < 0x1DU) {
+        if (work->field_B98 < 0x800) {
+            work->field_B98 = (s16)((u16)work->field_B98 + 0x40);
+        }
+    } else if ((s16)time >= 0x1E) {
+        if (work->field_B98 >= 0x100) {
+            work->field_B98 = (s16)((u16)work->field_B98 - 0x100);
+        } else {
+            work->field_B98 = 0;
+        }
+    }
+    time = work->field_B8C;
+    if ((u32)(time - 0x1E) < 0xEU) {
+        reach = work->field_B9E;
+        if (work->field_B94 < ((s32)(reach << 0x10) >> 0x10)) {
+            work->field_B94 = (s16)((u16)work->field_B94 + ((s32)(reach << 0x10) >> 0x13));
+        }
+    } else if ((s16)time >= 0x2C) {
+        if (work->field_B94 >= 0x200) {
+            work->field_B94 = (s16)((u16)work->field_B94 - 0x200);
+        } else {
+            work->field_B94 = 0;
+        }
+    }
+    arg->field_64 = 0xC;
+    if (work->field_B8C == 0x2C) {
+        i   = 0;
+        off = 0x9C8;
+        do {
+            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+            off                                += 0x20;
+            i++;
+        } while (i < 2);
+    }
+    if (work->field_BA9 != 0) {
+        rate = 0x10;
+        i    = 1;
+        off  = 0x538;
+        off2 = 0x8C;
+        do {
+            slotA       = (GpAnimSlot*)((u8*)work + off2);
+            slotA->rate = rate;
+            SOFT_BARRIER();
+            slotB = (GpAnimSlot*)((u8*)work + off);
+            off  += 0x28;
+            i++;
+            slotB->rate = rate;
+            off2       += 0x28;
+        } while (i < 0x15);
+        if (work->field_BA8 != 3) {
+            work->state     = 0xE;
+            work->field_BA8 = 0;
+            work->field_BAA = (u8)work->field_BAA + 1;
+            return;
+        }
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
+        if (!((rng >> 0x10) & 3)) {
+            work->state = 0xE;
+        } else {
+            work->field_BA5 = 1;
+        }
+        work->field_BA8 = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_2", func_actor_104900_801366E8);
 

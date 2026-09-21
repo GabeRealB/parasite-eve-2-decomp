@@ -102,6 +102,30 @@ Preprocessed inputs: `base_2.c`
 (99.939%); `base_5.c`
 `7719a8fcb2a04d93c7ba9145683b32fc4d97f8d95f0d8cfbff7c490ba88be0c9`
 (100.000%). Compiler `60d886cd...`.
+## Assign a call-arg pointer inside the arm that uses it so it is local and keeps `$a0` (func_actor_104900_80136230, 2026-09-21)
+
+`vec = (SVECTOR*)&arg->pad_0[0x10]` was taken before `if (player == NULL)`, so the
+pseudo spanned the branch (`local home None`) and went to global alloc. Local
+alloc then gave the short-lived `actorCoords` `$a0`. Global alloc put `vec` in
+`$a1`, and `Gfx_ApplyMatrixNoSf(vec, vec)` emitted `move $a0, $a1` instead of
+the target's `move $a1, $a0`.
+
+Moving the assignment into the else made `vec` a local quantity with the call's
+`$a0` copy suggestion (`CODEGEN_MODEL.md` §10.6, "where it dies"). `actorCoords`
+took `$a1`. Instruction text was otherwise identical.
+
+Related: post-`gte_stsv` component adds must go through the arg block
+(`*(s16*)&arg->pad_0[0x10] += …`) rather than `vec->vx`, or they address
+`2(vec)` instead of `0x12($s2)`. A `u16` compare/step of `field_B9E` must share
+one `<< 16` (`>> 16` for the signed compare, `>> 19` for the add) or the
+halfword is loaded `lh` and the `>> 3` misses the `beqz` delay slot.
+
+A shared span at this body would sit inside `_2` and rename `_3`..`_6`, same
+reason `func_actor_104900_80135404` stayed overlay-local.
+
+Preprocessed input: `base_4.c`
+`41da98149db8a471088839d5edbef13887e35519f3af55ef9a6d71574e77af91`.
+
 ## `do { ... } while (0)` sequences stores but loop-weights refs; `SOFT_BARRIER` does the sequencing without the refs (func_actor_104900_8013279C, 2026-09-21)
 
 A rate loop had to emit `sb` / `sb` / `offA++` in the `bnez` delay. Putting the first store plus `offB += 0x28` / `j++` in `do { ... } while (0)` produced that body, because the inner loop is a scheduling fence. Those mentions then counted as inner-loop references (`CODEGEN_MODEL.md` §1: a mention in a loop counts ×2), so `offB` outranked `offA` and took `$v1`.
