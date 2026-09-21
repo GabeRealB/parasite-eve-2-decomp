@@ -3,6 +3,22 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `s16` compare-and-store emits `lh`+`lhu`; an `s32` temp is one `lh` (ActorsShared80131e24Sub1, 2026-09-21)
+
+An `s16` field used both as `if (field == 1)` and as the value stored to another `s16` expands to `lh` (`extendhisi2`, the compare) plus `lhu` (`movhi`, `-fforce-mem` reloading the HI store). Copying it into an `s32` first sign-extends once; the `sh` reuses that SI register, which is the target's `lh $v1` / `sh $v1`.
+
+```
+s32 pulse;
+
+pulse = work->field_28; /* s16 field */
+if (pulse == 1) {
+    rec->field_4 = pulse; /* s16 dest */
+    work->field_28 = 0;
+}
+```
+
+A same-block nested `if (work->field_2E != 0) { work->field_24 = 3; if (work->field_2E != 0) ... }` keeps a copy+`beqz` of the first load (`move $v1,$v0; li $v0,3; beqz $v1`). Naming the load once as `s16 temp` lets jump_optimize delete the inner test.
+
 ## Reused `s16` loop bound reloads into `$v0`; `s32` keeps `$t2` (func_actor_323300_80162A6C, 2026-09-21)
 
 A count loaded from an `s16` field, used as `if (count > 0) do … while (i < count)`, then reassigned for a second loop, was sunk to the branch as `lh $v0` and copied (`move $t3, $v0` / `move $a0, $v0`) because `$v0` is the loop's `lhu` dest. That also left `field_14 * 8` in `$a1` and rotated the walking-pointer homes.

@@ -177,7 +177,7 @@ void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     work->field_554.spawnArgLo = 0x200;
     work->field_554.spawnArgHi = 1;
     func_800B3F84((GpAnimCtx*)work, &D_actor_205200_801567E8, tmd, work->field_30C,
-                  (GpAnimSlot*)&work->pad_14);
+                  (GpAnimSlot*)&work->field_14);
     i = 1;
     do {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);

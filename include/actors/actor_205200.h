@@ -29,12 +29,12 @@ typedef struct Actor205200Work {
     /* 0x000 */ GsCOORDINATE2* field_0[3];  // candidate coords `func_actor_205200_8014ACD4` measures
     /* 0x00C */ GsCOORDINATE2* field_C;     // nearest of `field_0` to the stage view
     /* 0x010 */ u32            field_10;    // its distance
-    /* 0x014 */ byte           pad_14[4];
+    /* 0x014 */ s32            field_14;    // sound-event id `ActorsShared80131e24Sub1` plays; also the first anim slot
     /* 0x018 */ s16            field_18[3]; // 1 marks the matching `field_0` slot active
     /* 0x01E */ s16            field_1E;    // selects the spawn tables `func_actor_205200_8014AE0C` reads
     /* 0x020 */ s16            field_20;    // index into the timer reload table `D_actor_205200_8014C9CC`
     /* 0x022 */ u16            field_22;    // countdown `func_actor_205200_8014AB98` ticks in both of its sub-states
-    /* 0x024 */ byte           pad_24[2];
+    /* 0x024 */ s16            field_24;    // state of `ActorsShared80131e24Sub1` (0 wait, 1 run, 2 stop, 3 done)
     /* 0x026 */ s16            field_26;    // sub-state of `func_actor_205200_8014AB98`
     /* 0x028 */ s16            field_28;
     /* 0x02A */ s16            field_2A;
@@ -120,6 +120,8 @@ typedef struct Actor205200SpawnRec {
 } Actor205200SpawnRec;
 
 void func_actor_205200_8014AB98(Actor205200* arg0);
+void func_actor_205200_8014ACD4(Actor205200* arg0);
+s32  func_actor_205200_8014B914(s32 arg0);
 
 /// 0x44 bytes `func_actor_205200_8014C0C0` carves from `G_SCRATCH_HEAD`: the
 /// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the

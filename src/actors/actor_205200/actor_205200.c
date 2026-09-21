@@ -21,6 +21,7 @@ extern SVECTOR*            D_actor_205200_8014CA24[];
 extern u16*                D_actor_205200_8014CA34[];
 extern u16                 D_80071078;
 extern u32                 Gp_LcgState;
+extern u8                  D_801153F4;
 
 void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
@@ -81,7 +82,71 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     task->state    = 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_205200/actor_205200", ActorsShared80131e24Sub1);
+void ActorsShared80131e24Sub1(GpEnemy* enemy, Actor205200* task)
+{
+    Actor205200Work* work = task->field_1C;
+    s16              state;
+    s32              pulse;
+
+    if (gGameSession->eventState != 0 || work->field_2E != 0) {
+        pulse = work->field_28;
+        if (pulse == 1) {
+            D_actor_205200_8015B458.field_4 = pulse;
+            work->field_28                  = 0;
+        }
+        if (work->field_2E != 0) {
+            work->field_24 = 3;
+            if (work->field_2E != 0) {
+                if (work->field_14 != 0) {
+                    SndEvt_EnqueueType7(work->field_14, 1);
+                    work->field_14 = 0;
+                }
+            }
+        }
+    } else if (D_801153F4 == 0) {
+        state = work->field_24;
+        switch (state) {
+            case 0:
+                if ((u16)--work->field_2A == 0) {
+                    func_actor_205200_8014ACD4(task);
+                    if (work->field_C != NULL) {
+                        work->field_14 = ((enemy->placeKey >> 12) << 8) | 0x40340001;
+                        SndEvt_EnqueueType6(
+                            work->field_14, 0, (s8)func_actor_205200_8014B914(work->field_10));
+                        work->field_24 = 1;
+                    }
+                }
+                break;
+            case 1:
+                if (gGameSession->viewReady == state || work->field_2C == state) {
+                    work->field_2C = 0;
+                    func_actor_205200_8014ACD4(task);
+                    if (work->field_C != NULL) {
+                        SndEvt_EnqueueTypeA(
+                            work->field_14, 0, (s8)func_actor_205200_8014B914(work->field_10));
+                    }
+                }
+                func_actor_205200_8014AB98(task);
+                if (work->field_20 <= 0) {
+                    work->field_24 = 2;
+                }
+                break;
+            case 2:
+                pulse = work->field_28;
+                if (pulse == 1) {
+                    D_actor_205200_8015B458.field_4 = pulse;
+                    work->field_28                  = 0;
+                }
+                SndEvt_EnqueueType7(work->field_14, 1);
+                work->field_24 = 3;
+                if (work->field_1E == state) {
+                    SndEvt_EnqueueType2(0, 0x3C);
+                }
+                break;
+        }
+        task->field_2C->field_8->flg = 0;
+    }
+}
 
 void func_actor_205200_8014AB98(Actor205200* arg0)
 {
