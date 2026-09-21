@@ -100,5 +100,3 @@ void func_actor_548100_80135124(Task* arg0)
         arg0->state = 2;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_548100/actor_548100_3", ActorsShared8013845cSub0);
