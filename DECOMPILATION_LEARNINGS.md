@@ -3,6 +3,27 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A call-free copy keeps `$a2`; declaration order picks the spill slot (`func_actor_104900_80136BD4`, 2026-09-21)
+
+`expand_preferences` merges hard-reg preferences along a dying copy *before*
+`prune_preferences` strips call-used registers from a call-crossing allocno.
+The wrapped `ratan2` result therefore inherited `$a2` from the later
+`Task_SpawnFromTable` argument and the wrap happened in `$a2`. Splitting a
+`bridge` that is assigned in both arms, copied into the spilled `yaw`, and
+live across no call keeps `$a2` on `bridge` (`move $a2, $v1`, then `sw $a2`).
+`angle` has to stay live past that copy — here as an unused `"r"` input of the
+scratch `sw` — or the merge still pulls `$a2` back onto it.
+
+`alter_reg` hands stack slots to unallocated pseudos in regno order, which is
+declaration order. `nOuter` declared before `yaw` takes `0x18($sp)`; `yaw`
+takes `0x1c($sp)`.
+
+sched1's `birthing_insn_p` raises a `REG_N_SETS == 1` load to
+`LAUNCH_PRIORITY`. Reusing `selfY` for `0x400B000A` makes that load the one
+that is *not* boosted, so it is emitted before the other Y load. Marking
+`otherY` `"+r"` on the existing `addiu` asm is a second set, emits nothing,
+and drops the boost; the LUID tie then keeps source order.
+
 ## `+m` on the stored field stops CSE forwarding; a full memory clobber is wider (`func_actor_403200_8013B8C4`, 2026-09-21)
 
 A `sh` of `dir.vz` followed by `ratan2(dir.vx, dir.vz)` lets CSE substitute the

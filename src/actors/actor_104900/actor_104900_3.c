@@ -15,6 +15,7 @@
 extern u32       Gp_LcgState;
 extern u8        D_actor_104900_80147480[];
 extern GpU16Pair D_actor_104900_801392F0[];
+extern TaskDesc  D_actor_104900_80147400[];
 
 /// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
 /// vector added. The `inline_c.h` macro of that name assembles to a different
@@ -395,7 +396,148 @@ void func_actor_104900_801366E8(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80136BD4);
+/// Countdown handler for the latch at 0xBA8. While the previous count is
+/// below 0x1F, `field_B98` climbs by 0x40 toward 0x800; from 0x20 it falls by
+/// 0x80, and each frame is mirrored into `field_B9A`.
+///
+/// Frame 0x20 aims a yaw at actor slot 0 — scratchpad delta, transpose,
+/// `ratan2`, wrapped into [-0x800, 0x800) — then spawns from
+/// `D_actor_104900_80147400`. Placement `field_BBB` 0x31 is a pair of shots;
+/// otherwise one fan of three, each at ±0x12C on model part 4, with cue
+/// `0x400B000A`. A set `field_BA9` stages state 0xE.
+void func_actor_104900_80136BD4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, Actor104900ShotArg* arg)
+{
+    SVECTOR        local;
+    GsCOORDINATE2* self;
+    GsCOORDINATE2* other;
+    GsCOORDINATE2* part;
+    MATRIX*        selfWorkm;
+    Task*          spawned;
+    s32            angle;
+    s32            nOuter;
+    s32            yaw;
+    s32            kind;
+    s32            nInner;
+    s32            i;
+    s32            j;
+    s32            dir;
+    u16            prev;
+    u16            time;
+    void*          head;
+    void*          head2;
+    s8*            deltaX;
+    s32            otherY;
+    s32            selfY;
+    void*          vec;
+    void*          matrix;
+    s32            bridge;
+
+    if (work->field_BA8 == 0) {
+        work->field_BA4 = 8;
+        work->field_B8C = 0;
+        work->field_BA8 = (u8)work->field_BA8 + 1;
+    }
+    prev            = work->field_B8C;
+    time            = prev + 1;
+    work->field_B8C = time;
+    if ((u32)(prev & 0xFFFF) < 0x1F) {
+        if (work->field_B98 < 0x800) {
+            work->field_B98 = (u16)work->field_B98 + 0x40;
+        }
+    } else if ((s16)time >= 0x20) {
+        if (work->field_B98 >= 0x80) {
+            work->field_B98 = (u16)work->field_B98 - 0x80;
+        } else {
+            work->field_B98 = 0;
+        }
+    }
+    work->field_B9A = work->field_B98;
+    if (work->field_B8C == 0x20) {
+        self = ((TmdObject*)task->extra)->coords;
+        if (Gp_ActorSlots[0] == NULL) {
+            bridge = 0;
+        } else {
+            other     = Gp_ActorSlots[0]->extra->coords;
+            selfWorkm = &self->workm;
+            __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
+            head   = *(void**)(head + 0x3FC);
+            deltaX = (s8*)head - 0x40;
+            vec    = head - 0x40;
+
+            *(s16*)deltaX = (s16)(other->workm.t[0] - self->workm.t[0]);
+            otherY        = (u16)other->workm.t[1];
+            selfY         = (u16)self->workm.t[1];
+            __asm__("addiu %0, %2, -0x20" : "=r"(matrix), "+r"(otherY) : "r"(head), "r"(selfY));
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec) : "memory");
+            *(s16*)((s8*)vec + 2) = (s16)(otherY - selfY);
+            *(s16*)((s8*)vec + 4) = (s16)(other->workm.t[2] - self->workm.t[2]);
+            TransposeMatrix(selfWorkm, matrix);
+
+            local = *(SVECTOR*)vec;
+            gte_SetRotMatrix(matrix);
+            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
+            gte_rtv0_real();
+            gte_stsv(vec);
+
+            angle = ratan2(*(s16*)deltaX, *(s16*)((s8*)vec + 4));
+            if (angle >= 0x801) {
+                angle -= 0x1000;
+            } else if (angle < -0x800) {
+                angle += 0x1000;
+            }
+            __asm__("lui %0, 0x1F80" : "=r"(head2));
+            head2  = *(void**)(head2 + 0x3FC);
+            bridge = angle;
+            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"((void*)((u8*)head2 + 0x40)), "r"(angle) : "memory");
+        }
+        yaw = bridge;
+
+        kind = 1;
+        if ((s8)((Actor104900SpawnWork*)work)->field_BBB == 0x31) {
+            kind = 2;
+        }
+        if (kind == 1) {
+            nOuter = 1;
+            nInner = 3;
+        } else {
+            nOuter = 2;
+            nInner = 1;
+        }
+        i = 0;
+        if (nOuter != 0) {
+            do {
+                dir = i;
+                if (kind == 1) {
+                    dir = (u32)~yaw >> 31;
+                }
+                j    = 0;
+                part = &((TmdObject*)task->extra)->coords[4];
+                if (nInner != 0) {
+                    do {
+                        arg->offset.vx = (dir != 0) ? 0x12C : -0x12C;
+                        arg->offset.vy = 0;
+                        arg->offset.vz = 0;
+                        spawned        = Task_SpawnFromTable(&D_actor_104900_80147400, kind, yaw, 0);
+                        if (spawned != NULL) {
+                            Gp_CopyCoordOffset(spawned, part, &arg->offset);
+                            Task_Reparent(task, spawned);
+                        }
+                        selfY = 0x400B000A;
+                        j    += 1;
+                        SndEvt_EnqueueType6(((work->field_BB8 << 22) | selfY) | (work->field_B88 << 8), arg->pan, arg->depth);
+                    } while (j < nInner);
+                }
+                i += 1;
+            } while (i < nOuter);
+        }
+    }
+    ActorsShared801357f0(enemy, task, work, (ActorsShared80138efcArg*)arg);
+    if (work->field_BA9 != 0) {
+        work->state     = 0xE;
+        work->field_BA8 = 0;
+        work->field_BAA = work->field_BAA + 1;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80136F8C);
 

@@ -74,6 +74,23 @@ extern const Actor104900ScaleRodata D_actor_104900_80131E30;
 /// Pair table the spawn state packs into the display node's `GpObj.key`.
 extern GpU16Pair D_actor_104900_80139318;
 
+/// Frame block the shot handler is passed. Same field offsets as
+/// `ActorsShared80138efcArg` through `field_64`. `offset` is copied onto
+/// each spawned shot; `pan` and `depth` are filled by the dispatcher.
+/// `SVECTOR` raises the alignment, so this type is one byte longer than
+/// the block the dispatcher actually passes.
+typedef struct {
+    byte    pad_0[0x10];
+    SVECTOR offset; // Offset copied onto the spawned shot
+    byte    pad_18[0x48];
+    s8      pan;    // Horizontal pan for the shot cue
+    byte    pad_61[1];
+    s8      depth;  // Depth for the shot cue
+    byte    pad_63[1];
+    s8      field_64;
+} Actor104900ShotArg;
+STATIC_ASSERT_SIZEOF(Actor104900ShotArg, 0x66);
+
 /// Overlay-local spawn/setup state of `ActorsShared8013845c`: allocates the
 /// 0x58-byte work block, plays the spawn cue, seeds the display node and
 /// hands off to `ActorsShared8013845cSub1`.
