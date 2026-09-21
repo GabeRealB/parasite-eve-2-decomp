@@ -40,18 +40,24 @@ typedef struct Actor323300Work {
     /* 0x43C */ s8         field_43C; // set once the slots have been started
     /* 0x43D */ s8         field_43D; // animation id the slots were seeded with
     /* 0x43E */ s8         field_43E; // animation bank index
-    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x43F */ s8         field_43F; // latched to 2 by the 0x7DB placement case
     /* 0x440 */ MATRIX     light;
     /* 0x460 */ MATRIX     color;
     /* 0x480 */ GpObj      obj;
-    /* 0x4A0 */ GpRec18    rec; // seed table `obj.ctx.recs` points at
-    /* 0x4B8 */ byte       pad_4B8[0x14];
+    /* 0x4A0 */ GpRec18    rec;       // seed table `obj.ctx.recs` points at
+    /* 0x4B8 */ Task*      field_4B8; // child spawned from `D_actor_323300_8017255C` index 1
+    /* 0x4BC */ s32        field_4BC; // placement position, copied verbatim
+    /* 0x4C0 */ s32        field_4C0;
+    /* 0x4C4 */ s32        field_4C4;
+    /* 0x4C8 */ byte       pad_4C8[0x4];
     /* 0x4CC */ s32        field_4CC;
     /* 0x4D0 */ s32        field_4D0;
     /* 0x4D4 */ s32        field_4D4;
-    /* 0x4D8 */ byte       pad_4D8[0x1E];
+    /* 0x4D8 */ byte       pad_4D8[0x1C];
+    /* 0x4F4 */ u16        field_4F4; // placement rotation, copied verbatim
     /* 0x4F6 */ u16        field_4F6; // target yaw the turn-to-face body steers toward
-    /* 0x4F8 */ byte       pad_4F8[0x4];
+    /* 0x4F8 */ u16        field_4F8;
+    /* 0x4FA */ byte       pad_4FA[0x2];
     /* 0x4FC */ s16        field_4FC;
     /* 0x4FE */ s16        field_4FE;
     /* 0x500 */ s16        field_500;
@@ -161,6 +167,22 @@ STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 /// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
 extern GpMsgEntry D_actor_323300_80172574[];
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the halfword at 0x2 is the only part `func_actor_323300_80162360` reads.
+typedef struct Actor323300Msg7DB {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor323300Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor323300Msg7DB, 0x4);
+
+/// Animation source table `func_actor_323300_80162360` and
+/// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
+extern void* D_actor_323300_80172558[];
+
+/// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
+/// task parked in `Actor323300Work::field_4B8`.
+extern TaskDesc D_actor_323300_8017255C[];
+
 /// Placement `func_actor_323300_80161E78` hands `func_actor_323300_801629F0`.
 extern Actor323300Placement D_actor_323300_8017259C;
 
@@ -200,6 +222,7 @@ void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle);
 void func_actor_323300_80162748(Task* arg0);
 void func_actor_323300_801627B4(Task* arg0);
 void func_actor_323300_80162BE4(Task* arg0);
+void func_actor_323300_80162DF0(Task* arg0);
 void func_actor_323300_801634B0(Task* arg0);
 void func_actor_323300_80163510(Task* arg0);
 s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, void* arg2, s32 arg3);
@@ -208,6 +231,12 @@ s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg
 /// Message-0x7D5 handler; `mode` is the four-way visibility switch
 /// `func_actor_511000_801327A0` and its twins take.
 s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3);
+/// Message 0x7DB handler, listed in `D_actor_323300_80172574` after the 0x7D3 /
+/// 0x7D4 / 0x7D5 ones. The payload halfword selects one of five actions: 0
+/// shows the model through the 0x7D5 visibility switch, 10/11 spawn and kill
+/// the child at `field_4B8`, 12 latches a placement and starts preset
+/// `D_actor_323300_801725C8`, 13 posts effect 0x600A2 on part 6.
+s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, Actor323300Placement* place);
 s32 func_actor_323300_801629F0(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
 
 #endif
