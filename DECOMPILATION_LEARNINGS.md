@@ -137277,3 +137277,59 @@ original spelling is unknown. The uninitialised-read candidates the permuter
 ranks highest here only buy the frame layout; they never produce the two `li`s.
 `func_actor_323400_80163448` has the same run. Watching `cse_end_of_basic_block`
 and `make_regs_eqv` under gdb shows the paths directly; `-da` dumps do not.
+
+## A ternary is the only assign-then-override form `cse` will not merge across (func_actor_105100_801347D4, 2026-09-21)
+
+**Symptom:** a constant the target materialises once per basic block - the LCG
+seed and a global's `%hi` are the usual pair - is emitted once for the whole
+function and parked in a callee-saved register, pushing an argument out to a
+higher `$sN` and costing a hundred-plus register penalties.
+
+**Cause:** `flag_cse_skip_blocks` is on at `-O2`, and `cse_end_of_basic_block`
+(cse.c:8283) extends its path straight over a conditional branch that jumps
+*around* a label-free block. The natural decompiler spelling
+
+```c
+val = t + amt;
+if (!(cond)) val = t - amt;
+t = val;
+```
+
+is precisely that shape, so one cse path can cover an entire function - the
+`.cse` dump prints a single `;; Processing block from 1 to 488` - and one pseudo
+serves every use of the constant. `invalidate_skipped_block` only invalidates
+registers *set* in the skipped block, so a constant born before the branch
+survives.
+
+**Fix:** write it as a ternary, `!(cond) ? t - amt : t + amt`. `expand_expr`'s
+COND_EXPR path emits two labels and an unconditional jump, and
+`cse_basic_block` refuses to continue past a label whose `LABEL_NUSES` is
+non-zero (cse.c:8727), so each cluster materialises its own constants. The
+`j` does not survive: `dbr` steals the else-arm's insn into the branch delay
+slot and deletes the jump - but only if nothing *before* the branch is
+delay-slot eligible. Two things secure that, and both are visible in the
+target's instruction order:
+
+* Write the roll as `n = g * 5 + K; g = n; n >>= 16;`, not `g = g * 5 + K; n = g >> 16;`.
+  The first keeps the store to the global ahead of the shift, so the shift is
+  in place and nothing before it can move down.
+* Give the condition its own local (`sign = n & 0x80;`) so its `andi` is in
+  place and the mask `andi` cannot be scheduled past it.
+
+The `do { } while (0)` alternative looks equivalent and is not:
+`cse_end_of_basic_block` does break on `NOTE_INSN_LOOP_END`, but only while
+`after_loop` is 0. `cse2` runs with `after_loop = 1`, ignores the note and
+merges everything back. Only a label stops both passes.
+
+**Corollary, one local per roll.** `adjust_priority` promotes a register birth
+to `LAUNCH_PRIORITY`, and `birthing_insn_p` requires `REG_N_SETS (i) == 1`.
+Reusing one `rng` / `amt` / `val` across several rolls makes every set
+non-unique, the coordinate load drifts far from its branch and the roll is
+hoisted out of the surrounding chain. A distinct local per roll - which is how
+the matched `func_actor_300700_801626C0` is written - moved this function
+75.6% -> 90.1% -> 94.1%.
+
+**Corollary, delete inherited barriers.** Two `SCHED_BARRIER()`s left from an
+earlier 71.5% seed were actively wrong once the body around them was rewritten;
+removing them fixed the placement of a `li` and a `$v0`/`$v1` pair twenty
+instructions away.
