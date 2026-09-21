@@ -102,6 +102,17 @@ Preprocessed inputs: `base_2.c`
 (99.939%); `base_5.c`
 `7719a8fcb2a04d93c7ba9145683b32fc4d97f8d95f0d8cfbff7c490ba88be0c9`
 (100.000%). Compiler `60d886cd...`.
+## `do { ... } while (0)` sequences stores but loop-weights refs; `SOFT_BARRIER` does the sequencing without the refs (func_actor_104900_8013279C, 2026-09-21)
+
+A rate loop had to emit `sb` / `sb` / `offA++` in the `bnez` delay. Putting the first store plus `offB += 0x28` / `j++` in `do { ... } while (0)` produced that body, because the inner loop is a scheduling fence. Those mentions then counted as inner-loop references (`CODEGEN_MODEL.md` §1: a mention in a loop counts ×2), so `offB` outranked `offA` and took `$v1`.
+
+`SOFT_BARRIER()` after the first store is the same fence and is not a loop. `.lreg` refs drop back, `offA` / `j` / `offB` allocate `$v1` / `$a1` / `$a0`, and the scratch matches.
+
+Case 2 also had to assign `field_BAE = 1` *before* `j = 1`. Otherwise that 1 CSEs with `j` and the switch compare's 1 dies at `beq`, so it sits in `$v0` and is overwritten by `li $v0, 2`. With the store first, the compare 1 lives into case 2 in `$a3`.
+
+Preprocessed inputs: `base_7.c`
+`9d0d7cddd6373e599287f453445c9735053ff441ff12026f572eee9315c359c4`;
+`base_8.c` `3f7d5a43174fee1fb389520f4b0ef3d7817d0c57798bbece7402ca2f5250b130`.
 
 ## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
 

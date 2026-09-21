@@ -2,10 +2,12 @@
 
 #include "actors/actor_104900.h"
 #include "actors/actors_shared_801384ac.h"
+#include "actors/actors_shared_801385e0.h"
 #include "actors/actors_shared_801388e8.h"
 #include "actors/actors_shared_80138efc.h"
 #include "actors/actors_shared_801511c8.h"
 #include "gameplay/gameplay.h"
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -34,7 +36,163 @@ INCLUDE_RODATA("actors/nonmatchings/actor_104900/actor_104900", D_actor_104900_8
 
 INCLUDE_RODATA("actors/nonmatchings/actor_104900/actor_104900", D_actor_104900_80131E24);
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_8013279C);
+const Actor104900ScaleRodata D_actor_104900_80131E30 = { { 0x1400, 0x1400, 0x1400, 0 }, 0 };
+
+/// First enemy-task state: allocates the 0xBCC work block, enqueues the
+/// overlay's sound CD command once while `Gp_StateF0.field_25` is clear,
+/// seeds both animation contexts, and hangs the work coordinate off model
+/// part 1. Spawn state 1/2 then writes 0x7F into slots 1..20 of each
+/// context. Placement `entryId` 0x31 selects the second param table and
+/// scales the identity matrix by 0x1400.
+void func_actor_104900_8013279C(GpEnemy* enemy, Task* task)
+{
+    Actor104900SpawnWork*     work;
+    TmdObject*                extra;
+    GsCOORDINATE2*            parts;
+    GpMtxWords*               mtx;
+    GpStateF0*                st;
+    u8                        param1[8];
+    u8                        param2[8];
+    ActorsShared801385e0Scale scale;
+    u8                        entryId;
+    u32                       actorId;
+    u32                       map;
+    u16                       hp;
+    s32                       i;
+    s32                       j;
+    s32                       offA;
+    s32                       offB;
+    u8                        rate;
+    GpAnimSlot*               slotA;
+    GpAnimSlot*               slotB;
+    GsCOORDINATE2*            endCoords;
+
+    extra            = (TmdObject*)task->extra;
+    parts            = extra->coords;
+    task->spawnArg1 &= 0xFFFF0000;
+    work             = (Actor104900SpawnWork*)memCalloc(sizeof(Actor104900SpawnWork), 0);
+    if (work == NULL) {
+        Task_CallExit(task);
+        return;
+    }
+
+    map = D_8007216C;
+    SOFT_BARRIER();
+    param1[2] = 0xA;
+    param2[0] = 0xB;
+    param1[3] = 0;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[1] = 0;
+    if ((map & 0xFFFF0000) == 0x03200000) {
+        param1[0]       = 2;
+        work->field_BB8 = 1;
+    } else {
+        work->field_BB8 = 0;
+        param1[0]       = 1;
+    }
+
+    st = &Gp_StateF0;
+    if ((s8)st->field_25 == 0) {
+        CdCmd_Enqueue(0x21, param1, param2);
+        st->field_25 = 1;
+    }
+
+    task->work      = work;
+    entryId         = enemy->place->entryId;
+    work->field_BBB = entryId;
+    if ((s8)entryId == 0x31) {
+        enemy->param = &D_actor_104900_80139330;
+    } else {
+        enemy->param = &D_actor_104900_80139308;
+    }
+
+    actorId                             = enemy->placeKey >> 12;
+    work->actorId                       = actorId;
+    *(s32*)&ActorsShared80137fb8ActorId = actorId;
+    extra->lightMtx                     = &work->lightMtx;
+    extra->colorMtx                     = &work->colorMtx;
+    func_800B3F84(&work->anim, D_actor_104900_80147424, extra, work->poses, work->slots);
+    func_800B3F84(&work->anim2, D_actor_104900_80147424, extra, work->poses2, work->slots2);
+    work->field_BA5 = 1;
+    work->field_BA4 = 1;
+
+    mtx     = (GpMtxWords*)&work->coord.coord;
+    mtx->w0 = 0x1000;
+    mtx->w1 = 0;
+    mtx->w2 = 0x1000;
+    mtx->w3 = 0;
+    mtx->h4 = 0x1000;
+    if ((s8)work->field_BBB == 0x31) {
+        scale = D_actor_104900_80131E30.scale;
+        ActorsShared801385e0(&work->coord.coord, &scale);
+    }
+    work->coord.coord.t[0] = 0;
+    work->coord.coord.t[1] = 0;
+    work->coord.coord.t[2] = 0;
+    work->coord.sub        = parts;
+    work->coord.flg        = 0;
+
+    hp              = enemy->param->hpMax;
+    work->field_B92 = hp;
+    enemy->hp       = hp;
+    SOFT_USE_REG(enemy);
+    ((TmdObject*)task->extra)->coords[1].sub = (GsCOORDINATE2*)work;
+    ((TmdObject*)task->extra)->coords[1].flg = 0;
+
+    i = 1;
+    do {
+        Gp_AnimResetSlot(&work->anim, i, work->field_BA4);
+        Gp_AnimResetSlot(&work->anim2, i, work->field_BA4);
+        i++;
+    } while (i < 0x15);
+
+    switch (enemy->spawnState) {
+        case 1:
+            rate            = 0x7F;
+            j               = 1;
+            offB            = 0x538;
+            offA            = 0x8C;
+            work->field_BAE = 0;
+            work->state     = 0x18;
+            do {
+                slotA       = (GpAnimSlot*)((u8*)work + offA);
+                slotA->rate = rate;
+                SOFT_BARRIER();
+                slotB = (GpAnimSlot*)((u8*)work + offB);
+                offB += 0x28;
+                j++;
+                slotB->rate = rate;
+                offA       += 0x28;
+            } while (j < 0x15);
+            break;
+        case 2:
+            work->field_BAE = 1;
+            rate            = 0x7F;
+            j               = 1;
+            offB            = 0x538;
+            offA            = 0x8C;
+            work->state     = 0x18;
+            do {
+                slotA       = (GpAnimSlot*)((u8*)work + offA);
+                slotA->rate = rate;
+                SOFT_BARRIER();
+                slotB = (GpAnimSlot*)((u8*)work + offB);
+                offB += 0x28;
+                j++;
+                slotB->rate = rate;
+                offA       += 0x28;
+            } while (j < 0x15);
+            break;
+    }
+
+    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    endCoords       = ((TmdObject*)task->extra)->coords;
+    work->field_BB4 = 0x400;
+    work->field_BB6 = 3;
+    work->field_BB0 = endCoords + 4;
+    task->state++;
+}
 
 /// Arms the enemy's four display nodes the first time the state handler runs
 /// with the CD command queue idle: the enemy's own link node is put back on the
