@@ -250,7 +250,10 @@ typedef struct Actor403200Work {
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
     /* 0x7D8 */ s32  field_7D8;
-    /* 0x7DC */ byte pad_7DC[0x17];
+    /* 0x7DC */ byte pad_7DC[0x16];
+    /// Set once the session reports the view ready, so the one-shot setup runs
+    /// a single time. The spawn state clears the same byte.
+    /* 0x7F2 */ s8 field_7F2;
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /// Same slot and role as `Actor444000Work::field_7F3`.
     /* 0x7F3 */ u8 field_7F3;
@@ -332,8 +335,10 @@ typedef struct Actor403200Work {
     /* 0xEF8 */ s16 field_EF8;
     /// Armed to 1 by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFA`.
-    /* 0xEFA */ s16  field_EFA;
-    /* 0xEFC */ byte pad_EFC[0x2];
+    /* 0xEFA */ s16 field_EFA;
+    /// The `field_EFA` the colour update last ran for. Same slot and role as
+    /// `Actor444000Work::field_EFC`.
+    /* 0xEFC */ s16 field_EFC;
     /// Cleared by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFE`.
     /* 0xEFE */ s16  field_EFE;
@@ -365,8 +370,10 @@ typedef struct Actor403200Work {
     /// Start-of-state countdown the attack state reads against `field_6`: the
     /// state body only runs once `field_6` has reached it, and it is seeded to
     /// 0x28 if still zero. Same slot and role as `Actor444000Work::field_F10`.
-    /* 0xF10 */ s16  field_F10;
-    /* 0xF12 */ byte pad_F12[0x2];
+    /* 0xF10 */ s16 field_F10;
+    /// Death-cinematic step counter; reaching 8 starts the pending-position
+    /// handoff. Same slot as `Actor444000Work::field_F12`.
+    /* 0xF12 */ s16 field_F12;
     /// Quarters of it is how many extra re-arm steps the launch state runs,
     /// calling the per-frame body once per step. Same slot and role as
     /// `Actor444000Work::field_F14`.

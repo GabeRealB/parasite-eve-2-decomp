@@ -3,6 +3,22 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## A `u16` `|=` is a new SI temporary, so `ori` cannot be in-place (`func_actor_403200_8013FB54`, 2026-09-21)
+
+`a = flags | 0x8000` and `b |= 0x8000` on a `u16` promote through `iorsi3` in
+SI mode. The load stays a `reg:HI` and the result is a different pseudo
+(`ori $v1,$v0,0x8000`, then the other flag is pushed to `$a0`). An anonymous
+SI result that dies at the very next store can still share the load's register
+(local-alloc ties the dying HI into that quantity: `ori $v0,$v0,0x8000`). A
+`u16` that is live across a join cannot: it is `reg/v` and global, and the
+promoted SI does not join it.
+
+Declaring the same temporary `u32` and writing `a = flags; a |= 0x8000` makes
+the load and the `ori`/`andi` the same SI pseudo, so the instruction is
+in-place. `func_actor_403200_8013FB54`'s three flag groups went from `regs=32`
+to `regs=0` on that change alone. A two-statement `u16` does not: the
+promotion still allocates a new SI.
+
 ## `similar` 1.00 on the avoid walk is two bodies; default promote unit can collide (ActorsShared80131f58, 2026-09-21)
 
 `Actor00100_Fn00508` / `func_actor_204000_8014A06C` (339 insns) load
