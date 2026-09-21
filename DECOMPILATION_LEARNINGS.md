@@ -137104,3 +137104,37 @@ is 1 because the leading run is `byte pad_0[0x60]`. Replacing the front with a
 `VECTOR` (align 4) pads the trailing `s8` out to 0x68 and trips
 `STATIC_ASSERT_SIZEOF`. Keep the byte run and view the GPF scale as
 `(VECTOR*)arg` / `(SVECTOR*)((VECTOR*)arg + 1)`.
+
+## A per-case reload of the same pointer must not share a C variable with the copy used in the first loop
+
+`func_actor_111800_8013214C` loads `task->work` into `work`, copies it to `ctx`
+for the opening `Gp_AnimTickIndex` loop, then reloads `task->work` in two switch
+cases before `func_800B4114`. One C variable for those three lifetimes is one
+pseudo: 13 refs across 37 insns, which outranks the whole-function `work`
+(20/108) and takes `$s1`. Split the reloads (`work0` / `work4`, 4/13 each) so
+`work` is allocated first (`$s1`) and the short-lived copy/reloads share `$s2`.
+
+The first loop must still pass `ctx` so `$a0` is `$s2`. That puts `ctx` at 5/11
+and it steals `$s1` again. Four `SCHED_BARRIER()`s *while `ctx` is still live*
+(after the loop, before the `field_492` store) stretch the span to 15 without
+adding refs, and `work` wins. `TOUCH_REG(ctx)` is the wrong lever: `"+r"` is two
+refs and `floor_log2` jumps 3→4, so 5/12 beats `work`. `USE_REG(ctx)` is one
+ref and works for the `$s2`/`$s3` copy-vs-coord pair, but not for the loop.
+
+## `SCHED_BARRIER()` after a store keeps a later `li` out of that load's delay
+
+In the same function, case 0 wants
+
+```
+lw    s2, 0x1C(s4)
+nop
+sh    zero, 0x492(s2)
+li    s0, 1
+```
+
+and case 4 wants `li s0, 1` in the *previous* branch delay, then the same
+`lw`/`nop`/`sh`. Without a barrier, sched fills the `lw` delay with `li s3, 0xA`
+(the fifth `func_800B4114` argument) and drops the `nop`. `SCHED_BARRIER()` after
+the `sh` leaves the delay empty. Case 4 still needs `i = 1` *before* the reload
+so dbr can put it in the `bnez` delay; a barrier there instead leaves a `nop` in
+the branch and an extra `li s0, 1` after the store.

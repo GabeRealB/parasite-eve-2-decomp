@@ -24,9 +24,14 @@ typedef struct Actor111800Work {
     /* 0x45C */ MATRIX     field_45C;
     /* 0x47C */ void*      field_47C; // gameGetPtrSlot(3)
     /* 0x480 */ MATRIX*    field_480; // D_80073B8C, the view matrix
-    /* 0x484 */ byte       pad_484[0xE];
-    /* 0x492 */ s16        field_492;
-    /* 0x494 */ s16        field_494;
+    /* 0x484 */ u16        field_484; // sequence step the per-frame handler switches on
+    /* 0x486 */ byte       pad_486[2];
+    /* 0x488 */ u16        field_488; // frames spent in the current step
+    /* 0x48A */ byte       pad_48A[2];
+    /* 0x48C */ s16        field_48C; // angle ramped in steps 1 and 3
+    /* 0x48E */ byte       pad_48E[4];
+    /* 0x492 */ s16        field_492; // latched copy of slots[1].curRec
+    /* 0x494 */ s16        field_494; // angle ramped in step 1; spawn seeds 0x155
 } Actor111800Work;
 STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 
@@ -44,6 +49,7 @@ extern u8 D_actor_111800_8013A448[];
 /// reuse `$v0` after the `sw $v0, 0x47C` store.
 extern MATRIX* D_80073B8C[1];
 
+void func_actor_111800_8013214C(Task* task);
 void func_actor_111800_80132390(Task* task);
 
 #endif
