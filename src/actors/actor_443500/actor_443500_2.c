@@ -19,7 +19,6 @@
 extern s8 D_8007272D;
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void func_actor_443500_80132A68(s32 arg0);
 
 /// Default animation arguments, 0x14 bytes: `{ NULL, 0x1C, 1, 4, 0 }`.
 extern GpAnimArg D_actor_443500_80158728;

@@ -78,4 +78,10 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, GpAnimArg* params, s32 arg3
 /// unused -- the dispatch passes four arguments.
 s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
 
+/// Copy the overlay's layout template `D_actor_443500_801587D8` into the live
+/// table at `D_8018828C`. When `arg0` is nonzero, shift the six live target
+/// positions by `(0, 0x7D0, 0)` afterwards. The per-frame tick calls this
+/// with 0 before showing the model.
+void func_actor_443500_80132A68(s32 arg0);
+
 #endif // ACTOR_443500_H
