@@ -3,6 +3,24 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `similar` 1.00 on the avoid walk is two bodies; default promote unit can collide (ActorsShared80131f58, 2026-09-21)
+
+`Actor00100_Fn00508` / `func_actor_204000_8014A06C` (339 insns) load
+`gGameSession` then `lbu viewReady`. The first-function copies
+(`func_actor_104000_80132074` and three siblings) are 337 insns: splat cut the
+hoisted `lui`/`lw`, so the body opens `lbu $v0, 0x4D($v0)`. `similar` scores
+1.00 across shape/fields/calls/cflow; `overlay_dup_index.py find` keeps them
+apart. Copying the 339-insn sibling scores 99.348% with `insert=2`; an
+uninitialized `GameSession *session` for `session->viewReady` matches the cut
+body (see "Splat cuts the first function after a hoisted `gGameSession` load").
+
+`promote` names the unit `actors_shared_<suffix>` from the function VRAM.
+`actors_shared_80132074` was already the RotMatrix helper at that address in
+`actor_110700`. Reusing it would have linked the wrong object into the four
+avoid-walk carriers. Pass `--unit actors_shared_80131f58` (a free VRAM from
+another copy) when `src/actors/lib/<default>.c` already exists and holds a
+different body.
+
 ## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (func_actor_111800_8013251C, 2026-09-21)
 
 A three-state task handler whose cases 0 and 1 both increment `task->state` and

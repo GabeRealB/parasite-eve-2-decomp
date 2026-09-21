@@ -218,11 +218,11 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
-/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by
-/// `func_actor_204000_8014A06C` to push a coordinate away from the obstacles in
-/// a `GpRec18` table. `angle`/`ok` hold up to eight bearings collected from the
-/// records, `i`/`j` are the loop cursors, and `blocked` is set when any record's
-/// kind is 0x10000.
+/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `ActorsShared80131f58`
+/// (and the same walk in `func_actor_204000_8014A06C`) to push a coordinate
+/// away from the obstacles in a `GpRec18` table. `angle`/`ok` hold up to eight
+/// bearings collected from the records, `i`/`j` are the loop cursors, and
+/// `blocked` is set when any record's kind is 0x10000.
 typedef struct Actor104000AvoidScratch {
     /* 0x00 */ MATRIX   m;
     /* 0x20 */ SVECTOR  dir;
