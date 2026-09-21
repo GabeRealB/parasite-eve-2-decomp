@@ -459,19 +459,6 @@ void func_actor_421600_80133B30(Actor421600* arg0)
     } while (next < 0x12);
 }
 
-/// MATCHING CARRIER, not reconstructed source. Clears `flag` and leaves an empty
-/// loop behind it. A guard that then tests the flag carries a second condition
-/// that only the second common-subexpression pass can fold, because the first
-/// pass stops scanning at a loop end. Folding it there is what keeps a run of
-/// identical guards from sharing one copy of the constant they compare against:
-/// each guard past the second gets the constant its predecessor loaded. No
-/// instruction survives from either the flag or the loop. The original spelling
-/// that produced this grouping is unknown.
-#define CSE_STEER(flag) \
-    flag = 0;           \
-    do {                \
-    } while (0)
-
 /// Per-frame effect dispatch keyed on `field_82E` and the low ten bits of
 /// `field_5A`. Each recognised frame is handled once: `field_848[1]` remembers
 /// the frame last handled, and meeting it again only clears `clear`. A handled

@@ -49,6 +49,22 @@
 #define SCHED_BARRIER() __asm__ volatile("")
 #define SOFT_BARRIER()  __asm__("")
 
+/*
+ * MATCHING CARRIER, not reconstructed source. Clears a dead flag and leaves an
+ * empty loop behind it; a later guard then tests the flag alongside its real
+ * condition. The first common-subexpression pass stops scanning at a loop end,
+ * so only the second can fold that test, and folding it there limits how far
+ * that pass carries an equivalence through a run of identical guards: each
+ * guard past the second keeps the constant its predecessor loaded instead of
+ * sharing the first. Neither the flag nor the loop leaves an instruction. Use
+ * it only where that per-guard constant grouping is what the target shows; the
+ * spelling that originally produced it is unknown.
+ */
+#define CSE_STEER(flag) \
+    flag = 0;           \
+    do {                \
+    } while (0)
+
 #define COMPILER_BARRIER()      __asm__ volatile("" ::: "memory")
 #define SOFT_COMPILER_BARRIER() __asm__("" ::: "memory")
 

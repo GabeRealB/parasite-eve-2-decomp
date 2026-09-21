@@ -27,16 +27,25 @@ typedef struct Actor323400Work {
     /// Frame counter `func_actor_323400_801641C4` advances; zeroed by that
     /// handler's re-init path.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x820];
-    /* 0x828 */ s16  field_828;
-    /* 0x82A */ byte pad_82A[4];
-    /* 0x82E */ s16  field_82E;
-    /* 0x830 */ byte pad_830[2];
-    /* 0x832 */ s16  field_832;
-    /* 0x834 */ byte pad_834[0xA];
-    /* 0x83E */ s16  field_83E;
-    /* 0x840 */ s16  field_840;
-    /* 0x842 */ byte pad_842[0xDA];
+    /* 0x008 */ byte pad_8[0x28];
+    /// Animation slots, read by the per-frame effect dispatch for the record
+    /// each has reached. The count follows the sibling actors' layout; the
+    /// dispatch itself reaches no further than entry 17.
+    /* 0x030 */ GpAnimSlot slots[25];
+    /* 0x418 */ byte       pad_418[0x410];
+    /* 0x828 */ s16        field_828;
+    /* 0x82A */ byte       pad_82A[4];
+    /* 0x82E */ s16        field_82E;
+    /* 0x830 */ byte       pad_830[2];
+    /* 0x832 */ s16        field_832;
+    /* 0x834 */ byte       pad_834[0xA];
+    /* 0x83E */ s16        field_83E;
+    /* 0x840 */ s16        field_840;
+    /* 0x842 */ byte       pad_842[6];
+    /// Record last handled by the per-frame effect dispatch, one entry per
+    /// animation slot, wiped as one block when no case claims a record.
+    /* 0x848 */ s32  field_848[18];
+    /* 0x890 */ byte pad_890[0x8C];
     /// Three bytes `func_actor_323400_80164974` takes from a message payload
     /// one at a time; nothing else in this overlay reads them.
     /* 0x91C */ u8   field_91C;
