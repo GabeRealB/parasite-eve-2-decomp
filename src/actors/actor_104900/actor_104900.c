@@ -25,6 +25,38 @@ extern GpU16Pair D_actor_104900_801392F0[];
 /// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, %2(%0);"                                 \
+        "lhu $13, %3(%0);"                                 \
+        "lhu $14, %4(%0);"                                 \
+        "sh $12, 0(%1);"                                   \
+        "sh $13, 2(%1);"                                   \
+        "sh $14, 4(%1)"                                    \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, 0(%0);"                                  \
+        "lhu $13, 2(%0);"                                  \
+        "lhu $14, 4(%0);"                                  \
+        "sh $12, %2(%1);"                                  \
+        "sh $13, %3(%1);"                                  \
+        "sh $14, %4(%1)"                                   \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+#define SCALE_COL(m, sv, o0, o1, o2, fac)              \
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, sv, o0, o1, o2); \
+    gte_lddp(fac);                                     \
+    gte_ldsv(sv);                                      \
+    gte_gpf12_real();                                  \
+    gte_stsv(sv);                                      \
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
+
 void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 
@@ -388,7 +420,167 @@ void func_actor_104900_801339B0(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80133BB8);
+/// State-0xA pose: clamps the walk at 0xB8E, splits it as Y rotations across
+/// model parts 4 and its two `sub` nodes, then GPF-scales the arm chains at
+/// parts 6 and 10. 0xB9A/0xB98 scale the child then the parent by the
+/// reciprocal; 0xB96/0xB94 scale the parent in place (column 0 at 1+delta,
+/// columns 1-2 at 1+delta/4).
+void func_actor_104900_80133BB8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    GsCOORDINATE2* part;
+    GsCOORDINATE2* coords;
+    s32            walk;
+    s32            rest;
+    register s32   t asm("v1");
+
+    walk = work->field_B8E;
+    part = ((TmdObject*)task->extra)->coords + 4;
+    if (walk < -0x600) {
+        walk = -0x600;
+    } else if (walk >= 0x601) {
+        walk = 0x600;
+    }
+    if ((u32)(walk + 0x2FF) < 0x5FFU) {
+        rest = walk / 3;
+        Gfx_RotMatrixY(&part->coord, walk - rest, 0);
+        part->flg = 0;
+    } else if (walk > 0) {
+        Gfx_RotMatrixY(&part->coord, 0x200, 0);
+        part->flg = 0;
+        rest      = walk - 0x200;
+    } else {
+        Gfx_RotMatrixY(&part->coord, -0x200, 0);
+        part->flg = 0;
+        rest      = walk + 0x200;
+    }
+    rest >>= 1;
+    Gfx_RotMatrixY(&part->sub->coord, rest, 0);
+    part->sub->flg = 0;
+    Gfx_RotMatrixY(&part->sub->sub->coord, rest, 0);
+    part->sub->sub->flg = 0;
+
+    t = work->field_B9A;
+    if (t != 0) {
+        GsCOORDINATE2*    node;
+        GsCOORDINATE2*    sub;
+        MATRIX*           m;
+        MATRIX*           parent;
+        register SVECTOR* sv asm("v0");
+        register s32      scale asm("a1");
+        register s32      inv asm("a0");
+
+        scale  = t + 0x1000;
+        coords = ((TmdObject*)task->extra)->coords;
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv                 = *(SVECTOR**)((u8*)sv + 0x3FC);
+        ((VECTOR*)arg)->vz = scale;
+        ((VECTOR*)arg)->vy = scale;
+        ((VECTOR*)arg)->vx = scale;
+        node               = coords + 6;
+        m                  = (MATRIX*)node->sub;
+        SCHED_BARRIER();
+        sv--;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+        m = &((GsCOORDINATE2*)m)->coord;
+        SCALE_COL(m, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
+        SCALE_COL(m, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
+        SCALE_COL(m, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        inv    = 0x01000000 / scale;
+        parent = &coords[6].coord;
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv  = *(SVECTOR**)((u8*)sv + 0x3FC);
+        sub = node->sub;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+        sub->flg = 0;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+        ((VECTOR*)arg)->vz = inv;
+        SCHED_BARRIER();
+        ((VECTOR*)arg)->vy = inv;
+        SCHED_BARRIER();
+        ((VECTOR*)arg)->vx = inv;
+        SCALE_COL(parent, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
+        SCALE_COL(parent, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
+        SCALE_COL(parent, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv = *(SVECTOR**)((u8*)sv + 0x3FC);
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+    }
+
+    t = work->field_B98;
+    if (t != 0) {
+        GsCOORDINATE2*    node;
+        GsCOORDINATE2*    sub;
+        MATRIX*           m;
+        MATRIX*           parent;
+        register SVECTOR* sv asm("v0");
+        register s32      scale asm("a1");
+        register s32      inv asm("a0");
+
+        scale  = t + 0x1000;
+        coords = ((TmdObject*)task->extra)->coords;
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv                 = *(SVECTOR**)((u8*)sv + 0x3FC);
+        ((VECTOR*)arg)->vz = scale;
+        ((VECTOR*)arg)->vy = scale;
+        ((VECTOR*)arg)->vx = scale;
+        node               = coords + 10;
+        m                  = (MATRIX*)node->sub;
+        SCHED_BARRIER();
+        sv--;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+        m = &((GsCOORDINATE2*)m)->coord;
+        SCALE_COL(m, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
+        SCALE_COL(m, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
+        SCALE_COL(m, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        inv    = 0x01000000 / scale;
+        parent = &coords[10].coord;
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv  = *(SVECTOR**)((u8*)sv + 0x3FC);
+        sub = node->sub;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+        sub->flg = 0;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+        ((VECTOR*)arg)->vz = inv;
+        SCHED_BARRIER();
+        ((VECTOR*)arg)->vy = inv;
+        SCHED_BARRIER();
+        ((VECTOR*)arg)->vx = inv;
+        SCALE_COL(parent, sv, 0, 6, 12, ((VECTOR*)arg)->vx);
+        SCALE_COL(parent, sv, 2, 8, 14, ((VECTOR*)arg)->vy);
+        SCALE_COL(parent, sv, 4, 10, 16, ((VECTOR*)arg)->vz);
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
+        sv = *(SVECTOR**)((u8*)sv + 0x3FC);
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+    }
+
+    if (work->field_B96 != 0) {
+        MATRIX*        m;
+        SVECTOR*       sv;
+        GsCOORDINATE2* c;
+
+        sv = (SVECTOR*)((VECTOR*)arg + 1);
+        c  = ((TmdObject*)task->extra)->coords;
+        m  = &c[6].coord;
+        SCALE_COL(m, sv, 0, 6, 12, work->field_B96 + 0x1000);
+        SCALE_COL(m, sv, 2, 8, 14, (work->field_B96 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 4, 10, 16, (work->field_B96 >> 2) + 0x1000);
+        c[6].flg = 0;
+    }
+
+    if (work->field_B94 != 0) {
+        MATRIX*        m;
+        SVECTOR*       sv;
+        GsCOORDINATE2* c;
+
+        sv = (SVECTOR*)((VECTOR*)arg + 1);
+        c  = ((TmdObject*)task->extra)->coords;
+        m  = &c[10].coord;
+        SCALE_COL(m, sv, 0, 6, 12, work->field_B94 + 0x1000);
+        SCALE_COL(m, sv, 2, 8, 14, (work->field_B94 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 4, 10, 16, (work->field_B94 >> 2) + 0x1000);
+        c[10].flg = 0;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80134780);
 

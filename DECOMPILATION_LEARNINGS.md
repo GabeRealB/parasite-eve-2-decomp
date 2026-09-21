@@ -137021,3 +137021,33 @@ short range inside a single block: the fifth saved register is a *consequence* o
 that block materialising its constant three times rather than once (see the
 CSE extended-block section above), not evidence of a missing local. Count the
 target's uses of the register before concluding a variable is missing.
+
+## Scratch-stack `addiu -8` wants to sit in the `sub` load delay
+
+`func_actor_104900_80133BB8` allocates an 8-byte scratchpad `SVECTOR` and
+loads `node->sub` in the same block. Both are independent of each other, so
+sched2 hoists the `addiu -8` above the `lw` of `sub`. The target fills that
+load's delay with the `addiu` instead:
+
+```
+lw    v1, 0x4C(a3)     # sub
+addiu v0, v0, -8       # scratch alloc
+sw    v0, 0x1F8003FC
+addiu v1, v1, 4        # &sub->coord
+```
+
+`SCHED_BARRIER()` after the `sub` load and before the alloc keeps that order.
+Writing `m = &node->sub->coord` as one expression loses the delay-fill slot.
+
+The child matrix and the later parent (`&coords[k].coord`) must be different C
+variables. Pinning one `MATRIX* m` to `$v1` for the child also forces the
+parent into `$v1`; a second unpinned `parent` pointer lets the inverse GPF keep
+`$a2`.
+
+## A `VECTOR` member pads a 0x65-byte stack block to 0x68
+
+`ActorsShared80138efcArg` is 0x65 bytes and must stay that size: its alignment
+is 1 because the leading run is `byte pad_0[0x60]`. Replacing the front with a
+`VECTOR` (align 4) pads the trailing `s8` out to 0x68 and trips
+`STATIC_ASSERT_SIZEOF`. Keep the byte run and view the GPF scale as
+`(VECTOR*)arg` / `(SVECTOR*)((VECTOR*)arg + 1)`.
