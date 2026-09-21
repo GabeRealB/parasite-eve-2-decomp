@@ -43,7 +43,9 @@ typedef struct Actor451100Work {
     /* 0x47E */ u16        field_47E;
     /* 0x480 */ u16        animId;
     /* 0x482 */ s16        field_482;
-    /* 0x484 */ byte       pad_484[0x2E];
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ s16        yaw; // model yaw the walk turns by 0x33 a frame
+    /* 0x4B0 */ byte       pad_4B0[0x2];
     /* 0x4B2 */ s16        travel;
     /* 0x4B4 */ u16        animArg;
     /* 0x4B6 */ byte       pad_4B6[0x2];
@@ -53,6 +55,13 @@ typedef struct Actor451100Work {
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
 
 extern Actor451100Work* ActorsShared80131f9cWork;
+
+/// Reset argument this overlay forwards to every reseeded slot.
+extern s16 D_actor_451100_8013F700;
+
+/// Picks the distance `func_actor_451100_80131F84` walks the model each frame:
+/// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
+extern s16 D_actor_451100_8014E74C;
 
 /// Argument block of the script opcode `func_actor_451100_80132E98`
 /// implements: which animation to play, and how. Same shape as the
@@ -69,8 +78,17 @@ void ActorsShared80132a1c(Task* task);
 /// Task exit callback this overlay installs on spawn.
 void func_actor_451100_80132CAC(Task* task);
 
-/// Drives the actor for one frame off the state `ActorsShared80132a1c`
-/// or `func_actor_451100_80132538` left in the work block.
+/// Ticks the animation once the runner has moved and turned the model.
+void func_actor_451100_801323DC(void);
+
+/// Restarts the animation with the reset argument in
+/// `D_actor_451100_8013F700`; the runner's state 1.
+void func_actor_451100_801324B8(void);
+
+/// Per-frame update: states 1 and 2 run their one-shot animation reseed and
+/// leave the work block in state 3; state 3 walks the model while `travel`
+/// counts down (distance picked by `D_actor_451100_8014E74C`), turns it while
+/// `animArg` counts down in animation 3, then ticks the animation.
 void func_actor_451100_80131F84(Task* task);
 
 /// Second script opcode taking `Actor451100AnimArgs`: like

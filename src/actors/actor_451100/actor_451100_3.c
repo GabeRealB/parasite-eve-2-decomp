@@ -9,9 +9,6 @@
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Reset argument this overlay forwards to every reseeded slot.
-extern s16 D_actor_451100_8013F700;
-
 /// Reseeds animation slots 1..0x12 from the current animation id and records
 /// that id as the one now playing.
 void func_actor_451100_801324B8(void)
