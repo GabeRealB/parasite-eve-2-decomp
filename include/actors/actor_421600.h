@@ -111,7 +111,11 @@ typedef struct Actor421600Work {
     /* 0x840 */ u16  field_840;
     /* 0x842 */ byte pad_842[2];
     /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[0x4A];
+    /* 0x846 */ byte pad_846[2];
+    /// Per-state memory of the frame `func_actor_421600_80133CAC` last handled,
+    /// wiped as one block when no state claims the current frame. Only entry 1
+    /// is read or written by name; the extent is the size of that wipe.
+    /* 0x848 */ s32 field_848[18];
     /// Argument record `func_actor_421600_801350BC` fills for `func_800FDB18`:
     /// the model part coordinate `sc->pad` names, scale 0x100 and count 2.
     /// Same slot actor 00100 keeps at its own 0x890.

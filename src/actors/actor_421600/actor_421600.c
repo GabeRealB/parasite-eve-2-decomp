@@ -459,7 +459,333 @@ void func_actor_421600_80133B30(Actor421600* arg0)
     } while (next < 0x12);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80133CAC);
+/// MATCHING CARRIER, not reconstructed source. Clears `flag` and leaves an empty
+/// loop behind it. A guard that then tests the flag carries a second condition
+/// that only the second common-subexpression pass can fold, because the first
+/// pass stops scanning at a loop end. Folding it there is what keeps a run of
+/// identical guards from sharing one copy of the constant they compare against:
+/// each guard past the second gets the constant its predecessor loaded. No
+/// instruction survives from either the flag or the loop. The original spelling
+/// that produced this grouping is unknown.
+#define CSE_STEER(flag) \
+    flag = 0;           \
+    do {                \
+    } while (0)
+
+/// Per-frame effect dispatch keyed on `field_82E` and the low ten bits of
+/// `field_5A`. Each recognised frame is handled once: `field_848[1]` remembers
+/// the frame last handled, and meeting it again only clears `clear`. A handled
+/// frame spawns its effects while the room effect mode is 2 and returns a
+/// request word; otherwise the result is 0, after wiping `field_848` when no
+/// case claimed the frame.
+///
+/// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
+s32 func_actor_421600_80133CAC(Actor421600* arg0, Actor421600Work* work)
+{
+    SVECTOR offset;
+    u32     prev;
+    s32     clear = 1;
+    s32     steer;
+
+    switch (work->field_82E) {
+        case 0:
+            if ((work->field_5A & 0x3FF) == 9) {
+                prev = work->field_848[1];
+                if (prev != 9) {
+                    work->field_848[1] = 9;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80002280, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80002120, &offset);
+                    }
+                    return 0x40010002;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 6) {
+                prev = work->field_848[1];
+                if (prev != 6) {
+                    work->field_848[1] = 6;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80002220, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80002120, &offset);
+                    }
+                    return 0x40010001;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+        case 10:
+            if ((work->field_5A & 0x3FF) == 10) {
+                prev = work->field_848[1];
+                if (prev != 10) {
+                    work->field_848[1] = 10;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x0;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[0], 0x80004A00, &offset);
+                    }
+                    return 0x40010005;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+        case 3:
+            if ((work->field_5A & 0x3FF) == 12) {
+                prev = work->field_848[1];
+                if (prev != 12) {
+                    work->field_848[1] = 12;
+                    return 0x40010004;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 8) {
+                prev = work->field_848[1];
+                if (prev != 8) {
+                    work->field_848[1] = 8;
+                    return 0x40010003;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+        case 6:
+            if ((work->field_5A & 0x3FF) == 6) {
+                prev = work->field_848[1];
+                if (prev != 6) {
+                    work->field_848[1] = 6;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &offset);
+                    }
+                    return 0x40010011;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 12) {
+                prev = work->field_848[1];
+                if (prev != 12) {
+                    work->field_848[1] = 12;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80004480, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80004480, &offset);
+                    }
+                    return 0x40010011;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 13) {
+                prev = work->field_848[1];
+                if (prev != 13) {
+
+                    work->field_848[1] = 13;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80002200, &offset);
+                    }
+                    CSE_STEER(steer);
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (steer == 0 && Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80002240, &offset);
+                    }
+                    CSE_STEER(steer);
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (steer == 0 && Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003300, &offset);
+                    }
+
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003340, &offset);
+                    }
+                    return 0x40010011;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+        case 21:
+            if ((work->field_5A & 0x3FF) == 6) {
+                prev = work->field_848[1];
+                if (prev != 6) {
+                    work->field_848[1] = 6;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &offset);
+                    }
+                    return 0x40010001;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 9) {
+                prev = work->field_848[1];
+                if (prev != 9) {
+                    work->field_848[1] = 9;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &offset);
+                    }
+                    return 0x40010001;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 14) {
+                prev = work->field_848[1];
+                if (prev != 14) {
+                    work->field_848[1] = 14;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &offset);
+                    }
+                    return 0x40010002;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+        case 20:
+            if ((work->field_5A & 0x3FF) == 6) {
+                prev = work->field_848[1];
+                if (prev != 6) {
+                    work->field_848[1] = 6;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[9], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &offset);
+                    }
+                    return 0x40010001;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 10) {
+                prev = work->field_848[1];
+                if (prev != 10) {
+                    work->field_848[1] = 10;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x2BC;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[7], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &offset);
+                    }
+                    return 0x40010001;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            if ((work->field_5A & 0x3FF) == 14) {
+                prev = work->field_848[1];
+                if (prev != 14) {
+                    work->field_848[1] = 14;
+                    offset.vz          = 0;
+                    offset.vx          = 0;
+                    offset.vy          = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[14], 0x80003200, &offset);
+                    }
+                    offset.vz = 0;
+                    offset.vx = 0;
+                    offset.vy = 0x258;
+                    if (Gp_State1C->roomEffectMode == 2) {
+                        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[17], 0x80003200, &offset);
+                    }
+                    return 0x40010002;
+                }
+                work->field_848[1] = prev;
+                clear              = 0;
+            }
+            break;
+    }
+    if (clear == 1) {
+        Mem_Set(work->field_848, 0, 0x48);
+    }
+    return 0;
+}
 
 void func_actor_421600_80134604(Actor421600* arg0)
 {
