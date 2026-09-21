@@ -3,6 +3,9 @@
 #include "main/tmd.h"
 
 #include "actors/actor_450800.h"
+#include "actors/actor_461800_move.h"
+#include "actors/actors_shared_80132404.h"
+#include "actors/actors_shared_80132514.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -36,6 +39,7 @@ extern void func_80182D14(s32, s32);
 
 void func_actor_450800_80132448(Task* task);
 void func_actor_450800_80132868(Task* task);
+void func_actor_450800_80132AE0(Task* task);
 
 void func_actor_450800_80131E34(void)
 {
@@ -287,7 +291,47 @@ void func_actor_450800_80132160(void* enemyArg, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450800/actor_450800", func_actor_450800_80132448);
+void func_actor_450800_80132448(Task* task)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    Actor450800Work* work  = (Actor450800Work*)task->work;
+
+    if (work->state == 1) {
+        func_actor_450800_80132AE0(task);
+        work->state = 3;
+    } else if (work->state == 2) {
+        ActorsShared80132514(task);
+        work->state = 3;
+    } else if (work->state == 3) {
+        if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
+            if (work->field_4EA != 0) {
+                switch (work->field_4FE) {
+                    case 0:
+                        Actor461800_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor461800_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor461800_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->field_4EA == 0) {
+                    work->state     = 1;
+                    work->field_4FC = 0xA;
+                    work->field_4B8 = 0xD;
+                }
+            }
+        }
+        if (work->field_4B8 == 3 && work->field_4EC != 0) {
+            work->field_4E6 += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+            coord->flg = 0;
+            work->field_4EC--;
+        }
+        ActorsShared80132404(task);
+    }
+}
 
 void func_actor_450800_801327E4(void* enemy, Task* task);
 
