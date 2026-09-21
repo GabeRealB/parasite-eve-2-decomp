@@ -45,6 +45,7 @@ typedef struct Actor151000Placement {
 } Actor151000Placement;
 STATIC_ASSERT_SIZEOF(Actor151000Placement, 0x18);
 
+void func_actor_151000_80132084(Task* task);
 void func_actor_151000_801325C4(void);
 void func_actor_151000_801326AC(void);
 s32  func_actor_151000_80132810(Task* task, s32 arg1, Actor151000Placement* placement);
