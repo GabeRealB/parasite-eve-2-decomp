@@ -297,7 +297,68 @@ void func_actor_104900_80135404(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80135560);
+/// Collision-arm handler for the second motion node: the first frame the latch
+/// at 0xBA8 is still clear it sets motion 3, zeroes the countdown at 0xB8C and
+/// steps the latch. Every later frame increments that countdown. On frame 0x1A
+/// it calls `Gp_PackObjPair` with pair 2 and ORs the 0xC000 pair-pass bits into
+/// the second motion node's `flags`. While the countdown sits in `[0x1B, 0x36]`
+/// and the latch is still 1, a hit on the recs table at 0xAB8 masks those bits
+/// back out of both motion nodes and steps the latch; frame 0x37 does the same
+/// mask unconditionally. The frame block's scratch byte at 0x64 takes 8 either
+/// way, and the trigger at 0xBA9 ends the sub-state by clearing `state` and
+/// the latch.
+///
+/// Same body as the four twins - `func_actor_101100_80135560` at the same
+/// address and `func_actor_201100_8014D560` / `func_actor_204900_8014D560` /
+/// `func_actor_301100_80165560` 0x18000 / 0x30000 past it - but a shared span
+/// here would sit inside the first unit, ahead of `actors_shared_801357f0`, and
+/// insert a new overlay-local run that renames `_2`..`_6`.
+void func_actor_104900_80135560(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    GpObj* obj;
+    s32    i;
+    s32    off;
+    u16    time;
+
+    if (work->field_BA8 == 0) {
+        work->field_BA4 = 3;
+        work->field_B8C = 0;
+        work->field_BA8 = (u8)work->field_BA8 + 1;
+    }
+    time            = (u16)work->field_B8C + 1;
+    work->field_B8C = time;
+    if ((s16)time == 0x1A) {
+        obj = &work->motion.objs[1];
+        Gp_PackObjPair((GpObj50*)enemy, 2);
+        obj->flags |= 0xC000;
+    }
+    if ((u32)((u16)work->field_B8C - 0x1B) < 0x1C) {
+        if ((work->field_BA8 == 1) && (Gp_FindRec18((GpRec18*)((u8*)work + 0xAB8), 0) != 0)) {
+            i   = 0;
+            off = 0x9C8;
+            do {
+                ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+                off                                += 0x20;
+                i++;
+            } while (i < 2);
+            work->field_BA8 = (u8)work->field_BA8 + 1;
+        }
+    }
+    arg->field_64 = 8;
+    if (work->field_B8C == 0x37) {
+        i   = 0;
+        off = 0x9C8;
+        do {
+            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+            off                                += 0x20;
+            i++;
+        } while (i < 2);
+    }
+    if (work->field_BA9 == 1) {
+        work->state     = 0;
+        work->field_BA8 = 0;
+    }
+}
 
 /// Spin-about handler: on the frame the latch at 0xBA8 is still clear it draws
 /// a nibble from `Gp_LcgState` and arms one of the six spin rates - the
