@@ -47,7 +47,11 @@ STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xAFC);
 /// and `func_actor_104900_80138F68` use 0xB9C..0xBAE the way this one does, and
 /// `func_actor_104900_80138D58` stores a halfword at 0xB8C.
 typedef struct ActorsShared80138efcWork {
-    /* 0x000 */ byte pad_0[0x8C];
+    /// Root coordinate. The fade at the end of the 0x80137498 handler shrinks
+    /// `coord.m[1][1]` by 0x20 while it is at least 0x801, clears `flg`, and
+    /// lifts `coord.t[1]` by 2.
+    /* 0x000 */ GsCOORDINATE2 coord;
+    /* 0x050 */ byte          pad_50[0x3C];
     /// Motion sub-object embedded at 0x8C. Its halfwords at 0x00 / 0x02 / 0x06
     /// are the ones `func_actor_104900_80136F8C` compares against the motion id
     /// in `field_BA4` and walks, and its flag word at 0x10 (0x9C absolute) is
@@ -108,14 +112,14 @@ typedef struct ActorsShared80138efcWork {
     /* 0xBAA */ u8 field_BAA;
     /// Compared against 1 (`lbu`) by the 0x80138B5C body, which skips its whole
     /// decay block while it is set.
-    /* 0xBAB */ u8   field_BAB;
+    /* 0xBAB */ u8 field_BAB;
     /// Lunge-exit gate read with `lbu` and compared against 0xB. Unsigned,
     /// unlike the signed byte that follows it.
     /* 0xBAC */ u8 field_BAC;
     /// Frame within the lunge. Armed to -1, then stepped with an unsigned
     /// read (`lbu`/`sb`) and tested signed (`lb`) against 1 and 0x2E.
     /* 0xBAD */ s8 field_BAD;
-    /* 0xBAE */ u8   field_BAE;
+    /* 0xBAE */ u8 field_BAE;
     /// Armed alongside `state` by the 0x80138E34 body, which the dispatcher's
     /// trigger then compares against. The 0x80138B5C body gates the `field_B8E`
     /// step on it (`lbu`).
@@ -126,7 +130,10 @@ typedef struct ActorsShared80138efcWork {
     /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand
     /// `SndEvt_EnqueueType6`.
     /* 0xBB8 */ u8   field_BB8;
-    /* 0xBB9 */ byte pad_BB9[0x10];
+    /* 0xBB9 */ byte pad_BB9[0xF];
+    /// One-shot latch for the 0x13F4 dispatch. Stays clear until the area id
+    /// is 0x0518, the player is alive, and that message has been sent.
+    /* 0xBC8 */ u8 field_BC8;
     /// Read as a byte and compared against 1, then against `field_BA9`: the
     /// 0x80138A2C body only runs its restart path when both are 1.
     /* 0xBC9 */ u8   field_BC9;

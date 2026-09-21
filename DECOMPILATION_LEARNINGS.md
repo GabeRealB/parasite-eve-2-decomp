@@ -137446,3 +137446,9 @@ The same hazard then put `addiu a0, a0, -8` before two single-set `lhu`s.
 single-set addiu is placed after them. A `u16` temp used on the far side of
 the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
 `s32`.
+
+## A struct global keeps its store ahead of a later field load (`func_actor_104900_80137498`)
+
+A scalar store to `D_80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. Declaring the global as a one-word struct (`{ void *tmd; }`) makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
+
+The address order around that store is a LUID tie. Both the slot `lui` and the TMD `addiu` have priority 1, and `rank_for_schedule` keeps the higher LUID next to the `sw`. Expanding the destination first puts the slot `lui` earlier. Assigning the symbol to a fresh `u8 *` and then storing that pointer emits `lui`/`addiu` in `$v0` and the slot `lui` in `$v1`, which is the target order. The same temporary as `void *` splits the `lo_sum` into `$v1` and reuses `$v0` for the slot. One temporary per store; reusing a `void *` across the three calls did not.

@@ -4,11 +4,13 @@
 #include "actors/actors_shared_801384ac.h"
 #include "actors/actors_shared_801388e8.h"
 #include "actors/actors_shared_80138efc.h"
+#include "actors/actors_shared_801385e0.h"
 #include "actors/actors_shared_801511c8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/rand.h>
@@ -28,7 +30,42 @@ extern TaskDesc  D_actor_104900_80147400[];
 /// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
-void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
+#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, %2(%0);"                                 \
+        "lhu $13, %3(%0);"                                 \
+        "lhu $14, %4(%0);"                                 \
+        "sh $12, 0(%1);"                                   \
+        "sh $13, 2(%1);"                                   \
+        "sh $14, 4(%1)"                                    \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, 0(%0);"                                  \
+        "lhu $13, 2(%0);"                                  \
+        "lhu $14, 4(%0);"                                  \
+        "sh $12, %2(%1);"                                  \
+        "sh $13, %3(%1);"                                  \
+        "sh $14, %4(%1)"                                   \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+typedef struct {
+    void* tmd;
+} Actor104900EffSlot;
+
+extern u8                        D_80071075;
+extern s8                        D_80114C12;
+extern Actor104900EffSlot        D_80067330;
+extern u8                        D_actor_104900_8013F714;
+extern u8                        D_actor_104900_801402FC;
+extern ActorsShared801385e0Scale D_actor_104900_80131EEC;
+
+void func_actor_104900_80137498(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 void ActorsShared801357f0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 
@@ -763,7 +800,217 @@ void func_actor_104900_80136F8C(GpEnemy* enemy, Task* task, ActorsShared80138efc
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900_3", func_actor_104900_80137498);
+void func_actor_104900_80137498(
+    GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    TmdObject*                 extra;
+    TmdObject*                 spawned;
+    TmdObject*                 tmd;
+    GsCOORDINATE2*             coords;
+    GpEffWork*                 eff;
+    PlayerStatus*              status;
+    GameActor*                 actor;
+    ActorsShared801385e0Scale  scale;
+    ActorsShared801385e0Scale* sc;
+    ActorsShared801385e0Scale* sym;
+    MATRIX*                    mtx;
+    SVECTOR*                   sv;
+    u8*                        head;
+    u32                        scratch;
+    s16                        time;
+    s16                        walk;
+    s16                        nextTime;
+    s32                        i;
+    s32                        off;
+    u8                         saved;
+    u8                         latch;
+    u8*                        tmdA;
+    u8*                        tmdB;
+    u8*                        tmdC;
+
+    extra = (TmdObject*)task->extra;
+    if (((D_8007216C & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
+        actor  = ((GpActorWork*)gameGetPtrSlot(3))->actor;
+        status = &Player_Status;
+        if ((actor->field_954 != 2) && (D_80114C12 != 1) && (D_80071075 == 0) && (status->hp > 0)) {
+            Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+            work->field_BC8 = 1;
+        }
+    }
+
+    if (work->field_BA8 == 0) {
+        i               = 0;
+        off             = 0x9A8;
+        work->field_B92 = 0;
+        enemy->hp       = 0;
+        do {
+            ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+            off                                += 0x20;
+            i++;
+        } while (i < 4);
+        if (enemy->spawnState == 0x10) {
+            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            enemy->spawnState = 0;
+        } else {
+            Gp_SetLightMode((GpObj4C*)enemy, 1);
+        }
+        if (enemy->spawnState == 0) {
+            enemy->spawnState = work->field_BAE + 1;
+        }
+        work->field_BA6   = 3;
+        work->field_BAB   = 0x20;
+        enemy->node.flags = 1;
+        if (enemy->spawnState == 3) {
+            tmdA           = &D_actor_104900_8013F714;
+            D_80067330.tmd = tmdA;
+            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            if (eff != NULL) {
+                spawned    = (TmdObject*)task->extra;
+                tmd        = (TmdObject*)eff->task->extra;
+                tmd->tpage = spawned->tpage;
+                tmd->clut  = spawned->clut;
+                if (tmd->buffer != NULL) {
+                    tmdProcessStream(tmd);
+                    tmdProcessStream(tmd);
+                }
+            }
+            tmdB           = &D_actor_104900_801402FC;
+            D_80067330.tmd = tmdB;
+            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            if (eff != NULL) {
+                spawned    = (TmdObject*)task->extra;
+                tmd        = (TmdObject*)eff->task->extra;
+                tmd->tpage = spawned->tpage;
+                tmd->clut  = spawned->clut;
+                if (tmd->buffer != NULL) {
+                    tmdProcessStream(tmd);
+                    tmdProcessStream(tmd);
+                }
+            }
+            tmdC           = &D_actor_104900_8013F714;
+            D_80067330.tmd = tmdC;
+            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            if (eff != NULL) {
+                spawned    = (TmdObject*)task->extra;
+                tmd        = (TmdObject*)eff->task->extra;
+                tmd->tpage = spawned->tpage;
+                tmd->clut  = spawned->clut;
+                if (tmd->buffer != NULL) {
+                    tmdProcessStream(tmd);
+                    tmdProcessStream(tmd);
+                }
+            }
+            latch    = (u8)work->field_BA8;
+            nextTime = 0x34;
+            goto bump;
+        }
+        if (enemy->spawnState == 1) {
+            work->field_BA4 = 0x11;
+        } else {
+            work->field_BA4 = 0x12;
+        }
+        latch    = (u8)work->field_BA8;
+        nextTime = 0x20;
+        goto bump;
+    } else if (work->field_BA8 == 1) {
+        time            = (u16)work->field_B8C - 1;
+        work->field_B8C = time;
+        if (time == 0xC) {
+            Gp_SpawnEff(0x600A5, ((TmdObject*)task->extra)->coords, 5, 0);
+        } else if (time <= 0) {
+            extra->flags |= 2;
+            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            latch = (u8)work->field_BA8;
+            TOUCH_REG(latch);
+            nextTime = 0x20;
+            goto bump;
+        }
+    } else if (work->field_BA8 == 2) {
+        time            = (u16)work->field_B8C - 1;
+        work->field_B8C = time;
+        if ((time << 16) == 0) {
+            spawned         = (TmdObject*)task->extra;
+            spawned->flags |= 0x80;
+            latch           = (u8)work->field_BA8;
+            __asm__("addiu %0, $zero, 4" : "=r"(nextTime) : "r"(latch), "m"(spawned->flags));
+        bump:
+            work->field_B8C = nextTime;
+            __asm__("addiu %0, %0, 1" : "+r"(latch) : "m"(work->field_B8C));
+            work->field_BA8 = latch;
+        }
+    } else {
+        time            = (u16)work->field_B8C - 1;
+        work->field_B8C = time;
+        if (((time << 16) == 0) && ((D_8007216C & 0xFFFF0000) != 0x05180000)) {
+            work->field_BA6 = 0x10;
+        }
+    }
+
+    walk = work->field_B8E;
+    if (walk >= 0x31) {
+        work->field_B8E = (s16)((u16)work->field_B8E - 0x30);
+    } else if (walk < -0x30) {
+        work->field_B8E = (s16)((u16)work->field_B8E + 0x30);
+    }
+
+    arg->field_64 = 3;
+    saved         = enemy->spawnState;
+    if (saved == 3) {
+        sym    = &D_actor_104900_80131EEC;
+        coords = ((TmdObject*)task->extra)->coords;
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+        scratch = *(u32*)(head + 0x3FC);
+        scale   = *sym;
+        sc      = &scale;
+        sv      = (SVECTOR*)(scratch - 8);
+        mtx     = &coords[3].coord;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
+        TOUCH_REG(sv);
+
+        COMPILER_BARRIER();
+        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 0, 6, 12);
+        gte_lddp(sc->vx);
+        gte_ldsv(sv);
+        gte_gpf12_real();
+        gte_stsv(sv);
+        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 0, 6, 12);
+
+        COMPILER_BARRIER();
+        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 2, 8, 14);
+        gte_lddp(sc->vy);
+        gte_ldsv(sv);
+        gte_gpf12_real();
+        gte_stsv(sv);
+        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 2, 8, 14);
+
+        COMPILER_BARRIER();
+        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 4, 10, 16);
+        gte_lddp(sc->vz);
+        gte_ldsv(sv);
+        gte_gpf12_real();
+        gte_stsv(sv);
+        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 4, 10, 16);
+
+        __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+        scratch       = *(u32*)(head + 0x3FC);
+        coords[3].flg = 0;
+        scratch      += 8;
+        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
+        if (enemy->spawnState == saved) {
+            if (!(extra->flags & 2)) {
+                goto skip_fade;
+            }
+        }
+    }
+
+    if (work->coord.coord.m[1][1] >= 0x801) {
+        work->coord.coord.m[1][1] = (s16)((u16)work->coord.coord.m[1][1] - 0x20);
+        work->coord.flg           = 0;
+        work->coord.coord.t[1]    = work->coord.coord.t[1] + 2;
+    }
+skip_fade:
+    return;
+}
 
 /// Countdown handler built around the halfword at 0xB8C.
 ///
