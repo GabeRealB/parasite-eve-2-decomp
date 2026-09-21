@@ -5,10 +5,12 @@
 #include "actors/actor_113100.h"
 
 #include "main/mem.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
@@ -26,6 +28,12 @@ extern MATRIX* Gp_GetStageView(u8*, s32, void*);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_actor_113100_80132F40(Task* task);
+void func_actor_113100_80132FB4(Task* task);
+
+extern u8 D_801153F4;
 
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
@@ -136,7 +144,103 @@ void func_actor_113100_80131E58(Task* task)
     task->state       += 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_113100/actor_113100", func_actor_113100_80132104);
+/// Per-frame tick of the actor's live state. While the model is not deferred
+/// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
+/// draws the ground shadow under that part. `D_801153F4` gates the rest: a
+/// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
+/// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
+/// `field_530`, integrates the 16.16 step at `field_500` into `field_510` /
+/// `field_514` / `field_518` and the root translation, ticks slots 1..0x13
+/// once `field_474` has latched, and plays ids 0x5113000F / 0x51130013 /
+/// 0x51130010 from the slot-1 cue flags. While the model is visible it clears
+/// the occupancy table, ramps `field_538` toward 0 or 0x1000 according to
+/// `field_53C`, and turns the head toward slot 3. `viewReady` rebuilds part 1's
+/// lighting, and `field_53D` counts the buffer free down to zero.
+void func_actor_113100_80132104(Task* task)
+{
+    TmdObject*       extra    = (TmdObject*)task->extra;
+    Actor113100Work* work     = (Actor113100Work*)task->work;
+    TaskFunc         funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
+    VECTOR3          pos;
+    GsCOORDINATE2*   coord;
+    GpAnimRec*       rec;
+    s32              i;
+    s32              snd;
+    s8               mode;
+    u16              rate;
+
+    if (!(extra->flags & 0x80)) {
+        ((TmdObject*)task->extra)->coords[1].flg = 0;
+        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+            Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
+        }
+    }
+    if (D_801153F4 == 0) {
+        funcs[work->field_530](task);
+        coord              = ((TmdObject*)task->extra)->coords;
+        work->field_510   += work->field_500.vx;
+        work->field_514   += work->field_500.vy;
+        work->field_518   += work->field_500.vz;
+        coord->coord.t[0] += (s16)(work->field_510 >> 16);
+        coord->coord.t[1] += (s16)(work->field_514 >> 16);
+        coord->coord.t[2] += (s16)(work->field_518 >> 16);
+        coord->flg         = 0;
+        work->field_510    = (u16)work->field_510;
+        work->field_514    = (u16)work->field_514;
+        work->field_518    = (u16)work->field_518;
+        if (work->field_474 != 0) {
+            for (i = 1; i < 0x14; i++) {
+                Gp_AnimTickIndex(&work->anim, i);
+            }
+            rec = Gp_AnimGetRec(&work->anim, &work->slots[1]);
+            if (rec != NULL) {
+                if (rec->flags & 0x20) {
+                    snd = 0x5113000F;
+                    if (gGameSession->at4.loc.view == 0x10) {
+                        snd = 0x51130013;
+                    }
+                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                }
+                if ((rec->flags & 0x10) && (gGameSession->at4.loc.view != 0x10)) {
+                    SndEvt_EnqueueType6(0x51130010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                }
+            }
+        }
+        if (!(extra->flags & 0x80)) {
+            Gp_ClearRec18Occupied(&work->field_4D8);
+            mode = work->field_53C;
+            switch (mode) {
+                case 0:
+                    rate            = work->field_538 - 0x100;
+                    work->field_538 = rate;
+                    if ((s16)rate < 0) {
+                        work->field_538 = 0;
+                    }
+                    break;
+                case 1:
+                    rate            = work->field_538 + 0x100;
+                    work->field_538 = rate;
+                    if ((s16)rate >= 0x1001) {
+                        work->field_538 = 0x1000;
+                    }
+                    break;
+            }
+            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, (s16)work->field_538);
+        }
+        if (gGameSession->viewReady != 0) {
+            ((TmdObject*)task->extra)->coords[1].flg = 0;
+            Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+            func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
+        }
+        if (work->field_53D >= 0) {
+            if (work->field_53D == 0) {
+                Tmd_FreeBuffers(extra);
+            }
+            work->field_53D--;
+        }
+    }
+}
 
 /// Per-frame turn handler, one of the four bodies `func_actor_113100_80132FB4`
 /// dispatches through `D_actor_113100_80131E48`. It recovers the root
