@@ -18,7 +18,7 @@
 # unmatched-function count alone, which knows nothing about duplication. In
 # actors the leading digit is a load-address bucket, so actor_207000 holds 44
 # functions but contributes one body that actor_107000 has not already covered.
-# A list computed from the duplicate index (see local/ACTORS_SWEEP_ORDER.md)
+# A list computed from the duplicate index (see local/sweep_order.py)
 # spends each match where it retires the most work.
 #
 # Concurrency is safe without any locking of its own: vacuum_orch leases every
