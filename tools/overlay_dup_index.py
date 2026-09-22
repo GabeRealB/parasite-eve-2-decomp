@@ -486,7 +486,7 @@ def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
     return text[:start] + "\n".join(lines) + "\n" + text[end:], tail
 
 
-def cmd_promote(data: dict, name: str, unit: str | None) -> int:
+def cmd_promote(data: dict, name: str, unit: str | None, run: bool = False) -> int:
     """Move a body into the shared library, src/lib.
 
     Does the plumbing that is identical either way - the span in
@@ -518,10 +518,20 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     if hit is None:
         print(f"{name}: not found", file=sys.stderr)
         return 1
-    plan, why = _promotion_plan(data, hit, library_families())
+    families = library_families()
+    if run:
+        plan, members, why = _run_plan(data, hit, families)
+    else:
+        (plan, why), members = _promotion_plan(data, hit, families), []
     if why:
         print(f"{name}: {why}")
         return 1
+    # A run is one unit: named once, for its first function.
+    run_texts = {f["text"] for f in members}
+    if members:
+        first = members[0]
+        fams = sorted({family_of(f) for f in _carriers(classes(data, "text")[first["text"]], families)[0]})
+        unit = unit or f"{fams[0] + '_shared' if len(fams) == 1 else 'shared'}_{first['name'].split('_')[-1].lower()}"
 
     cl = classes(data, "text")
     text_of = {(f["overlay"], f["name"]): f["text"] for f in data["functions"]}
@@ -532,13 +542,31 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     staged = []
     shared_name: dict[str, str] = {}   # body text hash -> its shared symbol
     for body in plan:
-        # Only the body that was asked for takes an explicit unit name.
-        wanted = unit if body["text"] == hit["text"] else None
-        result = _stage_promotion(body, cl[body["text"]], wanted, manifest, spans, syms)
+        # Only the body that was asked for takes an explicit unit name - or,
+        # promoting a run, every function of it takes the run's.
+        in_run = body["text"] in run_texts
+        wanted = unit if (in_run or body["text"] == hit["text"]) else None
+        result = _stage_promotion(body, cl[body["text"]], wanted, manifest, spans, syms,
+                                  own_sym=in_run)
         if result is None:
             return 1
         shared_name[body["text"]] = result["sym"]
         staged.append(result)
+
+    # A run stages each function on its own; one unit owns one run per section
+    # in each entry, so the pieces must meet end to end and are joined here.
+    joined: dict[tuple, list] = {}
+    for s in spans:
+        joined.setdefault((s[0], s[1], s[2], s[5]), []).append(s)
+    spans = []
+    for (kind, fam, entry, u), parts in joined.items():
+        parts.sort(key=lambda s: s[3])
+        for a, b in zip(parts, parts[1:]):
+            if a[3] + a[4] != b[3]:
+                print(f"{entry}: {u}'s {kind} is not one run (0x{a[3]:X}+0x{a[4]:X}, "
+                      f"then 0x{b[3]:X}); aborting", file=sys.stderr)
+                return 1
+        spans.append((kind, fam, entry, parts[0][3], sum(s[4] for s in parts), u, parts[0][6]))
 
     # Carve every body out of its entry in address order. Inserting a later
     # body first cuts its owner's run mid-way and strands the earlier code in a
@@ -583,9 +611,13 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         path.write_text(sym_text, encoding="utf-8")
     MANIFEST.write_text(text, encoding="utf-8")
 
-    if len(staged) > 1:
-        print(f"{name}: calls {len(staged) - 1} body/bodies its carriers share, "
-              f"promoted first:")
+    callees = len(staged) - max(len(members), 1)
+    if members:
+        print(f"{name}: promoted with its neighbours as one unit of "
+              f"{len(members)} function(s)"
+              + (f", after {callees} callee body/bodies its carriers share:" if callees else ":"))
+    elif callees:
+        print(f"{name}: calls {callees} body/bodies its carriers share, promoted first:")
     for result in staged:
         _report_promotion(result, shared_name, text_of)
     for tail in tails:
@@ -651,7 +683,8 @@ def _table_extent(family: str, overlay: str, func: str, table: str) -> int | Non
     return None
 
 
-def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[list[dict], str | None]:
+def _promotion_plan(data: dict, hit: dict, families: frozenset[str],
+                    internal: frozenset[str] = frozenset()) -> tuple[list[dict], str | None]:
     """The bodies to promote for `hit`, callees before callers, or why not.
 
     A body that references its own overlay can still be shared when every such
@@ -714,6 +747,8 @@ def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[li
                         continue
                     return (f"references its own overlay's data "
                             f"({f['overlay'].split('/', 1)[1]}: {r})")
+                if g["text"] in internal:
+                    continue      # another function of the same unit
                 own.append(g["text"])
             callees.append(sorted(own))
         if any(c != callees[0] for c in callees):
@@ -732,8 +767,93 @@ def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[li
     return (order, None) if why is None else ([], why)
 
 
+def _grow_run(data: dict, hit: dict, families: frozenset[str]) -> list[dict]:
+    """The functions around `hit` that every carrier holds in the same order.
+
+    A source file holds several functions, and a unit of one is an artifact of
+    promoting one body at a time. A neighbour joins the run when, in every
+    carrier, it sits directly against the run, its body is the same in all of
+    them, exactly the same overlays carry it, and some copy is matched - so its
+    C exists to move. Returned in address order, as the hit carrier's copies.
+    """
+    cl = classes(data, "text")
+    keep = _carriers(cl[hit["text"]], families)[0]
+    ovs = {f["overlay"] for f in keep}
+    seq: dict[str, list[dict]] = {}
+    for f in data["functions"]:
+        if f["overlay"] in ovs:
+            seq.setdefault(f["overlay"], []).append(f)
+    for ov in seq:
+        seq[ov].sort(key=lambda f: int(f["vram"], 16))
+    at = {ov: next(i for i, f in enumerate(seq[ov]) if f["text"] == hit["text"]) for ov in ovs}
+    home = hit["overlay"] if hit["overlay"] in ovs else sorted(ovs)[0]
+    lo = hi = 0
+    for step in (-1, 1):
+        k = 0
+        while True:
+            nb = {}
+            for ov in ovs:
+                i, j = at[ov] + (k if step == 1 else -k), at[ov] + (k + 1 if step == 1 else -k - 1)
+                if not (0 <= j < len(seq[ov])):
+                    nb = None
+                    break
+                a, b = sorted((seq[ov][i], seq[ov][j]), key=lambda f: int(f["vram"], 16))
+                if int(a["vram"], 16) + 4 * a["words"] != int(b["vram"], 16):
+                    nb = None
+                    break
+                nb[ov] = seq[ov][j]
+            if not nb or len({g["text"] for g in nb.values()}) != 1:
+                break
+            t = next(iter(nb.values()))["text"]
+            if {f["overlay"] for f in _carriers(cl[t], families)[0]} != ovs:
+                break
+            if not any(g.get("state") == "matched" for g in cl[t]):
+                break
+            k += 1
+        if step == -1:
+            lo = k
+        else:
+            hi = k
+    i = at[home]
+    return seq[home][i - lo:i + hi + 1]
+
+
+def _run_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[list[dict], list[dict], str | None]:
+    """(plan, run members) for promoting `hit` with its neighbours as one unit.
+
+    The run is trimmed to the longest stretch around `hit` whose members all
+    plan: a member that references its own overlay's data ends it on that side.
+    """
+    members = _grow_run(data, hit, families)
+    k = next(i for i, f in enumerate(members) if f["text"] == hit["text"])
+    lo, hi = 0, len(members) - 1
+    while True:
+        run = members[lo:hi + 1]
+        internal = frozenset(f["text"] for f in run)
+        plans = [_promotion_plan(data, f, families, internal) for f in run]
+        bad = [i for i, (_p, why) in enumerate(plans) if why]
+        if not bad:
+            break
+        if any(lo + i == k for i in bad):
+            return [], [], plans[k - lo][1]
+        # drop the failing member and everything beyond it on its side
+        worst = bad[0] + lo
+        if worst < k:
+            lo = worst + 1
+        else:
+            hi = worst - 1
+    texts = {f["text"] for f in run}
+    order, seen = [], set()
+    for plan, _why in plans:
+        for b in plan:
+            if b["text"] not in texts and b["text"] not in seen:
+                seen.add(b["text"])
+                order.append(b)
+    return order + run, run, None
+
+
 def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: dict,
-                     spans: list[tuple], syms: dict[Path, str]) -> dict | None:
+                     spans: list[tuple], syms: dict[Path, str], own_sym: bool = False) -> dict | None:
     """Give one body its unit: spans onto `spans`, symbols into `syms`.
 
     Returns what was done, or None after printing why the body cannot be
@@ -773,7 +893,9 @@ def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: di
     carriers = sorted({family_of(f) for f in keep})
     owner = f"{carriers[0]}_shared" if len(carriers) == 1 else "shared"
     unit = unit or f"{owner}_{name.split('_')[-1].lower()}"
-    sym = "".join(w.capitalize() for w in unit.split("_"))
+    # In a run each function keeps a symbol of its own inside the one unit.
+    sym = "".join(w.capitalize() for w in
+                  (f"{owner}_{name.split('_')[-1].lower()}" if own_sym else unit).split("_"))
     size = body["words"] * 4
 
     edited: set[tuple[str, str]] = set()
@@ -1247,6 +1369,8 @@ def main() -> int:
     ap.add_argument("--min", type=int, default=10, help="`shared`: minimum copies")
     ap.add_argument("--refs", action="store_true", help="`shared`: count overlay-local references")
     ap.add_argument("--unit", help="`promote`: name for the shared unit")
+    ap.add_argument("--run", action="store_true",
+                    help="`promote`: take the neighbours every carrier shares too, as one unit")
     ap.add_argument("--min-words", type=int, default=8, dest="min_words",
                     help="`solved`, `ceded`: ignore bodies shorter than this (default 8)")
     ap.add_argument("--list", dest="order_list",
@@ -1273,7 +1397,7 @@ def main() -> int:
     if args.command == "promote":
         if not args.name:
             ap.error("promote needs a function name")
-        return cmd_promote(data, args.name, args.unit)
+        return cmd_promote(data, args.name, args.unit, run=args.run)
     if args.command == "similar":
         if not args.name:
             ap.error("similar needs a function name")
