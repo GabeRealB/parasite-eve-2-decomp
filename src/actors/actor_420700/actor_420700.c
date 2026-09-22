@@ -92,4 +92,89 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700", ActorsShared80131f9cSub1);
+/// Step 1 of the `ActorsShared80131f9c` dispatcher: refresh the model's third
+/// coordinate and colour the actor from its world translation, run
+/// `func_actor_420700_80132478`, then step the `field_4BC` ramp by the mode in
+/// `field_4BA` and pass it as the weight of `func_800B0928` aimed at the
+/// slot-3 task (modes 0, 1 and 2) or of `func_800B0CF4` aimed at a fixed
+/// world point (mode 3).
+///
+/// Mode 0 chooses its own step each frame: +0x40 while the actor lies behind
+/// the slot-3 actor's `field_52` heading, -0x80 otherwise or while an event
+/// is running. In that mode the animation slots after the first are held
+/// (rate 0) once the ramp is off zero; otherwise they run at one frame per
+/// tick.
+void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+{
+    VECTOR         pos;
+    GsCOORDINATE2  target[2];
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* player;
+    GsCOORDINATE2* part;
+    GameActor*     actor;
+    s32            dx;
+    s32            dz;
+    s32            c;
+    s32            i;
+    u8             rate;
+
+    coords = ((TmdObject*)task->extra)->coords;
+    part   = &coords[2];
+    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+    Gp_UpdateCoord(part);
+    pos.vx = part->workm.t[0];
+    pos.vy = part->workm.t[1];
+    pos.vz = part->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    func_actor_420700_80132478(task);
+    rate = 0x10;
+    if (ActorsShared80131f9cWork->field_4BA != 0) {
+        if (ActorsShared80131f9cWork->field_4BA == 1 || ActorsShared80131f9cWork->field_4BA == 3) {
+            ActorsShared80131f9cWork->field_4BC += 0x80;
+            if (ActorsShared80131f9cWork->field_4BC > 0x1000) {
+                ActorsShared80131f9cWork->field_4BC = 0x1000;
+            }
+        } else {
+            ActorsShared80131f9cWork->field_4BC -= 0x80;
+            if (ActorsShared80131f9cWork->field_4BC < 0) {
+                ActorsShared80131f9cWork->field_4BC = 0;
+            }
+        }
+        if (ActorsShared80131f9cWork->field_4BA == 3) {
+            target[0].coord.t[0] = 0x1173;
+            target[0].coord.t[1] = 0;
+            target[0].coord.t[2] = -0x733;
+            func_800B0CF4(task, target, 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+        } else {
+            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+        }
+    } else {
+        if (gGameSession->eventState == 0) {
+            dx    = coords->coord.t[0] - player->coord.t[0];
+            dz    = coords->coord.t[2] - player->coord.t[2];
+            actor = (GameActor*)gameGetPtrSlot(3)->work;
+            c     = rcos(actor->field_52);
+            if (dx * rsin(actor->field_52) + dz * c < 0) {
+                D_actor_420700_8013EFF0 = 0x40;
+            } else {
+                D_actor_420700_8013EFF0 = -0x80;
+            }
+            if (ActorsShared80131f9cWork->field_4BC != 0) {
+                rate = 0;
+            }
+        } else {
+            D_actor_420700_8013EFF0 = -0x80;
+        }
+        ActorsShared80131f9cWork->field_4BC += D_actor_420700_8013EFF0;
+        if (ActorsShared80131f9cWork->field_4BC > 0x1000) {
+            ActorsShared80131f9cWork->field_4BC = 0x1000;
+        }
+        if (ActorsShared80131f9cWork->field_4BC < 0) {
+            ActorsShared80131f9cWork->field_4BC = 0;
+        }
+        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+    }
+    for (i = 1; i < 0x14; i++) {
+        ActorsShared80131f9cWork->slots[i].rate = rate;
+    }
+}
