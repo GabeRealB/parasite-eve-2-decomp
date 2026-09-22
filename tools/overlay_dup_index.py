@@ -352,6 +352,79 @@ def _text_start(line: str) -> int | None:
     return int(m.group(1), 16) if m else None
 
 
+def _rodata_start(line: str) -> int | None:
+    """Where an object's rodata run starts: its `rodata` key, or an asm run's `at`."""
+    m = re.search(r'rodata = "(0x[0-9A-F]+)"', line) or (
+        re.search(r'at = "(0x[0-9A-F]+)"', line) if 'kind = "rodata"' in line else None)
+    return int(m.group(1), 16) if m else None
+
+
+def _insert_shared_rodata(text: str, family: str, entry: str, at: int, size: int,
+                          unit: str, remainder: str | None,
+                          text_owner: str | None = None) -> tuple[str | None, str]:
+    """Give a shared unit the rodata run [at, at+size) in one entry.
+
+    The run is carved out of the object whose rodata holds it, with the same
+    rules as text: at the start of that run the owner moves past it; mid-run
+    what follows goes to the unit that took the code after the body - the
+    remainder - since rodata follows its functions; an asm rodata run is simply
+    cut in two.
+    """
+    start, end, lines = _objects_block(text, family, entry)
+    me = next((i for i, l in enumerate(lines) if f'lib = true, unit = "{unit}",' in l), None)
+    if me is None:
+        return None, f"{unit} has no object in {entry}"
+    runs = [(i, _rodata_start(l)) for i, l in enumerate(lines) if i != me and _rodata_start(l) is not None]
+    held = [(i, s) for i, s in runs if s <= at]
+    if not held:
+        return None, "no object's rodata holds it"
+    owner, owner_start = max(held, key=lambda r: r[1])
+    bounds = [s for _i, s in runs if s > at] + [s for l in lines if (s := _text_start(l)) is not None and s > at]
+    nxt = min(bounds, default=None)
+    if nxt is not None and at + size > nxt:
+        return None, "it runs past the next object's"
+    rest = nxt is None or at + size < nxt
+    note = ""
+    lines[me] = lines[me].replace(f'unit = "{unit}", ', f'unit = "{unit}", rodata = "0x{at:X}", ', 1)
+    line = lines[owner]
+    asm = 'kind = "rodata"' in line
+    if owner_start == at:
+        if rest:
+            lines[owner] = line.replace(f'"0x{at:X}"', f'"0x{at + size:X}"', 1)
+        elif asm:
+            del lines[owner]
+        else:
+            stripped = re.sub(r',\s*rodata = "0x[0-9A-F]+"|rodata = "0x[0-9A-F]+",\s*', "", line, count=1)
+            if re.search(r'(text|data) = "', stripped):
+                lines[owner] = stripped
+            else:
+                # the body was all the unit had left: it goes, source and all
+                del lines[owner]
+                gone = re.search(r'unit = "([^"]*)"', line)
+                note = f"{gone.group(1) if gone else 'owner'} (no run left; its source goes)"
+    elif rest:
+        owner_unit = re.search(r'unit = "([^"]*)"', line)
+        foreign = owner_unit is not None and owner_unit.group(1) != text_owner
+        if asm or foreign:
+            # Rodata that follows it but belongs to another unit's block - the
+            # leading block the first unit owns holds many units' tables -
+            # cannot stay with that owner, which would then own two runs. It
+            # is asm-backed, so it becomes an assembly run of its own.
+            lines.append(f'  {{ kind = "rodata", at = "0x{at + size:X}" }},')
+            if foreign:
+                note = (f"assembly from 0x{at + size:X} to 0x{nxt:X} "
+                        f"(was {owner_unit.group(1)}'s)")
+        elif remainder:
+            r = next((i for i, l in enumerate(lines) if f'unit = "{remainder}",' in l), None)
+            if r is None or "rodata =" in lines[r]:
+                return None, f"the rodata after it has no owner ({remainder})"
+            lines[r] = lines[r].replace(f'unit = "{remainder}", ', f'unit = "{remainder}", rodata = "0x{at + size:X}", ', 1)
+        else:
+            return None, "the rodata after it belongs to code before the body"
+    lines.sort(key=lambda l: (_offset_of(l) if _offset_of(l) is not None else 0))
+    return text[:start] + "\n".join(lines) + "\n" + text[end:], note
+
+
 def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
                    unit: str, overlay: str) -> tuple[str | None, str | None]:
     """Give one run to a shared unit, handing the remainder back to its owner.
@@ -374,6 +447,8 @@ def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
     if not held:
         return None, None
     owner, owner_start = max(held, key=lambda r: r[1])
+    owned = re.search(r'unit = "([^"]*)"', lines[owner])
+    _insert_shared.text_owner = owned.group(1) if owned else None
     # The run ends where the next object begins: more code, or the trailing
     # data and models after the code.
     bounds = [s for _i, s in runs if s > at]
@@ -469,15 +544,38 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     # body first cuts its owner's run mid-way and strands the earlier code in a
     # new unit, away from the rodata its owner keeps.
     tails = []
-    for family, entry_name, start, size, u, room in sorted(spans, key=lambda s: s[:3]):
+    made: dict[tuple[str, str, str], str] = {}   # (family, entry, unit) -> remainder unit
+    owners: dict[tuple[str, str, str], str | None] = {}   # ... -> unit whose text held it
+    for _k, family, entry_name, start, size, u, room in sorted(
+            (s for s in spans if s[0] == "text"), key=lambda s: s[1:4]):
         new_text, tail = _insert_shared(text, family, entry_name, start, size, u, room)
         if new_text is None:
             print(f"{entry_name}: no object's text run holds 0x{start:X}+0x{size:X}; "
                   f"aborting", file=sys.stderr)
             return 1
         text = new_text
+        owners[(family, entry_name, u)] = _insert_shared.text_owner
         if tail:
             tails.append(f"{entry_name}: remainder after 0x{start:X} goes to {tail}")
+            if "(" not in tail:
+                made[(family, entry_name, u)] = f"{room}/{tail}"
+    # Then each body's own jump tables: the unit takes that rodata in every
+    # carrier, carved out of the run that held it the way the text was.
+    for _k, family, entry_name, start, size, u, room in sorted(
+            (s for s in spans if s[0] == "rodata"), key=lambda s: s[1:4]):
+        new_text, why = _insert_shared_rodata(text, family, entry_name, start, size, u,
+                                              made.get((family, entry_name, u)),
+                                              owners.get((family, entry_name, u)))
+        if new_text is None:
+            print(f"{entry_name}: cannot give {u} the rodata at 0x{start:X}: {why}; "
+                  f"aborting", file=sys.stderr)
+            return 1
+        text = new_text
+        tails.append(f"{entry_name}: {u} takes the rodata at 0x{start:X}+0x{size:X}")
+        if why.startswith("assembly"):
+            tails.append(f"{entry_name}: rodata {why}")
+        elif why:
+            tails.append(f"{entry_name}: remainder after 0x{start:X} goes to {why}")
 
     # Nothing is written until every body of the plan has validated: a partial
     # write would leave a caller shared with a callee that is not.
@@ -533,6 +631,26 @@ def _lib_unit_of(name: str) -> tuple[str, int] | None:
     return None
 
 
+def _is_jump_table(ref: str) -> bool:
+    return ref.startswith("jtbl_") or bool(re.fullmatch(r"Actor\d{5}_Jt[0-9A-F]+", ref))
+
+
+def _table_extent(family: str, overlay: str, func: str, table: str) -> int | None:
+    """Bytes the jump table occupies, from its definition in the carrier's asm.
+
+    splat migrates a table into the file of the function that owns it, so it is
+    looked up there first and then anywhere under the carrier's directory.
+    """
+    base = ASM_ROOT / family
+    files = list(base.glob(f"*/{overlay}/*/{func}.s")) + list(base.glob(f"*/{overlay}/**/{table}.s"))
+    for path in files:
+        text = path.read_text(errors="replace")
+        m = re.search(rf"^dlabel {re.escape(table)}$(.*?)^enddlabel {re.escape(table)}$", text, re.M | re.S)
+        if m:
+            return 4 * len(WORD.findall(m.group(1)))
+    return None
+
+
 def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[list[dict], str | None]:
     """The bodies to promote for `hit`, callees before callers, or why not.
 
@@ -549,6 +667,10 @@ def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[li
     """
     cl = classes(data, "text")
     by = {(f["overlay"], f["name"]): f for f in data["functions"]}
+    refd: dict[tuple[str, str], set[str]] = collections.defaultdict(set)
+    for f in data["functions"]:
+        for r in f["refs"]:
+            refd[(f["overlay"], r)].add(f["text"])
     order: list[dict] = []
     state: dict[str, str] = {}
 
@@ -585,6 +707,11 @@ def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[li
                     continue
                 g = by.get((f["overlay"], r))
                 if g is None:
+                    # A jump table only this body's copies use is the body's
+                    # own: the compiler regenerates it from the C switch, and
+                    # promotion carries its rodata along.
+                    if _is_jump_table(r) and refd[(f["overlay"], r)] <= {body["text"]}:
+                        continue
                     return (f"references its own overlay's data "
                             f"({f['overlay'].split('/', 1)[1]}: {r})")
                 own.append(g["text"])
@@ -665,7 +792,14 @@ def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: di
             # address differs per slot.
             if (family, entry_name) not in edited:
                 edited.add((family, entry_name))
-                spans.append((family, entry_name, start, size, unit, room))
+                spans.append(("text", family, entry_name, start, size, unit, room))
+                tables = _own_tables(f, family, room, addr - start)
+                if tables is None:
+                    print(f"{name}: its jump tables in {room} are not one contiguous run; "
+                          f"aborting", file=sys.stderr)
+                    return None
+                if tables:
+                    spans.append(("rodata", family, entry_name, tables[0], tables[1], unit, room))
             sym_path = Path(f"configs/USA/sym/{family}/{package}.txt")
             sym_text = syms.get(sym_path) or sym_path.read_text(encoding="utf-8")
             syms[sym_path] = _add_shared_symbol(sym_text, sym, addr, f["name"])
@@ -673,6 +807,33 @@ def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: di
     return {"name": name, "sym": sym, "unit": unit, "keep": keep,
             "copies": len(keep) + len(twice), "twice": twice,
             "outside": outside, "carriers": carriers, "promoted": promoted}
+
+
+def _own_tables(f: dict, family: str, overlay: str,
+                load: int) -> tuple[int, int] | tuple[()] | None:
+    """(offset, size) of the jump-table run a copy owns, () if none, None if split.
+
+    `load` is the package's load address. A table named by offset
+    (`Actor01100_Jt0004C`) gives it directly; `jtbl_<unit>_<VRAM>` gives the
+    address. Several tables must sit back to back: the unit's rodata is one run.
+    """
+    runs = []
+    for r in f["refs"]:
+        if not (_is_jump_table(r) and is_local_ref(r, f["unit"])):
+            continue
+        m = re.fullmatch(r"Actor\d{5}_Jt([0-9A-F]+)", r)
+        off = int(m.group(1), 16) if m else int(r.rsplit("_", 1)[1], 16) - load
+        size = _table_extent(family, overlay, f["name"], r)
+        if size is None:
+            return None
+        runs.append((off, size))
+    if not runs:
+        return ()
+    runs.sort()
+    for (a, n), (b, _m) in zip(runs, runs[1:]):
+        if a + n != b:
+            return None
+    return runs[0][0], runs[-1][0] + runs[-1][1] - runs[0][0]
 
 
 def _carrier_targets(manifest: dict, family: str, overlay: str,
