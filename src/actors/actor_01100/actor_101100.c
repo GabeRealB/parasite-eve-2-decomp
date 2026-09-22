@@ -60,7 +60,6 @@ extern GpU16Pair Actor01100_D074D0[];
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 s32  Actor01100_Fn00F58(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 
-INCLUDE_ASM("actors/nonmatchings/actor_01100/actor_101100", Actor01100_Fn00430);
 INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", Actor01100_D00004);
 
 const Actor104900ScaleRodata Actor01100_D00010 = { { 0x1400, 0x1400, 0x1400, 0 }, 0 };

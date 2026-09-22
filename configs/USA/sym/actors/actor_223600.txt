@@ -7,3 +7,5 @@ ActorsShared80132808 = 0x80149E64; // shared body, see src/lib/
 ActorsShared80134178 = 0x8014CF3C; // shared body, see src/lib/
 ActorsSharedFn000e8 = 0x8014A170; // shared body, see src/lib/
 func_actor_223600_8014A170 = 0x8014A170; // type:func absolute:True
+ActorsSharedFn00430 = 0x8014A4B8; // shared body, see src/lib/
+func_actor_223600_8014A4B8 = 0x8014A4B8; // type:func absolute:True

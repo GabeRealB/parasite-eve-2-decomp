@@ -13,8 +13,6 @@
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
-INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014A4B8);
-
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014AA04);
 
 INCLUDE_ASM("actors/nonmatchings/actor_223600/actor_223600", func_actor_223600_8014ABA8);

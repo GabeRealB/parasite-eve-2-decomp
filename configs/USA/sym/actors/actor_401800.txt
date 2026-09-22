@@ -13,3 +13,5 @@ ActorsShared80133eb8_Sound = 0x80133B78; // type:func absolute:True
 ActorsShared80133eb8_Transitions = 0x8015514C; // absolute:True
 ActorsSharedFn000e8 = 0x801323D4; // shared body, see src/lib/
 func_actor_401800_801323D4 = 0x801323D4; // type:func absolute:True
+ActorsSharedFn00430 = 0x8013271C; // shared body, see src/lib/
+func_actor_401800_8013271C = 0x8013271C; // type:func absolute:True

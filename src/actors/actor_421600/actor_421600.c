@@ -24,8 +24,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132310);
-
 INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013285C);
 
 s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2)
