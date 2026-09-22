@@ -181,31 +181,3 @@ void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
             break;
     }
 }
-
-void Actor02400_Fn02CA4(GsCOORDINATE2* arg0, s32 arg1)
-{
-    SVECTOR sp10;
-    SVECTOR sp18;
-    s32     ang;
-
-    if (Gp_State1C->eventState == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            ang         = ((u32)Gp_LcgState >> 16) & 0xF80;
-            memset(&sp18, 0, sizeof(sp18));
-            sp18.vx = (u32)(rcos(ang) * 5) >> 5;
-            sp18.vz = (u32)(rsin(ang) * 5) >> 5;
-            sp10    = sp18;
-            Gp_SpawnEff(D_80115728, arg0, arg1 | 0x20100200, &sp10);
-        }
-    }
-}
-
-void Actor02400_Fn02DB0(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = Actor02400_D00004;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
-}

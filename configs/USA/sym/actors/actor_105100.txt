@@ -4,3 +4,5 @@ D_actor_105100_80131EB0 = 0x80131EB0; // force_not_migration:True enemy state ta
 ActorsShared80136574 = 0x80136574; // shared body, see src/lib/
 ActorsSharedFn005bc = 0x80132414; // shared body, see src/lib/
 func_actor_105100_80132414 = 0x80132414; // type:func absolute:True
+ActorsShared80135cec = 0x80135CEC; // shared body, see src/lib/
+func_actor_105100_80135CEC = 0x80135CEC; // type:func absolute:True
