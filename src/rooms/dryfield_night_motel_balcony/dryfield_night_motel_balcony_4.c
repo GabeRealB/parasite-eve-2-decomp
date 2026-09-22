@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+
+#include "rooms/room_common.h"
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/display.h"
@@ -10,6 +14,11 @@
 extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
+
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
 /// screen position `arg0` (x in the low half, y in the high half). `arg1` is
@@ -77,7 +86,102 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801819E0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80181E7C);
+/// Per-frame handler of a drifting room effect task. The first frame resets the
+/// model's rotation to identity, rolls a starting animation step (0..9) and a
+/// lifetime (5..14 ticks), and, when the spawner left no drift, rolls one and
+/// turns it into `field_8`'s frame. The drift is then normalised and scaled to a
+/// length chosen by `Task::spawnArg1` (8 when negative, 0x80 with bit 30, 0x20
+/// otherwise). Later frames move the model by the drift, bending it by one
+/// unit a tick, and draw it through `func_dryfield_night_motel_balcony_8018221C`,
+/// fading its colour over the last ten ticks before releasing the task. Event
+/// states 2 and 3 suspend it; 4 and above release it at once, and any non-zero
+/// state below that freezes the drift and the lifetime tick.
+void func_dryfield_night_motel_balcony_80181E7C(Task* task)
+{
+    RoomEffWork*   work  = task->spawnArg2;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    MATRIX*        m;
+    s32            seed;
+    s16            tick;
+    s16            end;
+    u8             color[3];
+
+    if (Gp_State1C->eventState >= 2) {
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+
+    Gp_UpdateCoord(coord);
+    work->field_22++;
+
+    switch (task->state) {
+        case 0:
+            seed               = Gp_LcgState * 5 + 0x71357911;
+            m                  = &coord->coord;
+            *(s32*)&m->m[0][0] = 0x1000;
+            *(s32*)&m->m[0][2] = 0;
+            *(s32*)&m->m[1][1] = 0x1000;
+            *(s32*)&m->m[2][0] = 0;
+            m->m[2][2]         = 0x1000;
+            work->field_18     = task->spawnArg1 & 0xFFF;
+            Gp_LcgState        = seed;
+            work->field_20     = ((u32)Gp_LcgState >> 16) % 10;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_26     = ((u32)Gp_LcgState >> 16) % 10 + 5;
+            if ((work->field_10.vx | work->field_10.vy | work->field_10.vz) == 0) {
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                if (task->spawnArg1 < 0) {
+                    work->field_24 = 8;
+                } else if (task->spawnArg1 & 0x40000000) {
+                    work->field_24 = 0x80;
+                } else {
+                    work->field_24 = 0x20;
+                }
+                gte_SetRotMatrix(&work->field_8->coord);
+                gte_ldv0(&work->field_10);
+                gte_rtv0_real();
+                gte_stsv(&work->field_10);
+            }
+            VectorNormalSS(&work->field_10, &work->field_10);
+            gte_lddp(work->field_24);
+            gte_ldsv(&work->field_10);
+            gte_gpf12_real();
+            gte_stsv(&work->field_10);
+            coord->flg  = 0;
+            task->state = 1;
+            break;
+        case 1:
+            if (Gp_State1C->eventState == 0) {
+                work->field_20++;
+                work->field_10.vy--;
+                coord->coord.t[0] += work->field_10.vx;
+                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[2] += work->field_10.vz;
+                coord->flg         = 0;
+            } else {
+                work->field_22--;
+            }
+            tick = work->field_22;
+            end  = work->field_26;
+            if (tick < end - 10) {
+                func_dryfield_night_motel_balcony_8018221C(task, NULL, tick);
+            } else if (tick < end) {
+                color[0] = color[1] = color[2] = (end - tick) * 12;
+                func_dryfield_night_motel_balcony_8018221C(task, color, tick);
+            } else {
+            release:
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8018221C);
 
