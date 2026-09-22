@@ -18,6 +18,19 @@ extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 
+/// One row of the sprite table `func_dryfield_night_motel_balcony_8017FF78`
+/// indexes by `Task::spawnArg1`: `tpageX` selects the texture page, `w` is the
+/// frame width (the u step between frames and the billboard scale) and `v` the
+/// frame row.
+typedef struct {
+    u16 tpageX;
+    s16 w;
+    u8  v;
+    u8  pad5;
+} _SpriteFrame;
+
+extern _SpriteFrame D_dryfield_night_motel_balcony_80182DE0[];
+
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -239,7 +252,79 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017FF78);
+/// Draws the task's model position as a rotated billboard `POLY_FT4`, taking
+/// its texture frame from row `Task::spawnArg1` of the sprite table and column
+/// `field_20 & 7`. The quad's half-extent is the frame width times `field_18`
+/// divided by the projected depth, rotated by `field_1C`. A non-NULL `color`
+/// tints the quad and makes it semi-transparent; NULL draws it raw. `arg` is
+/// unused. The block pointer goes through an `asm` move for the same reason as
+/// in `func_dryfield_night_motel_balcony_8018221C`.
+void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
+{
+    RoomEffWork*      work  = task->spawnArg2;
+    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    u8*               head;
+    GpEffBeamScratch* block;
+    GpEffBeamScratch* vecp;
+    POLY_FT4*         prim;
+    s16               size;
+    u16               vx;
+
+    size                                       = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w - 1;
+    head                                       = *(void**)G_SCRATCH_HEAD;
+    vx                                         = *(u16*)&coord->workm.t[0];
+    vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
+    *(void**)G_SCRATCH_HEAD                    = vecp;
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = vx;
+    __asm__("move %0,%1" : "=r"(block) : "r"(vecp));
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    block->vec.vz = *(u16*)&coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (color != NULL) {
+            prim->r0 = color[0];
+            prim->g0 = color[1];
+            prim->b0 = color[2];
+            setSemiTrans(prim, 1);
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage = ((D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].tpageX & 0x3FF) >> 6) | 0x20;
+        prim->clut  = getClut(task->spawnArg1 * 16, 0x10F);
+        prim->u0    = (work->field_20 & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w;
+        prim->v0    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v;
+        prim->u1    = (work->field_20 & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w + size;
+        prim->v1    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v;
+        prim->u2    = (work->field_20 & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w;
+        prim->v2    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v + size;
+        prim->u3    = (work->field_20 & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].w + size;
+        prim->v3    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1].v + size;
+        block->dx   = (((size * (s16)work->field_18) / block->otz) * rsin((s16)work->field_1C)) >> 12;
+        block->dy   = (((size * (s16)work->field_18) / block->otz) * rcos((s16)work->field_1C)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = (((size * (s16)work->field_18) / block->otz) * rsin((s16)work->field_1C + 0x400)) >> 12;
+        block->dy   = (((size * (s16)work->field_18) / block->otz) * rcos((s16)work->field_1C + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_dryfield_night_motel_balcony_80180580(Task* task)
 {
