@@ -2,9 +2,28 @@
 
 #include "actors/actor_260400.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_2", ActorsShared80131f9cSub1);
+void ActorsShared80132378(Task* task);
+
+void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         pos;
+
+    obj   = (TmdObject*)task->extra;
+    coord = obj->coords;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1] - 0x320;
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &pos, 0, 3);
+    func_actor_260400_8014A200(task);
+    ActorsShared80132378(task);
+}
 
 void func_actor_260400_8014A630(Task* task)
 {
