@@ -15,6 +15,12 @@ extern void     Room_Script16(Task* task);
 extern TaskDesc D_dryfield_night_factory_80186DE0[];
 extern TaskDesc D_dryfield_night_factory_80186E28[];
 
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", D_dryfield_night_factory_8017D5C4);
+
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", D_dryfield_night_factory_8017D5D0);
+
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", D_dryfield_night_factory_8017D5DC);
+
 /// State 0 of the room's factory model: allocate the work block, seed it from
 /// the progress nibble, point the model's coordinate at the seeded position
 /// and the light/color matrices at the block's own, then pick the spawn table

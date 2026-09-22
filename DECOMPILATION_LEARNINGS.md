@@ -66362,6 +66362,26 @@ A span at the very end of a carrier's text needs neither shift - it just drops
 the last `INCLUDE_ASM` from the final unit (`actor_260500`) - and a span that
 splits the last unit only appends a new one (`actor_260400`).
 
+## A promotion that empties a unit's `.text` but not its `rodata` leaves a unit splat cannot serve
+
+When the promoted body was a unit's only function but the unit also owns a
+`rodata` cut, `promote` keeps the unit as `{ unit = …, rodata = "0x…" }` with no
+`text`. splat then has no function to hang the `INCLUDE_RODATA` files on: it
+writes the whole run to `asm/USA/<family>/data/<overlay>/<unit>.rodata.s`, which
+nothing links, while the linker script still asks for `<unit>.c.o(.rodata)`.
+The build fails at the assembler (`can't open …/nonmatchings/<unit>/D_….s`) and
+then at the link (`cannot find …<unit>.c.o`).
+
+If the preceding unit owns an empty `rodata` span right before it (same offset),
+fold the run into that unit: delete the rodata-only entry from the manifest,
+delete its `.c`, and move its `INCLUDE_RODATA` lines into the preceding unit's
+`.c` with the folder renamed. splat emits unreferenced rodata of a unit that has
+text as `nonmatchings/<unit>/D_*.s`, so the lines resolve again. The alternative
+is a rodata-only unit whose `.c` defines the tables in C
+(`dryfield_motel_balcony_event_data`). `dryfield_night_factory_12` →
+`dryfield_night_factory` (promotion of `RoomsShared8017fac4`) is the worked
+example of the fold.
+
 ## A carrier's `rodata` cuts name the *object* that emits the table, so a promotion invalidates them
 
 `promote` renumbers a carrier's overlay-local units, but a manifest `rodata` cut
