@@ -8,15 +8,18 @@
 /// Per-actor work block for the `actor_202900` overlay, reached through the
 /// global `ActorsShared80131f9c` publishes.
 ///
-/// Only the prefix the overlay's matched functions need is reconstructed so
-/// far. `anim` sits at 0x40 and the slot array at 0x54, the same layout as
-/// `Actor143900Work` and `Actor151000Work`; the nineteen slots are the ones
-/// `func_actor_202900_8014A208` ticks.
+/// The spawn handler allocates it at 0x564 bytes. It opens with the light and
+/// colour matrices the actor's model is drawn under, then the animation context
+/// with one slot and one 0x10-byte pose record for each of the nineteen parts
+/// `func_actor_202900_8014A208` ticks: the same layout as `Actor143900Work`
+/// and `Actor151000Work`. Only the fields the matched functions reach are
+/// reconstructed after that.
 typedef struct Actor202900Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       pad_34C[0x130];
+    /* 0x34C */ byte       poses[0x13][0x10];
     /* 0x47C */ s16        field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
     /* 0x47E */ u16        field_47E; // animation id currently playing
     /* 0x480 */ u16        animId;    // animation id the slots are seeded with
@@ -25,6 +28,15 @@ typedef struct Actor202900Work {
 } Actor202900Work;
 
 extern Actor202900Work* ActorsShared80131f9cWork;
+
+/// The actor's task, published by the spawn handler so the overlay's other
+/// functions can reach the actor's model without the task in hand.
+extern GpActorWork* D_actor_202900_80156E58;
+
+/// The second task the spawn handler starts. Its model is textured from the
+/// area record the actor was placed from, shown and hidden together with the
+/// actor's, and the task is killed when the actor's exit callback runs.
+extern Task* D_actor_202900_80156E5C;
 
 /// Argument block of the message handler `func_actor_202900_8014A3E0`
 /// implements: which animation to start. Same 4-byte-id prefix as
@@ -35,6 +47,8 @@ typedef struct Actor202900AnimArgs {
     /* 0x4 */ s32  animId;
 } Actor202900AnimArgs;
 
+/// Exit callback: kills the second task and destroys the enemy.
+void func_actor_202900_8014A158(Task* arg0);
 /// Runs the body the actor's step selects and then leaves it in step 3, the
 /// running state. `arg0` is handed the actor but the body ignores it: it
 /// reaches the work block through the global, like every other function in the

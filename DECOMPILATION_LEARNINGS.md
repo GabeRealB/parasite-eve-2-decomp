@@ -137458,3 +137458,18 @@ the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
 A scalar store to `D_80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. Declaring the global as a one-word struct (`{ void *tmd; }`) makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
 
 The address order around that store is a LUID tie. Both the slot `lui` and the TMD `addiu` have priority 1, and `rank_for_schedule` keeps the higher LUID next to the `sw`. Expanding the destination first puts the slot `lui` earlier. Assigning the symbol to a fresh `u8 *` and then storing that pointer emits `lui`/`addiu` in `$v0` and the slot `lui` in `$v1`, which is the target order. The same temporary as `void *` splits the `lo_sum` into `$v1` and reuses `$v0` for the slot. One temporary per store; reusing a `void *` across the three calls did not.
+
+## Sibling-style retyping does not always dissolve the `&key` pseudo (ActorsShared80131f9cSub0 in actor_202900, 2026-09-22)
+
+The spawn-handler entry above found that writing the body in a matched
+sibling's typed form made the CSE'd `&key` pseudo disappear on its own. Here it
+did not: the fully typed body (real `GpAreaKey key`, typed work struct,
+`model = spawned->extra`, the `sessionKey`/`raw`/`areaByte0` ordering of
+`func_actor_443500_80132078`) still scored 91.9% with `move a0, s1` in both
+argument slots and every other callee-saved register shifted up one. The
+pseudo is formed in CSE regardless of typing; whether it survives depends on
+local-alloc finding a free callee-saved register over the block, and here one
+was free. The `SOFT_BARRIER(); keyPtr = &key; TOUCH_REG(keyPtr); key.view =
+areaByte0; Gp_SyncAreaKeyIndex(keyPtr);` recipe took it straight to 100% with no
+other change. So: retype first, but if the extra `sN` is still there, apply the
+recipe rather than searching further for a typing that removes it.

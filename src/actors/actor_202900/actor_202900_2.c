@@ -3,9 +3,6 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-extern Task*        D_actor_202900_80156E5C;
-extern GpActorWork* D_actor_202900_80156E58;
-
 void func_actor_202900_8014A088(GpActorWork* arg0)
 {
     GsCOORDINATE2* parent;
