@@ -20,7 +20,23 @@ void func_actor_202900_8014A088(GpActorWork* arg0)
     coord->sub   = parent + 4;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_202900/actor_202900_2", ActorsShared80131f9cSub1);
+void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+    VECTOR         pos;
+
+    obj    = (TmdObject*)task->extra;
+    coord  = obj->coords;
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1] - 0x320;
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(obj, &pos, 0, 3);
+    func_actor_202900_8014A194((GpActorWork*)task);
+    if ((s16)ActorsShared80131f9cWork->animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
+        SndEvt_EnqueueType6(0x5104000D, 0, 0);
+    }
+}
 
 void func_actor_202900_8014A158(Task* arg0)
 {
