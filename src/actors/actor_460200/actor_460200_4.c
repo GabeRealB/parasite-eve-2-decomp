@@ -17,31 +17,6 @@ void func_actor_460200_801336B4(Task* task);
 void func_actor_460200_80133A88(Task* task);
 void func_actor_460200_80133AB0(Task* task);
 
-/// Per-frame handler of one of this actor's sub-model tasks: the same body as
-/// `ActorsShared801328bc`, reached with the sub-model's own `TmdObject` in
-/// `Task::extra` and the actor holding it as `Task::parent`.
-void func_actor_460200_8013364C(Task* task)
-{
-    Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra;
-    GsCOORDINATE2* coord  = obj->coords;
-    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->coords[7];
-    MATRIX*        work   = (MATRIX*)parent->work;
-
-    switch (task->state) {
-        case 0:
-            coord->flg    = 0;
-            obj->lightMtx = work;
-            obj->colorMtx = work + 1;
-            coord->sub    = sub;
-            task->state++;
-            break;
-        case 1:
-            coord->flg = 0;
-            break;
-    }
-}
-
 void func_actor_460200_80133B3C(Task* task);
 void func_actor_460200_80133B88(Task* task);
 void func_actor_460200_80133C00(Task* task);
