@@ -26,7 +26,6 @@ extern s32            D_8017DEA4;
 extern s32            D_8017E1F4;
 extern GpAreaApplyRec D_80180204;
 
-void func_actor_120300_80132338(Task* arg0);
 void func_actor_120300_80132C60(Task* arg0);
 void func_actor_120300_80133330(s32 arg0);
 s32  func_actor_120300_801334A4(Actor120300* arg0);

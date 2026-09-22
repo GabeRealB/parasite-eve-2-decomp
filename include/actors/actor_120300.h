@@ -34,15 +34,17 @@ typedef struct Actor120300Work {
     /* 0x4BC */ Task*      field_4BC;
     /* 0x4C0 */ s16        field_4C0;
     /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ byte       pad_4C4[0x4];
+    /* 0x4C4 */ u16        field_4C4; // phase countdown; request 9 advances once it reaches 0x10
+    /* 0x4C6 */ byte       pad_4C6[0x2];
     /* 0x4C8 */ s16        field_4C8;
     /* 0x4CA */ s16        field_4CA;
-    /* 0x4CC */ byte       pad_4CC[0x8];
+    /* 0x4CC */ byte       pad_4CC[0x6];
+    /* 0x4D2 */ u16        field_4D2; // animation index sent with message 0x3F4
     /* 0x4D4 */ u16        field_4D4; // animation id, indexed into the -1-terminated table below; written by func_actor_120300_80133330
     /* 0x4D6 */ u16        field_4D6;
     /* 0x4D8 */ u16        field_4D8;
     /* 0x4DA */ u16        field_4DA;
-    /* 0x4DC */ byte       pad_4DC[0x2];
+    /* 0x4DC */ s16        field_4DC; // facing, copied to and from the player's aim yaw
     /* 0x4DE */ s16        field_4DE; // player-eff flag: Gp_SpawnWeaponEff
     /* 0x4E0 */ s16        field_4E0; // uniform scale: broadcast to all three axes of a ScaleMatrix vector, so 0x1000 is 1.0
     /* 0x4E2 */ byte       pad_4E2[0x2];
@@ -63,6 +65,7 @@ extern Actor120300* D_actor_120300_80141BA8;
 /// is what keeps the caller's zero-extension.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+void func_actor_120300_80132338(Task* arg0);
 void func_actor_120300_80133E14(s16 arg0);
 void func_actor_120300_80133E34(s16 arg0);
 void func_actor_120300_80133E54(void);
