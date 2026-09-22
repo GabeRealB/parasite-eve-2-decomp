@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
@@ -43,6 +45,33 @@ STATIC_ASSERT_SIZEOF(Actor535700Work, 0x4C0);
 
 extern Actor535700Work* ActorsShared80131f9cWork;
 
+/// Work block of the enemy this overlay spawns, allocated by its spawn handler
+/// `ActorsShared80131e24Sub0` with `memCalloc(0x4C0, 0)` and hung off the
+/// enemy task's `Task::work`. The same layout as `Actor450800SpawnWork`, whose
+/// spawn handler is this one's twin.
+///
+/// `light` and `color` become the model's light and colour matrices, `anim`,
+/// `field_34C` and `slots` are handed to `func_800B3F84` to start the
+/// animation, `field_4B8` keeps the model task the handler spawns and
+/// `field_4BC` the enemy that owns the block. `state` and `animId` are what
+/// the shared runner `ActorsShared801330ac` reads (see
+/// `ActorsShared801330acWork`); the handler starts them at 2 and 1.
+typedef struct Actor535700SpawnWork {
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x13];
+    /* 0x34C */ byte       field_34C;
+    /* 0x34D */ byte       pad_34D[0x12F];
+    /* 0x47C */ s16        state;
+    /* 0x47E */ byte       pad_47E[0x2];
+    /* 0x480 */ u16        animId;
+    /* 0x482 */ byte       pad_482[0x36];
+    /* 0x4B8 */ Task*      field_4B8;
+    /* 0x4BC */ GpEnemy*   field_4BC;
+} Actor535700SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor535700SpawnWork, 0x4C0);
+
 /// Fade countdown at 0x80146840, the word just below the work pointer.
 /// `func_actor_535700_80131EF0` seeds it from its argument and spawns the fade
 /// task from `D_actor_535700_8013346C`; that task (0x80131E2C) draws a
@@ -78,6 +107,10 @@ typedef struct Actor535700AnimPreset {
 /// Picks the distance `func_actor_535700_80132108` walks the model each frame:
 /// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
 extern s16 D_actor_535700_8014684C;
+
+/// Exit callback of the enemy task `ActorsShared80131e24Sub0` sets up: tears
+/// down the enemy the task was spawned for.
+void func_actor_535700_80132FF8(Task* task);
 
 /// Ticks the animation once the runner has moved and turned the model.
 void func_actor_535700_80132648(void);
