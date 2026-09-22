@@ -398,7 +398,7 @@ void Actor00400_Fn00C84(Actor100400* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_100400_text", Actor00400_Fn00E3C);
+INCLUDE_ASM("actors/nonmatchings/actor_00400/actor_100400_text", Actor00400_Fn00E3C);
 
 void Actor00400_Fn012B0(Actor100400* arg0, s16 arg1, s32 arg2)
 {

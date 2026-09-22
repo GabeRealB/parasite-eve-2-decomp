@@ -293,8 +293,8 @@ void Actor05500_Fn0006C(Actor105500* arg0)
     }
     *(u8**)0x1F8003FC += 0x38;
 }
-INCLUDE_RODATA("actors/nonmatchings/lib/actor_105500_text", Actor05500_D0002C);
-INCLUDE_RODATA("actors/nonmatchings/lib/actor_105500_text", Actor05500_D00038);
+INCLUDE_RODATA("actors/nonmatchings/actor_05500/actor_105500_text", Actor05500_D0002C);
+INCLUDE_RODATA("actors/nonmatchings/actor_05500/actor_105500_text", Actor05500_D00038);
 
 void Actor05500_Fn00754(Actor105500* arg0)
 {
@@ -776,7 +776,7 @@ void Actor05500_Fn0143C(Actor105500* arg0)
     *(s32*)PSX_SCRATCH_ADDR(0x3FC) += 8;
 }
 
-#include "actors_shared_fn01a0c.c"
+#include "../lib/actors_shared_fn01a0c.c"
 
 void Actor05500_Fn01B30(Actor105500* arg0)
 {
@@ -918,11 +918,11 @@ void Actor05500_Fn01B30(Actor105500* arg0)
 }
 
 #define ActorsSharedFn020d4 Actor05500_Fn020D4
-#include "actors_shared_fn020d4.c"
+#include "../lib/actors_shared_fn020d4.c"
 #undef ActorsSharedFn020d4
 
 #define ActorsSharedFn02214 Actor05500_Fn02214
-#include "actors_shared_fn02214.c"
+#include "../lib/actors_shared_fn02214.c"
 #undef ActorsSharedFn02214
 
 void Actor05500_Fn02364(Actor105500Ctx* arg0, Actor105500* arg1)
@@ -1224,7 +1224,7 @@ void Actor05500_Fn02954(Actor105500* actor, s32 frame)
 }
 
 #define ActorsSharedFn02c94 Actor05500_Fn02C94
-#include "actors_shared_fn02c94.c"
+#include "../lib/actors_shared_fn02c94.c"
 #undef ActorsSharedFn02c94
 
 void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
@@ -1469,7 +1469,7 @@ case1:
 }
 
 #define ActorsSharedFn03674 Actor05500_Fn03674
-#include "actors_shared_fn03674.c"
+#include "../lib/actors_shared_fn03674.c"
 #undef ActorsSharedFn03674
 
 void Actor05500_Fn0378C(Actor105500* arg0)
@@ -1511,7 +1511,7 @@ void Actor05500_Fn0378C(Actor105500* arg0)
 }
 
 #define ActorsShared801355a4_Fn3567C Actor05500_Fn03864
-#include "actors_shared_fn03864.c"
+#include "../lib/actors_shared_fn03864.c"
 #undef ActorsShared801355a4_Fn3567C
 
 void Actor05500_Fn03918(Actor105500* arg0)
@@ -1568,4 +1568,4 @@ void Actor05500_Fn03A70(Actor105500* arg0)
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/lib/actor_105500_text", Actor05500_Fn03AC8);
+INCLUDE_ASM("actors/nonmatchings/actor_05500/actor_105500_text", Actor05500_Fn03AC8);
