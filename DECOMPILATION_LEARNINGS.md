@@ -137491,3 +137491,30 @@ diffing that `.s` against the carriers' matched `.s` with symbols normalised.
 `overlay_dup_index.py find` misses a twin whose only difference is one callee
 symbol, and the doc comment on `func_actor_450800_80132E9C` named it outright.
 Porting that twin scored 100% on the first build.
+
+## The `&key` recipe's placement sets where `addiu a0, sp, key` schedules (ActorsShared80131f9cSub0 in actor_260400, 2026-09-23)
+
+The `keyPtr = &key; TOUCH_REG(keyPtr);` recipe from the actor_202900 entry
+removed the extra callee-saved `&key` register here too (95.4% to 99.1%), but
+its `SOFT_BARRIER()` form left the `addiu a0, sp, 0x28` after the last key-byte
+load, one slot later than target. The target has it in the load-delay slot of
+the `room` byte, then the `view` load and the `srl` of the placement index just
+before `jal Gp_SyncAreaKeyIndex`. Matching form: no `SOFT_BARRIER`, and the
+asm between the `room` and `view` stores:
+
+```c
+key.stage = sessionKey->stage;
+key.area  = sessionKey->area;
+key.room  = sessionKey->room;
+keyPtr    = &key;
+TOUCH_REG(keyPtr);
+key.view  = sessionKey->view;
+idx       = raw >> 12;
+Gp_SyncAreaKeyIndex(keyPtr);
+```
+
+Dropping only the barrier (asm still after all four stores) regressed to 96%
+with the `&key` pseudo back in `$s1`; staging `room` through a temporary around
+the asm put the `addiu` one slot too early. Where the recipe leaves a one-slot
+reorder of the `addiu`, move the `TOUCH_REG` among the key-byte stores before
+reaching for the permuter.

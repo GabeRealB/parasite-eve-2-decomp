@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "main/task.h"
 
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
@@ -12,20 +13,29 @@
 /// size below is the allocation and not a guess. Reach it with
 /// `(Actor260400Work*)task->work`.
 ///
+/// It opens with the light and colour matrices the actor's model is drawn
+/// under, then the animation context with twenty slots and one 0x10-byte pose
+/// record per slot, the layout `Actor202900Work` also has.
+///
 /// The task at +0x4F0 is the helper task this actor spawns; the exit callback
 /// `func_actor_260400_8014A630` kills it on teardown.
 typedef struct Actor260400Work {
-    /* 0x000 */ byte  pad_0[0x4B4];
-    /* 0x4B4 */ s16   field_4B4; // animation reset mode `func_actor_260400_8014A908` latches; `func_actor_260400_8014A200` dispatches on it (1 reseeds via `func_actor_260400_8014A888`, 2 via `ActorsShared80132538`)
-    /* 0x4B6 */ byte  pad_4B6[0x2];
-    /* 0x4B8 */ s16   field_4B8; // animation id the reset is seeded with, latched from the preset's `field_4`
-    /* 0x4BA */ s16   field_4BA; // cleared before the reset is handed to `func_actor_260400_8014A200`
-    /* 0x4BC */ byte  pad_4BC[0x30];
-    /* 0x4EC */ s16   field_4EC; // animation reset argument, latched to 0x14 by the case-0 branch of `func_actor_260400_8014AAA4`
-    /* 0x4EE */ byte  pad_4EE[0x2];
-    /* 0x4F0 */ Task* field_4F0;
-    /* 0x4F4 */ s8    field_4F4; // case selector `func_actor_260400_8014AAA4` mirrors out of the message
-    /* 0x4F5 */ byte  pad_4F5[0x3];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x14];
+    /* 0x374 */ byte       poses[0x14][0x10];
+    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_260400_8014A908` latches; `func_actor_260400_8014A200` dispatches on it (1 reseeds via `func_actor_260400_8014A888`, 2 via `ActorsShared80132538`)
+    /* 0x4B6 */ byte       pad_4B6[0x2];
+    /* 0x4B8 */ s16        field_4B8; // animation id the reset is seeded with, latched from the preset's `field_4`
+    /* 0x4BA */ s16        field_4BA; // cleared before the reset is handed to `func_actor_260400_8014A200`
+    /* 0x4BC */ byte       pad_4BC[0x2E];
+    /* 0x4EA */ s16        field_4EA; // Role unproven: the state-0 handler clears it
+    /* 0x4EC */ s16        field_4EC; // animation reset argument, latched to 0x14 by the case-0 branch of `func_actor_260400_8014AAA4`
+    /* 0x4EE */ byte       pad_4EE[0x2];
+    /* 0x4F0 */ Task*      field_4F0;
+    /* 0x4F4 */ s8         field_4F4; // case selector `func_actor_260400_8014AAA4` mirrors out of the message
+    /* 0x4F5 */ byte       pad_4F5[0x3];
 } Actor260400Work;
 STATIC_ASSERT_SIZEOF(Actor260400Work, 0x4F8);
 
@@ -69,6 +79,8 @@ extern s16 D_actor_260400_80154BE4;
 /// steps it and `func_actor_260400_8014A908` hands it the reseed.
 extern Task* D_actor_260400_80154C74;
 
+/// Exit callback the state-0 handler installs.
+void func_actor_260400_8014A630(Task* task);
 void func_actor_260400_8014A200(Task* task);
 
 s32 func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset);
