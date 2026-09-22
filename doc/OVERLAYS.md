@@ -73,8 +73,9 @@ Slots are packed back-to-back in high RAM. Title and gameplay share
 | `0x801D4000` | Options (`20100`) | ~8 KiB | Open-menu only |
 | `0x801D6000` | Tiny helper (`20600`) | ~1.4 KiB | Role unknown |
 
-`4xxxxx` actor ids mostly alias **slot 1** (`0x80131E20`). Empty actor slots
-are 4-byte stubs so the id still resolves.
+A package's leading digit is not its slot: every `4xxxxx`, `5xxxxx` and
+`6xxxxx` actor is linked for **slot 1** (`0x80131E20`), and `800100`-`800300`
+for **slot 3**. Empty actor slots are 4-byte stubs so the id still resolves.
 
 ---
 
@@ -387,7 +388,8 @@ Of 196 unique actor binaries: 141 are code + TMD, 15 code-only, 2 data-only,
 38 stubs. A typical 50–90 KiB package is roughly 20–30% TMD stream, the rest
 code + clip / AI tables.
 
-`4xxxxx` is more of this family, mostly loaded into slot 1.
+`4xxxxx`-`6xxxxx` and `800100`-`800300` are more of this family, linked for
+slot 1 and slot 3 respectively.
 
 ### 5.5 Kyle — `800101`–`800105` @ `0x80167A70`
 

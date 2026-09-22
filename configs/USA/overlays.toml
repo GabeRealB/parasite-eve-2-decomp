@@ -4770,9 +4770,12 @@ imports = "configs/USA/sym/actors.imports.txt"
 load_addr = 0x80131E20
 global_vram_start = 0x80010000
 global_vram_end = 0x80131E20
-# Each slot is one load address. An overlay's load address and the
-# vram end that tracks it follow from its slot, so neither is declared.
-slots = { 1 = 0x80131E20, 2 = 0x80149E20, 3 = 0x80161E20, 4 = 0x80131E20, 5 = 0x80131E20, 6 = 0x80131E20, 8 = 0x80161E20 }
+# The three RAM slots an actor is loaded into, one address each. A package's
+# `slot` is the one it is linked for, which the leading digit of its name does
+# not state: 4xxxxx, 5xxxxx and 6xxxxx packages load into slot 1, and 8xxxxx
+# into slot 3. An overlay's load address and the vram end that tracks it follow
+# from its slot, so neither is declared.
+slots = { 1 = 0x80131E20, 2 = 0x80149E20, 3 = 0x80161E20 }
 
 [actors.overlays.actor_100500]
 label = "empty actor slot; the id resolves, the package has no code"
@@ -5072,7 +5075,7 @@ objects = [
 
 [actors.overlays.actor_640400]
 label = "empty actor slot; the id resolves, the package has no code"
-slot = 6
+slot = 1
 id = 279
 objects = [
   { kind = "packageId" },
@@ -5080,10 +5083,10 @@ objects = [
 
 [actors.overlays.actor_00100]
 slots = [
-  { slot = 4, package = "actor_400100", id = 257 },
+  { slot = 1, package = "actor_400100", id = 257 },
   # The same image issued under an id of its own: it matches actor_400100 byte
   # for byte past the id word.
-  { slot = 4, package = "actor_407500", id = 264 },
+  { slot = 1, package = "actor_407500", id = 264 },
 ]
 objects = [
   { kind = "packageId" },
@@ -5107,7 +5110,7 @@ objects = [
 
 [actors.overlays.actor_800100]
 label = "the overlay id word is 0x0..0x4 and the jump table of func_actor_800100_80161F20 - the overlay's first function - starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
-slot = 8
+slot = 3
 id = 190
 objects = [
   { kind = "packageId" },
@@ -5118,7 +5121,7 @@ objects = [
 ]
 
 [actors.overlays.actor_800200]
-slot = 8
+slot = 3
 id = 246
 objects = [
   { kind = "packageId" },
@@ -5155,7 +5158,7 @@ objects = [
 ]
 
 [actors.overlays.actor_800300]
-slot = 8
+slot = 3
 id = 247
 objects = [
   { kind = "packageId" },
@@ -5192,7 +5195,7 @@ objects = [
 ]
 
 [actors.overlays.actor_400500]
-slot = 4
+slot = 1
 id = 249
 objects = [
   { kind = "packageId" },
@@ -5215,7 +5218,7 @@ objects = [
 ]
 
 [actors.overlays.actor_400600]
-slot = 4
+slot = 1
 id = 260
 objects = [
   { kind = "packageId" },
@@ -5277,7 +5280,7 @@ objects = [
 ]
 
 [actors.overlays.actor_401000]
-slot = 4
+slot = 1
 id = 258
 objects = [
   { kind = "packageId" },
@@ -5373,7 +5376,7 @@ objects = [
 ]
 
 [actors.overlays.actor_401300]
-slot = 4
+slot = 1
 id = 261
 objects = [
   { kind = "packageId" },
@@ -5452,7 +5455,7 @@ objects = [
 ]
 
 [actors.overlays.actor_401800]
-slot = 4
+slot = 1
 id = 259
 objects = [
   { kind = "packageId" },
@@ -5522,7 +5525,7 @@ objects = [
 ]
 
 [actors.overlays.actor_402200]
-slot = 4
+slot = 1
 id = 265
 objects = [
   { kind = "packageId" },
@@ -5687,7 +5690,7 @@ objects = [
 ]
 
 [actors.overlays.actor_403000]
-slot = 4
+slot = 1
 id = 256
 objects = [
   { kind = "packageId" },
@@ -5704,7 +5707,7 @@ objects = [
 
 [actors.overlays.actor_403100]
 label = "the head is the id word and a four-entry pointer table at 0x4; the first function's jump table starts at 0x14 and .align 3 would pad it onto 0x18"
-slot = 4
+slot = 1
 id = 250
 objects = [
   { kind = "packageId" },
@@ -5718,7 +5721,7 @@ objects = [
 ]
 
 [actors.overlays.actor_403200]
-slot = 4
+slot = 1
 id = 254
 objects = [
   { kind = "packageId" },
@@ -5765,7 +5768,7 @@ objects = [
 ]
 
 [actors.overlays.actor_503500]
-slot = 5
+slot = 1
 id = 276
 objects = [
   { kind = "packageId" },
@@ -5821,7 +5824,7 @@ objects = [
 ]
 
 [actors.overlays.actor_403600]
-slot = 4
+slot = 1
 id = 255
 objects = [
   # No packageId object: the rodata after the id is a compiler-generated jump
@@ -5893,7 +5896,7 @@ objects = [
 ]
 
 [actors.overlays.actor_403900]
-slot = 4
+slot = 1
 id = 252
 objects = [
   { kind = "packageId" },
@@ -6175,7 +6178,7 @@ objects = [
 ]
 
 [actors.overlays.actor_405800]
-slot = 4
+slot = 1
 id = 269
 objects = [
   { kind = "packageId" },
@@ -6459,7 +6462,7 @@ objects = [
 ]
 
 [actors.overlays.actor_510900]
-slot = 5
+slot = 1
 id = 274
 objects = [
   { kind = "packageId" },
@@ -6488,7 +6491,7 @@ objects = [
 ]
 
 [actors.overlays.actor_511000]
-slot = 5
+slot = 1
 id = 272
 objects = [
   { kind = "packageId" },
@@ -6745,7 +6748,7 @@ objects = [
 ]
 
 [actors.overlays.actor_420700]
-slot = 4
+slot = 1
 id = 253
 objects = [
   { kind = "packageId" },
@@ -6762,7 +6765,7 @@ objects = [
 ]
 
 [actors.overlays.actor_521100]
-slot = 5
+slot = 1
 id = 273
 objects = [
   { kind = "packageId" },
@@ -6815,7 +6818,7 @@ objects = [
 ]
 
 [actors.overlays.actor_421600]
-slot = 4
+slot = 1
 id = 248
 objects = [
   { kind = "packageId" },
@@ -6969,7 +6972,7 @@ objects = [
 ]
 
 [actors.overlays.actor_535700]
-slot = 5
+slot = 1
 id = 275
 objects = [
   { kind = "packageId" },
@@ -7385,7 +7388,7 @@ objects = [
 ]
 
 [actors.overlays.actor_443500]
-slot = 4
+slot = 1
 id = 266
 objects = [
   { kind = "packageId" },
@@ -7434,7 +7437,7 @@ objects = [
 ]
 
 [actors.overlays.actor_444000]
-slot = 4
+slot = 1
 id = 251
 objects = [
   { kind = "packageId" },
@@ -7501,7 +7504,7 @@ objects = [
 ]
 
 [actors.overlays.actor_548100]
-slot = 5
+slot = 1
 id = 277
 objects = [
   { kind = "packageId" },
@@ -7517,7 +7520,7 @@ objects = [
 ]
 
 [actors.overlays.actor_450200]
-slot = 4
+slot = 1
 id = 263
 objects = [
   { kind = "packageId" },
@@ -7597,7 +7600,7 @@ objects = [
 ]
 
 [actors.overlays.actor_450800]
-slot = 4
+slot = 1
 id = 262
 objects = [
   { kind = "packageId" },
@@ -7635,7 +7638,7 @@ objects = [
 ]
 
 [actors.overlays.actor_450900]
-slot = 4
+slot = 1
 id = 268
 objects = [
   { kind = "packageId" },
@@ -7667,7 +7670,7 @@ objects = [
 ]
 
 [actors.overlays.actor_451100]
-slot = 4
+slot = 1
 id = 270
 objects = [
   { kind = "packageId" },
@@ -7719,7 +7722,7 @@ objects = [
 ]
 
 [actors.overlays.actor_460200]
-slot = 4
+slot = 1
 id = 271
 objects = [
   { kind = "packageId" },
@@ -7835,7 +7838,7 @@ objects = [
 ]
 
 [actors.overlays.actor_560800]
-slot = 5
+slot = 1
 id = 278
 objects = [
   { kind = "packageId" },
@@ -7930,7 +7933,7 @@ objects = [
 ]
 
 [actors.overlays.actor_461800]
-slot = 4
+slot = 1
 id = 267
 objects = [
   { kind = "packageId" },
