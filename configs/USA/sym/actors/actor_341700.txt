@@ -57,3 +57,5 @@ ActorsShared80169e24 = 0x80168B40; // shared body, see src/lib/
 func_actor_341700_80168B40 = 0x80168B40; // type:func absolute:True
 ActorsShared8016a2fc = 0x80169018; // shared body, see src/lib/
 func_actor_341700_80169018 = 0x80169018; // type:func absolute:True
+ActorsShared8016b48c = 0x8016A1A8; // shared body, see src/lib/
+func_actor_341700_8016A1A8 = 0x8016A1A8; // type:func absolute:True

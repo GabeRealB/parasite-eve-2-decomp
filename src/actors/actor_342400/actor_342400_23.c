@@ -6,5 +6,3 @@
 #include "gameplay/1BC.h"
 
 #include "actors/actor_342400.h"
-
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_23", func_actor_342400_8016B48C);

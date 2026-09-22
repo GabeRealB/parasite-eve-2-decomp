@@ -19,3 +19,19 @@
  * has no register copy.  A real prototype would make GCC emit one, so it
  * stays unprototyped. */
 s32 ActorsShared8016945c();
+
+void ActorsShared8016b48c(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+
+    work = (Actor341700Work*)arg0->work;
+    if ((ActorsShared8016945c() << 0x10) == 0) {
+        work2            = (Actor341700Work*)arg0->work;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xF;
+        work2->field_414 = 1;
+        work->field_422  = work->field_422 + 1;
+    }
+}
