@@ -20,3 +20,5 @@ ActorsShared80132710 = 0x80133250; // shared body, see src/lib/
 ActorsShared80133678 = 0x80133334; // shared body, see src/lib/
 ActorsShared801330ac = 0x80132D68; // shared body, see src/lib/
 ActorsShared80133528 = 0x801331E4; // shared body, see src/lib/
+ActorsShared8014a568 = 0x80132648; // shared body, see src/lib/
+func_actor_535700_80132648 = 0x80132648; // type:func absolute:True
