@@ -137518,3 +137518,28 @@ with the `&key` pseudo back in `$s1`; staging `room` through a temporary around
 the asm put the `addiu` one slot too early. Where the recipe leaves a one-slot
 reorder of the `addiu`, move the `TOUCH_REG` among the key-byte stores before
 reaching for the permuter.
+
+## The `&key` recipe, other direction: `srl` before the `view` load, `addiu` after it (ActorsShared80131f9cSub0 in actor_420700, 2026-09-23)
+
+The actor_260400 entry above moved the `TOUCH_REG` *up* among the key-byte
+stores to pull `addiu a0, sp, key` earlier. This carrier needed the opposite:
+target order `lbu room; srl idx; sb room; lbu view(gGameSession); addiu a0;
+jal; sb view` (delay slot). The no-barrier form (asm between the `room` and
+`view` stores) scored 99.17% with `addiu` and `srl` swapped; no placement of the
+asm alone fixed it, and dropping the asm put `&key` back in a saved register.
+Matching form is the actor_105600 barrier recipe with *both* the `view` load and
+the index shift ahead of the barrier:
+
+```c
+view = sessionKey->view;
+idx  = raw >> 12;
+SOFT_BARRIER();
+keyPtr = &key;
+TOUCH_REG(keyPtr);
+key.view = view;
+Gp_SyncAreaKeyIndex(keyPtr);
+```
+
+So when the one-slot reorder is `addiu` too *early*, stage the last key byte
+through a temporary loaded before a `SOFT_BARRIER`; when it is too *late*, use
+the actor_260400 placement.
