@@ -45,6 +45,7 @@ from pathlib import Path
 
 ASM_ROOT = Path("asm/USA")
 CACHE = Path("build/USA/dup_index.json")
+MANIFEST = Path("configs/USA/overlays.toml")
 # Families that are one link output, not a set of them. Their asm tree is still
 # cut into unit directories, but two identical bodies in two of those units are
 # two separate functions - the segment links once, so neither can be served by
@@ -274,20 +275,40 @@ def classes(data: dict, key: str) -> dict[str, list[dict]]:
     return out
 
 
-def cmd_siblings(data: dict, name: str, min_words: int) -> int:
-    """Copies of this body in *other overlays of the same family*, one per line.
+def family_of(f: dict) -> str:
+    return f["overlay"].split("/")[1]
 
-    That is the set promotion can serve: `promote` works one family at a time,
-    and an overlay links once so a second copy inside the same overlay is a
+
+def library_families() -> frozenset[str]:
+    """Families whose packages can link a unit from src/lib.
+
+    Those are the families the manifest generates: an object there is a line in
+    a package's object list, and a library unit is one more. main, gameplay and
+    title have hand-written configs and link once, so a copy there can never be
+    served by the library and is not a sibling of anything.
+    """
+    import tomllib
+
+    manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    return frozenset(k for k, v in manifest.items() if isinstance(v, dict) and "overlays" in v)
+
+
+def cmd_siblings(data: dict, name: str, min_words: int) -> int:
+    """Copies of this body in *other overlays* that can link the library.
+
+    That is the set promotion can serve, in any family the manifest generates:
+    an overlay links once, so a second copy inside the same overlay is a
     separate function. Empty output means nothing to promote, which is the
     common case and is not an error.
     """
     hit = next((f for f in data["functions"] if f["name"] == name), None)
     if hit is None or hit["words"] < min_words:
         return 0
-    family = hit["overlay"].split("/")[1]
+    families = library_families()
+    if family_of(hit) not in families:
+        return 0
     for f in sorted(classes(data, "text")[hit["text"]], key=lambda f: f["overlay"]):
-        if f["overlay"] != hit["overlay"] and f["overlay"].split("/")[1] == family:
+        if f["overlay"] != hit["overlay"] and family_of(f) in families:
             print(f"{f['overlay']}\t{f['name']}")
     return 0
 
@@ -326,7 +347,7 @@ def _offset_of(line: str) -> int | None:
 
 
 def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
-                   unit: str, overlay: str) -> tuple[str, str | None]:
+                   unit: str, overlay: str) -> tuple[str | None, str | None]:
     """Give one run to a shared unit, handing the remainder to a new unit.
 
     The old `shared` key carved a span out of the middle of a run and left the
@@ -341,7 +362,7 @@ def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
         if o is not None and o <= at and "kind" not in line:
             owner = i
     if owner is None:
-        return text, None
+        return None, None
     m = re.search(r'unit = "([^"]*)"', lines[owner])
     base = m.group(1).rsplit("/", 1)[-1] if m else overlay
     nxt = next((_offset_of(l) for l in lines[owner + 1:] if _offset_of(l) is not None), None)
@@ -360,12 +381,19 @@ def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
 
 
 def cmd_promote(data: dict, name: str, unit: str | None) -> int:
-    """Move a body into the family's shared library.
+    """Move a body into the shared library, src/lib.
 
     Does the plumbing that is identical either way - the span in
     configs/USA/overlays.toml for every overlay that carries the body, and the
     shared symbol in each of their symbol maps - so the caller only has to deal
     with the body itself.
+
+    Carriers come from every family the manifest generates, since one library
+    object links into any of them; each is edited in its own family's entry and
+    symbol map, at its own load address. main, gameplay and title link once and
+    are never carriers. Code that is identical across families is not thereby
+    the same routine, so a promotion that spans families says so and leaves the
+    judgement to the caller.
 
     An overlay that contains the body twice is left out: ld includes an input
     object once, so the second slot would go unfilled.
@@ -398,11 +426,13 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     if hit is None:
         print(f"{name}: not found", file=sys.stderr)
         return 1
-    # Only the copies in this body's own family are served: the spans go into
-    # that family's manifest entries, so a copy in another family is a
-    # separate promotion. The unit itself is in the shared src/lib/.
-    family = hit["overlay"].split("/")[1]
-    copies = [f for f in cl[hit["text"]] if f["overlay"].split("/")[1] == family]
+    # Every copy the library can reach is served, whatever its family: each
+    # carrier's span goes into its own family's manifest entry, and the unit
+    # itself is the one src/lib source they all link. A copy in a family that
+    # links once cannot carry a library unit and is left alone.
+    families = library_families()
+    outside = sorted({f["overlay"] for f in cl[hit["text"]] if family_of(f) not in families})
+    copies = [f for f in cl[hit["text"]] if family_of(f) in families]
     # A copy under `<family>/lib` is the shared body itself, already promoted -
     # not a carrier. It has no manifest entry (`lib` is not an overlay), so
     # treating it as one raised KeyError('lib') *after* the symbol maps of every
@@ -422,7 +452,7 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
                   f"src/lib defines it", file=sys.stderr)
             return 1
     if len(copies) < 2 and not promoted:
-        print(f"{name}: only one copy in {family}, nothing to share")
+        print(f"{name}: only one copy the library can reach, nothing to share")
         return 1
     if not copies:
         print(f"{name}: every copy is already served by the shared body")
@@ -456,20 +486,23 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
             print("  per link address, which is what makes the differing copies one source.")
             return 1
 
-    unit = unit or f"{family}_shared_{hit['name'].split('_')[-1].lower()}"
+    # A unit one family carries is named for it, as before; one that several
+    # carry belongs to none of them.
+    carriers = sorted({family_of(f) for f in keep})
+    owner = f"{carriers[0]}_shared" if len(carriers) == 1 else "shared"
+    unit = unit or f"{owner}_{hit['name'].split('_')[-1].lower()}"
     sym = "".join(w.capitalize() for w in unit.split("_"))
 
-    manifest_path = Path("configs/USA/overlays.toml")
+    manifest_path = MANIFEST
     manifest = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
-    overlays = manifest[family]["overlays"]
-    family_load = manifest[family]["load_addr"]
     text = manifest_path.read_text(encoding="utf-8")
     size = hit["words"] * 4
 
     pending_syms: list[tuple[Path, str]] = []
-    edited: set[str] = set()
+    edited: set[tuple[str, str]] = set()
     for f in sorted(keep, key=lambda f: f["overlay"]):
         room = f["overlay"].split("/")[-1]
+        family = family_of(f)
         found = _entry_of(manifest, family, room)
         if found is None:
             print(f"{room}: not an entry in the manifest; aborting", file=sys.stderr)
@@ -483,8 +516,8 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         # the entry describes the image once, so it is edited once. Each
         # package still needs the symbol in its own map, since the address
         # differs per slot.
-        if entry_name not in edited:
-            edited.add(entry_name)
+        if (family, entry_name) not in edited:
+            edited.add((family, entry_name))
             text, tail = _insert_shared(text, family, entry_name, start, size, unit, room)
             if text is None:
                 print(f"{entry_name}: no object owns offset 0x{start:X}; aborting",
@@ -514,11 +547,20 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     print(f"{sym}: {len(keep)} of {len(copies)} copies share src/lib/{unit}.c")
     if twice:
         print(f"  left alone (contains it twice): {', '.join(sorted(twice))}")
+    if outside:
+        print(f"  left alone (links once, cannot carry a library unit): "
+              f"{', '.join(outside)}")
+    if len(carriers) > 1:
+        print(f"  carriers span families ({', '.join(carriers)}): identical code is not")
+        print("  the same routine - check the copies are one routine before building on it.")
     matched = [f for f in keep if f.get("state") == "matched"]
     if matched:
-        print(f"  {name} is already decompiled - move its C body into "
-              f"src/lib/{unit}.c as {sym}(), remove it from its own "
-              f"overlay's .c, then rebuild.")
+        # Name the copy that has the C, which need not be the one asked about.
+        src = matched[0]
+        print(f"  {src['name']} ({src['overlay'].split('/', 1)[1]}) is already "
+              f"decompiled - move its C body into src/lib/{unit}.c as {sym}(), "
+              f"remove it from that overlay's .c, delete the other carriers' "
+              f"INCLUDE_ASM for it, then rebuild.")
     else:
         print("  splat will write the shared stub on the next split.")
     print("  run: python3 ninja_config.py && ./tools/build-and-verify.sh")
@@ -535,21 +577,22 @@ def cmd_solved(data: dict, min_words: int) -> int:
     library instead of matching it again.
     """
     cl = classes(data, "text")
+    families = library_families()
     out: set[int] = set()
     for v in cl.values():
         if v[0]["words"] < min_words:
             continue  # a stub is cheaper to match than to plumb into lib/
         for f in v:
-            if f.get("state") == "matched":
+            if f.get("state") == "matched" or family_of(f) not in families:
                 continue
-            # Only a match in the *same family* is reachable: the shared unit
-            # lives in src/lib/, so a body matched in gameplay says
-            # nothing about a room's copy of it.
-            family = f["overlay"].split("/")[1]
+            # A match is reachable from any family the library links into -
+            # the same set `promote` serves. One in main, gameplay or title
+            # is not: they link once, so their copy cannot become the shared
+            # unit, and a room's copy of a gameplay body still needs matching.
             if any(
                 o.get("state") == "matched"
                 and o["overlay"] != f["overlay"]
-                and o["overlay"].split("/")[1] == family
+                and family_of(o) in families
                 for o in v
             ):
                 out.add(id(f))

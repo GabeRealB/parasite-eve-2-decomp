@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Promote already-matched shared bodies into their family's shared library.
+"""Promote already-matched shared bodies into the shared library, src/lib.
 
 Overlays in a family are separate link outputs that carry copies of the same
 code. Landing a body in one overlay leaves every copy to be matched again, so a

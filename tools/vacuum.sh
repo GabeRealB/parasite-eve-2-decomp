@@ -361,7 +361,8 @@ solved_elsewhere_file() {
   echo "$out"
 }
 
-# Copies of this body in other overlays of the same family. Written to a file so
+# Copies of this body in other overlays the shared library reaches, in any
+# family the manifest generates. Written to a file so
 # the caller can both count it and paste it into a prompt. Empty is the normal
 # case; a non-empty list means the match must be promoted into the shared
 # library rather than left as one overlay's copy.
@@ -1174,7 +1175,9 @@ build_port_prompt() {
 
 ## This body is shared - promote it, do not land it in one overlay
 
-\`$func\` also exists in $(wc -l <"$siblings") other overlay(s) of the same family.
+\`$func\` also exists in $(wc -l <"$siblings") other overlay(s) the shared library reaches.
+If they span families, check they are one routine and not merely the same code
+before promoting: \`promote\` flags it, but cannot judge it.
 Landing it in its own overlay only leaves the copies to be matched again later,
 so promotion is part of this port, not a follow-up:
 
