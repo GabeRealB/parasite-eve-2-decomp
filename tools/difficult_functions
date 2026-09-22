@@ -8,6 +8,7 @@ func_dryfield_driveway_8017DCC0 24 99.333
 func_dryfield_motel_room_6_80181740 31 99.938
 func_dryfield_night_factory_8017F1DC 27 98.779
 func_dryfield_night_gas_station_8017FD80 19 93.040
+func_dryfield_night_motel_balcony_801809CC 19 99.636
 func_dryfield_saloon_g_r_8017DA70 20 98.765
 func_dryfield_water_tank_8017DB98 29 98.571
 func_dryfield_water_tower_8017E764 6 88.576
@@ -25,4 +26,3 @@ func_neo_ark_submarine_gallery_8017EABC 12 89.657
 func_shelter_b1_golem_freezer_1_8017DA7C 6 ~85%
 func_shelter_b1_golem_freezer_1_8017E254 5 ~87%
 func_shelter_b3_dumping_hole_80181560 7 98%
-func_dryfield_night_motel_balcony_801809CC 19 99.636
