@@ -1,6 +1,7 @@
 #include "common.h"
 #include "actors/actor_104000.h"
 #include "gameplay/3A34.h"
+#include "main/gfx.h"
 
 void Actor04000_Fn00E6C(Actor104000* arg0);
 
@@ -94,4 +95,28 @@ void Actor04000_Fn06C80(Actor104000Ctx* arg0, Actor104000* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_04000/actor_204000_5", Actor04000_Fn06D38);
+void Actor04000_Fn06D38(Actor104000Ctx* arg0, Actor104000* arg1)
+{
+    Actor104000Work* work;
+    s16              angle;
+
+    work = arg1->field_1C;
+    if (work->field_4 != 0) {
+        arg1->field_2C->field_C = 0;
+        arg0->field_14          = 5;
+        work->field_174         = 1;
+        work->field_170         = 2;
+        work->field_178         = 0;
+        work->obj350.flags     |= 0x8000;
+        work->obj388.flags     &= 0x7FFF;
+        work->obj3C0.flags     &= 0x7FFF;
+        work->obj270.flags     |= 0x4000;
+        Actor04000_Fn00E6C(arg1);
+        angle = ratan2(-arg1->field_2C->field_8->coord.m[2][0], arg1->field_2C->field_8->coord.m[2][2]);
+        Gfx_RotMatrixZ(&arg1->field_2C->field_8->coord, 0x800, 1);
+        Gfx_RotMatrixY(&arg1->field_2C->field_8->coord, angle, 0);
+        arg1->field_2C->field_8->flg = 0;
+        return;
+    }
+    Actor04000_Fn00E6C(arg1);
+}
