@@ -136,13 +136,16 @@ def record(source, project, compiler=None, flags='', failure=0):
     if not plan and source.name != 'base.c':
         print(f"Record a hypothesis with ./attempt.py plan {source.name} --parent base.c --hypothesis '...' --expect '...' --pass-name lreg")
     unique = [r for r in previous + [row] if not r.get('failure') and not r.get('duplicate_of')]
+    # A session ends on a plateau, never on a count: a run still improving is
+    # the one worth continuing, so any score gain resets the distance.
     if len(unique) >= 10:
         scores = [r.get('score', 0) for r in unique]
         best_at = max(range(len(scores)), key=scores.__getitem__)
-        if len(unique) - best_at - 1 >= 10:
+        since = len(unique) - best_at - 1
+        if since >= 20:
+            print('PLATEAU: twenty distinct builds without a score gain, after a change of hypothesis. Preserve findings and stop.')
+        elif since >= 10:
             print('REASSESS: ten distinct builds without a score gain. Change hypothesis or seed; record what the dumps ruled out.')
-    if len(previous) + 1 >= 40 and not (scratch / 'PERMUTER_FOLLOWUP.json').is_file():
-        print('SESSION BUDGET: 40 builds including failures and repeats. Preserve findings and stop unless an explicit larger budget was authorized.')
     return row
 
 

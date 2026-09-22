@@ -134,8 +134,10 @@ parent. An early dump difference can be numbering noise: inspect its operands.
 A failed prediction is useful evidence even when the percentage does not improve.
 Repeated assembly is not a new search result. Ten distinct builds without a score
 gain trigger a change of hypothesis or seed; do not repeat an exhausted experiment.
-The default session budget is 40 builds, including failures and repeats, unless
-the user authorized more. Repeats consume the budget without counting as progress.
+There is no fixed build budget: keep going while the score improves. Stop on a
+plateau - twenty distinct builds without a gain, after that change of hypothesis
+(`build.sh` prints `PLATEAU`). Repeats and failed builds are not progress and do
+not count toward it either way.
 Before stopping, complete conclusions and write unresolved questions plus evidence
 in `LEARNINGS.md`. General compiler findings may also enter the shared corpus;
 the session copy is preserved independently of whether a match lands.
