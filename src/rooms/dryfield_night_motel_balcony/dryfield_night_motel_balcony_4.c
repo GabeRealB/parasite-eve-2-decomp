@@ -80,7 +80,103 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80180C60);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80181024);
+/// Per-frame handler of an effect-spawning room task. Any non-zero event state
+/// suspends it, and 4 or above releases it. In view 0x27 it makes three
+/// independent LCG rolls each frame: 1 in 4 spawns effect 0x6003D and 1 in 3
+/// spawns 0x60093, both with an offset of up to 0x100 on every axis, and 1 in 7
+/// spawns 0x60095 with a horizontal offset of up to 0x80. In any other view it
+/// counts `field_22` up to 150 frames and then releases itself. Until then it
+/// makes two rolls that fire less often as the count grows (the count must be
+/// below a draw modulo 150, then modulo 120), each followed by a 1-in-4 roll
+/// that spawns 0x60095, first with a vertical offset of up to 0x7FF and then at
+/// a fixed height of 0xC00.
+void func_dryfield_night_motel_balcony_80181024(Task* task)
+{
+    RoomEffWork*   work  = task->spawnArg2;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    s32            lo;
+    s32            arg;
+
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+    if (gGameSession->at4.loc.view == 0x27) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            lo                = ((u32)Gp_LcgState >> 16) & 0x1FF;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            arg               = ((((u32)Gp_LcgState >> 16) % 3) << 16) + 0x80000100;
+            Gp_SpawnEff(0x6003D, coord, lo + arg, &work->field_10);
+        }
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x60093, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x100, &work->field_10);
+        }
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((u16)(((u32)Gp_LcgState >> 16) % 7U) == 0) {
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+            work->field_10.vy = 0;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0xA0000400, &work->field_10);
+        }
+    } else {
+        work->field_22++;
+        if ((s16)work->field_22 < 150) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((s16)work->field_22 < (u16)(((u32)Gp_LcgState >> 16) % 150U)) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vy = ((u32)Gp_LcgState >> 16) & 0x7FF;
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x80000400,
+                                &work->field_10);
+                }
+            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((s16)work->field_22 < (u16)(((u32)Gp_LcgState >> 16) % 120U)) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    work->field_10.vy = 0xC00;
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x20010400,
+                                &work->field_10);
+                }
+            }
+        } else {
+        release:
+            Gp_ReleaseState1CMem(work, task);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8018158C);
 

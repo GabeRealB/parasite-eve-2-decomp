@@ -137583,3 +137583,21 @@ Three smaller shapes from the same function:
 Input `base_37.i` SHA256
 `0e74f30433e2ca7214c2975bec0d946f2c3ea1750f706864b03672498fce129d`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## `lo + ((x << 16) + CONST)` reassociates as well; here the split-value form was the match (func_dryfield_night_motel_balcony_80181024, 2026-09-23)
+
+`fold` treats `+` the same way the `base | (x | CONST)` entry describes for `|`:
+it moves the constant outward, so any single-expression spelling
+(`lo + (y + C)`, `y + C + lo`, `lo + y + C`) emits `lo + y` first and adds the
+constant last. The target computed `t0 = (x % 3 << 16) + 0x80000100` into a
+scratch register and then did `addu a2,a2,t0`. Giving the inner sum its own
+statement produced exactly that, taking the match from 99.67% (register-only
+penalties) to 100%:
+
+```c
+arg = ((((u32)Gp_LcgState >> 16) % 3) << 16) + 0x80000100;
+Gp_SpawnEff(0x6003D, coord, lo + arg, &work->field_10);
+```
+
+Which fix applies depends on where the target's intermediate lives. If it is in
+a scratch register, split out the value. If it is computed in place in the
+argument register, hold only the constant in a local, as the `|` entry does.
