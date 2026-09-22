@@ -66,7 +66,7 @@ extern u8                        Actor01100_D0E4DC;
 extern ActorsShared801385e0Scale Actor01100_D000CC;
 
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
-s32  Actor01100_Fn00F58(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
+s32  Actor01100_Fn00F58(GpEnemy*, Task*, Actor104900SpawnWork*, Actor104900ShotArg*);
 void ActorsShared801357f0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 
 /// First-frame distance handler: while the latch at 0xBA8 is still clear it

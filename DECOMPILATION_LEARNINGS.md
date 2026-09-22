@@ -137543,3 +137543,43 @@ Gp_SyncAreaKeyIndex(keyPtr);
 So when the one-slot reorder is `addiu` too *early*, stage the last key byte
 through a temporary loaded before a `SOFT_BARRIER`; when it is too *late*, use
 the actor_260400 placement.
+### Stack words touched only through `$t2` are spilled scalar locals, and which one spills is a ref count (Actor01100_Fn00F58, 2026-09-23)
+
+Earlier sessions on this 782-instruction hit handler modelled its eight frame
+words (`sw zero,0x10(sp)` .. `0x2C(sp)`) as an `s32 st[8]` array and stalled at
+97% with every constant homed in `$v0` instead of the target's `$t2`. Every
+access to those words goes through `$t2` (`li t2,1; sw t2,0x20(sp)`,
+`lw t2,0x1c(sp); beqz t2`, even `lbu t2,0x14(sp)` for a byte store), which is
+reload's signature: they are eight ordinary `s32` locals that global-alloc could
+not place, and `$t2` is the first call-clobbered register no pseudo used (`$t0`
+and `$t1` hold two hoisted loop-invariant masks). Declared as scalars, m2c's
+`sp10`..`sp2C` spill in declaration order to exactly those slots.
+
+Which pseudo spills is decided by the ranking `floor_log2(refs) * refs /
+live_length`, so read the `.lreg` counts and simulate the order when a
+parameter spills instead (here `arg3` at 14 refs over 870 insns lost to one
+flag's 5 over 187). The missing refs came from a switch whose cases 5 and 6 are
+identical: written separately, flow counts both bodies' `arg3` loads before
+jump2 cross-jumps them into one, which lifts `arg3` above the flag.
+
+Three smaller shapes from the same function:
+
+- An independent `flag = 1` that the target stores right before a `jal`
+  belongs *after* that call in the source. A call-crossing pseudo's set can
+  move back across the call, and sched1 then places it last. Written before the
+  call, it sinks to the head of the argument setup instead.
+- A hoisted loop constant lands after the counter's `li` (loop.c emits it at
+  the loop start). When the target loads the constant first (`li a2,0x10; li
+  a1,1`), the constant was a variable assigned before the loop.
+- When the target's select shares one register with its input (`lbu v0; bnez
+  v0; li v0,0x14; li v0,0x13; sb v0`), write a store in each arm
+  (`if (x) f = 0x14; else f = 0x13;`). Each constant is then block-local and
+  takes `$v0` after the test dies, and jump2 merges the two `sb`s. Assigning a
+  variable before the test keeps it live across the load and pushes it to
+  `$v1`. The same reasoning put a sum and the tier computed from it in one
+  variable (`level = old + dmg; ... if ((s16)level < 0x3D) level = 1;`), so
+  both take `$v1` as the target does.
+
+Input `base_37.i` SHA256
+`0e74f30433e2ca7214c2975bec0d946f2c3ea1750f706864b03672498fce129d`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

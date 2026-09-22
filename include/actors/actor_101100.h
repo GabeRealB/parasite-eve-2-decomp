@@ -41,34 +41,51 @@ typedef ActorsShared80137fb8Work Actor104900Work;
 /// `func_800B3F84` seeds. Same size as `ActorsShared80138efcWork` /
 /// `ActorShared801384acWork`, which are later views of this block.
 typedef struct Actor104900SpawnWork {
-    /* 0x000 */ GsCOORDINATE2  coord;
-    /* 0x050 */ GpAnimCtx      anim;
-    /* 0x064 */ GpAnimSlot     slots[21];
-    /* 0x3AC */ byte           poses[0x150];
-    /* 0x4FC */ GpAnimCtx      anim2;
-    /* 0x510 */ GpAnimSlot     slots2[21];
-    /* 0x858 */ byte           poses2[0x150];
-    /* 0x9A8 */ byte           pad_9A8[0x1A0];
-    /* 0xB48 */ MATRIX         lightMtx;
-    /* 0xB68 */ MATRIX         colorMtx;
-    /* 0xB88 */ u32            actorId;
-    /* 0xB8C */ byte           pad_B8C[6];
-    /* 0xB92 */ s16            field_B92;
-    /* 0xB94 */ byte           pad_B94[0x10];
-    /* 0xBA4 */ s8             field_BA4;
-    /* 0xBA5 */ s8             field_BA5;
-    /* 0xBA6 */ byte           pad_BA6;
-    /* 0xBA7 */ s8             state;
-    /* 0xBA8 */ byte           pad_BA8[6];
-    /* 0xBAE */ u8             field_BAE;
-    /* 0xBAF */ byte           pad_BAF;
-    /* 0xBB0 */ GsCOORDINATE2* field_BB0;
-    /* 0xBB4 */ s16            field_BB4;
-    /* 0xBB6 */ s16            field_BB6;
-    /* 0xBB8 */ u8             field_BB8;
-    /* 0xBB9 */ byte           pad_BB9[2];
-    /* 0xBBB */ u8             field_BBB;
-    /* 0xBBC */ byte           pad_BBC[0x10];
+    /* 0x000 */ GsCOORDINATE2 coord;
+    /* 0x050 */ GpAnimCtx     anim;
+    /* 0x064 */ GpAnimSlot    slots[21];
+    /* 0x3AC */ byte          poses[0x150];
+    /* 0x4FC */ GpAnimCtx     anim2;
+    /* 0x510 */ GpAnimSlot    slots2[21];
+    /* 0x858 */ byte          poses2[0x150];
+    /* 0x9A8 */ byte          pad_9A8[0x20];
+    /* 0x9C8 */ GpObj         objs[2];
+    /* 0xA08 */ byte          pad_A08[0x20];
+    /// Four three-entry contact tables. `Actor01100_Fn00F58` resolves the
+    /// first against the world and scans the last for a class-2 hit, then
+    /// clears all four with `Gp_ClearRec18Occupied`.
+    /* 0xA28 */ GpRec18 contacts[4][3];
+    /* 0xB48 */ MATRIX  lightMtx;
+    /* 0xB68 */ MATRIX  colorMtx;
+    /* 0xB88 */ u32     actorId;
+    /* 0xB8C */ byte    pad_B8C[6];
+    /* 0xB92 */ s16     field_B92;
+    /* 0xB94 */ byte    pad_B94[8];
+    /* 0xB9C */ s16     field_B9C;
+    /* 0xB9E */ byte    pad_B9E[5];
+    /* 0xBA3 */ s8      field_BA3;
+    /* 0xBA4 */ s8      field_BA4;
+    /* 0xBA5 */ s8      field_BA5;
+    /* 0xBA6 */ u8      field_BA6;
+    /* 0xBA7 */ s8      state;
+    /* 0xBA8 */ s8      field_BA8;
+    /* 0xBA9 */ byte    pad_BA9[2];
+    /* 0xBAB */ u8      field_BAB;
+    /* 0xBAC */ u8      field_BAC;
+    /* 0xBAD */ byte    pad_BAD;
+    /* 0xBAE */ u8      field_BAE;
+    /* 0xBAF */ u8      field_BAF;
+    /// Placement record for the hit sparks `func_800FDB18` spawns.
+    /* 0xBB0 */ GpEffArg effArg;
+    /* 0xBB8 */ u8       field_BB8;
+    /* 0xBB9 */ byte     pad_BB9[2];
+    /* 0xBBB */ u8       field_BBB;
+    /* 0xBBC */ byte     pad_BBC[2];
+    /* 0xBBE */ s16      field_BBE;
+    /* 0xBC0 */ s32      field_BC0;
+    /* 0xBC4 */ s32      field_BC4;
+    /* 0xBC8 */ u8       field_BC8;
+    /* 0xBC9 */ byte     pad_BC9[3];
 } Actor104900SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor104900SpawnWork, 0xBCC);
 
@@ -76,6 +93,10 @@ extern s32        D_8007216C;
 extern GpPairSrcE Actor01100_D074E8;
 extern GpPairSrcE Actor01100_D07510;
 extern u8         Actor01100_D15604[];
+
+/// When 1, `Actor01100_Fn00F58` skips pushing the model out of its world
+/// contacts for the frame.
+extern u8 D_80072729;
 
 /// Scale copied onto the stack and passed to `ActorsShared801385e0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis. The trailing word is

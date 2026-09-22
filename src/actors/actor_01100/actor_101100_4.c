@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_101100.h"
 #include "actors/actors_shared_80138efc.h"
 #include "actors/actors_shared_801388e8.h"
 #include "gameplay/gameplay.h"
@@ -8,7 +9,7 @@
 extern u32 Gp_LcgState;
 
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
-s32  Actor01100_Fn00F58(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
+s32  Actor01100_Fn00F58(GpEnemy*, Task*, Actor104900SpawnWork*, Actor104900ShotArg*);
 
 /// Points the enemy's link transform at the model's fourth part coordinate -
 /// the same `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back
@@ -35,7 +36,7 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     xform->src.vx     = 0;
     xform->src.vy     = -0xC8;
     xform->src.vz     = 0xC8;
-    if ((Actor01100_Fn00F58(enemy, task, work, scratch) == 0) && (task->spawnArg1 == 0)) {
+    if ((Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, scratch) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
             if (ActorsShared801388e8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
@@ -109,5 +110,5 @@ void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     xform->src.vx = 0;
     xform->src.vy = -0xC8;
     xform->src.vz = 0xC8;
-    Actor01100_Fn00F58(enemy, task, work, scratch);
+    Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, scratch);
 }

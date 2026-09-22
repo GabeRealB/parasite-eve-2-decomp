@@ -3,6 +3,7 @@
 #include "actors/actor_101100.h"
 #include "actors/actors_shared_801384ac.h"
 #include "actors/actors_shared_801385e0.h"
+#include "actors/actors_shared_80138774.h"
 #include "actors/actors_shared_801388e8.h"
 #include "actors/actors_shared_80138efc.h"
 #include "actors/actors_shared_801511c8.h"
@@ -57,8 +58,15 @@ extern GpU16Pair Actor01100_D074D0[];
     gte_stsv(sv);                                      \
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
 
+/// Block `_actor01100PushOut` carves below the scratchpad head: the push-out
+/// delta `func_800E0C10` reports, then whether it moved the model on X or Z.
+typedef struct {
+    GpDeltaScratch delta;
+    s32            moved;
+} _Actor01100PushScratch;
+
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
-s32  Actor01100_Fn00F58(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
+s32  Actor01100_Fn00F58(GpEnemy*, Task*, Actor104900SpawnWork*, Actor104900ShotArg*);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", Actor01100_D00004);
 
@@ -213,10 +221,10 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     }
 
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    endCoords       = ((TmdObject*)task->extra)->coords;
-    work->field_BB4 = 0x400;
-    work->field_BB6 = 3;
-    work->field_BB0 = endCoords + 4;
+    endCoords               = ((TmdObject*)task->extra)->coords;
+    work->effArg.spawnArgLo = 0x400;
+    work->effArg.spawnArgHi = 3;
+    work->effArg.coord      = endCoords + 4;
     task->state++;
 }
 
@@ -309,7 +317,454 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_01100/actor_101100", Actor01100_Fn00F58);
+/// Scans one three-entry contact table for its first class-2 contact, stopping
+/// at the first empty entry. The contact's position is copied into `out` and
+/// its key returned; 0 when there is none.
+static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contacts)
+{
+    s16 i;
+
+    for (i = 0; i < 3; i++) {
+        if (contacts[i].key == 0) {
+            break;
+        }
+        if ((contacts[i].key & 0xFFFF0000) == 0x20000) {
+            out->vx = contacts[i].point.vx;
+            out->vy = contacts[i].point.vy;
+            out->vz = contacts[i].point.vz;
+            return contacts[i].key;
+        }
+    }
+    return 0;
+}
+
+/// Pushes `coord` out of the world contacts in `contacts` with
+/// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
+/// from zero, and raises the height by 0x80 for the caller to restore.
+/// Returns nonzero when the push moved the model on X or Z; always 0 while
+/// `D_80072729` is 1.
+static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts)
+{
+    _Actor01100PushScratch* head;
+    _Actor01100PushScratch* blk;
+
+    if (D_80072729 == 1) {
+        return 0;
+    }
+    head                                       = *(_Actor01100PushScratch**)G_SCRATCH_HEAD;
+    *(_Actor01100PushScratch**)G_SCRATCH_HEAD -= 1;
+    blk                                        = *(_Actor01100PushScratch**)G_SCRATCH_HEAD;
+    blk->moved                                 = 0;
+    if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
+        coord->coord.t[0] += head[-1].delta.vx.h.hi;
+        coord->coord.t[1] += blk->delta.vy.h.hi;
+        coord->coord.t[2] += blk->delta.vz.h.hi;
+        if (head[-1].delta.vx.w & 0xFFFF) {
+            if (head[-1].delta.vx.w > 0) {
+                coord->coord.t[0] += 1;
+            } else {
+                coord->coord.t[0] -= 1;
+            }
+        }
+        if (blk->delta.vz.w & 0xFFFF) {
+            if (blk->delta.vz.w > 0) {
+                coord->coord.t[2] += 1;
+            } else {
+                coord->coord.t[2] -= 1;
+            }
+        }
+    }
+    coord->coord.t[1] += 0x80;
+    if ((blk->delta.vx.w != 0) || (blk->delta.vz.w != 0)) {
+        blk->moved = 1;
+    }
+    *(_Actor01100PushScratch**)G_SCRATCH_HEAD += 1;
+    return blk->moved;
+}
+
+/// Clears the 0xC000 pair from the `flags` of both collision objects.
+static __inline__ void _actor01100ClearObjPair(Actor104900SpawnWork* work)
+{
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        GpObj* obj  = &work->objs[i];
+        obj->flags &= 0x3FFF;
+    }
+}
+
+/// Per-frame hit handler. Counts down the spark timer at 0xBBE (re-spawning
+/// the hit sparks every eighth frame), then takes the first class-2 contact
+/// from the last contact table: its damage is scaled by the source's distance,
+/// doubled in state 4 unless the source key has bit 15 set, and quadrupled by
+/// a successful `Gp_RollEnemyChance`. Damage-over-time ticks add to it, and the
+/// 0xBC4 cooldown discards it. Nonzero damage picks a reaction from the id's
+/// kind, the damage and the running total at 0xB9C, subtracts from the hit
+/// points (playing the death cue and releasing the placement at zero), and
+/// stages the reaction's state. Every frame it then pushes the model out of
+/// the first contact table and clears all four. Returns 1 when damage landed.
+s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, Actor104900ShotArg* arg)
+{
+    s32            damaged;
+    s32            fromBehind;
+    s32            dotDamage;
+    s32            doubleDamage;
+    s32            rollParam;
+    s32            kind7;
+    s32            kind4or6;
+    s32            died;
+    s32            sndId;
+    s32            rate;
+    GpAnimSlot*    slot;
+    GpRec18*       world;
+    GsCOORDINATE2* coord;
+    s32            savedY;
+    s32            moved;
+    s16            timer;
+    s16            hp;
+    s32            dist;
+    s32            key;
+    s32            cooldown;
+    s32            kind;
+    s32            i;
+    s32            n;
+    s32            reaction;
+    s32            sparkLevel;
+    s32            sourceKey;
+    s32            yaw;
+    s32            level;
+    u32            idKind;
+    u32            hitDamage;
+    u32            damage;
+    u32            hitKey;
+    u8             flags;
+    u8             mode;
+    u8             staged;
+
+    damage       = 0;
+    sparkLevel   = -1;
+    damaged      = 0;
+    fromBehind   = 0;
+    dotDamage    = 0;
+    doubleDamage = 0;
+    rollParam    = 1;
+    kind7        = 0;
+    kind4or6     = 0;
+    sourceKey    = 0;
+    if (work->field_B9C > 0) {
+        work->field_B9C = (u16)work->field_B9C - 1;
+    }
+    if (work->field_BBE > 0) {
+        timer           = (u16)work->field_BBE - 1;
+        work->field_BBE = timer;
+        if (!(timer & 7)) {
+            func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+            func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+        }
+    }
+    hitKey = _actor01100FindClass2Contact(&arg->offset, work->contacts[3]);
+    if (hitKey != 0) {
+        dist = ActorsShared801388e8(((TmdObject*)task->extra)->coords);
+        for (i = 0; i < 3; i++) {
+            key = work->contacts[3][i].key;
+            if (key != 0) {
+                sourceKey = key;
+                break;
+            }
+        }
+        dist = SquareRoot0(dist);
+        yaw  = ActorsShared80138774(((TmdObject*)task->extra)->coords, (sourceKey >> 7) & 1);
+        if (yaw < 0) {
+            yaw = -yaw;
+        }
+        fromBehind = yaw >= 0x401;
+        if ((work->state == 4) && !(sourceKey & 0x8000)) {
+            doubleDamage = 1;
+            if (sparkLevel < 3) {
+                sparkLevel = 3;
+            }
+            rollParam = 5;
+        }
+        hitDamage = Gp_ComputeDamage(hitKey, (u32)dist, 0, 0x1000);
+        if (Gp_RollEnemyChance(enemy, hitKey, rollParam) != 0) {
+            if (sparkLevel < 0) {
+                sparkLevel = 0;
+            }
+            hitDamage *= 4;
+        }
+        damage += hitDamage;
+    }
+    if (enemy->reactionFlags & 0xC) {
+        dotDamage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        if (dotDamage > 0) {
+            Gp_SpawnEff(0x60055, &((TmdObject*)task->extra)->coords[4], 0x11112400, 0);
+            damage += dotDamage;
+        }
+    }
+    if (doubleDamage != 0) {
+        damage *= 2;
+    }
+    cooldown = work->field_BC4;
+    if (cooldown > 0) {
+        work->field_BC4 = cooldown - 1;
+        damage          = 0;
+    } else if (hitKey != 0) {
+        work->field_BC4 = Gp_GetIdParam2((s32)hitKey);
+    }
+    if (damage == 0) {
+        kind = Gp_GetIdParam0((s32)hitKey) & 0xFFFF;
+        if (kind < 0xA) {
+            if (kind >= 8) {
+                func_800DA6E8(&enemy->node, 0, 0);
+            }
+        }
+    } else if ((s32)damage > 0) {
+        died            = 0;
+        work->field_BC0 = Gp_GetIdParam1((s32)hitKey) & 0xFFFF;
+        reaction        = 2;
+        work->field_BBE = 0;
+        level           = (u16)work->field_B9C + damage;
+        work->field_B9C = level;
+        if ((s32)damage < 0x1D) {
+            reaction = 1;
+        }
+        if ((s16)level < 0x3D) {
+            level = 1;
+        } else if ((s16)level < 0x65) {
+            level = 2;
+        } else {
+            level = 3;
+        }
+        damaged = 1;
+        if (reaction < level) {
+            reaction = level;
+        }
+        idKind = Gp_GetIdParam0((s32)hitKey) & 0xFFFF;
+        switch (idKind) {
+            case 0:
+                break;
+            case 1:
+                Gp_SetObjFlag1((GpObj4C*)enemy);
+                break;
+            case 2:
+                if (!(enemy->reactionFlags & 2)) {
+                    Gp_SetObjFlag2((GpObj5D*)enemy, sourceKey, 0);
+                    if ((enemy->reactionFlags & 2) && (work->field_BAB != 5)) {
+                        reaction = 3;
+                    }
+                } else {
+                    Gp_SetObjFlag2((GpObj5D*)enemy, sourceKey, 0);
+                }
+                break;
+            case 3:
+                Gp_SpawnEff(0x60055, &((TmdObject*)task->extra)->coords[4], 0x11112400, 0);
+                Gp_SetObjFlag4((GpObj5C*)enemy, sourceKey, 0);
+                break;
+            case 5:
+                if (doubleDamage == 0) {
+                    damage *= 2;
+                    if (sparkLevel < 2) {
+                        sparkLevel = 2;
+                    }
+                } else {
+                    damage += (s32)damage / 2;
+                }
+                work->field_BBE = 0x1E;
+                break;
+            case 4:
+            case 6:
+                kind4or6 = 1;
+                break;
+            case 7:
+                if (doubleDamage == 0) {
+                    damage *= 2;
+                    if (sparkLevel < 2) {
+                        sparkLevel = 2;
+                    }
+                } else {
+                    damage += (s32)damage / 2;
+                }
+                Gp_SpawnEff(0x60070, &((TmdObject*)task->extra)->coords[4], 0x80023300, 0);
+                kind7 = 1;
+                Gp_SpawnEff(0x60070, &((TmdObject*)task->extra)->coords[4], 0x80023300, 0);
+                break;
+            case 8:
+            case 9:
+                break;
+        }
+        if (sparkLevel >= 0) {
+            Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->coords[4], sparkLevel, 0);
+        }
+        if ((reaction == 1) && (work->field_BA6 == 0)) {
+            reaction = 2;
+        }
+        flags = enemy->reactionFlags;
+        if (flags & 1) {
+            reaction             = 3;
+            enemy->reactionFlags = flags & 0xFE;
+        }
+        if ((enemy->reactionFlags & 0xC) && (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0)) {
+            enemy->reactionFlags &= 0xF3;
+        }
+        func_800E2C78((GpObj40*)enemy, (s32)hitKey, (s32)damage, 0);
+        func_800DA6E8(&enemy->node, (s32)damage, 0);
+        if (work->field_B92 > 0) {
+            hp              = (u16)work->field_B92 - damage;
+            work->field_B92 = hp;
+            enemy->hp       = hp;
+            if (work->field_B92 <= 0) {
+                if ((D_8007216C & 0xFFFF0000) == 0x05180000) {
+                    work->field_BC8 = 0;
+                } else {
+                    Gp_ReleaseStateF0Add((GpObj20E*)task, (s8)work->field_BBB);
+                }
+                died   = 1;
+                sndId  = (work->field_BB8 << 0x16) | 0x400B0006;
+                sndId |= (u8)work->actorId << 8;
+                SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                reaction = 3;
+                if (work->field_BAF == 2) {
+                    reaction = 4;
+                }
+                if (kind4or6 != 0) {
+                    enemy->spawnState = 3;
+                } else if (kind7 != 0) {
+                    work->field_BBE   = 0x5A;
+                    enemy->spawnState = 0x10;
+                }
+            }
+        } else {
+            reaction = 0;
+        }
+        if (died == 0) {
+            mode = work->field_BAF;
+            if (mode == 1) {
+                reaction = 0;
+            } else if (mode == 2) {
+                if (reaction >= 2) {
+                    reaction = 4;
+                } else {
+                    reaction = 6;
+                }
+            }
+        }
+        if ((reaction == 1) && (dotDamage != 0)) {
+            reaction = 2;
+        }
+        if (work->field_BAB == 5) {
+            reaction = 5;
+        }
+        work->field_BAB = reaction;
+        if (reaction != 0) {
+            rate = 0x10;
+            for (n = 1; n < 0x15; n++) {
+                slot       = &work->slots[n];
+                slot->rate = rate;
+                slot       = &work->slots2[n];
+                slot->rate = rate;
+            }
+        }
+        staged = work->field_BAB;
+        switch (staged) {
+            case 1:
+                work->field_BA3 = 1;
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                work->field_BAE = fromBehind;
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+            case 2:
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                work->state = 0x15;
+                _actor01100ClearObjPair(work);
+                work->field_BA6 = 2;
+                work->field_BA8 = 0;
+                work->field_BAE = fromBehind;
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+            case 3:
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                work->field_BA3 = 0;
+                work->state     = 0x16;
+                if (enemy->spawnState == 3) {
+                    work->state = 0x18;
+                }
+                _actor01100ClearObjPair(work);
+                work->field_BA6 = 2;
+                work->field_BA8 = 0;
+                work->field_BAE = fromBehind;
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+            case 4:
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                work->field_BA3 = 0;
+                work->state     = 0x19;
+                if (enemy->spawnState == 3) {
+                    if (work->field_BAE != 0) {
+                        work->field_BA4 = 0x14;
+                    } else {
+                        work->field_BA4 = 0x13;
+                    }
+                    work->state = 0x18;
+                }
+                _actor01100ClearObjPair(work);
+                work->field_BA6 = 2;
+                work->field_BA8 = 0;
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+            case 5:
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+            case 6:
+                if (work->field_B92 > 0) {
+                    sndId  = (work->field_BB8 << 0x16) | 0x400B0007;
+                    sndId |= (u8)work->actorId << 8;
+                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                }
+                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                break;
+        }
+    }
+    world  = work->contacts[0];
+    coord  = ((TmdObject*)task->extra)->coords;
+    savedY = coord->coord.t[1];
+    moved  = _actor01100PushOut(coord, world);
+    if (moved != 0) {
+        coord->flg       = 0;
+        work->field_BAC += 1;
+    } else {
+        work->field_BAC = 0;
+    }
+    coord->coord.t[1] = savedY;
+    Gp_ClearRec18Occupied(work->contacts[0]);
+    Gp_ClearRec18Occupied(work->contacts[1]);
+    Gp_ClearRec18Occupied(work->contacts[2]);
+    Gp_ClearRec18Occupied(work->contacts[3]);
+    if ((enemy->reactionFlags & 2) && (Gp_TickObjFlag2((GpObj5D*)enemy) != 0)) {
+        enemy->reactionFlags &= 0xFD;
+    }
+    return damaged;
+}
 
 /// First of the 0xA pair the dispatcher at 0x80134780 runs while the latch at
 /// 0xBA6 is still clear: it re-arms the link transform and decides from the
@@ -388,7 +843,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     xform->src.vx     = 0;
     xform->src.vy     = -0xC8;
     xform->src.vz     = 0xC8;
-    if (Actor01100_Fn00F58(enemy, task, work, arg) != 0) {
+    if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, (Actor104900ShotArg*)arg) != 0) {
         flag = 1;
     }
     if (flag && (work->field_B92 > 0)) {
