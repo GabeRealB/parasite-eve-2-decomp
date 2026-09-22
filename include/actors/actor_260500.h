@@ -4,6 +4,8 @@
 #include "common.h"
 
 #include "actors/actors_shared_801326b4.h"
+#include "gameplay/1BC.h"
+#include "main/session.h"
 #include "main/task.h"
 
 /// Per-actor work block for the `actor_260500` overlay.
@@ -13,17 +15,26 @@
 /// `ActorsShared80131f9cWork` and in the task's 0x1C slot, so the size below is
 /// the allocation and not a guess. Every other function in the overlay reaches
 /// the block through the global.
+///
+/// It opens with the light and colour matrices the actor's model is drawn
+/// under, then the animation context with nineteen slots and one 0x10-byte
+/// pose record per slot.
 typedef struct Actor260500Work {
-    /* 0x000 */ byte pad_0[0x47C];
-    /* 0x47C */ s16  field_47C; // animation reset mode `func_actor_260500_8014A110` dispatches on (1 reseeds via `func_actor_260500_8014A644`, 2 via `ActorsShared80132428`, 3 after)
-    /* 0x47E */ byte pad_47E[0x2];
-    /* 0x480 */ s16  field_480; // animation id the reset is seeded with, latched from the preset's `field_4`
-    /* 0x482 */ s16  field_482; // cleared before the reset is handed to `func_actor_260500_8014A110`
-    /* 0x484 */ byte pad_484[0x2A];
-    /* 0x4AE */ s16  field_4AE; // yaw the model is turned to face the target
-    /* 0x4B0 */ byte pad_4B0[0x2];
-    /* 0x4B2 */ s16  field_4B2; // planar distance over the step count below
-    /* 0x4B4 */ byte pad_4B4[0x4];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
+    /* 0x040 */ GpAnimCtx  anim;
+    /* 0x054 */ GpAnimSlot slots[0x13];
+    /* 0x34C */ byte       poses[0x13][0x10];
+    /* 0x47C */ s16        field_47C; // animation reset mode `func_actor_260500_8014A110` dispatches on (1 reseeds via `func_actor_260500_8014A644`, 2 via `ActorsShared80132428`, 3 after)
+    /* 0x47E */ byte       pad_47E[0x2];
+    /* 0x480 */ s16        field_480; // animation id the reset is seeded with, latched from the preset's `field_4`
+    /* 0x482 */ s16        field_482; // cleared before the reset is handed to `func_actor_260500_8014A110`
+    /* 0x484 */ byte       pad_484[0x2A];
+    /* 0x4AE */ s16        field_4AE; // yaw the model is turned to face the target
+    /* 0x4B0 */ byte       pad_4B0[0x2];
+    /* 0x4B2 */ s16        field_4B2; // planar distance over the step count below
+    /* 0x4B4 */ s16        field_4B4; // Role unproven: the state-0 handler clears it
+    /* 0x4B6 */ byte       pad_4B6[0x2];
 } Actor260500Work;
 STATIC_ASSERT_SIZEOF(Actor260500Work, 0x4B8);
 
