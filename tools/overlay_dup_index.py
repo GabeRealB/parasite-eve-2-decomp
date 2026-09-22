@@ -57,9 +57,15 @@ REF = re.compile(r"%(?:hi|lo)\(([A-Za-z_]\w*)\)|\b(?:jal|j)\s+([A-Za-z_]\w*)")
 
 ADDR = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/")
 LOCAL = re.compile(r"\b(func|D|jtbl)_([A-Za-z0-9_]+?)_([0-9A-F]{8})\b")
+# An actor whose slots share one entry names its symbols by offset into the
+# image (`Actor01100_Fn0097C`, `_D074E8`, `_Jt…`), since one name has to serve
+# every slot. They are the same kind of reference as `LOCAL`: two copies of a
+# body point at their own actor's data, and only the owner differs.
+OFFSET_LOCAL = re.compile(r"\b(Actor\d{5})_(Fn|D|Jt)([0-9A-F]+)\b")
 # `symbol_name_format` applies to local labels too, so they read
-# `.L<overlay>_<vram>` - match any local label, not just a bare address.
-BRANCH = re.compile(r"\.L\w+")
+# `.L<overlay>_<vram>` - match any local label, not just a bare address. A
+# matched copy in an offset-named actor reads `Actor01100_L00BC8` instead.
+BRANCH = re.compile(r"\.L\w+|\bActor\d{5}_L[0-9A-F]+\b")
 # `.align` says where the block sits, not what it is: splat emits an
 # `.align 3` ahead of a jump table that starts a cut rodata subsegment and
 # nothing ahead of the same table mid-block, so keeping it would stop a
@@ -70,7 +76,7 @@ SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section",
 # another file and `.L…:` while the table sits in this one, so the marker says
 # where the table ended up rather than what the body is. Both forms fold to the
 # bare label for the same reason `.align` is skipped.
-LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+):?$")
+LABELDEF = re.compile(r"^\s*(?:jlabel\s+)?(\.L\w+|Actor\d{5}_L[0-9A-F]+):?$")
 # Similarity features. These are deliberately *lossier* than `text`: they answer
 # "is there a matched body shaped like this one", which is a candidate question,
 # never an equality one. Comparing operand-stripped opcodes equates
@@ -82,6 +88,14 @@ MNEMONIC = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/\s+(\S+)", 
 DISPL = re.compile(r"\b(?:lw|lh|lhu|lb|lbu|sw|sh|sb)\s+\S+,\s*(-?(?:0x)?[0-9a-fA-F]+)\(")
 CALLS = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/\s+jal\s+(\S+)", re.M)
 CACHE_VERSION = 2
+
+
+def is_local_ref(ref: str, unit: str) -> bool:
+    """Whether `ref` names code or data defined in `unit`'s own overlay."""
+    if ref.startswith((f"func_{unit}_", f"D_{unit}_", f"jtbl_{unit}_")):
+        return True
+    m = OFFSET_LOCAL.fullmatch(ref)
+    return bool(m) and m.group(1) == "Actor" + unit.removeprefix("actor_")
 
 
 def declaration(path: Path, text: str) -> re.Match | None:
@@ -125,6 +139,7 @@ def scan_function(path: Path, unit: str) -> dict | None:
 
     canon: list[str] = []
     labels: dict[str, str] = {}
+    own = "Actor" + unit.removeprefix("actor_")
     # Canonicalise the body alone, for the same reason `vram` and `words` do:
     # migrating a jump table into the function that owns it prepends a whole
     # `dlabel` block here, and only in the copy whose rodata has been cut.
@@ -140,6 +155,9 @@ def scan_function(path: Path, unit: str) -> dict | None:
         line = BRANCH.sub(lambda m: labels[m.group(0)], line)
         line = LOCAL.sub(
             lambda m: f"{m.group(1)}_LOCAL" if m.group(2) == unit else m.group(0), line
+        )
+        line = OFFSET_LOCAL.sub(
+            lambda m: f"{m.group(2)}_LOCAL" if m.group(1) == own else m.group(0), line
         )
         canon.append(line)
 
@@ -424,9 +442,7 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     # `D_actor_110300_8013A0A8` is defined in one overlay and nowhere else, so
     # the shared object fails to link into every other carrier - and the link is
     # where it surfaces, long after the promotion has touched twenty files.
-    localref = [f for f in keep
-                if any(r.startswith((f"func_{f['unit']}_", f"D_{f['unit']}_",
-                                     f"jtbl_{f['unit']}_")) for r in f["refs"])]
+    localref = [f for f in keep if any(is_local_ref(r, f["unit"]) for r in f["refs"])]
     if localref:
         print(f"{name}: cannot be shared - the body references its own overlay's "
               f"code or data ({', '.join(sorted({f['overlay'] for f in localref}))}).")
@@ -676,8 +692,7 @@ def cmd_shared(data: dict, minimum: int, refs: bool) -> int:
     for v in ranked:
         line = f"  {len(v):3} copies  {v[0]['words']:4} insns  {v[0]['name']}"
         if refs:
-            own = {r for f in v for r in f["refs"]
-                   if r.startswith((f"func_{f['unit']}_", f"D_{f['unit']}_", f"jtbl_{f['unit']}_"))}
+            own = {r for f in v for r in f["refs"] if is_local_ref(r, f["unit"])}
             line += f"   room-local refs: {len(own)}"
         print(line)
     return 0
