@@ -20,6 +20,8 @@ options:
   src_path: src/@@FAMILY@@
   build_path: build/USA
   hasm_in_src_path: True
+  # `libsrc`, the C unit type whose source is in the shared src/lib/.
+  extensions_path: tools/splat_ext
 
   ld_script_path: linkers/USA/@@NAME@@.ld
 

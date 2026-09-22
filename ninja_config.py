@@ -215,6 +215,12 @@ TOOLS_DIR = Path("tools")
 ROM_DIR = Path("rom")
 BUILD_DIR = Path("build")
 PERMUTER_DIR = Path("permuter")
+# The shared library every family links. Its units are `libsrc` subsegments:
+# C compiled from here, while their asm stays under the linking family.
+LIB_SRC_DIR = Path("src/lib")
+LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
+# splat subsegment types that compile a C source.
+C_SEGMENT_TYPES = ("c", "libsrc")
 
 if sys.platform == "win32":
     PLATFORM = Platform.Windows
@@ -982,7 +988,7 @@ def ninja_build(
             str(entry.object_path)
             for split_entry in split_config.split_entries
             for entry in split_entry
-            if entry.object_path is not None and entry.segment.type == "c"
+            if entry.object_path is not None and entry.segment.type in C_SEGMENT_TYPES
         }
         for split_entry in split_config.split_entries:
             for entry in split_entry:
@@ -999,6 +1005,10 @@ def ninja_build(
                         or not str(entry.src_paths[0]).endswith(".c")
                     ):
                         continue
+                    seg_type = "c"
+                elif seg_type in C_SEGMENT_TYPES:
+                    # A library unit compiles like any other; only its source
+                    # directory differs, and splat has already resolved that.
                     seg_type = "c"
 
                 source_path = str(entry.src_paths[0])
@@ -1206,6 +1216,9 @@ def split_inputs(yaml: str, version_dir: str, basename: str, c_sources: list[str
     paths += [base / p for p in listed("symbol_addrs_path") + listed("reloc_addrs_path")]
     paths += [CONFIG_DIR / version_dir / f"sym.{basename}.imports.txt"]
     paths += [Path(c) for c in c_sources]
+    if options.get("extensions_path"):
+        # The segment type that places a library unit's source.
+        paths.append(LIB_SPLAT_EXT)
     return paths
 
 
@@ -1238,7 +1251,7 @@ def c_sources_of(info: dict) -> list[str]:
             entry["src_paths"][0]
             for group in info["split_entries"]
             for entry in group
-            if entry["segment"]["type"] == "c" and entry["src_paths"]
+            if entry["segment"]["type"] in C_SEGMENT_TYPES and entry["src_paths"]
         }
     )
 
@@ -1255,10 +1268,12 @@ def remove_function_asm(yaml: str, version_dir: str, basename: str, family: str,
     asm = config.parent / options.get("base_path", ".") / options["asm_path"]
     units = [basename] if family != CORE_FAMILY else [""]
     if info is not None:
+        # A library unit's source is shared (src/lib/<unit>.c), but its asm is
+        # this family's own: <asm_path>/{non,}matchings/lib/<unit>.
         units += [
-            str(Path(c).relative_to(options["src_path"]).with_suffix(""))
+            f"lib/{Path(c).stem}"
             for c in c_sources_of(info)
-            if "/lib/" in c
+            if Path(c).parent.name == "lib"
         ]
     for unit in units:
         for kind in ("nonmatchings", "matchings"):
@@ -1323,9 +1338,13 @@ def split_one(job: tuple) -> YamlInfo:
         basename = overlay_basename[yaml]
         append_overlay_absolute_imports(basename, family_imports.get(family))
         fix_overlay_include_asm_paths(basename, f"src/{family}")
+        # splat also creates a missing library unit, in the shared directory.
+        fix_overlay_include_asm_paths(basename, str(LIB_SRC_DIR))
         seg = split.config["segments"][0]
         text_sub = next(
-            (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"), None
+            (s for s in seg.get("subsegments", [])
+             if len(s) > 2 and s[1] in C_SEGMENT_TYPES),
+            None,
         )
         if text_sub is not None:
             check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
@@ -1706,14 +1725,18 @@ def main():
         # under a different ROM/VRAM comment column: harmless to the build,
         # but non-deterministic. Re-split each such unit's last owner, one at a
         # time and in order: owners share units with each other too.
-        owner: dict[str, int] = {}
-        writers: dict[str, set[int]] = {}
+        # The asm a library unit gets is per family (the source is shared by
+        # all of them), so the sharers that race are that family's overlays.
+        owner: dict[tuple[str, str], int] = {}
+        writers: dict[tuple[str, str], set[int]] = {}
         for i, info in enumerate(results):
+            family = overlay_family.get(yamls_paths[i], "")
             for entry in info.split_entries[0]:
                 for src in entry.src_paths:
                     if f"{os.sep}lib{os.sep}" in str(src):
-                        owner[str(src)] = i
-                        writers.setdefault(str(src), set()).add(i)
+                        key = (family, str(src))
+                        owner[key] = i
+                        writers.setdefault(key, set()).add(i)
         # An owner re-split rewrites the units it shares with later owners too,
         # so close over that before running them.
         wrote = set(todo)

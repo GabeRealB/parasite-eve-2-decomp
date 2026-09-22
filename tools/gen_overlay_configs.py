@@ -323,9 +323,18 @@ def object_subsegments(
             lines.append((at, f"      - [0x{at:X}, {typ}, {name}_{kind}_{at:05X}]"))
             continue
         unit = str(obj["unit"])
-        path = f"lib/{unit}" if "lib" in obj else (
+        lib = obj.get("lib", False)
+        if lib is not True and "lib" in obj:
+            raise SystemExit(f"{name}: {unit}: `lib` is a flag, write `lib = true`")
+        if lib and "text" not in obj:
+            # splat gives a unit's .rodata/.data the object of its C sibling.
+            # Without one it would imply a source under the family instead.
+            raise SystemExit(f"{name}: library unit {unit} has no text run")
+        path = f"lib/{unit}" if lib else (
             unit if "/" in unit else f"{name}/{unit}")
-        for key, sect in (("rodata", ".rodata"), ("text", "c"), ("data", ".data")):
+        # A library unit's source is src/lib/, shared by every family.
+        text = "libsrc" if lib else "c"
+        for key, sect in (("rodata", ".rodata"), ("text", text), ("data", ".data")):
             if key in obj:
                 at = int(str(obj[key]), 16)
                 lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
