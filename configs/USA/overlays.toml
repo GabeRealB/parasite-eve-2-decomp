@@ -5078,20 +5078,24 @@ objects = [
   { kind = "packageId" },
 ]
 
-[actors.overlays.actor_400100]
-slot = 4
-id = 257
+[actors.overlays.actor_00100]
+slots = [
+  { slot = 4, package = "actor_400100", id = 257 },
+  # The same image issued under an id of its own: it matches actor_400100 byte
+  # for byte past the id word.
+  { slot = 4, package = "actor_407500", id = 264 },
+]
 objects = [
   { kind = "packageId" },
   { kind = "rodata", at = "0x4" },
   { kind = "rodata", at = "0x58" },
   { kind = "rodata", at = "0xD4" },
   { kind = "rodata", at = "0x1A0" },
-  { lib = "400100", unit = "actor_400100_anim", rodata = "0x24", text = "0x1FC" },
-  { lib = "400100", unit = "actor_400100_damage", rodata = "0x5C", text = "0x1EEC" },
-  { lib = "400100", unit = "actor_400100_update", rodata = "0x18C", text = "0xA288" },
-  { lib = "400100", unit = "actor_400100_tail", rodata = "0x1B4", text = "0xB134" },
-  { lib = "400100", unit = "actor_400100_text", text = "0x4270" },
+  { unit = "actor_00100/actor_400100_anim", rodata = "0x24", text = "0x1FC" },
+  { unit = "actor_00100/actor_400100_damage", rodata = "0x5C", text = "0x1EEC" },
+  { unit = "actor_00100/actor_400100_update", rodata = "0x18C", text = "0xA288" },
+  { unit = "actor_00100/actor_400100_tail", rodata = "0x1B4", text = "0xB134" },
+  { unit = "actor_00100/actor_400100_text", text = "0x4270" },
   { kind = "data", at = "0xBD90" },
   { kind = "model", at = "0xBDD4" },
   { kind = "model", at = "0x108E4" },
@@ -6315,29 +6319,6 @@ objects = [
   { kind = "model", at = "0x6DD0" },
   { kind = "model", at = "0x7278" },
   { kind = "data", at = "0x79FC" },
-]
-
-[actors.overlays.actor_407500]
-slot = 4
-id = 264
-objects = [
-  { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { kind = "rodata", at = "0x58" },
-  { kind = "rodata", at = "0xD4" },
-  { kind = "rodata", at = "0x1A0" },
-  { lib = "400100", unit = "actor_400100_anim", rodata = "0x24", text = "0x1FC" },
-  { lib = "400100", unit = "actor_400100_damage", rodata = "0x5C", text = "0x1EEC" },
-  { lib = "400100", unit = "actor_400100_update", rodata = "0x18C", text = "0xA288" },
-  { lib = "400100", unit = "actor_400100_tail", rodata = "0x1B4", text = "0xB134" },
-  { lib = "400100", unit = "actor_400100_text", text = "0x4270" },
-  { kind = "data", at = "0xBD90" },
-  { kind = "model", at = "0xBDD4" },
-  { kind = "model", at = "0x108E4" },
-  { kind = "model", at = "0x10D84" },
-  { kind = "model", at = "0x11258" },
-  { kind = "model", at = "0x11FB4" },
-  { kind = "data", at = "0x12494" },
 ]
 
 [actors.overlays.actor_107600]
@@ -8184,15 +8165,6 @@ units = [
 units = [
   "actor_105500_tail",
   "actor_105500_text",
-]
-
-[actors.libs.400100]
-units = [
-  "actor_400100_anim",
-  "actor_400100_damage",
-  "actor_400100_tail",
-  "actor_400100_text",
-  "actor_400100_update",
 ]
 
 [actors.libs.421600]
