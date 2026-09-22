@@ -31,6 +31,15 @@ typedef struct {
 
 extern _SpriteFrame D_dryfield_night_motel_balcony_80182DE0[];
 
+/// A CLUT origin in VRAM, as `x` in pixels and `y` in rows, packed into a
+/// `POLY_FT4` clut word by the caller.
+typedef struct {
+    s16 x;
+    u16 y;
+} _ClutOrigin;
+
+extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
+
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -710,7 +719,81 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801819E0);
+/// Projects the task model's world position through `GsWSMATRIX` and, when the
+/// GTE flag is non-negative, queues one semi-transparent `POLY_FT4` billboard
+/// on tpage 0x2C centred on it. `field_20` is the animation frame: it picks a
+/// 48-texel cell of a five-column sheet starting at v 0x68, and steps the CLUT
+/// x by 16 per frame from the origin `arg` selects in
+/// `D_dryfield_night_motel_balcony_80182DF4`. The half-extent is
+/// `field_18 * 47 / (otz + 1)` on both axes.
+void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
+{
+    RoomEffWork*       work;
+    GsCOORDINATE2*     coord;
+    u8*                head;
+    RoomDraw14Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    _ClutOrigin*       clut;
+    SVECTOR*           vec;
+    s16                xy;
+    u16                vz;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = task->spawnArg2;
+
+    head                                        = *(void**)G_SCRATCH_HEAD;
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                       = (RoomDraw14Scratch*)(head - 0x18);
+    block->vec.vy                               = *(u16*)&coord->workm.t[1];
+    vz                                          = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD                     = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage   = 0x2C;
+        clut          = &D_dryfield_night_motel_balcony_80182DF4[arg];
+        prim->clut    = (clut->y << 6) | (((clut->x + (s16)work->field_20 * 16) >> 4) & 0x3F);
+        prim->u0      = (s16)work->field_20 % 5 * 48;
+        prim->v0      = (s16)work->field_20 / 5 * 48 + 0x68;
+        prim->u1      = (s16)work->field_20 % 5 * 48 + 0x2F;
+        prim->v1      = (s16)work->field_20 / 5 * 48 + 0x68;
+        prim->u2      = (s16)work->field_20 % 5 * 48;
+        prim->v2      = (s16)work->field_20 / 5 * 48 + 0x97;
+        prim->u3      = (s16)work->field_20 % 5 * 48 + 0x2F;
+        prim->v3      = (s16)work->field_20 / 5 * 48 + 0x97;
+        block->radius = (s16)work->field_18 * 0x2F / block->otz;
+        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
+        prim->x2      = xy;
+        prim->x0      = xy;
+        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
+        prim->x3      = xy;
+        prim->x1      = xy;
+        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
+        prim->y1      = xy;
+        prim->y0      = xy;
+        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
+        prim->y3      = xy;
+        prim->y2      = xy;
+        ds            = &gDisplayState;
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 /// Per-frame handler of a drifting room effect task. The first frame resets the
 /// model's rotation to identity, rolls a starting animation step (0..9) and a
