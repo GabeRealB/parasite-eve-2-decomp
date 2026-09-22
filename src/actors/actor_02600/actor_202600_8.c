@@ -5,12 +5,12 @@
 
 /// Each enemy task's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_202600_80149E4C;
+extern GpEnemyTaskFuncTable3 Actor02600_D0002C;
 
-void func_actor_202600_8014DBF0(Task* arg0)
+void Actor02600_Fn03DD0(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
-    sp = D_actor_202600_80149E4C;
+    sp = Actor02600_D0002C;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }

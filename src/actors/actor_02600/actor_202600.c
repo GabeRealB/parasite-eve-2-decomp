@@ -5,7 +5,7 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-void func_actor_202600_8014A574(Actor202600* arg0)
+void ActorsShared801355a4_Fn32574(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -47,14 +47,14 @@ void func_actor_202600_8014A574(Actor202600* arg0)
                 index           = arg0->field_20->field_3C->rowIndex;
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState     = random;
-                work->field_39E = D_actor_202600_80152798[index] + ((random >> 0x10) & 0xF);
+                work->field_39E = Actor02600_D08978[index] + ((random >> 0x10) & 0xF);
             }
             break;
     }
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void func_actor_202600_8014A734(Actor202600* arg0)
+void ActorsShared801355a4_Fn32734(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -104,7 +104,7 @@ void func_actor_202600_8014A734(Actor202600* arg0)
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void ActorsSharedFn02c94(Actor202600* arg0);
 
-void func_actor_202600_8014A8B4(Actor202600* arg0)
+void ActorsShared801355a4_Fn328B4(Actor202600* arg0)
 {
     register Actor202600* actor asm("s5") = arg0;
     Actor202600Work*      work;
@@ -150,7 +150,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
                 work->field_392        = 7;
-                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->rowIndex];
+                work->field_3A8        = Actor02600_D08998[actor->field_20->field_3C->rowIndex];
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
@@ -168,7 +168,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;
                 work->field_392        = 9;
-                work->field_3A8        = D_actor_202600_801527B8[actor->field_20->field_3C->rowIndex];
+                work->field_3A8        = Actor02600_D08998[actor->field_20->field_3C->rowIndex];
                 work->field_3BC        = 0x2D;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
@@ -215,7 +215,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
                 work->field_39C        = 0;
                 work->field_392        = 1;
                 index                  = actor->field_20->field_3C->rowIndex;
-                work->field_39E        = D_actor_202600_80152798[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E        = Actor02600_D08978[index] + (((random = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->field_2C->field_8 + 4;
                 work->field_2E4.radius = 0xC8;
                 work->field_2E4.pos.vy = 0;
@@ -233,7 +233,7 @@ void func_actor_202600_8014A8B4(Actor202600* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void func_actor_202600_8014ADC0(Actor202600* arg0)
+void ActorsShared801355a4_Fn32DC0(Actor202600* arg0)
 {
     Actor202600Work*       work;
     GsCOORDINATE2*         coord;
@@ -267,7 +267,7 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
                 work->field_39C = 1;
                 work->field_392 = 2;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_801527A8[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0x3FF);
+                work->field_39E = Actor02600_D08988[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0x3FF);
                 Gp_LcgState     = random;
                 return;
             }
@@ -287,7 +287,7 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 random2         = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->rowIndex] + ((random2 >> 0x10) & 0xF);
+                work->field_39E = Actor02600_D08978[arg0->field_20->field_3C->rowIndex] + ((random2 >> 0x10) & 0xF);
                 Gp_LcgState     = random2;
                 return;
             }
@@ -321,7 +321,7 @@ void func_actor_202600_8014ADC0(Actor202600* arg0)
     }
 }
 
-void func_actor_202600_8014B108(Actor202600* arg0)
+void ActorsShared801355a4_Fn33108(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -342,19 +342,19 @@ void func_actor_202600_8014B108(Actor202600* arg0)
         Gp_SpawnEnemyFromTable(work->field_36C, 1, 0, (GpEnemy*)arg0->field_20);
         work->field_3AC = (u16)(work->field_3AC + 1);
     }
-    if ((s16)work->field_396 >= (D_actor_202600_80152836 + 0x3C)) {
+    if ((s16)work->field_396 >= (Actor02600_D08A16 + 0x3C)) {
         work->field_39A = 3;
         work->field_39C = 0;
         work->field_392 = 1;
         random          = (Gp_LcgState * 5) + 0x71357911;
-        work->field_39E = D_actor_202600_80152798[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
+        work->field_39E = Actor02600_D08978[arg0->field_20->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
         Gp_LcgState     = random;
     }
 }
 
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void func_actor_202600_8014B25C(Actor202600* arg0)
+void ActorsShared801355a4_Fn3325C(Actor202600* arg0)
 {
     Actor202600Work*  work;
     GsCOORDINATE2*    coord;
@@ -407,9 +407,9 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
                 work->field_2E4.flags &= 0x3FFF;
             }
             index   = 0;
-            motion0 = D_actor_202600_80152850;
+            motion0 = Actor02600_D08A30;
             for (; index < 9; index++, motion0++) {
-                if ((s16)work->field_396 <= (motion0[0][0] + D_actor_202600_80152838)) {
+                if ((s16)work->field_396 <= (motion0[0][0] + Actor02600_D08A18)) {
                     coord->coord.t[0] += (s32)(motion0[0][1] * rsin((s32)work->field_3A2)) >> 0xC;
                     coord->coord.t[2] += (s32)(motion0[0][1] * rcos((s32)work->field_3A2)) >> 0xC;
                     break;
@@ -426,18 +426,18 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
                     arg0->field_30  = 2;
                 }
             }
-            if ((s16)work->field_396 >= (D_actor_202600_80152838 + 0x46)) {
+            if ((s16)work->field_396 >= (Actor02600_D08A18 + 0x46)) {
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
+                work->field_39E = Actor02600_D08978[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((random >> 0x10) & 0xF);
                 Gp_LcgState     = random;
             }
             break;
         case 1:
             index           = 0;
-            motion1         = D_actor_202600_80152874;
+            motion1         = Actor02600_D08A54;
             work->field_398 = 0;
             work->field_3A6 = 0;
             for (; index < 9; index++, motion1++) {
@@ -471,7 +471,7 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E = Actor02600_D08978[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_3AA = 1;
                 if (work->field_3C8 == 2) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
@@ -490,5 +490,5 @@ void func_actor_202600_8014B25C(Actor202600* arg0)
     *(s32*)PSX_SCRATCH_ADDR(0x3FC) += 8;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_202600/actor_202600", D_actor_202600_80149E4C);
-INCLUDE_RODATA("actors/nonmatchings/actor_202600/actor_202600", D_actor_202600_80149E58);
+INCLUDE_RODATA("actors/nonmatchings/actor_02600/actor_202600", Actor02600_D0002C);
+INCLUDE_RODATA("actors/nonmatchings/actor_02600/actor_202600", Actor02600_D00038);

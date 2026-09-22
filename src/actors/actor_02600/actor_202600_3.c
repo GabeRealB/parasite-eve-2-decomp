@@ -12,8 +12,8 @@
 #include "main/tmd.h"
 #include "psyq/inline_c.h"
 
-void func_actor_202600_8014C774(Actor202600* arg0, s32 arg1);
-void func_actor_202600_8014DA6C(Actor202600* actor);
+void Actor02600_Fn02954(Actor202600* arg0, s32 arg1);
+void Actor02600_Fn03C4C(Actor202600* actor);
 void Actor05500_Fn03B60(Actor202600* arg0);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
@@ -23,7 +23,7 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern u8 D_801153F4;
 
 /* Animation id -> slot blend value table in this overlay's own data. */
-extern s16 D_actor_202600_80152830[];
+extern s16 Actor02600_D08A10[];
 
 /// Per-frame tick of the homing projectile, mirroring the state machine the
 /// 0x5500 variant runs: while the global mode is 1 the frame is just drawn, in
@@ -32,7 +32,7 @@ extern s16 D_actor_202600_80152830[];
 /// display nodes and switches state 1; state 1 runs the release phase, counts
 /// `field_39E` frames to a spawn at 0xF and a teardown at 0x3C; state 2 counts
 /// down and destroys the enemy.
-void func_actor_202600_8014C184(Actor202600Ctx* arg0, Actor202600* arg1)
+void Actor02600_Fn02364(Actor202600Ctx* arg0, Actor202600* arg1)
 {
     VECTOR            vec;
     Actor202600Work*  work;
@@ -95,7 +95,7 @@ void func_actor_202600_8014C184(Actor202600Ctx* arg0, Actor202600* arg1)
                     if (initialWork->field_392 != initialWork->field_394) {
                         initialWork->field_394 = (s16)(u16)initialWork->field_392;
                         initialWork->field_396 = 0U;
-                        initialAnim            = D_actor_202600_80152830[initialWork->field_392];
+                        initialAnim            = Actor02600_D08A10[initialWork->field_392];
                         do {
                             func_800B4114(initialWork, initialIndex, (s32)initialWork->field_392, 0,
                                           (s32)initialAnim);
@@ -122,7 +122,7 @@ void func_actor_202600_8014C184(Actor202600Ctx* arg0, Actor202600* arg1)
                             work->field_3BA = 0;
                             Tmd_FreeBuffers((TmdObject*)obj);
                             obj->field_C |= 4;
-                            func_actor_202600_8014DA6C(arg1);
+                            Actor02600_Fn03C4C(arg1);
                             ActorsShared80135b58((ActorShared80135b58*)arg1);
                         } else {
                             work->field_3BA = (s16)((u16)work->field_3BA + 1);
@@ -147,7 +147,7 @@ void func_actor_202600_8014C184(Actor202600Ctx* arg0, Actor202600* arg1)
                     if (dyingWork->field_392 != dyingWork->field_394) {
                         dyingWork->field_394 = (s16)(u16)dyingWork->field_392;
                         dyingWork->field_396 = 0U;
-                        dyingAnim            = D_actor_202600_80152830[dyingWork->field_392];
+                        dyingAnim            = Actor02600_D08A10[dyingWork->field_392];
                         do {
                             func_800B4114(dyingWork, dyingIndex, (s32)dyingWork->field_392, 0,
                                           (s32)dyingAnim);
@@ -190,7 +190,7 @@ void func_actor_202600_8014C184(Actor202600Ctx* arg0, Actor202600* arg1)
 /// forward axis by `field_3A`, and the counter is bumped; at 0xF frames the
 /// object is unlinked and the actor switches to state 2, otherwise `field_3A`
 /// decays by an LCG-derived 0..0x1F and clamps at zero.
-void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
+void Actor02600_Fn02780(Actor202600Ctx* arg0, Actor202600* arg1)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -204,7 +204,7 @@ void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
     work  = arg1->field_1C;
     switch ((s32)D_801153F4) {
         case 1:
-            func_actor_202600_8014C774(arg1, work->field_38);
+            Actor02600_Fn02954(arg1, work->field_38);
             return;
         default:
         default_case:
@@ -229,7 +229,7 @@ void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
             coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_3A) >> 0xC;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            func_actor_202600_8014C774(arg1, work->field_38);
+            Actor02600_Fn02954(arg1, work->field_38);
             age            = (u16)work->field_38 + 1;
             work->field_38 = age;
             if (age >= 0xF) {
@@ -257,7 +257,7 @@ void func_actor_202600_8014C5A0(Actor202600Ctx* arg0, Actor202600* arg1)
 /// clears the near plane, emits the semi-transparent `POLY_FT4` for it. The
 /// model whose texture is drawn is the *parent* task's (`Task::parent`), not
 /// this actor's, so the atlas and tpage come from whoever spawned it.
-void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
+void Actor02600_Fn02954(Actor202600* actor, s32 frame)
 {
     POLY_FT4*               poly;
     GsCOORDINATE2*          coord;
@@ -295,7 +295,7 @@ void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
     gte_stszotz(&scratchEnd[-1].depth);
     depth = s->depth;
     if (depth >= 0x14) {
-        radius                 = (s32)(D_actor_202600_801528B8[frame] * 0x300) / depth;
+        radius                 = (s32)(Actor02600_D08A98[frame] * 0x300) / depth;
         poly                   = gGpuPrimCursor;
         screen                 = s->screen;
         gGpuPrimCursor         = (u8*)poly + 0x28;
@@ -323,7 +323,7 @@ void func_actor_202600_8014C774(Actor202600* actor, s32 frame)
         setShadeTex(poly, 1);
         poly->tpage = (s16)(((s32)(((texture->field_24 << 6) + 0x180) & 0x3FF) >> 6) | 0xB0);
         poly->clut  = (s16)(((s32)(texture->field_25 << 0x18) >> 0x12) + 0x3D40);
-        uv          = &D_actor_202600_80152898[frame >> 1];
+        uv          = &Actor02600_D08A78[frame >> 1];
         poly->u0    = (u8)uv->u;
         poly->v0    = (u8)uv->v;
         poly->u1    = (s8)(uv->u + 0x1F);

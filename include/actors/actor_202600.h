@@ -33,7 +33,7 @@ typedef struct Actor202600Ctx {
 } Actor202600Ctx;
 
 /// The work starts with a linked `GpObj` and its 0x18-byte collision record,
-/// the same prefix `Actor105500Work` has: `func_actor_202600_8014C5A0` clears
+/// the same prefix `Actor105500Work` has: `Actor02600_Fn02780` clears
 /// `obj.flags` bit 0x8000 and wipes `rec` before re-linking, then counts
 /// `field_38` frames of homing movement and decays `field_3A`.
 typedef struct Actor202600Work {
@@ -92,7 +92,7 @@ typedef struct Actor202600Work {
 } Actor202600Work;
 STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
 
-/// The 0x28-byte scratch `func_actor_202600_8014C774` projects through
+/// The 0x28-byte scratch `Actor02600_Fn02954` projects through
 /// `GsWSMATRIX`: `p[0]` holds the source position going in and the four
 /// projected corners coming out, `screen` is the single `SXY2` those come from
 /// and `depth` the `SZ3` that gates the draw.
@@ -119,8 +119,8 @@ typedef struct Actor202600Uv {
     /* 0x03 */ u8 pad_3;
 } Actor202600Uv;
 
-extern Actor202600Uv D_actor_202600_80152898[];
-extern s16           D_actor_202600_801528B8[];
+extern Actor202600Uv Actor02600_D08A78[];
+extern s16           Actor02600_D08A98[];
 
 /// The 0x38-byte scratch a push-back needs: `delta` is filled by the collision
 /// walk, `unit` is its normal and `local` the same vector in the grid's space;
@@ -157,23 +157,23 @@ typedef struct Actor202600RotScratch {
 } Actor202600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor202600RotScratch, 0x18);
 
-extern GpPairSrcE D_actor_202600_80152788;
-extern SVECTOR    D_actor_202600_801527D0[];
-extern s16        D_actor_202600_801527F0[];
-extern SVECTOR    D_actor_202600_80152808[];
-extern s16        D_actor_202600_80152828[];
-extern TaskDesc   D_actor_202600_801528D4;
-extern u8         D_actor_202600_801528EC[];
-extern u16        D_actor_202600_80152798[];
-extern u16        D_actor_202600_801527A8[];
-extern u16        D_actor_202600_801527B8[];
-extern s16        D_actor_202600_801527C8[];
-extern s16        D_actor_202600_801527F8[];
-extern s16        D_actor_202600_80152800[];
-extern s16        D_actor_202600_80152836;
-extern s16        D_actor_202600_80152838;
-extern s16        D_actor_202600_80152850[][2];
-extern s16        D_actor_202600_80152874[][2];
+extern GpPairSrcE Actor02600_D08968;
+extern SVECTOR    Actor02600_D089B0[];
+extern s16        Actor02600_D089D0[];
+extern SVECTOR    Actor02600_D089E8[];
+extern s16        Actor02600_D08A08[];
+extern TaskDesc   Actor02600_D08AB4;
+extern u8         Actor02600_D08ACC[];
+extern u16        Actor02600_D08978[];
+extern u16        Actor02600_D08988[];
+extern u16        Actor02600_D08998[];
+extern s16        Actor02600_D089A8[];
+extern s16        Actor02600_D089D8[];
+extern s16        Actor02600_D089E0[];
+extern s16        Actor02600_D08A16;
+extern s16        Actor02600_D08A18;
+extern s16        Actor02600_D08A30[][2];
+extern s16        Actor02600_D08A54[][2];
 extern u8         D_801153F2[2];
 extern s8         D_8011540E;
 extern s8         D_80115412;

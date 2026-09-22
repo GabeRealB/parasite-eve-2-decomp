@@ -9,7 +9,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
-#include "actors/actor_302600.h"
+#include "actors/actor_202600.h"
 
 /* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
  * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
@@ -18,6 +18,6 @@
 extern void* D_80067704[1];
 
 /* Model stream in this overlay's own data. */
-extern u8 D_actor_302600_80167D30[];
+extern u8 Actor02600_D05F10[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_302600/actor_302600_6", func_actor_302600_801658E0);
+INCLUDE_ASM("actors/nonmatchings/actor_02600/actor_202600_6", ActorsShared8014d378_Fn4D8E0);

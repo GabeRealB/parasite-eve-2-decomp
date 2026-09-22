@@ -1,16 +1,51 @@
 // Overlay-local symbols for actor_202600.
+// Shared with this actor's other RAM slots, so every symbol is named by
+// file offset. Local labels are named only when something outside the
+// shared body reaches them.
+
+Actor02600_D0002C = 0x80149E4C;
+Actor02600_D00038 = 0x80149E58;
+Actor02600_Fn02364 = 0x8014C184;
+Actor02600_Fn02780 = 0x8014C5A0;
+Actor02600_Fn02954 = 0x8014C774;
+Actor02600_Fn02FFC = 0x8014CE1C;
+Actor02600_Fn03C4C = 0x8014DA6C;
+Actor02600_Fn03DD0 = 0x8014DBF0;
+Actor02600_Fn03F80 = 0x8014DDA0;
+Actor02600_D05F10 = 0x8014FD30;
+Actor02600_D08968 = 0x80152788;
+Actor02600_D08978 = 0x80152798;
+Actor02600_D08988 = 0x801527A8;
+Actor02600_D08998 = 0x801527B8;
+Actor02600_D089A8 = 0x801527C8;
+Actor02600_D089B0 = 0x801527D0;
+Actor02600_D089D0 = 0x801527F0;
+Actor02600_D089D8 = 0x801527F8;
+Actor02600_D089E0 = 0x80152800;
+Actor02600_D089E8 = 0x80152808;
+Actor02600_D08A08 = 0x80152828;
+Actor02600_D08A10 = 0x80152830;
+Actor02600_D08A16 = 0x80152836;
+Actor02600_D08A18 = 0x80152838;
+Actor02600_D08A30 = 0x80152850;
+Actor02600_D08A54 = 0x80152874;
+Actor02600_D08A78 = 0x80152898;
+Actor02600_D08A98 = 0x801528B8;
+Actor02600_D08AB4 = 0x801528D4;
+Actor02600_D08ACC = 0x801528EC;
+
 ActorsShared801355a4 = 0x8014D5A4; // shared body, see src/actors/lib/
-ActorsShared801355a4_Fn32574 = 0x8014A574; // type:func absolute:True
-ActorsShared801355a4_Fn32734 = 0x8014A734; // type:func absolute:True
-ActorsShared801355a4_Fn328B4 = 0x8014A8B4; // type:func absolute:True
-ActorsShared801355a4_Fn32DC0 = 0x8014ADC0; // type:func absolute:True
-ActorsShared801355a4_Fn33108 = 0x8014B108; // type:func absolute:True
-ActorsShared801355a4_Fn3325C = 0x8014B25C; // type:func absolute:True
-ActorsShared801355a4_Fn3567C = 0x8014D67C; // type:func absolute:True
-ActorsShared801355a4_Fn33950 = 0x8014B950; // type:func absolute:True
+ActorsShared801355a4_Fn32574 = 0x8014A574; // type:func
+ActorsShared801355a4_Fn32734 = 0x8014A734; // type:func
+ActorsShared801355a4_Fn328B4 = 0x8014A8B4; // type:func
+ActorsShared801355a4_Fn32DC0 = 0x8014ADC0; // type:func
+ActorsShared801355a4_Fn33108 = 0x8014B108; // type:func
+ActorsShared801355a4_Fn3325C = 0x8014B25C; // type:func
+ActorsShared801355a4_Fn3567C = 0x8014D67C; // type:func
+ActorsShared801355a4_Fn33950 = 0x8014B950; // type:func
 ActorsShared8014d378 = 0x8014D378; // shared body, see src/actors/lib/
-ActorsShared8014d378_Fn4D7C4 = 0x8014D7C4; // type:func absolute:True
-ActorsShared8014d378_Fn4D8E0 = 0x8014D8E0; // type:func absolute:True
+ActorsShared8014d378_Fn4D7C4 = 0x8014D7C4; // type:func
+ActorsShared8014d378_Fn4D8E0 = 0x8014D8E0; // type:func
 ActorsShared80134ff0 = 0x8014D888; // shared body, see src/actors/lib/
 ActorsShared80135b58 = 0x8014DB58; // shared body, see src/actors/lib/
 ActorsShared80135c4c = 0x8014DC4C; // shared body, see src/actors/lib/

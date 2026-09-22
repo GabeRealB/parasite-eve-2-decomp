@@ -16,7 +16,7 @@
 /// on a table row and rotate it to face that row's angle, or fall through to
 /// the "walk to the player" state, 2 and 3 lift the coordinate and arm a
 /// timer. Modes >= 10 re-read the variant index from the parameters.
-void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
+void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
     SVECTOR           rot;
     GpRec18*          rec0;
@@ -48,7 +48,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
     obj->field_20   = &work->field_1D4;
     matrix          = &coord->coord;
     work->field_3C0 = 0;
-    work->field_36C = &D_actor_202600_801528D4;
+    work->field_36C = &Actor02600_D08AB4;
     ctx->field_4    = matrix;
     ctx->field_48   = 0;
     Gp_LinkNode(&ctx->node);
@@ -57,8 +57,8 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
     ctx->recs                  = work->field_2B4;
     ctx->bodyPos.vx            = 0;
     ctx->bodyPos.vz            = 0;
-    ctx->param                 = &D_actor_202600_80152788;
-    ctx->hp                    = (s16)D_actor_202600_80152788.hpMax;
+    ctx->param                 = &Actor02600_D08968;
+    ctx->hp                    = (s16)Actor02600_D08968.hpMax;
     work->field_354.coord      = coord;
     work->field_354.spawnArgLo = 0x100;
     work->field_354.spawnArgHi = 1;
@@ -107,10 +107,10 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
                     work->field_39A = 0;
                     work->field_3A8 = 0x80;
                     rot.vx          = 0;
-                    rot.vy          = D_actor_202600_801527F0[work->field_3C4];
+                    rot.vy          = Actor02600_D089D0[work->field_3C4];
                     rot.vz          = 0;
                     RotMatrix(&rot, matrix);
-                    positions         = D_actor_202600_801527D0;
+                    positions         = Actor02600_D089B0;
                     coord->coord.t[0] = positions[work->field_3C4].vx;
                     coord->coord.t[1] = positions[work->field_3C4].vy;
                     coord->coord.t[2] = positions[work->field_3C4].vz;
@@ -127,10 +127,10 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
                     work->field_39A = 0;
                     work->field_3A8 = 0x80;
                     rot.vx          = 0;
-                    rot.vy          = D_actor_202600_80152828[work->field_3C4];
+                    rot.vy          = Actor02600_D08A08[work->field_3C4];
                     rot.vz          = 0;
                     RotMatrix(&rot, matrix);
-                    positions         = D_actor_202600_80152808;
+                    positions         = Actor02600_D089E8;
                     coord->coord.t[0] = positions[work->field_3C4].vx;
                     coord->coord.t[1] = positions[work->field_3C4].vy;
                     coord->coord.t[2] = positions[work->field_3C4].vz;
@@ -144,7 +144,7 @@ void func_actor_202600_8014CE1C(GpEnemy* ctx, Task* actor)
                 coord->coord.t[1] += 0x3E8;
         }
     }
-    func_800B3F84((GpAnimCtx*)work, D_actor_202600_801528EC, (TmdObject*)obj, work->field_154, ((Actor202600Anim*)work)->slots);
+    func_800B3F84((GpAnimCtx*)work, Actor02600_D08ACC, (TmdObject*)obj, work->field_154, ((Actor202600Anim*)work)->slots);
     for (i = 1; i < 8; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }

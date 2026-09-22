@@ -6,7 +6,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 
-void func_actor_202600_8014B950(Actor202600* arg0)
+void ActorsShared801355a4_Fn33950(Actor202600* arg0)
 {
     Actor202600Obj2C* obj;
     Actor202600Work*  work;
@@ -44,9 +44,9 @@ void func_actor_202600_8014B950(Actor202600* arg0)
             ctx->field_14          = one;
             if (D_8011540E == one) {
                 if (work->field_3C2 == 0) {
-                    work->field_39E = D_actor_202600_801527C8[work->field_3C4];
+                    work->field_39E = Actor02600_D089A8[work->field_3C4];
                 } else {
-                    work->field_39E = D_actor_202600_801527F8[work->field_3C4];
+                    work->field_39E = Actor02600_D089D8[work->field_3C4];
                 }
                 work->field_39C = 1;
             }
@@ -73,7 +73,7 @@ void func_actor_202600_8014B950(Actor202600* arg0)
                 work->field_392        = 7;
                 work->field_39A        = state;
                 work->field_39C        = 1;
-                work->field_3A8        = D_actor_202600_80152800[work->field_3C4];
+                work->field_3A8        = Actor02600_D089E0[work->field_3C4];
                 work->field_294.flags |= 0x8000;
                 work->field_214.flags |= 0x4000;
                 do {
@@ -113,10 +113,10 @@ void func_actor_202600_8014B950(Actor202600* arg0)
                 } while (indexOrSound < 3);
                 indexOrSound = 0;
             }
-            motion = D_actor_202600_80152850;
+            motion = Actor02600_D08A30;
             do {
                 indexOrSound++;
-                if ((s16)work->field_396 <= ((*motion)[0] + D_actor_202600_80152838)) {
+                if ((s16)work->field_396 <= ((*motion)[0] + Actor02600_D08A18)) {
                     coord->coord.t[0] += ((*motion)[1] * rsin(work->field_3A2)) >> 12;
                     coord->coord.t[2] += ((*motion)[1] * rcos(work->field_3A2)) >> 12;
                     break;
@@ -131,12 +131,12 @@ void func_actor_202600_8014B950(Actor202600* arg0)
                 work->field_294.flags |= 0x8000;
                 work->field_214.flags |= 0x4000;
             }
-            if ((s16)work->field_396 >= (D_actor_202600_80152838 + 0x46)) {
+            if ((s16)work->field_396 >= (Actor02600_D08A18 + 0x46)) {
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
                 randomDelay     = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = D_actor_202600_80152798[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((randomDelay >> 0x10) & 0xF);
+                work->field_39E = Actor02600_D08978[((Actor202600Ctx*)arg0->field_20)->field_3C->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 Gp_LcgState     = randomDelay;
                 Gp_ArmStateF0(1);
             }

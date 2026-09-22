@@ -9,7 +9,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
-#include "actors/actor_102600.h"
+#include "actors/actor_202600.h"
 
 /* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
  * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
@@ -17,12 +17,10 @@
  * with the struct traffic that follows and sink it past the loads. */
 extern void* D_80067704[1];
 
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-
 /* Model stream in this overlay's own data. */
-extern u8 D_actor_102600_80137D30[];
+extern u8 Actor02600_D05F10[];
 
-void func_actor_102600_80135A6C(Actor102600* actor)
+void Actor02600_Fn03C4C(Actor202600* actor)
 {
     GpAreaKey    key;
     GpAreaKey*   sessionKey;
@@ -34,7 +32,7 @@ void func_actor_102600_80135A6C(Actor102600* actor)
     s32          idx;
     u32          raw;
 
-    D_80067704[0] = D_actor_102600_80137D30;
+    D_80067704[0] = Actor02600_D05F10;
     eff           = Gp_SpawnEff(0x40007, actor->field_2C->field_8 + 4, 0x100, NULL);
     if (eff == NULL) {
         return;
