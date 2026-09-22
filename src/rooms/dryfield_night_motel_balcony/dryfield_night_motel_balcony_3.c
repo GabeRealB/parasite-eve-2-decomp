@@ -6,6 +6,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -16,7 +17,9 @@
 extern s8       D_8007106B;
 extern TaskDesc D_dryfield_night_motel_balcony_80182834;
 
-extern void func_dryfield_night_motel_balcony_8017E250(s32 arg0, s16 arg1);
+extern u8** D_dryfield_night_motel_balcony_80182C3C[];
+
+extern void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1);
 
 void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 {
@@ -29,7 +32,57 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E128);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E250);
+void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
+{
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* cmd;
+    u8*        p;
+
+    p    = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
+    sess = &gGameSession->at4.loc;
+    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    cmd  = rec[p[0]].field_4;
+    if (p[0] != 0xFF) {
+        do {
+            if (p[1] == 0xFF) {
+                cmd = rec[p[0]].field_4;
+                p  += 2;
+            }
+            cmd[p[0]].field_4 = p[1];
+            p                += 2;
+        } while (p[0] != 0xFF);
+    }
+    switch (arg0) {
+        case 0:
+            GameFlag_SetNibble(0x85, arg1);
+            break;
+        case 1:
+            GameFlag_SetNibble(0x86, arg1);
+            break;
+        case 2:
+            GameFlag_SetNibble(0x87, arg1);
+            break;
+        case 3:
+            GameFlag_SetNibble(0x88, arg1);
+            break;
+        case 4:
+            GameFlag_SetNibble(0x89, arg1);
+            break;
+        case 5:
+            GameFlag_SetNibble(0x8A, arg1);
+            break;
+        case 6:
+            GameFlag_SetNibble(0x8B, arg1);
+            break;
+        case 7:
+            GameFlag_SetNibble(0x8C, arg1);
+            break;
+        case 8:
+            GameFlag_SetNibble(0x8D, arg1);
+            break;
+    }
+}
 
 void func_dryfield_night_motel_balcony_8017E3C8(void)
 {

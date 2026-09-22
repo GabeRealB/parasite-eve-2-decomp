@@ -10,7 +10,7 @@
 #include "main/wipsys.h"
 #include "psyq/libgpu.h"
 
-extern void func_dryfield_night_motel_balcony_8017E250(s32 arg0, s16 arg1);
+extern void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1);
 
 void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
 {
