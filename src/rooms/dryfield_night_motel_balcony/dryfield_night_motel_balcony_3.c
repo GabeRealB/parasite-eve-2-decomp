@@ -30,7 +30,54 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
     taskKill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E128);
+void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
+{
+    GameSession* g    = gGameSession;
+    GpAreaKey*   sess = &g->at4.loc;
+    GpSprtRec*   rec;
+    GpSprtCmd*   cmd;
+
+    rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+
+    switch (sess->view) {
+        case 17:
+            cmd = rec[16].field_4;
+            if (arg0 == 0) {
+                cmd[2].field_4 = 1;
+            } else {
+                cmd[3].field_4 = 1;
+            }
+            break;
+        case 18:
+            cmd             = rec[17].field_4;
+            cmd[6].field_4  = 0;
+            cmd[7].field_4  = 0;
+            cmd[8].field_4  = 0;
+            cmd[9].field_4  = 0;
+            cmd[10].field_4 = 0;
+            break;
+        case 19:
+            cmd = rec[18].field_4;
+            if (arg0 == 0) {
+                cmd[2].field_4 = 0;
+            } else {
+                cmd[1].field_4 = 0;
+            }
+        case 22:
+            cmd = rec[21].field_4;
+            if (arg0 == 1) {
+                cmd[1].field_4 = 0;
+                cmd[2].field_4 = 1;
+            } else if (arg0 == 2) {
+                cmd[1].field_4 = 1;
+                cmd[2].field_4 = 0;
+            } else {
+                cmd[2].field_4 = 1;
+                cmd[1].field_4 = 1;
+            }
+            break;
+    }
+}
 
 void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
 {
