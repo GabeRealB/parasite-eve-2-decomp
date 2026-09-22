@@ -78,6 +78,10 @@ void ActorsShared80132a1c(Task* task);
 /// Task exit callback this overlay installs on spawn.
 void func_actor_451100_80132CAC(Task* task);
 
+/// Exit callback the `ActorsShared80131f9c` state-0 handler installs on the
+/// model's task: tears down the enemy the task was spawned for.
+void func_actor_451100_801323B4(Task* task);
+
 /// Ticks the animation once the runner has moved and turned the model.
 void func_actor_451100_801323DC(void);
 
