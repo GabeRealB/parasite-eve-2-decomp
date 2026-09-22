@@ -16,7 +16,7 @@
 /// `Actor102300`, the same shape the other enemy overlays give theirs:
 /// `field_694` is the current animation id, `field_698` the frame counter the
 /// state handlers compare against the per-animation start frame table
-/// `D_actor_102300_80135D64`, and `field_6A8` the state the frame dispatcher
+/// `Actor02300_D03F44`, and `field_6A8` the state the frame dispatcher
 /// switches on.
 typedef struct Actor102300Work {
     /// Animation context `func_800B3F84` fills in, followed by the nineteen
@@ -107,7 +107,7 @@ typedef struct Actor102300Work {
     /// interrupt the one already playing.
     /* 0x6D4 */ s16 field_6D4;
     /// Sector id of the enemy's voice stream, looked up per room from
-    /// `D_actor_102300_80147AA0` and queued with `CdCmd_Enqueue(0x21, ...)`.
+    /// `Actor02300_D15C80` and queued with `CdCmd_Enqueue(0x21, ...)`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];
     /// Dwell budget in thousandths, scaled by the placement record's `variant`.

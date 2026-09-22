@@ -36,7 +36,7 @@ typedef struct Actor104600Work {
     /* 0x2A6 */ s16  field_2A6;
 } Actor104600Work;
 
-/// 0x38-byte block `func_actor_104600_8013528C` takes from `G_SCRATCH_HEAD`:
+/// 0x38-byte block `Actor04600_Fn0346C` takes from `G_SCRATCH_HEAD`:
 /// `delta` receives the `func_800E0C10` push-back and is then reused for the
 /// offset to the player.
 typedef struct Actor104600HitScratch {
@@ -46,6 +46,6 @@ typedef struct Actor104600HitScratch {
 } Actor104600HitScratch;
 STATIC_ASSERT_SIZEOF(Actor104600HitScratch, 0x38);
 
-void func_actor_104600_80135B74(Task* task);
+void Actor04600_Fn03D54(Task* task);
 
 #endif

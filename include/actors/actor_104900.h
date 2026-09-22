@@ -18,7 +18,7 @@ extern u8 D_801153F2;
 
 typedef ActorsShared80137fb8Work Actor104900Work;
 
-/// 0xBCC-byte work block `func_actor_104900_8013279C` allocates with
+/// 0xBCC-byte work block `Actor04900_Fn0097C` allocates with
 /// `memCalloc` and parks in `Task::work`. The coordinate at the front is
 /// linked as `coords[1].sub`; the two `GpAnimCtx` runs are what
 /// `func_800B3F84` seeds. Same size as `ActorsShared80138efcWork` /
@@ -56,9 +56,9 @@ typedef struct Actor104900SpawnWork {
 STATIC_ASSERT_SIZEOF(Actor104900SpawnWork, 0xBCC);
 
 extern s32        D_8007216C;
-extern GpPairSrcE D_actor_104900_80139308;
-extern GpPairSrcE D_actor_104900_80139330;
-extern u8         D_actor_104900_80147424[];
+extern GpPairSrcE Actor04900_D074E8;
+extern GpPairSrcE Actor04900_D07510;
+extern u8         Actor04900_D15604[];
 
 /// Scale copied onto the stack and passed to `ActorsShared801385e0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis. The trailing word is
@@ -69,10 +69,10 @@ typedef struct Actor104900ScaleRodata {
 } Actor104900ScaleRodata;
 STATIC_ASSERT_SIZEOF(Actor104900ScaleRodata, 0x14);
 
-extern const Actor104900ScaleRodata D_actor_104900_80131E30;
+extern const Actor104900ScaleRodata Actor04900_D00010;
 
 /// Pair table the spawn state packs into the display node's `GpObj.key`.
-extern GpU16Pair D_actor_104900_80139318;
+extern GpU16Pair Actor04900_D074F8;
 
 /// Frame block the shot handler is passed. Same field offsets as
 /// `ActorsShared80138efcArg` through `field_64`. `offset` is copied onto

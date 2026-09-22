@@ -22,7 +22,7 @@ typedef struct Actor101100Work {
 STATIC_ASSERT_SIZEOF(Actor101100Work, 0x58);
 
 /// Pair table the spawn state packs into the display node's `GpObj.key`.
-extern GpU16Pair D_actor_101100_80139318;
+extern GpU16Pair Actor01100_D074F8;
 
 /// Absolute; nonzero skips the per-frame state handler entirely.
 extern u8 D_801153F4;
@@ -40,7 +40,7 @@ void ActorsShared8013845cSub1(Task* task);
 typedef void (*Actor101100StateFunc)(GpEnemy* enemy, Task* task, void* work, void* scratch);
 
 /// Fixed-size table of `Actor101100StateFunc` callbacks. Copied onto the stack
-/// by `func_actor_101100_80138374` so the call uses a local jump table.
+/// by `Actor01100_Fn06554` so the call uses a local jump table.
 typedef struct {
     Actor101100StateFunc funcs[3];
 } Actor101100StateFuncTable3;

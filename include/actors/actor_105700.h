@@ -24,8 +24,8 @@ typedef struct Actor105700Work {
     /* 0x43C */ MATRIX     field_43C;
     /* 0x45C */ MATRIX     field_45C;
     /// First body object, handed to `Gp_UnlinkObj` by the teardown of
-    /// `func_actor_105700_80133878`; its `pos.vz` is the pose the state-0
-    /// branch of `func_actor_105700_80133138` parks (-0xA7 or 0x109) and its
+    /// `Actor05700_Fn01A58`; its `pos.vz` is the pose the state-0
+    /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its
     /// `radius` the frame count parked alongside it.
     /* 0x47C */ GpObj        field_47C;
     /* 0x49C */ GpActorD4Rec field_49C;
@@ -41,10 +41,10 @@ typedef struct Actor105700Work {
     /// Fourth body object: `key` is the object `Gp_PackPair` hands it when
     /// `field_698` first reaches the animation's 0x1C mark and `flags` the
     /// bits whose 0x8000 is raised with it and dropped at the 0x28 mark
-    /// (`func_actor_105700_801341CC`).
+    /// (`Actor05700_Fn023AC`).
     /* 0x5E4 */ GpObj   field_5E4;
     /* 0x604 */ GpRec18 field_604[1];
-    /// Fifth body object, unlinked with the others by `func_actor_105700_80133878`.
+    /// Fifth body object, unlinked with the others by `Actor05700_Fn01A58`.
     /* 0x61C */ GpObj        field_61C;
     /* 0x63C */ GpActorD4Rec field_63C;
     /* 0x654 */ GpRec18      field_654[1];
@@ -54,11 +54,11 @@ typedef struct Actor105700Work {
     /* 0x67C */ s32          field_67C;
     /* 0x680 */ s32          field_680;
     /* 0x684 */ byte         pad_684[4];
-    /// Tilt angles decayed toward zero by `func_actor_105700_801334F0`.
+    /// Tilt angles decayed toward zero by `Actor05700_Fn016D0`.
     /* 0x688 */ SVECTOR           field_688;
     /* 0x690 */ struct GpEffWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
-    /// clip of `func_actor_105700_80136AE0`'s state 0.
+    /// clip of `Actor05700_Fn04CC0`'s state 0.
     /* 0x694 */ s16 field_694;
     /// Animation the playing clip was started from; when it differs from
     /// `field_694` the frame counter is reset and the slots reseeded.
@@ -69,7 +69,7 @@ typedef struct Actor105700Work {
     /* 0x69E */ s16 field_69E; ///< dwell counter, cleared on state 0 entry
     /* 0x6A0 */ u16 field_6A0; ///< sound flags; bit 5/4 gate the two cues
                                /// Current yaw, walked toward `field_6A4` by
-                               /// `func_actor_105700_80133364`, using `field_69E` as the per-frame step.
+                               /// `Actor05700_Fn01544`, using `field_69E` as the per-frame step.
     /* 0x6A2 */ s16 field_6A2;
     /* 0x6A4 */ s16 field_6A4; ///< yaw the actor wants to face
     /* 0x6A6 */ s16 field_6A6; ///< parked animation for the state-F0 path
@@ -91,14 +91,14 @@ typedef struct Actor105700Work {
     /* 0x6C2 */ s16  field_6C2;
     /* 0x6C4 */ s16  field_6C4;
     /* 0x6C6 */ byte pad_6C6[4];
-    /// Body variant select: `func_actor_105700_80133878` drops the fifth body
+    /// Body variant select: `Actor05700_Fn01A58` drops the fifth body
     /// object for the two values 0x38 / 0x39 and hands the halfword to
     /// `Gp_ReleaseStateF0Add`.
     /* 0x6CA */ s16 field_6CA;
     /* 0x6CC */ s16 field_6CC;
     /* 0x6CE */ s16 field_6CE;
     /* 0x6D0 */ s16 field_6D0;
-    /// Spawn state driven by `func_actor_105700_80137130`: 0 clears the
+    /// Spawn state driven by `Actor05700_Fn05310`: 0 clears the
     /// coordinate, 1 fires the effect burst and sound cue, 2 is idle.
     /* 0x6D2 */ s16 field_6D2;
     /// Latched on state-0 entry, cleared when the frame budget runs out.
@@ -127,7 +127,7 @@ typedef struct Actor105700Ctx {
     /// Positive while the actor keeps dwelling after an approach cycle.
     /* 0x40 */ s16  field_40;
     /* 0x42 */ byte pad_42[0xA];
-    /// Cleared by `func_actor_105700_80133138` on state-0 entry.
+    /// Cleared by `Actor05700_Fn01318` on state-0 entry.
     /* 0x4C */ u8   field_4C;
     /* 0x4D */ byte pad_4D[3];
 } Actor105700Ctx;
@@ -135,14 +135,14 @@ typedef struct Actor105700Ctx {
 /// Model object behind `Actor105700.field_2C`; `field_8` is the root
 /// `GsCOORDINATE2` whose world matrix the pan/depth helpers read. `field_C` is
 /// the halfword
-/// `func_actor_105700_80137130` mirrors from the owner's object.
+/// `Actor05700_Fn05310` mirrors from the owner's object.
 typedef struct Actor105700Obj {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
     /* 0x0C */ u16            field_C;
 } Actor105700Obj;
 
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `func_actor_105700_80131ED0`.
+/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05700_Fn000B0`.
 typedef struct Actor105700HitScratch {
     /* 0x00 */ GpDeltaScratch delta;
     /* 0x10 */ VECTOR         normal;
@@ -165,7 +165,7 @@ typedef struct Actor105700 {
 
 /// 0x14-byte placement descriptor in the overlay's `.data`, handed to
 /// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
-/// `field_E` is the variant flag `func_actor_105700_80134FDC` latches into its
+/// `field_E` is the variant flag `Actor05700_Fn031BC` latches into its
 /// work block: it is 1 (the table's own value is 2) when the actor is placed
 /// normally, and anything else puts the body in the other pose.
 typedef struct Actor105700PlaceSrc {
@@ -182,14 +182,14 @@ typedef struct Actor105700PlaceSrc {
 STATIC_ASSERT_SIZEOF(Actor105700PlaceSrc, 0x14);
 
 /// `G_SCRATCH_HEAD` viewed as a struct. The member access, not a plain `u32`
-/// dereference, is what `func_actor_105700_801334F0` needs to schedule its
+/// dereference, is what `Actor05700_Fn016D0` needs to schedule its
 /// argument setup around `RotMatrix`.
 typedef struct Actor105700ScratchStack {
     u32 sp;
 } Actor105700ScratchStack;
 
 /// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `func_actor_105700_80134FDC`. `rot` first holds the local offset the root
+/// `Actor05700_Fn031BC`. `rot` first holds the local offset the root
 /// coordinate is translated by (through `gte_rtv0` into `pos`), then the
 /// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
 /// transforms that overwrite the root coordinate's matrix.
@@ -201,9 +201,9 @@ typedef struct Actor105700PlaceScratch {
 STATIC_ASSERT_SIZEOF(Actor105700PlaceScratch, 0x38);
 
 /// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `func_actor_105700_80134374`: the converted matrix, the `gte_rtv0` output
+/// `Actor05700_Fn02554`: the converted matrix, the `gte_rtv0` output
 /// and the two vectors fed through it (`rot` and `vec` are also the pair
-/// handed to `func_actor_105700_8013477C`).
+/// handed to `Actor05700_Fn0295C`).
 typedef struct Actor105700AimScratch {
     /* 0x00 */ MATRIX  mtx;
     /* 0x20 */ VECTOR  pos;
@@ -213,7 +213,7 @@ typedef struct Actor105700AimScratch {
 STATIC_ASSERT_SIZEOF(Actor105700AimScratch, 0x40);
 
 /// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `func_actor_105700_8013477C`: the beam is walked in eight steps from `vec`
+/// `Actor05700_Fn0295C`: the beam is walked in eight steps from `vec`
 /// to `rot`, each step projected into `cur` (packed screen xy) and `curZ`
 /// (OTZ). `xs`/`ys` hold the two projected ends followed by the four
 /// offset corners the ribbon polygons are cut from.
@@ -230,7 +230,7 @@ typedef struct Actor105700BeamScratch {
 } Actor105700BeamScratch;
 STATIC_ASSERT_SIZEOF(Actor105700BeamScratch, 0x48);
 
-/// 0xF0-byte body block `func_actor_105700_80134FDC` parks at `Task::work`.
+/// 0xF0-byte body block `Actor05700_Fn031BC` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
 /// (shared by the first two) and, through the `GpActorD4Rec` between them,
@@ -251,7 +251,7 @@ typedef struct Actor105700FxWork {
 } Actor105700FxWork;
 STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
 
-void func_actor_105700_801336FC(Actor105700* arg0);
-void func_actor_105700_8013477C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2);
+void Actor05700_Fn018DC(Actor105700* arg0);
+void Actor05700_Fn0295C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2);
 
 #endif

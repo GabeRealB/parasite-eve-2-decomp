@@ -175,6 +175,6 @@ typedef struct Actor201200TurnScratch {
 } Actor201200TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor201200TurnScratch, 0xC);
 
-s32 func_actor_201200_8014D8DC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2);
+s32 Actor01200_Fn03ABC(Actor201200* arg0, s32 arg1, Actor201200Msg* arg2);
 
 #endif

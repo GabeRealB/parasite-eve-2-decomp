@@ -24,7 +24,7 @@ typedef struct Actor107000Ctx {
     /* 0x14 */ u8   field_14;
 } Actor107000Ctx;
 
-/// The 0x18 bytes `func_actor_107000_80132E9C` carves off the per-object
+/// The 0x18 bytes `Actor07000_Fn0107C` carves off the per-object
 /// scratch stack (`0x1F8003FC`, one `addiu` of `-0x18`): `vec` is the
 /// translation from the model's coordinate to the player, `rot` is the Euler
 /// angle triple rebuilt from the heading the same call just steered. The same
@@ -77,7 +77,7 @@ typedef struct Actor107000Work {
     /* 0x1EC */ byte     pad_1EC[0x1E];
     /* 0x20A */ u16      field_20A;
     /* 0x20C */ byte     pad_20C[8];
-    /* 0x214 */ GpRec18  field_214; // collision record `func_actor_107000_801364D8` re-rolls
+    /* 0x214 */ GpRec18  field_214; // collision record `Actor07000_Fn046B8` re-rolls
     /* 0x22C */ byte     pad_22C[0x48];
     /* 0x274 */ VECTOR3  field_274; // saved root translation
     /* 0x280 */ byte     pad_280[4];
@@ -132,7 +132,7 @@ typedef struct Actor107000Work {
 ///
 /// The record table seeded at 0x20C overlaps `Actor107000Work::field_214`: the
 /// handler view starts that run eight bytes later, and the matched
-/// `func_actor_107000_801364D8` keeps its own spelling, so the two views cannot
+/// `Actor07000_Fn046B8` keeps its own spelling, so the two views cannot
 /// be merged without moving one of the two offsets.
 typedef struct Actor107000SpawnWork {
     /* 0x000 */ GpAnimCtx  context;
@@ -176,7 +176,7 @@ typedef struct Actor107000SpawnWork {
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
-/// (`func_actor_107000_80136E88`) allocates, next to `Actor107000SpawnWork`:
+/// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
 /// the same `GpAnimCtx`, seven animation slots instead of three, then three
 /// `GpObj` render nodes where that one has four.
 ///
@@ -241,7 +241,7 @@ STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
 /// same 4-byte record as `Actor143900Msg`. The second-form handler
-/// `func_actor_107000_801378D8` reads the halfword at 0x2 as a command word: its
+/// `Actor07000_Fn05AB8` reads the halfword at 0x2 as a command word: its
 /// low byte is the mode (1 reveals the specimen, 3 hides it) and bits 8..11
 /// pick the spawn point the reveal places the model at.
 typedef struct Actor107000Msg {
@@ -261,6 +261,6 @@ extern u32 Gp_LcgState;
 /// 2500 units or further. Closer than that, a second draw is taken: it lands on
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
-void func_actor_107000_801364D8(Task* arg0, s32 arg1);
+void Actor07000_Fn046B8(Task* arg0, s32 arg1);
 
 #endif

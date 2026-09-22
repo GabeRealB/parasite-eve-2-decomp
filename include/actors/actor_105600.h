@@ -12,7 +12,7 @@
 
 #include <psyq/libgs.h>
 
-/// 0xF0-byte body block `func_actor_105600_80134FD0` parks at `Task::work`.
+/// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
 /// (shared by the first two) and, through the `GpActorD4Rec` between them,
@@ -35,7 +35,7 @@ STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
 
 /// 0x14-byte placement descriptor in the overlay's `.data`, handed to
 /// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
-/// `field_E` is the variant flag `func_actor_105600_80134FD0` latches into its
+/// `field_E` is the variant flag `Actor05600_Fn031B0` latches into its
 /// work block: it is 1 when the actor is placed normally, and anything else
 /// puts the body in the other pose.
 typedef struct Actor105600PlaceSrc {
@@ -52,7 +52,7 @@ typedef struct Actor105600PlaceSrc {
 STATIC_ASSERT_SIZEOF(Actor105600PlaceSrc, 0x14);
 
 /// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `func_actor_105600_80134FD0`. `rot` first holds the local offset the root
+/// `Actor05600_Fn031B0`. `rot` first holds the local offset the root
 /// coordinate is translated by (through `gte_rtv0` into `pos`), then the
 /// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
 /// transforms that overwrite the root coordinate's matrix.
@@ -147,7 +147,7 @@ typedef struct Actor105600Work {
     /* 0x6CE */ s16  field_6CE;
     /* 0x6D0 */ s16  field_6D0;
     /* 0x6D2 */ byte pad_6D2[4];
-    /// Streaming cue id for this room, looked up in `D_actor_105600_80148298`.
+    /// Streaming cue id for this room, looked up in `Actor05600_D16478`.
     /* 0x6D6 */ s16  field_6D6;
     /* 0x6D8 */ byte pad_6D8[2];
     /// Approach budget, 1000 per unit of the placement record's `variant`.
@@ -160,24 +160,24 @@ typedef struct Actor105600Work {
 STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 
 /// Placement descriptor for this actor.
-extern Actor105600PlaceSrc D_actor_105600_80147FDC;
+extern Actor105600PlaceSrc Actor05600_D161BC;
 
 /// Pair source the approach cycle parks at `GpEnemy::param`; its `hpMax`
 /// becomes the enemy's `field_40`.
-extern GpPairSrcE D_actor_105600_80147FF0[];
+extern GpPairSrcE Actor05600_D161D0[];
 
 /// Per-stage tables of streaming cue ids, indexed by `GameSession::at4.loc.stage`
 /// and then `GameSession::at4.loc.area`.
-extern u16* D_actor_105600_80148298[];
+extern u16* Actor05600_D16478[];
 
 /// Spawn table the approach cycle starts its companion enemy from, index 1.
-extern TaskDesc D_actor_105600_801482C0[];
+extern TaskDesc Actor05600_D164A0[];
 
 /// Animation stream set bound into the work block's animation context.
-extern void D_actor_105600_801482E4;
+extern void Actor05600_D164C4;
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits packed
 /// in.
-extern s32 D_actor_105600_80148110;
+extern s32 Actor05600_D162F0;
 
 #endif

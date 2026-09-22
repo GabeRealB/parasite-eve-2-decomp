@@ -29,6 +29,8 @@ from pathlib import Path
 
 MATCHED = re.compile(r"^([0-9a-f]+) matched (\S+) (\d+)$")
 INCLUDE = re.compile(r'INCLUDE_ASM\("[^"]*",\s*([A-Za-z0-9_]+)\)')
+# a definition at column 0 whose next line opens a block
+FUNC_DEF = re.compile(r"^[A-Za-z_][\w \*]*\b(\w+)\([^;]*\)\s*\n\{", re.M)
 
 
 def matched_functions(root: Path) -> dict[str, str]:
@@ -58,6 +60,46 @@ def owns_asm(root: Path) -> set[str]:
             if "nonmatchings" in p.parts and p.name.startswith("func_")}
 
 
+def compiled_sources(root: Path) -> set[str] | None:
+    """The sources the build actually compiles, from the generated linker scripts.
+
+    Taken from the linker scripts rather than the manifest because they are what
+    the link really consumes, and they stay true however the manifest describes
+    an overlay.
+    """
+    lds = list((root / "linkers").rglob("*.ld"))
+    if not lds:
+        return None
+    out: set[str] = set()
+    for ld in lds:
+        for m in re.finditer(r"build/\w+/(src/\S+?)\.c\.o", ld.read_text(errors="replace")):
+            out.add(m.group(1) + ".c")
+    return out
+
+
+def stranded(root: Path) -> list[tuple[str, int]]:
+    """Files that define C bodies but that no linker script names.
+
+    A body here is not lost in the sense the check above tests - it is still in
+    the tree, and a search for the function finds it - but nothing compiles it,
+    so the overlay is built from the assembly it was decompiled from. The
+    checksum cannot see the difference, and neither can a check that only asks
+    whether a definition exists somewhere.
+    """
+    live = compiled_sources(root)
+    if live is None:
+        return []
+    out = []
+    for f in (root / "src").rglob("*.c"):
+        rel = str(f.relative_to(root))
+        if rel in live:
+            continue
+        n = len(FUNC_DEF.findall(f.read_text(errors="replace")))
+        if n:
+            out.append((rel, n))
+    return sorted(out, key=lambda t: -t[1])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -72,6 +114,20 @@ def main() -> int:
 
     matched, inc, owns = matched_functions(root), included(root), owns_asm(root)
     lost = sorted(fn for fn in matched.keys() & inc.keys() if fn in owns)
+    orphan = stranded(root)
+
+    if orphan:
+        total = sum(n for _f, n in orphan)
+        print(f"{total} C body/bodies in {len(orphan)} file(s) that nothing compiles:")
+        if not args.quiet:
+            for f, n in orphan[:20]:
+                print(f"  {f:64} {n:3} bodies")
+            if len(orphan) > 20:
+                print(f"  ... and {len(orphan) - 20} more")
+            print("\nNo linker script names these files, so their overlays are built"
+                  "\nfrom the assembly the bodies were decompiled from. Move them into"
+                  "\nthe unit the manifest does name, or delete them if superseded.")
+        return 1
 
     if not lost:
         if not args.quiet:
