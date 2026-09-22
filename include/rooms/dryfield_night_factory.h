@@ -139,7 +139,7 @@ void func_dryfield_night_factory_8017D858(Task* task, s32 arg1, s32 arg2);
 
 /// The handler the model runs while bit 1 of game flag 0x49 is set, and -- when
 /// bit 0 is set with it -- the handler that follows.
-void func_dryfield_night_factory_8017E13C(Task* task);
+s32  func_dryfield_night_factory_8017E13C(Task* task);
 void func_dryfield_night_factory_8017DA54(Task* task);
 
 /// The handler that follows `func_dryfield_night_factory_8017E13C` when bit 0 of

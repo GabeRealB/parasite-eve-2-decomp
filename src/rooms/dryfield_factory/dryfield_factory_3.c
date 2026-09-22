@@ -13,5 +13,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_3", func_dryfi
 INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_3", func_dryfield_factory_8017E33C);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_3", func_dryfield_factory_8017E6BC);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_3", func_dryfield_factory_8017EA24);
