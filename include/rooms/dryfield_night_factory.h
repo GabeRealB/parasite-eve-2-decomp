@@ -57,25 +57,46 @@ STATIC_ASSERT_SIZEOF(NightFactoryCutsceneTable3, 0xC);
 /// part of `NightFactoryCutsceneTable3`.
 extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
+/// A `MATRIX` plus a word-wise view of its first 0x12 bytes, used to reset a
+/// rotation to identity with five aligned stores rather than nine halfword ones
+/// before `func_8004BFF8` rotates it.
+typedef union NightFactoryMatWords {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} NightFactoryMatWords;
+STATIC_ASSERT_SIZEOF(NightFactoryMatWords, 0x20);
+
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
 /// state 0 and parks at `Task::work`. It is the same block the shared
 /// `Room_Util20` body (src/lib/room_util20.c) reads its model light and
 /// color matrices out of at 0x18 / 0x38, so the tail is left unreferenced here.
 ///
 /// `field_0` is the nibble of game flag 0x49 the task last saw, `field_14`
-/// counts the frames since that nibble changed, and `field_16` / `field_17`
-/// latch its two low bits -- `func_dryfield_night_factory_8017D6F8` seeds both
-/// to -1 when it allocates the block.
+/// counts the frames since that nibble changed, and `field_16` / `field_17` are
+/// the step counters of the handlers driven by its bit 0 and bit 1: each drops
+/// back to 0 when its bit changes, and `func_dryfield_night_factory_8017D6F8`
+/// seeds both to -1 when it allocates the block.
 ///
 /// `field_C` is a 16.16 accumulator: the handler `func_dryfield_night_factory_8017E13C`
 /// adds `field_4` to it and clamps the result, and the two seeders read its
 /// integer part (`field_C.whole`) straight out into the model's Y translation.
 /// That integer part is the same two bytes, so both views live in one union --
 /// the target stores the whole 32 bits and loads the high half.
+///
+/// `field_10` is the model's 16.16 yaw, laid out the same way: the handler
+/// `RoomsShared8017e6bc` steps `field_16` through its sequence, accelerates
+/// `field_8` towards a limit, adds it to `field_10`, and rebuilds the model's
+/// rotation from the integer part alone.
 typedef struct NightFactoryWork {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte pad_8[0x4];
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
     /* 0x0C */ union {
         /* 0x0C */ s32 value;
         struct {
@@ -83,7 +104,13 @@ typedef struct NightFactoryWork {
             /* 0x0E */ s16 whole;
         } part;
     } field_C;
-    /* 0x10 */ s32  field_10;
+    /* 0x10 */ union {
+        /* 0x10 */ s32 value;
+        struct {
+            /* 0x10 */ s16 frac;
+            /* 0x12 */ s16 whole;
+        } part;
+    } field_10;
     /* 0x14 */ u16  field_14;
     /* 0x16 */ s8   field_16;
     /* 0x17 */ s8   field_17;
@@ -144,7 +171,7 @@ void func_dryfield_night_factory_8017DA54(Task* task);
 
 /// The handler that follows `func_dryfield_night_factory_8017E13C` when bit 0 of
 /// game flag 0x49 is clear.
-void func_dryfield_night_factory_8017DDD4(Task* task);
+s32 func_dryfield_night_factory_8017DDD4(Task* task);
 
 /// The handler the model runs while bit 1 of game flag 0x49 is clear, and --
 /// when bit 0 is set with it -- the handler that follows.

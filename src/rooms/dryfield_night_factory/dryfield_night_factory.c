@@ -49,7 +49,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     work->field_17 = -1;
     obj->flags    &= 0xFF7F;
     if (work->field_0 & 1) {
-        work->field_10 = 0x4000000;
+        work->field_10.value = 0x4000000;
         func_8004BFF8(0x4000000, &coord->coord);
     }
     if (work->field_0 & 2) {
@@ -75,5 +75,3 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017D858);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017DA54);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017DDD4);
