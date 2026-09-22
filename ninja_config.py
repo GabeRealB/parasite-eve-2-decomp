@@ -1275,6 +1275,18 @@ def remove_function_asm(yaml: str, version_dir: str, basename: str, family: str,
             for c in c_sources_of(info)
             if Path(c).parent.name == "lib"
         ]
+        # A unit of an entry that covers several packages sits under the
+        # entry's directory, not the package's, so the basename above misses
+        # it and a function promoted out of it kept its old .s. Every package
+        # of the entry writes the same units, so clearing them here is safe.
+        src_root = Path(options["src_path"])
+        for c in c_sources_of(info):
+            try:
+                rel = Path(c).relative_to(src_root)
+            except ValueError:
+                continue
+            if rel.parts and rel.parts[0] != basename and rel.parent.name != "lib":
+                units.append(str(rel.with_suffix("")))
     for unit in units:
         for kind in ("nonmatchings", "matchings"):
             shutil.rmtree(asm / kind / unit, ignore_errors=True)
