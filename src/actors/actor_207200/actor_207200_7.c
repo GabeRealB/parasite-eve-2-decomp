@@ -81,7 +81,7 @@ void func_actor_207200_8014D8DC(Actor207200* arg0)
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Reads the matrix column at offsets `o0` / `o1` / `o2` of `r0` into the
-/// `SVECTOR` at `r1`. Same macro as `src/actors/lib/actors_shared_801385e0.c`.
+/// `SVECTOR` at `r1`. Same macro as `src/actors/actor_01100/actors_shared_801385e0.c`.
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \

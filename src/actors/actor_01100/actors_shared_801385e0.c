@@ -13,7 +13,7 @@
 /// at `r1`. The offsets are 6 bytes apart, so the caller passes one column of a
 /// matrix's 3x3 part - `0` / `6` / `12` for column 0. `$12` / `$13` / `$14` are
 /// the temporaries the target reads the column through, before it stores it
-/// back. `src/actors/lib/actors_shared_8013898c.c` defines the same macro.
+/// back. `src/actors/actor_01100/actors_shared_8013898c.c` defines the same macro.
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \
