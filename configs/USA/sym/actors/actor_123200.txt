@@ -11,3 +11,5 @@ ActorsSharedFn00430 = 0x801324A4; // shared body, see src/lib/
 func_actor_123200_801324A4 = 0x801324A4; // type:func absolute:True
 ActorsSharedFn00820 = 0x801332E0; // shared body, see src/lib/
 func_actor_123200_801332E0 = 0x801332E0; // type:func absolute:True
+RoomsShared80182078 = 0x80132B94; // shared body, see src/lib/
+func_actor_123200_80132B94 = 0x80132B94; // type:func absolute:True

@@ -28,5 +28,3 @@ extern u8 D_80072729;
 extern u8 D_801153F4;
 
 INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_801329F0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_123200/actor_123200", func_actor_123200_80132B94);
