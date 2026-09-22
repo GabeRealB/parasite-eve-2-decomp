@@ -74,7 +74,94 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8017FF78);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80180580);
+void func_dryfield_night_motel_balcony_80180580(Task* task)
+{
+    void*          work  = task->spawnArg2;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    s32            i;
+
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+    switch (task->state) {
+        case 0:
+            task->state = task->spawnArg1 * 2 + 1;
+            break;
+        case 1:
+            for (i = 0; i < 8; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x100, NULL);
+            }
+            task->state = 2;
+            break;
+        case 2:
+            for (i = 0; i < 4; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x10100, NULL);
+                Gp_SpawnEff(0x60095, coord, 0x400, NULL);
+            }
+            task->state = 10;
+            break;
+        case 3:
+            for (i = 0; i < 6; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80, NULL);
+            }
+            task->state = 4;
+            break;
+        case 4:
+            for (i = 0; i < 3; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x10080, NULL);
+                Gp_SpawnEff(0x60095, coord, 0x400, NULL);
+            }
+            task->state = 10;
+            break;
+        case 5:
+            for (i = 0; i < 4; i++) {
+                Gp_SpawnEff(0x60095, coord, 0x40000300, NULL);
+            }
+            task->state = 6;
+            break;
+        case 6:
+            for (i = 0; i < 4; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80000080, NULL);
+            }
+            for (i = 0; i < 2; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80010080, NULL);
+            }
+            task->state = 10;
+            break;
+        case 7:
+            for (i = 0; i < 8; i++) {
+                Gp_SpawnEff(0x60095, coord, 0x10400, NULL);
+            }
+            task->state = 8;
+            break;
+        case 8:
+            for (i = 0; i < 8; i++) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x100, NULL);
+            }
+            task->state = 10;
+            break;
+        case 9:
+            for (i = 0; i < 8; i++) {
+                Gp_SpawnEff(0x60095, coord, 0x10400, NULL);
+            }
+            task->state = 10;
+            break;
+        case 10:
+        release:
+            Gp_ReleaseState1CMem(work, task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801809CC);
 
