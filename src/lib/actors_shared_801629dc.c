@@ -1,7 +1,5 @@
 #include "common.h"
-
 #include <psyq/abs.h>
-
 #include "actors/actor_350700.h"
 #include "actors/actors_shared_801327f8.h"
 #include "actors/actors_shared_80132f24.h"
@@ -14,6 +12,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "actors/actor_350500.h"
 
 /// The four `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks
 /// from, and the message table it points the parent's `Task::msgTable` at:
@@ -51,4 +50,20 @@ s32 ActorsShared801629dc(Task* task, s32 arg1, s32 mode)
             break;
     }
     return ret;
+}
+
+s32 ActorsShared80162af4(Task* task, s32 arg1, Actor350500Msg* msg)
+{
+    Actor350500Work* work;
+
+    work = (Actor350500Work*)task->work;
+    switch (msg->field_2) {
+        case 1:
+            work->field_4C4 = 0;
+            break;
+        case 2:
+            work->field_4C4 = 1;
+            break;
+    }
+    return 0;
 }

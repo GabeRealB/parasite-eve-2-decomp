@@ -1,12 +1,11 @@
 #include "common.h"
-
 #include "actors/actors_shared_80133838.h"
-
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "actors/actors_shared_8013391c.h"
 
 extern u8 D_801153F4;
 
@@ -54,4 +53,25 @@ void ActorsShared80133838(GpEnemy* arg0, Task* arg1)
             Gp_DestroyEnemy(arg0, arg1);
         }
     }
+}
+
+s32 ActorsShared8013391c(Task* task, s32 msgId, ActorsShared8013391cMsg* msg)
+{
+    ActorsShared8013391cWork* work;
+
+    work = (ActorsShared8013391cWork*)task->work;
+    switch (msg->field_2) {
+        case 0:
+            break;
+        case 1:
+            work->field_33A |= 1;
+            break;
+        case 2:
+            work->field_33A |= 2;
+            break;
+        case 3:
+            work->field_33A |= 3;
+            break;
+    }
+    return 0;
 }

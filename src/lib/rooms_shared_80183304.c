@@ -1,12 +1,9 @@
 #include "common.h"
-
 #include <psyq/libgte.h>
-
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
-
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80183304.h"
 
@@ -54,4 +51,24 @@ void RoomsShared80183304(Task* task)
     block->field_C      = 0;
     Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
     task->state++;
+}
+
+/// Room script callback: poll the text block parked at `Task::work` until
+/// `TextBlockDesc::field_2` is set, copy that result through `Task::spawnArg2`,
+/// and step the caller on one state.
+void Room_Util27(Task* task)
+{
+    s16 result;
+
+    result = ((RoomTextBlock*)task->work)->desc.field_2;
+    if (result != 0) {
+        *(s32*)task->spawnArg2 = result;
+        task->state            = task->state + 1;
+    }
+}
+
+void Room_Script21(Task* arg0)
+{
+    taskKill(arg0);
+    Stage_SetEndingFlag();
 }

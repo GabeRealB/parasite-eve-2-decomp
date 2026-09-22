@@ -1,13 +1,12 @@
 #include "common.h"
-
 #include <psyq/libgte.h>
-
 #include "gameplay/3688.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017f128.h"
+#include "rooms/rooms_shared_8017d5f0.h"
+#include "rooms/rooms_shared_8017f2f8.h"
 
 /// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
 /// mirror task the room set up and the parent is the held-object task being reflected. On the first frame it
@@ -68,4 +67,14 @@ void RoomsShared8017f128(Task* task)
     if (task->spawnArg1 >= 2) {
         extra->flags = flags & 0xFFEF;
     }
+}
+
+void RoomsShared8017f2f8(Task* task)
+{
+    TaskFunc states[2] = {
+        RoomsShared8017d5f0,
+        RoomsShared8017d7a4,
+    };
+
+    states[task->state](task);
 }

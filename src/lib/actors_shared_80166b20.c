@@ -1,9 +1,12 @@
 #include "common.h"
-
 #include "main/task.h"
 #include "gameplay/3A34.h"
-
 #include "actors/actors_shared_80166b20.h"
+#include "main/tmd.h"
+#include "actors/actors_shared_80166c68.h"
+#include "actors/actors_shared_8016945c.h"
+#include "actors/actors_shared_80166dd4.h"
+#include "actors/actors_shared_80166f54.h"
 
 void ActorsShared80166b20(Task* arg0)
 {
@@ -41,6 +44,108 @@ void ActorsShared80166b20(Task* arg0)
             work->field_424 = (u16)work->field_424 + ((s16)(0x3800 - (u16)work->field_424 * 16) >> 9);
         } else {
             work->field_424 = (u16)work->field_424 + ((s16)(-0x3800 - (u16)work->field_424 * 16) >> 9);
+        }
+    }
+}
+
+void ActorsShared80166c68(Task* arg0)
+{
+    ActorsShared80168d3cWork* work;
+    ActorsShared80168d3cWork* work2;
+    s32                       cond;
+    s16                       angle;
+    s16                       speed;
+    s32                       scale;
+
+    work = (ActorsShared80168d3cWork*)arg0->work;
+    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+        scale                                          = 0x1E;
+        angle                                          = work->field_7A + 0x400;
+        speed                                          = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->flg         = 0;
+    }
+    work2 = (ActorsShared80168d3cWork*)arg0->work;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_438 = 0;
+        ActorsShared_SetTaskState(arg0, 3);
+        ActorsShared_SetWorkState(arg0, 3);
+    }
+}
+
+void ActorsShared80166dd4(Task* arg0)
+{
+    ActorsShared80168d3cWork* work;
+    ActorsShared80168d3cWork* work2;
+    s32                       cond;
+    s16                       angle;
+    s16                       speed;
+    s32                       scale;
+
+    work = (ActorsShared80168d3cWork*)arg0->work;
+    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+        scale                                          = 0x1E;
+        angle                                          = work->field_7A + 0x400;
+        speed                                          = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+        ((TmdObject*)arg0->extra)->coords->flg         = 0;
+    }
+    work2 = (ActorsShared80168d3cWork*)arg0->work;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_438  = 0;
+        work2            = (ActorsShared80168d3cWork*)arg0->work;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 3;
+        work2->field_414 = 1;
+        work->field_412  = 0;
+        work->field_422++;
+    }
+}
+
+void ActorsShared80166f54(Task* arg0)
+{
+    ActorsShared80168d3cWork* work;
+    ActorsShared80168d3cWork* work2;
+    ActorsShared80168d3cWork* next;
+    s32                       cond;
+    s16                       angle;
+    s16                       speed;
+    s32                       scale;
+
+    work = (ActorsShared80168d3cWork*)arg0->work;
+    if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
+        if ((u16)(work->field_412++ - 0x17) < 0xD) {
+            scale                                          = -0x1E;
+            angle                                          = work->field_7A + 0x400;
+            speed                                          = (((ActorsShared80168d3cWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+            ((TmdObject*)arg0->extra)->coords->flg         = 0;
+        }
+        work2 = (ActorsShared80168d3cWork*)arg0->work;
+        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+            cond = 1;
+        } else {
+            cond = 0;
+        }
+        if (cond) {
+            work->field_438 = 0;
+            next            = (ActorsShared80168d3cWork*)arg0->work;
+            next->field_420 = 0;
+            next->field_422 = 0;
         }
     }
 }

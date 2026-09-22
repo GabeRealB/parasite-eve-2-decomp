@@ -1,9 +1,12 @@
 #include "common.h"
-
 #include "main/task.h"
 #include "main/tmd.h"
-
 #include "actors/actors_shared_8016513c.h"
+#include "main/sound.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "actors/actors_shared_8016974c.h"
+#include "actors/actors_shared_801652a0.h"
 
 void ActorsShared8016513c(Task* arg0)
 {
@@ -46,5 +49,43 @@ void ActorsShared8016513c(Task* arg0)
         anim->field_418   = 0xC;
         anim->field_414   = 2;
         work->field_422++;
+    }
+}
+
+void ActorsShared801652a0(Task* arg0)
+{
+    ActorsShared80168d3cWork* work;
+    ActorsShared80168d3cWork* next;
+    ActorsShared80168d3cWork* next2;
+    u32                       soundId;
+    s32                       pan;
+
+    work = (ActorsShared80168d3cWork*)arg0->work;
+    if ((s16)++work->field_412 == 1) {
+        soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->placeKey;
+        soundId >>= 0xC;
+        soundId <<= 8;
+        soundId  |= 0x402C0004;
+        pan       = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
+        pan     >>= 24;
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    }
+    if ((s16)work->field_412 == 2) {
+        soundId   = (u16)((GpEnemy*)arg0->spawnArg2)->placeKey;
+        soundId >>= 0xC;
+        soundId <<= 8;
+        soundId  |= 0x402C0003;
+        pan       = Gp_GetObjPan(((TmdObject*)arg0->extra)->coords) << 24;
+        pan     >>= 24;
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    }
+    if (ActorsShared8016974c(arg0)) {
+        next             = (ActorsShared80168d3cWork*)arg0->work;
+        arg0->state      = 3;
+        next->field_420  = 0;
+        next->field_422  = 0;
+        next2            = (ActorsShared80168d3cWork*)arg0->work;
+        next2->field_420 = 3;
+        next2->field_422 = 0;
     }
 }

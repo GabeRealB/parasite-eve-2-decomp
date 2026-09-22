@@ -1,14 +1,12 @@
 #include "common.h"
-
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
-
 #include "main/gameflag.h"
 #include "main/task.h"
-
 #include "rooms/rooms_shared_8017d638.h"
 #include "rooms/rooms_shared_8017d8bc.h"
+#include "rooms/rooms_shared_8017db1c.h"
 
 extern s8 D_8007272D;
 
@@ -75,4 +73,17 @@ s32 RoomsShared8017d8bc(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* 
         ret = 2;
     }
     return ret;
+}
+
+s32 RoomsShared8017db1c(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 0x8:
+            Gp_EnqueueStageSnd6(0x521D0008, 0, 0);
+            break;
+        case 0x9:
+            Gp_EnqueueStageSnd6(0x521D0009, 0, 0);
+            break;
+    }
+    return 0;
 }

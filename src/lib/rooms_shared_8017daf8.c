@@ -1,15 +1,14 @@
 #include "common.h"
-
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
-
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
-
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d638.h"
 #include "rooms/rooms_shared_8017daf8.h"
+#include "main/sound.h"
+#include "rooms/rooms_shared_8017dc64.h"
 
 s32 RoomsShared8017daf8(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
@@ -48,4 +47,17 @@ s32 RoomsShared8017daf8(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* 
         }
     }
     return 1;
+}
+
+s32 RoomsShared8017dc64(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 8:
+            Gp_EnqueueStageSnd6(0x52140008, 0, 0);
+            break;
+        case 13:
+            Gp_EnqueueStageSnd6(0x5214000D, 0, 0);
+            break;
+    }
+    return 0;
 }
