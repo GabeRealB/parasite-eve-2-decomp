@@ -23,5 +23,3 @@ void func_actor_110800_8013232C(Task* arg0)
     taskKill(D_actor_110800_80139F18);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_110800/actor_110800_2", func_actor_110800_80132368);

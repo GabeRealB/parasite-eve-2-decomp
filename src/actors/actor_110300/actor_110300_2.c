@@ -48,27 +48,3 @@ void func_actor_110300_80132088(Task* arg0)
     taskKill(D_actor_110300_8013A0A8);
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
-
-/// Runs the body the actor's step selects and then leaves it in step 3, the
-/// running state. Steps 1 and 2 each return through their own copy of the
-/// advance; the two are identical, so jump.c cross-jumps them and only the
-/// second survives.
-///
-/// `arg0` is handed the actor but the body ignores it: it reaches the work
-/// block through the global, like every other function in the overlay.
-void func_actor_110300_801320C4(GpActorWork* arg0)
-{
-    if (ActorsShared80131f9cWork->field_474 == 1) {
-        ActorsShared80132208();
-        ActorsShared80131f9cWork->field_474 = 3;
-        return;
-    }
-    if (ActorsShared80131f9cWork->field_474 == 2) {
-        ActorsShared80132180();
-        ActorsShared80131f9cWork->field_474 = 3;
-        return;
-    }
-    if (ActorsShared80131f9cWork->field_474 == 3) {
-        ActorsShared80132138();
-    }
-}
