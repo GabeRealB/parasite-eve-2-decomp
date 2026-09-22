@@ -5302,6 +5302,10 @@ slots = [
   { slot = 1, package = "actor_101100", id = 81 },
   { slot = 2, package = "actor_201100", id = 154 },
   { slot = 3, package = "actor_301100", id = 201 },
+  # The same image as the three above, issued under ids of its own: each package
+  # matches its slot's counterpart byte for byte past the id word.
+  { slot = 1, package = "actor_104900", id = 107 },
+  { slot = 2, package = "actor_204900", id = 184 },
 ]
 objects = [
   { kind = "packageId" },
@@ -6000,47 +6004,6 @@ objects = [
   { kind = "data", at = "0x5224" },
   { kind = "model", at = "0x58C4" },
   { kind = "data", at = "0x61E4" },
-]
-
-[actors.overlays.actor_04900]
-label = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body"
-slots = [
-  { slot = 1, package = "actor_104900", id = 107 },
-  { slot = 2, package = "actor_204900", id = 184 },
-]
-objects = [
-  { kind = "packageId" },
-  { unit = "actor_04900/actor_104900", rodata = "0x4", text = "0xE8" },
-  { lib = "shared", unit = "actors_shared_801357f0", text = "0x39D0" },
-  { lib = "shared", unit = "actors_shared_801359cc", text = "0x3BAC" },
-  { lib = "shared", unit = "actors_shared_80135fdc", text = "0x41BC" },
-  { unit = "actor_04900/actor_104900_2", text = "0x4410" },
-  { lib = "shared", unit = "actors_shared_80137fb8", text = "0x6198" },
-  { unit = "actor_04900/actor_104900_3", text = "0x638C" },
-  { lib = "shared", unit = "actors_shared_80138404", text = "0x65E4" },
-  { lib = "shared", unit = "actors_shared_8013845c", text = "0x663C" },
-  { lib = "shared", unit = "actors_shared_801384ac", text = "0x668C" },
-  { lib = "shared", unit = "actors_shared_8013852c", text = "0x670C" },
-  { lib = "shared", unit = "actors_shared_801385e0", text = "0x67C0" },
-  { lib = "shared", unit = "actors_shared_80138774", text = "0x6954" },
-  { lib = "shared", unit = "actors_shared_801388e8", text = "0x6AC8" },
-  { lib = "shared", unit = "actors_shared_8013898c", text = "0x6B6C" },
-  { unit = "actor_04900/actor_104900_4", text = "0x6C0C" },
-  { lib = "shared", unit = "actors_shared_80138c6c", text = "0x6E4C" },
-  { lib = "shared", unit = "actors_shared_80138d58", text = "0x6F38" },
-  { unit = "actor_04900/actor_104900_5", text = "0x7014" },
-  { lib = "shared", unit = "actors_shared_80138efc", text = "0x70DC" },
-  { unit = "actor_04900/actor_104900_6", text = "0x7148" },
-  { lib = "shared", unit = "actors_shared_801390d8", text = "0x72B8" },
-  { lib = "shared", unit = "actors_shared_8013918c", text = "0x736C" },
-  { lib = "shared", unit = "actors_shared_801511c8", text = "0x73A8" },
-  { lib = "shared", unit = "actors_shared_8013845c_sub1", text = "0x73DC" },
-  { kind = "data", at = "0x74D0" },
-  { kind = "model", at = "0x7520" },
-  { kind = "model", at = "0xCB4C" },
-  { kind = "model", at = "0xD070" },
-  { kind = "model", at = "0xD918" },
-  { kind = "data", at = "0xE500" },
 ]
 
 [actors.overlays.actor_105100]
