@@ -274,6 +274,73 @@ def cmd_siblings(data: dict, name: str, min_words: int) -> int:
     return 0
 
 
+def _entry_of(manifest: dict, family: str, package: str) -> tuple[str, dict, int] | None:
+    """(entry name, entry, this package's load address) for one package.
+
+    An entry names one package, or - where a family loads the same image into
+    several slots - all of them at once, in which case several packages share
+    the entry and differ only by the slot they declare.
+    """
+    spec = manifest[family]
+    slots = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+    for name, entry in spec["overlays"].items():
+        for slot in entry.get("slots") or [{"package": name, "slot": entry.get("slot")}]:
+            if slot["package"] == package:
+                return name, entry, slots.get(slot.get("slot"), int(spec["load_addr"]))
+    return None
+
+
+_OBJ = re.compile(r'^(\s*)\{ (.*) \},?$')
+
+
+def _objects_block(text: str, family: str, entry: str) -> tuple[int, int, list[str]]:
+    """Span of an entry's `objects = [...]` list, and its lines."""
+    head = text.index(f"[{family}.overlays.{entry}]")
+    start = text.index("objects = [", head) + len("objects = [\n")
+    end = text.index("\n]", start)
+    return start, end + 1, text[start:end].splitlines()
+
+
+def _offset_of(line: str) -> int | None:
+    """The offset an object's first subsegment starts at."""
+    offs = [int(v, 16) for v in re.findall(r'(?:rodata|text|data|at) = "(0x[0-9A-F]+)"', line)]
+    return min(offs) if offs else None
+
+
+def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
+                   unit: str, overlay: str) -> tuple[str, str | None]:
+    """Give one run to a shared unit, handing the remainder to a new unit.
+
+    The old `shared` key carved a span out of the middle of a run and left the
+    generator to stitch the rest back under generated names. An object list has
+    no holes: the shared object owns everything from its offset to the next one,
+    so whatever followed the body needs an object of its own.
+    """
+    start, end, lines = _objects_block(text, family, entry)
+    owner = None
+    for i, line in enumerate(lines):
+        o = _offset_of(line)
+        if o is not None and o <= at and "kind" not in line:
+            owner = i
+    if owner is None:
+        return text, None
+    m = re.search(r'unit = "([^"]*)"', lines[owner])
+    base = m.group(1).rsplit("/", 1)[-1] if m else overlay
+    nxt = next((_offset_of(l) for l in lines[owner + 1:] if _offset_of(l) is not None), None)
+    new = [f'  {{ lib = "shared", unit = "{unit}", text = "0x{at:X}" }},']
+    tail = None
+    if nxt is None or at + size < nxt:
+        n = 2
+        taken = set(re.findall(r'unit = "[^"]*?([^/"]+)"', "\n".join(lines)))
+        while f"{base.split('_')[0]}_{n}" in taken or f"{overlay}_{n}" in taken:
+            n += 1
+        tail = f"{overlay}_{n}"
+        new.append(f'  {{ unit = "{overlay}/{tail}", text = "0x{at + size:X}" }},')
+    lines[owner + 1:owner + 1] = new
+    lines.sort(key=lambda l: (_offset_of(l) if _offset_of(l) is not None else 0))
+    return text[:start] + "\n".join(lines) + "\n" + text[end:], tail
+
+
 def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     """Move a body into the family's shared library.
 
@@ -384,34 +451,31 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     size = hit["words"] * 4
 
     pending_syms: list[tuple[Path, str]] = []
+    edited: set[str] = set()
     for f in sorted(keep, key=lambda f: f["overlay"]):
         room = f["overlay"].split("/")[-1]
-        if room not in overlays:
+        found = _entry_of(manifest, family, room)
+        if found is None:
             print(f"{room}: not an entry in the manifest; aborting", file=sys.stderr)
             return 1
-        # A relocated slot overrides the family load address, and the span is a
-        # file offset: reading the family value for every overlay would put a
-        # slot-2 body 0x18000 past the end of its own package.
-        load = overlays[room].get("load_addr", family_load)
+        entry_name, _entry, load = found
+        # The span is a file offset and a slot overrides the family load
+        # address: reading the family value for every package would put a
+        # slot-2 body 0x18000 past the end of its own image.
         start = int(f["vram"], 16) - load
-        spans = [(int(str(s["start"]), 16), int(str(s["end"]), 16), s["unit"])
-                 for s in overlays[room].get("shared", [])]
-        spans.append((start, start + size, unit))
-        spans.sort()
-        for (_a1, b1, _u1), (a2, _b2, _u2) in zip(spans, spans[1:]):
-            if b1 > a2:
-                print(f"{room}: shared spans overlap; aborting", file=sys.stderr)
+        # Several packages can share one entry - the slots of one actor - and
+        # the entry describes the image once, so it is edited once. Each
+        # package still needs the symbol in its own map, since the address
+        # differs per slot.
+        if entry_name not in edited:
+            edited.add(entry_name)
+            text, tail = _insert_shared(text, family, entry_name, start, size, unit, room)
+            if text is None:
+                print(f"{entry_name}: no object owns offset 0x{start:X}; aborting",
+                      file=sys.stderr)
                 return 1
-        items = ", ".join(
-            f'{{ start = "0x{a:X}", end = "0x{b:X}", unit = "{u}" }}' for a, b, u in spans
-        )
-        m = re.search(rf"^{re.escape(room)} = \{{(.*)\}}$", text, re.M)
-        # Strip a comma on *either* side of the removed clause: a `shared`
-        # that led the entry leaves the comma that separated it from the
-        # next key, which is invalid TOML (`{ , rodata = ... }`).
-        body = re.sub(r",?\s*shared = \[.*?\](?=,|$)", "", m.group(1).strip()).strip(" ,")
-        body = f"{body}, shared = [{items}]" if body else f"shared = [{items}]"
-        text = text[: m.start()] + f"{room} = {{ {body} }}" + text[m.end() :]
+            if tail:
+                print(f"  {entry_name}: remainder after the body goes to {tail}")
 
         sym_path = Path(f"configs/USA/sym/{family}/{room}.txt")
         sym_text = sym_path.read_text(encoding="utf-8")

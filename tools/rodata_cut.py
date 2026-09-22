@@ -81,6 +81,32 @@ def referencing_unit(sym: str, overlay: str) -> str | None:
     return units.pop() if len(units) == 1 else None
 
 
+def _entry_block(overlay: str) -> tuple[str, str, str] | None:
+    """(family, entry name, the entry's text) for the entry covering an overlay.
+
+    An entry names one package, or all the slots of one image at once, so the
+    entry's name is not always the package's.
+    """
+    import tomllib
+    path = ROOT / "configs/USA/overlays.toml"
+    text = path.read_text()
+    man = tomllib.loads(text)
+    for family, spec in man.items():
+        for name, entry in spec.get("overlays", {}).items():
+            pkgs = [sl["package"] for sl in entry.get("slots", [])] or [name]
+            if overlay in pkgs:
+                i = text.index(f"[{family}.overlays.{name}]")
+                j = text.find("\n[", i + 1)
+                return family, name, text[i:j if j != -1 else len(text)]
+    return None
+
+
+def _object_lines(block: str) -> list[str]:
+    """The object lines of an entry, without the `objects = [` header."""
+    start = block.index("objects = [")
+    return block[start:block.index("\n]", start)].splitlines()[1:]
+
+
 def rodata_head(overlay: str) -> int:
     """The file offset the leading rodata starts at (manifest `rodata_head`).
 
@@ -90,12 +116,12 @@ def rodata_head(overlay: str) -> int:
     treating the first symbol as offset 0 worked there and produced a cut at
     0x0 - rejected as "outside the leading rodata (0x1F4..0x268)" - elsewhere.
     """
-    text = (ROOT / "configs/USA/overlays.toml").read_text()
-    m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
-    if not m:
+    found = _entry_block(overlay)
+    if not found:
         return 0
-    h = re.search(r'rodata_head = "(0x[0-9A-Fa-f]+)"', m.group(0))
-    return int(h.group(1), 16) if h else 0
+    # The id word is its own object, so the leading rodata a cut may land in
+    # begins after it; where an overlay declares no id, it begins at zero.
+    return 0 if '{ kind = "packageId" }' not in found[2] else 4
 
 
 def existing_cuts(overlay: str) -> list[tuple[int, str]]:
@@ -107,16 +133,15 @@ def existing_cuts(overlay: str) -> list[tuple[int, str]]:
     it, and the table then sat in a different object from the .L labels its
     entries point at ("undefined reference to `.Lmine_mesa_8017DE7C'").
     """
-    text = (ROOT / "configs/USA/overlays.toml").read_text()
-    m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
-    if not m:
-        return []
-    block = re.search(r"rodata = \[([^\]]*)\]", m.group(0))
-    if not block:
+    found = _entry_block(overlay)
+    if not found:
         return []
     out = []
-    for cm in re.finditer(r'start = "(0x[0-9A-Fa-f]+)", unit = "([^"]+)"', block.group(1)):
-        out.append((int(cm.group(1), 16), cm.group(2)))
+    for line in _object_lines(found[2]):
+        u = re.search(r'unit = "([^"]+)"', line)
+        r = re.search(r'rodata = "(0x[0-9A-Fa-f]+)"', line)
+        if u and r:
+            out.append((int(r.group(1), 16), u.group(1).rsplit("/", 1)[-1]))
     return sorted(out)
 
 
@@ -216,16 +241,32 @@ def src_dir(overlay: str) -> Path | None:
 
 
 def write_manifest(overlay: str, cuts: list[tuple[int, str]]) -> bool:
+    """Put each cut on the object that owns the run it starts.
+
+    A cut is no longer a list of its own: it is the offset an object's rodata
+    begins at, so applying one means setting that key on the named unit and
+    clearing it from any unit that no longer owns a run.
+    """
     manifest = ROOT / "configs/USA/overlays.toml"
-    text = manifest.read_text()
-    m = re.search(rf"^{re.escape(overlay)} = \{{.*$", text, re.M)
-    if not m:
+    found = _entry_block(overlay)
+    if not found:
         return False
-    line = m.group(0)
-    new_line = (re.sub(r"rodata = \[[^\]]*\]", toml_value(cuts), line)
-                if "rodata = [" in line
-                else line.replace("{ ", "{ " + toml_value(cuts) + ", ", 1))
-    manifest.write_text(text.replace(line, new_line, 1))
+    _family, _name, block = found
+    text = manifest.read_text()
+    want = {u: off for off, u in cuts}
+    lines = _object_lines(block)
+    out = []
+    for line in lines:
+        u = re.search(r'unit = "([^"]+)"', line)
+        if u:
+            base = u.group(1).rsplit("/", 1)[-1]
+            line = re.sub(r'rodata = "0x[0-9A-Fa-f]+", ?', "", line)
+            if base in want:
+                line = re.sub(r'(unit = "[^"]+", )',
+                              rf'\1rodata = "0x{want[base]:X}", ', line, count=1)
+        out.append(line)
+    new_block = block.replace("\n".join(lines), "\n".join(out), 1)
+    manifest.write_text(text.replace(block, new_block, 1))
     return True
 
 
