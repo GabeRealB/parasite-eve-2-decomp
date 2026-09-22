@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -8,6 +9,10 @@
 
 extern void Room_Util16(s32);
 extern void Room_Util17(s32);
+
+extern GpGridParams D_dryfield_factory_80186C68;
+extern GpGridParams D_dryfield_factory_80187BF0;
+extern GpGridParams D_dryfield_factory_80187BF8;
 
 /// Cutscene driver for the factory room: silences both weapons, runs the cap
 /// (cutscene) command in `Task::spawnArg1`, then waits for the cap to report
@@ -77,7 +82,63 @@ void func_dryfield_factory_8017FC18(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", func_dryfield_factory_8017FDDC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", func_dryfield_factory_8018001C);
+/// Restores two faces of the room's collision grid (their normals, corners and
+/// face records) from a template, then slides the eight corners 2000 units
+/// along x once game flag 0x47 is set: at once in state 0, which then kills the
+/// task, or from state 1 when the flag turns positive later.
+void func_dryfield_factory_8018001C(Task* task)
+{
+    GpGridParams* src = &D_dryfield_factory_80186C68;
+    GpGridParams* geom;
+    s32           i;
+
+    if (gGameSession->at4.loc.stage == 2) {
+        geom = &D_dryfield_factory_80187BF8;
+    } else {
+        geom = &D_dryfield_factory_80187BF0;
+    }
+    switch (task->state) {
+        case 0:
+            for (i = 0; i < 2; i++) {
+                geom->field_4[i].vx         = src->field_4[i].vx;
+                geom->field_4[i].vy         = src->field_4[i].vy;
+                geom->field_4[i].vz         = src->field_4[i].vz;
+                geom->field_8[i * 4 + 0].vx = src->field_8[i * 4 + 0].vx;
+                geom->field_8[i * 4 + 0].vy = src->field_8[i * 4 + 0].vy;
+                geom->field_8[i * 4 + 0].vz = src->field_8[i * 4 + 0].vz;
+                geom->field_8[i * 4 + 1].vx = src->field_8[i * 4 + 1].vx;
+                geom->field_8[i * 4 + 1].vy = src->field_8[i * 4 + 1].vy;
+                geom->field_8[i * 4 + 1].vz = src->field_8[i * 4 + 1].vz;
+                geom->field_8[i * 4 + 2].vx = src->field_8[i * 4 + 2].vx;
+                geom->field_8[i * 4 + 2].vy = src->field_8[i * 4 + 2].vy;
+                geom->field_8[i * 4 + 2].vz = src->field_8[i * 4 + 2].vz;
+                geom->field_8[i * 4 + 3].vx = src->field_8[i * 4 + 3].vx;
+                geom->field_8[i * 4 + 3].vy = src->field_8[i * 4 + 3].vy;
+                geom->field_8[i * 4 + 3].vz = src->field_8[i * 4 + 3].vz;
+                geom->field_C[i]            = src->field_C[i];
+            }
+            if (GameFlag_GetNibble(0x47) != 0) {
+                for (i = 0; i < 8; i++) {
+                    geom->field_8[i].vx += 2000;
+                }
+                taskKill(task);
+                return;
+            }
+            task->state++;
+            break;
+        case 1:
+            if (GameFlag_GetNibble(0x47) > 0) {
+                for (i = 0; i < 8; i++) {
+                    geom->field_8[i].vx += 2000;
+                }
+                task->state++;
+            }
+            break;
+        default:
+            taskKill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", func_dryfield_factory_801802F0);
 
