@@ -15,7 +15,19 @@ void      func_actor_521100_801358D4(Actor521100* arg0);
 void      func_actor_521100_80135964(Actor521100* arg0);
 extern u8 D_801153F4;
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_2", ActorsShared80131e24Sub1);
+void ActorsShared80131e24Sub1(Actor521100Ctx* arg0, Actor521100* arg1)
+{
+    Actor521100Work* work;
+
+    work = arg1->field_1C;
+    if (gGameSession->eventState != 0) {
+        work->field_682 = 1;
+        func_actor_521100_80135414(arg0, arg1);
+        return;
+    }
+    work->field_682 = 0;
+    func_actor_521100_80135478(arg0, arg1);
+}
 
 void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1)
 {
