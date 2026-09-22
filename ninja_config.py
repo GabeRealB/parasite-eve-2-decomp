@@ -1570,6 +1570,16 @@ def main():
     selected = resolve_scope(args.only or [], ordered)
     scoped = bool(args.only)
     overlay_family = {yaml: family for yaml, _name, family in selected}
+    # package -> the manifest entry covering it. Several packages share an entry
+    # where a family loads one image into several slots, and they then write the
+    # same asm files, so the split must not run them at once.
+    overlay_entry: dict[str, str] = {}
+    if OVERLAY_MANIFEST.is_file():
+        for _family, spec in tomllib.loads(
+                OVERLAY_MANIFEST.read_text(encoding="utf-8")).items():
+            for entry_name, entry in spec.get("overlays", {}).items():
+                for slot in entry.get("slots") or [{"package": entry_name}]:
+                    overlay_entry[str(slot["package"])] = entry_name
     overlay_basename = {yaml: name for yaml, name, _family in selected}
     scoped_names = [name for _y, name, _f in selected] if scoped else None
 
@@ -1630,16 +1640,45 @@ def main():
         todo.append(i)
     print(f"Split: {len(todo)} of {len(jobs)} unit(s)")
 
+    def split_rounds(indices: list[int]) -> list[list[int]]:
+        """Split `indices` into rounds no two of which share an asm directory.
+
+        Units are not quite independent: the packages of one entry - the load
+        slots of one image - name the same units, so they write the same files
+        under asm/<version>/<family>/. Splitting two of them at once leaves a
+        half-written file, which assembles to a stray fragment and fails with an
+        unrecognized opcode. Running one package of each entry per round keeps
+        the parallelism, since entries with several slots are a small minority.
+        """
+        seen: dict[str, int] = {}
+        rounds: list[list[int]] = []
+        for i in indices:
+            entry = overlay_entry.get(names[i], names[i])
+            k = seen.get(entry, 0)
+            seen[entry] = k + 1
+            if k == len(rounds):
+                rounds.append([])
+            rounds[k].append(i)
+        return rounds
+
     def run(indices: list[int], parallel: bool = True) -> None:
         # Splitting dominates a cold run - 111 s of ~120 s across 449 units -
-        # and each unit is independent, so it parallelises cleanly. `map`
-        # keeps the original order. One unit is not worth a pool.
+        # and units that do not share an output directory parallelise cleanly.
+        # `map` keeps the original order. One unit is not worth a pool.
         started = time.time_ns() - 2_000_000_000  # file timestamps are coarse
         workers = jobs_option if jobs_option > 0 else (os.cpu_count() or 1)
         workers = min(len(indices), max(1, workers))
         if workers > 1 and parallel:
-            with ProcessPoolExecutor(max_workers=workers) as pool:
-                out = list(pool.map(split_one, [jobs[i] for i in indices], chunksize=1))
+            out_by_index: dict[int, object] = {}
+            for round_ in split_rounds(indices):
+                n = min(len(round_), workers)
+                if n > 1:
+                    with ProcessPoolExecutor(max_workers=n) as pool:
+                        got = list(pool.map(split_one, [jobs[i] for i in round_], chunksize=1))
+                else:
+                    got = [split_one(jobs[i]) for i in round_]
+                out_by_index.update(zip(round_, got))
+            out = [out_by_index[i] for i in indices]
         else:
             out = [split_one(jobs[i]) for i in indices]
         stamp_dir.mkdir(parents=True, exist_ok=True)
