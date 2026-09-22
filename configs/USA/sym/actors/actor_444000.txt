@@ -9,3 +9,5 @@ ActorsShared80133de4 = 0x80133DE4; // shared body, see src/lib/
 ActorsShared80139ee4 = 0x80139EE4; // shared body, see src/lib/
 ActorsShared80132cb8 = 0x80132CB8; // shared body, see src/lib/
 ActorsShared80132808 = 0x80132808; // shared body, see src/lib/
+ActorsShared80133614 = 0x80133C58; // shared body, see src/lib/
+func_actor_444000_80133C58 = 0x80133C58; // type:func absolute:True
