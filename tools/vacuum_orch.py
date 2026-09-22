@@ -225,9 +225,35 @@ def difficult_pool(root: Path) -> set[str]:
         return set()
 
 
-def blocked_names(state: dict, *, only_difficult: bool = False) -> set[str]:
+_ALIASES: dict[Path, set[str]] = {}
+
+
+def alias_names(root: Path) -> set[str]:
+    """Function names that label a function in more than one overlay.
+
+    The `matched` list is kept by name, but some names are reused: several
+    actors call a *different* body ActorsShared80131f9cSub1. Matching one copy
+    then blocked every other overlay's copy by name, and a sweep found nothing
+    to claim in overlays whose bodies were still unmatched. For such a name the
+    overlay's own asm says what is left, so the list must not veto it. Counts
+    matched and unmatched copies alike; the library is not an overlay.
+    """
+    if root not in _ALIASES:
+        seen: dict[str, set[str]] = {}
+        for kind in ("matchings", "nonmatchings"):
+            for p in (root / "asm").glob(f"*/*/{kind}/*/**/*.s"):
+                _ver, family, _kind, ov = p.relative_to(root / "asm").parts[:4]
+                if ov != "lib":
+                    seen.setdefault(p.stem, set()).add(f"{family}/{ov}")
+        _ALIASES[root] = {n for n, ovs in seen.items() if len(ovs) > 1}
+    return _ALIASES[root]
+
+
+def blocked_names(state: dict, *, only_difficult: bool = False,
+                  root: Optional[Path] = None) -> set[str]:
     names = set(state["claims"])
-    names.update(state.get("matched") or [])
+    matched = set(state.get("matched") or [])
+    names.update(matched - alias_names(root) if root is not None else matched)
     # Historical give-ups are the --difficult pool; only skip them in normal vacuum.
     if not only_difficult:
         names.update(state.get("difficult") or [])
@@ -242,7 +268,7 @@ def pick_func(
     only_difficult: bool = False,
     extra_exclude: Optional[Path] = None,
 ) -> Optional[str]:
-    blocked = blocked_names(state, only_difficult=only_difficult)
+    blocked = blocked_names(state, only_difficult=only_difficult, root=root)
     for name in ranked_functions(
         root,
         extra_exclude=extra_exclude,
@@ -473,7 +499,7 @@ def rank_overlays(root: Path, state: dict,
     mechanical path not because they are complex but because they share one
     untyped state struct, which is exactly what a whole-overlay pass resolves.
     """
-    blocked = blocked_names(state, only_difficult=only_difficult)
+    blocked = blocked_names(state, only_difficult=only_difficult, root=root)
     pool = difficult_pool(root) if only_difficult else None
     counts: dict[str, int] = {}
     for d in list_nonmatching_dirs(root):
@@ -528,7 +554,7 @@ def cmd_claim_overlay(
 
     # A retry pass leases *from* the give-up list rather than around it, so the
     # difficult names are the pool, not the block list.
-    blocked = set(store.data.get("matched") or [])
+    blocked = set(store.data.get("matched") or []) - alias_names(root)
     if not only_difficult:
         blocked |= set(store.data.get("difficult") or [])
     pool = difficult_pool(root) if only_difficult else None
