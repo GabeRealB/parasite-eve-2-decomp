@@ -20,31 +20,19 @@
  * stays unprototyped. */
 s32 ActorsShared8016974c();
 
-void func_actor_341700_80168F5C(Task* arg0)
-{
-    u16              ticks;
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    ticks           = work->field_412;
-    work->field_412 = ticks + 1;
-    if ((s16)ticks >= 0x51) {
-        work->field_422 = work->field_422 + 1;
-    }
-}
-
-void func_actor_341700_80168F9C(Task* arg0)
+void ActorsShared8016a2fc(Task* arg0)
 {
     Actor341700Work* work;
     Actor341700Work* work2;
 
     work = (Actor341700Work*)arg0->work;
     if ((ActorsShared8016974c() << 0x10) != 0) {
-        func_actor_341700_801681C4(arg0, 0);
+        work->field_438  = 1;
+        work->field_412  = 0;
         work2            = (Actor341700Work*)arg0->work;
-        work2->field_426 = 8;
+        work2->field_426 = 4;
         work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
+        work2->field_418 = 4;
         work2->field_414 = 1;
         work->field_422  = work->field_422 + 1;
     }
