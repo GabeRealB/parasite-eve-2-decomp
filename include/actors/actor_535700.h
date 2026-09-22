@@ -23,10 +23,12 @@
 /// 2 through `ActorsShared80132610`. `animId` is the clip the reseed is handed
 /// and `field_47E` records it once a walk has re-aimed every slot.
 typedef struct Actor535700Work {
-    /* 0x000 */ byte       pad_0[0x40];
+    /* 0x000 */ MATRIX     light;
+    /* 0x020 */ MATRIX     color;
     /* 0x040 */ GpAnimCtx  anim;
     /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       pad_34C[0x130];
+    /* 0x34C */ byte       field_34C;
+    /* 0x34D */ byte       pad_34D[0x12F];
     /* 0x47C */ s16        state;
     /* 0x47E */ u16        field_47E;
     /* 0x480 */ s16        animId;
@@ -111,6 +113,10 @@ extern s16 D_actor_535700_8014684C;
 /// Exit callback of the enemy task `ActorsShared80131e24Sub0` sets up: tears
 /// down the enemy the task was spawned for.
 void func_actor_535700_80132FF8(Task* task);
+
+/// Exit callback the state-0 handler installs on the model's task: tears down
+/// the enemy the task was spawned for.
+void func_actor_535700_80132558(Task* task);
 
 /// Ticks the animation once the runner has moved and turned the model.
 void func_actor_535700_80132648(void);
