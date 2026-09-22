@@ -514,6 +514,25 @@ def _carriers(cls: list[dict], families: frozenset[str]) -> tuple[list[dict], li
     return keep, promoted, twice, outside
 
 
+_LIB_ITEM = re.compile(r"^INCLUDE_ASM\([^,]+,\s*(\w+)\)|^[A-Za-z_][\w \t*]*\b(\w+)\s*\([^;{]*\)\s*\n?\{", re.M)
+
+
+def _lib_unit_of(name: str) -> tuple[str, int] | None:
+    """(library unit, functions it holds) for a promoted body, from src/lib.
+
+    The index files every promoted copy under a bare `lib`, so the unit that
+    holds one is found by the definition or stub that names it. The count
+    matters because a unit is linked whole: a body that already sits in a
+    multi-function unit cannot be shared by reusing that unit.
+    """
+    for c in sorted(Path("src/lib").glob("*.c")):
+        text = c.read_text(errors="ignore")
+        items = [a or b for a, b in _LIB_ITEM.findall(text)]
+        if name in items:
+            return c.stem, len(set(items))
+    return None
+
+
 def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[list[dict], str | None]:
     """The bodies to promote for `hit`, callees before callers, or why not.
 
@@ -538,6 +557,15 @@ def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[li
             return None           # already planned, or a cycle that will be
         state[body["text"]] = "active"
         keep, promoted, _twice, _outside = _carriers(cl[body["text"]], families)
+        if promoted:
+            held = _lib_unit_of(promoted[0]["name"])
+            if held is None:
+                return (f"{body['name']} is already shared as {promoted[0]['name']}, "
+                        f"but no file in src/lib defines it")
+            if held[1] > 1:
+                return (f"{body['name']} is already in the library as part of "
+                        f"{held[0]}, a unit of {held[1]} functions, and a unit is "
+                        f"linked whole - that is a consolidation, not a promotion")
         if promoted and len(keep) == 0:
             state[body["text"]] = "done"
             return None           # served by the library already
@@ -588,15 +616,15 @@ def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: di
     name = body["name"]
     keep, promoted, twice, outside = _carriers(cls, library_families())
     if promoted and unit is None:
-        sym_name = promoted[0]["name"]
-        for c in sorted(Path("src/lib").glob("*.c")):
-            if re.search(rf"\b{re.escape(sym_name)}\s*\(", c.read_text(errors="ignore")):
-                unit = c.stem
-                break
-        else:
-            print(f"{name}: already shared as {sym_name}, but no file in "
-                  f"src/lib defines it", file=sys.stderr)
+        # Reuse the unit only when it holds this body alone: a unit is linked
+        # whole, so reusing a multi-function one would drop all of it in here.
+        held = _lib_unit_of(promoted[0]["name"])
+        if held is None or held[1] > 1:
+            print(f"{name}: already in the library, but not as a unit of its own "
+                  f"({held[0] + ', ' + str(held[1]) + ' functions' if held else 'no file defines it'})",
+                  file=sys.stderr)
             return None
+        unit = held[0]
     if not keep:
         print(f"{name}: every copy is already served by the shared body")
         return None
