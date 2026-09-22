@@ -123,6 +123,11 @@ void func_actor_535700_80132730(void);
 /// work block.
 void func_actor_535700_80132108(Task* task);
 
+/// Draws an effect ground quad at the world position of the task model's root
+/// coordinate. Skipped while the model carries flag 0x80 or has no object
+/// list; what the quad depicts is not established.
+void func_actor_535700_80132ABC(Task* task);
+
 /// Script opcode 0x7D3: applies the animation preset to the work block --
 /// the id is copied in, the reset mode is picked by the preset's flag and the
 /// reset argument is either taken from the preset or left at 2 -- then
