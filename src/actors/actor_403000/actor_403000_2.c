@@ -6,8 +6,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000_2", func_actor_403000_8013D324);
-
 /// Same placement opcode as `ActorsShared80164954` (Y then X then Z, re-fetch
 /// the coordinate for every field), except the heading is cached at
 /// `Actor403000Work::yaw` (0xC) rather than 0x16, and `ratan2` reads both
