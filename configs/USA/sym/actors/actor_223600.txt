@@ -9,3 +9,5 @@ ActorsSharedFn000e8 = 0x8014A170; // shared body, see src/lib/
 func_actor_223600_8014A170 = 0x8014A170; // type:func absolute:True
 ActorsSharedFn00430 = 0x8014A4B8; // shared body, see src/lib/
 func_actor_223600_8014A4B8 = 0x8014A4B8; // type:func absolute:True
+ActorsSharedFn00820 = 0x8014B2F4; // shared body, see src/lib/
+func_actor_223600_8014B2F4 = 0x8014B2F4; // type:func absolute:True

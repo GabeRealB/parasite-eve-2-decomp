@@ -313,32 +313,6 @@ static __inline__ void Actor204000_TickSlots(Actor104000* arg0)
     }
 }
 
-/// Animation step: states 1 and 2 reset the slots and move to 3, which ticks
-/// them and counts frames (`field_17A`) and loop ends (`field_17C`).
-void Actor04000_Fn00E6C(Actor104000* arg0)
-{
-    Actor104000Work* work;
-
-    work = arg0->field_1C;
-    if (work->field_170 == 1) {
-        Actor204000_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 2) {
-        Actor204000_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 3) {
-        work->field_17A++;
-        Actor204000_TickSlots(arg0);
-        if (work->field_58 & 2) {
-            work->field_17C++;
-        }
-    }
-}
-
 /// Closes this unit's `.rodata` after the message handler's jump tables so
 /// `actor_204000_2`'s start at 0x80149E54. Nothing reads it.
 const u32 D_actor_204000_80149E50 = 0;

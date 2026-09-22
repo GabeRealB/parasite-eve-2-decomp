@@ -159,5 +159,3 @@ s32 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_01200/actor_201200", Actor01200_Fn0067C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_01200/actor_201200", Actor01200_Fn00820);
