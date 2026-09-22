@@ -8,7 +8,7 @@
 
 extern s8 D_8007216C;
 
-void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
+void RoomsShared80180de8(Task* task, s16 step)
 {
     s32 id;
     s32 state;

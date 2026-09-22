@@ -35,3 +35,5 @@ RoomsShared8017f8f4 = 0x8017F00C; // shared body, see src/lib/
 func_dryfield_night_factory_8017F00C = 0x8017F00C; // type:func absolute:True
 RoomsShared8017db08 = 0x80180574; // shared body, see src/lib/
 func_dryfield_night_factory_80180574 = 0x80180574; // type:func absolute:True
+RoomsShared80180de8 = 0x80180DE8; // shared body, see src/lib/
+func_dryfield_night_factory_80180DE8 = 0x80180DE8; // type:func absolute:True
