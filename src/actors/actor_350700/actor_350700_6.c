@@ -22,8 +22,6 @@
 extern TaskDesc   D_actor_350700_801708DC;
 extern GpMsgEntry D_actor_350700_8017090C[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700_6", func_actor_350700_80162AF4);
-
 /// The parent's spawn handler, the same body `func_actor_335800_80162640` runs.
 /// Allocates the 0x50C `Actor350700MainWork` block, seeds it, and spawns the
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
