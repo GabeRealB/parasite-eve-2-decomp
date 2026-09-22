@@ -14,7 +14,8 @@
 /// the spawn argument is set, and otherwise 0xC, 0xD or 0xE from the squared
 /// distance to slot 3. Either choice clears the latch.
 ///
-/// Carried by `actor_101100`, `actor_104900`, `actor_201100` and `actor_204900`.
+/// Carried by `actor_101100`, `actor_104900`, `actor_201100`, `actor_204900`
+/// and `actor_301100`.
 void ActorsShared801359cc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
 
 #endif

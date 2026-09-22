@@ -14,7 +14,8 @@
 /// 0xD from the LCG. Otherwise the countdown runs, and at zero the distance
 /// arms state 0xB for kind 0xB within 0x89543F and kind 0x31 within 0x22550F.
 ///
-/// Carried by `actor_101100`, `actor_104900`, `actor_201100` and `actor_204900`.
+/// Carried by `actor_101100`, `actor_104900`, `actor_201100`, `actor_204900`
+/// and `actor_301100`.
 void ActorsShared80135fdc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
 
 #endif // ACTORS_SHARED_80135FDC_H
