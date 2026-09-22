@@ -45,8 +45,6 @@ extern s32 D_actor_403900_801540B4;
 /// `func_800FDB18` argument record for the grab's finishing spark.
 extern GpEffArg D_actor_403900_801540C8;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80132E34);
-
 /// Runs the actor's hold sequence on the player (the same 0x3F8 / 0x3FF
 /// message pair `func_actor_402200_8013314C` uses to take a hold). State 0
 /// asks the player for range 0x19 while enemies remain; on success it plants
