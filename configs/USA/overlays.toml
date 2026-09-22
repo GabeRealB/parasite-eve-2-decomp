@@ -5607,7 +5607,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_02400/actor_102400", rodata = "0x4" },
+  { kind = "rodata", at = "0x4" },
   { unit = "actor_02400/actor_102400_2", rodata = "0x14", text = "0xC08" },
   { unit = "actor_02400/actors_shared_80134cfc", rodata = "0x4C", text = "0x2EDC" },
   { lib = true, unit = "actors_shared_fn00064", text = "0x64" },
