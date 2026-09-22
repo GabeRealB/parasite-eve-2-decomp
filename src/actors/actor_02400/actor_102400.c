@@ -15,10 +15,6 @@
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 Actor02400_D00004;
 
-INCLUDE_ASM("actors/nonmatchings/actor_02400/actor_102400", Actor02400_Fn00064);
-
-INCLUDE_ASM("actors/nonmatchings/actor_02400/actor_102400", Actor02400_Fn005BC);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_02400/actor_102400", Actor02400_D00004);
 
 extern u32 Gp_LcgState;

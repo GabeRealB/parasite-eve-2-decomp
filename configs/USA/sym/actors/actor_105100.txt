@@ -2,3 +2,5 @@
 ActorsShared80134ff0 = 0x801364CC; // shared body, see src/lib/
 D_actor_105100_80131EB0 = 0x80131EB0; // force_not_migration:True enemy state table, read from C
 ActorsShared80136574 = 0x80136574; // shared body, see src/lib/
+ActorsSharedFn005bc = 0x80132414; // shared body, see src/lib/
+func_actor_105100_80132414 = 0x80132414; // type:func absolute:True
