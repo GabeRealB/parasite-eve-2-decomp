@@ -2,7 +2,7 @@
 #include "actors/actor_402200.h"
 #include "main/sound.h"
 
-void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
+void ActorsShared801324e8(Actor402200* arg0, s32 arg1)
 {
     GpEnemy*         enemy = arg0->field_20;
     s16              hp    = enemy->hp;
@@ -74,7 +74,6 @@ void func_actor_402200_801324E8(Actor402200* arg0, s32 arg1)
     }
 }
 
-/// Alignment pad after `func_actor_402200_801324E8`'s jump table: closes this
-/// unit's `.rodata` so `actor_402200_3`'s table starts at 0x80131E6C. Nothing
-/// reads it.
-const u32 D_actor_402200_80131E68 = 0;
+/// Alignment pad closing the unit's `.rodata` after the jump table, so the
+/// next unit's rodata starts where each carrier has it. Nothing reads it.
+const u32 ActorsShared801324e8Pad = 0;

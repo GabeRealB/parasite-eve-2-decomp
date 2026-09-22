@@ -5564,7 +5564,7 @@ id = 265
 objects = [
   { kind = "packageId" },
   { unit = "actor_402200/actor_402200", rodata = "0x4", text = "0x134" },
-  { unit = "actor_402200/actor_402200_2", rodata = "0x2C", text = "0x6C8" },
+  { lib = true, unit = "actors_shared_801324e8", rodata = "0x2C", text = "0x6C8" },
   { unit = "actor_402200/actor_402200_3", rodata = "0x4C", text = "0xB84" },
   { unit = "actor_402200/actor_402200_4", rodata = "0x64", text = "0x132C" },
   { unit = "actor_402200/actor_402200_5", rodata = "0xF8", text = "0x3C04" },
@@ -5945,7 +5945,7 @@ id = 252
 objects = [
   { kind = "packageId" },
   { unit = "actor_403900/actor_403900", rodata = "0x4", text = "0x134" },
-  { unit = "actor_403900/actor_403900_2", rodata = "0x2C", text = "0x6C8" },
+  { lib = true, unit = "actors_shared_801324e8", rodata = "0x2C", text = "0x6C8" },
   { unit = "actor_403900/actor_403900_3", rodata = "0x4C", text = "0xB84" },
   { unit = "actor_403900/actor_403900_4", rodata = "0x64", text = "0x132C" },
   { unit = "actor_403900/actor_403900_5", rodata = "0xF8", text = "0x3C04" },
