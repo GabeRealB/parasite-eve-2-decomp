@@ -18,6 +18,7 @@ extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
@@ -265,7 +266,118 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8018158C);
+/// Per-frame handler of a drifting room effect task, a variant of
+/// `func_dryfield_night_motel_balcony_80181E7C`. The first frame resets the
+/// model's rotation to identity, keeps the low twelve bits of
+/// `Task::spawnArg1` in `field_18`, rolls a frame period (1..4 ticks) into
+/// `field_1A` and a value into `field_1C`, and, when the spawner left no drift,
+/// rolls one whose ranges depend on `spawnArg1` (bit 30: +-0x80 on every axis;
+/// negative: +-0x10 across and 0..-0xFF in y; otherwise +-0x80 across and
+/// 0..15 in y) and turns it into `field_8`'s frame. The drift is normalised and scaled to `field_24`
+/// (0x40 with bit 30 or bit 29, else 0x80), and `spawnArg1` is replaced by
+/// two bits of its upper half. Later frames advance `field_20` once per period,
+/// move the model by the drift, decrementing its y by one a tick, and hand
+/// the task to `func_dryfield_night_motel_balcony_801819E0` until `field_20`
+/// reaches 12, when it is released. Event states 2 and 3 suspend it, 4 and
+/// above release it at once, and state 1 freezes the drift and the tick.
+void func_dryfield_night_motel_balcony_8018158C(Task* task)
+{
+    RoomEffWork*   work  = task->spawnArg2;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    MATRIX*        m;
+    s32            half; // default drift length and the centre of the wide drift rolls
+
+    if (Gp_State1C->eventState >= 2) {
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+
+    Gp_UpdateCoord(coord);
+    half = 0x80;
+    work->field_22++;
+
+    switch (task->state) {
+        case 0:
+            m                  = &coord->coord;
+            *(s32*)&m->m[0][0] = 0x1000;
+            *(s32*)&m->m[0][2] = 0;
+            *(s32*)&m->m[1][1] = 0x1000;
+            *(s32*)&m->m[2][0] = 0;
+            m->m[2][2]         = 0x1000;
+            work->field_18     = (u16)task->spawnArg1 & 0xFFF;
+            work->field_24     = half;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_1A     = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_1C     = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->field_20     = 0;
+            if ((work->field_10.vx | work->field_10.vy | work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0x40000000) {
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vx = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vy = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                    work->field_10.vz = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    work->field_24    = 0x40;
+                } else {
+                    if (task->spawnArg1 < 0) {
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                    } else {
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = ((u32)Gp_LcgState >> 16) & 0xF;
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    }
+                    if (task->spawnArg1 & 0x20000000) {
+                        work->field_24 = 0x40;
+                    }
+                }
+                gte_SetRotMatrix(&work->field_8->coord);
+                gte_ldv0(&work->field_10);
+                gte_rtv0_real();
+                gte_stsv(&work->field_10);
+            }
+            VectorNormalSS(&work->field_10, &work->field_10);
+            gte_lddp(work->field_24);
+            gte_ldsv(&work->field_10);
+            gte_gpf12_real();
+            gte_stsv(&work->field_10);
+            coord->flg      = 0;
+            task->state     = 1;
+            task->spawnArg1 = (s16)(task->spawnArg1 >> 16) & 3;
+            break;
+        case 1:
+            if (Gp_State1C->eventState == 0) {
+                if ((s16)work->field_22 % (s16)work->field_1A == 0) {
+                    work->field_20++;
+                }
+                coord->coord.t[0] += work->field_10.vx;
+                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[2] += work->field_10.vz;
+                coord->flg         = 0;
+                work->field_10.vy--;
+            } else {
+                work->field_22--;
+            }
+            if ((s16)work->field_20 < 12) {
+                func_dryfield_night_motel_balcony_801819E0(task, task->spawnArg1);
+            } else {
+            release:
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801819E0);
 
