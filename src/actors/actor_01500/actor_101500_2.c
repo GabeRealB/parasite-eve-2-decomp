@@ -4,7 +4,7 @@
 /// Leaves the idle poses once `field_356` frames have run: state 0 switches to
 /// pose 7 (8 when `field_36E` is set), state 1 to pose 5 with a random
 /// `field_362` delay, state 2 to pose 14.
-void func_actor_101500_80133528(Actor101500* actor)
+void ActorsShared801344f8_Fn33528(Actor101500* actor)
 {
     Actor101500Work* work = actor->field_1C;
     s16              pose;
@@ -28,7 +28,7 @@ void func_actor_101500_80133528(Actor101500* actor)
             break;
         case 1:
             if ((s16)work->field_356 >= 10) {
-                tbl             = D_actor_101500_8013BDE8;
+                tbl             = ActorsShared80132ac4Durations;
                 work->field_35A = 3;
                 work->field_352 = 5;
                 work->field_35C = 0;

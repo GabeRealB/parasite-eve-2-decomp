@@ -9,7 +9,7 @@
 
 extern MATRIX* D_80073B8C;
 
-void func_actor_101500_801337A8(Actor101500* arg0)
+void ActorsShared801342a4_Fn337A8(Actor101500* arg0)
 {
     Actor101500Work* work;
     GsCOORDINATE2*   coord;
@@ -23,7 +23,7 @@ void func_actor_101500_801337A8(Actor101500* arg0)
         if (work->field_37C >= 15) {
             work->field_37C = 0;
         }
-        bob = D_actor_101500_8013BE90[work->field_37C];
+        bob = Actor01500_D0A070[work->field_37C];
     }
     work->field_31C.vx = coord->coord.t[0];
     work->field_31C.vy = coord->coord.t[1];
@@ -39,14 +39,14 @@ void func_actor_101500_801337A8(Actor101500* arg0)
     }
 }
 
-extern u8    D_actor_101500_801363AC[];
-extern u8    D_actor_101500_801364F0[];
-extern u8    D_actor_101500_801366DC[];
-extern u8    D_actor_101500_801368B4[];
+extern u8    Actor01500_D0458C[];
+extern u8    Actor01500_D046D0[];
+extern u8    Actor01500_D048BC[];
+extern u8    Actor01500_D04A94[];
 extern void* D_80067704[1];
 extern u8    D_801153F4;
 
-void func_actor_101500_801338D0(Actor101500* arg0)
+void Actor01500_Fn01AB0(Actor101500* arg0)
 {
     GpAreaKey    key;
     u8           areaByte0;
@@ -71,7 +71,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
     GpAreaPlace* entry4;
     GpAreaKey*   sessionKey4;
 
-    D_80067704[0] = D_actor_101500_801363AC;
+    D_80067704[0] = Actor01500_D0458C;
     effect1       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
@@ -93,7 +93,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         }
     }
 
-    D_80067704[0] = D_actor_101500_801364F0;
+    D_80067704[0] = Actor01500_D046D0;
     effect2       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
@@ -115,7 +115,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         }
     }
 
-    D_80067704[0] = D_actor_101500_801366DC;
+    D_80067704[0] = Actor01500_D048BC;
     effect3       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
@@ -137,7 +137,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
         }
     }
 
-    D_80067704[0] = D_actor_101500_801368B4;
+    D_80067704[0] = Actor01500_D04A94;
     effect4       = Gp_SpawnEff(0x40007, &arg0->field_2C->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
         sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
@@ -166,7 +166,7 @@ void func_actor_101500_801338D0(Actor101500* arg0)
 /// and spawns an effect at frame 15, 3 frees the model's buffers once
 /// `field_37E` passes 1 and 4 unlinks on its first frame; 1, 3 and 4 move to
 /// 2 once `field_362` runs out, and 2 destroys the enemy.
-void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
+void Actor01500_Fn01DF0(GpEnemy* arg0, Actor101500* arg1)
 {
     VECTOR           pos;
     Actor101500Work* work;
@@ -228,7 +228,7 @@ void func_actor_101500_80133C10(GpEnemy* arg0, Actor101500* arg1)
                     work->field_37E = 0;
                     Tmd_FreeBuffers(model);
                     model->flags |= 4;
-                    func_actor_101500_801338D0(arg1);
+                    Actor01500_Fn01AB0(arg1);
                 } else {
                     work->field_37E++;
                 }
@@ -261,12 +261,12 @@ update:
     Gp_UpdateActorColor(arg1->field_20, &pos, 0, 0);
 }
 
-extern u16     D_actor_101500_8013BE08[];
-extern SVECTOR D_actor_101500_8013BEB0;
-extern s16     D_actor_101500_8013BEB2;
-extern SVECTOR D_actor_101500_8013BEB8;
+extern u16     ActorsShared80132fd0Durations[];
+extern SVECTOR Actor01500_D0A090;
+extern s16     Actor01500_D0A092;
+extern SVECTOR Actor01500_D0A098;
 
-void func_actor_101500_80133EF8(Actor101500* arg0)
+void ActorsShared801344f8_Fn33EF8(Actor101500* arg0)
 {
     u8*              head;
     VECTOR3*         stk;
@@ -290,16 +290,16 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
     switch (work->field_35C) {
         case 0:
             off = work->field_364 + 800;
-            dy  = D_actor_101500_8013BEB2 - off - coord->coord.t[1];
+            dy  = Actor01500_D0A092 - off - coord->coord.t[1];
             ady = abs(dy);
             if (ady < 30 || --work->field_362 <= 0) {
                 work->field_35C = 1;
             } else {
                 work->field_366 = dy > 0 ? 30 : -30;
             }
-            vec->vx                = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
+            vec->vx                = Actor01500_D0A090.vx - coord->coord.t[0];
             vec->vy                = 0;
-            vec->vz                = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
+            vec->vz                = Actor01500_D0A090.vz - coord->coord.t[2];
             work->field_372        = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
             work->field_376        = 100;
             work->field_244.pos.vy = -300;
@@ -311,14 +311,14 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
             work->field_36C = 0;
             if (--work->field_362 < 0) {
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                val             = D_actor_101500_8013BE08[(Gp_LcgState >> 16) & 0xF];
+                val             = ActorsShared80132fd0Durations[(Gp_LcgState >> 16) & 0xF];
                 work->field_352 = 6;
                 work->field_35C = 2;
                 work->field_35E = val;
             }
-            ((VECTOR3*)(head - 0x10))->vx = D_actor_101500_8013BEB0.vx - coord->coord.t[0];
+            ((VECTOR3*)(head - 0x10))->vx = Actor01500_D0A090.vx - coord->coord.t[0];
             stk->vy                       = 0;
-            stk->vz                       = D_actor_101500_8013BEB0.vz - coord->coord.t[2];
+            stk->vz                       = Actor01500_D0A090.vz - coord->coord.t[2];
             work->field_372               = ratan2((s16)((VECTOR3*)(head - 0x10))->vx, (s16)stk->vz) & 0xFFF;
             work->field_376               = 100;
             break;
@@ -326,7 +326,7 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
             work->field_360  = 200;
             work->field_35E -= 200;
             if ((s16)work->field_35E < 0) {
-                tbl             = D_actor_101500_8013BDE8;
+                tbl             = ActorsShared80132ac4Durations;
                 work->field_352 = 5;
                 val2            = tbl[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
                 work->field_34C = 0x400F0002;
@@ -336,7 +336,7 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
             }
             break;
     }
-    if (D_80073B8C->t[0] > D_actor_101500_8013BEB8.vx && D_80073B8C->t[2] < D_actor_101500_8013BEB8.vz) {
+    if (D_80073B8C->t[0] > Actor01500_D0A098.vx && D_80073B8C->t[2] < Actor01500_D0A098.vz) {
         work->field_35A = 3;
         delay           = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F) + 60;
         work->field_352 = 5;
@@ -354,4 +354,4 @@ void func_actor_101500_80133EF8(Actor101500* arg0)
 
 /// Closes this unit's `.rodata` after the jump table above so
 /// `actors_shared_801344f8`'s rodata starts at 0x80131E8C. Nothing reads it.
-const u32 D_actor_101500_80131E88 = 0;
+const u32 Actor01500_D00068 = 0;

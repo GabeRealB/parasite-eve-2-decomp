@@ -5,8 +5,8 @@
 
 /// Countdown pose. Requests pose 9 and clears the move state each frame; when
 /// `field_362` runs out it switches to pose 7 and reloads the countdown from a
-/// `Gp_LcgState` draw into `D_actor_101500_8013BDE8`.
-void func_actor_101500_801346D0(Actor101500* actor)
+/// `Gp_LcgState` draw into `ActorsShared80132ac4Durations`.
+void ActorsShared801344f8_Fn346D0(Actor101500* actor)
 {
     Actor101500Work* work = actor->field_1C;
     u32              rnd;
@@ -18,7 +18,7 @@ void func_actor_101500_801346D0(Actor101500* actor)
     work->field_360 = 0;
     work->field_366 = 0;
     if (--work->field_362 == 0) {
-        tbl             = D_actor_101500_8013BDE8;
+        tbl             = ActorsShared80132ac4Durations;
         work->field_358 = 1;
         work->field_35A = 2;
         work->field_352 = 7;
@@ -37,7 +37,7 @@ void func_actor_101500_801346D0(Actor101500* actor)
 /// slots were last queued for, every slot is re-seeded from the per-state
 /// animation id table and the frame counter is cleared; while the two agree
 /// each slot is ticked and the frame counter accumulates the slot index.
-void func_actor_101500_80134778(Actor101500* arg0)
+void ActorsShared801342a4_Fn34778(Actor101500* arg0)
 {
     Actor101500Work* work;
     s32              i;
@@ -48,7 +48,7 @@ void func_actor_101500_80134778(Actor101500* arg0)
     if ((s16)work->field_352 != work->field_354) {
         work->field_354 = work->field_352;
         work->field_356 = 0;
-        value           = D_actor_101500_8013BE70[(s16)work->field_352];
+        value           = Actor01500_D0A050[(s16)work->field_352];
         for (; i < 7; i++) {
             func_800B4114(work, i, (s16)work->field_352, 0, value);
         }

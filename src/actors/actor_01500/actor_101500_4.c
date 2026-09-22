@@ -4,7 +4,7 @@
 
 /// Flag bits 0/1 of `field_4C` knock the actor into pose 13; bits 2/3 tick
 /// the damage-over-time effect and apply each hit.
-void func_actor_101500_801343E8(Actor101500* actor)
+void ActorsShared801342a4_Fn343E8(Actor101500* actor)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;
@@ -35,7 +35,7 @@ void func_actor_101500_801343E8(Actor101500* actor)
     if (enemy->reactionFlags & 0xC) {
         damage = Gp_TickObjFlag4((GpObj5C*)enemy);
         if (damage != 0) {
-            func_actor_101500_8013291C(actor, damage);
+            Actor01500_Fn00AFC(actor, damage);
             func_800DA6E8(&enemy->node, damage, 0);
         }
         if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {

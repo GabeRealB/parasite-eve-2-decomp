@@ -9,7 +9,7 @@
 /// The actor's animation work area. `field_352` is the pose the actor asks
 /// for, `field_354` the pose its slots were last re-queued for and
 /// `field_356` the frame count accumulated while the two agree:
-/// `func_actor_101500_80134778` re-seeds the slots from the per-state id table
+/// `ActorsShared801342a4_Fn34778` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
     /* 0x000 */ byte     pad_0[0x14];
@@ -57,7 +57,7 @@ typedef struct Actor101500Work {
 } Actor101500Work;
 
 /// 0x58-byte frame allocated on the scratchpad stack by
-/// `func_actor_101500_8013230C`.
+/// `ActorsShared801342a4_Fn3230C`.
 typedef struct Actor101500ContactFrame {
     /* 0x00 */ byte           pad_0[0x20];
     /* 0x20 */ GpDeltaScratch delta;
@@ -80,14 +80,14 @@ typedef struct Actor101500 {
 } Actor101500;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
-extern s16 D_actor_101500_8013BE70[];
+extern s16 Actor01500_D0A050[];
 
 /// Fifteen vertical bob offsets cycled by `field_37C` while `field_352` is 5.
-extern s16 D_actor_101500_8013BE90[];
+extern s16 Actor01500_D0A070[];
 
-/// Sixteen frame counts `func_actor_101500_80133528`, `func_actor_101500_801345D0` and `func_actor_101500_801346D0` reload `field_362` from,
+/// Sixteen frame counts `ActorsShared801344f8_Fn33528`, `ActorsShared801344f8_Fn345D0` and `ActorsShared801344f8_Fn346D0` reload `field_362` from,
 /// picked by a `Gp_LcgState` draw.
-extern u16 D_actor_101500_8013BDE8[];
+extern u16 ActorsShared80132ac4Durations[];
 
 /// 0x18-byte frame allocated on the scratchpad stack; only the `SVECTOR` at
 /// +0x10 is used, as the rotation `ActorsShared80133658` hands `RotMatrix`.
@@ -103,16 +103,16 @@ extern u8  D_801153F2[2];
 void func_800B4114(Actor101500Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 /// Pair packed into the third collision object's `key` at spawn.
-extern GpU16Pair D_actor_101500_8013BDD4;
+extern GpU16Pair Actor01500_D09FB4;
 /// The enemy's parameter record; `hpMax` seeds the hit points.
-extern GpPairSrcE D_actor_101500_8013BDD8;
+extern GpPairSrcE Actor01500_D09FB8;
 /// Animation bank handed to `func_800B3F84`.
-extern u8 D_actor_101500_8013BE34[];
+extern u8 Actor01500_D0A014[];
 
-void func_actor_101500_8013291C(Actor101500* actor, s32 damage);
+void Actor01500_Fn00AFC(Actor101500* actor, s32 damage);
 
-/// Maximum hit points; `func_actor_101500_8013291C` staggers below 60%.
-extern u16 D_actor_101500_8013BDDC;
+/// Maximum hit points; `Actor01500_Fn00AFC` staggers below 60%.
+extern u16 ActorsShared80132ac4MaxHp;
 
 extern u16 ActorsShared80132ac4Durations[];
 extern u16 ActorsShared80132ac4MaxHp;

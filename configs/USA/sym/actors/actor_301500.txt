@@ -1,14 +1,38 @@
 // Overlay-local symbols for actor_301500.
+// Shared with this actor's other RAM slots, so every symbol is named by
+// file offset. Local labels are named only when something outside the
+// shared body reaches them.
+
+Actor01500_Jt00014 = 0x80161E34;
+Actor01500_Jt00054 = 0x80161E74;
+Actor01500_D00068 = 0x80161E88;
+Actor01500_Fn00094 = 0x80161EB4;
+Actor01500_Fn00AFC = 0x8016291C;
+Actor01500_Fn01AB0 = 0x801638D0;
+Actor01500_Fn01DF0 = 0x80163C10;
+Actor01500_D0458C = 0x801663AC;
+Actor01500_D046D0 = 0x801664F0;
+Actor01500_D048BC = 0x801666DC;
+Actor01500_D04A94 = 0x801668B4;
+Actor01500_D09FB4 = 0x8016BDD4;
+Actor01500_D09FB8 = 0x8016BDD8;
+Actor01500_D0A014 = 0x8016BE34;
+Actor01500_D0A050 = 0x8016BE70;
+Actor01500_D0A070 = 0x8016BE90;
+Actor01500_D0A090 = 0x8016BEB0;
+Actor01500_D0A092 = 0x8016BEB2;
+Actor01500_D0A098 = 0x8016BEB8;
+
 ActorsShared801344f8 = 0x801644F8; // shared body, see src/actors/lib/
-ActorsShared801344f8_Fn345D0 = 0x801645D0; // type:func absolute:True
-ActorsShared801344f8_Fn346D0 = 0x801646D0; // type:func absolute:True
-ActorsShared801344f8_Fn33528 = 0x80163528; // type:func absolute:True
-ActorsShared801344f8_Fn33EF8 = 0x80163EF8; // type:func absolute:True
+ActorsShared801344f8_Fn345D0 = 0x801645D0; // type:func
+ActorsShared801344f8_Fn346D0 = 0x801646D0; // type:func
+ActorsShared801344f8_Fn33528 = 0x80163528; // type:func
+ActorsShared801344f8_Fn33EF8 = 0x80163EF8; // type:func
 ActorsShared801342a4 = 0x801642A4; // shared body, see src/actors/lib/
-ActorsShared801342a4_Fn343E8 = 0x801643E8; // type:func absolute:True
-ActorsShared801342a4_Fn3230C = 0x8016230C; // type:func absolute:True
-ActorsShared801342a4_Fn337A8 = 0x801637A8; // type:func absolute:True
-ActorsShared801342a4_Fn34778 = 0x80164778; // type:func absolute:True
+ActorsShared801342a4_Fn343E8 = 0x801643E8; // type:func
+ActorsShared801342a4_Fn3230C = 0x8016230C; // type:func
+ActorsShared801342a4_Fn337A8 = 0x801637A8; // type:func
+ActorsShared801342a4_Fn34778 = 0x80164778; // type:func
 ActorsShared801346ac = 0x801646AC; // shared body, see src/actors/lib/
 ActorsShared80134934 = 0x80164934; // shared body, see src/actors/lib/
 ActorsShared80135df4Table = 0x80161E24; // shared body data, see src/actors/lib/

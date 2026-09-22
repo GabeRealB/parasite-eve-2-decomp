@@ -9,7 +9,7 @@
 
 /// Spawn handler: allocates the work area, binds the model and collision
 /// objects, and seeds the pose from the spawn variant in `GpAreaPlace.variant`.
-void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
+void Actor01500_Fn00094(GpEnemy* arg0, Actor101500* arg1)
 {
     Actor101500Work* work;
     TmdObject*       obj;
@@ -40,9 +40,9 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     arg0->bodyPos.vx           = 0;
     arg0->bodyPos.vy           = 0;
     arg0->bodyPos.vz           = 0;
-    arg0->param                = &D_actor_101500_8013BDD8;
+    arg0->param                = &Actor01500_D09FB8;
     arg0->recs                 = work->field_1FC;
-    arg0->hp                   = D_actor_101500_8013BDD8.hpMax;
+    arg0->hp                   = Actor01500_D09FB8.hpMax;
     work->field_314.coord      = coord;
     work->field_314.spawnArgLo = 0x300;
     work->field_314.spawnArgHi = 1;
@@ -83,7 +83,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
             break;
     }
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    func_800B3F84((GpAnimCtx*)work, D_actor_101500_8013BE34, obj, work->field_12C,
+    func_800B3F84((GpAnimCtx*)work, Actor01500_D0A014, obj, work->field_12C,
                   (GpAnimSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, (s16)work->field_352);
@@ -128,7 +128,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
     work->field_2DC.pos.vy   = 0;
     work->field_2DC.pos.vz   = 0x190;
     work->field_244.flags   |= 0x4200;
-    work->field_2DC.key      = Gp_PackPair(&D_actor_101500_8013BDD4, 0);
+    work->field_2DC.key      = Gp_PackPair(&Actor01500_D09FB4, 0);
     work->field_2DC.radius   = 0x12C;
     work->field_2DC.flags    = 1;
     Gp_LinkObj(3, &work->field_2DC);
@@ -139,7 +139,7 @@ void func_actor_101500_80131EB4(GpEnemy* arg0, Actor101500* arg1)
 
 /// Per-frame contact pass: applies the collision step, reacts to the three
 /// contact records (damage from actors, push-out from walls) and clears them.
-void func_actor_101500_8013230C(Actor101500* actor)
+void ActorsShared801342a4_Fn3230C(Actor101500* actor)
 {
     Actor101500Work*         work;
     Actor101500ContactFrame* frame;
@@ -240,7 +240,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
                     }
                     func_800DA6E8(&actor->field_20->node, damage, 0);
                     func_800E2C78((GpObj40*)actor->field_20, work->field_1FC[i].key, damage, 0);
-                    func_actor_101500_8013291C(actor, damage);
+                    Actor01500_Fn00AFC(actor, damage);
                     switch (Gp_GetIdParam0(work->field_1FC[i].key) & 0xFFFF) {
                         case 0:
                         case 5:
@@ -310,7 +310,7 @@ void func_actor_101500_8013230C(Actor101500* actor)
     *(Actor101500ContactFrame**)0x1F8003FC += 1;
 }
 
-void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
+void Actor01500_Fn00AFC(Actor101500* actor, s32 damage)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;
@@ -326,7 +326,7 @@ void func_actor_101500_8013291C(Actor101500* actor, s32 damage)
     }
     id = ((actor->field_20->placeKey >> 12) << 8) | 0x400F0004;
     SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-    if (enemy->hp <= (D_actor_101500_8013BDDC * 60) / 100) {
+    if (enemy->hp <= (ActorsShared80132ac4MaxHp * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
             work->field_35A        = 4;
