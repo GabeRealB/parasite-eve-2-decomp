@@ -516,9 +516,6 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, Actor113100Placement* plac
     work->field_53C = D_actor_113100_801442E4[msg->field_4];
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_113100/actor_113100", D_actor_113100_80131E30);

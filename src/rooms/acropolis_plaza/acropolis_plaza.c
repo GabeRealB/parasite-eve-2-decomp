@@ -144,5 +144,3 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_plaza/acropolis_plaza", D_acropolis_plaza_8017D5C0);

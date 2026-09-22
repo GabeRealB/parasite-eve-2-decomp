@@ -79,7 +79,4 @@ s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", D_dryfield_night_junk_yard_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", RoomsShared8017d878Table);

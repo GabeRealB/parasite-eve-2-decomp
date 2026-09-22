@@ -146,5 +146,3 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_110800/actor_110800", D_actor_110800_80131E20);

@@ -442,9 +442,6 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_205200/actor_205200", D_actor_205200_80149E30);

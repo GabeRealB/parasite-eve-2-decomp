@@ -10,6 +10,3 @@ s32 func_map_dryfield_full_80179954(MapDryfieldFullRec* arg0, MapDryfieldFullOut
     }
     return 1;
 }
-
-/// Package header word: the map id this overlay carries.
-const s32 D_map_dryfield_full_80179950 = 0x11A;

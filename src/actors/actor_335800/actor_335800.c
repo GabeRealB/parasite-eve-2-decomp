@@ -68,5 +68,3 @@ void func_actor_335800_80161E88(Task* task)
         Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->groundShade);
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_335800/actor_335800", D_actor_335800_80161E20);

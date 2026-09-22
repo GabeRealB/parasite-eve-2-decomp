@@ -31,7 +31,4 @@ void func_shelter_r49_8017D648(Task* arg0)
     }
     arg0->state = (s32)(arg0->state + 1);
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r49/shelter_r49", D_shelter_r49_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r49/shelter_r49", RoomsShared8017d878Table);

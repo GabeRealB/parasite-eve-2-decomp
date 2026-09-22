@@ -36,9 +36,6 @@ extern s32              D_actor_143000_80135C18;
 extern s32              D_actor_143000_80135C1C;
 extern char             D_actor_143000_80135C20[];
 extern u8               D_actor_143000_80135C38[];
-
-INCLUDE_RODATA("actors/nonmatchings/actor_143000/actor_143000", D_actor_143000_80131E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", ActorsShared8013845cSub1);
 
 INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801323E0);

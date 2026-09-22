@@ -129,9 +129,6 @@ void func_actor_511000_80132048(GpActorWork* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000", D_actor_511000_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_511000/actor_511000", D_actor_511000_80131E24);
 
 void func_actor_511000_80132150(Task* task)

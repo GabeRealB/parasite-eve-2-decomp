@@ -234,9 +234,6 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, Actor120400Placement* place
     work->field_474 = 1;
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", D_actor_120400_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", ActorsShared80138404Table);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_120400/actor_120400", D_actor_120400_80131E30);

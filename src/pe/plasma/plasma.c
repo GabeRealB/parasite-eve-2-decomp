@@ -18,7 +18,6 @@
 
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 gPlasmaId = 52;
 
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the

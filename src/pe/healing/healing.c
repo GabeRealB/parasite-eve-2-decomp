@@ -10,10 +10,6 @@
 #include "main/tmd.h"
 #include "pe/healing.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_healing_8012EF30 = 55;
-
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
 /// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick
 /// spin, `field_6` the radius the ring grows to before the effect ends.

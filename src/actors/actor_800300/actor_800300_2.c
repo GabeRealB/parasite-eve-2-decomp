@@ -10,9 +10,6 @@ extern s32               D_8017A99C;
 extern GpActorFuncTable3 D_actor_800300_80161E34;
 extern GpActorFuncTable7 D_actor_800300_80161E64;
 extern GpActorFuncTable9 D_actor_800300_80161E40;
-
-INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", ActorsShared801328ccTable);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_800300/actor_800300", D_actor_800300_80161E34);

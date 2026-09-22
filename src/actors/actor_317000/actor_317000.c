@@ -292,7 +292,4 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_317000/actor_317000", D_actor_317000_80161E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_317000/actor_317000", ActorsShared80138404Table);

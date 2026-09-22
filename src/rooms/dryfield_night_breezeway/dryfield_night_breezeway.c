@@ -9,7 +9,4 @@ s32 func_dryfield_night_breezeway_8017D600(s32 arg0, s32 arg1, s32 arg2)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_breezeway/dryfield_night_breezeway", D_dryfield_night_breezeway_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_breezeway/dryfield_night_breezeway", RoomsShared8017d878Table);

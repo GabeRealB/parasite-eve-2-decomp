@@ -63,9 +63,6 @@ s32  func_actor_104900_80132D78(GpEnemy*, Task*, ActorsShared80138efcWork*, void
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80131F08);
 
 INCLUDE_ASM("actors/nonmatchings/actor_104900/actor_104900", func_actor_104900_80132250);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_104900/actor_104900", D_actor_104900_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_104900/actor_104900", D_actor_104900_80131E24);
 
 const Actor104900ScaleRodata D_actor_104900_80131E30 = { { 0x1400, 0x1400, 0x1400, 0 }, 0 };

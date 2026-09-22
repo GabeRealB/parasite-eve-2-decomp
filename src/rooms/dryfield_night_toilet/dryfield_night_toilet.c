@@ -45,7 +45,4 @@ void func_dryfield_night_toilet_8017D690(Task* task)
 void func_dryfield_night_toilet_8017D71C(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", D_dryfield_night_toilet_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_toilet/dryfield_night_toilet", RoomsShared8017d878Table);

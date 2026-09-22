@@ -14,9 +14,6 @@ extern TaskDesc   D_shelter_b4_water_supply_80182620[];
 extern GpMsgEntry D_shelter_b4_water_supply_801825F0[];
 extern TaskDesc   D_shelter_b4_water_supply_8018263C[];
 void              func_shelter_b4_water_supply_8017DB18(void);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", RoomsShared8017d878Table);

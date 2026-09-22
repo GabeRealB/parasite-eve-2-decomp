@@ -142,5 +142,3 @@ void func_actor_143900_80131FD4(Task* task)
         func_actor_143900_801324C8();
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_143900/actor_143900", D_actor_143900_80131E20);

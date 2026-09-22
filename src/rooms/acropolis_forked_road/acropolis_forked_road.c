@@ -90,7 +90,4 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     return 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road", D_acropolis_forked_road_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road", D_acropolis_forked_road_8017D5C4);

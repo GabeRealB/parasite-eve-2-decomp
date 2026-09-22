@@ -12,10 +12,6 @@
 #include "main/wipsys.h"
 #include "main/tmd.h"
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x8B, MM1).
-const s32 D_mm1_8011D1C0 = 0x13;
-
 void func_mm1_8011D1D4(GpActorWork* arg0)
 {
     GameActor* actor;

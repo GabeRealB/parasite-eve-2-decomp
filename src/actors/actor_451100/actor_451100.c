@@ -51,5 +51,3 @@ void func_actor_451100_80131F84(Task* task)
         func_actor_451100_801323DC();
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_451100/actor_451100", D_actor_451100_80131E20);

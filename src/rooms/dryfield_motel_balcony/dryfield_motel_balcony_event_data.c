@@ -18,6 +18,11 @@ extern RoomEventReq         RoomsShared8017d638Req;
 extern const TaskFuncTable3 RoomsShared8017d878Table;
 void                        func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 
+/// Task entry points the shared room-event body dispatches through. It is a
+/// unit of its own because nothing it could join owns rodata beside it: the run
+/// before belongs to a shared body compiled once for every room carrying it,
+/// which cannot hold one room's function pointers, and no room-local rodata
+/// follows.
 const TaskFuncTable3 RoomsShared8017d878Table = {
     RoomsShared8017db84,
     func_dryfield_motel_balcony_8017DBC8,

@@ -131,9 +131,6 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     arg1->exitCallback = ActorsShared8014df20;
     arg1->state++;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_207200/actor_207200", D_actor_207200_80149E30);

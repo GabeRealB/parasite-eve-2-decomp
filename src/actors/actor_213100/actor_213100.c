@@ -70,9 +70,6 @@ void func_actor_213100_80149E3C(Task* task)
         work->field_484--;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_213100/actor_213100", D_actor_213100_80149E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_213100/actor_213100", D_actor_213100_80149E24);
 
 void func_actor_213100_80149FE4(Task* task)

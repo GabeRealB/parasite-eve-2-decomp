@@ -108,7 +108,4 @@ s32 func_shelter_r36_8017D8C8(void)
 {
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r36/shelter_r36", D_shelter_r36_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r36/shelter_r36", RoomsShared8017d878Table);

@@ -187,9 +187,6 @@ void func_actor_105300_8013222C(Actor05300* arg0)
                             D_actor_105300_8013D3C4[gGameSession->at4.loc.view].field_2);
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_105300/actor_105300", D_actor_105300_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_105300/actor_105300", D_actor_105300_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105300/actor_105300", D_actor_105300_80131E30);

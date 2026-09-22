@@ -7,9 +7,6 @@
 
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
 extern TaskDesc   D_shelter_b2_septic_tank_801832C0[];
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", D_shelter_b2_septic_tank_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D614);
 
 s32 func_shelter_b2_septic_tank_8017D7AC(void)

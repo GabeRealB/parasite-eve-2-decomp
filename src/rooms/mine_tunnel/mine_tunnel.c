@@ -29,7 +29,4 @@ s32 func_mine_tunnel_8017D670(s32 arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel/mine_tunnel", D_mine_tunnel_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel/mine_tunnel", RoomsShared8017d878Table);

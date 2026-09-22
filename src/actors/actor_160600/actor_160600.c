@@ -61,5 +61,3 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
         task->killCountdown++;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_160600/actor_160600", D_actor_160600_80131E20);

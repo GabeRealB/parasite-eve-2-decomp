@@ -36,9 +36,6 @@ extern u8 D_actor_105400_80133A00[];
 INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400", func_actor_105400_80131E3C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400", func_actor_105400_8013222C);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_105400/actor_105400", D_actor_105400_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_105400/actor_105400", D_actor_105400_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105400/actor_105400", D_actor_105400_80131E30);

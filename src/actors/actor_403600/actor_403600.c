@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
+
 #include "actors/actors_shared_80131fc8.h"
 
 #include "actors/actor_403600.h"
@@ -1051,9 +1053,6 @@ block_6:
         }
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
-
 const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
 void func_actor_403600_80134398(Task* arg0)

@@ -25,9 +25,6 @@ extern u8 D_801153F4;
 extern GpEnemyTaskFuncTable3 D_actor_104600_80131E24;
 
 INCLUDE_ASM("actors/nonmatchings/actor_104600/actor_104600", func_actor_104600_80131E68);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_104600/actor_104600", D_actor_104600_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_104600/actor_104600", D_actor_104600_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_104600/actor_104600", D_actor_104600_80131E30);

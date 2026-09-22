@@ -1,7 +1,4 @@
 #include "common.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", D_shelter_b1_south_maintenance_walkway_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", func_shelter_b1_south_maintenance_walkway_8017D5F8);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", func_shelter_b1_south_maintenance_walkway_8017D790);

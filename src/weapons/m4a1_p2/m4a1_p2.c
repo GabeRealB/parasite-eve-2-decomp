@@ -13,10 +13,6 @@
 #include "main/session.h"
 #include "main/tmd.h"
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x94, M4A1(+2)).
-const s32 D_m4a1_p2_8011D1C0 = 0x1C;
-
 void func_m4a1_p2_8011D1C4(GpActorWork* arg0)
 {
     GameActor*     actor;

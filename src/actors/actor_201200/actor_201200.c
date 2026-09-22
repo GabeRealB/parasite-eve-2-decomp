@@ -161,5 +161,3 @@ s32 func_actor_201200_80149F50(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200", func_actor_201200_8014A49C);
 
 INCLUDE_ASM("actors/nonmatchings/actor_201200/actor_201200", func_actor_201200_8014A640);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_201200/actor_201200", D_actor_201200_80149E20);

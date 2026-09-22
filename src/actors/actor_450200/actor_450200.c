@@ -161,5 +161,3 @@ void func_actor_450200_801320D4(s32 arg0)
         D_actor_450200_801401E4->state = arg0;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_450200/actor_450200", D_actor_450200_80131E20);

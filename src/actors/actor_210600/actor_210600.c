@@ -182,7 +182,4 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_210600/actor_210600", D_actor_210600_80149E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_210600/actor_210600", D_actor_210600_80149E24);

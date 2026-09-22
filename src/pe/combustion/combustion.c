@@ -13,10 +13,6 @@
 #include "main/tmd.h"
 #include "pe/combustion.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_combustion_8012EF30 = 49;
-
 /// Per-level tuning for the combustion flame: rows are PE levels 1-3.
 CombustionStep D_combustion_80130980[] = {
     { 0x0060, 0x0120, 0x0007, 0x0015 },

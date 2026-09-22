@@ -299,9 +299,6 @@ void func_mist_r18_8017DD7C(Task* task)
     task->killCountdown = 0;
     task->state++;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_r18/mist_r18", D_mist_r18_8017D5D0);

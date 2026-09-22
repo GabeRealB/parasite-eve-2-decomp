@@ -136,9 +136,6 @@ void func_actor_450800_801320E8(s32 arg0)
 {
     func_80180038(arg0 & 0xFF);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_450800/actor_450800", D_actor_450800_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_450800/actor_450800", D_actor_450800_80131E24);
 
 void func_actor_450800_80132108(void)

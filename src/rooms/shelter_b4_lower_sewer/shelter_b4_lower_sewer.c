@@ -15,9 +15,6 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", 
 void func_shelter_b4_lower_sewer_8017D6CC(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", D_shelter_b4_lower_sewer_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer", jtbl_shelter_b4_lower_sewer_8017D5D0);

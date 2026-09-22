@@ -483,9 +483,6 @@ void func_actor_405800_801334B8(Task* arg0)
     w3->field_846     = 0;
     w3->field_848     = 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", ActorsShared801328ccTable);

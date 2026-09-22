@@ -19,7 +19,4 @@ s32 func_dryfield_underpass_8017D868(s32 arg0, s32 arg1, s32 arg2)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", D_dryfield_underpass_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_underpass/dryfield_underpass", RoomsShared8017d878Table);

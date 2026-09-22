@@ -63,9 +63,6 @@ void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 void func_dryfield_motel_room_1_8017D74C(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", D_dryfield_motel_room_1_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", jtbl_dryfield_motel_room_1_8017D5D0);

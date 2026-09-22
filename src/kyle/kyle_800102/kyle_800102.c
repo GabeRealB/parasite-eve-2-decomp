@@ -247,9 +247,6 @@ void func_kyle_800102_80168270(Task* arg0)
     Gp_UnlinkObj(&work->obj2);
     taskKill(arg0);
 }
-
-INCLUDE_RODATA("kyle/nonmatchings/kyle_800102/kyle_800102", D_kyle_800102_80167A70);
-
 /// Per-frame entry point: runs the task's current state. The table is a local,
 /// so GCC copies it from `.rodata` onto the stack every frame.
 void func_kyle_800102_801682B4(Task* arg0)

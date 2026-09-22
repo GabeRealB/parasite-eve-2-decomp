@@ -1,12 +1,61 @@
 // Overlay-local symbols for actor_205700.
+// Shared with this actor's other RAM slots, so every symbol is named by
+// file offset. Local labels are named only when something outside the
+// shared body reaches them.
+
+Actor05700_Jt00004 = 0x80149E24;
+Actor05700_Jt0002C = 0x80149E4C;
+Actor05700_Jt0004C = 0x80149E6C;
+Actor05700_Jt00064 = 0x80149E84;
+Actor05700_D00080 = 0x80149EA0;
+Actor05700_D0008C = 0x80149EAC;
+Actor05700_D00098 = 0x80149EB8;
+Actor05700_D000A4 = 0x80149EC4;
+Actor05700_Fn000B0 = 0x80149ED0;
+Actor05700_Fn00B24 = 0x8014A944;
+Actor05700_Fn00D08 = 0x8014AB28;
+Actor05700_Fn00E44 = 0x8014AC64;
+Actor05700_Fn01220 = 0x8014B040;
+Actor05700_Fn01318 = 0x8014B138;
+Actor05700_Fn01544 = 0x8014B364;
+Actor05700_Fn016D0 = 0x8014B4F0;
+Actor05700_Fn018DC = 0x8014B6FC;
+Actor05700_Fn01A58 = 0x8014B878;
+Actor05700_Fn01E28 = 0x8014BC48;
+Actor05700_Fn023AC = 0x8014C1CC;
+Actor05700_Fn02554 = 0x8014C374;
+Actor05700_Fn0295C = 0x8014C77C;
+Actor05700_Fn031BC = 0x8014CFDC;
+Actor05700_Fn035FC = 0x8014D41C;
+Actor05700_Fn03930 = 0x8014D750;
+Actor05700_Fn04338 = 0x8014E158;
+Actor05700_Fn04714 = 0x8014E534;
+Actor05700_Fn04CC0 = 0x8014EAE0;
+Actor05700_Fn04DA0 = 0x8014EBC0;
+Actor05700_Fn05038 = 0x8014EE58;
+Actor05700_Fn05040 = 0x8014EE60;
+Actor05700_Fn0517C = 0x8014EF9C;
+Actor05700_Fn05270 = 0x8014F090;
+Actor05700_Fn05310 = 0x8014F130;
+Actor05700_Fn05470 = 0x8014F290;
+Actor05700_D054CC = 0x8014F2EC;
+Actor05700_D054E6 = 0x8014F306;
+Actor05700_D170F4 = 0x80160F14;
+Actor05700_D17118 = 0x80160F38;
+Actor05700_D17174 = 0x80160F94;
+Actor05700_D171E4 = 0x80161004;
+Actor05700_D17228 = 0x80161048;
+Actor05700_D1722C = 0x8016104C;
+Actor05700_D17230 = 0x80161050;
+Actor05700_D17234 = 0x80161054;
+Actor05700_D17238 = 0x80161058;
+Actor05700_D173C8 = 0x801611E8;
+Actor05700_D17484 = 0x801612A4;
+
 ActorsShared80135b64 = 0x8014F0EC; // shared body, see src/actors/lib/
 ActorsShared801368ec = 0x8014EEBC; // shared body, see src/actors/lib/
 ActorsShared80136930 = 0x8014EF00; // shared body, see src/actors/lib/
 ActorsShared80136a28 = 0x8014EFF8; // shared body, see src/actors/lib/
-D_actor_205700_80149EA0 = 0x80149EA0; // force_not_migration:True enemy state table, read from C
-D_actor_205700_80149EAC = 0x80149EAC; // force_not_migration:True enemy state table, read from C
-D_actor_205700_80149EB8 = 0x80149EB8; // force_not_migration:True enemy state table, read from C
-D_actor_205700_80149EC4 = 0x80149EC4; // force_not_migration:True enemy state table, read from C
 ActorsShared8013587c = 0x8014ED14; // shared body, see src/actors/lib/
 Actor00300_Fn04B14 = 0x8014E9D4; // shared body, see src/actors/lib/
 ActorsShared80136c4c = 0x8014EC4C; // shared body, see src/actors/lib/

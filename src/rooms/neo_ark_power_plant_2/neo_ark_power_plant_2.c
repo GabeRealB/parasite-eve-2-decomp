@@ -30,7 +30,4 @@ s32 func_neo_ark_power_plant_2_8017D61C(s32 arg0, s32 arg1, s32 arg2)
 done:
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2", D_neo_ark_power_plant_2_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_power_plant_2/neo_ark_power_plant_2", RoomsShared8017d878Table);

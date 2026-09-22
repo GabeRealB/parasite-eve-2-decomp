@@ -12,9 +12,6 @@ extern Actor101100StateFuncTable3 D_actor_101100_80131E24;
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80131F08);
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_80132250);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_101100/actor_101100", D_actor_101100_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_101100/actor_101100", D_actor_101100_80131E24);
 
 INCLUDE_ASM("actors/nonmatchings/actor_101100/actor_101100", func_actor_101100_8013279C);

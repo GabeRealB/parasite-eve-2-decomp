@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_151000/actor_151000", D_actor_151000_80131E24);
+
 #include "actors/actor_151000.h"
 #include "actors/actors_shared_801326b4.h"
 #include "actors/actors_shared_801366fc.h"
@@ -104,5 +106,3 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_151000/actor_151000", func_actor_151000_80132084);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_151000/actor_151000", D_actor_151000_80131E20);

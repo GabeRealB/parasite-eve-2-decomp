@@ -190,7 +190,4 @@ void func_actor_503500_80132430(Task* arg0)
     arg0->exitCallback = ActorsShared801366fc;
     arg0->state       += 1;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500", D_actor_503500_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500", D_actor_503500_80131E24);

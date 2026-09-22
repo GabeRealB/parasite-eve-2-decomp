@@ -58,5 +58,3 @@ void func_actor_142900_80131FDC(s32 arg0)
     }
     D_actor_142900_801382AC = arg0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_142900/actor_142900", D_actor_142900_80131E20);

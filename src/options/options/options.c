@@ -206,9 +206,6 @@ void func_options_801D404C(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-/// This overlay's id. Every package opens with one: a u16 in a u32 slot.
-const u32 D_options_801D4000 = 40;
-
 void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
 {
     u8* labels[4] = {

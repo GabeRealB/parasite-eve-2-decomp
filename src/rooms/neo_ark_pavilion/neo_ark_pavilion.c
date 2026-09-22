@@ -11,9 +11,6 @@
 
 extern GpMsgEntry D_neo_ark_pavilion_80183870[];
 extern TaskDesc   D_neo_ark_pavilion_80183864;
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", D_neo_ark_pavilion_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017D660);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017E2B4);

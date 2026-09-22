@@ -9,7 +9,6 @@
 #include "main/tmd.h"
 
 /// This overlay's id, the `u16` every package opens with.
-const u32 gOfudaId = 60;
 
 /// PROVISIONAL: written before `Task` was processed, so the statements
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.

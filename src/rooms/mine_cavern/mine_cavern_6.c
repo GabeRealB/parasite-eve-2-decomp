@@ -3,6 +3,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "rooms/mine_cavern.h"
+
 extern s32 D_mine_cavern_8018EB54;
 extern u8  D_8007216D;
 

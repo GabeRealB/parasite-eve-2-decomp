@@ -12,7 +12,4 @@ s32 func_dryfield_water_hole_8017D73C(s32 arg0, s32 arg1, s32 arg2)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole", D_dryfield_water_hole_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole", RoomsShared8017d878Table);

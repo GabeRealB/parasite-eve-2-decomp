@@ -16,9 +16,6 @@ extern u32 Gp_LcgState;
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_202300_80149E80;
-
-INCLUDE_RODATA("actors/nonmatchings/actor_202300/actor_202300", D_actor_202300_80149E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_202300/actor_202300", func_actor_202300_80149EA4);
 
 INCLUDE_ASM("actors/nonmatchings/actor_202300/actor_202300", func_actor_202300_8014A90C);

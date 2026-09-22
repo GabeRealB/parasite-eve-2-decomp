@@ -25,7 +25,4 @@ s32 func_mine_gorge_8017D6E8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
     Gp_RunCapCmd1(3);
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_gorge/mine_gorge", D_mine_gorge_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/mine_gorge/mine_gorge", RoomsShared8017d878Table);

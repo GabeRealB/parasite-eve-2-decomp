@@ -16,10 +16,6 @@
 #include "main/tmd.h"
 #include "pe/pepper_spray.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_pepper_spray_8012EF30 = 62;
-
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 

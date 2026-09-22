@@ -71,9 +71,6 @@ void func_actor_135400_80131EB4(Task* task)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_135400/actor_135400", D_actor_135400_80131E30);

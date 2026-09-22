@@ -185,9 +185,6 @@ s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161E20);
-
 /// The controller task's four state handlers, dispatched by
 /// `func_actor_342400_80162748`. Like `D_actor_342400_80161E54` below, splat
 /// migrates it into the function's own `.s`, so it is defined here.

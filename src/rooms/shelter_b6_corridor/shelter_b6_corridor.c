@@ -71,7 +71,4 @@ void func_shelter_b6_corridor_8017E12C(void)
 
     D_800691CA = 2;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", D_shelter_b6_corridor_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", RoomsShared8017d878Table);

@@ -64,9 +64,6 @@ void func_actor_443500_8013201C(s16 arg0)
 {
     Gp_StartCapSlot(5, 1, arg0);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_443500/actor_443500", D_actor_443500_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_443500/actor_443500", ActorsShared80138404Table);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_443500/actor_443500", D_actor_443500_80131E30);

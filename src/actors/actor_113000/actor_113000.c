@@ -58,7 +58,4 @@ void func_actor_113000_80131E30(GpActorWork* arg0)
             break;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_113000/actor_113000", D_actor_113000_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_113000/actor_113000", ActorsShared80138404Table);

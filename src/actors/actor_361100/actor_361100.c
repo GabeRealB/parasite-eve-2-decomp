@@ -1,5 +1,8 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_361100/actor_361100", D_actor_361100_80161E24);
+INCLUDE_RODATA("actors/nonmatchings/actor_361100/actor_361100", D_actor_361100_80161E30);
+
 #include "actors/actor_361100.h"
 
 #include "main/mem.h"
@@ -148,5 +151,3 @@ void func_actor_361100_801627D4(Task* task)
         }
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_361100/actor_361100", D_actor_361100_80161E20);

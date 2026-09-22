@@ -22,10 +22,6 @@ SVECTOR D_tonfa_baton_8011E0F0[1] = { { 0, 0x0080, 0, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x92, Tonfa Baton).
-const s32 D_tonfa_baton_8011D1C0 = 0x1A;
-
 void WeaponsShared8011db78(Task* task);
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to

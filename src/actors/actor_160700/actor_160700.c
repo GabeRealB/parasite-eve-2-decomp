@@ -133,5 +133,3 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     ActorsShared8014c874(task);
     task->state += 1;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_160700/actor_160700", D_actor_160700_80131E20);

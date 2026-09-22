@@ -300,5 +300,3 @@ void func_actor_444000_801326DC(void)
     msg.field_2 = 3;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_444000/actor_444000", D_actor_444000_80131E20);

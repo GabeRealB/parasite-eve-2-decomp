@@ -2,6 +2,7 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+
 extern TaskDesc       D_shelter_b6_nursery_80185000;
 extern s32            D_shelter_b6_nursery_8018797C;
 extern TaskFuncTable3 RoomsShared8017d878Table;

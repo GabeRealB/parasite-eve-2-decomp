@@ -29,9 +29,6 @@ extern u8           D_dryfield_night_driveway_80182120;
 extern DrivewayReq  D_dryfield_night_driveway_80182124;
 extern TaskDesc     D_dryfield_night_driveway_8017E678;
 extern TaskDesc     D_dryfield_night_driveway_8017F34C;
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", D_dryfield_night_driveway_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017D608);
 
 /// Event gate for the driveway. Every message is answered by editing the copy

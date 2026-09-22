@@ -13,10 +13,6 @@
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x84, P229).
-const s32 D_p229_8011D1C0 = 0x0C;
-
 extern s32 Gp_LcgState;
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.

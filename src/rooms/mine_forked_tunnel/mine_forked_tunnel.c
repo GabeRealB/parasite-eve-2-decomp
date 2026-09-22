@@ -179,9 +179,6 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         arg0->killCountdown++;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017DBE4);
 
 void func_mine_forked_tunnel_8017DC50(Task* arg0)

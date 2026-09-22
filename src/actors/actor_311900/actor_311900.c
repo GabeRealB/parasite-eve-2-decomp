@@ -163,9 +163,6 @@ void func_actor_311900_80162100(Task* task)
         }
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
-
 /// The actor's three state handlers - spawn, per-frame tick and teardown -
 /// dispatched through by state. splat migrates the table into the `.s` of the
 /// function that reads it, so it is written out here to keep the block in the

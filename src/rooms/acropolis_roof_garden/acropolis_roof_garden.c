@@ -71,9 +71,6 @@ s32 func_acropolis_roof_garden_8017D71C(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     return 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden", D_acropolis_roof_garden_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden", RoomsShared8017d878Table);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_roof_garden/acropolis_roof_garden", D_acropolis_roof_garden_8017D5D0);

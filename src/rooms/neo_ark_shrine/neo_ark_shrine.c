@@ -133,9 +133,6 @@ void func_neo_ark_shrine_8017D8F4(Task* task)
 void func_neo_ark_shrine_8017D940(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D948);
 
 /// Argument-less helper, called by this room's cap script every frame. Declared

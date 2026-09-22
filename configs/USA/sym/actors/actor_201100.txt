@@ -1,4 +1,47 @@
 // Overlay-local symbols for actor_201100.
+// Shared with this actor's other RAM slots, so every symbol is named by
+// file offset. Local labels are named only when something outside the
+// shared body reaches them.
+
+Actor01100_D00004 = 0x80149E24;
+Actor01100_D00010 = 0x80149E30;
+Actor01100_Jt00024 = 0x80149E44;
+Actor01100_Jt0004C = 0x80149E6C;
+Actor01100_D00064 = 0x80149E84;
+Actor01100_D000CC = 0x80149EEC;
+Actor01100_Fn000E8 = 0x80149F08;
+Actor01100_Fn00430 = 0x8014A250;
+Actor01100_Fn0097C = 0x8014A79C;
+Actor01100_Fn00CF0 = 0x8014AB10;
+Actor01100_Fn00F58 = 0x8014AD78;
+Actor01100_Fn01B90 = 0x8014B9B0;
+Actor01100_Fn01D98 = 0x8014BBB8;
+Actor01100_Fn02960 = 0x8014C780;
+Actor01100_Fn035E4 = 0x8014D404;
+Actor01100_Fn03740 = 0x8014D560;
+Actor01100_Fn0389C = 0x8014D6BC;
+Actor01100_Fn04410 = 0x8014E230;
+Actor01100_Fn048C8 = 0x8014E6E8;
+Actor01100_Fn04DB4 = 0x8014EBD4;
+Actor01100_Fn0516C = 0x8014EF8C;
+Actor01100_Fn05678 = 0x8014F498;
+Actor01100_Fn05CFC = 0x8014FB1C;
+Actor01100_Fn05E68 = 0x8014FC88;
+Actor01100_Fn06554 = 0x80150374;
+Actor01100_Fn06C0C = 0x80150A2C;
+Actor01100_Fn06D3C = 0x80150B5C;
+Actor01100_Fn07014 = 0x80150E34;
+Actor01100_Fn07148 = 0x80150F68;
+Actor01100_D074D0 = 0x801512F0;
+Actor01100_D074E8 = 0x80151308;
+Actor01100_D074F8 = 0x80151318;
+Actor01100_D07510 = 0x80151330;
+Actor01100_D0D8F4 = 0x80157714;
+Actor01100_D0E4DC = 0x801582FC;
+Actor01100_D155E0 = 0x8015F400;
+Actor01100_D15604 = 0x8015F424;
+Actor01100_D15660 = 0x8015F480;
+
 ActorsShared8013845c = 0x8015045C; // shared body, see src/actors/lib/
 ActorsShared8013918c = 0x8015118C; // shared body, see src/actors/lib/
 ActorsShared801511c8 = 0x801511C8; // shared body, see src/actors/lib/
@@ -16,7 +59,6 @@ ActorsShared801390d8 = 0x801510D8; // shared body, see src/actors/lib/
 ActorsShared80138774 = 0x80150774; // shared body, see src/actors/lib/
 ActorsShared801385e0 = 0x801505E0; // shared body, see src/actors/lib/
 ActorsShared80137fb8ActorId = 0x8015F490; // shared body data, see src/actors/lib/actors_shared_80137fb8.c
-D_actor_201100_8015F490 = 0x8015F490; // absolute:True legacy C alias
 ActorsShared80137fb8 = 0x8014FFB8; // shared body, see src/actors/lib/
 ActorsShared80138c6c = 0x80150C6C; // shared body, see src/actors/lib/
 ActorsShared801357f0 = 0x8014D7F0; // shared body, see src/actors/lib/

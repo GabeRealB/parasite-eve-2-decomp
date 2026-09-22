@@ -7,9 +7,6 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "rooms/room_common.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D5C0);
-
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];

@@ -357,7 +357,4 @@ void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
         vec.vx = 0;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_312200/actor_312200", D_actor_312200_80161E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_312200/actor_312200", ActorsShared80135df4Table);

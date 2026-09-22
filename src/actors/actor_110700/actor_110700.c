@@ -78,5 +78,3 @@ s32 func_actor_110700_8013201C(Task* task, s32 arg1, Actor110700AnimPreset* pres
     } while (i < 0x13);
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_110700/actor_110700", D_actor_110700_80131E20);

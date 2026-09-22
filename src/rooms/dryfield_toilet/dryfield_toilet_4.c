@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main/task.h"
+
 extern s32 D_80115730;
 extern s32 D_80115734;
 extern s32 D_80115754;

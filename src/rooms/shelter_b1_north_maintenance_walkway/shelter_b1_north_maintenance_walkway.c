@@ -6,9 +6,6 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", D_shelter_b1_north_maintenance_walkway_8017D5C0);
-
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
 

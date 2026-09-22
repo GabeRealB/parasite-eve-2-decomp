@@ -4,9 +4,6 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/neo_ark_savanna_zone.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", D_neo_ark_savanna_zone_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D5E4);
 
 /// Latches the room's pending event and starts the controller that runs it:

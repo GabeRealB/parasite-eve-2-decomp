@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_150400/actor_150400", D_actor_150400_80131E24);
+
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -151,5 +153,3 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     ActorsShared80132a1c(task);
     task->state++;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_150400/actor_150400", D_actor_150400_80131E20);

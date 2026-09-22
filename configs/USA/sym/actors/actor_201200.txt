@@ -1,4 +1,34 @@
 // Overlay-local symbols for actor_201200.
+// Shared with this actor's other RAM slots, so every symbol is named by
+// file offset. Local labels are named only when something outside the
+// shared body reaches them.
+
+Actor01200_Jt00004 = 0x80149E24;
+Actor01200_Jt0007C = 0x80149E9C;
+Actor01200_D000E4 = 0x80149F04;
+Actor01200_Jt0011C = 0x80149F3C;
+Actor01200_Fn00130 = 0x80149F50;
+Actor01200_Fn0067C = 0x8014A49C;
+Actor01200_Fn00820 = 0x8014A640;
+Actor01200_Fn00A6C = 0x8014A88C;
+Actor01200_Fn01040 = 0x8014AE60;
+Actor01200_Fn01234 = 0x8014B054;
+Actor01200_Fn017DC = 0x8014B5FC;
+Actor01200_Fn01FDC = 0x8014BDFC;
+Actor01200_Fn02BE8 = 0x8014CA08;
+Actor01200_Fn03294 = 0x8014D0B4;
+Actor01200_Fn036B0 = 0x8014D4D0;
+Actor01200_Fn03ABC = 0x8014D8DC;
+Actor01200_Fn03DC0 = 0x8014DBE0;
+Actor01200_Fn03E78 = 0x8014DC98;
+Actor01200_Fn03F30 = 0x8014DD50;
+Actor01200_D04034 = 0x8014DE54;
+Actor01200_D04044 = 0x8014DE64;
+Actor01200_D04050 = 0x8014DE70;
+Actor01200_D06F98 = 0x80150DB8;
+Actor01200_D07058 = 0x80150E78;
+Actor01200_D07084 = 0x80150EA4;
+
 ActorsShared80135990 = 0x8014D990; // shared body, see src/actors/lib/
 ActorsShared80135df4Table = 0x80149F2C; // shared body data, see src/actors/lib/
 ActorsShared80135df4 = 0x8014DDF4; // shared body, see src/actors/lib/

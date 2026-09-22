@@ -14,7 +14,6 @@
 #include "pe/flare.h"
 
 /// This overlay's id, the `u16` every package opens with.
-const u32 gFlareId = 61;
 
 extern s32 Gp_LcgState;
 

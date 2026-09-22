@@ -14,10 +14,6 @@
 #include "main/tmd.h"
 #include "pe/metabolism.h"
 
-/// This overlay's id. Every package opens with one: a u16 in a u32
-/// slot, distinct across all 448, with the families in contiguous blocks.
-const u32 D_metabolism_8012EF30 = 54;
-
 /// Per-level tuning for the metabolism drain: rows are PE levels 1-3.
 MetabolismStep D_metabolism_8012FB54[] = {
     { 0x0008, 0x0080, 0x0020, 0x0400 },

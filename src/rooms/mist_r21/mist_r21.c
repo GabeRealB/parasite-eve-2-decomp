@@ -27,7 +27,4 @@ void func_mist_r21_8017D678(Task* arg0)
         taskKill(arg0);
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_r21/mist_r21", D_mist_r21_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/mist_r21/mist_r21", RoomsShared8017d878Table);

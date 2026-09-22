@@ -11,6 +11,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+
 extern TaskDesc      D_shelter_b6_nursery_80184FDC;
 extern s8            D_shelter_b6_nursery_80185034[];
 extern s32           D_shelter_b6_nursery_8018797C;

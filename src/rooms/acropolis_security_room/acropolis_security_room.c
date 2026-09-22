@@ -66,9 +66,6 @@ void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, GpMsg13EF* arg2
         Task_SpawnFromTable(&D_acropolis_security_room_80182618, 0, 0, 0);
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", RoomsShared8017d878Table);
 
 void func_acropolis_security_room_8017D77C(Task* arg0)

@@ -47,7 +47,7 @@ extern char           Gp_StrEmpty[];
 extern s32            RoomsShared8017f49cQty;
 extern GpItemMap*     RoomsShared8017f49cMap;
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D5C0);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D5C4);
 
 u16* RoomsShared8017eb5cIdList(s32 arg0);
 

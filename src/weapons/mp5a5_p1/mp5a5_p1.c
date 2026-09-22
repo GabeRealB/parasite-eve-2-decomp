@@ -13,10 +13,6 @@
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x9E, MP5A5(+1)).
-const s32 D_mp5a5_p1_8011D1C0 = 0x26;
-
 extern s32 Gp_LcgState;
 
 /// Muzzle offset of the MP5A5(+1), in the firing hand's coordinate frame.

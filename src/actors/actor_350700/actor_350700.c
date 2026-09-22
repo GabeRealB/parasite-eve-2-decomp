@@ -138,9 +138,6 @@ s32 func_actor_350700_801621B4(Task* task, s32 arg1, Actor350700Placement* place
     }
     return 0;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_350700/actor_350700", D_actor_350700_80161E20);
-
 INCLUDE_ASM("actors/nonmatchings/actor_350700/actor_350700", func_actor_350700_80162398);
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that

@@ -113,9 +113,6 @@ s32 func_acropolis_promenade_8017D70C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
     }
     return 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", D_acropolis_promenade_8017D5D0);

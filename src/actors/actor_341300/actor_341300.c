@@ -13,9 +13,6 @@
 /// Placement record the overlay's data table points at, read here only as the
 /// target position's x/z pair.
 extern VECTOR D_actor_341300_80165330;
-
-INCLUDE_RODATA("actors/nonmatchings/actor_341300/actor_341300", D_actor_341300_80161E20);
-
 /// Draws the two textured quads at fixed positions: each is four fixed
 /// model-space corners projected through `Gfx_ViewWorldMtx`, emitted as a
 /// POLY_FT4 at the depth `RotTransPers3` returns, and skipped when the

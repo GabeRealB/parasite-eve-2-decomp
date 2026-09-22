@@ -6,9 +6,6 @@
 #include "main/session.h"
 
 #include "rooms/room_common.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", D_neo_ark_submarine_tunnel_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017D634);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E288);

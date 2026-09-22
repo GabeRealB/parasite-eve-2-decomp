@@ -11,5 +11,3 @@ void func_actor_143400_80131E24(s32 arg0)
     }
     Gp_ResetCap();
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_143400/actor_143400", D_actor_143400_80131E20);

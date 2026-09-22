@@ -155,9 +155,6 @@ s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
     *tail = (u8*)*tail + sizeof(RoomsShared80182078Scratch);
     return hit;
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_323000/actor_323000", D_actor_323000_80161E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_323000/actor_323000", D_actor_323000_80161E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_323000/actor_323000", ActorsShared80135df4Table);

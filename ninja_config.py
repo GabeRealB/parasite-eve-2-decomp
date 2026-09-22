@@ -1,6 +1,7 @@
 # This file has been adapted from the silent-hill-decomp project.
 
 import argparse
+import functools
 import hashlib
 import json
 import os
@@ -187,10 +188,13 @@ def generated_overlay_yamls() -> list[tuple[str, str, str]]:
     manifest = tomllib.loads(OVERLAY_MANIFEST.read_text(encoding="utf-8"))
     out = []
     for family, spec in manifest.items():
-        # The manifest key is the extracted package's name, which is also the
-        # overlay basename and the generated config's filename.
-        for name in sorted(spec["overlays"]):
-            out.append((f"{GENERATED_CONFIG_SUBDIR}/{name}.yaml", name, family))
+        # An entry names one package, or - where a family loads the same image
+        # into several slots - all of them at once. A config is written per
+        # package, and the package name is the overlay basename.
+        for name, entry in sorted(spec["overlays"].items()):
+            for slot in entry.get("slots") or [{"package": name}]:
+                pkg = str(slot["package"])
+                out.append((f"{GENERATED_CONFIG_SUBDIR}/{pkg}.yaml", pkg, family))
     return out
 
 
@@ -436,6 +440,35 @@ def compile_commands_entry(
     }
 
 
+@functools.lru_cache(maxsize=1)
+def package_ids() -> dict[str, int]:
+    """Each package's declared id, keyed by the source that carries it.
+
+    The id is the one value an overlay compiles in that is about the overlay
+    rather than about its code, so it reaches the compiler as a flag instead of
+    being written into a source. That keeps the unit holding it identical for
+    every package - including the several load slots one image is issued at,
+    which share every other unit but must each get their own id.
+    """
+    manifest = tomllib.loads(Path("configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    out: dict[str, int] = {}
+    for family, spec in manifest.items():
+        for name, entry in spec.get("overlays", {}).items():
+            for slot in entry.get("slots") or [{"package": name, "id": entry.get("id")}]:
+                # A package with no id declares none: its first word is content,
+                # not a packaging index, so it has no unit to feed.
+                if slot.get("id") is None:
+                    continue
+                out[f"src/{family}/{slot['package']}/packageid.c"] = int(slot["id"])
+    return out
+
+
+def package_id_flag(source_path: str) -> str:
+    """`-DPKG_ID=<id>` for the unit holding a package id, empty for anything else."""
+    value = package_ids().get(re.sub(r"\\", "/", source_path))
+    return f"-DPKG_ID={value}" if value is not None else ""
+
+
 def ninja_setup_list_add_source(
     target_path: str,
     source_path: str,
@@ -513,6 +546,7 @@ def ninja_setup_list_add_source(
                 "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
                 "SKIPASMFLAG": skip_asm,
                 "NONMATCHINGFLAG": non_matching,
+                "PKGID": package_id_flag(source_path),
             },
         )
 
@@ -861,7 +895,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "cpp",
         description="cpp $in",
-        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $NONMATCHINGFLAG -o $out $in",
+        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $NONMATCHINGFLAG $PKGID -o $out $in",
         depfile="$out.d",
     )
     ninja_rules_file.rule(

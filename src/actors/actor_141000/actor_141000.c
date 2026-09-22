@@ -257,9 +257,6 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
         arg1[i + 18].field_2 = b.vy + y1;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E20);
-
 INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_141000/actor_141000", D_actor_141000_80131E30);

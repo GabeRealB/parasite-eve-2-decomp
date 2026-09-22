@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_460200/actor_460200", D_actor_460200_80131E24);
+
 #include "actors/actor_460200.h"
 #include "actors/actors_shared_80132514.h"
 #include "actors/actors_shared_8014c874.h"
@@ -569,5 +571,3 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132C14);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_460200/actor_460200", D_actor_460200_80131E20);

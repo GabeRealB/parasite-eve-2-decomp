@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_RODATA("actors/nonmatchings/actor_535700/actor_535700", D_actor_535700_80131E24);
+
 #include "actors/actor_461800_move.h"
 #include "actors/actor_535700.h"
 #include "actors/actors_shared_801324fc.h"
@@ -102,5 +104,3 @@ void func_actor_535700_80132108(Task* task)
         }
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_535700/actor_535700", D_actor_535700_80131E20);

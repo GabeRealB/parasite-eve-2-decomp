@@ -273,9 +273,6 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     }
     list->field_10 = (s8)list->field_9;
 }
-
-INCLUDE_RODATA("aya/nonmatchings/replay_bonus/replay_bonus", D_replay_bonus_80115770);
-
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
         "\t.align 2\n"

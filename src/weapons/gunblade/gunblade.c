@@ -19,10 +19,6 @@ SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-/// Package header word 0: the overlay id, `item id - 0x78`
-/// (item 0x96, Gunblade).
-const s32 D_gunblade_8011D1C0 = 0x1E;
-
 extern s32 Gp_LcgState;
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to

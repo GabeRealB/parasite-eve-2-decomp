@@ -4,9 +4,6 @@
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "rooms/acropolis_cafeteria.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", D_acropolis_cafeteria_8017D5C0);
-
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", RoomsShared8017d878Table);
 
 static const char CafeteriaPlayerLabel[12] = "Player";

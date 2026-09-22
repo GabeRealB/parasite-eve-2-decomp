@@ -8,9 +8,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/shelter_1f_bulwark.h"
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", D_shelter_1f_bulwark_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017D61C);
 
 static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, BulwarkEvent* event)

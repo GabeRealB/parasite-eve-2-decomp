@@ -35,9 +35,6 @@ extern TaskDesc              D_neo_ark_forest_zone_80181DBC;
 extern GpSaveLoc             D_neo_ark_forest_zone_80182E38;
 extern s8                    D_neo_ark_forest_zone_80182E40;
 extern NeoArkForestZoneEvent D_neo_ark_forest_zone_80182E48;
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", D_neo_ark_forest_zone_8017D5C0);
-
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017D644);
 
 s32 func_neo_ark_forest_zone_8017D7DC(void)
