@@ -73,5 +73,3 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017D858);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017DA54);
