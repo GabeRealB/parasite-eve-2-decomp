@@ -2,7 +2,7 @@
 #include "actors/actor_104000.h"
 #include "gameplay/3A34.h"
 
-/// Task-like caller whose `field_30` counts the frames the slot flags were cleared.
+/// Task-like caller whose `field_30` indexes the `Actor04000_D0C6EC` state table.
 typedef struct Actor204000Task {
     /* 0x00 */ byte pad_0[0x30];
     /* 0x30 */ s32  field_30;
@@ -10,6 +10,7 @@ typedef struct Actor204000Task {
 
 extern u8           D_8007216C;
 extern Actor104000* Actor04000_D0C718[6];
+extern void         (*Actor04000_D0C6EC[])(Actor204000Task*);
 
 INCLUDE_ASM("actors/nonmatchings/actor_04000/actor_204000_6", Actor04000_Fn06EA8);
 
@@ -35,4 +36,7 @@ void Actor04000_Fn06F54(Actor204000Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_04000/actor_204000_6", Actor04000_Fn0703C);
+void Actor04000_Fn0703C(Actor204000Task* arg0)
+{
+    Actor04000_D0C6EC[arg0->field_30](arg0);
+}
