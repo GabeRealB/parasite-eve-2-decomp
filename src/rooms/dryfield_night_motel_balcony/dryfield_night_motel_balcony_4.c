@@ -332,7 +332,87 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801809CC);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_80180C60);
+/// Projects the task model's world position through `GsWSMATRIX` and, when the
+/// GTE flag is non-negative, queues one `POLY_FT4` billboard (tpage 0x2C, clut
+/// 0x43C3) centred on it. `field_20 % 6` picks one of six 40-texel columns at
+/// v 0x40..0x67, and the half-extent is `field_18 * 39 / otz` on both axes.
+/// `color` modulates the texture and makes the quad semi-transparent; NULL
+/// draws the texture raw and opaque. The block pointer goes through the same
+/// `asm` move as `func_dryfield_night_motel_balcony_8018221C`, for the same
+/// reason.
+void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color)
+{
+    RoomEffWork*       work;
+    GsCOORDINATE2*     coord;
+    u8*                head;
+    RoomDraw14Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    SVECTOR*           vec;
+    s16                xy;
+    u16                vz;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = task->spawnArg2;
+
+    head                                        = *(void**)G_SCRATCH_HEAD;
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    vec                                         = (SVECTOR*)(head - 0x18);
+    __asm__("move %0,%1" : "=r"(block) : "r"(vec));
+    block->vec.vy           = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = block;
+    block->vec.vz           = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (color != NULL) {
+            prim->r0 = color[0];
+            prim->g0 = color[1];
+            prim->b0 = color[2];
+            setSemiTrans(prim, 1);
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage   = 0x2C;
+        prim->clut    = 0x43C3;
+        prim->u0      = (s16)work->field_20 % 6 * 40;
+        prim->v0      = 0x40;
+        prim->u1      = (s16)work->field_20 % 6 * 40 + 0x27;
+        prim->v1      = 0x40;
+        prim->u2      = (s16)work->field_20 % 6 * 40;
+        prim->v2      = 0x67;
+        prim->u3      = (s16)work->field_20 % 6 * 40 + 0x27;
+        prim->v3      = 0x67;
+        block->radius = (s16)work->field_18 * 39 / block->otz;
+        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
+        prim->x2      = xy;
+        prim->x0      = xy;
+        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
+        prim->x3      = xy;
+        prim->x1      = xy;
+        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
+        prim->y1      = xy;
+        prim->y0      = xy;
+        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
+        prim->y3      = xy;
+        prim->y2      = xy;
+        ds            = &gDisplayState;
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 /// Per-frame handler of an effect-spawning room task. Any non-zero event state
 /// suspends it, and 4 or above releases it. In view 0x27 it makes three
