@@ -137473,3 +137473,21 @@ was free. The `SOFT_BARRIER(); keyPtr = &key; TOUCH_REG(keyPtr); key.view =
 areaByte0; Gp_SyncAreaKeyIndex(keyPtr);` recipe took it straight to 100% with no
 other change. So: retype first, but if the extra `sN` is still there, apply the
 recipe rather than searching further for a typing that removes it.
+
+### In an overlay sweep, the brief's `ASM:` can be another overlay's body of the same name (ActorsShared80131e24Sub0, 2026-09-22)
+
+The entry above says to trust `ASM:` over `C file:`. Inside an overlay lane it
+can be the other way round. The `actor_535700` lane got a brief whose `C file:`
+and `INCLUDE_ASM site` were its own `actor_535700_6.c`, while `ASM:`, `Unit:`
+and the scratch `target.s` all pointed at `actor_521100`, a 283-instruction
+function unrelated to the lane's 132-instruction body despite having the same
+name. The give-up seed and `HISTORY.md` were also for a third carrier. Before
+scoring, confirm with `grep glabel -A1 target.s` that the target's addresses
+belong to the overlay the lane leases. If they don't, rebuild the target from
+the lane's own `.s`, the same way `tools/claude` does
+(`cat prelude.inc include/macro.inc <asm> > target.s`, then `mips-linux-gnu-as
+-EL -march=r3000 -mtune=r3000 -Iinclude`). Then look for the real twin by
+diffing that `.s` against the carriers' matched `.s` with symbols normalised.
+`overlay_dup_index.py find` misses a twin whose only difference is one callee
+symbol, and the doc comment on `func_actor_450800_80132E9C` named it outright.
+Porting that twin scored 100% on the first build.
