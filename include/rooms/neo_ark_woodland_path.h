@@ -108,6 +108,29 @@ extern s32 D_neo_ark_woodland_path_80184998[];
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 D_neo_ark_woodland_path_80184996;
 
+/// Spawn point requested by the room's 0x7DB handlers (the message's third
+/// byte, taken only while `D_...8498E` has run out). One-based index into
+/// `D_...849B8`; zero means no request, and `func_...801806D8` clears it every
+/// frame whether or not it placed a spawn.
+extern s16 D_neo_ark_woodland_path_80184992;
+
+/// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
+/// into the task's coordinate translation (y is always zero) and the Y
+/// rotation it hands `Gfx_RotMatrixY`. The halfword after `x` is not read.
+typedef struct NeoArkWoodlandPathSpawnPos {
+    s16 x;
+    s16 pad_2;
+    s16 z;
+    s16 rotY;
+} NeoArkWoodlandPathSpawnPos;
+
+/// The room's spawn placements, indexed by `D_...80184992 - 1`.
+extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[];
+
+/// `Gp_StateF0.field_6` as `func_...801806D8` saw it on the previous frame, so
+/// that it can tell the reference count was non-zero before the frame began.
+extern s16 D_neo_ark_woodland_path_801849F0;
+
 s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPathMsg* msg);
 
 #endif

@@ -3634,7 +3634,8 @@ void Gp_SetStateF0Byte3(s32 arg0)
     Gp_StateF0.field_3 = arg0;
 }
 
-void Gp_IncStateF0Ref(void)
+/// `arg0` is 0 at every overlay call site; this build ignores it.
+void Gp_IncStateF0Ref(s32 arg0)
 {
     Gp_StateF0.field_6++;
 }
