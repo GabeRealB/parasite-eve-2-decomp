@@ -193,7 +193,3 @@ void func_actor_341700_80168B40(Task* arg0)
         work->field_422 = work->field_422 + 1;
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_341700_80168BE0);
-
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_341700_80168C4C);
