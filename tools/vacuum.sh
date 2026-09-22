@@ -1193,6 +1193,18 @@ so promotion is part of this port, not a follow-up:
 4. \`venv/bin/python3 ninja_config.py\` then the unscoped
    \`./tools/build-and-verify.sh\`. All targets must still match.
 
+If the functions next to it are shared by the same overlays too, use
+\`promote --run $func\` instead: a source file holds several functions, and
+\`--run\` takes the neighbours every carrier holds in the same order as one unit.
+It prints one line per function; all of them go into the same
+\`src/lib/<unit>.c\`, in the order printed, each under its own shared name.
+
+If a carrier's image then comes out exactly 4 bytes short or long, with the
+first difference in its rodata near the start, the body sits inside a larger
+original file: a jump table's alignment depends on the object it started in.
+Splitting cannot share it. Revert the promotion and land the match in this
+overlay alone.
+
 The copies:
 
 $(cat "$siblings")

@@ -311,6 +311,15 @@ shared symbol to each sharer's `configs/USA/sym/<family>/<overlay>.txt`, and one
 object is linked into every overlay that uses it. `=` in that listing means the
 copies are byte-identical, `~` means the same body at a different link offset.
 
+`python3 tools/overlay_dup_index.py promote <function>` writes the manifest
+spans and symbols and says which C to move where. Add `--run` when the
+neighbouring functions are shared by the same overlays too: it promotes the run
+of functions every carrier holds in the same order as one unit, since an
+original source file held several. A promotion that leaves an image exactly 4
+bytes off, first differing in its rodata near the start, cannot work: the body
+sat inside a larger original file, and a jump table's alignment depends on the
+object it started in. Revert it and keep the body in its overlay.
+
 This is not hypothetical: of the first 158 room functions matched, only 29 were
 distinct bodies — one two-instruction stub was matched 112 times.
 
