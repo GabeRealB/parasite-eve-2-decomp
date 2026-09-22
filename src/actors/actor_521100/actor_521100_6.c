@@ -58,17 +58,17 @@ void func_actor_521100_80136820(void)
 /// The scratch pointer is taken with a chained assignment on purpose: the
 /// store and the callee-saved copy are what put the extra `move $s0, $v0`
 /// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
-void func_actor_521100_801368B0(Actor521100* arg0)
+void func_actor_521100_801368B0(Task* task)
 {
     MATRIX*                  head;
     Actor521100ScaleScratch* scratch;
-    Actor521100Work*         work;
+    Actor521100Work4B4*      work;
     GsCOORDINATE2*           coord;
 
     head    = *(MATRIX**)0x1F8003FC;
-    work    = arg0->field_1C;
+    work    = task->work;
     scratch = (*(void**)0x1F8003FC = (Actor521100ScaleScratch*)((u8*)head - 0x30));
-    coord   = arg0->field_2C->field_8;
+    coord   = ((TmdObject*)task->extra)->coords;
     if ((s16)work->field_488 >= 0x101) {
         work->field_488 = (u16)work->field_488 - 0x10;
     } else {
@@ -77,7 +77,7 @@ void func_actor_521100_801368B0(Actor521100* arg0)
     scratch->scale.vx          = 0x1000;
     scratch->scale.vy          = (s32)(s16)work->field_488;
     scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_48C.rot.mat;
+    coord->coord               = work->field_48C.mat;
     scratch->mat.ident.m00_m01 = 0x1000;
     scratch->mat.ident.m02_m10 = 0;
     scratch->mat.ident.m11_m12 = 0x1000;

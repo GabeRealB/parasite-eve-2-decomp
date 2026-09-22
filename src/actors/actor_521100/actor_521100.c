@@ -28,6 +28,11 @@
 
 extern s16 D_80073BA0;
 
+extern GpPairSrcE D_actor_521100_8015F560;
+extern TaskDesc   D_actor_521100_8015F6E4[];
+extern u8         D_actor_521100_8015F6FC[];
+extern u8         D_actor_521100_8015F73C[];
+
 void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
 void func_actor_521100_80134C38(Actor521100* arg0);
 void func_actor_521100_80134D88(Actor521100* arg0);
@@ -37,7 +42,172 @@ void func_actor_521100_80134658(Actor521100* arg0);
 /* Reads the caller's `Actor521100*` from $a0; the call passes no argument. */
 void func_actor_521100_80134774();
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100", ActorsShared80131e24Sub0);
+/// Spawn state of the actor: allocates its 0x6C0 work block, registers the
+/// enemy on the lock-on list with its parameter record, contact table and body
+/// coordinate (the model's fourth part), and starts the animation on clip 0x15.
+/// It then links the actor's collision bodies, spawns a second enemy from
+/// `D_actor_521100_8015F6E4` with this one as its parent, dresses that enemy's
+/// model with the texture page and CLUT of this enemy's placement, and links
+/// two more pairs of bodies, one of them placed on the second enemy's model.
+///
+/// Every body's coordinate is assigned first in its block: the model pointer is
+/// reloaded from the task each time, and that load has to precede the stores
+/// into the work block, which it cannot be scheduled across.
+void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+{
+    GpAreaKey        key;
+    TmdObject*       obj;
+    GsCOORDINATE2*   coord;
+    Actor521100Work* work;
+    GpEnemy*         spawned;
+    TmdObject*       model;
+    GpAreaKey*       sessionKey;
+    GpAreaPlace*     place;
+    s32              idx;
+    u32              raw;
+    s32              i;
+
+    obj   = task->extra;
+    coord = obj->coords;
+    work  = memCalloc(0x6C0, false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+    task->work      = work;
+    obj->flags      = 0;
+    coord->flg      = 0;
+    obj->lightMtx   = &work->light;
+    obj->colorMtx   = &work->color;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    Gp_LinkNode(&enemy->node);
+    enemy->coord         = &((TmdObject*)task->extra)->coords[3];
+    enemy->bodyPos.vx    = 0;
+    enemy->bodyPos.vy    = 0;
+    enemy->bodyPos.vz    = 0;
+    enemy->param         = &D_actor_521100_8015F560;
+    enemy->recs          = work->rec534;
+    enemy->hp            = D_actor_521100_8015F560.hpMax;
+    work->eff.coord      = &((TmdObject*)task->extra)->coords[3];
+    work->eff.spawnArgLo = 0x400;
+    work->eff.spawnArgHi = 3;
+    func_800B3F84(&work->anim, D_actor_521100_8015F73C, obj, work->poses, work->slots);
+    work->field_686 = 0x15;
+    work->field_688 = 0x15;
+    i               = 1;
+    do {
+        Gp_AnimResetSlot(&work->anim, i, work->field_686);
+        i++;
+    } while (i < 0x13);
+    work->field_6B2 = 1;
+    work->field_6B6 = -1;
+    work->field_6B8 = -1;
+
+    work->obj47C.coord    = ((TmdObject*)task->extra)->coords;
+    work->obj47C.ctx.recs = work->rec49C;
+    work->obj47C.pos.vx   = 0;
+    work->obj47C.pos.vy   = -0x190;
+    work->obj47C.pos.vz   = 0;
+    work->obj47C.key      = 0x30022;
+    work->obj47C.radius   = 0x190;
+    work->obj47C.flags    = 1;
+    Gp_LinkObj(2, &work->obj47C);
+    Gp_InitRec18Table(work->rec49C, 5, 0);
+    work->obj47C.flags |= 0x4200;
+
+    work->obj514.coord    = &((TmdObject*)task->extra)->coords[3];
+    work->obj514.ctx.recs = work->rec534;
+    work->obj514.pos.vx   = 0;
+    work->obj514.pos.vy   = 0;
+    work->obj514.pos.vz   = 0;
+    work->obj514.key      = 0x30022;
+    work->obj514.radius   = 0x190;
+    work->obj514.flags    = 1;
+    Gp_LinkObj(2, &work->obj514);
+    Gp_InitRec18Table(work->rec534, 3, 0);
+    work->obj514.flags |= 0x8000;
+
+    spawned    = Gp_SpawnEnemyFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
+    model      = spawned->task->extra;
+    raw        = enemy->placeKey;
+    sessionKey = &gGameSession->at4.loc;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    idx        = raw >> 12;
+    key.view   = sessionKey->view;
+    Gp_SyncAreaKeyIndex(&key);
+    /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
+       index onto the table. */
+    place        = (GpAreaPlace*)((idx << 4) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+    model->tpage = place->tpage;
+    model->clut  = place->clut;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+    work->field_654 = (Actor521100*)spawned->task;
+
+    work->obj57C.coord    = ((TmdObject*)spawned->task->extra)->coords;
+    work->obj57C.pos.vx   = -0x226;
+    work->obj57C.ctx.recs = work->rec5BC;
+    work->obj57C.pos.vy   = 0x64;
+    work->obj57C.pos.vz   = 0;
+    work->obj57C.key      = 0;
+    work->obj57C.radius   = 0x1C2;
+    work->obj57C.flags    = 1;
+    Gp_LinkObj(3, &work->obj57C);
+    Gp_InitRec18Table(work->rec5BC, 1, 0);
+    work->obj57C.flags &= 0x7FFF;
+
+    work->obj59C.coord    = &((TmdObject*)task->extra)->coords[7];
+    work->obj59C.ctx.recs = work->rec5BC;
+    work->obj59C.pos.vx   = 0;
+    work->obj59C.pos.vy   = 0;
+    work->obj59C.pos.vz   = 0;
+    work->obj59C.key      = 0;
+    work->obj59C.radius   = 0x1C2;
+    work->obj59C.flags    = 1;
+    Gp_LinkObj(3, &work->obj59C);
+
+    work->shape.end0.vz    = 0x5DC;
+    work->shape.end0.vx    = 0;
+    work->shape.end0.vy    = 0;
+    work->shape.end1.vx    = 0;
+    work->shape.end1.vy    = 0;
+    work->shape.end1.vz    = 0;
+    work->shape.end0Radius = 1;
+    work->shape.end1Radius = 1;
+    work->shape.recs       = work->rec62C;
+    work->obj59C.flags    &= 0x7FFF;
+
+    work->obj5D4.coord     = ((TmdObject*)task->extra)->coords;
+    work->obj5D4.ctx.d4rec = &work->shape;
+    work->obj5D4.pos.vy    = -0x1F4;
+    work->obj5D4.pos.vx    = 0;
+    work->obj5D4.pos.vz    = 0;
+    work->obj5D4.key       = 0;
+    work->obj5D4.radius    = 0;
+    work->obj5D4.flags     = 3;
+    Gp_LinkObj(3, &work->obj5D4);
+    Gp_InitRec18Table(work->rec62C, 1, 0);
+    work->obj5D4.flags |= 0x4000;
+
+    work->obj5F4.coord    = ((TmdObject*)task->extra)->coords;
+    work->obj5F4.pos.vy   = -0x320;
+    work->obj5F4.ctx.recs = work->rec62C;
+    work->obj5F4.pos.vx   = 0;
+    work->obj5F4.pos.vz   = 0x4E2;
+    work->obj5F4.key      = 0;
+    work->obj5F4.radius   = 0x1C2;
+    work->obj5F4.flags    = 1;
+    Gp_LinkObj(3, &work->obj5F4);
+    work->obj5F4.flags |= 0x4000;
+
+    task->msgTable = D_actor_521100_8015F6FC;
+    task->state    = 1;
+}
 
 static __inline__ s32 Actor521100_GetHitType(s32 key)
 {
@@ -84,7 +254,7 @@ void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 a
     scratch = (Actor521100HitScratch*)(SCRATCH_SP -= 0x48);
     coord   = arg0->field_2C->field_8;
     enemy   = arg0->field_20;
-    result  = func_800E0C10((GpRec18*)&work->field_48C.hit.rec, &scratch->delta, 5, NULL);
+    result  = func_800E0C10(work->rec49C, &scratch->delta, 5, NULL);
     switch (result) {
         case 0:
             break;
@@ -99,7 +269,7 @@ void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 a
             coord->coord.t[2] = work->field_650;
             break;
     }
-    Gp_ClearRec18Occupied(&work->field_48C.hit.rec);
+    Gp_ClearRec18Occupied(work->rec49C);
     if (work->field_684 != 0) {
         cooldown        = (u16)work->field_684 - 1;
         work->field_684 = cooldown;
@@ -1412,7 +1582,7 @@ void func_actor_521100_80134D88(Actor521100* arg0)
 
     work  = arg0->field_1C;
     coord = arg0->field_2C->field_8;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->pad_0[0x3C]);
+    rec   = Gp_AnimGetRec(&work->anim, &work->slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & 0x20) && (work->field_6B4 & 0x20)) {
             snd = ((arg0->field_20->placeKey >> 12) << 8) | 0x401C0001;

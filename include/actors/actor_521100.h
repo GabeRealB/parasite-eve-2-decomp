@@ -106,43 +106,32 @@ typedef struct Actor521100HitScratch {
 } Actor521100HitScratch;
 STATIC_ASSERT_SIZEOF(Actor521100HitScratch, 0x48);
 
-/// The saved attach rotation overlaps the contact record at work + 0x49C.
-typedef union Actor521100AttachRot {
-    struct {
-        /* 0x00 */ MATRIX mat;
-        /* 0x20 */ byte   pad_20[2];
-        /* 0x22 */ u16    yaw;
-        /* 0x24 */ byte   pad_24[2];
-        /* 0x26 */ s16    travel;
-    } rot;
-    struct {
-        /* 0x00 */ byte    pad_0[0x10];
-        /* 0x10 */ GpRec18 rec;
-    } hit;
+/// The attach coordinate's rotation as the scale-in step snapshots it, and the
+/// cache the "walk to" placement opcode writes beside it: the heading it
+/// applied to the root coordinate and the remaining distance, scaled by 20.
+/// Same offsets as `ActorsShared80133678Work`.
+typedef struct Actor521100AttachRot {
+    /* 0x00 */ MATRIX mat;
+    /* 0x20 */ byte   pad_20[2];
+    /* 0x22 */ u16    yaw;
+    /* 0x24 */ byte   pad_24[2];
+    /* 0x26 */ s16    travel;
 } Actor521100AttachRot;
 STATIC_ASSERT_SIZEOF(Actor521100AttachRot, 0x28);
 
-/// Per-actor work block. `memCalloc(0x4B4, 0)` in `func_actor_521100_80135DDC`
-/// stores the pointer both in `D_actor_521100_8016A3D8` and in the task's
-/// 0x1C slot. `anim` sits at 0x40 and the slot array at 0x54, the same layout
-/// as `Actor202900Work`; the nineteen slots are the ones
-/// `func_actor_521100_80136724` ticks. The step / playing-id / `animId` /
-/// clear-flag fields at 0x47C / 0x47E / 0x480 / 0x482 are the same layout
-/// `Actor202900Work` uses.
-///
-/// `field_48C.rot.yaw` and `travel` are the cache the "walk to" placement opcode writes:
-/// the heading it applied to the root coordinate and the remaining distance,
-/// scaled by 20. Same offsets as `ActorsShared80133678Work`.
-typedef struct Actor521100Work {
-    /// The block opens with the two matrices the spawn body hands to
-    /// `TmdObject::lightMtx` / `field_20` (a `light` / `color` pair, as in the
-    /// family's other work blocks), but the overlay's own step bodies view the
-    /// same bytes as their animation context plus slots, so the region stays
-    /// byte-addressed.
-    /* 0x000 */ byte                 pad_0[0x40];
+/// Work block of the task `func_actor_521100_80136604` dispatches:
+/// `memCalloc(0x4B4, 0)` in its spawn state `func_actor_521100_80135DDC`, kept
+/// both in `Task::work` and in `D_actor_521100_8016A3D8`. It carries the
+/// model's `light` / `color` matrices, its animation context and slots, the
+/// step that selects the slot reseed, and the scale-in state the task's last
+/// state runs. The nineteen slots are the ones `func_actor_521100_80136724`
+/// ticks.
+typedef struct Actor521100Work4B4 {
+    /* 0x000 */ MATRIX               light;
+    /* 0x020 */ MATRIX               color;
     /* 0x040 */ GpAnimCtx            anim;
     /* 0x054 */ GpAnimSlot           slots[0x13];
-    /* 0x34C */ byte                 pad_34C[0x130];
+    /* 0x34C */ byte                 poses[0x130];
     /* 0x47C */ s16                  field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
     /* 0x47E */ u16                  field_47E; // animation id currently playing
     /* 0x480 */ u16                  animId;    // animation id the slots are seeded with
@@ -152,8 +141,26 @@ typedef struct Actor521100Work {
     /* 0x488 */ u16                  field_488; // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
     /* 0x48A */ byte                 pad_48A[2];
     /* 0x48C */ Actor521100AttachRot field_48C;
-    /* 0x4B4 */ byte                 pad_4B4[0x80];
-    /* 0x534 */ GpRec18              rec534[3];
+} Actor521100Work4B4;
+STATIC_ASSERT_SIZEOF(Actor521100Work4B4, 0x4B4);
+
+/// Work block of the actor `ActorsShared80131e24Sub0` spawns:
+/// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's
+/// animation context, slots and pose buffer, the `color` / `light` matrices the
+/// model is drawn under, and the collision bodies the spawn links: `obj47C`
+/// and `obj514` (kind 2, over the `rec49C` and `rec534` contact tables),
+/// `obj57C` / `obj59C` sharing `rec5BC`, and `obj5D4` / `obj5F4` sharing
+/// `rec62C`, the first of that pair carrying the `shape` segment.
+typedef struct Actor521100Work {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
+    /* 0x43C */ MATRIX     color;
+    /* 0x45C */ MATRIX     light;
+    /* 0x47C */ GpObj      obj47C;
+    /* 0x49C */ GpRec18    rec49C[5];
+    /* 0x514 */ GpObj      obj514;
+    /* 0x534 */ GpRec18    rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
     /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `ActorsShared80131e24Sub0`
     /// fills both - the two pointers, `pos` and
@@ -163,10 +170,12 @@ typedef struct Actor521100Work {
     /// `Gp_PackPair` returns into `key`.
     /* 0x57C */ GpObj obj57C;
     /// See `obj57C`.
-    /* 0x59C */ GpObj   obj59C;
-    /* 0x5BC */ GpRec18 rec5BC[1];
-    /* 0x5D4 */ byte    pad_5D4[0x58];
-    /* 0x62C */ GpRec18 rec62C[1];
+    /* 0x59C */ GpObj        obj59C;
+    /* 0x5BC */ GpRec18      rec5BC[1];
+    /* 0x5D4 */ GpObj        obj5D4;
+    /* 0x5F4 */ GpObj        obj5F4;
+    /* 0x614 */ GpActorD4Rec shape;
+    /* 0x62C */ GpRec18      rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.
     /* 0x644 */ GpEffArg     eff;
@@ -332,7 +341,7 @@ extern GpEffArg D_actor_521100_8015F804;
 
 void func_actor_521100_801339B0(Actor521100* arg0);
 
-extern Actor521100Work* D_actor_521100_8016A3D8;
+extern Actor521100Work4B4* D_actor_521100_8016A3D8;
 
 /// The game-wide 32-bit LCG. `func_actor_521100_80136290` draws it three times
 /// in a row, scaling the second coordinate's world position by `field_488`

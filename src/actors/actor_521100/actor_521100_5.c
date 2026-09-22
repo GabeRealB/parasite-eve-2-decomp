@@ -24,7 +24,7 @@ void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void func_actor_521100_80135DDC(void* spawnArg2, Task* task);
 void func_actor_521100_801360C4(void* spawnArg2, Task* task);
 void func_actor_521100_80136290(void* arg0, Task* task);
-void func_actor_521100_801368B0(Actor521100* arg0);
+void func_actor_521100_801368B0(Task* task);
 void func_actor_521100_80136680(void* arg0, Task* task);
 
 s32 func_actor_521100_80135D10(Actor521100* arg0, s32 arg1, s32 arg2)
@@ -78,11 +78,11 @@ s16 func_actor_521100_80135DC8(Actor521100* arg0)
 
 void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
 {
-    VECTOR           vec;
-    Actor521100Work* mem;
-    GpEnemy*         enemy;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
+    VECTOR              vec;
+    Actor521100Work4B4* mem;
+    GpEnemy*            enemy;
+    TmdObject*          obj;
+    GsCOORDINATE2*      coord;
 
     enemy                   = (GpEnemy*)spawnArg2;
     obj                     = task->extra;
@@ -101,14 +101,14 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     enemy->node.targeted     = 0;
     enemy->node.flags        = 1;
     obj->otOffset            = 1;
-    obj->lightMtx            = (MATRIX*)D_actor_521100_8016A3D8;
-    obj->colorMtx            = (MATRIX*)D_actor_521100_8016A3D8 + 1;
+    obj->lightMtx            = &D_actor_521100_8016A3D8->light;
+    obj->colorMtx            = &D_actor_521100_8016A3D8->color;
     vec.vx                   = coord->workm.t[0];
     vec.vy                   = coord->workm.t[1] - 0x320;
     ActorsShared801326b4Task = task;
     vec.vz                   = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->pad_34C);
+    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->poses);
     D_actor_521100_8016A3D8->animId    = 1;
     D_actor_521100_8016A3D8->field_47C = 2;
     task->msgTable                     = &D_actor_521100_8016A358;
@@ -128,8 +128,8 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
 /// paused actor finishes its walk.
 void func_actor_521100_80135F2C(Task* task)
 {
-    Actor521100Work* work;
-    s16              animId;
+    Actor521100Work4B4* work;
+    s16                 animId;
 
     work = D_actor_521100_8016A3D8;
     if (work->field_47C == 1) {
@@ -144,9 +144,9 @@ void func_actor_521100_80135F2C(Task* task)
     }
     if (work->field_47C == 3) {
         animId = work->animId;
-        if (animId == 1 && work->field_48C.rot.travel != 0) {
+        if (animId == 1 && work->field_48C.travel != 0) {
             Actor521100_MoveForward(((TmdObject*)task->extra)->coords, 0x14);
-            D_actor_521100_8016A3D8->field_48C.rot.travel = (u16)D_actor_521100_8016A3D8->field_48C.rot.travel - 1;
+            D_actor_521100_8016A3D8->field_48C.travel = (u16)D_actor_521100_8016A3D8->field_48C.travel - 1;
         }
         func_actor_521100_80136724();
         return;
@@ -162,28 +162,28 @@ void func_actor_521100_80135F2C(Task* task)
 /// to the slot tick and the colour step.
 void func_actor_521100_801360C4(void* spawnArg2, Task* task)
 {
-    GsCOORDINATE2    sp10;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    Actor521100Work* work;
-    s32              i;
+    GsCOORDINATE2       sp10;
+    TmdObject*          obj;
+    GsCOORDINATE2*      coord;
+    Actor521100Work4B4* work;
+    s32                 i;
 
     obj   = task->extra;
     coord = obj->coords;
-    work  = (Actor521100Work*)task->work;
+    work  = (Actor521100Work4B4*)task->work;
     sp10  = *coord;
 
     switch (work->field_484) {
         case 0:
             work->field_486 = 0;
             work->field_488 = 0x1000;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->field_48C.rot.yaw, 1);
-            work->field_48C.rot.mat = coord->coord;
-            work->field_484         = 1;
+            Gfx_RotMatrixY(&coord->coord, (s16)work->field_48C.yaw, 1);
+            work->field_48C.mat = coord->coord;
+            work->field_484     = 1;
             break;
 
         case 1:
-            func_actor_521100_801368B0((Actor521100*)task);
+            func_actor_521100_801368B0(task);
             work->field_486++;
             if ((s16)work->field_486 == 0xA) {
                 obj->flags = 2;
@@ -219,11 +219,11 @@ void func_actor_521100_801360C4(void* spawnArg2, Task* task)
 /// and each draw's value gets its own register.
 void func_actor_521100_80136290(void* arg0, Task* task)
 {
-    Actor521100Work* work;
-    GsCOORDINATE2*   coord;
-    void**           scratch;
-    u8*              head;
-    VECTOR*          block;
+    Actor521100Work4B4* work;
+    GsCOORDINATE2*      coord;
+    void**              scratch;
+    u8*                 head;
+    VECTOR*             block;
 
     coord    = &((TmdObject*)task->extra)->coords[1];
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -242,7 +242,7 @@ void func_actor_521100_80136290(void* arg0, Task* task)
     block->vy   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     block->vz   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
-    ScaleMatrixL((MATRIX*)&work->pad_0[0x20], block);
+    ScaleMatrixL(&work->color, block);
     *scratch = (u8*)*scratch + 0x10;
 }
 /// Companion task body: the two tasks the `0x7DB` handler
@@ -320,7 +320,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.field_10             = 2;
     sp.field_11             = 9;
     sp.field_12             = 1;
-    D_actor_521100_8016A3D8 = (Actor521100Work*)arg0->work;
+    D_actor_521100_8016A3D8 = (Actor521100Work4B4*)arg0->work;
     sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
