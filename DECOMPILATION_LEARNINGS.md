@@ -137601,3 +137601,36 @@ Gp_SpawnEff(0x6003D, coord, lo + arg, &work->field_10);
 Which fix applies depends on where the target's intermediate lives. If it is in
 a scratch register, split out the value. If it is computed in place in the
 argument register, hold only the constant in a local, as the `|` entry does.
+
+### A tied `SOFT_TOUCH_REG` copy is placed by sched2, an explicit `asm("move")` by sched1 (func_dryfield_night_motel_balcony_8018221C, 2026-09-23)
+
+**Symptom.** The scratch-block push has the compute-then-copy shape with the
+next field load *between* the two:
+
+```
+sh    v0,-0x18(t0)     ; vx through head
+addiu v0,t0,-0x18      ; temp
+lhu   a0,0x3c(v1)      ; vy load
+move  t1,v0            ; block = temp, fills the load delay
+sh    a0,2(t1)
+```
+
+Every plain spelling (`vec` then `block = vec`, `head - 1`, casts, a second
+read of `G_SCRATCH_HEAD`, an integer `head`) collapses to one `addiu t1`: CSE or
+combine folds the single-use temp into the copy. `*(T**)G_SCRATCH_HEAD -= 1`
+keeps the pair but stores the temp to the head immediately, while this target
+stores `block` after the vy store.
+
+**What worked.** `vec = head - 0x18; SOFT_TOUCH_REG(vec); block = vec;` keeps the
+copy but reaches 99.24%: the copy is a reload move inserted before the empty
+asm, sched2 hoists it above the `lhu`, and the empty asm then leaves a load-delay
+`nop`. Writing the copy as the asm itself,
+
+```c
+vec = (SVECTOR*)(head - 0x18);
+__asm__("move %0,%1" : "=r"(block) : "r"(vec));
+```
+
+makes the move a real, schedulable insn that sched puts after the load, and the
+function matched. `SCHED_BARRIER()` in the same place is worse (88.9%): it also
+pins the `%10` reciprocal's `mfhi` on the wrong side.

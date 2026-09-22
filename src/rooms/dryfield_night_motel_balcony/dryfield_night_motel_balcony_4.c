@@ -7,6 +7,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/display.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -17,6 +18,7 @@ extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
@@ -478,7 +480,101 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_8018221C);
+/// Draws a drifting effect task's sprite: projects its model's world position
+/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues one
+/// semi-transparent `POLY_FT4` (tpage 0x2B). The animation frame is
+/// `field_20 % 10`; it picks the CLUT column and one 48-texel cell of a 5x2
+/// grid starting at v=0x28. The quad is centred on the projected point with a
+/// half-width of `field_18 * 47 / otz` and extends three quarters above and one
+/// quarter below. `color` is the RGB the texture is modulated by; NULL draws
+/// the texture raw.
+/// `tick` is unused. The block pointer is copied through an `asm` move because
+/// the ROM keeps the scratch-block address in a temporary and copies it into the
+/// pointer's own register, a copy no C spelling found here survives combine with.
+void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
+{
+    RoomEffWork*       work = task->spawnArg2;
+    GsCOORDINATE2*     coord;
+    u8*                head;
+    RoomDraw14Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    SVECTOR*           vec;
+    s16                frame;
+    s32                u0;
+    s32                u1;
+    s32                vTop;
+    s32                vBottom;
+    s16                xy;
+    u16                vz;
+
+    frame = (s16)work->field_20 % 10;
+    coord = ((TmdObject*)task->extra)->coords;
+
+    head                                        = *(void**)G_SCRATCH_HEAD;
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    vec                                         = (SVECTOR*)(head - 0x18);
+    __asm__("move %0,%1" : "=r"(block) : "r"(vec));
+    block->vec.vy           = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = block;
+    block->vec.vz           = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (color != NULL) {
+            prim->r0 = color[0];
+            prim->g0 = color[1];
+            prim->b0 = color[2];
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage = 0x2B;
+        prim->clut  = getClut(frame * 16 + 0x40, 0x10E);
+        setSemiTrans(prim, 1);
+        u0              = frame % 5 * 48;
+        vTop            = frame / 5 * 48;
+        u1              = u0 + 0x2F;
+        vBottom         = vTop + 0x57;
+        vTop            = vTop + 0x28;
+        prim->u0        = u0;
+        prim->v0        = vTop;
+        prim->u1        = u1;
+        prim->v1        = vTop;
+        prim->u2        = u0;
+        prim->v2        = vBottom;
+        prim->u3        = u1;
+        prim->v3        = vBottom;
+        block->radius   = (s16)work->field_18 * 47 / block->otz;
+        xy              = *(u16*)&block->sx - *(u16*)&block->radius;
+        prim->x2        = xy;
+        prim->x0        = xy;
+        xy              = *(u16*)&block->sx + *(u16*)&block->radius;
+        prim->x3        = xy;
+        prim->x1        = xy;
+        block->radius >>= 1;
+        xy              = *(u16*)&block->sy - block->radius * 3;
+        prim->y1        = xy;
+        prim->y0        = xy;
+        xy              = *(u16*)&block->sy + *(u16*)&block->radius;
+        prim->y3        = xy;
+        prim->y2        = xy;
+        ds              = &gDisplayState;
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 /// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070
 /// around part 3 of the model owned by the slot-4 task's child. Each step rolls
