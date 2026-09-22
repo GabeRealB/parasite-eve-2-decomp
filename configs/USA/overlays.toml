@@ -5332,7 +5332,8 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01100/actor_101100", rodata = "0x4", text = "0xE8" },
+  { unit = "actor_01100/actor_101100", rodata = "0x4", text = "0x430" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0xE8" },
   { unit = "actor_01100/actors_shared_801357f0", text = "0x39D0" },
   { unit = "actor_01100/actors_shared_801359cc", text = "0x3BAC" },
   { unit = "actor_01100/actors_shared_80135fdc", text = "0x41BC" },
@@ -5475,11 +5476,12 @@ slot = 1
 id = 259
 objects = [
   { kind = "packageId" },
-  { unit = "actor_401800/actor_401800", rodata = "0x4", text = "0x5B4" },
+  { unit = "actor_401800/actor_401800", rodata = "0x4", text = "0x8FC" },
   { unit = "actor_401800/actor_401800_2", rodata = "0x54", text = "0x241C" },
   { unit = "actor_401800/actor_401800_3", rodata = "0x254", text = "0xBE9C" },
   { unit = "actor_401800/actor_401800_4", rodata = "0x26C", text = "0xC160" },
   { lib = true, unit = "actors_shared_80132808", text = "0x2A8" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x5B4" },
   { lib = true, unit = "actors_shared_80133eb8", text = "0x2098" },
   { lib = true, unit = "actors_shared_80169e64", text = "0xBF0C" },
   { lib = true, unit = "actors_shared_80164904", text = "0xBFCC" },
@@ -5501,9 +5503,11 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
+  { unit = "actor_01900/actor_101900_text", text = "0x260" },
   { kind = "rodata", at = "0x1BC" },
-  { unit = "actor_01900/actor_101900_text", rodata = "0x4", text = "0x260" },
   { unit = "actor_01900/actor_101900_fn0a31c", rodata = "0x24C", text = "0xA31C" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x56C" },
+  { unit = "actor_01900/actor_01900_2", rodata = "0x4", text = "0x8B4" },
   { unit = "actor_01900/actor_101900_text_tail", text = "0xA38C" },
   { kind = "data", at = "0xAC4C" },
   { kind = "model", at = "0xAC88" },
@@ -6580,7 +6584,8 @@ id = 195
 objects = [
   { kind = "packageId" },
   { unit = "actor_311500/actor_311500_2", rodata = "0x4", text = "0xBB8" },
-  { unit = "actor_311500/actor_311500", text = "0x18" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x18" },
+  { unit = "actor_311500/actor_311500", text = "0x360" },
   { lib = true, unit = "actors_shared_80132808", text = "0x8AC" },
   { kind = "model", at = "0x1894" },
   { kind = "data", at = "0x6DFC" },
@@ -6615,7 +6620,8 @@ slot = 3
 id = 197
 objects = [
   { kind = "packageId" },
-  { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x10" },
+  { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x358" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x10" },
   { lib = true, unit = "actors_shared_8013d268", text = "0x16F0" },
   { unit = "actor_312200/actor_312200_2", text = "0x17AC" },
   { lib = true, unit = "actors_shared_80135df4", text = "0x1A34" },
@@ -6895,9 +6901,10 @@ slot = 3
 id = 218
 objects = [
   { kind = "packageId" },
-  { unit = "actor_323000/actor_323000", rodata = "0x4", text = "0x378" },
+  { unit = "actor_323000/actor_323000", rodata = "0x4", text = "0x6C0" },
   { unit = "actor_323000/actor_323000_4", rodata = "0x24", text = "0x2D20" },
   { lib = true, unit = "actors_shared_80132808", text = "0x6C" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x378" },
   { lib = true, unit = "actors_shared_80162bd0", text = "0xDB0" },
   { lib = true, unit = "actors_shared_8016331c", text = "0x14FC" },
   { unit = "actor_323000/actor_323000_2", text = "0x1628" },
@@ -6921,8 +6928,9 @@ id = 115
 objects = [
   { kind = "packageId" },
   { kind = "rodata", at = "0x4" },
-  { unit = "actor_123200/actor_123200", rodata = "0x1C", text = "0x33C" },
+  { unit = "actor_123200/actor_123200", rodata = "0x1C", text = "0x684" },
   { lib = true, unit = "actors_shared_80132808", text = "0x30" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x33C" },
   { lib = true, unit = "actors_shared_80135990", text = "0x2170" },
   { lib = true, unit = "actors_shared_80135a60", text = "0x2240" },
   { lib = true, unit = "actors_shared_80134178", text = "0x2358" },
@@ -6950,9 +6958,10 @@ slot = 3
 id = 232
 objects = [
   { kind = "packageId" },
-  { unit = "actor_323400/actor_323400", rodata = "0x4", text = "0x378" },
+  { unit = "actor_323400/actor_323400", rodata = "0x4", text = "0x6C0" },
   { unit = "actor_323400/actor_323400_3", rodata = "0x24", text = "0x2B54" },
   { lib = true, unit = "actors_shared_80132808", text = "0x6C" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x378" },
   { lib = true, unit = "actors_shared_80162bd0", text = "0xDB0" },
   { lib = true, unit = "actors_shared_8016331c", text = "0x14FC" },
   { unit = "actor_323400/actor_323400_2", text = "0x1628" },
@@ -6975,8 +6984,9 @@ slot = 2
 id = 173
 objects = [
   { kind = "packageId" },
-  { unit = "actor_223600/actor_223600", rodata = "0x4", text = "0x350" },
+  { unit = "actor_223600/actor_223600", rodata = "0x4", text = "0x698" },
   { lib = true, unit = "actors_shared_80132808", text = "0x44" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x350" },
   { lib = true, unit = "actors_shared_80135990", text = "0x2F34" },
   { lib = true, unit = "actors_shared_80135a60", text = "0x3004" },
   { lib = true, unit = "actors_shared_80134178", text = "0x311C" },
@@ -7156,7 +7166,7 @@ id = 224
 objects = [
   { kind = "packageId" },
   { unit = "actor_341700/actor_341700", rodata = "0x4", text = "0x6D8" },
-  { unit = "actor_341700/actor_341700_27", rodata = "0x220", text = "0x8E44" },
+  { unit = "actor_341700/actor_341700_27", text = "0x8E44" },
   { lib = true, unit = "actors_shared_80163354", text = "0x250" },
   { lib = true, unit = "actors_shared_801639a8", text = "0x8A4" },
   { unit = "actor_341700/actor_341700_2", text = "0xB54" },
@@ -7235,6 +7245,8 @@ objects = [
   { lib = true, unit = "actors_shared_8016bd98", text = "0x8C94" },
   { unit = "actor_341700/actor_341700_26", text = "0x8DD4" },
   { lib = true, unit = "actors_shared_8016bef0", text = "0x8DEC" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x9150" },
+  { unit = "actor_341700/actor_341700_22", rodata = "0x220", text = "0x9498" },
   { lib = true, unit = "actors_shared_80135990", text = "0xB128" },
   { lib = true, unit = "actors_shared_80135a60", text = "0xB1F8" },
   { unit = "actor_341700/actor_341700_28", text = "0xB310" },
@@ -7788,9 +7800,10 @@ slot = 3
 id = 239
 objects = [
   { kind = "packageId" },
-  { unit = "actor_356100/actor_356100", rodata = "0x4", text = "0x438" },
+  { unit = "actor_356100/actor_356100", rodata = "0x4", text = "0x780" },
   { unit = "actor_356100/actor_356100_2", rodata = "0x120", text = "0x8298" },
   { lib = true, unit = "actors_shared_80132808", text = "0x12C" },
+  { lib = true, unit = "actors_shared_fn000e8", text = "0x438" },
   { lib = true, unit = "actors_shared_80169e64", text = "0x8044" },
   { lib = true, unit = "actors_shared_80164904", text = "0x8104" },
   { lib = true, unit = "actors_shared_80169f74", text = "0x8154" },

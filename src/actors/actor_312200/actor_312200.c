@@ -17,8 +17,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern u8 D_actor_312200_80169F44[];
 extern u8 D_actor_312200_80169F5C[];
 
-INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_80161E30);
-
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_80162178);
 
 INCLUDE_ASM("actors/nonmatchings/actor_312200/actor_312200", func_actor_312200_801626C4);

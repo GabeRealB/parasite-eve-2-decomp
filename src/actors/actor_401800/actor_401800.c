@@ -48,60 +48,6 @@ static __inline__ void Actor401800_CalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR*
     out->vz = (pen * d.vz) >> 12;
 }
 
-/// Updates `coord` and computes the push-out of the last kind 0x10000 / 0x30000
-/// record in `recs`, walking until `count` or a zero `key`; nonzero when any
-/// hit. The push is clamped to length 0x100. Same body as `Actor01900_Fn0056C`.
-s32 func_actor_401800_801323D4(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
-{
-    Actor401800RepelScratch* head;
-    Actor401800RepelScratch* s;
-    Actor401800RepelScratch* blk;
-    SVECTOR*                 offset;
-
-    if (D_80072729 == 1 || gGameSession->viewReady == 1) {
-        return 0;
-    }
-    coord->flg                                 = 0;
-    head                                       = *(Actor401800RepelScratch**)G_SCRATCH_HEAD;
-    blk                                        = head - 1;
-    *(Actor401800RepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                          = blk;
-    Gp_UpdateCoord(coord);
-    s->pos.vx  = coord->workm.t[0];
-    s->pos.vy  = coord->workm.t[1];
-    s->pos.vz  = coord->workm.t[2];
-    s->last.vz = 0;
-    s->last.vy = 0;
-    s->last.vx = 0;
-    s->hit     = 0;
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
-            s->dist[s->i] = 0x7FFE;
-            break;
-        }
-        s->kind = recs[s->i].key & 0xFFFF0000;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            Actor401800_CalcPush(&s->pos, &recs[s->i], &s->offset);
-            s->last.vx = s->offset.vx;
-            s->last.vz = s->offset.vz;
-        }
-    }
-    s->len = SquareRoot0(s->offset.vx * s->offset.vx + s->offset.vy * s->offset.vy +
-                         s->offset.vz * s->offset.vz);
-    if (s->len > 0x100) {
-        offset = &s->offset;
-        VectorNormalSS(offset, offset);
-        gte_lddp(0x100);
-        gte_ldsv(offset);
-        gte_gpf12_real();
-        gte_stsv(offset);
-    }
-    coord->flg                                  = 0;
-    *(Actor401800RepelScratch**)G_SCRATCH_HEAD += 1;
-    return s->hit;
-}
-
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.
 static __inline__ s16 Actor401800_BearingXZ(SVECTOR3* p, SVECTOR3* eye)

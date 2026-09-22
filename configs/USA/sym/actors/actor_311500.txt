@@ -1,2 +1,4 @@
 // Overlay-local symbols for actor_311500.
 ActorsShared80132808 = 0x801626CC; // shared body, see src/lib/
+ActorsSharedFn000e8 = 0x80161E38; // shared body, see src/lib/
+func_actor_311500_80161E38 = 0x80161E38; // type:func absolute:True
