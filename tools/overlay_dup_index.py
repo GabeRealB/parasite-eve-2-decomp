@@ -346,36 +346,67 @@ def _offset_of(line: str) -> int | None:
     return min(offs) if offs else None
 
 
+def _text_start(line: str) -> int | None:
+    """Where an object's text run starts, or None if it owns no text."""
+    m = re.search(r'text = "(0x[0-9A-F]+)"', line)
+    return int(m.group(1), 16) if m else None
+
+
 def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
                    unit: str, overlay: str) -> tuple[str | None, str | None]:
-    """Give one run to a shared unit, handing the remainder to a new unit.
+    """Give one run to a shared unit, handing the remainder back to its owner.
 
-    The old `shared` key carved a span out of the middle of a run and left the
-    generator to stitch the rest back under generated names. An object list has
-    no holes: the shared object owns everything from its offset to the next one,
-    so whatever followed the body needs an object of its own.
+    An object list has no holes: an object's text runs from its offset to the
+    next object's, so the body is carved out of whichever object's *text* run
+    holds it. Ownership is by text, not by an object's first offset: a unit's
+    rodata can sit far ahead of its code, and taking the earliest offset once
+    handed a body to a unit whose text started 0x4000 later.
+
+    What follows the body stays with its owner. At the start of the run the
+    owner's text simply moves past the body, keeping its name and its rodata,
+    which belongs to the functions still in it. Mid-run the rest goes to a new
+    unit, since one object cannot own two runs. A body that ends its run leaves
+    nothing to hand on.
     """
     start, end, lines = _objects_block(text, family, entry)
-    owner = None
-    for i, line in enumerate(lines):
-        o = _offset_of(line)
-        if o is not None and o <= at and "kind" not in line:
-            owner = i
-    if owner is None:
+    runs = [(i, _text_start(l)) for i, l in enumerate(lines) if _text_start(l) is not None]
+    held = [(i, s) for i, s in runs if s <= at]
+    if not held:
         return None, None
-    m = re.search(r'unit = "([^"]*)"', lines[owner])
-    base = m.group(1).rsplit("/", 1)[-1] if m else overlay
-    nxt = next((_offset_of(l) for l in lines[owner + 1:] if _offset_of(l) is not None), None)
+    owner, owner_start = max(held, key=lambda r: r[1])
+    # The run ends where the next object begins: more code, or the trailing
+    # data and models after the code.
+    bounds = [s for _i, s in runs if s > at]
+    bounds += [int(v, 16) for l in lines if "kind" in l and "rodata" not in l
+               for v in re.findall(r'at = "(0x[0-9A-F]+)"', l) if int(v, 16) > at]
+    nxt = min(bounds, default=None)
+    if nxt is not None and at + size > nxt:
+        return None, None
+    rest = nxt is None or at + size < nxt
     new = [f'  {{ lib = true, unit = "{unit}", text = "0x{at:X}" }},']
     tail = None
-    if nxt is None or at + size < nxt:
+    if owner_start == at:
+        line = lines[owner]
+        if rest:
+            lines[owner] = line.replace(f'text = "0x{at:X}"', f'text = "0x{at + size:X}"')
+        else:
+            # The body was the whole run: the owner keeps only what else it
+            # owns, or goes if that is nothing.
+            stripped = re.sub(r',\s*text = "0x[0-9A-F]+"', "", line)
+            if re.search(r'(rodata|data) = "', stripped):
+                lines[owner] = stripped
+            else:
+                del lines[owner]
+                m = re.search(r'unit = "([^"]*)"', line)
+                tail = f"{m.group(1) if m else 'owner'} (no run left; its source goes)"
+    elif rest:
         n = 2
         taken = set(re.findall(r'unit = "[^"]*?([^/"]+)"', "\n".join(lines)))
-        while f"{base.split('_')[0]}_{n}" in taken or f"{overlay}_{n}" in taken:
+        while f"{overlay}_{n}" in taken:
             n += 1
         tail = f"{overlay}_{n}"
         new.append(f'  {{ unit = "{overlay}/{tail}", text = "0x{at + size:X}" }},')
-    lines[owner + 1:owner + 1] = new
+    lines.extend(new)
     lines.sort(key=lambda l: (_offset_of(l) if _offset_of(l) is not None else 0))
     return text[:start] + "\n".join(lines) + "\n" + text[end:], tail
 
@@ -398,49 +429,164 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     An overlay that contains the body twice is left out: ld includes an input
     object once, so the second slot would go unfilled.
 
-    **Most duplicated bodies cannot be promoted as things stand**, and it is
-    worth knowing why before planning a promotion pass around them. Measured
-    over the 42 clusters that account for the 828 functions the vacuum skips as
-    already-matched-elsewhere: 39 are refused because the body references its
-    own overlay's data, one because every carrier holds it twice, and the last
-    two are already shared. Not one was promotable.
-
-    The refusal is a tooling gap rather than a fact about the code. Two copies
-    of such a body differ only in the address of the room-local data they read -
-    D_acropolis_square_8017D620 against D_acropolis_fire_escape_8017D610 - and
-    each overlay is a separate link, so one object could serve all of them if
-    the symbol resolved per overlay. The build already writes a per-overlay
-    linkers/USA/undefined_syms_auto.<overlay>.txt; what is missing is for
-    promotion to name the data with a shared symbol and emit that symbol at each
-    carrier's own address. Shared units reference externals today only when the
-    symbol is overlay-neutral (room_util30.c reads D_8007216D, a fixed global).
-
-    Until that exists, the high-value work of this shape is not promotion at all
-    but the 78 already-shared units whose body is still INCLUDE_ASM, covering
-    631 carrier slots - matching room_draw03 once fills a stub in 40 overlays.
+    A body that calls its own overlay's code is promoted together with its
+    callees when every carrier's callees are themselves one shared body: they
+    are promoted first, under shared names, and the report lists the calls the
+    moved C has to rename. Two things still refuse a promotion. A reference to
+    the overlay's own *data* does, because each carrier's copy of the data sits
+    at its own address and nothing yet resolves one shared name to all of them;
+    and so does a call whose target differs between carriers.
     """
     import tomllib
 
-    cl = classes(data, "text")
     hit = next((f for f in data["functions"] if f["name"] == name), None)
     if hit is None:
         print(f"{name}: not found", file=sys.stderr)
         return 1
-    # Every copy the library can reach is served, whatever its family: each
-    # carrier's span goes into its own family's manifest entry, and the unit
-    # itself is the one src/lib source they all link. A copy in a family that
-    # links once cannot carry a library unit and is left alone.
-    families = library_families()
-    outside = sorted({f["overlay"] for f in cl[hit["text"]] if family_of(f) not in families})
-    copies = [f for f in cl[hit["text"]] if family_of(f) in families]
-    # A copy under `<family>/lib` is the shared body itself, already promoted -
-    # not a carrier. It has no manifest entry (`lib` is not an overlay), so
-    # treating it as one raised KeyError('lib') *after* the symbol maps of every
-    # other carrier had been written. Take the unit name from it instead, so a
-    # later promotion of the same body extends the existing shared unit rather
-    # than making a second one with the same code.
+    plan, why = _promotion_plan(data, hit, library_families())
+    if why:
+        print(f"{name}: {why}")
+        return 1
+
+    cl = classes(data, "text")
+    text_of = {(f["overlay"], f["name"]): f["text"] for f in data["functions"]}
+    manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    text = MANIFEST.read_text(encoding="utf-8")
+    syms: dict[Path, str] = {}
+    spans: list[tuple] = []
+    staged = []
+    shared_name: dict[str, str] = {}   # body text hash -> its shared symbol
+    for body in plan:
+        # Only the body that was asked for takes an explicit unit name.
+        wanted = unit if body["text"] == hit["text"] else None
+        result = _stage_promotion(body, cl[body["text"]], wanted, manifest, spans, syms)
+        if result is None:
+            return 1
+        shared_name[body["text"]] = result["sym"]
+        staged.append(result)
+
+    # Carve every body out of its entry in address order. Inserting a later
+    # body first cuts its owner's run mid-way and strands the earlier code in a
+    # new unit, away from the rodata its owner keeps.
+    tails = []
+    for family, entry_name, start, size, u, room in sorted(spans, key=lambda s: s[:3]):
+        new_text, tail = _insert_shared(text, family, entry_name, start, size, u, room)
+        if new_text is None:
+            print(f"{entry_name}: no object's text run holds 0x{start:X}+0x{size:X}; "
+                  f"aborting", file=sys.stderr)
+            return 1
+        text = new_text
+        if tail:
+            tails.append(f"{entry_name}: remainder after 0x{start:X} goes to {tail}")
+
+    # Nothing is written until every body of the plan has validated: a partial
+    # write would leave a caller shared with a callee that is not.
+    for path, sym_text in syms.items():
+        path.write_text(sym_text, encoding="utf-8")
+    MANIFEST.write_text(text, encoding="utf-8")
+
+    if len(staged) > 1:
+        print(f"{name}: calls {len(staged) - 1} body/bodies its carriers share, "
+              f"promoted first:")
+    for result in staged:
+        _report_promotion(result, shared_name, text_of)
+    for tail in tails:
+        print(f"  {tail}")
+    print("  run: python3 ninja_config.py && ./tools/build-and-verify.sh")
+    return 0
+
+
+def _carriers(cls: list[dict], families: frozenset[str]) -> tuple[list[dict], list[dict], set[str], list[str]]:
+    """(carriers, promoted copies, overlays holding it twice, overlays outside).
+
+    A copy under `<family>/lib` is the shared body itself, already promoted -
+    not a carrier; it has no manifest entry. An overlay that contains the body
+    twice is left out: ld includes an input object once, so the second slot
+    would go unfilled. A copy in a family that links once (main, gameplay,
+    title) cannot carry a library unit.
+    """
+    outside = sorted({f["overlay"] for f in cls if family_of(f) not in families})
+    copies = [f for f in cls if family_of(f) in families]
     promoted = [f for f in copies if f["overlay"].split("/")[-1] == "lib"]
     copies = [f for f in copies if f["overlay"].split("/")[-1] != "lib"]
+    twice = {u for u, n in collections.Counter(f["overlay"] for f in copies).items() if n > 1}
+    keep = [f for f in copies if f["overlay"] not in twice]
+    return keep, promoted, twice, outside
+
+
+def _promotion_plan(data: dict, hit: dict, families: frozenset[str]) -> tuple[list[dict], str | None]:
+    """The bodies to promote for `hit`, callees before callers, or why not.
+
+    A body that references its own overlay can still be shared when every such
+    reference is a call to a function whose body is itself shared by the same
+    carriers: promote the callee first, under a shared name every carrier
+    defines, and the caller's reference is no longer overlay-local. That walks
+    down the call graph until it reaches bodies with no local references. A
+    local reference to *data* still blocks it - each carrier's data sits at its
+    own address, and nothing yet resolves one shared name to all of them - and
+    so does a call whose target differs between carriers.
+
+    Each returned body is a representative record of its class.
+    """
+    cl = classes(data, "text")
+    by = {(f["overlay"], f["name"]): f for f in data["functions"]}
+    order: list[dict] = []
+    state: dict[str, str] = {}
+
+    def visit(body: dict, reach: set[str] | None) -> str | None:
+        if state.get(body["text"]) in ("active", "done"):
+            return None           # already planned, or a cycle that will be
+        state[body["text"]] = "active"
+        keep, promoted, _twice, _outside = _carriers(cl[body["text"]], families)
+        if promoted and len(keep) == 0:
+            state[body["text"]] = "done"
+            return None           # served by the library already
+        if reach is not None and not reach <= {f["overlay"] for f in keep}:
+            missing = sorted(reach - {f["overlay"] for f in keep})
+            return (f"calls {body['name']}, which cannot be shared into "
+                    f"{', '.join(missing)} (held twice there, or not carried)")
+        if reach is None and len(keep) < 2 and not promoted:
+            return "only one copy the library can reach, nothing to share"
+        if len(keep) < (1 if promoted else 2):
+            return "every overlay carrying it contains it twice; cannot share"
+        callees: list[list[str]] = []
+        for f in keep:
+            own = []
+            for r in f["refs"]:
+                if not is_local_ref(r, f["unit"]):
+                    continue
+                g = by.get((f["overlay"], r))
+                if g is None:
+                    return (f"references its own overlay's data "
+                            f"({f['overlay'].split('/', 1)[1]}: {r})")
+                own.append(g["text"])
+            callees.append(sorted(own))
+        if any(c != callees[0] for c in callees):
+            return "calls its own overlay's code, and the carriers' callees differ"
+        overlays = {f["overlay"] for f in keep}
+        for t in dict.fromkeys(callees[0]):
+            callee = next(g for g in cl[t] if g["overlay"] in overlays)
+            why = visit(callee, overlays)
+            if why:
+                return why
+        state[body["text"]] = "done"
+        order.append(body)
+        return None
+
+    why = visit(hit, None)
+    return (order, None) if why is None else ([], why)
+
+
+def _stage_promotion(body: dict, cls: list[dict], unit: str | None, manifest: dict,
+                     spans: list[tuple], syms: dict[Path, str]) -> dict | None:
+    """Give one body its unit: spans onto `spans`, symbols into `syms`.
+
+    Returns what was done, or None after printing why the body cannot be
+    shared. Nothing is written to disk here, and the manifest is edited later,
+    all spans at once: the order they go in changes the result.
+    """
+    name = body["name"]
+    keep, promoted, twice, outside = _carriers(cls, library_families())
     if promoted and unit is None:
         sym_name = promoted[0]["name"]
         for c in sorted(Path("src/lib").glob("*.c")):
@@ -450,121 +596,157 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         else:
             print(f"{name}: already shared as {sym_name}, but no file in "
                   f"src/lib defines it", file=sys.stderr)
-            return 1
-    if len(copies) < 2 and not promoted:
-        print(f"{name}: only one copy the library can reach, nothing to share")
-        return 1
-    if not copies:
+            return None
+    if not keep:
         print(f"{name}: every copy is already served by the shared body")
-        return 1
-
-    twice = {u for u, n in collections.Counter(f["overlay"] for f in copies).items() if n > 1}
-    keep = [f for f in copies if f["overlay"] not in twice]
-    if len(keep) < 2:
-        print(f"{name}: every overlay carrying it contains it twice; cannot share")
-        return 1
+        return None
     # An unmatched body is shared as one disassembly file, and every overlay
     # writes it, so that file is only well-defined when the copies are
-    # byte-identical and reference nothing overlay-local. A matched body has no
-    # such limit: the compiler regenerates it for each link address.
-    # An overlay-local reference is fatal whatever the state. Being matched only
-    # buys the *code*: the compiler regenerates it per link address. A name like
-    # `D_actor_110300_8013A0A8` is defined in one overlay and nowhere else, so
-    # the shared object fails to link into every other carrier - and the link is
-    # where it surfaces, long after the promotion has touched twenty files.
-    localref = [f for f in keep if any(is_local_ref(r, f["unit"]) for r in f["refs"])]
-    if localref:
-        print(f"{name}: cannot be shared - the body references its own overlay's "
-              f"code or data ({', '.join(sorted({f['overlay'] for f in localref}))}).")
-        return 1
-    if hit.get("state") != "matched":
+    # byte-identical. A matched body has no such limit: the compiler
+    # regenerates it for each link address.
+    if not any(f.get("state") == "matched" for f in keep + promoted):
         images = len({f["raw"] for f in keep})
         if images > 1:
             print(f"{name}: cannot be shared while unmatched - "
                   f"{images} different byte images.")
             print("  Match it first, then promote: the compiler regenerates the body")
             print("  per link address, which is what makes the differing copies one source.")
-            return 1
+            return None
 
-    # A unit one family carries is named for it, as before; one that several
-    # carry belongs to none of them.
+    # A unit one family carries is named for it; one that several carry
+    # belongs to none of them.
     carriers = sorted({family_of(f) for f in keep})
     owner = f"{carriers[0]}_shared" if len(carriers) == 1 else "shared"
-    unit = unit or f"{owner}_{hit['name'].split('_')[-1].lower()}"
+    unit = unit or f"{owner}_{name.split('_')[-1].lower()}"
     sym = "".join(w.capitalize() for w in unit.split("_"))
+    size = body["words"] * 4
 
-    manifest_path = MANIFEST
-    manifest = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
-    text = manifest_path.read_text(encoding="utf-8")
-    size = hit["words"] * 4
-
-    pending_syms: list[tuple[Path, str]] = []
     edited: set[tuple[str, str]] = set()
     for f in sorted(keep, key=lambda f: f["overlay"]):
         room = f["overlay"].split("/")[-1]
         family = family_of(f)
-        found = _entry_of(manifest, family, room)
-        if found is None:
-            print(f"{room}: not an entry in the manifest; aborting", file=sys.stderr)
-            return 1
-        entry_name, _entry, load = found
-        # The span is a file offset and a slot overrides the family load
-        # address: reading the family value for every package would put a
-        # slot-2 body 0x18000 past the end of its own image.
-        start = int(f["vram"], 16) - load
-        # Several packages can share one entry - the slots of one actor - and
-        # the entry describes the image once, so it is edited once. Each
-        # package still needs the symbol in its own map, since the address
-        # differs per slot.
-        if (family, entry_name) not in edited:
-            edited.add((family, entry_name))
-            text, tail = _insert_shared(text, family, entry_name, start, size, unit, room)
-            if text is None:
-                print(f"{entry_name}: no object owns offset 0x{start:X}; aborting",
-                      file=sys.stderr)
-                return 1
-            if tail:
-                print(f"  {entry_name}: remainder after the body goes to {tail}")
+        targets = _carrier_targets(manifest, family, room, f)
+        if targets is None:
+            print(f"{room}: cannot place {name} in every package it stands for; "
+                  f"aborting", file=sys.stderr)
+            return None
+        for entry_name, package, start, addr in targets:
+            # Several packages can share one entry - the slots of one actor -
+            # and the entry describes the image once, so it is edited once.
+            # Each package still needs the symbol in its own map, since the
+            # address differs per slot.
+            if (family, entry_name) not in edited:
+                edited.add((family, entry_name))
+                spans.append((family, entry_name, start, size, unit, room))
+            sym_path = Path(f"configs/USA/sym/{family}/{package}.txt")
+            sym_text = syms.get(sym_path) or sym_path.read_text(encoding="utf-8")
+            syms[sym_path] = _add_shared_symbol(sym_text, sym, addr, f["name"])
 
-        sym_path = Path(f"configs/USA/sym/{family}/{room}.txt")
-        sym_text = sym_path.read_text(encoding="utf-8")
-        # Match the whole assignment, not the bare name: a carrier that already
-        # aliases this body's overlay-local callees holds `<Sym>Sub0`, which
-        # contains `<Sym>` as a substring - so a plain `in` test decided the
-        # shared symbol was already there and the body went undefined at link.
-        if not re.search(rf"^{re.escape(sym)} = ", sym_text, re.M):
-            pending_syms.append((sym_path, sym_text.rstrip()
-                                 + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
-                                 f" // shared body, see src/lib/\n"))
+    return {"name": name, "sym": sym, "unit": unit, "keep": keep,
+            "copies": len(keep) + len(twice), "twice": twice,
+            "outside": outside, "carriers": carriers, "promoted": promoted}
 
-    # Nothing is written until every carrier has validated: this used to write a
-    # symbol map per iteration and then abort on a later one, leaving the config
-    # half-promoted with no record of how far it got.
-    for sym_path, sym_text in pending_syms:
-        sym_path.write_text(sym_text, encoding="utf-8")
-    manifest_path.write_text(text, encoding="utf-8")
 
-    print(f"{sym}: {len(keep)} of {len(copies)} copies share src/lib/{unit}.c")
-    if twice:
-        print(f"  left alone (contains it twice): {', '.join(sorted(twice))}")
-    if outside:
+def _carrier_targets(manifest: dict, family: str, overlay: str,
+                     f: dict) -> list[tuple[str, str, int, int]] | None:
+    """(entry, package, file offset, address) for each package a copy stands for.
+
+    A copy is one overlay in the index, but a merged entry is several packages -
+    the slots of one image - and each needs the shared symbol in its own map at
+    its own address. The index keeps one address per function, from whichever
+    slot was split last, so each package's address is read from its own symbol
+    map instead, where the merged actors name every function. The offset has to
+    agree across the packages, or they are not one image.
+    """
+    spec = manifest[family]
+    slots = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+    entry = spec["overlays"].get(overlay)
+    if entry is not None and entry.get("slots"):
+        out = []
+        for slot in entry["slots"]:
+            load = slots.get(slot.get("slot"), int(spec["load_addr"]))
+            sym_text = Path(f"configs/USA/sym/{family}/{slot['package']}.txt").read_text(
+                encoding="utf-8")
+            m = re.search(rf"^{re.escape(f['name'])} = (0x[0-9A-Fa-f]+);", sym_text, re.M)
+            if m is None:
+                return None
+            addr = int(m.group(1), 16)
+            out.append((overlay, slot["package"], addr - load, addr))
+        return out if len({o for _, _, o, _ in out}) == 1 else None
+    found = _entry_of(manifest, family, overlay)
+    if found is None:
+        return None
+    entry_name, _entry, load = found
+    addr = int(f["vram"], 16)
+    return [(entry_name, overlay, addr - load, addr)]
+
+
+def _add_shared_symbol(sym_text: str, sym: str, addr: int, local: str) -> str:
+    """`sym_text` with the shared symbol defined at `addr`.
+
+    Match the whole assignment, not the bare name: a carrier that already
+    aliases a body's overlay-local callees holds `<Sym>Sub0`, which contains
+    `<Sym>` as a substring - so a plain `in` test decided the shared symbol was
+    already there and the body went undefined at link.
+
+    The carrier keeps the name it knew the body by as an absolute alias, the
+    way actor_401000 keeps func_actor_401000_80132EF0 beside its shared
+    driver: its own sources still call it by that name, and the alias makes
+    the reference resolve to the shared body at link. A name the map already
+    defines - the merged actors name every function by offset - is marked
+    absolute; a generated `func_` name, which no map lists, is added.
+    """
+    if re.search(rf"^{re.escape(sym)} = ", sym_text, re.M):
+        return sym_text
+    # splat refuses two names at one address unless the later one is absolute,
+    # so every existing name for the address moves after the shared symbol.
+    lines, aliases = [], []
+    for line in sym_text.rstrip().split("\n"):
+        m = re.match(r"^(\w+) = (0x[0-9A-Fa-f]+);(.*)$", line)
+        if m and int(m.group(2), 16) == addr and "type:label" not in m.group(3):
+            if "absolute:True" not in m.group(3):
+                line += " absolute:True" if "//" in m.group(3) else " // absolute:True"
+            aliases.append(line)
+        else:
+            lines.append(line)
+    lines.append(f"{sym} = 0x{addr:08X}; // shared body, see src/lib/")
+    lines += aliases
+    if not re.search(rf"^{re.escape(local)} = ", sym_text, re.M):
+        lines.append(f"{local} = 0x{addr:08X}; // type:func absolute:True")
+    return "\n".join(lines) + "\n"
+
+
+def _report_promotion(r: dict, shared_name: dict[str, str],
+                      text_of: dict[tuple[str, str], str]) -> None:
+    print(f"{r['sym']}: {len(r['keep'])} of {r['copies']} copies share src/lib/{r['unit']}.c")
+    if r["twice"]:
+        print(f"  left alone (contains it twice): {', '.join(sorted(r['twice']))}")
+    if r["outside"]:
         print(f"  left alone (links once, cannot carry a library unit): "
-              f"{', '.join(outside)}")
-    if len(carriers) > 1:
-        print(f"  carriers span families ({', '.join(carriers)}): identical code is not")
+              f"{', '.join(r['outside'])}")
+    if len(r["carriers"]) > 1:
+        print(f"  carriers span families ({', '.join(r['carriers'])}): identical code is not")
         print("  the same routine - check the copies are one routine before building on it.")
-    matched = [f for f in keep if f.get("state") == "matched"]
+    # A moved body runs in every carrier, so it must call its callees by the
+    # shared name: one carrier's local name does not exist in the others.
+    renames = sorted({(ref, shared_name[t]) for f in r["keep"] for ref in f["refs"]
+                      for t in [text_of.get((f["overlay"], ref))]
+                      if t in shared_name and is_local_ref(ref, f["unit"])})
+    matched = [f for f in r["keep"] if f.get("state") == "matched"]
     if matched:
         # Name the copy that has the C, which need not be the one asked about.
         src = matched[0]
         print(f"  {src['name']} ({src['overlay'].split('/', 1)[1]}) is already "
-              f"decompiled - move its C body into src/lib/{unit}.c as {sym}(), "
-              f"remove it from that overlay's .c, delete the other carriers' "
-              f"INCLUDE_ASM for it, then rebuild.")
+              f"decompiled - move its C body into src/lib/{r['unit']}.c as "
+              f"{r['sym']}(), remove it from that overlay's .c, delete the other "
+              f"carriers' INCLUDE_ASM for it, then rebuild.")
+    elif r["promoted"]:
+        print("  the shared unit already exists; its new carriers link it.")
     else:
         print("  splat will write the shared stub on the next split.")
-    print("  run: python3 ninja_config.py && ./tools/build-and-verify.sh")
-    return 0
+    if renames:
+        print("  in the moved body, call its callees by their shared names: "
+              + ", ".join(f"{a} -> {b}" for a, b in renames))
 
 
 def cmd_solved(data: dict, min_words: int) -> int:
