@@ -172,5 +172,3 @@ void func_dryfield_night_motel_balcony_8017E4B8(void)
     cmd[1].field_4 = 1;
     cmd[2].field_4 = 1;
 }
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", func_dryfield_night_motel_balcony_8017E554);
