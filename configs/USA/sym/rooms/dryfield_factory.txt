@@ -33,3 +33,5 @@ RoomsShared8017fdc8 = 0x801806B0; // shared body, see src/lib/
 RoomsShared8017fbf4 = 0x801804DC; // shared body, see src/lib/
 RoomsShared8017f8f4 = 0x8017F8F4; // shared body, see src/lib/
 func_dryfield_factory_8017F8F4 = 0x8017F8F4; // type:func absolute:True
+RoomsShared8017db08 = 0x8017DB08; // shared body, see src/lib/
+func_dryfield_factory_8017DB08 = 0x8017DB08; // type:func absolute:True
