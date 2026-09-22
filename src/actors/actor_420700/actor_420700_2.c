@@ -58,5 +58,3 @@ void func_actor_420700_80132478(Task* task)
         func_actor_420700_801324EC();
     }
 }
-
-INCLUDE_ASM("actors/nonmatchings/actor_420700/actor_420700_2", func_actor_420700_801324EC);

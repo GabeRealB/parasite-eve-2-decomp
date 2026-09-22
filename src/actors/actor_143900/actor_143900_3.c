@@ -31,15 +31,3 @@ void func_actor_143900_8013242C(Task* task)
         SCRATCH_SP += 0x18;
     }
 }
-
-/// Ticks animation slots 1..0x13 of the actor's animation context.
-void func_actor_143900_801324C8(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        Gp_AnimTickIndex(&ActorsShared80131f9cWork->anim, i);
-        i++;
-    } while (i < 0x14);
-}
