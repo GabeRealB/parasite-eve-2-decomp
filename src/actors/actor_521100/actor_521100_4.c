@@ -10,8 +10,6 @@ extern s16 D_80073BA0;
 /// passes a sign-extended `s16` clip id.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_521100/actor_521100_4", func_actor_521100_80135B40);
-
 void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
 {
     Actor521100Obj2C* obj;
