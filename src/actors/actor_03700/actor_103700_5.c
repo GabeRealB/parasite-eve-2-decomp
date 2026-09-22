@@ -9,10 +9,10 @@ void      ActorsShared80134ff0(Task* arg0);
 void      ActorsShared80135210(Task* arg0);
 void      ActorsShared80133d68(Task* arg0);
 void      ActorsShared8013503c(Task* arg0);
-void      func_actor_103700_8013537C(Task* arg0);
+void      Actor03700_Fn0355C(Task* arg0);
 extern u8 D_801153F4;
 
-void func_actor_103700_80134E24(Actor103700Ctx* arg0, Task* task)
+void Actor03700_Fn03004(Actor103700Ctx* arg0, Task* task)
 {
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
@@ -50,7 +50,7 @@ case2:
     return;
 default_body:
     if (work->field_24E < 7) {
-        func_actor_103700_8013224C(task, obj, one);
+        Actor03700_Fn0042C(task, obj, one);
     }
     if (ActorsShared801326f0(task) != 0) {
         return;
@@ -62,7 +62,7 @@ default_body:
         ActorsShared8013503c(task);
     }
     if (work->field_266 != 0) {
-        func_actor_103700_8013537C(task);
+        Actor03700_Fn0355C(task);
     }
     ActorsShared80135210(task);
     coord->flg = 0;
@@ -76,7 +76,7 @@ case1:
 /// flags `Actor103700Work::field_262`. The task's own unit is held for as long
 /// as `GameActor::field_954` stays out of mode 2; the two message buffers come
 /// from one 0x2C-byte `G_SCRATCH_HEAD` push.
-s32 func_actor_103700_80134F50(Task* task)
+s32 Actor03700_Fn03130(Task* task)
 {
     Actor103700Work*        work;
     Task*                   player;
@@ -94,7 +94,7 @@ s32 func_actor_103700_80134F50(Task* task)
     if (((GpActorWork*)player)->actor->field_954 != 2) {
         scratch->query.field_14 = 8;
         if (Gp_DispatchMsg(player, 0x3F8, (s32)scratch, 0) == 0) {
-            scratch->anim.field_0  = D_actor_103700_80139F1C;
+            scratch->anim.field_0  = Actor03700_D080FC;
             scratch->anim.field_4  = 1;
             scratch->anim.field_8  = 0;
             scratch->anim.field_C  = 0;

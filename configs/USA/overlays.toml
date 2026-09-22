@@ -5955,56 +5955,30 @@ objects = [
   { kind = "data", at = "0x1F07C" },
 ]
 
-[actors.overlays.actor_103700]
-slot = 1
-id = 106
-objects = [
-  { kind = "packageId" },
-  { unit = "actor_103700/actor_103700", rodata = "0x4", text = "0xA4" },
-  { lib = "shared", unit = "actors_shared_801326f0", rodata = "0x14", text = "0x8D0" },
-  { unit = "actor_103700/actor_103700_2", rodata = "0x44", text = "0xABC" },
-  { unit = "actor_103700/actor_103700_3", rodata = "0x74", text = "0x20D4" },
-  { unit = "actor_103700/actor_103700_7", rodata = "0x8C", text = "0x355C" },
-  { lib = "shared", unit = "actors_shared_80133c1c", text = "0x1DFC" },
-  { lib = "shared", unit = "actors_shared_80133d68", text = "0x1F48" },
-  { lib = "shared", unit = "actors_shared_801343e8", text = "0x25C8" },
-  { lib = "shared", unit = "actors_shared_801345fc", text = "0x27DC" },
-  { unit = "actor_103700/actor_103700_4", text = "0x29C0" },
-  { lib = "shared", unit = "actors_shared_80135df4", text = "0x2FA8" },
-  { unit = "actor_103700/actor_103700_5", text = "0x3004" },
-  { lib = "shared", unit = "actors_shared_8013503c", text = "0x321C" },
-  { unit = "actor_103700/actor_103700_6", text = "0x32BC" },
-  { lib = "shared", unit = "actors_shared_80135210", text = "0x33F0" },
-  { lib = "shared", unit = "actors_shared_80134ff0", text = "0x34A0" },
-  { lib = "shared", unit = "actors_shared_80135318", text = "0x34F8" },
-  { kind = "model", at = "0x3638" },
-  { kind = "model", at = "0x4224" },
-  { kind = "model", at = "0x4420" },
-  { kind = "data", at = "0x4624" },
+[actors.overlays.actor_03700]
+slots = [
+  { slot = 1, package = "actor_103700", id = 106 },
+  { slot = 2, package = "actor_203700", id = 165 },
 ]
-
-[actors.overlays.actor_203700]
-slot = 2
-id = 165
 objects = [
   { kind = "packageId" },
-  { unit = "actor_203700/actor_203700", rodata = "0x4", text = "0xA4" },
-  { lib = "shared", unit = "actors_shared_801326f0", rodata = "0x14", text = "0x8D0" },
-  { unit = "actor_203700/actor_203700_2", rodata = "0x44", text = "0xABC" },
-  { unit = "actor_203700/actor_203700_3", rodata = "0x74", text = "0x20D4" },
-  { unit = "actor_203700/actor_203700_7", rodata = "0x8C", text = "0x355C" },
-  { lib = "shared", unit = "actors_shared_80133c1c", text = "0x1DFC" },
-  { lib = "shared", unit = "actors_shared_80133d68", text = "0x1F48" },
-  { lib = "shared", unit = "actors_shared_801343e8", text = "0x25C8" },
-  { lib = "shared", unit = "actors_shared_801345fc", text = "0x27DC" },
-  { unit = "actor_203700/actor_203700_4", text = "0x29C0" },
+  { unit = "actor_03700/actor_103700", rodata = "0x4", text = "0xA4" },
+  { unit = "actor_03700/actors_shared_801326f0", rodata = "0x14", text = "0x8D0" },
+  { unit = "actor_03700/actor_103700_2", rodata = "0x44", text = "0xABC" },
+  { unit = "actor_03700/actor_103700_3", rodata = "0x74", text = "0x20D4" },
+  { unit = "actor_03700/actor_103700_7", rodata = "0x8C", text = "0x355C" },
+  { unit = "actor_03700/actors_shared_80133c1c", text = "0x1DFC" },
+  { unit = "actor_03700/actors_shared_80133d68", text = "0x1F48" },
+  { unit = "actor_03700/actors_shared_801343e8", text = "0x25C8" },
+  { unit = "actor_03700/actors_shared_801345fc", text = "0x27DC" },
+  { unit = "actor_03700/actor_103700_4", text = "0x29C0" },
   { lib = "shared", unit = "actors_shared_80135df4", text = "0x2FA8" },
-  { unit = "actor_203700/actor_203700_5", text = "0x3004" },
-  { lib = "shared", unit = "actors_shared_8013503c", text = "0x321C" },
-  { unit = "actor_203700/actor_203700_6", text = "0x32BC" },
-  { lib = "shared", unit = "actors_shared_80135210", text = "0x33F0" },
+  { unit = "actor_03700/actor_103700_5", text = "0x3004" },
+  { unit = "actor_03700/actors_shared_8013503c", text = "0x321C" },
+  { unit = "actor_03700/actor_103700_6", text = "0x32BC" },
+  { unit = "actor_03700/actors_shared_80135210", text = "0x33F0" },
   { lib = "shared", unit = "actors_shared_80134ff0", text = "0x34A0" },
-  { lib = "shared", unit = "actors_shared_80135318", text = "0x34F8" },
+  { unit = "actor_03700/actors_shared_80135318", text = "0x34F8" },
   { kind = "model", at = "0x3638" },
   { kind = "model", at = "0x4224" },
   { kind = "model", at = "0x4420" },

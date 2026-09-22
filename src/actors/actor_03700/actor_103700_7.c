@@ -6,7 +6,7 @@
 extern u16 D_801153F4[];
 extern s8  D_8011540A;
 
-void func_actor_103700_8013537C(Task* task)
+void Actor03700_Fn0355C(Task* task)
 {
     Actor103700Work* work = (Actor103700Work*)task->work;
     s32              state;

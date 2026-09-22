@@ -8,7 +8,7 @@
 
 extern s8 D_8011540A;
 
-/// Inlined copy of `func_actor_103700_801350DC`, which lives in a later unit.
+/// Inlined copy of `Actor03700_Fn032BC`, which lives in a later unit.
 static inline void Actor103700_BobInline(Task* task, s32 arg1, s32 arg2)
 {
     Actor103700Work* work;
@@ -23,10 +23,10 @@ static inline void Actor103700_BobInline(Task* task, s32 arg1, s32 arg2)
     if (arg2 < (s16)frame) {
         work->field_25E = 0;
     }
-    coord->coord.t[1] += D_actor_103700_80139DB8[(arg1 * 15) + (s16)work->field_25E];
+    coord->coord.t[1] += Actor03700_D07F98[(arg1 * 15) + (s16)work->field_25E];
 }
 
-/// Inlined copy of `func_actor_103700_80135140`.
+/// Inlined copy of `Actor03700_Fn03320`.
 static inline void Actor103700_SwayInline(Task* task, s32 arg1)
 {
     Actor103700Work* work;
@@ -44,12 +44,12 @@ static inline void Actor103700_SwayInline(Task* task, s32 arg1)
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_25A = arg1 + ((Gp_LcgState >> 16) & 0x3F);
     }
-    amp                = (work->field_25A * D_actor_103700_80139DF4[(s16)work->field_25C] * 16) >> 16;
+    amp                = (work->field_25A * Actor03700_D07FD4[(s16)work->field_25C] * 16) >> 16;
     coord->coord.t[0] += (amp * coord->coord.m[0][0]) >> 12;
     coord->coord.t[2] += (amp * coord->coord.m[2][0]) >> 12;
 }
 
-void func_actor_103700_801347E0(Task* task)
+void Actor03700_Fn029C0(Task* task)
 {
     Actor103700Work*         work;
     TmdObject*               obj;
@@ -99,7 +99,7 @@ void func_actor_103700_801347E0(Task* task)
             coord->coord.t[0] += (scratch->normal.vx * 5) >> 9;
             coord->coord.t[1] += (scratch->normal.vy * 5) >> 9;
             coord->coord.t[2] += (scratch->normal.vz * 5) >> 9;
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             ActorsShared80133d68((ActorShared80133d68*)task);
 
             Actor103700_BobInline(task, 0, 21);
@@ -116,7 +116,7 @@ void func_actor_103700_801347E0(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             ActorsShared80133d68((ActorShared80133d68*)task);
 
             Actor103700_BobInline(task, 0, 21);

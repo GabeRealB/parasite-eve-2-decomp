@@ -14,15 +14,15 @@ extern void* D_80067704[1];
 extern u8 D_801153F4;
 
 /* The two model streams the death effect picks between, in this overlay's data. */
-extern u8 D_actor_103700_8013621C[];
-extern u8 D_actor_103700_80136420[];
+extern u8 Actor03700_D043FC[];
+extern u8 Actor03700_D04600[];
 
 /// Death handler. Mode 1 of `D_801153F4` only refreshes the actor colour and
 /// mode 2 hides the model; otherwise it steps `field_250`: unlink the enemy and
 /// play the death cue (releasing the player's hold if `field_262` is set), wait
 /// out a short delay, spawn the `field_268` death effect, let the player go,
 /// count 60 frames and destroy the enemy.
-void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
+void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
 {
     TmdObject*       model;
     GsCOORDINATE2*   obj;
@@ -66,7 +66,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
         case 0:
         default:
             if (work->field_266 != 0) {
-                func_actor_103700_8013537C(task);
+                Actor03700_Fn0355C(task);
             }
             switch (work->field_250) {
                 case 0:
@@ -78,7 +78,7 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                     sound        = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     if (work->field_262 != 0) {
-                        arg.field_0  = D_actor_103700_80139F1C;
+                        arg.field_0  = Actor03700_D080FC;
                         arg.field_4  = 2;
                         arg.field_8  = 0;
                         arg.field_C  = 0;
@@ -100,9 +100,9 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
                             model->flags |= 4;
                             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                             if ((Gp_LcgState >> 16) & 1) {
-                                D_80067704[0] = D_actor_103700_8013621C;
+                                D_80067704[0] = Actor03700_D043FC;
                             } else {
-                                D_80067704[0] = D_actor_103700_80136420;
+                                D_80067704[0] = Actor03700_D04600;
                             }
                             eff = Gp_SpawnEff(0x40007, &((TmdObject*)task->extra)->coords[4], 0x80, NULL);
                             if (eff != NULL) {
@@ -168,4 +168,4 @@ void func_actor_103700_80133EF4(GpEnemy* enemy, Task* task)
 
 /* Closes this unit's .rodata after the jump table above, so actor_103700_7's
    table starts at 0x80131EAC. Nothing reads it. */
-const u32 D_actor_103700_80131EA8 = 0;
+const u32 Actor03700_D00088 = 0;

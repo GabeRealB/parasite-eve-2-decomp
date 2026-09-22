@@ -2,7 +2,7 @@
 
 #include "actors/actor_103700.h"
 
-void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2)
+void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -16,10 +16,10 @@ void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2)
     if (arg2 < (s16)frame) {
         work->field_25E = 0;
     }
-    coord->coord.t[1] += D_actor_103700_80139DB8[(arg1 * 15) + (s16)work->field_25E];
+    coord->coord.t[1] += Actor03700_D07F98[(arg1 * 15) + (s16)work->field_25E];
 }
 
-void func_actor_103700_80135140(Task* task, s32 arg1)
+void Actor03700_Fn03320(Task* task, s32 arg1)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -36,7 +36,7 @@ void func_actor_103700_80135140(Task* task, s32 arg1)
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_25A = arg1 + ((Gp_LcgState >> 16) & 0x3F);
     }
-    amp                = (work->field_25A * D_actor_103700_80139DF4[(s16)work->field_25C] * 16) >> 16;
+    amp                = (work->field_25A * Actor03700_D07FD4[(s16)work->field_25C] * 16) >> 16;
     coord->coord.t[0] += (amp * coord->coord.m[0][0]) >> 12;
     coord->coord.t[2] += (amp * coord->coord.m[2][0]) >> 12;
 }

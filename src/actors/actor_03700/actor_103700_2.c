@@ -11,7 +11,7 @@
 
 extern u8 D_80115408[];
 
-void func_actor_103700_801328DC(Task* task)
+void Actor03700_Fn00ABC(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -30,7 +30,7 @@ void func_actor_103700_801328DC(Task* task)
         case 0:
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_252    = ((Gp_LcgState >> 16) & 0xF) + 20;
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             angle              = (Gp_LcgState >> 16) & 0xFFF;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
@@ -53,8 +53,8 @@ void func_actor_103700_801328DC(Task* task)
             }
             break;
     }
-    func_actor_103700_801350DC(task, 0, 14);
-    func_actor_103700_80135140(task, 20);
+    Actor03700_Fn032BC(task, 0, 14);
+    Actor03700_Fn03320(task, 20);
     if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
         work->field_24E      = 3;
         work->field_250      = 0;
@@ -63,7 +63,7 @@ void func_actor_103700_801328DC(Task* task)
     *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
 }
 
-void func_actor_103700_80132B7C(Task* task)
+void Actor03700_Fn00D5C(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -91,9 +91,9 @@ void func_actor_103700_80132B7C(Task* task)
             break;
         case 2:
             for (i = 0; i < 7; i++) {
-                if (D_actor_103700_80139E14[i].threshold >= work->field_24C) {
-                    coord->coord.t[1] += D_actor_103700_80139E14[i].dy / D_actor_103700_80139E14[i].steps;
-                    dist               = D_actor_103700_80139E14[i].dist / D_actor_103700_80139E14[i].steps;
+                if (Actor03700_D07FF4[i].threshold >= work->field_24C) {
+                    coord->coord.t[1] += Actor03700_D07FF4[i].dy / Actor03700_D07FF4[i].steps;
+                    dist               = Actor03700_D07FF4[i].dist / Actor03700_D07FF4[i].steps;
                     coord->coord.t[0] += (rsin(work->field_246) * dist) >> 12;
                     coord->coord.t[2] += (rcos(work->field_246) * dist) >> 12;
                     break;
@@ -109,7 +109,7 @@ void func_actor_103700_80132B7C(Task* task)
     }
 }
 
-void func_actor_103700_80132DA8(Task* task)
+void Actor03700_Fn00F88(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -137,9 +137,9 @@ void func_actor_103700_80132DA8(Task* task)
             break;
         case 2:
             for (i = 0; i < 9; i++) {
-                if (D_actor_103700_80139E4C[i].threshold >= work->field_24C) {
-                    coord->coord.t[1] += D_actor_103700_80139E4C[i].dy / D_actor_103700_80139E4C[i].steps;
-                    dist               = D_actor_103700_80139E4C[i].dist / D_actor_103700_80139E4C[i].steps;
+                if (Actor03700_D0802C[i].threshold >= work->field_24C) {
+                    coord->coord.t[1] += Actor03700_D0802C[i].dy / Actor03700_D0802C[i].steps;
+                    dist               = Actor03700_D0802C[i].dist / Actor03700_D0802C[i].steps;
                     coord->coord.t[0] += (rsin(work->field_246) * dist) >> 12;
                     coord->coord.t[2] += (rcos(work->field_246) * dist) >> 12;
                     break;
@@ -155,7 +155,7 @@ void func_actor_103700_80132DA8(Task* task)
     }
 }
 
-void func_actor_103700_80132FD4(Task* task)
+void Actor03700_Fn011B4(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   coord;
@@ -183,11 +183,11 @@ void func_actor_103700_80132FD4(Task* task)
                 work->field_252 = 0;
                 work->field_26A = 0;
             }
-            work->field_254 = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
-            func_actor_103700_80135140(task, 20);
+            work->field_254 = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            Actor03700_Fn03320(task, 20);
             if (work->field_246 == work->field_244) {
                 work->field_250 = 1;
-                work->field_252 = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_252 = Actor03700_D07F1C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
                 coord           = ((TmdObject*)task->extra)->coords;
                 vec->vx         = work->field_23C.vx - coord->coord.t[0];
                 vec->vy         = work->field_23C.vy - coord->coord.t[1];
@@ -203,14 +203,14 @@ void func_actor_103700_80132FD4(Task* task)
             }
             break;
         case 1:
-            func_actor_103700_80135140(task, 40);
+            Actor03700_Fn03320(task, 40);
             if ((s16)--work->field_256 <= 0) {
                 work->field_250 = 0;
                 work->field_256 = 0;
                 work->field_26A = 1;
             }
             if (work->field_264 != 0) {
-                if (func_actor_103700_80134F50(task) == 0) {
+                if (Actor03700_Fn03130(task) == 0) {
                     func_800FDB18(1, coord, NULL, &work->field_224);
                     work->field_24E = 5;
                 } else {
@@ -225,11 +225,11 @@ void func_actor_103700_80132FD4(Task* task)
             }
             break;
     }
-    func_actor_103700_801350DC(task, 0, 14);
+    Actor03700_Fn032BC(task, 0, 14);
     *(u32*)G_SCRATCH_HEAD += sizeof(SVECTOR);
 }
 
-void func_actor_103700_80133370(Task* task)
+void Actor03700_Fn01550(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   obj;
@@ -247,7 +247,7 @@ void func_actor_103700_80133370(Task* task)
 
     switch (work->field_250) {
         case 0:
-            Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_103700_80139D28, 0), 0);
+            Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&Actor03700_D07F08, 0), 0);
             func_800FDB18(1, (GsCOORDINATE2*)obj, NULL, &work->field_224);
             Gp_SpawnPadLerp(5, 0xC0, 8);
             sound = ((((Actor103700Spawn*)task->spawnArg2)->field_8 >> 12) << 8) | 0x40250004;
@@ -272,14 +272,14 @@ void func_actor_103700_80133370(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
-            work->field_252    = D_actor_103700_80139D3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_252    = Actor03700_D07F1C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             if (work->field_264 != 0) {
                 work->field_250 = 0;
             }
             break;
         case 3:
-            arg->field_0  = D_actor_103700_80139F1C;
+            arg->field_0  = Actor03700_D080FC;
             arg->field_4  = 2;
             arg->field_8  = 0;
             arg->field_C  = 0;
@@ -299,11 +299,11 @@ void func_actor_103700_80133370(Task* task)
             }
             break;
     }
-    func_actor_103700_801350DC(task, 1, 14);
+    Actor03700_Fn032BC(task, 1, 14);
     *(u32*)G_SCRATCH_HEAD += 0x1C;
 }
 
-void func_actor_103700_801336E8(Task* task)
+void Actor03700_Fn018C8(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   obj;
@@ -320,7 +320,7 @@ void func_actor_103700_801336E8(Task* task)
         case 0:
             work->field_250 = 1;
             work->field_256 = 30;
-            work->field_258 = D_actor_103700_80139D5C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_258 = Actor03700_D07F3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
             work->field_26C = 0;
             slot            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 10;
             for (i = 1; i < 6; i++) {
@@ -332,12 +332,12 @@ void func_actor_103700_801336E8(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             if ((s16)--work->field_258 > 0) {
                 work->field_252 = -50;
             } else {
                 work->field_252 = 0;
-                func_actor_103700_80135140(task, 20);
+                Actor03700_Fn03320(task, 20);
             }
             if ((s16)--work->field_256 <= 0) {
                 work->field_250 = 2;
@@ -350,9 +350,9 @@ void func_actor_103700_801336E8(Task* task)
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x1FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
-            work->field_254    = D_actor_103700_80139D9C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
+            work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
             work->field_252    = 5;
-            func_actor_103700_80135140(task, 20);
+            Actor03700_Fn03320(task, 20);
             if ((s16)++work->field_256 >= 91) {
                 work->field_256 = 0;
                 work->field_24E = 3;
@@ -360,7 +360,7 @@ void func_actor_103700_801336E8(Task* task)
             }
             break;
         case 3:
-            work->field_256 = D_actor_103700_80139D7C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_256 = Actor03700_D07F5C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
             work->field_258 = 15;
             work->field_250 = 4;
             work->field_254 = 0;
@@ -378,18 +378,18 @@ void func_actor_103700_801336E8(Task* task)
                 work->field_24E = 3;
                 work->field_250 = 0;
             }
-            func_actor_103700_80135140(task, 80);
+            Actor03700_Fn03320(task, 80);
             period = 21;
             break;
     }
-    func_actor_103700_801350DC(task, 0, period);
+    Actor03700_Fn032BC(task, 0, period);
 }
 
 /* Closes this unit's .rodata after the jump table above, so actor_103700_3's
    table starts at 0x80131E94. Nothing reads it. */
-const u32 D_actor_103700_80131E90 = 0;
+const u32 Actor03700_D00070 = 0;
 
-void func_actor_103700_80133AB4(Task* task)
+void Actor03700_Fn01C94(Task* task)
 {
     Actor103700Work* work;
     GsCOORDINATE2*   obj;
@@ -408,7 +408,7 @@ void func_actor_103700_80133AB4(Task* task)
 
     switch (work->field_250) {
         case 0:
-            arg->field_0  = D_actor_103700_80139F1C;
+            arg->field_0  = Actor03700_D080FC;
             arg->field_4  = 2;
             arg->field_8  = 0;
             arg->field_C  = 0;

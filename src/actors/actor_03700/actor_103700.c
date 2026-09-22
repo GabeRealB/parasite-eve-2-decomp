@@ -11,7 +11,7 @@
 /// root coordinate for poses 1 and 2; 1..3 set model flag 4 and mode 7 or 10.
 /// The animation slots then get a shared random phase, and the collision object
 /// is linked with its four records before the task moves to state 1.
-void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
+void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
 {
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
@@ -34,7 +34,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->param                = &D_actor_103700_80139D2C;
+    arg0->param                = &Actor03700_D07F0C;
     arg0->coord                = coord;
     arg0->node.flags           = 0;
     arg0->bodyPos.vx           = 0;
@@ -84,10 +84,10 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
             work->field_248 = 1;
             break;
     }
-    arg0->hp        = D_actor_103700_80139D30;
+    arg0->hp        = Actor03700_D07F10;
     work->field_24A = work->field_248;
-    task->msgTable  = &D_actor_103700_80139F28;
-    func_800B3F84(&work->anim, D_actor_103700_80139F04, obj, work->poses, work->slots);
+    task->msgTable  = &Actor03700_D08108;
+    func_800B3F84(&work->anim, Actor03700_D080E4, obj, work->poses, work->slots);
     for (i = 1; i < 6; i++) {
         Gp_AnimResetSlot(&work->anim, i, work->field_248);
     }
@@ -119,7 +119,7 @@ void func_actor_103700_80131EC4(GpEnemy* arg0, Task* task)
 /// records: kind 1 records push the actor out along the deepest overlap, kind 2
 /// records are hits from a player slot, which take damage, spawn the hit spark
 /// and move the actor into its flinch / knockdown modes.
-void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2)
+void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 {
     Actor103700PushScratch* scratch;
     GsCOORDINATE2*          coord;
@@ -198,7 +198,7 @@ move_done:
                 damage              = Gp_ComputeDamage(work->records[i].key, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
                 id                  = work->records[i].key;
                 if (id & 0x8000) {
-                    if (D_actor_103700_80139E94[id & 0x7F] == 3) {
+                    if (Actor03700_D08074[id & 0x7F] == 3) {
                         broke  = 1;
                         damage = 0;
                     } else {
@@ -206,7 +206,7 @@ move_done:
                         if ((u32)(broke - 0xC) < 2) {
                             func_800FDB18(broke, coord, NULL, &work->field_224);
                         }
-                        work->field_268 = D_actor_103700_80139E94[work->records[i].key & 0x7F];
+                        work->field_268 = Actor03700_D08074[work->records[i].key & 0x7F];
                         broke           = 0;
                     }
                 } else {
@@ -239,4 +239,4 @@ move_done:
     Gp_ClearRec18Occupied(work->records);
     *(u8**)G_SCRATCH_HEAD += 0x58;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_103700/actor_103700", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_03700/actor_103700", ActorsShared80135df4Table);

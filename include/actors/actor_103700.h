@@ -12,9 +12,9 @@
 ///
 /// Like actor 421600 this overlay keeps its own state in the `Task::work` slot
 /// instead of a `TaskIdMap`, so that pointer field is *not* a `TaskIdMap` here.
-/// The halfword `func_actor_103700_801350DC` cycles counts up and wraps to 0 once
+/// The halfword `Actor03700_Fn032BC` cycles counts up and wraps to 0 once
 /// it passes the caller's period, and the wrapped value indexes the bob table
-/// below at `arg1 * 15 + field_25E`; the sibling `func_actor_103700_801347E0`
+/// below at `arg1 * 15 + field_25E`; the sibling `Actor03700_Fn029C0`
 /// drives the same counter with the same table.
 ///
 /// The mode halfwords around it are what the shared `ActorsShared80135318`
@@ -56,14 +56,14 @@ typedef struct Actor103700Work {
     /* 0x26C */ u16        field_26C;
 } Actor103700Work;
 
-/// Pose context the `D_801153F4` mode switch in `func_actor_103700_80134E24`
+/// Pose context the `D_801153F4` mode switch in `Actor03700_Fn03004`
 /// writes: `field_14` is cleared in mode 0 and set in mode 2.
 typedef struct Actor103700Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ u8   field_14;
 } Actor103700Ctx;
 
-/// Payload of the 0x3F8 query `func_actor_103700_80134F50` sends the player
+/// Payload of the 0x3F8 query `Actor03700_Fn03130` sends the player
 /// before it takes the hold; `field_14` is the range it asks for. The same
 /// shape as `Actor510900Msg3F8` and `Actor400600Msg3F8`.
 typedef struct Actor103700Msg3F8 {
@@ -72,7 +72,7 @@ typedef struct Actor103700Msg3F8 {
 } Actor103700Msg3F8;
 STATIC_ASSERT_SIZEOF(Actor103700Msg3F8, 0x18);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_103700_80134F50`:
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn03130`:
 /// the 0x3F8 query buffer followed by the `GpAnimArg` it sends as message 0x3FF.
 typedef struct Actor103700HoldScratch {
     /* 0x00 */ Actor103700Msg3F8 query;
@@ -81,7 +81,7 @@ typedef struct Actor103700HoldScratch {
 STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
 
 /// Spawn argument reached through `Task::spawnArg2`: the high nibble of
-/// `field_8` selects the sound bank `func_actor_103700_80133AB4` plays from.
+/// `field_8` selects the sound bank `Actor03700_Fn01C94` plays from.
 typedef struct Actor103700Spawn {
     /* 0x00 */ byte         pad_0[0x8];
     /* 0x08 */ u16          field_8;
@@ -89,27 +89,27 @@ typedef struct Actor103700Spawn {
     /* 0x3C */ GpAreaPlace* field_3C;
 } Actor103700Spawn;
 
-extern u16 D_actor_103700_80139D9C[];
+extern u16 Actor03700_D07F7C[];
 
-/// Halfword tables `func_actor_103700_801336E8` indexes by a 4-bit LCG draw:
+/// Halfword tables `Actor03700_Fn018C8` indexes by a 4-bit LCG draw:
 /// the countdown seeded into `field_258` and `field_256`.
-extern u16 D_actor_103700_80139D5C[];
-extern u16 D_actor_103700_80139D7C[];
+extern u16 Actor03700_D07F3C[];
+extern u16 Actor03700_D07F5C[];
 
-/// Pair `func_actor_103700_80133370` packs with `Gp_PackPair` for message 0x3F9.
-extern GpU16Pair D_actor_103700_80139D28;
+/// Pair `Actor03700_Fn01550` packs with `Gp_PackPair` for message 0x3F9.
+extern GpU16Pair Actor03700_D07F08;
 
-/// Halfword table `func_actor_103700_80133370` indexes by a 4-bit LCG draw.
-extern s16 D_actor_103700_80139D3C[];
+/// Halfword table `Actor03700_Fn01550` indexes by a 4-bit LCG draw.
+extern s16 Actor03700_D07F1C[];
 
 /// Halfword bob table, one row of 15 per `arg1`: the row runs
 /// 0, 10, 19, 24, 25, 22, 15, 5, -5, -15, -22, -25 before returning to 0.
 /// Every use reads it as a signed halfword through `lh` and adds it to a
 /// coordinate's Y translation, so it is the amplitude of an idle bob.
-extern s16 D_actor_103700_80139DB8[];
+extern s16 Actor03700_D07F98[];
 
-/// Halfword wave table `func_actor_103700_80135140` indexes by `field_25C`.
-extern s16 D_actor_103700_80139DF4[];
+/// Halfword wave table `Actor03700_Fn03320` indexes by `field_25C`.
+extern s16 Actor03700_D07FD4[];
 
 /// 8-byte rise step: while `field_24C` is below `threshold` the Y and
 /// forward displacements are spread over `steps` frames.
@@ -120,29 +120,29 @@ typedef struct Actor103700Rise {
     /* 0x6 */ s16 dist;
 } Actor103700Rise;
 
-extern Actor103700Rise D_actor_103700_80139E14[];
-extern Actor103700Rise D_actor_103700_80139E4C[];
+extern Actor103700Rise Actor03700_D07FF4[];
+extern Actor103700Rise Actor03700_D0802C[];
 
 /// The enemy's pair source; the spawn stores it in `GpEnemy::param` and
 /// seeds HP from its `hpMax`, which retail addresses as its own label.
-extern GpPairSrcE D_actor_103700_80139D2C;
-extern u16        D_actor_103700_80139D30;
+extern GpPairSrcE Actor03700_D07F0C;
+extern u16        Actor03700_D07F10;
 
 /// Animation data `func_800B3F84` loads, and the task's `field_24` table.
-extern u8    D_actor_103700_80139F04[];
-extern void* D_actor_103700_80139F28;
+extern u8    Actor03700_D080E4[];
+extern void* Actor03700_D08108;
 
 extern u32 Gp_LcgState;
 
-void func_actor_103700_801350DC(Task* task, s32 arg1, s32 arg2);
-void func_actor_103700_80135140(Task* task, s32 arg1);
-void func_actor_103700_8013537C(Task* task);
-s32  func_actor_103700_80134F50(Task* task);
+void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2);
+void Actor03700_Fn03320(Task* task, s32 arg1);
+void Actor03700_Fn0355C(Task* task);
+s32  Actor03700_Fn03130(Task* task);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `field_0`.
-extern GpAnimSet* D_actor_103700_80139F1C[];
+extern GpAnimSet* Actor03700_D080FC[];
 
-/// 0x58-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_103700_8013224C`:
+/// 0x58-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn0042C`:
 /// `delta` receives the `func_800E0C10` push-back and is then reused for each
 /// record's offset, `normal` is its `VectorNormal`, and `dir` that normal
 /// transformed by the grid's `workm`.
@@ -156,11 +156,11 @@ typedef struct Actor103700PushScratch {
 STATIC_ASSERT_SIZEOF(Actor103700PushScratch, 0x58);
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
-extern s16 D_actor_103700_80139E94[];
+extern s16 Actor03700_D08074[];
 
-void func_actor_103700_8013224C(Task* task, TmdObject* arg1, s32 arg2);
+void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_103700_801347E0`:
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn029C0`:
 /// the offset to the target and its `VectorNormalS`. That function never gives
 /// the scratch back.
 typedef struct Actor103700SteerScratch {
