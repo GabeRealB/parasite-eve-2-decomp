@@ -8,24 +8,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement`: only the yaw
-/// is used, remembered in the work block and applied with `Gfx_RotMatrixY`,
-/// then the three longs become the coordinate's translation.
-s32 func_actor_143900_801326FC(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
-{
-    GsCOORDINATE2* coord;
-    u16            yaw;
-
-    coord                         = ((TmdObject*)task->extra)->coords;
-    ActorsShared80131f9cWork->yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->flg        = 0;
-    return 0;
-}
-
 /// Message 0x7DB handler: while the payload's halfword at 0x2 is zero, latch
 /// the work block's animation reset argument to 0x14.
 s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
