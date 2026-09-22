@@ -24,8 +24,10 @@ extern u8 D_801153F4;
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 Actor04600_D00004;
 
-INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_3", Actor04600_Fn007B0);
+INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_4", Actor04600_Fn01110);
 
-INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_3", Actor04600_Fn00978);
+INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_4", Actor04600_Fn01604);
 
-INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_3", Actor04600_Fn00EC8);
+INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_04600_4", Actor04600_Fn017CC);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_04600/actor_04600_4", Actor04600_D0003C);
