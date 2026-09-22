@@ -137634,3 +137634,59 @@ __asm__("move %0,%1" : "=r"(block) : "r"(vec));
 makes the move a real, schedulable insn that sched puts after the load, and the
 function matched. `SCHED_BARRIER()` in the same place is worse (88.9%): it also
 pins the `%10` reciprocal's `mfhi` on the wrong side.
+## A constant test the compiler "cannot" have emitted is a constant local that got no register (func_actor_361100_80161FF8, 2026-09-23)
+
+Signs in the target: `move $t9,$zero; blez $t9`, `li $t9,0x1000; bnez $t9`,
+`li $t3,0x50; li $t8,1; beq $t3,$t8`, `li $t9,8; subu $v0,$t9,$a0`, and an
+`addiu $t1,$t1,0`. The loaded register is always a reload register
+(`$t2 $t3 $t8 $t9` here), and the value is re-loaded before every use.
+
+Cause: the source assigns a constant to a local once, before the loop
+(`clip = 0; fade = 0x1000; baseY = 0x50; one = 1; otOff = 0;`). CSE cannot see
+that value past the loop label, so the tests are not folded. Global allocation
+gives these locals no register, and reload rematerialises the REG_EQUIV constant
+at each use. A constant added to a register comes out as `addiu rX,rX,0`.
+`TOUCH_REG` on a literal only approximates this. Three earlier sessions on this
+function stayed at 70-85% that way. The constant-local spelling fixed the frame
+size on the first build and reached 97% once the rest of the structure followed.
+
+Details that matter:
+
+- A test and a use of the same constant need two locals if the target keeps
+  both. `if (fade == 0) w = (w * scale) >> 12` with one local folds the
+  multiply to zero in the taken arm. The target's `mult v1,$t9` reuses the
+  test's register only through `reload_cse`.
+- `reload_cse` swaps a rematerialised constant for any register that already
+  holds it. `subu $t6,$s3,$a2`, where `$a2` is the loop counter just set to 0,
+  is `y - zeroLocal`.
+- If CSE knows a variable already equals a constant local, it deletes a second
+  `x = local` as a no-op. When the target keeps that store, the re-set uses a
+  *different* local with the same value.
+
+## Stack "counters" and preheader copies can be loop.c output, and removing them shifts every hoist (func_actor_361100_80161FF8, 2026-09-23)
+
+The seed had `lineY = -0x27; ... lineY += 1;` kept on the stack, plus
+`yCopy = lineY`, `otY = otBuf << 8`, `tpageBits`, `tpageRight/Left` and
+`fadeShift` computed before the inner loop. The source had none of them. It
+wrote `prim->y2 = yTop + 1`, `getTPage(2, 0, 0x80, otBuf << 8)` and the fade
+expression inside the inner loop. The inner loop hoisted those values. The outer
+loop then hoisted `otBuf << 8` further and strength-reduced `yTop + 1` into the
+stack counter.
+
+This also changed what stayed in the loop. `move_movables` lowers its threshold
+by 3 for every register it moves, so the earlier hoists made the later
+`savings 2 x life 2` candidates undesirable (`otBuf << 4`,
+`%hi(gGpuCurrentOt)`, the `setlen`/`setcode` constants, `otz << 2`). The target
+recomputes all of those in the arms. When a seed has precomputed temporaries
+that the target spills, try writing them back inline before fighting their
+allocation.
+
+A related effect: `force_movables` moves an insn out of the loop whenever it is
+the last use of a hoisted temp, whatever its own desirability. To keep such an
+operation in the loop, assign its result to a user variable that is also set
+outside the loop. The `maybe_never && !reg_in_basic_block_p` test then makes it
+immovable.
+
+Input `base_44.i` SHA256
+`5dd4db8d122127f87ae078138d084ee1ba467ffe9331420869ee754166010bc5`; compiler
+SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
