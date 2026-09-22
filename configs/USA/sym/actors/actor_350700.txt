@@ -10,3 +10,5 @@ ActorsShared80132920Offset = 0x80161E78; // shared body data, see src/lib/
 ActorsShared80138404Table = 0x80161E50; // force_not_migration:True shared body data, see src/lib/
 ActorsShared80138404 = 0x80163274; // shared body, see src/lib/
 ActorsShared80162540 = 0x80162540; // shared body, see src/lib/
+ActorsShared801629dc = 0x80162A14; // shared body, see src/lib/
+func_actor_350700_80162A14 = 0x80162A14; // type:func absolute:True

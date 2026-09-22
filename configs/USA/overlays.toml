@@ -7631,7 +7631,8 @@ objects = [
   { lib = true, unit = "actors_shared_801327b4", text = "0x63C" },
   { lib = true, unit = "actors_shared_80162540", text = "0x6E8" },
   { lib = true, unit = "actors_shared_8013231c", text = "0xB40" },
-  { unit = "actor_350500/actor_350500_4", text = "0xBBC" },
+  { lib = true, unit = "actors_shared_801629dc", text = "0xBBC" },
+  { unit = "actor_350500/actor_350500_4", text = "0xC9C" },
   { kind = "model", at = "0xCD8" },
   { kind = "data", at = "0x5A60" },
 ]
@@ -7644,6 +7645,8 @@ objects = [
   { unit = "actor_350700/actor_350700", rodata = "0x4", text = "0x68" },
   { unit = "actor_350700/actor_350700_2", rodata = "0x48", text = "0x7FC" },
   { lib = true, unit = "actors_shared_80162540", text = "0x720" },
+  { lib = true, unit = "actors_shared_801629dc", text = "0xBF4" },
+  { unit = "actor_350700/actor_350700_6", rodata = "0x48", text = "0xCD4" },
   { lib = true, unit = "actors_shared_80138404", text = "0x1454" },
   { lib = true, unit = "actors_shared_80132450", text = "0x14AC" },
   { unit = "actor_350700/actor_350700_3", text = "0x1528" },
