@@ -440,7 +440,7 @@ void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 /// own body match — but every caller passes a sign-extended `s16` animation
 /// id, so a `u16` prototype in scope adds a zero-extension the callers do not
 /// have. Callers declare it locally with a signed `arg2` instead (see
-/// `src/actors/lib/actor_1037*.c`, `src/rooms/acropolis_bridge/*.c`).
+/// `src/actors/actor_03700/actor_103700*.c`, `src/rooms/acropolis_bridge/*.c`).
 void       Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                                  s32 arg5);
 void       Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,

@@ -28,7 +28,7 @@ STATIC_ASSERT_SIZEOF(ActorShared80133b5cWork, 0x8);
 /// of the same enemy and spawn this task identically. The rise saturates on a
 /// `u16` channel, so the test is `(s16)r >= 0x100` and not an underflow: the
 /// fade-*in* counterpart that walks the same block the other way, from 0xFF
-/// down past zero, is `RoomsShared8017ff5c` over in `src/rooms/lib/`, and it
+/// down past zero, is `RoomsShared8017ff5c` over in `src/lib/`, and it
 /// carries its own copy of these three halfwords.
 void ActorsShared80133b5c(Task* arg0)
 {

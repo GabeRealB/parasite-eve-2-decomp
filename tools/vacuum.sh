@@ -367,7 +367,7 @@ solved_elsewhere_file() {
 # library rather than left as one overlay's copy.
 # Overlays carrying this body that some *other* session currently holds. Step 4b
 # tells the agent to promote a shared body, which rewrites those overlays'
-# manifest spans and moves their copy into src/<family>/lib. Fine when nothing
+# manifest spans and moves their copy into src/lib. Fine when nothing
 # else is working them, a collision when something is: mist_r18's sweep promoted
 # a body it shared with shelter_b1_sterilization_room, and had that overlay been
 # leased at the time, the other session's landing would have found its files
@@ -519,7 +519,7 @@ fi
 
 # Has $func been promoted into a shared unit?
 #
-# A promotion moves one body to src/<family>/lib/ and gives every overlay that
+# A promotion moves one body to src/lib/ and gives every overlay that
 # carries it a sym alias at its own address, so the per-overlay name stops
 # existing in src entirely. func_defined_in_src therefore reports it missing,
 # which is how func_p229_8011D464 kept being re-ported after 1160f3d0 had
@@ -755,7 +755,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 3. At ≥95%, use structural diagnostics and the bounded search router from the repo root **before** adding register pins:
    \`python3 tools/vacuum_permute.py --func $func --scratch $scratch --timeout 360 --jobs 4\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then run \`./tools/build-and-verify.sh\` and require \`✅ BUILD SUCCEEDED\`. It splits and rebuilds only what your edit changed, so it is already the fast check. Commit \`matched $func <attempts>\`.
-${promote_guard}4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
+${promote_guard}4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
 6. Complete experiment conclusions and LEARNINGS.md with unresolved hypotheses and evidence. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
 
@@ -1181,7 +1181,7 @@ so promotion is part of this port, not a follow-up:
 1. \`python3 tools/overlay_dup_index.py promote $func\` — writes the span into
    every carrying overlay's entry in \`configs/USA/overlays.toml\` and the shared
    symbol into their \`configs/USA/sym/<family>/*.txt\`.
-2. Put the matched body in \`src/<family>/lib/<unit>.c\` under the shared symbol
+2. Put the matched body in \`src/lib/<unit>.c\` under the shared symbol
    name it printed, and delete it from this overlay's own \`.c\`.
 3. Delete the now-covered \`INCLUDE_ASM\` line for this body from each of the
    other overlays' \`.c\` — their span is carved out, so a leftover declaration

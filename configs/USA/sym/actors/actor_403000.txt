@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_403000.
-ActorsShared80135df4Table = 0x80132004; // force_not_migration:True shared body data, see src/actors/lib/
-ActorsShared80135df4 = 0x8013D59C; // shared body, see src/actors/lib/
-ActorsShared80132808 = 0x8013203C; // shared body, see src/actors/lib/
-ActorsShared8013d268 = 0x8013D268; // shared body, see src/actors/lib/
+ActorsShared80135df4Table = 0x80132004; // force_not_migration:True shared body data, see src/lib/
+ActorsShared80135df4 = 0x8013D59C; // shared body, see src/lib/
+ActorsShared80132808 = 0x8013203C; // shared body, see src/lib/
+ActorsShared8013d268 = 0x8013D268; // shared body, see src/lib/

@@ -306,7 +306,7 @@ python3 tools/overlay_dup_index.py find <function>
 ```
 
 If it reports copies, the body is worth matching **once**: put it in
-`src/<family>/lib/<unit>.c`, add the span to `configs/USA/overlays.toml` and the
+`src/lib/<unit>.c`, add the span to `configs/USA/overlays.toml` and the
 shared symbol to each sharer's `configs/USA/sym/<family>/<overlay>.txt`, and one
 object is linked into every overlay that uses it. `=` in that listing means the
 copies are byte-identical, `~` means the same body at a different link offset.

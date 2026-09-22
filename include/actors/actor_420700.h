@@ -68,7 +68,7 @@ typedef struct Actor420700Msg7D3 {
 s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args);
 s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args);
 
-/// The shared reset body `src/actors/lib/actors_shared_80132538.c`. Declared
+/// The shared reset body `src/lib/actors_shared_80132538.c`. Declared
 /// here rather than through `actors_shared_80132538.h` because that header
 /// publishes `ActorsShared80131f9cWork` with its own work type.
 void ActorsShared80132538(void);

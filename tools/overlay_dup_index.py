@@ -277,10 +277,10 @@ def classes(data: dict, key: str) -> dict[str, list[dict]]:
 def cmd_siblings(data: dict, name: str, min_words: int) -> int:
     """Copies of this body in *other overlays of the same family*, one per line.
 
-    That is the set promotion can serve: the shared unit lives in
-    `src/<family>/lib/`, and an overlay links once so a second copy inside the
-    same overlay is a separate function. Empty output means nothing to promote,
-    which is the common case and is not an error.
+    That is the set promotion can serve: `promote` works one family at a time,
+    and an overlay links once so a second copy inside the same overlay is a
+    separate function. Empty output means nothing to promote, which is the
+    common case and is not an error.
     """
     hit = next((f for f in data["functions"] if f["name"] == name), None)
     if hit is None or hit["words"] < min_words:
@@ -345,7 +345,7 @@ def _insert_shared(text: str, family: str, entry: str, at: int, size: int,
     m = re.search(r'unit = "([^"]*)"', lines[owner])
     base = m.group(1).rsplit("/", 1)[-1] if m else overlay
     nxt = next((_offset_of(l) for l in lines[owner + 1:] if _offset_of(l) is not None), None)
-    new = [f'  {{ lib = "shared", unit = "{unit}", text = "0x{at:X}" }},']
+    new = [f'  {{ lib = true, unit = "{unit}", text = "0x{at:X}" }},']
     tail = None
     if nxt is None or at + size < nxt:
         n = 2
@@ -398,9 +398,9 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     if hit is None:
         print(f"{name}: not found", file=sys.stderr)
         return 1
-    # Only the copies in this body's own family can be served: the shared unit
-    # lives in src/<family>/lib/ and the span goes into that family's manifest
-    # entries, so a copy in another family is a separate promotion.
+    # Only the copies in this body's own family are served: the spans go into
+    # that family's manifest entries, so a copy in another family is a
+    # separate promotion. The unit itself is in the shared src/lib/.
     family = hit["overlay"].split("/")[1]
     copies = [f for f in cl[hit["text"]] if f["overlay"].split("/")[1] == family]
     # A copy under `<family>/lib` is the shared body itself, already promoted -
@@ -413,13 +413,13 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     copies = [f for f in copies if f["overlay"].split("/")[-1] != "lib"]
     if promoted and unit is None:
         sym_name = promoted[0]["name"]
-        for c in sorted(Path(f"src/{family}/lib").glob("*.c")):
+        for c in sorted(Path("src/lib").glob("*.c")):
             if re.search(rf"\b{re.escape(sym_name)}\s*\(", c.read_text(errors="ignore")):
                 unit = c.stem
                 break
         else:
             print(f"{name}: already shared as {sym_name}, but no file in "
-                  f"src/{family}/lib defines it", file=sys.stderr)
+                  f"src/lib defines it", file=sys.stderr)
             return 1
     if len(copies) < 2 and not promoted:
         print(f"{name}: only one copy in {family}, nothing to share")
@@ -502,7 +502,7 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         if not re.search(rf"^{re.escape(sym)} = ", sym_text, re.M):
             pending_syms.append((sym_path, sym_text.rstrip()
                                  + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
-                                 f" // shared body, see src/{family}/lib/\n"))
+                                 f" // shared body, see src/lib/\n"))
 
     # Nothing is written until every carrier has validated: this used to write a
     # symbol map per iteration and then abort on a later one, leaving the config
@@ -511,13 +511,13 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
         sym_path.write_text(sym_text, encoding="utf-8")
     manifest_path.write_text(text, encoding="utf-8")
 
-    print(f"{sym}: {len(keep)} of {len(copies)} copies share src/{family}/lib/{unit}.c")
+    print(f"{sym}: {len(keep)} of {len(copies)} copies share src/lib/{unit}.c")
     if twice:
         print(f"  left alone (contains it twice): {', '.join(sorted(twice))}")
     matched = [f for f in keep if f.get("state") == "matched"]
     if matched:
         print(f"  {name} is already decompiled - move its C body into "
-              f"src/{family}/lib/{unit}.c as {sym}(), remove it from its own "
+              f"src/lib/{unit}.c as {sym}(), remove it from its own "
               f"overlay's .c, then rebuild.")
     else:
         print("  splat will write the shared stub on the next split.")
@@ -543,7 +543,7 @@ def cmd_solved(data: dict, min_words: int) -> int:
             if f.get("state") == "matched":
                 continue
             # Only a match in the *same family* is reachable: the shared unit
-            # lives in src/<family>/lib/, so a body matched in gameplay says
+            # lives in src/lib/, so a body matched in gameplay says
             # nothing about a room's copy of it.
             family = f["overlay"].split("/")[1]
             if any(
@@ -813,7 +813,7 @@ def body_file(f: dict) -> str | None:
     # overlay is "<ver>/<family>/<name>"; src/ has no version component.
     rel = f["overlay"].split("/", 1)[1] if "/" in f["overlay"] else f["overlay"]
     fam = rel.split("/")[0]
-    for pat in (f"src/{rel}", f"src/{fam}/lib", f"src/{fam}"):
+    for pat in (f"src/{rel}", "src/lib", f"src/{fam}"):
         d = Path(pat)
         if not d.is_dir():
             continue

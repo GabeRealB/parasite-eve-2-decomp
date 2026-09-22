@@ -365,7 +365,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim. Byte-identical to the rooms
-/// family's `Room_Draw07` (src/rooms/lib/room_draw07.c).
+/// family's `Room_Draw07` (src/lib/room_draw07.c).
 void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     PlasmaRingScratch* block;

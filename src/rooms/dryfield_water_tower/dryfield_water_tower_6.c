@@ -16,7 +16,7 @@
 ///
 /// The table's entry 2 runs the same body backwards -- saturated channels
 /// falling past zero -- and the two rooms that carry it share it as
-/// `RoomsShared8017ff5c` out of `src/rooms/lib/`, so this direction is the one
+/// `RoomsShared8017ff5c` out of `src/lib/`, so this direction is the one
 /// that stays private to the water tower.
 void func_dryfield_water_tower_80180038(Task* arg0)
 {

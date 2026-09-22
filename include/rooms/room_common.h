@@ -268,7 +268,7 @@ typedef struct _RoomEventReq {
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
 
 // =============================================================================
-// Functions — shared room library (src/rooms/lib)
+// Functions — shared room library (src/lib)
 // =============================================================================
 
 /// Inserts a '.' into a digit string so `decimals` characters sit after the

@@ -1,12 +1,12 @@
 // Overlay-local symbols for shelter_b1_sleeping_quarters.
-Room_Draw06 = 0x8017FF6C; // shared body, see src/rooms/lib/
-Room_Draw07 = 0x8017F0DC; // shared body, see src/rooms/lib/
-Room_Draw10 = 0x8017F500; // shared body, see src/rooms/lib/
-Room_Draw12 = 0x8017DB50; // shared body, see src/rooms/lib/
-Room_Draw14 = 0x8017EE58; // shared body, see src/rooms/lib/
-Room_Draw30 = 0x8017E338; // shared body, see src/rooms/lib/
-RoomsShared8017db84Msgs = 0x80180518; // shared body data, see src/rooms/lib/
-RoomsShared8017db84 = 0x8017D83C; // shared body, see src/rooms/lib/
-RoomsShared8017d878 = 0x8017D888; // shared body, see src/rooms/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/
-RoomsShared801807c4 = 0x8017EC34; // shared body, see src/rooms/lib/
+Room_Draw06 = 0x8017FF6C; // shared body, see src/lib/
+Room_Draw07 = 0x8017F0DC; // shared body, see src/lib/
+Room_Draw10 = 0x8017F500; // shared body, see src/lib/
+Room_Draw12 = 0x8017DB50; // shared body, see src/lib/
+Room_Draw14 = 0x8017EE58; // shared body, see src/lib/
+Room_Draw30 = 0x8017E338; // shared body, see src/lib/
+RoomsShared8017db84Msgs = 0x80180518; // shared body data, see src/lib/
+RoomsShared8017db84 = 0x8017D83C; // shared body, see src/lib/
+RoomsShared8017d878 = 0x8017D888; // shared body, see src/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
+RoomsShared801807c4 = 0x8017EC34; // shared body, see src/lib/

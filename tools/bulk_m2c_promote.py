@@ -9,7 +9,7 @@ in configs/USA/overlays.toml for each carrier and the shared symbol in their
 symbol maps. This does the source half and verifies the result:
 
   1. run promote, and read the shared unit and symbol out of its output;
-  2. move the body into src/<family>/lib/<unit>.c under that symbol, with the
+  2. move the body into src/lib/<unit>.c under that symbol, with the
      declarations it needs and the fewest includes that compile;
   3. delete the body from its own overlay's .c, and delete the now-covered
      INCLUDE_ASM line from every other carrier -- splat never rewrites an
@@ -54,7 +54,7 @@ REPO_ROOT = B.REPO_ROOT
 DUP = REPO_ROOT / "tools" / "overlay_dup_index.py"
 NINJA = REPO_ROOT / "ninja_config.py"
 
-# "ActorsShared801327b4: 9 of 17 copies share src/actors/lib/actors_shared_801327b4.c"
+# "ActorsShared801327b4: 9 of 17 copies share src/lib/actors_shared_801327b4.c"
 HEAD_RE = re.compile(
     r"^(\w+):\s+(\d+) of (\d+) copies share (\S+\.c)\s*$", re.M
 )

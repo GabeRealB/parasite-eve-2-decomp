@@ -280,10 +280,11 @@ bound = sys.argv[3] if len(sys.argv) > 3 else ""
 only_difficult = (sys.argv[4] if len(sys.argv) > 4 else "") == "true"
 inc = []
 src = pathlib.Path(wt, "src")
-# "<family>/lib/<unit>" is one .c file; every other overlay is a directory of them.
+# "<family>/lib/<unit>" is one .c file in the shared src/lib; every other
+# overlay is a directory of them.
 if "/lib/" in ov:
     fam, unit = ov.split("/lib/", 1)
-    files = [src / fam / "lib" / f"{unit}.c"]
+    files = [src / "lib" / f"{unit}.c"]
 else:
     files = list(src.rglob(f"{ov}/*.c"))
 for c in files:
@@ -375,16 +376,16 @@ mapfile -t ALL_MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
 # land_overlay.py --overlay X maps bodies by walking trunk's src/**/X directory,
 # so only a function whose body lives in THIS overlay can be landed that way.
 # Two kinds of match end up elsewhere and make it refuse the whole batch:
-#   * a promoted shared body, which moves to src/<family>/lib/<unit>.c;
+#   * a promoted shared body, which moves to src/lib/<unit>.c;
 #   * a sibling overlay's copy matched in passing - an actor_503500 sweep
 #     matched func_dryfield_dilapidated_house_80181290 like this.
 # Both still reach trunk through EXTRAS; they just must not be in the
 # per-function list. (The replay path below is unaffected: it cherry-picks
 # commits, so it carries them correctly either way.)
-# A shared unit "<family>/lib/<unit>" is a file inside src/<family>/lib, not a
+# A shared unit "<family>/lib/<unit>" is a file in the shared src/lib, not a
 # directory of its own; everything else is src/<family>/<overlay>.
 if [[ "$OVERLAY" == */lib/* ]]; then
-    WT_SRC="src/${OVERLAY%/*}"
+    WT_SRC="src/lib"
 else
     WT_SRC=$(cd "$WT" && ls -d src/*/"$OVERLAY" 2>/dev/null | head -1)
 fi
@@ -486,7 +487,7 @@ PYEOF
 }
 
 # Only "nothing matched at all" is a no-op. A batch whose every body was
-# promoted to src/<family>/lib has MATCHED empty but ALL_MATCHED full, and this
+# promoted to src/lib has MATCHED empty but ALL_MATCHED full, and this
 # branch used to discard it: worktree deleted, branch deleted, verified work
 # gone. Thirteen matches went that way in one day. Those commits land perfectly
 # well through the replay below - cherry-picking needs no per-function mapping -
@@ -692,7 +693,7 @@ Do not modify the worktree. Do not touch any overlay other than $OVERLAY."
         fi
         # A `matched` commit with no counterpart on trunk is still landed when
         # trunk no longer has the function as unmatched assembly. That happens
-        # when trunk promoted the body into src/<family>/lib after this worktree
+        # when trunk promoted the body into src/lib after this worktree
         # was cut: the agent correctly drops the now-redundant copy, and there is
         # no commit to replay. actor_113100 was reported stranded that way, with
         # func_actor_113100_80132E00 already served by actors_shared_80132390.
@@ -786,7 +787,7 @@ release_all() {
 
 # Prefer replaying the worktree's own commits. They are already one
 # `matched <fn> <attempts>` per function, so the attempt counts survive - and a
-# promotion, which moves bodies into src/<family>/lib and re-partitions the
+# promotion, which moves bodies into src/lib and re-partitions the
 # overlay's units, leaves trunk and the worktree with no per-function
 # correspondence at all. mist_r18 promoted a shared body into
 # rooms_shared_8017df80 and land_overlay.py refused all 13 functions with "no

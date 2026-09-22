@@ -92,7 +92,7 @@ void func_dryfield_night_factory_80180438(Task* arg0)
 ///
 /// `dryfield_factory` carries this same body -- the body itself branches on the
 /// night session, so one source covers both rooms -- and it wants promoting to
-/// `src/rooms/lib/` once this overlay is not mid-sweep: the `shared` span
+/// `src/lib/` once this overlay is not mid-sweep: the `shared` span
 /// renumbers the units of both carrying overlays.
 s32 func_dryfield_night_factory_80180574(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {

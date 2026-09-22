@@ -247,7 +247,7 @@ def dup_groups(names: set[str]) -> tuple[dict[str, tuple[str, int]], set[str]]:
     Bodies repeat across overlays in a family, so matching every copy is the
     same work done many times over -- of the first 158 room functions matched,
     only 29 were distinct bodies. Processing one representative per group and
-    fanning the result out through a shared `src/<family>/lib/` object is the
+    fanning the result out through a shared `src/lib/` object is the
     documented route (MATCH_LOOP.md, "Shared bodies"); this supplies the
     grouping, it does not do the fan-out.
 
@@ -310,7 +310,7 @@ def candidate_headers(overlay: str) -> list[str]:
     Gp_StateC08` while `include/gameplay/gameplay.h` declares the same symbol as
     `GpStateC08`. Including both is a hard cc1 conflict, and including all 34
     actor headers at once is 34 of them. A real source takes one -- see
-    src/actors/lib/actor_101600_text.c -- so the context is per overlay too.
+    src/actors/actor_01600/actor_101600_text.c -- so the context is per overlay too.
 
     The overlay's own header precedes gameplay's so that, when the two disagree,
     the greedy filter drops gameplay and keeps the overlay's own view.

@@ -1,11 +1,11 @@
 // Overlay-local symbols for actor_323400.
-ActorsShared801366fc = 0x80164A78; // shared body, see src/actors/lib/
-ActorsShared80164af0 = 0x80164A50; // shared body, see src/actors/lib/
-ActorsShared80164954 = 0x80164874; // shared body, see src/actors/lib/
-ActorsShared80135df4Table = 0x80161E34; // shared body data, see src/actors/lib/
-ActorsShared80135df4 = 0x80164CEC; // shared body, see src/actors/lib/
-ActorsShared80164904 = 0x80164824; // shared body, see src/actors/lib/
-ActorsShared80132808 = 0x80161E8C; // shared body, see src/actors/lib/
-ActorsShared80164c20 = 0x80164B98; // shared body, see src/actors/lib/
-ActorsShared80164844 = 0x80164764; // shared body, see src/actors/lib/
-ActorsShared8016331c = 0x8016331C; // shared body, see src/actors/lib/
+ActorsShared801366fc = 0x80164A78; // shared body, see src/lib/
+ActorsShared80164af0 = 0x80164A50; // shared body, see src/lib/
+ActorsShared80164954 = 0x80164874; // shared body, see src/lib/
+ActorsShared80135df4Table = 0x80161E34; // shared body data, see src/lib/
+ActorsShared80135df4 = 0x80164CEC; // shared body, see src/lib/
+ActorsShared80164904 = 0x80164824; // shared body, see src/lib/
+ActorsShared80132808 = 0x80161E8C; // shared body, see src/lib/
+ActorsShared80164c20 = 0x80164B98; // shared body, see src/lib/
+ActorsShared80164844 = 0x80164764; // shared body, see src/lib/
+ActorsShared8016331c = 0x8016331C; // shared body, see src/lib/

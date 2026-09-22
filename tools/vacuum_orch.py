@@ -388,12 +388,12 @@ def cmd_finish(
 def overlay_of_asm(rel: str) -> Optional[str]:
     """asm/<ver>/<family>/nonmatchings/<overlay>/<unit>/<fn>.s -> <overlay>.
 
-    A family's shared bodies live under <family>/nonmatchings/lib/ and are
-    linked into many overlays at once, so `lib` alone is not a location: four
-    families have one, and `build-and-verify.sh --only lib` is not a valid
-    scope. It is therefore named **family-qualified** - `actors/lib` - which
-    disambiguates everything downstream: `src/**/actors/lib` globs to exactly
-    one directory for the landing, and the brief already derives `--only
+    A shared body's source is in the one library, src/lib/, but each family
+    that links it disassembles it under its own <family>/nonmatchings/lib/, so
+    `lib` alone is not a location: every family has one, and
+    `build-and-verify.sh --only lib` is not a valid scope. It is therefore
+    named **family-qualified** - `actors/lib` - which says whose asm the claim
+    reads, and the brief already derives `--only
     actors` as the build scope from the function's family.
 
     Claiming it in bulk is safe, contrary to the earlier reading that it would
@@ -413,7 +413,7 @@ def overlay_of_asm(rel: str) -> Optional[str]:
     if name == "lib":
         # lib is not one unit but a collection of them: actors/lib holds 14
         # separate shared bodies, from a 191-function text handler down to a
-        # single function, each its own src/<family>/lib/<unit>.c. Leasing all
+        # single function, each its own src/lib/<unit>.c. Leasing all
         # of them together would be far too coarse, and the amortisation that
         # justifies a whole-overlay sweep - work the state struct out once,
         # spend it across the unit - stops at the unit boundary anyway.

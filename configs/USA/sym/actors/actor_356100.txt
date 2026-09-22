@@ -1,8 +1,8 @@
 // Overlay-local symbols for actor_356100.
-ActorsShared80169f74 = 0x80169F74; // shared body, see src/actors/lib/
-ActorsShared80135df4Table = 0x80161F40; // force_not_migration:True shared body data, see src/actors/lib/
-ActorsShared80135df4 = 0x8016A910; // shared body, see src/actors/lib/
-ActorsShared8016a074 = 0x8016A074; // shared body, see src/actors/lib/
-ActorsShared80164904 = 0x80169F24; // shared body, see src/actors/lib/
-ActorsShared80169e64 = 0x80169E64; // shared body, see src/actors/lib/
-ActorsShared80132808 = 0x80161F4C; // shared body, see src/actors/lib/
+ActorsShared80169f74 = 0x80169F74; // shared body, see src/lib/
+ActorsShared80135df4Table = 0x80161F40; // force_not_migration:True shared body data, see src/lib/
+ActorsShared80135df4 = 0x8016A910; // shared body, see src/lib/
+ActorsShared8016a074 = 0x8016A074; // shared body, see src/lib/
+ActorsShared80164904 = 0x80169F24; // shared body, see src/lib/
+ActorsShared80169e64 = 0x80169E64; // shared body, see src/lib/
+ActorsShared80132808 = 0x80161F4C; // shared body, see src/lib/

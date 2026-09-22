@@ -1,12 +1,12 @@
 // Overlay-local symbols for neo_ark_observatory.
-Room_Draw13 = 0x80180A0C; // shared body, see src/rooms/lib/
-Room_Util06 = 0x8017FBE0; // shared body, see src/rooms/lib/
-RoomsShared8017d878 = 0x8017FDDC; // shared body, see src/rooms/lib/
-RoomsShared8017d878Table = 0x8017D698; // shared body data, see src/rooms/lib/
-RoomsShared8017f128 = 0x8017F22C; // shared body, see src/rooms/lib/
-RoomsShared8017f128Parts = 0x80180DB8; // shared body data, see src/rooms/lib/
-RoomsShared8017f128Scale = 0x8017D5C4; // shared body data, see src/rooms/lib/
-RoomsShared8017d5f0 = 0x8017D6F4; // shared body, see src/rooms/lib/
-RoomsShared8017d5f0Desc = 0x80180DBC; // shared body data, see src/rooms/lib/
-RoomsShared8017d7a4 = 0x8017D8A8; // shared body callee, see src/rooms/lib/
-RoomsShared8017f2f8 = 0x8017F3FC; // shared body, see src/rooms/lib/
+Room_Draw13 = 0x80180A0C; // shared body, see src/lib/
+Room_Util06 = 0x8017FBE0; // shared body, see src/lib/
+RoomsShared8017d878 = 0x8017FDDC; // shared body, see src/lib/
+RoomsShared8017d878Table = 0x8017D698; // shared body data, see src/lib/
+RoomsShared8017f128 = 0x8017F22C; // shared body, see src/lib/
+RoomsShared8017f128Parts = 0x80180DB8; // shared body data, see src/lib/
+RoomsShared8017f128Scale = 0x8017D5C4; // shared body data, see src/lib/
+RoomsShared8017d5f0 = 0x8017D6F4; // shared body, see src/lib/
+RoomsShared8017d5f0Desc = 0x80180DBC; // shared body data, see src/lib/
+RoomsShared8017d7a4 = 0x8017D8A8; // shared body callee, see src/lib/
+RoomsShared8017f2f8 = 0x8017F3FC; // shared body, see src/lib/

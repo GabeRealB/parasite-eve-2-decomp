@@ -209,7 +209,7 @@ python3 tools/asm-differ/diff.py --no-pager <function_name>
 In an overlay family, check first whether the body is shared: over half the room
 functions are copies of another room's, and `python3 tools/overlay_dup_index.py
 find <fn>` lists every overlay carrying the same one. A shared body is matched
-once, in `src/<family>/lib/`, and linked into each overlay that uses it.
+once, in `src/lib/`, and linked into each overlay that uses it.
 
 Scratch helpers for AI-assisted matching live under `tools/claude` / `tools/claude-decomp-env/`.
 

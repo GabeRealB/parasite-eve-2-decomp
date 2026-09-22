@@ -38,7 +38,9 @@ def orch(*args: str) -> tuple[int, str]:
 
 def src_dir(overlay: str) -> pathlib.Path | None:
     if "/lib/" in overlay:
-        d = ROOT / "src" / overlay.split("/", 1)[0] / "lib"
+        # "<family>/lib/<unit>": the family names its asm, but every family's
+        # library units share one source directory.
+        d = ROOT / "src" / "lib"
     else:
         hits = list((ROOT / "src").glob(f"*/{overlay}"))
         d = hits[0] if hits else None

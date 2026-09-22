@@ -359,7 +359,7 @@ def subsegments(
     `src_path` is the family root, so a subsegment is named `<overlay>/<unit>`
     and its object lands in the overlay's own directory. A **shared** body is
     named `lib/<unit>` instead: several overlays name the same path, splat puts
-    the same `build/.../src/<family>/lib/<unit>` object in each of their linker
+    the same `build/.../src/lib/<unit>` object in each of their linker
     scripts, and one object relocates into all of them. That is the whole
     mechanism - a body that appears in 55 rooms is built and matched once.
 
@@ -615,10 +615,6 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         label = slot.get("label", entry.get("label")) or name
         title = f"{spec['description']} - {label}".replace('"', "'")
 
-        # A family may span several RAM slots. The actors do: one actor is
-        # issued as three packages at three addresses, and they have to be one
-        # family so the relocated copies can share source out of
-        # src/<family>/lib/.
         # A family may span several RAM slots, and a slot is one address, so an
         # overlay's load address - and the vram end that tracks it - follow from
         # the slot it declares rather than being restated per overlay.

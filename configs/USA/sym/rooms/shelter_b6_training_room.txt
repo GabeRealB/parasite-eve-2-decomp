@@ -1,14 +1,14 @@
 // Overlay-local symbols for shelter_b6_training_room.
-Room_Draw01 = 0x8017E28C; // shared body, see src/rooms/lib/
-Room_Draw06 = 0x8017F540; // shared body, see src/rooms/lib/
-Room_Draw13 = 0x8017EAD0; // shared body, see src/rooms/lib/
-Room_Util03 = 0x8017D640; // shared body, see src/rooms/lib/
-Room_Util06 = 0x8017D75C; // shared body, see src/rooms/lib/
-Room_Script25 = 0x8017DBBC; // shared body, see src/rooms/lib/
-RoomsShared8017daf0 = 0x8017DAC8; // shared body, see src/rooms/lib/
-RoomsShared8017daf0Desc = 0x8018431C; // shared body data, see src/rooms/lib/
-RoomsShared8017dce0 = 0x8017DD98; // shared body, see src/rooms/lib/
-RoomsShared8017d878 = 0x8017D8E8; // shared body, see src/rooms/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/rooms/lib/
-RoomsShared801807d4 = 0x8017D974; // shared body, see src/rooms/lib/
-RoomsShared801807d4Task = 0x80185C5C; // shared body data, see src/rooms/lib/
+Room_Draw01 = 0x8017E28C; // shared body, see src/lib/
+Room_Draw06 = 0x8017F540; // shared body, see src/lib/
+Room_Draw13 = 0x8017EAD0; // shared body, see src/lib/
+Room_Util03 = 0x8017D640; // shared body, see src/lib/
+Room_Util06 = 0x8017D75C; // shared body, see src/lib/
+Room_Script25 = 0x8017DBBC; // shared body, see src/lib/
+RoomsShared8017daf0 = 0x8017DAC8; // shared body, see src/lib/
+RoomsShared8017daf0Desc = 0x8018431C; // shared body data, see src/lib/
+RoomsShared8017dce0 = 0x8017DD98; // shared body, see src/lib/
+RoomsShared8017d878 = 0x8017D8E8; // shared body, see src/lib/
+RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
+RoomsShared801807d4 = 0x8017D974; // shared body, see src/lib/
+RoomsShared801807d4Task = 0x80185C5C; // shared body data, see src/lib/

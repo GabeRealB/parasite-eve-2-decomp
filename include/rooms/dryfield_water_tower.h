@@ -57,7 +57,7 @@ STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 ///
 /// This layout is the fade-*out* direction only. Entry 2 of that table runs it
 /// backwards, from 0xFF down past zero, and the water tower shares that body
-/// with the warehouse as `RoomsShared8017ff5c` (`src/rooms/lib/`), which
+/// with the warehouse as `RoomsShared8017ff5c` (`src/lib/`), which
 /// carries its own copy of these three halfwords rather than including this
 /// header.
 typedef struct DwtwFadeWork {

@@ -180,13 +180,13 @@ trap cleanup_lease ERR
 # --- is any of this landable here? -------------------------------------------
 # Setting up costs a 235MB asm copy and four submodule clones, so ask before
 # paying: does this overlay's own src/ hold an INCLUDE_ASM slot for anything we
-# just claimed? A shared body is claimable here but lives in src/<family>/lib,
+# just claimed? A shared body is claimable here but lives in src/lib,
 # and the landing filter later refuses it - "not landing X here: body is not in
 # ...". Six overlays paid for a worktree today only to conclude "nothing
 # matched". Fail open: skip only on a positive finding of zero, never because
 # the source directory could not be resolved.
 if [[ "$OVERLAY" == */lib/* ]]; then
-    SRC_DIR="$ROOT/src/${OVERLAY%/*}"
+    SRC_DIR="$ROOT/src/lib"
 else
     SRC_DIR=$(ls -d "$ROOT"/src/*/"$OVERLAY" 2>/dev/null | head -1)
 fi

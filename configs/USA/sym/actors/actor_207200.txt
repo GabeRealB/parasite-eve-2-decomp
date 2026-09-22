@@ -1,11 +1,11 @@
 // Overlay-local symbols for actor_207200.
-ActorsShared8014df20 = 0x8014B21C; // shared body, see src/actors/lib/
-ActorsShared8013851c = 0x8014DAF8; // shared body, see src/actors/lib/
-ActorsShared80134700 = 0x8014D77C; // shared body, see src/actors/lib/
+ActorsShared8014df20 = 0x8014B21C; // shared body, see src/lib/
+ActorsShared8013851c = 0x8014DAF8; // shared body, see src/lib/
+ActorsShared80134700 = 0x8014D77C; // shared body, see src/lib/
 D_actor_207200_80149E24 = 0x80149E24; // force_not_migration:True enemy state table, read from C
-ActorsShared80135d50 = 0x8014B04C; // shared body, see src/actors/lib/
-ActorsShared8014af2c = 0x8014AF2C; // shared body, see src/actors/lib/
-ActorsShared8014b128 = 0x8014B128; // shared body, see src/actors/lib/
-ActorsShared8014ae08 = 0x8014AE08; // shared body, see src/actors/lib/
-ActorsShared80136614 = 0x8014CE20; // shared body, see src/actors/lib/
-ActorsShared8014a1c4 = 0x8014A1C4; // shared body, see src/actors/lib/
+ActorsShared80135d50 = 0x8014B04C; // shared body, see src/lib/
+ActorsShared8014af2c = 0x8014AF2C; // shared body, see src/lib/
+ActorsShared8014b128 = 0x8014B128; // shared body, see src/lib/
+ActorsShared8014ae08 = 0x8014AE08; // shared body, see src/lib/
+ActorsShared80136614 = 0x8014CE20; // shared body, see src/lib/
+ActorsShared8014a1c4 = 0x8014A1C4; // shared body, see src/lib/

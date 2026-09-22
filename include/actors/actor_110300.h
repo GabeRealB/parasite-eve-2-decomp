@@ -68,17 +68,17 @@ void func_actor_110300_801320C4(GpActorWork* arg0);
 /// `actor_110300_2.c`.
 void func_actor_110300_80132088(Task* task);
 
-/// The shared slot-reseed body `src/actors/lib/actors_shared_80132180.c`,
+/// The shared slot-reseed body `src/lib/actors_shared_80132180.c`,
 /// declared for the same reason as `ActorsShared80132138` below. Its other
 /// carrier is `actor_110800`.
 void ActorsShared80132180(void);
 
-/// The shared tick body `src/actors/lib/actors_shared_80132138.c`. Declared
+/// The shared tick body `src/lib/actors_shared_80132138.c`. Declared
 /// here rather than through `actors_shared_80132138.h` because that header
 /// publishes `ActorsShared80131f9cWork` with its own work type.
 void ActorsShared80132138(void);
 
-/// The shared reseed body `src/actors/lib/actors_shared_80132208.c`, declared
+/// The shared reseed body `src/lib/actors_shared_80132208.c`, declared
 /// for the same reason as `ActorsShared80132138` above. Its other carrier is
 /// `actor_110800`.
 void ActorsShared80132208(void);

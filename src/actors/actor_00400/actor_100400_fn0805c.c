@@ -377,7 +377,7 @@ void Actor00400_Fn088EC(Actor100400* arg0, s16 arg1, s16 arg2, s16 arg3)
     work->field_624 = 1;
 }
 
-/// Same body as src/actors/lib/actors_shared_8016974c.c.
+/// Same body as src/lib/actors_shared_8016974c.c.
 s16 Actor00400_Fn08908(Actor100400* arg0)
 {
     Actor100400Work* work = arg0->field_1C;
@@ -408,7 +408,7 @@ void Actor00400_Fn089C8(Actor100400* arg0)
 }
 
 /// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
-/// alone. Same body as src/actors/lib/actors_shared_80132c4c.c.
+/// alone. Same body as src/lib/actors_shared_80132c4c.c.
 void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
 {
     dst->m[0][0] = src->m[0][0];

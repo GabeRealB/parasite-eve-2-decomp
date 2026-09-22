@@ -361,7 +361,7 @@ static __inline__ void Actor04400_SetState(Task* arg0, s16 state)
 /// or 7 by bits 4..7.
 ///
 /// The same body as `ActorsShared801673f8`, which `actor_341700` and
-/// `actor_342400` link from `src/actors/lib/`; this overlay puts its own copy
+/// `actor_342400` link from `src/lib/`; this overlay puts its own copy
 /// at its own address, so the two cannot share one object.
 void Actor04400_Fn042C4(Task* arg0)
 {

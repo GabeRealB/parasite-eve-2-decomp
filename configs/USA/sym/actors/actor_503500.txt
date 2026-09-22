@@ -1,15 +1,15 @@
 // Overlay-local symbols for actor_503500.
-ActorsShared801327b4 = 0x801464E8; // shared body, see src/actors/lib/
-ActorsShared8016447c = 0x80132B78; // shared body, see src/actors/lib/
-ActorsShared8016449c = 0x80132B98; // shared body, see src/actors/lib/
-ActorsShared80162080 = 0x80132BB8; // shared body, see src/actors/lib/
-ActorsShared80132ca4 = 0x80132CA4; // shared body, see src/actors/lib/
-ActorsShared80132bd8 = 0x80132BD8; // shared body, see src/actors/lib/
-ActorsShared801366fc = 0x801324C4; // shared body, see src/actors/lib/
+ActorsShared801327b4 = 0x801464E8; // shared body, see src/lib/
+ActorsShared8016447c = 0x80132B78; // shared body, see src/lib/
+ActorsShared8016449c = 0x80132B98; // shared body, see src/lib/
+ActorsShared80162080 = 0x80132BB8; // shared body, see src/lib/
+ActorsShared80132ca4 = 0x80132CA4; // shared body, see src/lib/
+ActorsShared80132bd8 = 0x80132BD8; // shared body, see src/lib/
+ActorsShared801366fc = 0x801324C4; // shared body, see src/lib/
 D_actor_503500_801321DC = 0x801321DC; // force_not_migration:True actor state table, read from C
 D_actor_503500_801321E8 = 0x801321E8; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132218 = 0x80132218; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132224 = 0x80132224; // force_not_migration:True actor state table, read from C
 D_actor_503500_80132230 = 0x80132230; // force_not_migration:True actor state table, read from C
-ActorsShared80132d00 = 0x80132D00; // shared body, see src/actors/lib/
+ActorsShared80132d00 = 0x80132D00; // shared body, see src/lib/
 D_actor_503500_8016F414 = 0x8016F414; // reached as &D_actor_503500_8016F414[spawnArg1 - 0xD], folded to 0x8016F3AC

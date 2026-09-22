@@ -1,9 +1,9 @@
 // Overlay-local symbols for acropolis_helicopter_landing_pad.
-Room_Util06 = 0x8017E49C; // shared body, see src/rooms/lib/
-Room_Util07 = 0x8017E724; // shared body, see src/rooms/lib/
-RoomsShared801822b0 = 0x801822B0; // shared body, see src/rooms/lib/
-RoomsShared8017e5b8 = 0x8017E5B8; // shared body, see src/rooms/lib/
-RoomsShared8017e5b8Desc = 0x80184DA0; // shared body data, see src/rooms/lib/
-RoomsShared80182078 = 0x80181B64; // shared body, see src/rooms/lib/
-RoomsShared8017d830 = 0x801819C0; // shared body, see src/rooms/lib/
-RoomsShared8017d830Delta = 0x80187F88; // shared body data, see src/rooms/lib/
+Room_Util06 = 0x8017E49C; // shared body, see src/lib/
+Room_Util07 = 0x8017E724; // shared body, see src/lib/
+RoomsShared801822b0 = 0x801822B0; // shared body, see src/lib/
+RoomsShared8017e5b8 = 0x8017E5B8; // shared body, see src/lib/
+RoomsShared8017e5b8Desc = 0x80184DA0; // shared body data, see src/lib/
+RoomsShared80182078 = 0x80181B64; // shared body, see src/lib/
+RoomsShared8017d830 = 0x801819C0; // shared body, see src/lib/
+RoomsShared8017d830Delta = 0x80187F88; // shared body data, see src/lib/

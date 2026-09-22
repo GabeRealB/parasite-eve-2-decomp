@@ -1,12 +1,12 @@
 // Overlay-local symbols for actor_401800.
-ActorsShared80169f74 = 0x8013DE3C; // shared body, see src/actors/lib/
-ActorsShared80135df4Table = 0x80132064; // shared body data, see src/actors/lib/
-ActorsShared80135df4 = 0x8013E68C; // shared body, see src/actors/lib/
-ActorsShared8016a074 = 0x8013DF3C; // shared body, see src/actors/lib/
-ActorsShared80164904 = 0x8013DDEC; // shared body, see src/actors/lib/
-ActorsShared80169e64 = 0x8013DD2C; // shared body, see src/actors/lib/
-ActorsShared80132808 = 0x801320C8; // shared body, see src/actors/lib/
-ActorsShared80133eb8 = 0x80133EB8; // shared animation driver, see src/actors/lib/
+ActorsShared80169f74 = 0x8013DE3C; // shared body, see src/lib/
+ActorsShared80135df4Table = 0x80132064; // shared body data, see src/lib/
+ActorsShared80135df4 = 0x8013E68C; // shared body, see src/lib/
+ActorsShared8016a074 = 0x8013DF3C; // shared body, see src/lib/
+ActorsShared80164904 = 0x8013DDEC; // shared body, see src/lib/
+ActorsShared80169e64 = 0x8013DD2C; // shared body, see src/lib/
+ActorsShared80132808 = 0x801320C8; // shared body, see src/lib/
+ActorsShared80133eb8 = 0x80133EB8; // shared animation driver, see src/lib/
 func_actor_401800_80133EB8 = 0x80133EB8; // type:func absolute:True
 ActorsShared80133eb8_BlendTick = 0x801337EC; // type:func absolute:True
 ActorsShared80133eb8_Sound = 0x80133B78; // type:func absolute:True

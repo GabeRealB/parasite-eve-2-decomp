@@ -59,7 +59,7 @@ extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
 /// state 0 and parks at `Task::work`. It is the same block the shared
-/// `Room_Util20` body (src/rooms/lib/room_util20.c) reads its model light and
+/// `Room_Util20` body (src/lib/room_util20.c) reads its model light and
 /// color matrices out of at 0x18 / 0x38, so the tail is left unreferenced here.
 ///
 /// `field_0` is the nibble of game flag 0x49 the task last saw, `field_14`
