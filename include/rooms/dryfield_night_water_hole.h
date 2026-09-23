@@ -87,4 +87,33 @@ void func_dryfield_night_water_hole_8017D958(Task* arg0);
 /// and passes one block as both sides.
 void func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
 
+/// One rectangle of water surface drawn by
+/// `func_dryfield_night_water_hole_8017DF28`, in world coordinates: it spans
+/// `width` along X from `x` and `depth` along Z from `z`, at height `y`. The
+/// table ends at the first entry whose `y` word is -1; the drawing code reads
+/// only its low half as the height. The daytime water hole draws its surfaces
+/// with the same code over the same layout.
+typedef struct DnwhSurface {
+    s16 x;
+    s16 z;
+    s16 width;
+    u16 depth;
+    s32 y;
+} DnwhSurface;
+
+/// The room's water surfaces, terminated by an entry with `y == -1`.
+extern DnwhSurface D_dryfield_night_water_hole_80180970[];
+
+/// Cursor into the primitive area the room's water surface is written to,
+/// reset each frame to the half of that area belonging to the ordering table
+/// being built.
+extern u8* D_dryfield_night_water_hole_80183628;
+
+/// Frame counter the water surface's wave is phased by.
+extern s16 D_dryfield_night_water_hole_8018362C;
+
+/// State 1 of the room's water task: draws the room's water surfaces into the
+/// current ordering table.
+void func_dryfield_night_water_hole_8017DF28(Task* task);
+
 #endif // ROOMS_DRYFIELD_NIGHT_WATER_HOLE_H
