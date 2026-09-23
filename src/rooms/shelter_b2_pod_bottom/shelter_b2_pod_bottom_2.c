@@ -1,5 +1,11 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/task.h"
+#include "rooms/room_common.h"
+
+extern u32 Gp_LcgState;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D760);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D850);
@@ -32,7 +38,23 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80181940);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80181A48);
+void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u32            rnd;
+
+    if (Gp_State1C->eventState == 0) {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        coord       = &((TmdObject*)arg0->extra)->coords[(u16)((rnd >> 16) % 18) + 2];
+        Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        if (!((rnd >> 16) & 1)) {
+            Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80181B48);
 
