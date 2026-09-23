@@ -138175,3 +138175,14 @@ function-wide register shift.
 **Cause.** `reload` (reload1.c) lays out the frame in a fixed order. First `alter_reg` gives a slot to every pseudo that global left without a hard register, in pseudo-number order. Then the main loop calls `assign_stack_local (BLKmode, 0, 0)` to round the frame to `BIGGEST_ALIGNMENT` (8). After that come the caller-save areas, then one slot per spilled hard register, shared by every pseudo that reload evicts from it. With an odd number of initially unallocated pseudos, the rounding inserts an unused word after them. With one more such pseudo, that padding disappears and the pseudo's own slot appears earlier in the run. If that pseudo's references are later deleted, its slot is never accessed. So an untouched word in the middle of the run means the target had one more pseudo without a register, numbered between its neighbours. An untouched word at the end of the run means one fewer, and the shift is the padding.
 
 **How to check.** Break on `reload1.c:alter_reg` and `assign_stack_local` in the bundled cc1 (both symbols are in `trace_gcc.py`'s table), and log `frame_offset` before and after each call along with the register number. That gives every slot's owner, including padding.
+
+## Reset a nested loop's counter at the top of the outer body, not before the loop and again at its bottom (func_mine_refuge_80181094, 2026-09-23)
+
+A two-level `do`/`while` where both counters start at zero: writing `ang = 0`
+once before the outer loop and again at the bottom of the outer body lets CSE
+fold the first `ang = 0` into `ring = 0`, so the object gains a `move $s3,$s8`
+beside `move $s8,$zero` and the target's `move $s3,$zero` just before the loop
+head disappears. Put the reset at the top of the outer body instead
+(`do { ang = 0; do { ... } while (ang < 0x1000); ... } while (++ring < 3)`);
+jump threading still places one copy before entry and one in the outer
+branch's delay slot, which is what the target has.

@@ -2,15 +2,101 @@
 
 #include "main/gameflag.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 
 #include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_8018029C);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_80180710);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_refuge/mine_refuge_5", func_mine_refuge_80181094);
+/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// the GTE flag is non-negative, queues three concentric rings of eight
+/// gouraud `POLY_G4` wedges around the projected centre. The first ring's
+/// radius is `(s16)arg1 * 64 / otz`; each later ring doubles it and halves the
+/// centre colour. `arg2` packs three RGB nibbles for the centre vertex, each
+/// offset by `(animFrame & 1) << 5` so the glow flickers on alternate frames.
+/// Unlike the shared wedge draws it never returns its 0x10-byte scratch block
+/// to `G_SCRATCH_HEAD`.
+void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw13Scratch* block;
+    POLY_G4*           prim;
+    s32                ring;
+    s32                ang;
+    s32                t;
+    s32                t2;
+    s32                packed;
+    s32                blend;
+    s32                r;
+    s32                g;
+    s32                b;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    block   = (RoomDraw13Scratch*)(*scratch = head - 0x10);
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
+    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        ring          = 0;
+        blend         = ((u8)gDisplayState.animFrame & 1) << 5;
+        packed        = arg2 << 16;
+        r             = blend + ((packed >> 20) & 0xF0);
+        g             = blend + ((packed >> 16) & 0xF0);
+        b             = blend + ((arg2 & 0xF) << 4);
+        block->radius = arg1;
+        do {
+            ang = 0;
+            do {
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, r, g, b);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
+                t        = ang + 0x100;
+                prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
+                prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
+                prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
+                t2       = ang + 0x200;
+                prim->x2 = block->sx;
+                prim->y2 = block->sy;
+                prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
+                prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
+                ang      = t2;
+                addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            } while (ang < 0x1000);
+            r              = (u8)r >> 1;
+            g              = (u8)g >> 1;
+            b              = (u8)b >> 1;
+            block->radius *= 2;
+            ring++;
+        } while (ring < 3);
+    }
+}
 
 void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2);
