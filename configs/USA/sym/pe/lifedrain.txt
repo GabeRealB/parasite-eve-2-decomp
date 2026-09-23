@@ -1,3 +1,0 @@
-// Overlay-local symbols for lifedrain.
-PeShared8012f9a8 = 0x8012F9A8; // shared body, see src/lib/
-PeShared801305c0 = 0x801305C0; // shared body, see src/lib/

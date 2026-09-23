@@ -32,7 +32,7 @@ extern s32 D_antibody_80130C00[];
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
 /// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
-/// states 1 and 2 pass one yaw per frame to `PeShared801305c0`.
+/// states 1 and 2 pass one yaw per frame to `func_antibody_801308D4`.
 extern s16 D_antibody_80130C0C[];
 
 /// 0x1C-byte scratch block `func_antibody_8012FFEC` takes from

@@ -33,7 +33,7 @@ extern s32 Gp_LcgState;
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
-void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
@@ -145,7 +145,7 @@ void func_antibody_8012EF34(Task* arg0)
                     t2 = table;
                     p  = D_antibody_80130C0C;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->scale * 6), *p, rgb);
+                        func_antibody_801308D4(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
@@ -215,7 +215,7 @@ void func_antibody_8012EF34(Task* arg0)
                     t2 = D_antibody_80130BD4;
                     p  = D_antibody_80130C0C;
                     do {
-                        PeShared801305c0(coord, (s16)(mem->period * 6), *p, rgb);
+                        func_antibody_801308D4(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
@@ -588,4 +588,62 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         }
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(AntibodyArcScratch);
+}
+
+/// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
+/// is projected once through `GsWSMATRIX`; the two outer corners sit `arg1`
+/// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
+/// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
+/// fading to black. A negative `gte_stflg` drops the wedge.
+void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+{
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    SVECTOR*       vec;
+    POLY_G3*       prim;
+    s32            ang;
+    s32            ang2;
+    u16            vz;
+
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        block->otz++;
+        prim           = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setPolyG3(prim);
+        setRGB0(prim, rgb[0], rgb[1], rgb[2]);
+        setRGB1(prim, 0, 0, 0);
+        setRGB2(prim, 0, 0, 0);
+        block->step = ((s16)arg1 * 128) / block->otz;
+        ang         = (s16)arg2;
+        ang2        = ang - 0x20;
+        prim->x0    = *(u16*)&block->sx;
+        prim->y0    = *(u16*)&block->sy;
+        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        ang        += 0x20;
+        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }

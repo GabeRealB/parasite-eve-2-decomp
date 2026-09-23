@@ -28,7 +28,7 @@ extern s32 D_lifedrain_80130AD4[];
 
 /// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a
 /// block when the cast starts and replayed every frame by
-/// `PeShared801305c0`.
+/// `func_lifedrain_801305C0`.
 extern s16 D_lifedrain_80130AEC[];
 
 /// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
@@ -41,5 +41,9 @@ extern struct Task* D_lifedrain_80130B0C;
 /// the inner 0x18-wide frame on tpage 0x2A and the outer CLUT on tpage 0x29;
 /// `arg2` is the radius both sprites divide by `otz`.
 void func_lifedrain_801301AC(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
+
+/// One Gouraud wedge of the drain funnel: apex at `arg0`'s projected origin,
+/// rim `arg1` screen units out, centred on yaw `arg2`, apex tinted `rgb`.
+void func_lifedrain_801305C0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 #endif /* PE_LIFEDRAIN_H */

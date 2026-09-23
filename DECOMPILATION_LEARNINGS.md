@@ -61134,7 +61134,7 @@ nothing else.
 
 ## Overwrite the angle local instead of taking a second one to un-swap `$s2`/`$s3`
 
-`PeShared801305c0` (the shared `func_lifedrain_801305C0` body) builds a fan
+`func_lifedrain_801305C0` (Antibody and Energy Shot carry the same body) builds a fan
 wedge at `arg2 - 0x20` and `arg2 + 0x20`. Spelling the second offset as its own
 local left every instruction correct with `regs` as the only penalty, the
 scratch-block pointer and the offset trading `$s2` for `$s3` throughout:
@@ -61961,7 +61961,7 @@ grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" include/gameplay/3CD8.h
 ```
 
 That named `GpFxQuadScratch`, whose doc comment names `Gp_DrawFxQuad`, whose
-already-matched near-twin `PeShared8012fb14` differed only in the CLUT (0x428F vs
+already-matched near-twin `func_combustion_8012FB14` differed only in the CLUT (0x428F vs
 0x42C2), the texture cell width (`arg1 * 0x28` / `+0x27` vs `arg1 << 5` / `+0x1F`),
 the V rows and the radius scale (`arg2 * 39` vs `arg2 * 31`). Copying that body
 with those five constants swapped scored 100% on the first attempt.

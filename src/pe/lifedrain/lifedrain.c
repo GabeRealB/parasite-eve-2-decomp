@@ -40,8 +40,6 @@ extern s32 Gp_LcgState;
 /// when it ends.
 extern u16 D_80115404;
 
-void PeShared801305c0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
-
 /// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
 /// different word, so spell the instruction out.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -198,7 +196,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 t2 = D_lifedrain_80130AB4;
                 p  = D_lifedrain_80130AEC;
                 do {
-                    PeShared801305c0(coord, mem->angle, *p, rgb);
+                    func_lifedrain_801305C0(coord, mem->angle, *p, rgb);
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
@@ -265,7 +263,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 t2 = D_lifedrain_80130AB4;
                 p  = D_lifedrain_80130AEC;
                 do {
-                    PeShared801305c0(coord, mem->angle, *p, rgb);
+                    func_lifedrain_801305C0(coord, mem->angle, *p, rgb);
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
@@ -298,5 +296,57 @@ void func_lifedrain_8012EF48(Task* arg0)
         case 4:
             Gp_ReleaseState1CMem(mem, arg0);
             return;
+    }
+}
+
+/// Spark billboard, identical to Healing's `func_healing_8012F494`. Nothing in
+/// Life Drain calls it. State 0 seeds the spin and colour from the spawn
+/// argument and the LCG; state 1 lifts the frame and draws the additive quad
+/// on odd ticks until the animation runs out.
+void func_lifedrain_8012F9A8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s32            y;
+    s32            state;
+    s16            step;
+    u16            spawn;
+
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
+    state    = arg0->state;
+    switch (state) {
+        case 0:
+            mem->move.vy = 4;
+            mem->move.vx = 0;
+            mem->move.vz = 0;
+            arg0->state  = 1;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            spawn        = (u16)arg0->spawnArg1;
+            mem->period  = 0x1000;
+            mem->angle   = spawn & 0xFFF;
+            return;
+        case 1:
+            step              = mem->move.vy;
+            y                 = coord->coord.t[1] + step;
+            coord->flg        = 0;
+            coord->coord.t[1] = y;
+            Gp_UpdateCoord(coord);
+            if (!((u16)mem->age & 1)) {
+                mem->index = (u16)mem->index + 1;
+            }
+            if (mem->index < 8) {
+                if ((u16)mem->age & 1) {
+                    Gp_DrawFxQuad(coord, (u16)mem->index, mem->angle,
+                                  (u16)mem->scale | (u16)mem->period);
+                    return;
+                }
+            } else {
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            break;
     }
 }

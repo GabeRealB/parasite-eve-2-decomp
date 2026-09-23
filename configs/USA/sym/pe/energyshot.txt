@@ -1,2 +1,0 @@
-// Overlay-local symbols for energyshot.
-PeShared801305c0 = 0x8012F750; // shared body, see src/lib/

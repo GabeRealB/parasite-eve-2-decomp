@@ -450,8 +450,9 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// and `arg3 + 0x400`, so the shard shrinks with depth and spins with `arg3`.
 /// The CLUT is 0x4293 except on the widest combo row
 /// (`Gp_StateC08.field_0 % 10 - 1 == 2`), where one draw in four rolls the
-/// brighter 0x42C9 palette. Same shape as the shared `PeShared8012fb14` flame
-/// quad, which uses a fixed CLUT and 0x20-wide frames.
+/// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
+/// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
+/// frames.
 void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;

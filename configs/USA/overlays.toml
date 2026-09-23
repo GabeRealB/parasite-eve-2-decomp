@@ -7427,7 +7427,6 @@ id = 48
 objects = [
   { kind = "packageId" },
   { unit = "pyrokinesis/pyrokinesis", rodata = "0x4", text = "0x18", data = "0x2EA8" },
-  { lib = true, unit = "pe_shared_8012fb14", text = "0x1E90" },
   { unit = "pyrokinesis/pyrokinesis_2", text = "0x2288" },
 ]
 
@@ -7436,7 +7435,6 @@ id = 49
 objects = [
   { kind = "packageId" },
   { unit = "combustion/combustion", rodata = "0x4", text = "0x4", data = "0x1A50" },
-  { lib = true, unit = "pe_shared_8012fb14", text = "0xBE4" },
   { unit = "combustion/combustion_2", text = "0xFDC" },
 ]
 
@@ -7480,7 +7478,6 @@ id = 55
 objects = [
   { kind = "packageId" },
   { unit = "healing/healing", rodata = "0x4", text = "0x4", data = "0xCEC" },
-  { lib = true, unit = "pe_shared_8012f9a8", text = "0x564" },
   { unit = "healing/healing_2", text = "0x6B4" },
 ]
 
@@ -7489,9 +7486,7 @@ id = 56
 objects = [
   { kind = "packageId" },
   { unit = "lifedrain/lifedrain", rodata = "0x4", text = "0x18", data = "0x1B84" },
-  { lib = true, unit = "pe_shared_8012f9a8", text = "0xA78" },
   { unit = "lifedrain/lifedrain_2", text = "0xBC8" },
-  { lib = true, unit = "pe_shared_801305c0", text = "0x1690" },
   { unit = "lifedrain/lifedrain_3", text = "0x1990" },
 ]
 
@@ -7500,7 +7495,6 @@ id = 57
 objects = [
   { kind = "packageId" },
   { unit = "antibody/antibody", rodata = "0x4", text = "0x4", data = "0x1CA4" },
-  { lib = true, unit = "pe_shared_801305c0", text = "0x19A4" },
 ]
 
 [pe.overlays.energyshot]
@@ -7508,7 +7502,6 @@ id = 58
 objects = [
   { kind = "packageId" },
   { unit = "energyshot/energyshot", rodata = "0x4", text = "0x4", data = "0x11B4" },
-  { lib = true, unit = "pe_shared_801305c0", text = "0x820" },
   { unit = "energyshot/energyshot_2", text = "0xB20" },
 ]
 
