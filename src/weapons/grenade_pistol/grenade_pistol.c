@@ -28,6 +28,19 @@
 
 void func_grenade_pistol_8011DB8C(Task* task);
 
+/// Which weapon this build is: 0 for the Grenade Pistol, 1 for the MM1. The two
+/// packages are this source built once each, and each declares its variant in
+/// the manifest. Both carry the other's row of the per-projectile tables.
+#ifndef GRENADE_VARIANT
+#error "GRENADE_VARIANT is a per-package build parameter"
+#endif
+
+/// The weapon's index. It also keys the firing sound and the shot effect.
+#define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
+
+/// The item the rounds are taken from.
+#define GRENADE_ITEM (0x8A + GRENADE_VARIANT)
+
 void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
 {
     GameActor* actor;
@@ -59,12 +72,15 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             actor->field_981 = 0;
             actor->field_940 = 0x28;
             Gp_PlayObjSfx(arg0->extra->coords,
-                          ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x200B0004, 1);
+                          ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             Gp_SpawnEff(0x6006C,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0xB,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, GRENADE_WEAPON,
                         NULL);
-            Gp_ConsumeSlotQty(0x8A, 1);
-            func_80104490(arg0, 0, 1, Player_Status.weaponSlotItem | 0xB00);
+            Gp_ConsumeSlotQty(GRENADE_ITEM, 1);
+            /* The projectile's kind and its row of the muzzle-offset and speed tables
+               (bits 16-19 of its spawn argument) both follow the variant. */
+            func_80104490(arg0, 0, 1 + GRENADE_VARIANT,
+                          Player_Status.weaponSlotItem | (GRENADE_VARIANT << 16) | (GRENADE_WEAPON << 8));
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
             break;
         case 3:
@@ -78,7 +94,7 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
 /// Spawn state of the projectile: allocates the 0xA0 `M4a1GrenadeWork` block,
 /// places the projectile at the per-ammo muzzle offset from `D_grenade_pistol_8012B420`, parents it
 /// to the world coordinate, sets its launch speed from `D_grenade_pistol_8012B438` and links its two
-/// collision nodes. MM1 and Grenade Pistol carry identical copies.
+/// collision nodes. The Grenade Pistol and MM1 share it by being one source.
 void func_grenade_pistol_8011D3A0(Task* arg0)
 {
     void**           scratch;
@@ -174,7 +190,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-/// Flight state of the grenade pistol's projectile. Detonates when the shot
+/// Flight state of the projectile. Detonates when the shot
 /// has touched world geometry (`rec0` with 0x30000), when a wall record it hit
 /// is solid, or when the flight timer runs past 0xDFFFF; otherwise it steps
 /// the projectile by `dir / field_88.h.hi`, lets gravity pull `dir.vy` down,
@@ -298,8 +314,7 @@ move:
 }
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to
-/// state 3 once it runs out. MM1, Grenade Pistol and M4A1 Grenade carry
-/// identical copies.
+/// state 3 once it runs out. The M4A1 Grenade carries an identical copy.
 void func_grenade_pistol_8011DB60(Task* task)
 {
     M4a1GrenadeWork* work  = task->work;

@@ -656,7 +656,10 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 else "[]"
             ),
             "SUBSEGMENTS": object_subsegments(
-                name, family, entry["objects"], data, load,
+                # Packages built from one source can still carry different
+                # content - their own models and data - so a slot may lay its
+                # package out with its own object list.
+                name, family, slot.get("objects") or entry["objects"], data, load,
                 slot.get("id", entry.get("id")),
                 entry_name, slot.get("defines"),
             ),

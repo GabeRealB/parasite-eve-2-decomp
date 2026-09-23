@@ -75,14 +75,26 @@ objects = [
 
 [weapons.overlays.grenade_pistol]
 label = "Grenade Pistol"
-id = 18
-objects = [
-  { kind = "packageId" },
-  { unit = "grenade_pistol/grenade_pistol", rodata = "0x4", text = "0x14" },
-  { kind = "model", at = "0xA74" },
-  { kind = "data", at = "0x10F0" },
-  { unit = "grenade_pistol/grenade_pistol_work", data = "0xE260" },
-  { kind = "data", at = "0xE27C" },
+# One source built twice: the MM1 differs from the Grenade Pistol in its weapon
+# index, item, projectile kind and projectile row, all derived from
+# GRENADE_VARIANT. Each carries its own models, so each lays out its package.
+slots = [
+  { package = "grenade_pistol", id = 18, label = "Grenade Pistol", defines = { GRENADE_VARIANT = 0 }, objects = [
+    { kind = "packageId" },
+    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14" },
+    { kind = "model", at = "0xA74" },
+    { kind = "data", at = "0x10F0" },
+    { unit = "grenade_pistol/grenade_pistol_work", data = "0xE260" },
+    { kind = "data", at = "0xE27C" },
+  ] },
+  { package = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, objects = [
+    { kind = "packageId" },
+    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14" },
+    { kind = "model", at = "0xA7C" },
+    { kind = "data", at = "0x12F8" },
+    { unit = "grenade_pistol/grenade_pistol_work", data = "0x10100" },
+    { kind = "data", at = "0x1011C" },
+  ] },
 ]
 
 [weapons.overlays.gunblade]
@@ -225,18 +237,6 @@ objects = [
   { unit = "m950/m950", rodata = "0x4", text = "0x1C" },
   { kind = "model", at = "0x2E0" },
   { kind = "data", at = "0x900" },
-]
-
-[weapons.overlays.mm1]
-label = "MM1"
-id = 19
-objects = [
-  { kind = "packageId" },
-  { unit = "mm1/mm1", rodata = "0x4", text = "0x14" },
-  { kind = "model", at = "0xA7C" },
-  { kind = "data", at = "0x12F8" },
-  { unit = "mm1/mm1_work", data = "0x10100" },
-  { kind = "data", at = "0x1011C" },
 ]
 
 [weapons.overlays.mongoose]
