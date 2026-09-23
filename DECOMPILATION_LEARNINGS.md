@@ -138647,3 +138647,23 @@ work = (s32)G_SCRATCH_HEAD;   /* last mention: keeps `work` canonical */
 Global-alloc then gives both of `work`'s live ranges `$v1`, and the epilogue's
 `lui v1,0x1f80; ori v1,v1,0x3fc` matches as well. Recognise the case by a copy
 whose source register is overwritten by the next instruction that reads it.
+
+### `C - x` into a temp vs `li s0,C; subu s0,s0,x`: write `t = C; t -= x`
+
+**Symptom.** Target builds a reversed subtraction in the destination register
+itself (`li s0,0xe00; subu s0,s0,s5`); `t = 0xE00 - ang;` loads the constant
+into a scratch register instead (`li v0,0xe00; subu s0,v0,s5`).
+
+**Fix.** Split it: `t = 0xE00; t -= ang;`. The constant is then a set of `t`'s
+own pseudo, so it is allocated to `t`'s register (99.37% -> 99.87% on
+`func_dryfield_night_parking_lot_8017E08C`).
+
+**Placing it after the reloaded `%hi`.** In the same function the first such
+value had to sit between a reload-generated `lui t0,%hi(gGpuPrimCursor)` and
+its `lw` (`lui; li s0; subu; lw`). Splitting alone left it ahead of the `lui`.
+What matched was the duplicated-temporary shape already used by the shared
+`Room_Draw*` bodies: after the scheduling barrier, `t3 = 0x1000 - ang;` before
+the cursor load and `t = 0x1000 - ang;` after it, using `t3` for the first
+`rsin` and `t` for the `rcos`. cse folds the two, and the value lands where the
+target has it. Moving one `t = 0x1000; ... t -= ang` pair around the load, or
+splitting both halves of the duplicate, did not.
