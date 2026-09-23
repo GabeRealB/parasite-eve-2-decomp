@@ -58,7 +58,8 @@ extern s32                    D_dryfield_night_garage_80182DF8;
 extern s32                    D_dryfield_night_garage_801831B8;
 extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
 
-/// The layout template and the live copy the reset below restores from it.
+/// Two layout templates and the live copy the resets below restore from them.
+extern DryfieldNightGarageLayout D_dryfield_night_garage_80181D7C;
 extern DryfieldNightGarageLayout D_dryfield_night_garage_80181E40;
 extern DryfieldNightGarageLayout D_dryfield_night_garage_80183DD4;
 
@@ -66,7 +67,48 @@ s32 func_800D4D2C(s32 arg0);
 
 s32 func_dryfield_night_garage_80180A64(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180414);
+/// Resets the live layout lists from the other template, the same way as the
+/// reset below, then shifts the eight-entry list by (0x126B, -0x84, z) where z
+/// is 0x170C when `arg0` is zero and 0x2710 otherwise.
+void func_dryfield_night_garage_80180414(s32 arg0)
+{
+    DryfieldNightGarageLayout* dst;
+    DryfieldNightGarageLayout* src;
+    DryfieldNightGarageVec     d;
+    s32                        i;
+
+    dst = &D_dryfield_night_garage_80183DD4;
+    src = &D_dryfield_night_garage_80181D7C;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_4[i].x         = src->field_4[i].x;
+        dst->field_4[i].y         = src->field_4[i].y;
+        dst->field_4[i].z         = src->field_4[i].z;
+        dst->field_8[i * 2].x     = src->field_8[i * 2].x;
+        dst->field_8[i * 2].y     = src->field_8[i * 2].y;
+        dst->field_8[i * 2].z     = src->field_8[i * 2].z;
+        dst->field_8[i * 2 + 1].x = src->field_8[i * 2 + 1].x;
+        dst->field_8[i * 2 + 1].y = src->field_8[i * 2 + 1].y;
+        dst->field_8[i * 2 + 1].z = src->field_8[i * 2 + 1].z;
+        dst->field_C[i]           = src->field_C[i];
+    }
+
+    if (arg0 == 0) {
+        d.x = 0x126B;
+        d.y = -0x84;
+        d.z = 0x170C;
+    } else {
+        d.x = 0x126B;
+        d.y = -0x84;
+        d.z = 0x2710;
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += d.x;
+        dst->field_8[i].y += d.y;
+        dst->field_8[i].z += d.z;
+    }
+}
 
 /// Resets the live layout lists from the template: the four-entry vector list,
 /// the eight-entry list two entries per pass, and the 12-byte records. The
