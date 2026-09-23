@@ -138946,3 +138946,29 @@ text = "0x6D5C" }`). No later unit renumbers, unlike the older `units` cut. Let
 Move the struct the two files now share, plus prototypes for the functions
 called across the cut, into the overlay header. Calls that used to see an
 earlier definition would otherwise become implicit.
+
+### A loop written out twice wants its loop-local variables declared inside each copy (func_shelter_r47_80183484, 2026-09-23)
+
+The function draws the same marker loop in two branches, byte-for-byte alike.
+With one function-scope `u16 area` feeding both copies, everything matched
+except `stage` and `area` swapping `$a0`/`$a1` (99.84%, `regs=14`). A shared
+variable is one pseudo, so it dies in two places. That keeps it out of
+`local-alloc`, and `global-alloc` then gives it a register by priority. `stage`
+(16 refs over 32 insns) beats `area` (8 over 16) and takes `$a0` first.
+Declaring `u16 area;` inside each `while` body gives each copy its own pseudo.
+That pseudo lives in one block, so `local-alloc` places it before
+`global-alloc` sees `stage`, and the result is 100%. Two identical loops in one
+function point to a macro or pasted code in the original. Scope the
+per-iteration temporaries to each copy before you fight their allocation.
+
+Two more levers helped on the way. Neither is new, but both are easy to miss
+here. The draw's `li 0x58` was hoisted out of the loop, and the ROM keeps it in.
+Per `move_movables`, the loop needed at least 121 insns, and this one had 117.
+Declaring `bit` and `visible` as `s16` added the missing extension insns, and
+nothing else changed. The branchy `visible` also needed `SOFT_BARRIER()` inside
+the arm that sets 0, because jump.c's store-flag rewrite fires on every
+plain-C form. Inputs: `base_54.i`
+`b11937e18a2330b2720b0f9b21ba9a7c2a6c644b40205e61e60c811c3db37411` (shared
+`area`, 99.844%), `base_62.i`
+`04fc9381abcdfa41f9a64db7baa8ee7d0511a25669f8721f892673b9650ce4db` (per-copy
+`area`, 100%).

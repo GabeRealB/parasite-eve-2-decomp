@@ -2,6 +2,8 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/1BC.h"
+#include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -65,6 +67,20 @@ void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_8018337C(Task* task);
 void func_shelter_r47_801833DC(Task* task, s16 arg1);
 void func_shelter_r47_80183484(Task* task);
+
+/// One entry of a map-marker table: the area it stands for and the screen
+/// position of its marker. A table ends at the entry whose `stage` is 0xFF.
+typedef struct {
+    s16 stage;
+    u16 area;
+    s16 x;
+    s16 y;
+} ShelterR47MapMark;
+
+/// Marker tables indexed by `ShelterR47State2::field_1C`; the second is used
+/// while game-flag nibble 0xDF is 1.
+extern ShelterR47MapMark* D_shelter_r47_801875C4[];
+extern ShelterR47MapMark* D_shelter_r47_801875D8[];
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -392,7 +408,169 @@ void func_shelter_r47_801833DC(Task* task, s16 arg1)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183484);
+/// Draws the map overlay of the room's second cap script, brightening each
+/// quad by 0x30 over the last. While `field_1C` is not 3 it draws one marker
+/// per entry of the `field_1C` marker table whose area object has 0x4 set and
+/// 0x2 clear in `GpAreaObj::field_1`, after a fixed marker when `field_1C` is
+/// 0, `field_2A` is not 1 and collected bit 0x12D is set. When `field_1C` is 3
+/// it first moves `field_2A` from 2 to 3 and starts cap slot 0x13, then draws
+/// the same markers if game-flag nibble 0xDF is 1, and otherwise the
+/// `field_A` x `field_C` map quad.
+void func_shelter_r47_80183484(Task* task)
+{
+    ShelterR47State2*  state;
+    u16                stage;
+    ShelterR47MapMark* mark;
+    GpAreaRec*         tbl;
+    GpAreaObj*         obj;
+    POLY_FT4*          p;
+    GpAreaKey          key;
+    s32                flag;
+    s16                bit;
+    s16                visible;
+    u8                 shade;
+
+    state = (ShelterR47State2*)task->work;
+    shade = (u8)state->field_26 * 4;
+    if (GameFlag_GetNibble(0xDF) == 1) {
+        mark = D_shelter_r47_801875D8[state->field_1C];
+    } else {
+        mark = D_shelter_r47_801875C4[state->field_1C];
+    }
+    if (state->field_1C != 3) {
+        if (state->field_2A != 1 && state->field_1C == 0 && Gp_HasCollectedBit(0x12D) != 0) {
+            shade         += 0x30;
+            p              = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(p + 1);
+            setPolyFT4(p);
+            setUV4(p, 0x58, 0x20, 0x60, 0x20, 0x58, 0x28, 0x60, 0x28);
+            p->tpage = 0x2F;
+            p->clut  = 0x3FC7;
+            setRGB0(p, shade, shade, shade);
+            setSemiTrans(p, 1);
+            setXY4(p, 0x78, -0x4B, 0x80, -0x4B, 0x78, -0x43, 0x80, -0x43);
+            addPrim(&gGpuCurrentOt[10], p);
+        }
+        stage = mark->stage;
+        while (mark->stage != 0xFF) {
+            u16 area;
+
+            area      = mark->area;
+            key.stage = stage;
+            key.room  = 1;
+            key.view  = 2;
+            key.area  = area;
+            tbl       = Gp_AreaTables[key.stage];
+            if (tbl != NULL) {
+                obj = tbl[key.area].field_4;
+                if (obj != NULL) {
+                    bit  = obj->field_1 & 4;
+                    flag = bit != 0;
+                } else {
+                    flag = 0;
+                }
+            } else {
+                flag = 0;
+            }
+            if (flag == 1) {
+                if (Gp_GetAreaFlag2(&key) == flag) {
+                    SOFT_BARRIER();
+                    visible = 0;
+                } else {
+                    visible = 1;
+                }
+            } else {
+                visible = 0;
+            }
+            if (visible) {
+                p              = (POLY_FT4*)gGpuPrimCursor;
+                shade         += 0x30;
+                gGpuPrimCursor = (u8*)(p + 1);
+                setPolyFT4(p);
+                setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
+                setRGB0(p, shade, shade, shade);
+                p->tpage = 0x2F;
+                p->clut  = 0x3FC6;
+                setSemiTrans(p, 1);
+                setXY4(p, mark->x - 4, mark->y - 4, mark->x + 4, mark->y - 4, mark->x - 4, mark->y + 4,
+                       mark->x + 4, mark->y + 4);
+                addPrim(&gGpuCurrentOt[10], p);
+            }
+            mark++;
+            stage = mark->stage;
+        }
+    } else {
+        if (state->field_2A == 2) {
+            state->field_2A = 3;
+            Gp_StartCapSlot(0x13, 0, 0);
+        }
+        if (GameFlag_GetNibble(0xDF) == 1) {
+            stage = mark->stage;
+            while (mark->stage != 0xFF) {
+                u16 area;
+
+                area      = mark->area;
+                key.stage = stage;
+                key.room  = 1;
+                key.view  = 2;
+                key.area  = area;
+                tbl       = Gp_AreaTables[key.stage];
+                if (tbl != NULL) {
+                    obj = tbl[key.area].field_4;
+                    if (obj != NULL) {
+                        bit  = obj->field_1 & 4;
+                        flag = bit != 0;
+                    } else {
+                        flag = 0;
+                    }
+                } else {
+                    flag = 0;
+                }
+                if (flag == 1) {
+                    if (Gp_GetAreaFlag2(&key) == flag) {
+                        SOFT_BARRIER();
+                        visible = 0;
+                    } else {
+                        visible = 1;
+                    }
+                } else {
+                    visible = 0;
+                }
+                if (visible) {
+                    p              = (POLY_FT4*)gGpuPrimCursor;
+                    shade         += 0x30;
+                    gGpuPrimCursor = (u8*)(p + 1);
+                    setPolyFT4(p);
+                    setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
+                    setRGB0(p, shade, shade, shade);
+                    p->tpage = 0x2F;
+                    p->clut  = 0x3FC6;
+                    setSemiTrans(p, 1);
+                    setXY4(p, mark->x - 4, mark->y - 4, mark->x + 4, mark->y - 4, mark->x - 4, mark->y + 4,
+                           mark->x + 4, mark->y + 4);
+                    addPrim(&gGpuCurrentOt[10], p);
+                }
+                mark++;
+                stage = mark->stage;
+            }
+        } else {
+            if (shade == 0) {
+                SndEvt_EnqueueType6(0x542F0005, 0, 0);
+            }
+            p              = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(p + 1);
+            setPolyFT4(p);
+            setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
+            p->tpage = 0x36;
+            p->clut  = 0x4000;
+            setRGB0(p, shade, shade, shade);
+            setSemiTrans(p, 1);
+            setXY4(p, -0x4D, -0x67, state->field_A - 0x4D, -0x67, -0x4D, state->field_C - 0x67,
+                   state->field_A - 0x4D, state->field_C - 0x67);
+            addPrim(&gGpuCurrentOt[11], p);
+        }
+    }
+}
 
 void func_shelter_r47_80183B84(Task* task)
 {
