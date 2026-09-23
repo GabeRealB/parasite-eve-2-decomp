@@ -1,17 +1,43 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/gameflag.h"
 #include "main/task.h"
 
 extern u8  D_8007216D;
+extern s32 D_shelter_b1_underground_parking_801872D8;
 extern s32 D_shelter_b1_underground_parking_801873DC;
 extern s32 D_shelter_b1_underground_parking_80187544;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801834D4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_80183560);
+void func_shelter_b1_underground_parking_80183560(Task* arg0)
+{
+    s32 state = arg0->state;
+
+    switch (state) {
+        case 0:
+            if (Gp_CapBusy() == 0) {
+                arg0->state += 1;
+            }
+            return;
+        case 1:
+            if (Gp_GetCapEventKey() == 0xB) {
+                gGameSession->at4.loc.room  = 6;
+                D_8007216D                  = 6;
+                gGameSession->roomObjsDirty = state;
+                func_800E8614((s32)&D_shelter_b1_underground_parking_801872D8, 1);
+                GameFlag_SetNibble(0xF4, 1);
+                Gp_SetItemSeenBit(0x123, 1);
+            } else {
+                Gp_MsgPlayerWeapon(1);
+            }
+            taskKill(arg0);
+            break;
+    }
+}
 
 void func_shelter_b1_underground_parking_8018363C(Task* arg0)
 {
