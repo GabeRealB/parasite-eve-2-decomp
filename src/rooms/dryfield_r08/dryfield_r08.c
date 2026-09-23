@@ -95,7 +95,90 @@ const u32 D_dryfield_r08_8017D5D8 SECTION(".rodata") = 0;
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017D8B4);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017DEFC);
+/// Same projected, spinning `POLY_FT4` as `func_dryfield_r08_8017E36C`, with
+/// its own texture window: the low 12 bits of `arg1` pick a 48x48 cell from a
+/// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
+/// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
+/// for 0 and 1, the fixed clut 0x428F otherwise.
+void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw39Scratch* block;
+    POLY_FT4*          prim;
+    s32                ang;
+    s32                ang2;
+    s32                span;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    u16                vz;
+    s32                tex;
+    u16                sel;
+    s32                sine;
+    RoomDraw39Scratch* tmp;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    SOFT_TOUCH_REG(arg2);
+    head = *scratch;
+    tmp  = (RoomDraw39Scratch*)(head - 0x1C);
+    SOFT_TOUCH_REG(tmp);
+    block         = tmp;
+    block->vec.vx = *(u16*)&arg0->workm.t[0];
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    tex           = arg1 & 0xFFF;
+    sel           = arg1 >> 12;
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((RoomDraw39Scratch*)(head - 0x1C))->vec);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&((RoomDraw39Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw39Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        prim->tpage = 0x2B;
+        prim->code |= 3;
+        if (sel >= 2) {
+            prim->clut = 0x428F;
+        } else {
+            prim->clut = ((sel + 0x10E) << 6) | (tex & 0x3F);
+        }
+        ang = (s16)arg3;
+        u0  = ((u16)tex % 5) * 0x30;
+        v0  = ((u16)tex / 5) * 0x30;
+        u1  = u0 + 0x2F;
+        v1  = v0 - 0x69;
+        v0  = v0 + 0x68;
+        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
+        sine      = rsin(ang);
+        span      = (s16)arg2 * 0x2F;
+        block->dx = ((span / block->otz) * sine) >> 12;
+        block->dy = ((span / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = ang + 0x400;
+        block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
+        block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
 /// GTE flag word is negative, queues one semi-transparent `POLY_FT4` centred on
