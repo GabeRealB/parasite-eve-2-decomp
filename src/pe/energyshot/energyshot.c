@@ -14,9 +14,11 @@
 
 #include <psyq/inline_c.h>
 
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
+/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0`. The `inline_c.h` macros of those names
+/// assemble to different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3. The last
 /// row's `field_6` was split into its own symbol by splat because the code
@@ -32,7 +34,7 @@ s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
 extern s32 Gp_LcgState;
 
-void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
 void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Two scratch rings the shot walks while in flight.
@@ -168,15 +170,15 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         func_energyshot_8012FA50(coord, (s16)(mem->scale * 8),
-                                                 (s32)((u16)D_energyshot_801300E4[2].field_6 << 16) >> 17, rgb);
+                                                 (s16)(u16)D_energyshot_801300E4[2].field_6 >> 1, rgb);
                     }
                     func_energyshot_8012FA50(
                         coord, (s16)(mem->scale * 4),
-                        (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 17) >> 16, rgb);
+                        (u16)D_energyshot_801300E4[mem->index].field_6 * 2, rgb);
                 }
                 func_energyshot_8012FA50(
                     coord, (s16)(mem->scale * 6),
-                    (s16)((u16)D_energyshot_801300E4[mem->index].field_6 - 0x100), rgb);
+                    (u16)D_energyshot_801300E4[mem->index].field_6 - 0x100, rgb);
                 rng          = Gp_LcgState * 5 + 0x71357911;
                 ang          = ((u32)rng >> 16) & 0xFFF;
                 Gp_LcgState  = rng;
@@ -232,16 +234,16 @@ void func_energyshot_8012EF34(Task* arg0)
                             (u16)mem->period + D_energyshot_801300E4[2].field_4;
                         func_energyshot_8012FA50(
                             coord, (s16)(mem->period * 8),
-                            (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 16) >> 17,
+                            (s16)(u16)D_energyshot_801300E4[mem->index].field_6 >> 1,
                             rgb);
                     }
                     func_energyshot_8012FA50(
                         coord, (s16)(mem->period * 4),
-                        (s32)((u16)D_energyshot_801300E4[mem->index].field_6 << 17) >> 16, rgb);
+                        (u16)D_energyshot_801300E4[mem->index].field_6 * 2, rgb);
                 }
                 func_energyshot_8012FA50(
                     coord, (s16)(mem->period * 6),
-                    (s16)((u16)D_energyshot_801300E4[mem->index].field_6 - 0x100), rgb);
+                    (u16)D_energyshot_801300E4[mem->index].field_6 - 0x100, rgb);
                 return;
             }
         }
@@ -307,4 +309,130 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
+
+/// Draws the energy shot's beam: an inner ring of radius `arg1 + 0x400` sunk
+/// `arg2` along local Y and an outer ring of radius `arg1 / 2 + 0x100` in the
+/// local XY plane are built by `rsin` / `rcos`, rotated by `arg0`'s `workm`
+/// and offset by its translation, then each of the 16 segments is projected
+/// through `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell
+/// is one of six 0x28-wide frames picked per vertex by `D_energyshot_80130108`
+/// plus the frame counter, the quad is tinted by the three bytes at `arg3`,
+/// and a negative `gte_stflg` drops the segment.
+void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
+{
+    void**         scratch;
+    u8*            head;
+    GpBandScratch* block;
+    SVECTOR*       op;
+    POLY_FT4*      prim;
+    s32            i;
+    s32            next;
+    s32            ang;
+    s32            u;
+    s16            idx;
+    s16            r0;
+    s16            r1;
+
+    r1       = arg1 / 2 + 0x100;
+    r0       = arg1 + 0x400;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch;
+    *scratch = head - 0x118;
+    block    = (GpBandScratch*)(head - 0x118);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        ang                = i << 8;
+        block->inner[i].vx = (rsin(ang) * r0) >> 12;
+        block->inner[i].vy = -arg2;
+        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+        gte_SetRotMatrix(&arg0->workm);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * r1) >> 12;
+        op                 = &block->inner[i] + 16;
+        op->vy             = 0;
+        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_SetRotMatrix(&arg0->workm);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&arg0->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        idx = (u32)(D_energyshot_80130108[i] + gDisplayState.animFrame) % 6;
+        gte_stsxy(&block->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz++;
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyFT4(prim);
+            setRGB0(prim, arg3[0], arg3[1], arg3[2]);
+            setSemiTrans(prim, 1);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x42C1;
+            u           = idx * 0x28;
+            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            prim->x2 = *(u16*)&block->sxy2.vx;
+            prim->y2 = *(u16*)&block->sxy2.vy;
+            prim->x3 = *(u16*)&block->sxy3.vx;
+            prim->y3 = *(u16*)&block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+}
+
+void func_energyshot_8012FFB8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s32            y;
+
+    mem      = arg0->spawnArg2;
+    coord    = ((TmdObject*)arg0->extra)->coords;
+    mem->age = (u16)mem->age + 1;
+    if (arg0->state == 0) {
+        mem->move.vx = 0;
+        mem->move.vz = 0;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->move.vy = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        arg0->state  = 1;
+    }
+
+    y                 = coord->coord.t[1] + mem->move.vy;
+    coord->flg        = 0;
+    coord->coord.t[1] = y;
+    Gp_UpdateCoord(coord);
+    if ((mem->age & 3) == 0) {
+        mem->index = (u16)mem->index + 1;
+    }
+    if (mem->index < 8) {
+        Gp_DrawFxQuad(coord, (u16)mem->index, 0x400, (u16)mem->scale);
+        return;
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
 }

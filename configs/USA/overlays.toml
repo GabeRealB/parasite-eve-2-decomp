@@ -7497,7 +7497,6 @@ id = 58
 objects = [
   { kind = "packageId" },
   { unit = "energyshot/energyshot", rodata = "0x4", text = "0x4", data = "0x11B4" },
-  { unit = "energyshot/energyshot_2", text = "0xB20" },
 ]
 
 [pe.overlays.energyball]
