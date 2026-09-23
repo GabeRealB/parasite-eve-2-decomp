@@ -138330,3 +138330,33 @@ Same function: a digit shift `D[6] = D[5]; ... D[1] = D[0]; D[0] = key;`
 matched only when written against the global itself. Through a local
 `u8 *p = D` the stores scheduled into a different order (84-88%); indexing `D`
 directly gave every load and store the target's position at once.
+
+## A POLY_FT4 fill: `setShadeTex`/`tpage`/`clut` written before the XY stores decides the join block's local registers (func_dryfield_night_motel_lobby_801802A8, 2026-09-23)
+
+**Target:** after the UV `if`/`else`, `li v1,0x3c; subu v1,v1,t0; li a0,0x54;
+subu a0,a0,t0; lbu a1,7(a2); ...`. It uses four block-local registers
+(`v0`-`a1`), so the loop's globals start at `a2` (`p`), `a3` (`i`) and `t0`
+(the `i * 0x18` giv).
+
+**Symptom:** the same statements with the XY stores first (`x0`...`y3`,
+then `tpage`, `clut`, `setShadeTex`) produce identical instructions, but every
+register is one lower (`p` in `a1`) and the `lbu` of `code` and the tag `lw`
+schedule late. That scored 85.8%. The final order of the stores is the same
+either way, because sched2 re-sorts them, so the object dump gives no hint of
+the source order.
+
+**Fix:** `setShadeTex(p, 1); p->tpage = ...; p->clut = ...;` and *then* the
+XY stores (97.7%, and 100% with the loop below). With the constant stores
+first in sched1's order, the `0xE`/`0x4000` quantities hold `v0` while the
+two x values are live. That pushes them into `v1`/`a0` and the `code` byte
+into `a1`. The XY coordinates must be written as `0x3C - i * 0x18` (a loop.c
+giv of `i`, copied from `i` with `move t0,a3` after the hoisted constants),
+not as a user accumulator `x += 0x18`. The accumulator puts the copy before
+the constants and keeps `-0x48` out of the hoisted set.
+
+The digit-blanking loop in front of it is the reversed count-up loop from the
+`func_dryfield_night_motel_lobby_80180440` entry above:
+`for (i = 0; i < 7; i++) D[i] = 0xA;`. An explicit
+`u = 0xA; i = 6; d = &D[i]; for (; i >= 0; i--) *d-- = u;` also matches
+byte for byte, but only because the early `u = 0xA` stretches the constant's
+live range as far as the reversal does. Look for the reversed form first.

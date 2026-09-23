@@ -1,11 +1,67 @@
 #include "common.h"
 
+#include "main/display.h"
 #include "main/sound.h"
 #include "main/task.h"
 
 #include "rooms/dryfield_night_motel_lobby.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby_4", func_dryfield_night_motel_lobby_801802A8);
+void func_dryfield_night_motel_lobby_801802A8(Task* task)
+{
+    DnmlExamineWork* work = (DnmlExamineWork*)task->work;
+    POLY_FT4*        p;
+    s32              i;
+    u8               digit;
+    u8               u;
+
+    if (work->field_6 == 0) {
+        for (i = 0; i < 7; i++) {
+            D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
+        }
+    }
+    if (work->field_7 == 0) {
+        for (i = 0; i < 7; i++) {
+            digit          = D_dryfield_night_motel_lobby_801844D8[i];
+            p              = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(p + 1);
+            setPolyFT4(p);
+            if (digit == 0xA) {
+                p->u0 = 0;
+                p->v0 = 0x18;
+                p->u1 = 0x18;
+                p->v1 = 0x18;
+                p->u2 = 0;
+                p->v2 = 0x30;
+                p->u3 = 0x18;
+                p->v3 = 0x30;
+            } else {
+                u     = digit * 0x18;
+                p->u0 = u;
+                p->v0 = 0;
+                p->u1 = u + 0x18;
+                p->v1 = 0;
+                p->u2 = u;
+                p->v2 = 0x18;
+                p->u3 = u + 0x18;
+                p->v3 = 0x18;
+            }
+            setShadeTex(p, 1);
+            p->tpage = 0xE;
+            p->clut  = 0x4000;
+            p->x0    = 0x3C - i * 0x18;
+            p->y0    = -0x60;
+            p->x1    = 0x54 - i * 0x18;
+            p->y1    = -0x60;
+            p->x2    = 0x3C - i * 0x18;
+            p->y2    = -0x48;
+            p->x3    = 0x54 - i * 0x18;
+            p->y3    = -0x48;
+            addPrim(&gGpuCurrentOt[10], p);
+        }
+    } else {
+        D_dryfield_night_motel_lobby_801844D8[0] = 0;
+    }
+}
 
 void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
 {

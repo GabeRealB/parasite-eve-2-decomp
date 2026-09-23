@@ -15,9 +15,10 @@
 /// forwards to `func_800D4E78` as it re-spawns the action prompt over the
 /// coordinates the prompt itself holds; `promptBusy` is the flag
 /// `func_dryfield_night_motel_lobby_8018103C` raises on a confirm, right before
-/// it starts cap slot 9. `field_6` and `field_7` are the two phase flags
-/// `func_dryfield_night_motel_lobby_801802A8` tests to decide which of its two
-/// cursor draws to run this frame.
+/// it starts cap slot 9. `func_dryfield_night_motel_lobby_801802A8` reads
+/// `field_6` and `field_7`: while `field_6` is clear it blanks all seven code
+/// digits, and while `field_7` is clear it draws them. Once `field_7` is set,
+/// it clears the most recent digit instead.
 typedef struct DnmlExamineWork {
     /* 0x00 */ s16 field_0;
     /* 0x02 */ s16 field_2;
