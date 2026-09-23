@@ -3,8 +3,18 @@
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32     D_8011572C;
 extern s32     D_80115750;
@@ -136,6 +146,83 @@ void func_neo_ark_shrine_8017F8DC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_7", func_neo_ark_shrine_8017FC14);
+/// Projects the world-space point `pos` through `Gfx_ViewWorldMtx` and, when
+/// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4` sprite
+/// centred on it (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects
+/// the 40-texel UV column `(s16)arg1 * 40` at v=0..0x27, and `arg2` is a signed
+/// half-extent whose on-screen radius is `(s16)arg2 * 39 / otz`. All three RGB
+/// channels take `0x20`, plus 0x10 on odd `animFrame` values, so the sprite
+/// flickers frame to frame.
+void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
+{
+    void**             scratch;
+    u8*                head;
+    u8*                tmp;
+    RoomDraw13Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    s32                idx;
+    s32                u0;
+    s32                u1;
+    s32                sarg;
+    s32                blend;
+    s16                xy;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    tmp     = head - 0x10;
+    block   = (RoomDraw13Scratch*)tmp;
+    SOFT_TOUCH_REG(block);
+    *scratch = tmp;
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(pos);
+    gte_rtps_real();
+    ds    = &gDisplayState;
+    blend = (((u8)ds->animFrame & 1) * 16) + 0x20;
+    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
+    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
+        gte_stszotz(&block->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        idx         = (s16)arg1;
+        prim->tpage = 0x2B;
+        prim->clut  = (idx & 0x3F) | 0x4380;
+        u0          = idx * 40;
+        u1          = u0 + 0x27;
+        sarg        = (s16)arg2;
+        setRGB0(prim, blend, blend, blend);
+        prim->u0                          = u0;
+        prim->v0                          = 0;
+        prim->u1                          = u1;
+        prim->v1                          = 0;
+        prim->u2                          = u0;
+        prim->v2                          = 0x27;
+        prim->u3                          = u1;
+        prim->v3                          = 0x27;
+        prim->code                       |= 2;
+        ((RoomDraw13Scratch*)tmp)->radius = (sarg * 40 - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        xy                                = ((RoomDraw13Scratch*)tmp)->sx - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x2                          = xy;
+        prim->x0                          = xy;
+        xy                                = ((RoomDraw13Scratch*)tmp)->sx + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x3                          = xy;
+        prim->x1                          = xy;
+        xy                                = ((RoomDraw13Scratch*)tmp)->sy - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y1                          = xy;
+        prim->y0                          = xy;
+        xy                                = ((RoomDraw13Scratch*)tmp)->sy + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y3                          = xy;
+        prim->y2                          = xy;
+        addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_7", D_neo_ark_shrine_8017D6A4);
