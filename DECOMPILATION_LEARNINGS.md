@@ -138894,3 +138894,16 @@ Retail computes it right before the `lwc2`. The same body written as
 the form `func_actor_361100_80161FF8` already used, matches. Look for an inline helper when a
 GTE address is materialised late. A pointer temporary assigned after the barrier does not
 help.
+### A parameter spilled to its home slot while constants hold `$s` regs: try `s16`
+
+`func_shelter_r47_801820C0` draws three sprites, each `x0 = K - arg0`, with a
+`MargePrim` call between them. Declared `s32 arg0`, the parameter was stored to
+`0x40($sp)` and reloaded before every use, while the tag-byte constant `0x64`
+took a callee-saved register (83.7%, `regs=34`). Declaring the parameter `s16`
+emits no extension, because every use is truncated by an `sh`. It moved `arg0` into
+`$s7` via `addu s7,a0,zero` and let the byte constants be rematerialised as
+`li t1,…`, as in the target (98.7%). The allocation changed but the exact
+priority mechanism was not traced. When the target copies an argument into an
+`$s` reg and every use of it ends in a halfword store, `s16` is the first thing
+to try. The last 1.3% was the order of two stores (`clut` before `x0`), which
+moved where the scheduler put a hoisted `li`.

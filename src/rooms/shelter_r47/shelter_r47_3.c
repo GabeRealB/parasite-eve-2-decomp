@@ -158,7 +158,65 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181F14);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801820C0);
+void func_shelter_r47_801820C0(s16 arg0)
+{
+    GpTpageSprt* p;
+    SPRT*        sprt;
+
+    p              = (GpTpageSprt*)gGpuPrimCursor;
+    sprt           = &p->sprt;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE1000096;
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->clut  = 0x4000;
+    sprt->x0    = -0xA0 - arg0;
+    sprt->y0    = -0x78;
+    sprt->u0    = 0;
+    sprt->v0    = 0;
+    sprt->w     = 0x100;
+    sprt->h     = 0xF0;
+    sprt->code |= 1;
+    addPrim(&gGpuCurrentOt[12], p);
+
+    p              = (GpTpageSprt*)gGpuPrimCursor;
+    sprt           = &p->sprt;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE1000098;
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->x0    = 0x60 - arg0;
+    sprt->clut  = 0x4000;
+    sprt->y0    = -0x78;
+    sprt->u0    = 0;
+    sprt->v0    = 0;
+    sprt->w     = 0x80;
+    sprt->h     = 0xF0;
+    sprt->code |= 1;
+    addPrim(&gGpuCurrentOt[12], p);
+
+    p              = (GpTpageSprt*)gGpuPrimCursor;
+    sprt           = &p->sprt;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE100008E;
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->clut  = 0x4040;
+    sprt->x0    = 0xE0 - arg0;
+    sprt->y0    = -0x78;
+    sprt->u0    = 0;
+    sprt->v0    = 0;
+    sprt->w     = 0x100;
+    sprt->h     = 0xF0;
+    sprt->code |= 1;
+    addPrim(&gGpuCurrentOt[12], p);
+}
 
 void func_shelter_r47_80182348(Task* task)
 {
