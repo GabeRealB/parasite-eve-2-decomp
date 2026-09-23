@@ -2,6 +2,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -18,7 +19,14 @@ extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 extern s16      D_shelter_b3_dumping_hole_8018809C;
 
 typedef struct {
-    u8    pad_00[0x24];
+    s32   field_0;
+    s32   field_4;
+    s32   field_8;
+    u8    pad_0C[0x4];
+    s16   field_10;
+    s16   field_12;
+    s16   field_14;
+    u8    pad_16[0xE];
     Task* field_24;
     Task* field_28;
     Task* field_2C;
@@ -33,7 +41,7 @@ typedef struct {
     s16   field_44;
     s16   field_46;
     s16   field_48;
-    u8    pad_4A[0x2];
+    s16   field_4A;
     u16   field_4C;
 } DumpingHoleEntity;
 
@@ -335,7 +343,117 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017F1B0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017F820);
+/// Payload of message 0x3F7: a null-terminated table and the number of
+/// entries counted in it.
+typedef struct {
+    s32* table;
+    s32  count;
+} DumpingHoleMsg3F7;
+
+typedef struct {
+    u8 pad_00[0x4A];
+    u8 field_4A;
+} DumpingHoleFlags;
+
+extern u8               D_80073BA9;
+extern u8               D_80071075;
+extern s8               D_8007218A;
+extern s8               D_80114C12;
+extern s8               D_8007272D[];
+extern MATRIX*          D_80073B8C;
+extern s32              D_shelter_b3_dumping_hole_801880A0[];
+extern s32              D_shelter_b3_dumping_hole_80188640;
+extern s32              D_shelter_b3_dumping_hole_80188A78;
+extern DumpingHoleFlags D_shelter_b3_dumping_hole_8018EF04;
+
+void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
+void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
+
+void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
+{
+    DumpingHoleEntity* work;
+    DumpingHoleEntity* w;
+    Task*              t;
+    DumpingHoleEntity* w2;
+    DumpingHoleMsg3F7  msg;
+    GpAnimArg          anim;
+    GpAnimArg*         p;
+    s32                n;
+    s32                weaponId;
+
+    switch (arg0->state) {
+        case 0:
+            work       = (DumpingHoleEntity*)Mem_Malloc(0x50, 0);
+            arg0->work = work;
+            if (work == NULL) {
+                taskKill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x50);
+                work->field_24                     = gameGetPtrSlot(3);
+                D_shelter_b3_dumping_hole_8018F4A8 = (DumpingHoleState*)arg0;
+                work->field_28                     = (Task*)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                work->field_2C                     = (Task*)Gp_FindWorkById((gGameSession->at4.loc.stage << 8) | (u16)(gGameSession->at4.loc.area | 0x1000))->field_0;
+                work->field_42                     = 0;
+                work->field_40                     = 0;
+                work->field_4A                     = 0;
+                work->field_48                     = 0;
+                work->field_46                     = 0;
+            }
+            w             = (DumpingHoleEntity*)arg0->work;
+            w->field_0    = ((TmdObject*)w->field_28->extra)->coords->coord.t[0];
+            t             = w->field_28;
+            w->field_4    = ((TmdObject*)t->extra)->coords->coord.t[1];
+            w->field_8    = ((TmdObject*)t->extra)->coords->coord.t[2];
+            w->field_12   = 0x400;
+            w->field_10   = 0;
+            w->field_14   = 0;
+            D_8007272D[0] = 0xC;
+            D_80062735    = 3;
+            arg0->state++;
+            break;
+        case 1:
+            if (gGameSession->eventState != 0) {
+                break;
+            }
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            if (D_80114C12 == 1 || D_80071075 != 0 || D_80073B8C->t[0] < 0x36B1) {
+                break;
+            }
+            w2 = (DumpingHoleEntity*)arg0->work;
+            n  = 0;
+            while (D_shelter_b3_dumping_hole_801880A0[n & 0xFFFF] != 0) {
+                n += 1;
+            }
+            msg.table = &D_shelter_b3_dumping_hole_801880A0[0];
+            msg.count = n & 0xFFFF;
+            Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
+            weaponId      = D_80073BA9;
+            p             = &anim;
+            anim.field_0  = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            p->field_4    = 1;
+            p->field_8    = 1;
+            p->field_C    = 0xA;
+            anim.field_10 = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&anim, 0);
+            arg0->state++;
+            break;
+        case 2:
+            func_800E8634((s32)&D_shelter_b3_dumping_hole_80188640, 0, (s32)&D_shelter_b3_dumping_hole_80188A78);
+            arg0->state++;
+            break;
+        case 3:
+            if (gGameSession->eventState == 0) {
+                D_shelter_b3_dumping_hole_8018EF04.field_4A &= ~0x40;
+                taskKill(arg0);
+                return;
+            }
+            func_shelter_b3_dumping_hole_8017EDB8(arg0);
+            func_shelter_b3_dumping_hole_8017F1B0(arg0);
+            break;
+    }
+}
 
 s16 func_shelter_b3_dumping_hole_8017FB70(void)
 {
