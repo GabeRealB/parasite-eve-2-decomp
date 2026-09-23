@@ -50,7 +50,8 @@ typedef struct {
     /* 0x1C */ s16 field_1C;
     /* 0x1E */ u8  pad_1E[4];
     /* 0x22 */ u16 fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x24 */ u8  pad_24[4];
+    /* 0x24 */ s16 field_24;   ///< frame counter; past 300 the task moves to state 9
+    /* 0x26 */ u8  pad_26[2];
     /* 0x28 */ s8  promptKind; ///< display mode forwarded to `func_800D4E78`
     /* 0x29 */ u8  field_29;   ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
     /* 0x2A */ s8  field_2A;
@@ -163,7 +164,34 @@ void func_shelter_r47_801856AC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018571C);
+void func_shelter_r47_8018571C(Task* task)
+{
+    ShelterR47State2* state;
+    RoomActionPrompt* prompt = &D_80114D28;
+    u8                level;
+
+    state = (ShelterR47State2*)task->work;
+    if ((s16)state->fade > 0) {
+        state->fade -= 8;
+        if ((s16)state->fade < 0) {
+            state->fade = 0;
+        } else {
+            level = state->fade;
+            Fade_DrawOverlay(level, level, level, 2);
+        }
+    }
+    state->field_24++;
+    if (state->field_24 > 300 || gGameSession->evtSkipped != 0) {
+        task->state = 9;
+    }
+    func_shelter_r47_801851B8(task);
+    gGameSession->hideHud    = 1;
+    gGameSession->eventState = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018580C);
 
