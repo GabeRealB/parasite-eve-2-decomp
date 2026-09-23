@@ -19,14 +19,19 @@ typedef struct ActorsShared80138efcMotion {
     /* 0x008 */ byte pad_8[0x8];
     /// Bit 0 arms `field_BA9` in `func_actor_104900_80134780`; bit 1 is the one
     /// the body at 0x80138E34 tests before it arms its next state.
-    /* 0x010 */ u16  flags;
-    /* 0x012 */ byte pad_12[0x92A];
+    /* 0x010 */ u16        flags;
+    /* 0x012 */ byte       pad_12[0x45E];
+    /* 0x470 */ GpAnimCtx  anim2;
+    /* 0x484 */ GpAnimSlot slots2[2];
+    /* 0x4D4 */ byte       pad_4D4[0x468];
     /// Two `GpObj` list nodes. The 0x80138A2C body masks the 0xC000 pair out of
     /// both `flags`; `func_actor_104900_801366E8` ORs it back into the second on
     /// the frame `field_B8C` reaches 0x23, next to a `Gp_PackObjPair` result in
     /// `field_18`.
-    /* 0x93C */ GpObj objs[2];
-    /* 0x97C */ byte  pad_97C[0x180];
+    /* 0x93C */ GpObj   objs[2];
+    /* 0x97C */ byte    pad_97C[0x20];
+    /* 0x99C */ GpRec18 recs[3];
+    /* 0x9E4 */ byte    pad_9E4[0x118];
 } ActorsShared80138efcMotion;
 STATIC_ASSERT_SIZEOF(ActorsShared80138efcMotion, 0xAFC);
 
@@ -51,7 +56,8 @@ typedef struct ActorsShared80138efcWork {
     /// `coord.m[1][1]` by 0x20 while it is at least 0x801, clears `flg`, and
     /// lifts `coord.t[1]` by 2.
     /* 0x000 */ GsCOORDINATE2 coord;
-    /* 0x050 */ byte          pad_50[0x3C];
+    /* 0x050 */ GpAnimCtx     anim;
+    /* 0x064 */ byte          pad_64[0x28];
     /// Motion sub-object embedded at 0x8C. Its halfwords at 0x00 / 0x02 / 0x06
     /// are the ones `func_actor_104900_80136F8C` compares against the motion id
     /// in `field_BA4` and walks, and its flag word at 0x10 (0x9C absolute) is
@@ -86,7 +92,10 @@ typedef struct ActorsShared80138efcWork {
     /// 0 inside 0x384, 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
     /// `field_B94` ramps toward it while the countdown sits in `[0x1E, 0x2B]`.
     /* 0xB9E */ u16  field_B9E;
-    /* 0xBA0 */ byte pad_BA0[0x4];
+    /* 0xBA0 */ s8   field_BA0;
+    /* 0xBA1 */ byte pad_BA1;
+    /* 0xBA2 */ s8   field_BA2;
+    /* 0xBA3 */ s8   field_BA3;
     /// Motion id armed for the frame; every sibling writes a different pair
     /// here (0xB/0xE here, 0x15/0x16 next door, 5 in the setup handler).
     /* 0xBA4 */ s8 field_BA4;
@@ -130,7 +139,11 @@ typedef struct ActorsShared80138efcWork {
     /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand
     /// `SndEvt_EnqueueType6`.
     /* 0xBB8 */ u8   field_BB8;
-    /* 0xBB9 */ byte pad_BB9[0xF];
+    /* 0xBB9 */ u8   field_BB9;
+    /* 0xBBA */ u8   field_BBA;
+    /* 0xBBB */ byte pad_BBB;
+    /* 0xBBC */ s16  field_BBC;
+    /* 0xBBE */ byte pad_BBE[0xA];
     /// One-shot latch for the 0x13F4 dispatch. Stays clear until the area id
     /// is 0x0518, the player is alive, and that message has been sent.
     /* 0xBC8 */ u8 field_BC8;
@@ -149,14 +162,36 @@ STATIC_ASSERT_SIZEOF(ActorsShared80138efcWork, 0xBCC);
 /// so the pair is laid out as bytes here. Which of them writes what is per
 /// handler - the 0x80138D58 body writes only 0x64.
 typedef struct ActorsShared80138efcArg {
-    /* 0x00 */ byte pad_0[0x60];
-    /* 0x60 */ s8   pan;
-    /* 0x61 */ byte pad_61[0x1];
-    /* 0x62 */ s8   depth;
-    /* 0x63 */ byte pad_63[0x1];
-    /* 0x64 */ s8   field_64;
+    /// Scratch position. The dispatcher writes the root part's world
+    /// translation here, lowered by 0x320, and hands it to
+    /// `Gp_UpdateActorColor`.
+    /* 0x00 */ VECTOR pos;
+    /// Scratch vector. The dispatcher builds its effect offsets here for
+    /// `Gp_SpawnEff`, rotating the splash offset through a part's world
+    /// matrix and then into view space with `mtx`.
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ byte    pad_18[0x8];
+    /// Transpose of `Gfx_ViewWorldMtx`, refreshed on the frames the splash
+    /// check runs.
+    /* 0x20 */ MATRIX mtx;
+    /// Pose buffers of the two animation contexts. While `field_BA2` is
+    /// nonzero the first context steps into `poses[0]`, the second into
+    /// `poses[1]`, and `Gp_AnimWritePoseBlend` weights the pair by it.
+    /* 0x40 */ GpAnimPose poses[2];
+    /* 0x60 */ s8         pan;
+    /* 0x61 */ byte       pad_61[0x1];
+    /* 0x62 */ s8         depth;
+    /* 0x63 */ byte       pad_63[0x1];
+    /* 0x64 */ s8         field_64;
 } ActorsShared80138efcArg;
-STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x65);
+STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x68);
+
+typedef void (*ActorsShared80138efcState)(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work,
+                                          ActorsShared80138efcArg* arg);
+
+typedef struct ActorsShared80138efcStateTable {
+    ActorsShared80138efcState funcs[26];
+} ActorsShared80138efcStateTable;
 
 /// Arms the motion pair for the current sub-state when `field_BA8` is still
 /// clear, and switches to state 0xF when `field_BA9` is set.

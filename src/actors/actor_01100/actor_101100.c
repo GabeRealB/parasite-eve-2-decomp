@@ -1,11 +1,16 @@
 #include "common.h"
 
 #include "actors/actor_101100.h"
+#include "actors/actors_shared_801359cc.h"
+#include "actors/actors_shared_80135fdc.h"
 #include "actors/actors_shared_801384ac.h"
 #include "actors/actors_shared_801385e0.h"
 #include "actors/actors_shared_80138774.h"
 #include "actors/actors_shared_801388e8.h"
+#include "actors/actors_shared_80138c6c.h"
+#include "actors/actors_shared_80138d58.h"
 #include "actors/actors_shared_80138efc.h"
+#include "actors/actors_shared_801390d8.h"
 #include "actors/actors_shared_801511c8.h"
 #include "gameplay/gameplay.h"
 #include "main/fs.h"
@@ -14,6 +19,7 @@
 #include "main/sound.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/rand.h>
 
 extern u32       Gp_LcgState;
 extern u8        Actor01100_D15660[];
@@ -67,6 +73,16 @@ typedef struct {
 
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, void*);
 s32  Actor01100_Fn00F58(GpEnemy*, Task*, Actor104900SpawnWork*, Actor104900ShotArg*);
+void Actor01100_Fn035E4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn03740(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, Actor104900ShotArg* arg);
+void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, void* scratch);
+void Actor01100_Fn07148(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", Actor01100_D00004);
 
@@ -1025,7 +1041,329 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_01100/actor_101100", Actor01100_Fn02960);
+/// Per-frame state handlers `Actor01100_Fn02960` copies to its stack and
+/// indexes by `ActorsShared80138efcWork::state`.
+const ActorsShared80138efcStateTable Actor01100_D00064 = { {
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    Actor01100_Fn035E4,
+    Actor01100_Fn03740,
+    (ActorsShared80138efcState)Actor01100_Fn0389C,
+    ActorsShared80138d58,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared801359cc,
+    (ActorsShared80138efcState)Actor01100_Fn04DB4,
+    Actor01100_Fn04410,
+    Actor01100_Fn048C8,
+    Actor01100_Fn0516C,
+    (ActorsShared80138efcState)ActorsShared80135fdc,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)Actor01100_Fn07014,
+    (ActorsShared80138efcState)ActorsShared80138efc,
+    Actor01100_Fn07148,
+    ActorsShared801390d8,
+    (ActorsShared80138efcState)Actor01100_Fn05678,
+    Actor01100_Fn05CFC,
+} };
+
+/// Rotates `v` in place by the rotation part of `m`, with no translation.
+static __inline__ void _actor01100RotSv(MATRIX* m, SVECTOR* v)
+{
+    SVECTOR tmp;
+
+    tmp = *v;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&tmp);
+    gte_rtv0_real();
+    gte_stsv(v);
+}
+
+/// Per-frame update. Does nothing while `field_BA0` is set. Otherwise it
+/// refreshes model part 3 and, while `D_801153F4` is 0, steps both animation
+/// contexts over parts 1-20 (restarting the motion in `field_BA4` when it
+/// changed, and blending the second context in by `field_BA2`), fills
+/// `pan`/`depth` from part 1, runs the handler for `state`, then the arm
+/// `field_BA6` selects, and while `field_BB8` is 1 spawns the splash effects
+/// and sound. While `D_801153F4` is 1 it only pushes the root out of its
+/// world contacts. Whatever the mode, it then refreshes the root, updates
+/// the actor colour from the root position, draws the floor quad unless bit
+/// 1 of the model's flags is set, and exits the task once `field_BA6`
+/// reaches 0x10.
+void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+{
+    ActorsShared80138efcStateTable table;
+    GsCOORDINATE2*                 part;
+    GsCOORDINATE2*                 root;
+    s32                            restart;
+    s32                            randBit;
+    s32                            slot;
+    s32                            pose;
+    s32                            blend;
+    s32                            animId;
+    s32                            i;
+    s32                            off;
+    s32                            savedY;
+    s32                            eff;
+    s16                            dy;
+    s16                            walk;
+
+    table   = Actor01100_D00064;
+    restart = 0;
+    if (work->field_BA0 != 0) {
+        return;
+    }
+    Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
+    if (D_801153F4 == 0) {
+        randBit         = rand() & 1;
+        work->field_BA9 = 0;
+        work->field_BC9 = work->field_BA6;
+        if (work->field_BA4 != work->field_BA5) {
+            restart         = 1;
+            work->field_BA5 = work->field_BA4;
+        }
+        switch (work->field_BA3) {
+            case 0:
+                work->field_BA2 = 0;
+                break;
+            case 1:
+                animId = 0xE;
+                if (work->field_BAE == 0) {
+                    animId = 0xB;
+                }
+                slot = 1;
+                do {
+                    func_800B4538(&work->motion.anim2, slot, (s32)&arg->poses[1], animId, 0, 0, 0);
+                    slot++;
+                } while (slot < 0x15);
+                work->field_BA3++;
+                break;
+            case 2:
+                if (work->field_BA2 < 0x40) {
+                    work->field_BA2 += 4;
+                }
+                if (work->motion.slots2[1].flags & 1) {
+                    work->field_BA3++;
+                }
+                break;
+            case 3:
+                if (work->field_BA2 > 0) {
+                    work->field_BA2 -= 4;
+                    if (work->field_BA2 > 0) {
+                        break;
+                    }
+                }
+                work->field_BA3++;
+                break;
+            default:
+                work->field_BA2 = 0;
+                work->field_BA3 = 0;
+                break;
+        }
+        slot = 1;
+        do {
+            if ((slot == 6) || (slot == 0xA)) {
+                pose = 0;
+            } else {
+                pose = 0;
+                if (work->field_BA2 != 0) {
+                    pose = (s32)&arg->poses[0];
+                }
+            }
+            if (restart != 0) {
+                if ((u32)(work->field_BAB - 2) >= 0xE) {
+                    func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, randBit + 8);
+                } else if ((u32)((u8)work->field_BA4 - 0x15) < 2) {
+                    pose = 0;
+                    Gp_AnimResetSlot(&work->anim, slot, work->field_BA4);
+                } else if ((slot != 6) && (slot != 0xA)) {
+                    func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, 1);
+                } else {
+                    func_800B4538(&work->anim, slot, pose, work->field_BA4, 3, 0, 0x1E);
+                }
+            } else {
+                func_800B3448(&work->anim, slot, pose, 0);
+            }
+            if (pose != 0) {
+                blend = work->field_BA2 << 5;
+                func_800B3448(&work->motion.anim2, slot, (s32)&arg->poses[1], 0);
+                Gp_AnimWritePoseBlend(&work->anim, slot, &arg->poses[0],
+                                      &arg->poses[1], 0x1000 - blend, blend);
+            }
+            slot++;
+        } while (slot < 0x15);
+        if (work->motion.flags & 1) {
+            work->field_BA9 = 1;
+        }
+        part               = ((TmdObject*)task->extra)->coords;
+        part              += 1;
+        *(s16*)&arg->pan   = Gp_GetObjPan(part);
+        *(s16*)&arg->depth = gpGetObjDepth(part);
+        table.funcs[work->state](enemy, task, work, arg);
+        Actor01100_Fn01D98(enemy, task, work, arg);
+        switch (work->field_BA6) {
+            case 0:
+                Actor01100_Fn01B90(enemy, task, work, arg);
+                break;
+            case 1: {
+                GsCOORDINATE2* c;
+                GpLinkXform*   xform;
+
+                enemy->node.flags = 0;
+                c                 = ((TmdObject*)task->extra)->coords;
+                xform             = (GpLinkXform*)&enemy->node;
+                xform->src.vy     = -0xC8;
+                xform->src.vx     = 0;
+                xform->src.vz     = 0xC8;
+                xform->coord      = c + 3;
+                if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, (Actor104900ShotArg*)arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && ActorsShared801388e8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+                    i   = 0;
+                    off = 0x9C8;
+                    do {
+                        ((GpObj*)((u8*)work + off))->flags &= 0x3FFF;
+                        off                                += 0x20;
+                        i++;
+                    } while (i < 2);
+                    work->field_BA6 = 0;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    if (((Gp_LcgState >> 0x10) & 0xF) < 0xC) {
+                        work->state = 4;
+                    } else {
+                        work->state = 0;
+                    }
+                    work->field_BA8 = 0;
+                }
+                break;
+            }
+            case 2: {
+                GsCOORDINATE2* c;
+                GpLinkXform*   xform;
+
+                if (work->field_BAB != 1) {
+                    if (work->field_B96 >= 0x400) {
+                        work->field_B96 -= 0x400;
+                    } else {
+                        work->field_B96 = 0;
+                    }
+                    if (work->field_B94 >= 0x400) {
+                        work->field_B94 -= 0x400;
+                    } else {
+                        work->field_B94 = 0;
+                    }
+                    if (work->field_B98 >= 0x100) {
+                        work->field_B98 -= 0x100;
+                    } else {
+                        work->field_B98 = 0;
+                    }
+                    if (work->field_B9A >= 0x100) {
+                        work->field_B9A -= 0x100;
+                    } else {
+                        work->field_B9A = 0;
+                    }
+                    if (work->field_BAF != 0) {
+                        walk = work->field_B8E;
+                        if (walk > 0x30) {
+                            work->field_B8E -= 0x30;
+                        } else if (walk < -0x30) {
+                            work->field_B8E += 0x30;
+                        }
+                    }
+                }
+                c             = ((TmdObject*)task->extra)->coords;
+                xform         = (GpLinkXform*)&enemy->node;
+                xform->src.vy = -0xC8;
+                xform->src.vx = 0;
+                xform->src.vz = 0xC8;
+                xform->coord  = c + 3;
+                Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, (Actor104900ShotArg*)arg);
+                break;
+            }
+        }
+        if (work->field_BB8 == 1) {
+            TransposeMatrix(&Gfx_ViewWorldMtx, &arg->mtx);
+            if (!(D_80070F70 & 0xF)) {
+                GsCOORDINATE2* c;
+
+                c           = ((TmdObject*)task->extra)->coords;
+                arg->vec.vx = 0;
+                arg->vec.vy = -0x1E0;
+                arg->vec.vz = 0;
+                Gp_SpawnEff(D_8011574C, c, 0xC0, &arg->vec);
+            }
+            if ((u8)arg->field_64 != 0) {
+                if (work->field_BBA == 0 || ((u8)arg->field_64 == 3 && work->field_BBA != (u8)arg->field_64)) {
+                    work->field_BBC = 0;
+                }
+                work->field_BBA = arg->field_64;
+            }
+            if (work->field_BB9 != 0 || (u8)arg->field_64 != 0) {
+                eff  = 0x11402300;
+                part = &((TmdObject*)task->extra)->coords[work->field_BBA];
+                Gp_UpdateCoord(part);
+                arg->vec.vx = 0;
+                arg->vec.vy = 0;
+                arg->vec.vz = 0;
+                if (work->field_BBA == 8) {
+                    arg->vec.vx = 0x190;
+                } else if (work->field_BBA == 0xC) {
+                    arg->vec.vx = -0x190;
+                }
+                _actor01100RotSv(&part->workm, &arg->vec);
+                arg->vec.vx += part->workm.t[0];
+                arg->vec.vy += part->workm.t[1];
+                arg->vec.vz += part->workm.t[2];
+                arg->vec.vx -= gGfxViewCoord.workm.t[0];
+                arg->vec.vy -= gGfxViewCoord.workm.t[1];
+                arg->vec.vz -= gGfxViewCoord.workm.t[2];
+                _actor01100RotSv(&arg->mtx, &arg->vec);
+                dy = gGameSession->waterY - arg->vec.vy;
+                if (work->field_BBC * dy < 0) {
+                    work->field_BB9 = 5;
+                }
+                work->field_BBC = dy;
+                if (work->field_BBA == 3) {
+                    arg->vec.vx += rand() % 1200 - 0x258;
+                    eff          = 0x11602480;
+                    arg->vec.vz += rand() % 1200 - 0x258;
+                }
+                if (work->field_BB9 != 0) {
+                    work->field_BB9--;
+                    if (work->field_BB9 == 0) {
+                        work->field_BBA = 0;
+                    }
+                    Gp_SpawnEff(D_80115738, &gGfxViewCoord, eff, &arg->vec);
+                    SndEvt_EnqueueType6((work->field_B88 << 8) | 0x404B000D, arg->pan, arg->depth);
+                }
+            }
+        }
+    } else if (D_801153F4 == 1) {
+        root   = ((TmdObject*)task->extra)->coords;
+        savedY = root->coord.t[1];
+        Gp_UpdateCoord(root);
+        if (_actor01100PushOut(root, work->motion.recs)) {
+            root->flg = 0;
+        }
+        root->coord.t[1] = savedY;
+        Gp_ClearRec18Occupied(work->motion.recs);
+    }
+    root = ((TmdObject*)task->extra)->coords;
+    Gp_UpdateCoord(root);
+    arg->pos.vx = root->workm.t[0];
+    arg->pos.vy = root->workm.t[1] - 0x320;
+    arg->pos.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &arg->pos, 0, 0);
+    if (!(((TmdObject*)task->extra)->flags & 2)) {
+        Gp_DrawFloorQuad(((TmdObject*)task->extra)->coords, 0x600, NULL);
+    }
+    if (work->field_BA6 >= 0x10) {
+        Task_CallExit(task);
+    }
+}
 
 /// Collision-arm handler: the first frame the latch at 0xBA8 is still clear it
 /// sets motion 2, zeroes the countdown at 0xB8C and steps the latch. Every

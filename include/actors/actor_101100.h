@@ -98,6 +98,12 @@ extern u8         Actor01100_D15604[];
 /// contacts for the frame.
 extern u8 D_80072729;
 
+/// Effect ids `Actor01100_Fn02960` passes to `Gp_SpawnEff`: `D_8011574C`
+/// at the model root when the low four bits of `D_80070F70` are clear, and
+/// `D_80115738` for the splash.
+extern s32 D_80115738;
+extern s32 D_8011574C;
+
 /// Scale copied onto the stack and passed to `ActorsShared801385e0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis. The trailing word is
 /// present in the object and unread.

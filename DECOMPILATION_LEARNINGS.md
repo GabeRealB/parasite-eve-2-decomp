@@ -137710,3 +137710,30 @@ immovable.
 Input `base_44.i` SHA256
 `5dd4db8d122127f87ae078138d084ee1ba467ffe9331420869ee754166010bc5`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A `move` copy of a long-lived pointer feeding only a GTE store means the rotate was an inline helper (Actor01100_Fn02960, 2026-09-23)
+
+The target rotated one `SVECTOR` twice, the first time through a part's world
+matrix and the second through a view matrix. The first `gte_stsv` stored
+through `$s1`, which held `&arg->vec` for the rest of the function. The second
+stored through `$v1` after a `move $v1,$s1`. The same five macros written out
+twice store through `$s1` both times. The `addiu $s1,$s4,0x10` also lands one
+slot early, ahead of the matrix address.
+
+Wrapping the sequence in `static __inline__ void rot(MATRIX* m, SVECTOR* v)`
+(`tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v);`)
+fixed both, 99.719% to 99.925%. The inline's arguments are evaluated first, so
+the matrix address comes before the vector address. At the second call site the
+parameter is a fresh pseudo that CSE sets from the first one, so it becomes the
+copy. `tmp` still got a single stack slot.
+
+The last 0.075% was the aliasing rule in "A scalar global at a fixed address does
+not alias a struct field store". A `lui %hi(D_x)` sat below the `addiu $a3`
+instead of above it, because stores written as `*(s16*)&arg->pad[0x10]` are
+scalar MEMs and held back the `D_x` load. Typed `arg->vec.vx` stores fixed it.
+So when an m2c seed still has byte-array casts on a block the function stores
+into, give the block real members before tuning the scheduling.
+
+Input `base_12.i` SHA256
+`8fc90ce71d69e3c8bf8c45b4936f90cb64fc6bc55616955cb417171217874ef1`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

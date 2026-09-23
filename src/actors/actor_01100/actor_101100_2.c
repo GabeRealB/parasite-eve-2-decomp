@@ -125,23 +125,23 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         if (player == NULL) {
             work->field_B9E = 0;
         } else {
-            vec                      = (SVECTOR*)&arg->pad_0[0x10];
-            actorCoords              = ((TmdObject*)task->extra)->coords;
-            playerCoords             = ((TmdObject*)player->extra)->coords;
-            *(s16*)&arg->pad_0[0x10] = 0x12C;
-            *(s16*)&arg->pad_0[0x12] = 0;
-            *(s16*)&arg->pad_0[0x14] = 0;
-            local                    = *(SVECTOR*)&arg->pad_0[0x10];
-            actorPart                = &actorCoords[10];
-            playerPart               = &playerCoords[1];
+            vec          = &arg->vec;
+            actorCoords  = ((TmdObject*)task->extra)->coords;
+            playerCoords = ((TmdObject*)player->extra)->coords;
+            arg->vec.vx  = 0x12C;
+            arg->vec.vy  = 0;
+            arg->vec.vz  = 0;
+            local        = arg->vec;
+            actorPart    = &actorCoords[10];
+            playerPart   = &playerCoords[1];
             gte_SetRotMatrix(&actorPart->workm);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
             gte_rtv0_real();
             gte_stsv(vec);
-            *(s16*)&arg->pad_0[0x10] += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
-            *(s16*)&arg->pad_0[0x12] += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
-            *(s16*)&arg->pad_0[0x14] += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist                      = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
+            arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
+            arg->vec.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
+            dist         = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
             if (dist < 0x384) {
                 work->field_B9E = 0;
             } else if (dist >= 0xA8D) {
@@ -301,23 +301,23 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         if (player == NULL) {
             work->field_B9E = 0;
         } else {
-            vec                      = (SVECTOR*)&arg->pad_0[0x10];
-            actorCoords              = ((TmdObject*)task->extra)->coords;
-            playerCoords             = ((TmdObject*)player->extra)->coords;
-            *(s16*)&arg->pad_0[0x10] = 0x12C;
-            *(s16*)&arg->pad_0[0x12] = 0;
-            *(s16*)&arg->pad_0[0x14] = 0;
-            local                    = *(SVECTOR*)&arg->pad_0[0x10];
-            actorPart                = &actorCoords[6];
-            playerPart               = &playerCoords[1];
+            vec          = &arg->vec;
+            actorCoords  = ((TmdObject*)task->extra)->coords;
+            playerCoords = ((TmdObject*)player->extra)->coords;
+            arg->vec.vx  = 0x12C;
+            arg->vec.vy  = 0;
+            arg->vec.vz  = 0;
+            local        = arg->vec;
+            actorPart    = &actorCoords[6];
+            playerPart   = &playerCoords[1];
             gte_SetRotMatrix(&actorPart->workm);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
             gte_rtv0_real();
             gte_stsv(vec);
-            *(s16*)&arg->pad_0[0x10] += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
-            *(s16*)&arg->pad_0[0x12] += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
-            *(s16*)&arg->pad_0[0x14] += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist                      = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
+            arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
+            arg->vec.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
+            dist         = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
             if (dist < 0x384) {
                 work->field_B9E = 0;
             } else if (dist >= 0xA8D) {
@@ -729,9 +729,9 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords    = ((TmdObject*)task->extra)->coords;
         if (D_80072729 == 0) {
-            Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->pad_0[0x10], scale);
-            coords->coord.t[0] += ((SVECTOR*)&arg->pad_0[0x10])->vx;
-            coords->coord.t[2] += ((SVECTOR*)&arg->pad_0[0x10])->vz;
+            Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->vec, scale);
+            coords->coord.t[0] += arg->vec.vx;
+            coords->coord.t[2] += arg->vec.vz;
             coords->flg         = 0;
         }
     }
