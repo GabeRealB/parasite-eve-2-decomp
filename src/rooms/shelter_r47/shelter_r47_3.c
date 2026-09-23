@@ -79,6 +79,8 @@ void func_shelter_r47_80184124(Task* task, s16 arg1);
 /// `func_shelter_r47_80180714`.
 extern Task* D_shelter_r47_8018A690;
 
+extern u8 D_shelter_r47_80186FAD;
+
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
@@ -229,4 +231,20 @@ s32 func_shelter_r47_801829B8(Task* task, s16 arg1)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80182AA0);
+/// Loads the script's working copies of game flags 0xAC, 0xD5, 0xAE, 0xD6 and
+/// 0xD2, and sets `D_shelter_r47_80186FAD` from the low bit of flag 0xD5.
+void func_shelter_r47_80182AA0(Task* task)
+{
+    ShelterR47State* state = (ShelterR47State*)task->work;
+
+    state->field_18 = GameFlag_GetNibble(0xAC);
+    state->field_1A = GameFlag_GetNibble(0xD5);
+    if (!(state->field_1A & 1)) {
+        D_shelter_r47_80186FAD = 0x12;
+    } else {
+        D_shelter_r47_80186FAD = 0x24;
+    }
+    state->field_1C = GameFlag_GetNibble(0xAE);
+    state->field_1E = GameFlag_GetNibble(0xD6);
+    state->field_20 = GameFlag_GetNibble(0xD2);
+}
