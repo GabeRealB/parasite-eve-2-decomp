@@ -589,7 +589,18 @@ void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017EC34);
+/// Returns the `id` of the first tile in `table` whose rectangle contains
+/// `(x, z)`, edges inclusive, or 0 when none does. The scan ends at the entry
+/// whose `id` is -1.
+s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
+{
+    for (; table->id != -1; table++) {
+        if (table->x <= x && x <= table->x + table->w && table->z <= z && z <= table->z + table->d) {
+            return table->id;
+        }
+    }
+    return 0;
+}
 
 void func_neo_ark_altar_8017ED60(Task* task);
 void func_neo_ark_altar_8017EDBC(Task* task);
