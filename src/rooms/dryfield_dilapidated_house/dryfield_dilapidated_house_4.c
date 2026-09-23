@@ -24,7 +24,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* coord, s16 arg1, s1
 void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* coord, s32 arg1, s16 arg2);
 void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
-void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
+void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1);
 void func_dryfield_dilapidated_house_8018142C(Task* task);
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
@@ -225,7 +225,127 @@ void func_dryfield_dilapidated_house_801815B8(Task* arg0)
     taskKill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801815E8);
+/// Prism corners in model space, eight per prism: `[0..3]` the lit ring and
+/// `[4..7]` the far ring. Callers pick a prism by passing 0, 8 or 0x10.
+extern SVECTOR D_dryfield_dilapidated_house_80186884[];
+
+/// Draws one prism from `D_dryfield_dilapidated_house_80186884[arg1..]` as five
+/// gouraud `POLY_G4`: four sides joining the lit ring to the far ring, then a
+/// cap over the lit ring. Each corner is rotated by `coord`'s `workm` and moved
+/// by its translation before projection through `GsWSMATRIX`. The lit corners
+/// share a grey that pulses with the display frame; the far corners are black.
+void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
+{
+    DdhPrismScratch* blk;
+    POLY_G4*         prim;
+    s32              i;
+    s32              next;
+    s32              far;
+    s32              farNext;
+    u8               shade;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(DdhPrismScratch);
+    blk                     = (DdhPrismScratch*)*(void**)G_SCRATCH_HEAD;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[0]);
+        blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+        blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+        blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        next = (i + 1) & 3;
+        gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + next]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[1]);
+        blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+        blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+        blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        far = i + 4;
+        gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + far]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[2]);
+        blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+        blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+        blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        farNext = next + 4;
+        gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + farNext]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[3]);
+        blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+        blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+        blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setPolyG4(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+        gte_stszotz(&blk->otz);
+        setRGB0(prim, shade, shade, shade);
+        setRGB1(prim, shade, shade, shade);
+        setRGB2(prim, 0, 0, 0);
+        setRGB3(prim, 0, 0, 0);
+        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[0]);
+    blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+    blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+    blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 1]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[1]);
+    blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+    blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+    blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 3]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[2]);
+    blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+    blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+    blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 2]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[3]);
+    blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+    blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+    blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyG4(prim);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    setRGB0(prim, shade, shade, shade);
+    setRGB1(prim, shade, shade, shade);
+    setRGB2(prim, shade, shade, shade);
+    setRGB3(prim, shade, shade, shade);
+    addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(DdhPrismScratch);
+}
 
 /// Near and far trail offsets. `[0]` seeds the object's coordinate on the first
 /// frame and `[1]` the second ring; `D_dryfield_dilapidated_house_8018694C` is

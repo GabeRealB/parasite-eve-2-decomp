@@ -137963,3 +137963,17 @@ movable (the extra `threshold -= 3`), cse still spells `D + 6` as
 exactly as the target has it. So when one loop of a pair hoists a constant the
 other does not, count the `moved to` lines in `.i.loop` for each: a missing
 move earlier in the loop is a lever the source controls.
+
+### `tbl[base + i + 4]` folds to `(base + 4) + i` and hoists; bind `i + 4` to its own local (func_dryfield_dilapidated_house_801815E8)
+
+Symptom: the target recomputes `addiu v0,i,4; addu v0,base,v0` inside the loop,
+but the attempt hoists `addiu t,base,4` to the preheader and adds `i` to it.
+Writing the index as `base + (i + 4)` did not help: `fold` reassociates the
+constant outward either way, and the result is a loop invariant.
+
+Fix: assign `far = i + 4;` as its own statement and index `tbl[base + far]`.
+The constant then stays attached to `i` and nothing invariant is left to hoist
+(94.8% to 99.2%). Put the assignment where the target computes it, after the
+preceding `gte_SetRotMatrix` asm, rather than at the top of the loop. Volatile
+asm is a scheduling barrier, so where the statement sits decides which side of
+the asm the arithmetic lands on (99.2% to a match).

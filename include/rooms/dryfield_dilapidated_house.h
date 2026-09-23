@@ -103,6 +103,15 @@ typedef struct DdhBeamScratch {
 } DdhBeamScratch;
 STATIC_ASSERT_SIZEOF(DdhBeamScratch, 0x28);
 
+/// Scratch `func_dryfield_dilapidated_house_801815E8` carves off
+/// `G_SCRATCH_HEAD` for one quad of a prism. `v` holds the four corners,
+/// rotated by the model's `workm` and moved by its translation. `otz` is
+/// `gte_stszotz` of their projection and picks the OT bucket.
+typedef struct DdhPrismScratch {
+    s32     otz;
+    SVECTOR v[4];
+} DdhPrismScratch;
+
 /// Argument block `func_dryfield_dilapidated_house_8017E9A4` hands its task as
 /// `Task::spawnArg2`: the address of `D_dryfield_dilapidated_house_80189B80`,
 /// whose first halfword it has just set to that call's argument and whose second
