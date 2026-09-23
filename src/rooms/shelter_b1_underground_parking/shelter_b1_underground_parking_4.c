@@ -2,8 +2,10 @@
 
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// Spawn payload handed to `RoomsShared80181228Desc` as
 /// `Task_SpawnFromTable` arg3 by the day-13 branch of
@@ -26,8 +28,51 @@ extern ShelterParkingSpawnArg D_shelter_b1_underground_parking_8018D75C;
 extern TaskDesc               RoomsShared80181228Desc[];
 extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
+extern u8                     D_80071075;
+extern s8                     D_80114C12;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_801826C0);
+/// Starts caption slot 0xA and spawns entry 4 of
+/// `D_shelter_b1_underground_parking_8018726C` when the player asks for it.
+///
+/// The player must not be aiming (`field_954 != 2`), captions must be idle,
+/// the session room must be 7 or later, and the model root must stand with X
+/// below -0x1266 and Z inside [-0x7CF, 0x7D0), with `D_80114C12 != 1` and
+/// `D_80071075` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
+/// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
+/// takes the weapon away and runs the handoff.
+void func_shelter_b1_underground_parking_801826C0(void)
+{
+    Task*          task;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            z;
+    s32            facing;
+
+    task  = gameGetPtrSlot(3);
+    actor = (GameActor*)task->work;
+    coord = ((TmdObject*)task->extra)->coords;
+    if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (gGameSession->at4.loc.room >= 7) &&
+        (coord->coord.t[0] < -0x1266)) {
+        z = coord->coord.t[2];
+        if (z < 0x7D0) {
+            if ((z >= -0x7CF) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+                facing = (u16)actor->field_52 & 0xFFF;
+                if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
+                    if ((u32)(facing - 0xA01) < 0x3FFU) {
+                        Gp_MsgPlayerWeapon(0);
+                        Gp_StartCapSlot(0xA, 0, 1);
+                        Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                    }
+                }
+                if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
+                    Gp_MsgPlayerWeapon(0);
+                    Gp_StartCapSlot(0xA, 0, 1);
+                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", RoomsShared8017d878Table);
 
