@@ -179,6 +179,19 @@ turned off to avoid that. Setting it `False` fails the checksum on `tonfa_baton`
 images end flush against their last data byte with no slack for the alignment it
 introduces.
 
+**Several packages can be one source built with different parameters.** The
+MP5A5 and its two upgrades differ only in their weapon index; the M4A1, P08,
+shotgun and grenade families are the same. Such an entry lists its packages in
+`slots`, each with its own `id`, `label` and `defines` (`{ WEAPON_ID = 0x1F }`),
+and marks the code unit `variant = true`: the unit is then named per package,
+so each gets its own object, but all compile the entry's one source with that
+package's defines (`tools/splat_ext/variantsrc.py`). A slot may also carry its
+own `objects` list where the packages' models and data sit at different
+offsets. Declare a parameter only where the bytes show it varies, derive what
+follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM` in
+`include/weapons/weapon.h`), and keep a value that merely looks derivable as a
+declared one when the original did not follow the pattern.
+
 **Every overlay starts with its own id: a `u16` at offset 0, in a `u32` slot.**
 All 448 packages carry a distinct value there, and the families sit in
 contiguous blocks - weapons 8-39, options 40, aya 43-45, pe 48-62, actors
