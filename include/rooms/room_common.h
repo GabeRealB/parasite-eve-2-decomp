@@ -957,4 +957,17 @@ typedef struct AhlpLight {
 } AhlpLight;
 STATIC_ASSERT_SIZEOF(AhlpLight, 0x64);
 
+/// One entry of a room's ambience table: the table holds one entry per area and
+/// is indexed by `gGameSession->at4.loc.view`. A room's ambience task passes
+/// `pan` to `SndEvt_EnqueueType6` / `SndEvt_EnqueueTypeA` as the event's pan,
+/// and derives the event's attenuation from `vol` - some rooms pass it as is,
+/// others halve it first.
+typedef struct RoomAmbienceEntry {
+    s16 pan;
+    s16 pad_2;
+    s16 vol;
+    s16 pad_6;
+} RoomAmbienceEntry;
+STATIC_ASSERT_SIZEOF(RoomAmbienceEntry, 0x8);
+
 #endif // ROOMS_ROOM_COMMON_H

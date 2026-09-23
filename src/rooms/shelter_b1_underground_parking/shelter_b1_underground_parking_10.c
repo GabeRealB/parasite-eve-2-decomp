@@ -12,7 +12,7 @@
 
 extern u8          D_shelter_b1_underground_parking_8018D788;
 extern u8          D_shelter_b1_underground_parking_8018D789;
-extern s8          D_8007216C;
+extern u8          D_8007216C;
 extern s16         D_80114D08;
 extern TaskDesc    D_shelter_b1_underground_parking_80187664[];
 extern RoomHotspot D_shelter_b1_underground_parking_8018767C[];

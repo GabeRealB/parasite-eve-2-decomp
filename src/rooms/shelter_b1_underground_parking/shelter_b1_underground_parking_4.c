@@ -4,9 +4,11 @@
 #include "main/gameflag.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_underground_parking.h"
 
 /// Spawn payload handed to `RoomsShared80181228Desc` as
 /// `Task_SpawnFromTable` arg3 by the day-13 branch of
@@ -58,6 +60,12 @@ extern s8                         D_8007272D;
 extern TaskDesc                   D_shelter_b1_underground_parking_80187200;
 extern _ShelterParkingKeySpawnArg D_shelter_b1_underground_parking_8018D750;
 extern _ShelterParkingKeyRecord   D_shelter_b1_underground_parking_8018D77C;
+
+/// The room's ambience table, one entry per area.
+extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
+
+/// Area id published to the sound system; compared against the session's view.
+extern u8 D_8007216C;
 
 void func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -285,7 +293,55 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_80182FC8);
+/// Keeps the room's looping ambience in step with the area the session is in:
+/// `gGameSession->at4.loc.view` selects an entry of the ambience table, and
+/// state 0 starts the loop with `SndEvt_EnqueueType6`. Once
+/// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
+/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `D_8007216C`,
+/// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
+/// entry with `SndEvt_EnqueueTypeA` and returns to state 1.
+void func_shelter_b1_underground_parking_80182FC8(Task* task)
+{
+    s32 pan;
+    s32 vol;
+    u8  idx;
+
+    idx = gGameSession->at4.loc.view;
+    if (idx < 9) {
+        pan = D_shelter_b1_underground_parking_8018761C[idx].pan;
+        vol = D_shelter_b1_underground_parking_8018761C[idx].vol / 2;
+    } else {
+        pan = 0;
+        vol = 0;
+    }
+
+    switch (task->state) {
+        case 0:
+            SndEvt_EnqueueType6(0x5414000F, (s8)pan, (s8)vol);
+            task->state = task->state + 1;
+            break;
+        case 1:
+            if (D_shelter_b1_underground_parking_8018D758 == 0) {
+                func_shelter_b1_underground_parking_80186890(0);
+                SndEvt_EnqueueType7(0x5414000F, 1);
+                taskKill(task);
+                break;
+            }
+            if (D_8007216C != gGameSession->at4.loc.view) {
+                task->state = task->state + 1;
+            }
+            break;
+        case 2:
+        case 3:
+        case 4:
+            task->state = task->state + 1;
+            break;
+        case 5:
+            SndEvt_EnqueueTypeA(0x5414000F, (s8)pan, (s8)vol);
+            task->state = 1;
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_80183124);
 

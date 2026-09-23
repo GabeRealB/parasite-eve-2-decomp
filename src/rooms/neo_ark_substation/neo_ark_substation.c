@@ -4,7 +4,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-#include "rooms/neo_ark_substation.h"
+#include "rooms/room_common.h"
 
 /// The room's ambience table, one `(pan, vol)` entry per area.
 extern RoomAmbienceEntry D_neo_ark_substation_8017E2C8[];
