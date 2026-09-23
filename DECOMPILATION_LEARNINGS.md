@@ -138308,3 +138308,25 @@ written between the fourth and fifth, the first two stores stayed next to
 their field stores, the rand values stopped overlapping, and `lddp` fell into
 `$t0` on its own (100%). When a reload register is off, look for pseudos in
 *other* blocks sitting in the registers reload skipped.
+
+## A count-down loop with a walking pointer seeded by `addu base, base, 6` is a count-*up* source loop that loop.c reversed (func_dryfield_night_motel_lobby_80180440, 2026-09-23)
+
+**Target:** `li v1,6; addu a0,&D,v1; L: sb a1,0(a0); addiu v1,-1; bgez v1,L; addiu a0,-1`.
+The pointer init is a register `addu` of the counter's start value, not a
+folded `%lo(D+6)`, and both the counter and the pointer are kept.
+
+**Wrong spellings:** `for (i = 6; i >= 0; i--) D[i] = 0xA;` (and the `do`/`while`
+form) index with `addu v0,i,&D` inside the loop. The `.loop` dump says why:
+`giv of insn N not worth while, 0 vs 7` - the combined address giv has no
+benefit left after `add_cost`, so it is not reduced. An explicit `*q--` with
+`q = &D[6]` folds to a constant base instead.
+
+**Fix:** `for (i = 0; i < 7; i++) D[i] = 0xA;`. `check_dbra_loop` reverses a
+loop with a single store, so the counter runs 6 down to 0, and a giv of a
+reversed biv is reduced unconditionally (`! bl->reversed` in the worth-while
+test), which is where the walking pointer and the register `addu` come from.
+
+Same function: a digit shift `D[6] = D[5]; ... D[1] = D[0]; D[0] = key;`
+matched only when written against the global itself. Through a local
+`u8 *p = D` the stores scheduled into a different order (84-88%); indexing `D`
+directly gave every load and store the target's position at once.

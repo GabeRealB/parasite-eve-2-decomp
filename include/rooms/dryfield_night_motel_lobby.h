@@ -91,11 +91,18 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task);
 /// raises the phase flag cap slot 9 waits on.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);
 
+/// Applies one keypad press, `key` being the id of the hotspot pressed. Keys
+/// 0-9 shift that digit in at index 0, 10 shifts in two zeros, 11 and 12 clear
+/// the entry and 13 confirms it, raising `field_8` when the code checks out and
+/// playing the reject sound otherwise. A digit is refused once seven are
+/// entered, and a zero is refused while the entry is a lone zero.
+void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
+
 /// Whether the keypad above holds the lobby's code: exactly four digits, the
 /// three older slots still `0xA`, and those four reading `3 0 3 3` in the
 /// order they were typed. `func_dryfield_night_motel_lobby_80180440` calls it
 /// on a confirm and sets its accept flag on a non-zero result.
-s32 func_dryfield_night_motel_lobby_80180734(void);
+s16 func_dryfield_night_motel_lobby_80180734(void);
 
 /// Task callback of the descriptor at `D_dryfield_night_motel_lobby_80182814`:
 /// allocates the examine work at `Task::work`, spawns the examine child task,
