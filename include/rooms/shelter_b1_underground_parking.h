@@ -25,9 +25,10 @@ void func_shelter_b1_underground_parking_80183B9C(void);
 
 void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
-/// Lives in `shelter_b1_underground_parking_10`: maps the committed
-/// selection `D_shelter_b1_underground_parking_8018D788 & 0xF` through the
-/// room's destination table and writes the result into the session.
+/// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
+/// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
+/// result as the current room (both `D_8007216D` and the session's
+/// `at4.loc.room`) and flags the room objects for relinking.
 void func_shelter_b1_underground_parking_8018491C(void);
 
 #endif // ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
