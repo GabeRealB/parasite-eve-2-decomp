@@ -7,18 +7,97 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+#include "rooms/shelter_b1_pod_access_tunnel.h"
 
-extern s32      D_shelter_b1_pod_access_tunnel_801810D8;
-extern TaskDesc D_shelter_b1_pod_access_tunnel_80181108;
-extern TaskDesc D_shelter_b1_pod_access_tunnel_801811C8;
-extern s32      D_shelter_b1_pod_access_tunnel_80182FFC;
-extern s32      D_shelter_b1_pod_access_tunnel_8018380C;
-extern u8       D_801153F4;
-extern s16      D_80071076;
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
+extern TaskDesc                      D_shelter_b1_pod_access_tunnel_801810CC;
+extern s32                           D_shelter_b1_pod_access_tunnel_801810D8;
+extern TaskDesc                      D_shelter_b1_pod_access_tunnel_80181108;
+extern TaskDesc                      D_shelter_b1_pod_access_tunnel_801811C8;
+extern s32                           D_shelter_b1_pod_access_tunnel_80182FFC;
+extern s32                           D_shelter_b1_pod_access_tunnel_8018380C;
+extern RoomEventMsg                  D_shelter_b1_pod_access_tunnel_80184D04;
+extern u8                            D_shelter_b1_pod_access_tunnel_80184D0C;
+extern ShelterB1PodAccessTunnelEvent D_shelter_b1_pod_access_tunnel_80184D10;
+extern u8                            D_801153F4;
+extern s16                           D_80071076;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017D61C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017D7B4);
+static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, ShelterB1PodAccessTunnelEvent* event)
+{
+    D_shelter_b1_pod_access_tunnel_80184D0C = 0;
+    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+        if (dst->field_5 == 0) {
+            D_shelter_b1_pod_access_tunnel_80184D04 = *dst;
+            D_shelter_b1_pod_access_tunnel_80184D10 = *event;
+            if (event->field_8 != 0) {
+                GameFlag_SetNibble(event->field_8, 1);
+            }
+            Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
+            D_shelter_b1_pod_access_tunnel_80184D0C = 1;
+        }
+        return 2;
+    }
+    return 1;
+}
+
+s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+{
+    ShelterB1PodAccessTunnelEvent event;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId == 0x2F) {
+        if (GameFlag_GetNibble(0x118) == 2) {
+            if (in->field_5 == 0) {
+                Gp_RunCapCmd1(8);
+            }
+            return 2;
+        }
+        if (GameFlag_GetNibble(0x7A) >= 6) {
+            if (in->field_5 == 0) {
+                Gp_MsgPlayerWeapon(0);
+                Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
+            }
+            return 2;
+        }
+        if (GameFlag_GetNibble(0xB3) == 0) {
+            if (in->field_5 == 0) {
+                Gp_SetNibbleIf(in->field_6, 2);
+                Gp_RunCapCmd1(3);
+            }
+            return 0;
+        }
+        if (in->field_5 == 0 && GameFlag_GetNibble(0xD1) == 0 && GameFlag_GetNibble(0x83) == 0) {
+            Gp_FillAllyHp();
+            GameFlag_SetNibble(0xD1, 1);
+            GameFlag_SetNibble(0x4C, 7);
+        }
+    }
+    if (in->msgId == 0x10) {
+        if (GameFlag_GetNibble(0x118) == 2) {
+            if (in->field_5 == 0) {
+                Gp_RunCapCmd1(8);
+            }
+            return 2;
+        }
+        if (GameFlag_GetNibble(0xD1) == 2) {
+            if (in->field_5 == 0) {
+                Gp_RunCapCmd1(4);
+            }
+            return 2;
+        }
+        event.field_0 = 6;
+        event.field_4 = 0x54110001;
+        event.field_8 = 0x130;
+        event.field_A = 0;
+        return _shelterB1PodAccessTunnelStartEvent(out, &event);
+    }
+    return 1;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", D_shelter_b1_pod_access_tunnel_8017D5D8);
 
