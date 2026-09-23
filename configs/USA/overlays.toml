@@ -1279,6 +1279,7 @@ objects = [
   { unit = "dryfield_gas_station/dryfield_gas_station_3", rodata = "0x50", text = "0x2794" },
   { unit = "dryfield_gas_station/dryfield_gas_station", rodata = "0x84", text = "0x1EF4" },
   { unit = "dryfield_gas_station/dryfield_gas_station_4", rodata = "0xF0", text = "0x2A24" },
+  { unit = "dryfield_gas_station/dryfield_gas_station_6", rodata = "0x11C", text = "0x2E00" },
   { lib = true, unit = "rooms_shared_80180c98", text = "0xD00" },
   { lib = true, unit = "room_util38", text = "0x1894" },
   { lib = true, unit = "rooms_shared_8017ef20", text = "0x1988" },

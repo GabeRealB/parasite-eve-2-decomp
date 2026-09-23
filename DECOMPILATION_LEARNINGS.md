@@ -138542,3 +138542,27 @@ pulse = (rsin(...) >> 12) + 0x10;   /* stays in a register */
 ...
 red = pulse * 3 / 4; green = pulse; blue = pulse;
 ```
+
+## A call-argument load placed first in its case means the case has no store of its own: `break` to the shared reset (func_dryfield_gas_station_801803C0, 2026-09-23)
+
+**Symptom.** One reorder left in a switch arm that begins with a call:
+the target has `lw a0,0(s1); li a1; lui a2; addiu a2; jal`, ours
+`li a1; lui a2; addiu a2; lw a0,0(s1); jal`. A sibling arm with the
+same call keeps ours, so it is not the argument expression.
+
+**Mechanism.** sched1 fills the argument registers backwards from the call;
+all of them have priority 1, so `schedule_select` picks among them by
+`potential_hazard`. The load only wins that comparison (and lands next to
+the `jal`) when the memory unit is already busy later in the block, e.g. with
+the arm's closing `state = 0` store. Without a store in the block, the
+highest-LUID register set goes first and the load drifts to the top.
+Adding a local for the argument or an empty asm changes nothing: combine
+folds the load back into the `$a0` set.
+
+**Fix.** End the arm with `break` so it jumps to the shared `state = 0` after
+the switch instead of storing it itself. dbr later pulls that `sh` into the
+`j` delay slot, so the object looks exactly like a per-arm store. The same
+change also decides which copy of a shared `call; state = 0` tail survives
+cross-jumping (arms that `break` merge into the last copy, arms that store
+and `return` merge into the first), see "A `return` written per path
+cross-jumps away".

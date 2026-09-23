@@ -13,18 +13,43 @@
 ///
 /// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
 /// its messages to, and `playerEffActive` is the flag guarding
-/// `Gp_KillPlayerEffs` / `Gp_SpawnWeaponEff`. The two shorts at 0x4 are script
-/// parameters written together by `func_dryfield_gas_station_80180B2C`; their
-/// meaning is not yet known.
+/// `Gp_KillPlayerEffs` / `Gp_SpawnWeaponEff`. `field_4` is the script command
+/// `func_dryfield_gas_station_801803C0` carries out and clears once it is done,
+/// `field_6` the step within a multi-frame command (both written together by
+/// `func_dryfield_gas_station_80180B2C`), and `field_8` the frame counter of the
+/// command that walks the owner across the forecourt.
 typedef struct DgsWork {
     /* 0x00 */ void* owner;
-    /* 0x04 */ s16   field_4;
-    /* 0x06 */ s16   field_6;
-    /* 0x08 */ byte  pad_8[0x4];
+    /* 0x04 */ u16   field_4;
+    /* 0x06 */ u16   field_6;
+    /* 0x08 */ u16   field_8;
+    /* 0x0A */ byte  pad_A[0x2];
     /* 0x0C */ u16   playerEffActive;
     /* 0x0E */ byte  pad_E[0x2];
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
+
+/// Payload of message 0x3E9: the world position and rotation the owner is
+/// placed at.
+typedef struct DgsPlacement {
+    VECTOR  pos;
+    SVECTOR rot;
+} DgsPlacement;
+STATIC_ASSERT_SIZEOF(DgsPlacement, 0x18);
+
+/// Payload of message 0x3FE, a displacement the owner is asked to move by.
+/// Only `x`, `y`, `z` and `field_10` are written here; the role of `field_10`
+/// and `field_12` is not established by this room.
+typedef struct DgsMsg3FE {
+    s32  x;
+    s32  y;
+    s32  z;
+    byte pad_C[0x4];
+    s16  field_10;
+    s8   field_12;
+    byte pad_13[0x1];
+} DgsMsg3FE;
+STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
 
 /// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
 /// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for

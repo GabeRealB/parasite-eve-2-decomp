@@ -15,15 +15,8 @@
 #include "gameplay/gameplay.h"
 
 #include "rooms/dryfield_gas_station.h"
-#include "rooms/rooms_shared_80180b2c.h"
 
-extern s32      D_dryfield_gas_station_80182E30;
-extern s32      D_dryfield_gas_station_80182E74;
-extern s32      D_dryfield_gas_station_80182E8C;
-extern s32      D_dryfield_gas_station_8018303C;
 extern s8       D_8007106B;
-extern u8       D_80071075;
-extern s8       D_80114C12;
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern TaskDesc D_dryfield_gas_station_8018312C[];
@@ -174,108 +167,4 @@ L_case4:
     }
 L_kill:
     Task_RequestKill(task, 0);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_801803C0);
-
-/// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
-/// `D_80114C12` of 1 and a live `D_80071075` both mean the cutscene is already
-/// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
-/// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
-/// `RoomsShared80180b2cTask` so the room's script helpers can reach that block.
-/// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
-/// it once the session has torn down (`gGameSession->eventState`). Between the two
-/// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
-/// 0x3F4 -- only when a previous state 0 already found an owner, since the
-/// reloaded `work` is dereferenced unconditionally.
-void func_dryfield_gas_station_801807E0(Task* task)
-{
-    DgsWork* work;
-    DgsWork* work2;
-    GpRec14  script;
-
-    switch (task->state) {
-        case 0:
-            if ((D_80114C12 != 1) && (D_80071075 == 0)) {
-                work       = Mem_Malloc(0x10, false);
-                task->work = (TaskIdMap*)work;
-                if (work == NULL) {
-                    taskKill(task);
-                } else {
-                    Mem_Set(work, 0, 0x10);
-                    work->owner             = gameGetPtrSlot(3);
-                    RoomsShared80180b2cTask = task;
-                }
-                work2 = (DgsWork*)task->work;
-                if (work2->owner != 0) {
-                    script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
-                    script.field_4  = 0;
-                    script.field_8  = 0;
-                    script.field_C  = 0;
-                    script.field_10 = 0;
-                    Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
-                }
-                func_800E3FAC(0xA2, 9);
-                func_800E8634((s32)&D_dryfield_gas_station_80182E8C, 0,
-                              (s32)&D_dryfield_gas_station_8018303C);
-                task->state = task->state + 1;
-                return;
-            }
-            return;
-
-        case 1:
-            if (gGameSession->eventState == 0) {
-                Task_RequestKill(task, 0);
-                return;
-            }
-            func_dryfield_gas_station_801803C0(task);
-            break;
-    }
-}
-
-/// Latches the player-effect flag and kills the effects once. The 1 is loaded
-/// before the branch and stored in the `jal` delay slot.
-void func_dryfield_gas_station_80180944(void)
-{
-    DgsWork* work = (DgsWork*)RoomsShared80180b2cTask->work;
-    if (work->playerEffActive == 0) {
-        work->playerEffActive = 1;
-        Gp_KillPlayerEffs();
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_4", func_dryfield_gas_station_80180984);
-
-/// Tells slot 3 that the cutscene is opening: it ends the weapon effect the
-/// player may still be carrying (flag at `DgsWork::playerEffActive`), echoes the
-/// equipped weapon back with msg 0x3E9 and, once the cutscene task has an owner,
-/// hands that owner the `D_dryfield_gas_station_80182E30` script record as msg
-/// 0x3F4. The record is a `GpRec14` built on the stack, only its first field
-/// (the script pointer) set.
-void func_dryfield_gas_station_80180A60(void)
-{
-    Task*    task;
-    DgsWork* work;
-    DgsWork* work2;
-    GpRec14  script;
-
-    task = RoomsShared80180b2cTask;
-    work = (DgsWork*)task->work;
-    if (work->playerEffActive != 0) {
-        Gp_SpawnWeaponEff();
-        work->playerEffActive = 0;
-        Gp_MsgPlayerWeapon(0);
-    }
-    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_gas_station_80182E74, 0);
-    work2 = (DgsWork*)task->work;
-    if (work2->owner != 0) {
-        script.field_0  = (s32)&D_dryfield_gas_station_80182E30;
-        script.field_4  = 0;
-        script.field_8  = 0;
-        script.field_C  = 0;
-        script.field_10 = 0;
-        Gp_DispatchMsg((Task*)work2->owner, 0x3F4, (s32)&script, 0);
-    }
-    SndEvt_EnqueueType7(0x52010011, 0x3C);
-    SetDispMask(1);
 }
