@@ -82941,6 +82941,17 @@ change can remove the reloc, since the only way to emit that word without one is
 a 32-bit constant, which GCC would split into `lui`/`ori`, not `lui`/`addiu`.
 Install the body and run `./tools/build-and-verify.sh`.
 
+A live `lui` produces the same residue when loop optimisation hoists it. In
+`func_dryfield_water_hole_8017D898` a room-local cursor is read and bumped four
+times per iteration of a nested loop. GCC formed `%hi` once, before the loop, and
+kept it in a caller-saved register that is saved and restored around the calls.
+splat paired none of the loop's loads and stores with that register, so the target
+reads `lui $t1, (0x80180000 >> 16)` and `lw $a2, 0x28CC($t1)`, while the same
+global is still `%hi/%lo` in the function's prologue. The scratch scored 99.90%
+with `regs=9`, and every diff line was one of those `lui`/`%lo` pairs; the
+unscoped build checksummed. Declare the global normally. A literal
+`*(u8**)0x801828CC` would clear the scorer but would drop the relocation.
+
 ## A store->load alias edge is directional: put the load's statement first and it goes away
 
 `func_actor_102400_80134F60` sat at 92.222% (`reorder=3 delete=1`, one
