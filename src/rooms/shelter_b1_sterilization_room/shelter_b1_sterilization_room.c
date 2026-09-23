@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/session.h"
@@ -7,14 +9,58 @@
 #include "gameplay/1A8.h"
 #include "main/gameflag.h"
 
-extern void     func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
-extern s32      D_shelter_b1_sterilization_room_8018873C;
-extern s32      D_shelter_b1_sterilization_room_80188AB4;
+extern void           func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+extern TaskDesc       D_shelter_b1_sterilization_room_80188504[];
+extern s32            D_shelter_b1_sterilization_room_8018873C;
+extern s32            D_shelter_b1_sterilization_room_80188AB4;
+extern s32            D_80135AC0;
+extern s32            D_80135D78;
+extern s32            D_80136258;
+extern s32            D_shelter_b1_sterilization_room_80184E40;
+extern s32            D_shelter_b1_sterilization_room_80184E7C;
+extern GpObj4A        D_shelter_b1_sterilization_room_8018BF30[];
+extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334;
+
+void func_shelter_b1_sterilization_room_80180340(s32 arg0);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", func_shelter_b1_sterilization_room_8017FABC);
+void func_shelter_b1_sterilization_room_8017FABC(Task* task)
+{
+    Task* target;
+
+    task->msgTable = &D_shelter_b1_sterilization_room_80184E40;
+    Game_SetPtrSlot(task, 7);
+    if (gGameSession->at4.loc.place == 5 && GameFlag_GetNibble(0xEA) == 0) {
+        GameFlag_SetNibble(0xF4, 3);
+        Gp_ApplyAreaRecs(&D_shelter_b1_sterilization_room_8018C334);
+        if (gameGetPtrSlot(0xA) != NULL) {
+            GameFlag_SetNibble(0x116, 1);
+            GameFlag_SetNibble(0xEA, 2);
+            GameFlag_SetNibble(0x4B, 8);
+            func_800E8634((s32)&D_80135D78, 0, (s32)&D_80136258);
+            Gp_SetAreaObjId((GpAreaKey*)&gGameSession->at4.loc, 6, 1);
+        } else {
+            GameFlag_SetNibble(0x116, 2);
+            GameFlag_SetNibble(0xEA, 1);
+            func_800E8634((s32)&D_80135AC0, 0, (s32)&D_80136258);
+        }
+    }
+    func_shelter_b1_sterilization_room_80180340(0);
+    if (gGameSession->at4.loc.place == 5) {
+        target = (Task*)Gp_LookupSlot4(0);
+        if (target != NULL) {
+            Gp_DispatchMsg(target, 0x7DB, (s32)&D_shelter_b1_sterilization_room_80184E7C, 0);
+        }
+    }
+    if (GameFlag_GetNibble(0xEA) != 1) {
+        D_shelter_b1_sterilization_room_8018BF30[0].field_4A &= 0xBF;
+    }
+    if (gGameSession->at4.loc.place == 1) {
+        Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);
+    }
+    task->state++;
+}
 
 s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
 {

@@ -12,7 +12,7 @@ extern s16 D_shelter_b1_sterilization_room_80184E82;
 
 void func_shelter_b1_sterilization_room_80180570(GsCOORDINATE2* coord, s16* arg1);
 
-void func_shelter_b1_sterilization_room_80180340(void)
+void func_shelter_b1_sterilization_room_80180340(s32 arg0)
 {
     Task* slot   = (Task*)Gp_LookupSlot4(0);
     Task* task   = slot;
