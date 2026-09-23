@@ -5,9 +5,12 @@
 #include "main/session.h"
 #include "main/task.h"
 
+extern s16 D_800691CA;
+
 extern s32 D_shelter_b6_training_room_80182B24;
 extern s32 D_shelter_b6_training_room_80183BB4;
 extern s32 D_shelter_b6_training_room_80184124;
+extern s32 D_shelter_b6_training_room_80184274;
 extern s32 D_shelter_b6_training_room_80185C58;
 
 s32 func_shelter_b6_training_room_8017D764(void)
@@ -21,4 +24,14 @@ s32 func_shelter_b6_training_room_8017D764(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D7D4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D874);
+void func_shelter_b6_training_room_8017D874(void)
+{
+    u8 place;
+
+    D_800691CA = 2;
+    place      = gGameSession->at4.loc.place;
+    if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
+        func_800E8614((s32)&D_shelter_b6_training_room_80184274, 0);
+        D_shelter_b6_training_room_80185C58 = 2;
+    }
+}
