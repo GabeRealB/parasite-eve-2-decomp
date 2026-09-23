@@ -138797,6 +138797,12 @@ Check a candidate with gdb on the bundled cc1: break on `alter_reg` and
 **Tooling note.** decomp-permuter normalises stack offsets away unless run with
 `--stack-diffs`; the router's runs could never see this difference.
 
+**Same routine elsewhere.** The neo_ark rooms carry a copy of this ripple loop
+(`func_neo_ark_woodland_path_8017E2E8` and six siblings), and it has the same
+orphan slot. The same construct closed it: `sinArg += 0x1F + (spare >> 16);`,
+with `u16 spare` declared last among the locals. A retry had stalled at 99.86%
+for 69 attempts while it looked for a spilled temporary instead.
+
 ## `do { } while (0)` raises flow's loop weight for the references inside it (func_actor_361100_80161FF8, 2026-09-23)
 
 flow.c adds `loop_depth` to `REG_N_REFS` per reference and counts
