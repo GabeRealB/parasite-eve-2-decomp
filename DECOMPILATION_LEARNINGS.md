@@ -138076,3 +138076,30 @@ D[16].vx = RAND() % 300 - 0x4A1;   /* 100% */
 ```
 
 When the first mention of a global in the hoisted invariants comes out in the wrong order, check whether the target's address is expanded before or after the value.
+
+## An in-loop `p = &global` placed mid-body is the `move sN, fp` copy in the preheader (func_neo_ark_observatory_80180534, 2026-09-23)
+
+Target shape: the function reads `gDisplayState` fields at the top (address in
+`$fp`) and, inside a call-heavy loop, reads `otDepthShift` through `$s7`, set by
+a lone `move s7, fp` in the preheader. Neither obvious spelling gives that:
+using `gDisplayState.` directly lets the hoisted address tie to the top pseudo
+(one register, no copy), and a function-scope `ds = &gDisplayState` becomes a
+`REG_EQUIV` user variable whose live length `update_equiv_regs` doubles, so it
+loses allocation and reload rematerialises `lui/addiu` in the loop.
+
+What matches is `ds = &gDisplayState;` written **inside the loop body**: loop.c
+hoists it and cse2 turns the hoisted set into a copy of the top pseudo. Where it
+sits in the body matters twice over:
+
+- `move_movables` walks movables in insn order and drops `threshold` by 3 per
+  hoist, so a set placed early uses up threshold that later invariants (here a
+  `(s16)level >> 1` that the target recomputes every iteration) needed.
+- Set before another hoisted invariant's source dies (here `(s16)arg1`, whose
+  `arg1 << 16` lives in from the top), the copy conflicts with it and loses its
+  register. Place it after the uses that drive that hoist; right before the
+  primitive is taken from `gGpuPrimCursor` worked.
+
+After that, the last two priority flips (`step` and the half radius each landing
+one callee-saved register off) were fixed by declaring those locals `s16`
+instead of `s32`, with no instruction change. The mechanism behind the flip was
+not traced.

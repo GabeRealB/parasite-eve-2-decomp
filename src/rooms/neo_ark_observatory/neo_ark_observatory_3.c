@@ -24,7 +24,7 @@ extern s16            D_neo_ark_observatory_80187A3C;
 extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
 
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
-void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s32 arg3);
+void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
 extern u8   D_8007216C;
 extern void func_801322F8(void);
