@@ -265,6 +265,54 @@ s32 func_shelter_r47_801801DC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_80180324);
+void func_shelter_r47_80180324(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            SndEvt_EnqueueType6(0x542F0010, 0, 0);
+            task->spawnArg1     = gGameSession->at4.loc.view;
+            task->killCountdown = gGameSession->eventState;
+            task->state++;
+            break;
+        case 1:
+            if (gGameSession->eventState != task->killCountdown) {
+                if (gGameSession->eventState != 0) {
+                    SndEvt_EnqueueType7(0x542F0010, 0x3C);
+                } else {
+                    switch (gGameSession->at4.loc.view) {
+                        case 2:
+                        case 3:
+                            SndEvt_EnqueueType6(0x542F0010, 0, 0);
+                            break;
+                        case 4:
+                            SndEvt_EnqueueType6(0x542F0010, 0xC, 0x58);
+                            break;
+                    }
+                }
+            } else {
+                if (gGameSession->eventState == 0 && gGameSession->viewReady != 0) {
+                    switch (gGameSession->at4.loc.view) {
+                        case 2:
+                        case 3:
+                            SndEvt_EnqueueTypeA(0x542F0010, 0, 0);
+                            break;
+                        case 4:
+                            if (task->spawnArg1 == 3) {
+                                SndEvt_EnqueueTypeA(0x542F0010, 0xC, 0x58);
+                            } else {
+                                SndEvt_EnqueueType6(0x542F0010, 0xC, 0x58);
+                            }
+                            break;
+                        case 5:
+                            SndEvt_EnqueueType7(0x542F0010, 0x3C);
+                            break;
+                    }
+                }
+                task->spawnArg1 = gGameSession->at4.loc.view;
+            }
+            task->killCountdown = gGameSession->eventState;
+            break;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", RoomsShared8017d8d0States);
