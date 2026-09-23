@@ -1,9 +1,11 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -11,12 +13,17 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];
 extern s32     D_dryfield_r08_80180C24;
 
+void func_dryfield_r08_8017DEFC(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3);
+void func_dryfield_r08_8017E36C(GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s32 arg3);
 void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_dryfield_r08_8017D5F8(Task* task)
@@ -93,7 +100,151 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// 8-byte boundary the next one started on.
 const u32 D_dryfield_r08_8017D5D8 SECTION(".rodata") = 0;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_r08/dryfield_r08", func_dryfield_r08_8017D8B4);
+/// Per-frame handler for one animated sprite effect, drawn by
+/// `func_dryfield_r08_8017DEFC` or `func_dryfield_r08_8017E36C`. Its first
+/// frame unpacks `spawnArg1`: the low 12 bits are the sprite size, bits 12..14
+/// the frames per animation cell (1 when zero), bits 28..30 are kept as the
+/// drawer's clut selector, and the sign bit picks the second drawer. When the
+/// work block arrives without a velocity, bits 24..27 choose how one is rolled
+/// from `Gp_LcgState` (0 leaves it still) and it
+/// is normalised to a speed from bits 16..23 (0x40 when zero). Each later frame
+/// draws the current cell, moves the coordinate by the velocity and bends its
+/// Y component, then frees the effect after the drawer's last cell (12 or 10).
+/// While the player is in an event it only draws, and frees once the event
+/// aborts.
+void func_dryfield_r08_8017D8B4(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            step;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        func_dryfield_r08_8017DEFC(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = task->spawnArg1 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 7;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            task->state    = 1;
+            task->state    = task->spawnArg1 < 0 ? 2 : 1;
+            work->field_18 = (task->spawnArg1 >> 16) & 0x7000;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                switch ((task->spawnArg1 >> 24) & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                    case 6:
+                        work->field_10.vy = 0;
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            break;
+        case 1:
+            func_dryfield_r08_8017DEFC(coord, work->field_20 | work->field_18, (s16)work->field_24, (s16)work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                    work->field_10.vy += (s16)work->field_22 / 10;
+                } else {
+                    work->field_10.vy -= 2;
+                }
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 12) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+        case 2:
+            func_dryfield_r08_8017E36C(coord, work->field_20 | work->field_18, (s16)work->field_24, (s16)work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                    work->field_10.vy += (s16)work->field_22 / 10;
+                } else {
+                    work->field_10.vy -= 1;
+                }
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 10) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+    }
+}
 
 /// Same projected, spinning `POLY_FT4` as `func_dryfield_r08_8017E36C`, with
 /// its own texture window: the low 12 bits of `arg1` pick a 48x48 cell from a

@@ -138014,3 +138014,26 @@ into an `s16` local is re-read after every `u16` store through the slot tables,
 because those stores may alias it, while an `s32` local keeps it in one register
 as the target does. And `ori code, 1` is `setShadeTex(p, 1)`; `setSemiTrans`
 sets bit 1 (`ori code, 2`).
+
+## Sign-extending sub-word loads from a shift of the word; `move` before a double store is a ternary (func_dryfield_r08_8017D8B4, 2026-09-23)
+
+**Symptom.** Reading `Task::spawnArg1`'s high half and top byte through the
+`GpEffSpawnArg`/`GpEffSpawnArgHi` overlays gave `lhu 0x36` / `lbu 0x37` where
+the target has `lh` / `lb`: the mask (`& 0x7000`, `& 0xF`) lets GCC prove the
+sign bits dead, and a store into a `u16` field narrows the whole expression.
+**Fix.** Shift the word instead - `(task->spawnArg1 >> 16) & 0x7000` and
+`(task->spawnArg1 >> 24) & 0xF`. Combine turns the shift of a memory word into
+a sign extraction and emits `lh` / `lb` at the right byte offset, with no local.
+
+**Symptom.** `li a0,1` ... `move v0,a0` / `bgez` / `sw v0,0x30` (delay) /
+`li a0,2` / `sw a0,0x30`: two unconditional stores of `task->state`, the first
+through a copy. A `state` local (`state = 1; task->state = state; if (x < 0)
+state = 2; task->state = state;`) stores the constant directly. **Fix.**
+
+```c
+task->state = 1;
+task->state = task->spawnArg1 < 0 ? 2 : 1;
+```
+
+The ternary's pseudo is the `a0` value, and CSE rewrites the first store's
+constant as a copy of it rather than a fresh `li`.
