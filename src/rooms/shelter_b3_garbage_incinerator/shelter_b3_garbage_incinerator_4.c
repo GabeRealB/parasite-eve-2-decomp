@@ -3,6 +3,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -14,18 +15,35 @@ typedef struct {
 
 /// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`.
 /// `field_2C` is the task animation messages are dispatched to, `child` the
-/// task spawned from the room's table, and `field_38` the last animation set
-/// selected.
+/// task spawned from the room's table, `field_34` the task started from spawn
+/// entry 2 when the encounter is armed, `field_38` the last animation set
+/// selected, and `field_3A` the arming state.
 typedef struct {
     byte  pad_0[0x2C];
     Task* field_2C;
     Task* child;
-    byte  pad_34[0x4];
+    Task* field_34;
     s16   field_38;
+    s16   field_3A;
 } GarbageIncineratorWork;
 
+/// Payload of message 0x3F7: a null-terminated pointer table and the number
+/// of live entries the sender counted in it.
+typedef struct {
+    s32* table;
+    s32  count;
+} GarbageIncineratorMsg3F7;
+
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
-extern Task*    D_shelter_b3_garbage_incinerator_8018FC3C;
+
+/// Null-terminated table counted and sent with message 0x3F7 on arming.
+extern s32 D_shelter_b3_garbage_incinerator_80186F78[];
+
+/// Model/animation set installed with `func_800E8614` on arming.
+extern u8 D_shelter_b3_garbage_incinerator_80186FB8[];
+
+void         func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
+extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
@@ -41,7 +59,45 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F410);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F588);
+/// Arms the encounter on state 0: sends `field_2C` message 0x3F7 with the
+/// table and its live-entry count, raises `Gp_StateC08.field_6` bit 0,
+/// installs the model set, hands slot 6 message 0xFA4, starts spawn entry 2
+/// with the task itself and steps to state 1. State 1 returns 1 while
+/// `gGameSession->eventState` is clear; every other path calls
+/// `func_shelter_b3_garbage_incinerator_8017F318` with the task and returns 0.
+s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
+{
+    GarbageIncineratorWork*  work = (GarbageIncineratorWork*)arg0->work;
+    GarbageIncineratorWork*  msgWork;
+    GarbageIncineratorMsg3F7 msg;
+    s32                      n;
+
+    switch (work->field_3A) {
+        case 0:
+            msgWork = work;
+            n       = 0;
+            while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
+                n += 1;
+            }
+            msg.table = &D_shelter_b3_garbage_incinerator_80186F78[0];
+            msg.count = n & 0xFFFF;
+            Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+            Gp_MsgPlayerWeapon(0);
+            Gp_StateC08.field_6 |= 1;
+            func_800E8614((s32)&D_shelter_b3_garbage_incinerator_80186FB8, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, (s32)arg0);
+            work->field_3A = work->field_3A + 1;
+            break;
+        case 1:
+            if (gGameSession->eventState != 0) {
+                break;
+            }
+            return 1;
+    }
+    func_shelter_b3_garbage_incinerator_8017F318(arg0);
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F6D8);
 
