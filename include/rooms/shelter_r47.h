@@ -24,11 +24,12 @@ typedef struct {
     /* 0x00 */ u8           pad_0[4];
     /* 0x04 */ RoomHotspot* hotspots; ///< table hit-tested against the action cursor
     /* 0x08 */ u8           pad_8[2];
-    /* 0x0A */ s16          field_A;
-    /* 0x0C */ u8           pad_C[2];
+    /* 0x0A */ s16          field_A;  ///< width of the first quad drawn by `func_shelter_r47_80183B84`; eases toward `field_E`
+    /* 0x0C */ s16          field_C;  ///< height of that quad; eases toward `field_10`
     /* 0x0E */ s16          field_E;
     /* 0x10 */ s16          field_10;
-    /* 0x12 */ u8           pad_12[4];
+    /* 0x12 */ s16          field_12; ///< width of the second quad drawn by `func_shelter_r47_80183B84`; eases toward `field_16`
+    /* 0x14 */ s16          field_14; ///< height of that quad; eases toward `field_18`
     /* 0x16 */ s16          field_16;
     /* 0x18 */ s16          field_18;
     /* 0x1A */ s16          field_1A; ///< id of the confirmed hotspot
@@ -36,7 +37,8 @@ typedef struct {
     /* 0x1E */ s16          field_1E; ///< target that `field_20` eases toward by a quarter of the gap a frame
     /* 0x20 */ s16          field_20; ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
     /* 0x22 */ u16          fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x24 */ u8           pad_24[4];
+    /* 0x24 */ u8           pad_24[2];
+    /* 0x26 */ u16          field_26; ///< frames the first quad has been fully open; zeroed while it grows
     /* 0x28 */ u8           field_28; ///< `promptKind` of the confirmed hotspot
     /* 0x29 */ u8           field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
     /* 0x2A */ s8           field_2A;

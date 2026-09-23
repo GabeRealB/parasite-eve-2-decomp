@@ -64,6 +64,7 @@ void func_shelter_r47_801832E4(s16 step);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_8018337C(Task* task);
 void func_shelter_r47_801833DC(Task* task, s16 arg1);
+void func_shelter_r47_80183484(Task* task);
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -393,7 +394,49 @@ void func_shelter_r47_801833DC(Task* task, s16 arg1)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183484);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183B84);
+void func_shelter_r47_80183B84(Task* task)
+{
+    ShelterR47State2* state;
+    POLY_FT4*         p;
+
+    state           = (ShelterR47State2*)task->work;
+    state->field_A += (state->field_E - state->field_A) >> 2;
+    state->field_C += (state->field_10 - state->field_C) >> 2;
+    if (state->field_A >= 0xE5) {
+        state->field_A = 0xE8;
+        state->field_C = 0xCE;
+        func_shelter_r47_80183484(task);
+        state->field_2B = 0;
+        state->field_26++;
+    } else {
+        state->field_26 = 0;
+        state->field_2B = 1;
+    }
+
+    p              = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setPolyFT4(p);
+    setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
+    p->tpage = 0x2D;
+    p->clut  = 0x3FC0;
+    p->code |= 3;
+    setXY4(p, -0x4D, -0x67, state->field_A - 0x4D, -0x67, -0x4D, state->field_C - 0x67,
+           state->field_A - 0x4D, state->field_C - 0x67);
+    addPrim(&gGpuCurrentOt[12], p);
+
+    p                = (POLY_FT4*)gGpuPrimCursor;
+    state->field_12 += (state->field_16 - state->field_12) >> 2;
+    state->field_14 += (state->field_18 - state->field_14) >> 2;
+    gGpuPrimCursor   = (u8*)(p + 1);
+    setPolyFT4(p);
+    setUV4(p, 0, 0, 0x50, 0, 0, 0x60, 0x50, 0x60);
+    p->tpage = 0x2E;
+    p->clut  = 0x3FC1;
+    p->code |= 3;
+    setXY4(p, -0x9C, -0x5B, state->field_12 - 0x9C, -0x5B, -0x9C, state->field_14 - 0x5B,
+           state->field_12 - 0x9C, state->field_14 - 0x5B);
+    addPrim(&gGpuCurrentOt[11], p);
+}
 
 void func_shelter_r47_80183E24(void)
 {
