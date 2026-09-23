@@ -13,6 +13,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "rooms/dryfield_water_tower.h"
 #include "rooms/room_common.h"
@@ -593,7 +594,86 @@ s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017E764);
+/// The other cap prop's task, entry 1 of the room's task table and the
+/// counterpart of `func_dryfield_water_tower_8017E1DC`. It shares that prop's
+/// gating -- while `gGameSession->field_65` is set it only raises the model's
+/// skip-draw bit 0x80, and while `Gp_StateC08.field_9` is non-zero it clears
+/// the bit and does nothing else -- and its spawn tick is the same: allocate
+/// the 0x7C-byte `DryfieldWaterTowerState` into `Task::work`, park the slot-3
+/// game task at `field_40`, parent the model to `gGfxViewCoord`, rebuild its
+/// buffers with the block as its light and colour matrices, and hang the
+/// room's script table off `Task::msgTable`.
+///
+/// State 1 idles. States 2 and 3 run the two cap-arrival bodies,
+/// `func_dryfield_water_tower_8017E428` and `func_dryfield_water_tower_8017E5B0`,
+/// each dropping back to state 1 once its body reports arrival. Every frame
+/// that gets past the gates then hands the cap's `workm` translation to
+/// `func_800D7A9C`.
+///
+/// The gate byte is read as a member of `Gp_StateC08`, not as a bare scalar:
+/// `true_dependence` lets the scheduler lift a scalar load above the preceding
+/// struct-member store to `flags`, and the original keeps the two in source
+/// order.
+void func_dryfield_water_tower_8017E764(Task* arg0)
+{
+    DryfieldWaterTowerState* state;
+    TmdObject*               obj;
+    TmdObject*               tmp;
+    TmdObject*               model;
+    GsCOORDINATE2*           coord;
+    VECTOR                   vec;
+
+    obj = (TmdObject*)arg0->extra;
+    if (gGameSession->field_65 != 0) {
+        obj->flags |= 0x80;
+        return;
+    }
+    obj->flags &= 0xFF7F;
+    if ((s8)Gp_StateC08.field_9 != 0) {
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            tmp        = (TmdObject*)arg0->extra;
+            coord      = tmp->coords;
+            state      = (DryfieldWaterTowerState*)Mem_Malloc(0x7C, false);
+            arg0->work = (TaskIdMap*)state;
+            if (state == NULL) {
+                taskKill(arg0);
+            } else {
+                Mem_Set(state, 0, 0x7C);
+                state->field_40 = gameGetPtrSlot(3);
+                coord->sub      = &gGfxViewCoord;
+                tmp->flags      = 0;
+                Tmd_AllocBuffers(tmp);
+                tmp->colorMtx  = (MATRIX*)state + 1;
+                tmp->lightMtx  = (MATRIX*)state;
+                arg0->msgTable = &D_dryfield_water_tower_80181B00;
+            }
+            arg0->state++;
+            break;
+
+        case 1:
+            break;
+
+        case 2:
+            if ((func_dryfield_water_tower_8017E428(arg0) & 0xFFFF) != 0) {
+                arg0->state = 1;
+            }
+            break;
+
+        case 3:
+            if ((func_dryfield_water_tower_8017E5B0(arg0) & 0xFFFF) != 0) {
+                arg0->state = 1;
+            }
+            break;
+    }
+    model  = (TmdObject*)arg0->extra;
+    vec.vx = model->coords->workm.t[0];
+    vec.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
+    vec.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    func_800D7A9C(model, &vec, 0, 3);
+}
 
 /// The cap script's command dispatcher, run once per frame on the task that
 /// `func_dryfield_water_tower_8017F128` allocates the state block for: the
