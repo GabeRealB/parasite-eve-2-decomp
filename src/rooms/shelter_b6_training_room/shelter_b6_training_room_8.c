@@ -1,11 +1,13 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 extern s32            D_80070F70;
 extern u32            Gp_LcgState;
 extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
+extern SVECTOR        D_shelter_b6_training_room_80184334[];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017F8B8);
 
@@ -54,7 +56,25 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_801826E0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80182804);
+void func_shelter_b6_training_room_80182804(Task* task)
+{
+    GpEffWork* mem;
+
+    mem = task->spawnArg2;
+    if (mem->age >= 0x15) {
+        Gp_ReleaseState1CMem(mem, task);
+        return;
+    }
+    if (Gp_State1C->eventState == 0) {
+        mem->age++;
+        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+        mem->scale  += ((Gp_LcgState >> 16) & 0x1FF) + 0x200;
+        mem->move.vx = D_shelter_b6_training_room_80184334[24].vx + ((rcos(mem->scale) * 1000) >> 12);
+        mem->move.vy = D_shelter_b6_training_room_80184334[24].vy - mem->age * 200;
+        mem->move.vz = D_shelter_b6_training_room_80184334[24].vz + ((rsin(mem->scale) * 1000) >> 12);
+        Gp_SpawnEff(0x601AE, NULL, 0, &mem->move);
+    }
+}
 
 void func_shelter_b6_training_room_8018294C(Task* task)
 {
