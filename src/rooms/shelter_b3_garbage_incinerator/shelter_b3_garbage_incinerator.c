@@ -1,4 +1,7 @@
 #include "common.h"
+
+extern u16 D_shelter_b3_garbage_incinerator_801855DC;
+
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017D6EC);
@@ -23,6 +26,13 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DB7C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DC54);
+void func_shelter_b3_garbage_incinerator_8017DC54(void)
+{
+    char pad[0x10];
+
+    if (D_shelter_b3_garbage_incinerator_801855DC < 0x3D) {
+        D_shelter_b3_garbage_incinerator_801855DC++;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", jtbl_shelter_b3_garbage_incinerator_8017D5E8);
