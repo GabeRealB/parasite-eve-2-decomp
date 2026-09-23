@@ -18,11 +18,7 @@
 /// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0x18];
-    /* 0x18 */ s16 field_18; ///< committed to game flag 0xAC when the script ends
-    /* 0x1A */ s16 field_1A; ///< committed to game flag 0xD5 when the script ends
-    /* 0x1C */ s16 field_1C; ///< committed to game flag 0xAE when the script ends
-    /* 0x1E */ s16 field_1E; ///< committed to game flag 0xD6 when the script ends
-    /* 0x20 */ s16 field_20; ///< committed to game flag 0xD2 when the script ends
+    /* 0x18 */ s16 field_18[5]; ///< one-bit toggles, committed to game flags 0xAC, 0xD5, 0xAE, 0xD6 and 0xD2 when the script ends
     /* 0x22 */ u8  pad_22[0x12];
     /* 0x34 */ union {
         u16 word;        ///< the high byte gates whether the action prompt keeps its kind
@@ -41,10 +37,11 @@ typedef struct {
     /* 0x4A */ s8  promptKind; ///< display mode forwarded to `func_800D4E78`
     /* 0x4B */ u8  pad_4B[3];
     /* 0x4E */ u8  field_4E;   ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
-    /* 0x4F */ s8  field_4F;   ///< selects which of the five halves from `field_18` a step toggles
+    /* 0x4F */ s8  field_4F;   ///< selects which toggle in `field_18` a step flips
     /* 0x50 */ u8  pad_50;
     /* 0x51 */ s8  field_51;
-    /* 0x52 */ u8  pad_52[2];
+    /* 0x52 */ s8  field_52; ///< mirrors toggle 3 of `field_18`
+    /* 0x53 */ u8  pad_53;
 } ShelterR47State;
 STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 
@@ -80,6 +77,7 @@ extern s16       Gp_MenuLockDelay;
 extern s16       D_80114D08;
 extern GpAreaKey D_8007216C;
 extern u8        D_shelter_r47_80186FAC[];
+extern u8        D_shelter_r47_80186FAD;
 extern s16       D_shelter_r47_801875EC[];
 extern s16       D_shelter_r47_801875F8[][2];
 
@@ -380,14 +378,44 @@ void func_shelter_r47_8018337C(Task* task)
     ShelterR47State* state;
 
     state = (ShelterR47State*)task->work;
-    GameFlag_SetNibble(0xAC, state->field_18);
-    GameFlag_SetNibble(0xD5, state->field_1A);
-    GameFlag_SetNibble(0xAE, state->field_1C);
-    GameFlag_SetNibble(0xD6, state->field_1E);
-    GameFlag_SetNibble(0xD2, state->field_20);
+    GameFlag_SetNibble(0xAC, state->field_18[0]);
+    GameFlag_SetNibble(0xD5, state->field_18[1]);
+    GameFlag_SetNibble(0xAE, state->field_18[2]);
+    GameFlag_SetNibble(0xD6, state->field_18[3]);
+    GameFlag_SetNibble(0xD2, state->field_18[4]);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801833DC);
+/// Flips toggle `arg1` of `field_18`. Toggle 1 also publishes the area view
+/// (0x12 or 0x24), and toggle 3 is mirrored into `field_52`.
+void func_shelter_r47_801833DC(Task* task, s16 arg1)
+{
+    ShelterR47State* state;
+
+    state                 = (ShelterR47State*)task->work;
+    state->field_18[arg1] = (state->field_18[arg1] + 1) & 1;
+    switch (arg1) {
+        case 0:
+        case 2:
+        case 4:
+            break;
+        case 1:
+            if (!(state->field_18[1] & 1)) {
+                D_shelter_r47_80186FAD = 0x12;
+                D_8007216C.view        = 0x12;
+            } else {
+                D_shelter_r47_80186FAD = 0x24;
+                D_8007216C.view        = 0x24;
+            }
+            break;
+        case 3:
+            if (!(state->field_18[3] & 1)) {
+                state->field_52 = 0;
+            } else {
+                state->field_52 = 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183484);
 
