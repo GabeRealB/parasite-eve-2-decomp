@@ -10,6 +10,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017ecb4.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).
@@ -52,20 +53,25 @@ STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 /// `memCalloc(0x30)` in its state-0 entry `func_shelter_r47_8018431C`, stored
 /// at `Task::work`.
 typedef struct {
-    /* 0x00 */ u8  pad_0[0xA];
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  pad_C[0xA];
-    /* 0x16 */ s16 field_16;
-    /* 0x18 */ s16 field_18;
-    /* 0x1A */ u8  pad_1A[2];
-    /* 0x1C */ s16 field_1C;
-    /* 0x1E */ s16 field_1E; ///< target that `field_20` eases toward by a quarter of the gap a frame
-    /* 0x20 */ s16 field_20; ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
-    /* 0x22 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x24 */ u8  pad_24[5];
-    /* 0x29 */ u8  field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
-    /* 0x2A */ s8  field_2A;
-    /* 0x2B */ u8  pad_2B[5];
+    /* 0x00 */ u8           pad_0[4];
+    /* 0x04 */ RoomHotspot* hotspots; ///< table hit-tested against the action cursor
+    /* 0x08 */ u8           pad_8[2];
+    /* 0x0A */ s16          field_A;
+    /* 0x0C */ u8           pad_C[0xA];
+    /* 0x16 */ s16          field_16;
+    /* 0x18 */ s16          field_18;
+    /* 0x1A */ s16          field_1A; ///< id of the confirmed hotspot
+    /* 0x1C */ s16          field_1C;
+    /* 0x1E */ s16          field_1E; ///< target that `field_20` eases toward by a quarter of the gap a frame
+    /* 0x20 */ s16          field_20; ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
+    /* 0x22 */ u16          fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
+    /* 0x24 */ u8           pad_24[4];
+    /* 0x28 */ u8           field_28; ///< `promptKind` of the confirmed hotspot
+    /* 0x29 */ u8           field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
+    /* 0x2A */ s8           field_2A;
+    /* 0x2B */ s8           field_2B; ///< non-zero holds the prompt off
+    /* 0x2C */ s8           field_2C; ///< countdown; a sound plays as it reaches zero
+    /* 0x2D */ u8           pad_2D[3];
 } ShelterR47State2;
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
@@ -85,6 +91,7 @@ void func_shelter_r47_801832E4(s16 step);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_8018337C(Task* task);
 void func_shelter_r47_801833DC(Task* task, s16 arg1);
+void func_shelter_r47_801851B8(Task* task);
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -512,7 +519,62 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_4", D_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_8018431C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801844A0);
+/// Idle state of the second cap script. It counts `field_2C` down (with a
+/// sound on reaching zero), runs `func_shelter_r47_801851B8`, and while no cap
+/// is running and `field_2B` is clear, hit-tests the cursor against `hotspots`.
+/// A confirmed hit (`buttons[0].state == 2`) latches the hotspot's `id` and
+/// `promptKind` and advances to state 3; `buttons[1].state == 2` advances to
+/// state 5 when `field_2A` is 0 and otherwise starts cap slot 0x25. `field_2A`
+/// of 3 moves straight to state 9.
+void func_shelter_r47_801844A0(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    ShelterR47State2* st     = (ShelterR47State2*)task->work;
+    RoomHotspot*      hs     = st->hotspots;
+
+    if (st->field_2C != 0) {
+        if (--st->field_2C == 0) {
+            SndEvt_EnqueueType6(0x542F0003, 0, 0);
+        }
+    }
+    func_shelter_r47_801851B8(task);
+    gGameSession->hideHud    = 1;
+    gGameSession->eventState = 1;
+    if ((Gp_CapBusy() != 0) || (st->field_2B != 0)) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    if (st->field_2A == 3) {
+        task->state = 9;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if (prompt->buttons[0].state == 2) {
+            for (; hs->id != -1; hs++) {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    st->field_1A     = hs->id;
+                    st->field_28     = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        if (st->field_2A == 0) {
+            task->state = 5;
+            return;
+        }
+        Gp_StartCapSlot(0x25, 0, 0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80184658);
 
