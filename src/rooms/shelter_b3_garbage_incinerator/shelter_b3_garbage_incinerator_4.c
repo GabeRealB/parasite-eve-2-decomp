@@ -34,6 +34,16 @@ typedef struct {
     s32  count;
 } GarbageIncineratorMsg3F7;
 
+/// One window of the caption schedule: while the scene clock lies in
+/// (`field_4 * 30`, `field_0 * 30`], caption script `field_8` is started at
+/// line key `field_C`. A `field_0` of -1 ends the table.
+typedef struct {
+    s32 field_0;
+    s32 field_4;
+    s32 field_8;
+    s32 field_C;
+} GarbageIncineratorCapWindow;
+
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
 
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
@@ -56,6 +66,12 @@ extern s16 D_80073BA0;
 /// animation-set id and `D_8007218A` selects the alternate range when it is 1.
 extern u8 D_80073BA9;
 extern s8 D_8007218A;
+
+/// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
+extern GarbageIncineratorCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
+extern u8                          D_801153F4;
+void                               RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
+void                               func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F0A8);
 
@@ -199,7 +215,44 @@ void func_shelter_b3_garbage_incinerator_8017FA3C(void)
     gGameSession->restartMode = 3;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FA58);
+/// Drives the caption schedule: state 0 arms it, and state 1 scans
+/// `D_shelter_b3_garbage_incinerator_801871A8` for the first window containing
+/// `gGameSession->sceneClock`; when one is found its script is started at its
+/// line key with the low half of the task's `spawnArg1`. The clock then ticks
+/// down one unless the caption system is busy or `D_801153F4` is set.
+void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
+{
+    s32 i;
+    s32 script;
+    s32 key;
+    s32 time;
+
+    switch (task->state) {
+        case 0:
+            task->state = 1;
+            break;
+        case 1:
+            script = 0;
+            key    = arg1;
+            for (i = 0; D_shelter_b3_garbage_incinerator_801871A8[i].field_0 != -1; i++) {
+                time = gGameSession->sceneClock;
+                if ((D_shelter_b3_garbage_incinerator_801871A8[i].field_0 * 30 >= time) &&
+                    (D_shelter_b3_garbage_incinerator_801871A8[i].field_4 * 30 < time)) {
+                    script = D_shelter_b3_garbage_incinerator_801871A8[i].field_8;
+                    key    = D_shelter_b3_garbage_incinerator_801871A8[i].field_C;
+                    break;
+                }
+            }
+            if (script != 0) {
+                RoomsShared801830f0Sub(script, key, (s16)task->spawnArg1);
+                func_shelter_b3_garbage_incinerator_8017FB80();
+            }
+            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+                gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FB80);
 
