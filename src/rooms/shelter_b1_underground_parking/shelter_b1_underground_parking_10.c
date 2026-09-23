@@ -3,6 +3,7 @@
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
@@ -15,7 +16,18 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184304);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_801843F0);
+void func_shelter_b1_underground_parking_801843F0(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    func_shelter_b1_underground_parking_80183B9C();
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    Gp_RunCapCmd(GameFlag_GetNibble(0xE7) == 0 ? 2 : 3, 0);
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184468);
 
