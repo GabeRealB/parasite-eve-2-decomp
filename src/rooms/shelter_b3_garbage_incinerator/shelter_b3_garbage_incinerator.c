@@ -8,6 +8,8 @@
 extern u16        D_shelter_b3_garbage_incinerator_801855DC;
 extern TaskDesc   D_shelter_b3_garbage_incinerator_801855E0;
 extern TaskDesc   D_8016BFE0;
+extern TaskDesc   D_801449F4;
+extern s16        D_shelter_b3_garbage_incinerator_801855DE;
 extern GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[];
 extern Task*      D_shelter_b3_garbage_incinerator_801855D8;
 extern TaskDesc   D_shelter_b3_garbage_incinerator_80185BA0;
@@ -47,7 +49,24 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(s32 arg0, s32 arg1, RoomEventMs
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017DA74);
+s32 func_shelter_b3_garbage_incinerator_8017DA74(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 0:
+            Gp_DispatchMsg(D_shelter_b3_garbage_incinerator_801855D8, 0x13F4, 0, 0);
+            break;
+        case 1:
+            gGameSession->skipEventIntro = 1;
+            Task_SpawnFromTable(&D_801449F4, 0, 0, 0);
+            break;
+        case 2:
+            gGameSession->skipEventIntro              = 1;
+            D_shelter_b3_garbage_incinerator_801855DE = 1;
+            Task_SpawnFromTable(&D_801449F4, 0, 1, 0);
+            break;
+    }
+    return 0;
+}
 
 s32 func_shelter_b3_garbage_incinerator_8017DB2C(s32 arg0, s32 arg1, s32 arg2)
 {
