@@ -26,6 +26,9 @@ extern s16 D_neo_ark_altar_801800AC;
 extern s16 D_neo_ark_altar_801800AE;
 extern s16 D_neo_ark_altar_801800B0[];
 
+extern s16 D_neo_ark_altar_8017F050[];
+extern s16 D_neo_ark_altar_8017F068[];
+
 extern NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
 extern GpAreaApplyRec  D_neo_ark_altar_8018007C[];
 
@@ -163,7 +166,110 @@ void func_neo_ark_altar_8017E148(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E260);
+s16 func_neo_ark_altar_8017E260(Task* task)
+{
+    NeoArkAltarWork* work;
+    s32              i;
+    s32              bad1;
+    s32              bad2;
+
+    bad1 = 0;
+    work = (NeoArkAltarWork*)task->work;
+    bad2 = 0;
+    if (D_neo_ark_altar_801800AC == 0) {
+        return 0;
+    }
+    if (GameFlag_GetNibble(0xDC) == 0) {
+        for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
+            if (D_neo_ark_altar_8017F050[i] != D_neo_ark_altar_801800B0[i]) {
+                goto fail1;
+            }
+            if (i == 11) {
+                return 1;
+            }
+        }
+    } else {
+    fail1:
+        bad1 = 1;
+    }
+    if (work->field_E != 0) {
+        if (D_neo_ark_altar_8017F050[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad1 == 1) {
+            if (work->field_E == 1) {
+                SndEvt_EnqueueType6(0x55140008, 0, 0);
+            }
+            if (work->field_E == 2) {
+                SndEvt_EnqueueType6(0x55140009, 0, 0);
+            }
+            if (work->field_E == 3) {
+                SndEvt_EnqueueType6(0x5514000A, 0, 0);
+            }
+            if (work->field_E == 4) {
+                SndEvt_EnqueueType6(0x5514000B, 0, 0);
+            }
+        } else {
+            if (work->field_E == 1) {
+                SndEvt_EnqueueType6(0x55140001, 0, 0);
+            }
+            if (work->field_E == 2) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+            if (work->field_E == 3) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+            if (work->field_E == 4) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+        }
+    }
+    if (GameFlag_GetNibble(0xDD) == 0) {
+        for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
+            if (D_neo_ark_altar_8017F068[i] != D_neo_ark_altar_801800B0[i]) {
+                goto fail2;
+            }
+            if (i == 15) {
+                SndEvt_EnqueueType6(0x5514000C, 0, 0);
+                return 2;
+            }
+        }
+    } else {
+    fail2:
+        bad2 = 1;
+    }
+    if (work->field_E != 0) {
+        if (D_neo_ark_altar_8017F068[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad2 == 1) {
+            if (work->field_E == 1) {
+                SndEvt_EnqueueType6(0x55140008, 0, 0);
+            }
+            if (work->field_E == 2) {
+                SndEvt_EnqueueType6(0x55140009, 0, 0);
+            }
+            if (work->field_E == 3) {
+                SndEvt_EnqueueType6(0x5514000A, 0, 0);
+            }
+            if (work->field_E == 4) {
+                SndEvt_EnqueueType6(0x5514000B, 0, 0);
+            }
+        } else {
+            if (work->field_E == 1) {
+                SndEvt_EnqueueType6(0x55140001, 0, 0);
+            }
+            if (work->field_E == 2) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+            if (work->field_E == 3) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+            if (work->field_E == 4) {
+                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            }
+        }
+    }
+    if (bad1 == 1 && bad2 == bad1) {
+        func_neo_ark_altar_8017E148();
+        return 0;
+    }
+    return 3;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E658);
 
