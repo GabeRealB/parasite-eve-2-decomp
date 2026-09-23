@@ -32,10 +32,23 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 extern s32 Gp_LcgState;
 
-/// Muzzle offset of the MP5A5, in the firing hand's coordinate frame.
+/// Upgrade level this build is for: 0 for the MP5A5, 1 for the MP5A5(+1), 2 for
+/// the MP5A5(+2). The three packages are this source built once each, and each
+/// declares its level in the manifest.
+#ifndef MP5A5_LEVEL
+#error "MP5A5_LEVEL is a per-package build parameter"
+#endif
+
+/// The weapon's index. It also keys the firing sounds and the actor's shot id.
+#define MP5A5_WEAPON (0x1E + MP5A5_LEVEL)
+
+/// The item the magazine's rounds are taken from.
+#define MP5A5_ITEM (0x9D + MP5A5_LEVEL)
+
+/// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
 
-/// Per-frame muzzle-flash task for the MP5A5. Frame 0 claims room-coord slot 0
+/// Per-frame muzzle-flash task for the MP5A5 and its upgrades. Frame 0 claims room-coord slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own
 /// coordinate on the muzzle offset under the hand frame, and rolls the flash
 /// size (`scale`), its spin (`angle`) and the four quad angles; every
@@ -296,13 +309,13 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     *scratch = (u8*)*scratch + sizeof(WeaponQuadScratch);
 }
 
-/// Per-frame firing state machine for the MP5A5. State 0 arms the shot and
+/// Per-frame firing state machine for the MP5A5 and its upgrades. State 0 arms the shot and
 /// starts the raise animation (clip 5 instead of 1 when the weapon was already
 /// up), state 1 waits for that clip, and states 2/3 count `field_934` down to
 /// the frame the round leaves the barrel. That frame branches on `field_97F`:
-/// single fire (`== 1`) spends one round, plays `0x201E0004`, spawns the plain
+/// single fire (`== 1`) spends one round, plays sound 4 of the weapon's bank, spawns the plain
 /// muzzle flash and runs the recoil clip, while burst fire spends 0x101, plays
-/// `0x201E0005`, holds the pose for 0x12 frames and reparents the longer flash
+/// sound 5, holds the pose for 0x12 frames and reparents the longer flash
 /// effect under the weapon task. States 4/5 pick the lock-on target once (only
 /// while still below 6) and state 6 loops back to `fire` while the trigger is
 /// held, the ammo check passes and the burst timer has run out.
@@ -361,29 +374,29 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     actor->field_95E  = 4;
                     actor->field_934  = 3;
                     actor->field_940  = 0;
-                    actor->field_124  = Player_Status.weaponSlotItem | 0x21E00;
+                    actor->field_124  = Player_Status.weaponSlotItem | 0x20000 | (MP5A5_WEAPON << 8);
                     rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201E0004, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (MP5A5_WEAPON << 16), 1);
                     Gp_SpawnEff(0x6002B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                                0x1E, NULL);
-                    Gp_ConsumeSlotQty(0x9D, 1);
+                                MP5A5_WEAPON, NULL);
+                    Gp_ConsumeSlotQty(MP5A5_ITEM, 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                 } else {
                     actor->field_95E  = 5;
                     actor->field_940  = 0x12;
                     actor->field_934  = 0x12;
-                    actor->field_124  = 0x21E16;
+                    actor->field_124  = 0x20016 | (MP5A5_WEAPON << 8);
                     rec->end0Radius   = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x201E0005, 0);
-                    Gp_ConsumeSlotQty(0x9D, 0x101);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000005 | (MP5A5_WEAPON << 16), 0);
+                    Gp_ConsumeSlotQty(MP5A5_ITEM, 0x101);
                     eff = Gp_SpawnEff(0x60041,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                                      0x1E, NULL);
+                                      MP5A5_WEAPON, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);
                     }

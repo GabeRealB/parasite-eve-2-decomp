@@ -251,35 +251,19 @@ objects = [
 
 [weapons.overlays.mp5a5]
 label = "MP5A5"
-id = 37
+# One source built three times: the upgrades differ from the base weapon only
+# in the weapon index and item id, both derived from MP5A5_LEVEL.
+slots = [
+  { package = "mp5a5", id = 37, label = "MP5A5", defines = { MP5A5_LEVEL = 0 } },
+  { package = "mp5a5_p1", id = 38, label = "MP5A5(+1)", defines = { MP5A5_LEVEL = 1 } },
+  { package = "mp5a5_p2", id = 39, label = "MP5A5(+2)", defines = { MP5A5_LEVEL = 2 } },
+]
 objects = [
   { kind = "packageId" },
-  { unit = "mp5a5/mp5a5", rodata = "0x4", text = "0x20", data = "0xF68" },
+  { unit = "mp5a5", variant = true, rodata = "0x4", text = "0x20", data = "0xF68" },
   { kind = "model", at = "0xF70" },
   { kind = "data", at = "0x1960" },
   { unit = "mp5a5/mp5a5_work", data = "0xE348" },
-]
-
-[weapons.overlays.mp5a5_p1]
-label = "MP5A5(+1)"
-id = 38
-objects = [
-  { kind = "packageId" },
-  { unit = "mp5a5_p1/mp5a5_p1", rodata = "0x4", text = "0x20", data = "0xF68" },
-  { kind = "model", at = "0xF70" },
-  { kind = "data", at = "0x1960" },
-  { unit = "mp5a5_p1/mp5a5_p1_work", data = "0xE348" },
-]
-
-[weapons.overlays.mp5a5_p2]
-label = "MP5A5(+2)"
-id = 39
-objects = [
-  { kind = "packageId" },
-  { unit = "mp5a5_p2/mp5a5_p2", rodata = "0x4", text = "0x20", data = "0xF68" },
-  { kind = "model", at = "0xF70" },
-  { kind = "data", at = "0x1960" },
-  { unit = "mp5a5_p2/mp5a5_p2_work", data = "0xE348" },
 ]
 
 [weapons.overlays.p08]

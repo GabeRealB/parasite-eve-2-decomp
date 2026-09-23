@@ -293,7 +293,8 @@ def write_package_id(family: str, package: str) -> None:
 
 
 def object_subsegments(
-    name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int
+    name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int,
+    entry_name: str | None = None, defines: dict | None = None,
 ) -> str:
     """The package layout as splat subsegment lines, from the manifest's object list.
 
@@ -332,12 +333,25 @@ def object_subsegments(
             raise SystemExit(f"{name}: library unit {unit} has no text run")
         path = f"lib/{unit}" if lib else (
             unit if "/" in unit else f"{name}/{unit}")
+        # A variant unit is one source compiled once per package with that
+        # package's defines: the object is named per package, the source is the
+        # entry's. It only exists where the packages declare what differs.
+        variant = obj.get("variant", False)
+        if variant:
+            if "/" in unit or lib or "text" not in obj:
+                raise SystemExit(f"{name}: variant unit {unit} must be a bare, non-library unit with a text run")
+            if not defines:
+                raise SystemExit(f"{name}: variant unit {unit}, but the slot declares no `defines`")
         # A library unit's source is src/lib/, shared by every family.
         text = "libsrc" if lib else "c"
         for key, sect in (("rodata", ".rodata"), ("text", text), ("data", ".data")):
             if key in obj:
                 at = int(str(obj[key]), 16)
-                lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
+                if variant and key == "text":
+                    lines.append((at, f"      - {{start: 0x{at:X}, type: variantsrc, name: {path}, "
+                                      f"source: {entry_name}/{unit}}}"))
+                else:
+                    lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
     out = [line for _, line in sorted(lines, key=lambda t: t[0])]
     out.extend(trailing_segment(name, data))
     return "\n".join(out)
@@ -580,7 +594,9 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
     written: list[Path] = []
     seen: dict[bytes, str] = {}
     slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+    entry_names = {id(e): n for n, e in spec["overlays"].items()}
     for name, slot, entry in slot_packages(spec):
+        entry_name = entry_names[id(entry)]
         target = PACKAGE_DIR / f"{name}.pe2pkg"
         if not target.is_file():
             raise SystemExit(
@@ -642,6 +658,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "SUBSEGMENTS": object_subsegments(
                 name, family, entry["objects"], data, load,
                 slot.get("id", entry.get("id")),
+                entry_name, slot.get("defines"),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)

@@ -219,8 +219,10 @@ PERMUTER_DIR = Path("permuter")
 # C compiled from here, while their asm stays under the linking family.
 LIB_SRC_DIR = Path("src/lib")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
+# A unit one source builds once per package, each with that package's defines.
+VARIANT_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "variantsrc.py"
 # splat subsegment types that compile a C source.
-C_SEGMENT_TYPES = ("c", "libsrc")
+C_SEGMENT_TYPES = ("c", "libsrc", "variantsrc")
 
 if sys.platform == "win32":
     PLATFORM = Platform.Windows
@@ -443,7 +445,7 @@ def compile_commands_entry(
     return {
         "directory": os.getcwd(),
         "file": source_path,
-        "command": f"clang {COMPILE_COMMANDS_FLAGS} -DVER_{GAME_VERSIONS[game_version_idx].version_name} {non_matching} -m32 -o {target_path}.i {source_path}",
+        "command": f"clang {COMPILE_COMMANDS_FLAGS} -DVER_{GAME_VERSIONS[game_version_idx].version_name} {non_matching} {package_define_flags(target_path)} -m32 -o {target_path}.i {source_path}",
     }
 
 
@@ -468,6 +470,36 @@ def package_ids() -> dict[str, int]:
                     continue
                 out[f"src/{family}/{slot['package']}/packageid.c"] = int(slot["id"])
     return out
+
+
+@functools.lru_cache(maxsize=1)
+def package_defines() -> dict[str, dict]:
+    """Each package's declared build parameters, keyed by its source directory.
+
+    A package built from a shared source with a parameter - the MP5A5 and its
+    upgrades are one source, differing in a weapon index and item id - declares
+    the value in the manifest (`defines` on its slot). Every object under the
+    package's own directory is compiled with it: that is its per-package
+    variant units, and its id unit, which ignores it.
+    """
+    manifest = tomllib.loads(Path("configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    out: dict[str, dict] = {}
+    for family, spec in manifest.items():
+        for name, entry in spec.get("overlays", {}).items():
+            for slot in entry.get("slots") or []:
+                if slot.get("defines"):
+                    out[f"src/{family}/{slot['package']}/"] = dict(slot["defines"])
+    return out
+
+
+def package_define_flags(target_path: str) -> str:
+    """`-D` flags for an object under a package that declares defines."""
+    rel = re.sub(r"\\", "/", target_path)
+    rel = re.sub(r"^build/[^/]+/", "", rel)
+    for prefix, defines in package_defines().items():
+        if rel.startswith(prefix):
+            return " ".join(f"-D{k}={v}" for k, v in sorted(defines.items()))
+    return ""
 
 
 def package_id_flag(source_path: str) -> str:
@@ -555,7 +587,7 @@ def ninja_setup_list_add_source(
                 "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
                 "SKIPASMFLAG": skip_asm,
                 "NONMATCHINGFLAG": non_matching,
-                "PKGID": package_id_flag(source_path),
+                "PKGID": f"{package_id_flag(source_path)} {package_define_flags(target_path)}".strip(),
             },
         )
 
@@ -1229,8 +1261,8 @@ def split_inputs(yaml: str, version_dir: str, basename: str, c_sources: list[str
     paths += [CONFIG_DIR / version_dir / f"sym.{basename}.imports.txt"]
     paths += [Path(c) for c in c_sources]
     if options.get("extensions_path"):
-        # The segment type that places a library unit's source.
-        paths.append(LIB_SPLAT_EXT)
+        # The segment types that place a library or variant unit's source.
+        paths += [LIB_SPLAT_EXT, VARIANT_SPLAT_EXT]
     return paths
 
 
@@ -1367,11 +1399,13 @@ def split_one(job: tuple) -> YamlInfo:
         seg = split.config["segments"][0]
         text_sub = next(
             (s for s in seg.get("subsegments", [])
-             if len(s) > 2 and s[1] in C_SEGMENT_TYPES),
+             if (s.get("type") if isinstance(s, dict) else (s[1] if len(s) > 2 else None))
+             in C_SEGMENT_TYPES),
             None,
         )
         if text_sub is not None:
-            check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
+            check_overlay_text_span(family, basename, seg["vram"],
+                                    text_sub["start"] if isinstance(text_sub, dict) else text_sub[0])
 
     entries = []
     for entry in split.linker_writer.entries:
