@@ -254,4 +254,16 @@ void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
 /// world matrix from the new translation.
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
 
+/// The game-wide LCG every effect draw steps as `state * 5 + 0x71357911`,
+/// taking its upper half as the random value.
+extern u32 Gp_LcgState;
+
+/// Data block in the room's trailing blob that
+/// `func_dryfield_breezeway_8017FF7C` hands to both of the per-view drawers
+/// below, together with the room task's coordinate frame.
+extern u8 D_dryfield_breezeway_80183164[];
+
+void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
+void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
+
 #endif // ROOMS_DRYFIELD_BREEZEWAY_H
