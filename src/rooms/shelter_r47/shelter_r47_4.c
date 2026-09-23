@@ -37,7 +37,8 @@ typedef struct {
     /* 0x48 */ s16 field_48;
     /* 0x4A */ u8  pad_4A[4];
     /* 0x4E */ u8  field_4E; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
-    /* 0x4F */ u8  pad_4F[2];
+    /* 0x4F */ s8  field_4F; ///< selects which of the five halves from `field_18` a step toggles
+    /* 0x50 */ u8  pad_50;
     /* 0x51 */ s8  field_51;
     /* 0x52 */ u8  pad_52[2];
 } ShelterR47State;
@@ -73,6 +74,7 @@ extern u8        D_shelter_r47_80186FAC[];
 s32 func_shelter_r47_80180C48(Task* task);
 
 void func_shelter_r47_8018337C(Task* task);
+void func_shelter_r47_801833DC(Task* task, s16 arg1);
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -188,7 +190,36 @@ void func_shelter_r47_80183068(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801830B8);
+void func_shelter_r47_801830B8(Task* task)
+{
+    ShelterR47State* state;
+
+    state = (ShelterR47State*)task->work;
+    func_shelter_r47_801833DC(task, state->field_4F);
+    func_shelter_r47_80181914(task, 0);
+    switch (state->step) {
+        case 0:
+            GameFlag_SetNibble(0x1C6, 2);
+            break;
+        case 1:
+            GameFlag_SetNibble(0x1C6, 0);
+            break;
+        case 4:
+            GameFlag_SetNibble(0x1C4, 2);
+            break;
+        case 5:
+            GameFlag_SetNibble(0x1C4, 0);
+            break;
+        case 2:
+        case 3:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            break;
+    }
+    task->state++;
+}
 
 void func_shelter_r47_80183170(Task* task)
 {
@@ -254,6 +285,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183FF4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80184124);
+
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_4", D_shelter_r47_8017D7DC);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_8018431C);
 
