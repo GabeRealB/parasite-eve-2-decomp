@@ -137737,3 +137737,41 @@ into, give the block real members before tuning the scheduling.
 Input `base_12.i` SHA256
 `8fc90ce71d69e3c8bf8c45b4936f90cb64fc6bc55616955cb417171217874ef1`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+
+## A one-insn tail after a label always cross-jumps; duplicate the assignment before it into both inner arms (func_actor_361100_80161FF8, 2026-09-23)
+
+The ROM had its own `j END; li s2,0xa0` tail inside one arm of an if/else
+chain, while two sibling arms ending `x0 = -0xA0; x1 = 0xA0;` were merged. Every
+spelling that ended the arm with `if (c) nprims = 2; x1 = 0xA0;` had its
+`x1 = 0xA0` merged into the pair. `find_cross_jump` compares backwards from the
+jump. After the one matching `s2 = 0xA0` it reaches the join label, and a
+`CODE_LABEL` decrements the minimum, so one insn is enough.
+
+What survives is a tail whose insn before `x1` is *not* a label and differs from
+the pairs:
+
+```c
+if (y < 0xB7) { nprims = 2; x0 = 0x57; } else { x0 = 0x57; }
+x1 = 0xA0;
+```
+
+jump2 first merges the inner arm's `x0 = 0x57` into the else (fallthrough,
+minimum 1). That deletes the join label, leaving `L: x0 = 0x57; x1 = 0xA0; j END`.
+Against the `-0xA0/0xA0` pairs only one insn matches, which is under the minimum
+of 2. reorg then puts `x0 = 0x57` into the branch delay and `x1` into the `j`
+delay. Writing `x0 = 0x57` once after the join gives the same jump2 output, but
+with fewer references. Here that flipped a near-tied x0/x1 register priority, so
+count the extra sets when the tie is close.
+
+Two further findings from the same function. First, the fix grew the loop by 8
+RTL insns, which made the hoisted `1` of an `== 1` compare lose a priority tie
+(`36/580 < 10/159`) and shrank the frame by a slot. Writing another compare as
+`baseY != 1` rather than against a constant local `one` gave that pseudo more
+refs and restored the frame, without changing the emitted `li`, because the
+pseudo is rematerialised anyway. Second, the permuter's best output that time
+deleted `dist = y - baseY;` but kept a use of `dist`, which reads an
+uninitialized stack slot. Check a large permuter gain for that before trusting it.
+
+Input `base_6.i` SHA256
+`a9b5dc8370e1fa2e0c925fccedd419f4053bc52b97ce6a286256006dfeefd00e`; compiler SHA256
+`60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
