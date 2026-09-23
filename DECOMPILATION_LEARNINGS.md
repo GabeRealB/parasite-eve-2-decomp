@@ -138420,3 +138420,26 @@ after the `angle` statement makes that constant store the upper bound, so the
 load moves up. The span grows past the tie point, and the constant takes `$a3`.
 Moving the whole statement earlier instead moved the `and` and the store too,
 and broke the rest of the block.
+
+## `sll aN,aN,16; sra aN,aN,10` in place: write the shifts as assignments to the parameter
+
+**Symptom:** target scales an argument with `sll a1,a1,0x10; sra a1,a1,0xa` right
+after a join, and the preceding `bnez`'s delay slot holds the *fallthrough* arm's
+insn. `((s16)arg1 * 64) / d` puts the `sll` in a fresh pseudo (`sll v0,a1,16`),
+and reorg then hoists that copy-safe insn from the join into the delay slot,
+shifting every later branch target (`branch=6`). Splitting it as
+`arg1 = (s16)arg1 * 64;` or `arg1 = (s16)arg1; arg1 *= 64;` still leaves the
+`sll` in its own pseudo (`sll v1,a1,16; sra a1,v1,10`).
+
+**Fix:** spell the shifts out, each assigned back to the parameter:
+
+```c
+arg1 = arg1 << 16;
+arg1 = arg1 >> 10;
+arg1 = arg1 / block->otz;
+```
+
+The in-place `sll a1,a1` is not idempotent, so `fill_eager_delay_slots` cannot
+copy it from the branch target and takes the fallthrough insn instead, as the
+target does. Seen in `func_neo_ark_submarine_gallery_80180AC8` (a `Room_Draw13`
+variant with an `otz` clamp before the divide).
