@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 
 #include "gameplay/1BC.h"
@@ -15,6 +16,10 @@
 extern void func_mine_cavern_80181864(void);
 extern void func_mine_cavern_80182184(void);
 extern void func_mine_cavern_80182454(void);
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+extern u32 Gp_LcgState;
 
 /// Current screen id at 0x8007218B.
 extern s8 D_8007218B;
@@ -40,11 +45,113 @@ extern GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8;
 /// bits.
 extern TaskDesc D_mine_cavern_8018EB38;
 
+/// Colour of the glow fan's centre vertex, one channel per symbol.
+///
+/// Each channel is its own symbol, reloaded on every use, and is declared as an
+/// array because the fan's position stores are only ordered against loads from
+/// aggregate memory: the scheduler treats a halfword store into the primitive
+/// and a load from a plain scalar global as independent, but not a load from an
+/// array element.
+extern u8 D_mine_cavern_8018E358[];
+extern u8 D_mine_cavern_8018E359[];
+extern u8 D_mine_cavern_8018E35A[];
+
+/// Colour of the glow fan's two rim vertices, declared as the centre colour is.
+extern u8 D_mine_cavern_8018E35B[];
+extern u8 D_mine_cavern_8018E35C[];
+extern u8 D_mine_cavern_8018E35D[];
+
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181864);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181CAC);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181D80);
+/// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of
+/// eight semi-transparent Gouraud triangles around the point's projected
+/// position, each followed by a drawing-mode packet, both linked at the point's
+/// depth. The radius is scaled by depth and jittered by the shared LCG, and its
+/// base shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. Nothing is
+/// drawn when the projection flags an error.
+void func_mine_cavern_80181D80(s16 point)
+{
+    s32       sxy;
+    s32       flag;
+    s32       otz;
+    POLY_G3*  prim;
+    DR_TPAGE* dr;
+    s32       radius;
+    s32       i;
+    s32       flags;
+    u8        count;
+    s32       j;
+    s32       base;
+    u16       x;
+    u16       y;
+
+    flags = GameFlag_GetNibble(0xE2);
+    count = 0;
+    for (j = 0; j < 4; j++) {
+        if ((flags >> j) & 1) {
+            count++;
+        }
+    }
+    switch (count) {
+        case 0:
+        case 1:
+            base = 0x780;
+            break;
+        case 2:
+            base = 0x500;
+            break;
+        case 3:
+            base = 0x280;
+            break;
+        case 4:
+        default:
+            base = 0x200;
+            break;
+    }
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(&D_mine_cavern_8018E39C[point]);
+    gte_rtps_real();
+    gte_stsxy(&sxy);
+    gte_stflg(&flag);
+    gte_stszotz(&otz);
+    if (flag >= 0) {
+        x           = sxy;
+        y           = sxy >> 16;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        radius      = (s32)(base | ((Gp_LcgState >> 16) & 0x7F)) * 0x160 / (otz * 4);
+        for (i = 0; i < 8; i++) {
+            prim           = (POLY_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = (POLY_GT3*)prim + 1;
+            setPolyG3(prim);
+            prim->r0 = D_mine_cavern_8018E358[0];
+            prim->g0 = D_mine_cavern_8018E359[0];
+            prim->b0 = D_mine_cavern_8018E35A[0];
+            prim->x0 = x;
+            prim->y0 = y;
+            prim->r1 = D_mine_cavern_8018E35B[0];
+            prim->g1 = D_mine_cavern_8018E35C[0];
+            prim->b1 = D_mine_cavern_8018E35D[0];
+            prim->r2 = D_mine_cavern_8018E35B[0];
+            prim->g2 = D_mine_cavern_8018E35C[0];
+            prim->b2 = D_mine_cavern_8018E35D[0];
+            setSemiTrans(prim, 1);
+            prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
+            prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
+            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
+            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
+            addPrim(&gGpuCurrentOt[otz >> 4], prim);
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = (DR_MODE*)dr + 1;
+            setDrawTPage(dr, 0, 0, 0x2A);
+            addPrim(&gGpuCurrentOt[otz >> 4], dr);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182184);
 
