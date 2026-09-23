@@ -25,6 +25,11 @@
 /// `&field_14` to the slot-4 task as the three-word payload of message 0x3E9;
 /// `field_24` / `field_26` / `field_28` are the halfwords it stages next to that
 /// payload, still as `0` / `0x500` / `0`. `field_20` stays unidentified.
+///
+/// Action 6 of `func_dryfield_motel_room_1_8017D7AC` turns an angle in
+/// `field_34`: it starts from the slot-3 actor's facing plus 0xC00, wrapped to
+/// 12 bits, and steps by 0x96 a frame, with `field_26` kept 0x400 ahead of it.
+/// `field_30` counts the frames of that action's closing step.
 typedef struct Dmr1Work {
     /* 0x00 */ Task* field_0;
     /* 0x04 */ Task* field_4;
@@ -39,10 +44,14 @@ typedef struct Dmr1Work {
     /* 0x26 */ s16   field_26;
     /* 0x28 */ s16   field_28;
     /* 0x2A */ byte  pad_2A[0x2];
-    /* 0x2C */ s16   field_2C;
-    /* 0x2E */ s16   field_2E;
+    /* 0x2C */ u16   field_2C;
+    /* 0x2E */ u16   field_2E;
+    /* 0x30 */ u16   field_30;
+    /* 0x32 */ byte  pad_32[0x2];
+    /* 0x34 */ s16   field_34;
+    /* 0x36 */ byte  pad_36[0x2];
 } Dmr1Work;
-STATIC_ASSERT_SIZEOF(Dmr1Work, 0x30);
+STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
 
 /// Four-byte payload `func_dryfield_motel_room_1_8017DF08` hands
 /// `Gp_DispatchMsg` as `arg2` for message 0x7DA: the session's two id bytes
@@ -67,12 +76,30 @@ typedef union Dmr1MsgBuf {
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
+/// The script driver's scratch buffer. `rec` and `msg` share its start, as in
+/// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
+/// `shifted.rec`, eight bytes further in, for no reason the code shows.
+typedef union Dmr1DriverBuf {
+    /* 0x0 */ GpRec14    rec;
+    /* 0x0 */ Dmr1Msg7DA msg;
+    struct {
+        /* 0x0 */ s32     pad[2];
+        /* 0x8 */ GpRec14 rec;
+    } shifted;
+} Dmr1DriverBuf;
+STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
+
 /// The room's script-driver task, whose `work` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
 /// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
 extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
+
+/// The placements the script driver's actions 1 and 2 send as message 0x7D4:
+/// `[0]` to `Dmr1Work::field_4`, `[1]` to `field_8`.
+extern RoomPlacement D_dryfield_motel_room_1_8017E0D0[2];
+extern RoomPlacement D_dryfield_motel_room_1_8017E100[2];
 
 /// Room entry point: allocate the `Dmr1Work` the room task hangs off
 /// `Task::work` (killing the task if the allocation fails), zero it, park the
@@ -82,12 +109,17 @@ extern RoomPlacement D_dryfield_motel_room_1_8017E130[2];
 /// the 0x1000 / 0x2000 / 0x3000 index of `Gp_FindWorkById`'s search key.
 void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 
-/// The room's script driver: switches on `Dmr1Work::field_2C`, the action index
-/// `func_dryfield_motel_room_1_8017DFB0` sets, with `field_2E` as its sub-state,
-/// and runs that action's messages -- the 0x3E8 / 0x3E9 / 0x3F3 / 0x3FD pokes,
-/// the 0x7D4 placements and the 0x7DA prompt. Every path through
+/// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
+/// left in `Dmr1Work::field_2C`. Actions 1 and 2 send the 0x7DA message to the
+/// slot-4 task and one of the two placement pairs as message 0x7D4 (action 2
+/// also sends 0x3F3 to the slot-3 task); 3, 4 and 5 play a sound. Each of these
+/// runs once and clears the action. Action 6 runs over several frames with
+/// `field_2E` as its step: it sends a slot-3 weapon record, turns the
+/// `field_34` angle one way or the other each frame while passing the stored
+/// player position back as message 0x3E9, and ends four frames after the turn
+/// completes, when it clears the action itself. Every path through
 /// `func_dryfield_motel_room_1_8017DD3C` except its early return and its kill
-/// ends here, which is how the cutscene that state machine starts gets stepped.
+/// ends here.
 void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 
 /// Main loop of the room's cutscene task. State 0 arms it once -- a `D_80114C12`

@@ -138667,3 +138667,36 @@ the cursor load and `t = 0x1000 - ang;` after it, using `t3` for the first
 `rsin` and `t` for the `rcos`. cse folds the two, and the value lands where the
 target has it. Moving one `t = 0x1000; ... t -= ang` pair around the load, or
 splitting both halves of the duplicate, did not.
+
+### Two identical `if (x == 1) +1 else +K` blocks: jump2's pass order decides how much of the first one merges into the second
+
+**Symptom.** Two sibling cases each end in the same `v = w; if (flag == 1) v += 1;
+else v += K;` followed by the same tail. The target keeps the first case's
+prelude and branch, and only its arms jump into the second case
+(`beq → second case's +1 arm`, `j tail; +K` in the delay slot). The candidate
+cross-jumps the *whole* first case into the second, prelude and branch included
+(`j second_prelude`).
+
+**Mechanism (traced with gdb on `do_cross_jump`).** After the tails merge,
+jump2 visits the first case's then-arm jump before its else-arm. If that arm
+matches the insn that falls into the shared tail (the second case's else-arm),
+it merges first. That leaves `beq A; j B; A:`, which jump.c inverts
+("conditional jump around an unconditional jump"). The branch is then identical
+to the second case's, and the next cross-jump swallows the prelude too. In the
+target that arm did *not* match. So the else-arm merged into the second case's
+then-arm first, and the `beq` was threaded to it, which leaves nothing to invert.
+
+**Fix.** The arm order in each source `if` sets which arm falls into the tail,
+and so the order of the merges. Here every combination of `==`/`!=` forms was
+tried, and the only match was **both** cases written the same way, as
+`if (flag == 1) { v += 1; } else { v += K; }` (`func_dryfield_motel_room_1_8017D7AC`,
+97.7% → 100%). A ternary for the first case, or `!=` in either one, kept one of
+the two wrong shapes. When a sibling block is swallowed whole or not at all,
+permute the arm order of the `if`s before trying anything else.
+
+**Tracing it.** cc1 is built without debug info, so use `break *do_cross_jump`
+(the entry address) and read the arguments off the stack:
+`*(int*)(*(int*)($esp+4)+4)` is the jump's INSN_UID, `$esp+8` / `$esp+12` are
+`newjpos` / `newlpos`. A gdb-python walk of `NEXT_INSN` (rtx +12) that prints
+each JUMP_INSN (code 28) with its `JUMP_LABEL` (rtx +32) shows the chain
+between merges.

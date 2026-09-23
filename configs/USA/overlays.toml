@@ -1424,7 +1424,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_motel_room_1/dryfield_motel_room_1", rodata = "0x4", text = "0x2C" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x194" },
-  { unit = "dryfield_motel_room_1/dryfield_motel_room_1_2", text = "0x1EC" },
+  { unit = "dryfield_motel_room_1/dryfield_motel_room_1_2", rodata = "0x10", text = "0x1EC" },
   { kind = "data", at = "0xAE8" },
 ]
 
