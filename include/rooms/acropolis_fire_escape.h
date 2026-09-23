@@ -26,6 +26,23 @@ STATIC_ASSERT_SIZEOF(AcropolisFireEscapeEvt, 0x18);
 
 extern AcropolisFireEscapeEvt D_acropolis_fire_escape_80183048;
 
+/// Per-frame scratch the room's flickering glow task reserves off
+/// `G_SCRATCH_HEAD`. `vec` is the task coordinate's world translation,
+/// projected through `GsWSMATRIX` into `sx` / `sy` with `otz` as its depth
+/// (biased toward the camera before use). `radius` is the glow's outer screen
+/// radius, scaled by the inverse of that depth; `radius2` is computed the same
+/// way with a smaller factor but nothing reads it. Other rooms' billboard tasks
+/// reserve a block of the same layout; whether it is one type is unsettled.
+typedef struct AcropolisFireEscapeGlowScratch {
+    s32     otz;
+    s32     radius;
+    s32     radius2;
+    SVECTOR vec;
+    s16     sx;
+    s16     sy;
+} AcropolisFireEscapeGlowScratch;
+STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
+
 /// Work block the "Play Data" weapon / PE list tasks allocate at
 /// `Task::work` (`memCalloc(0xC4)`). `ids` holds the item / PE ids the list
 /// shows, sorted by use count; `bars` is the per-row bar length and `vals` the
