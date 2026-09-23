@@ -381,7 +381,67 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_6", func_shelter_b3_garbage_incinerator_80182AB8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_6", func_shelter_b3_garbage_incinerator_80182F18);
+void func_shelter_b3_garbage_incinerator_80182F18(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+{
+    u8*                head;
+    RoomDraw19Scratch* block;
+    POLY_FT4*          prim;
+    u16                col;
+    u16                row;
+    s32                u0;
+    s32                v0;
+    s32                ang;
+    s32                ang2;
+    u16                bank;
+    u16                vz;
+
+    bank                                        = arg1 >> 12;
+    arg1                                       &= 0xFFF;
+    head                                        = *(u8**)G_SCRATCH_HEAD;
+    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
+    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
+    block->vec.vy                               = arg0->workm.t[1];
+    block->vec.vz                               = arg0->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(block);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2C;
+        prim->clut  = bank ? 0x428F : 0x43D0;
+        col         = arg1 % 5;
+        row         = arg1 / 5;
+        ang         = arg3;
+        u0          = col * 0x30;
+        v0          = row * 0x30;
+        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = ang + 0x400;
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x1C;
+}
 
 void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 {
