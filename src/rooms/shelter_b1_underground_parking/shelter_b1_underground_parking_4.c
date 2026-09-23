@@ -6,6 +6,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 /// Spawn payload handed to `RoomsShared80181228Desc` as
 /// `Task_SpawnFromTable` arg3 by the day-13 branch of
@@ -30,6 +31,35 @@ extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
 extern u8                     D_80071075;
 extern s8                     D_80114C12;
+
+/// Spawn payload handed to `Task_Spawn(1, 0x31, ...)` as arg3 when caption key
+/// 0xB is answered. Only the three stores the caller makes are known.
+typedef struct {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} _ShelterParkingKeySpawnArg;
+
+/// 12-byte record published to `D_shelter_b1_underground_parking_8018D77C`
+/// before entry 0 of `D_shelter_b1_underground_parking_80187200` is spawned.
+/// `field_1`..`field_3` are handed to
+/// `func_shelter_b1_underground_parking_80183124` as a message's `msgId`,
+/// `field_2` and `field_3`, and read back from its answer.
+typedef struct {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ s16 field_4;
+    /* 0x8 */ s32 field_8;
+} _ShelterParkingKeyRecord;
+
+extern s8                         D_8007272D;
+extern TaskDesc                   D_shelter_b1_underground_parking_80187200;
+extern _ShelterParkingKeySpawnArg D_shelter_b1_underground_parking_8018D750;
+extern _ShelterParkingKeyRecord   D_shelter_b1_underground_parking_8018D77C;
+
+void func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Starts caption slot 0xA and spawns entry 4 of
 /// `D_shelter_b1_underground_parking_8018726C` when the player asks for it.
@@ -189,7 +219,71 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_80182DB4);
+/// Task body that waits for the caption to finish, then on caption key 0xB
+/// spawns the 0x31 task and after 30 frames publishes
+/// `D_shelter_b1_underground_parking_8018D77C` and spawns entry 0 of
+/// `D_shelter_b1_underground_parking_80187200`. Any other key restores the
+/// weapon and ends the task.
+void func_shelter_b1_underground_parking_80182DB4(Task* task)
+{
+    _ShelterParkingKeyRecord  rec;
+    RoomEventMsg              msg;
+    _ShelterParkingKeyRecord* p;
+    void                      (*handler)(RoomEventMsg*, RoomEventMsg*);
+
+    switch (task->state) {
+        case 0:
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
+        case 1:
+            if (Gp_GetCapEventKey() == 0xB) {
+                D_shelter_b1_underground_parking_8018D750.field_0 = 0;
+                D_shelter_b1_underground_parking_8018D750.field_1 = 0;
+                D_shelter_b1_underground_parking_8018D750.field_2 = 0x1E;
+                Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b1_underground_parking_8018D750);
+                task->killCountdown = 0x1E;
+                task->state++;
+            } else {
+                Gp_MsgPlayerWeapon(1);
+                taskKill(task);
+            }
+            break;
+        case 2:
+            if (task->killCountdown == 0) {
+                if (GameFlag_GetNibble(0x4B) == 0xA) {
+                    GameFlag_SetNibble(0x4B, 9);
+                }
+                if (GameFlag_GetNibble(0x11F) == 1) {
+                    GameFlag_SetNibble(0x11F, 2);
+                    D_8007272D = 0x1B;
+                }
+                handler     = func_shelter_b1_underground_parking_80183124;
+                rec.field_0 = 5;
+                rec.field_1 = 1;
+                rec.field_3 = 1;
+                rec.field_2 = 1;
+                rec.field_8 = 0x54140008;
+                rec.field_4 = -1;
+                Gp_MsgPlayerWeapon(0);
+                p           = &rec;
+                msg.msgId   = p->field_1;
+                msg.field_2 = p->field_2;
+                msg.field_3 = p->field_3;
+                msg.field_5 = 0;
+                handler(&msg, &msg);
+                p->field_1                                = msg.msgId;
+                p->field_2                                = msg.field_2;
+                p->field_3                                = msg.field_3;
+                D_shelter_b1_underground_parking_8018D77C = rec;
+                Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
+                taskKill(task);
+            }
+            task->killCountdown--;
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_80182FC8);
 
