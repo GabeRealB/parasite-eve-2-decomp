@@ -86,7 +86,79 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D850);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017DECC);
+/// Draws a camera-facing sprite at `arg0`'s world position, the same way as
+/// `func_shelter_b2_pod_bottom_8017E334` but from texture page 0x2B, with each
+/// 48x48 cell's rows starting 0x90 lines higher. Here the bits of `arg1` above
+/// the low 12 choose the CLUT: 0 and 1 select CLUT row 0x10E or 0x10F, at a
+/// column taken from the low six bits of the cell index, and anything larger
+/// selects the fixed CLUT 0x428F.
+void func_shelter_b2_pod_bottom_8017DECC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+{
+    u8*                head;
+    RoomDraw19Scratch* block;
+    POLY_FT4*          prim;
+    u16                col;
+    u16                row;
+    s32                u0;
+    s32                v0;
+    s32                ang;
+    s32                ang2;
+    u16                bank;
+    u32                idx;
+
+    head                                        = *(u8**)G_SCRATCH_HEAD;
+    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
+    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
+    block->vec.vy                               = arg0->workm.t[1];
+    block->vec.vz                               = arg0->workm.t[2];
+    idx                                         = arg1;
+    idx                                        &= 0xFFF;
+    bank                                        = arg1 >> 12;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(block);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        block->otz++;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        if (bank >= 2) {
+            prim->clut = 0x428F;
+        } else {
+            prim->clut = ((bank + 0x10E) << 6) | (idx & 0x3F);
+        }
+        col = (u16)idx % 5;
+        row = (u16)idx / 5;
+        ang = arg3;
+        u0  = col * 0x30;
+        v0  = row * 0x30;
+        setUV4(prim, u0, v0 + 0x70, u0 + 0x2F, v0 + 0x70, u0, v0 - 0x61, u0 + 0x2F, v0 - 0x61);
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = ang + 0x400;
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x1C;
+}
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
 /// projected through `GsWSMATRIX` into a scratch block popped from
