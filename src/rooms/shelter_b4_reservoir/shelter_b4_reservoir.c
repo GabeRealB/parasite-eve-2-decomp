@@ -122,7 +122,31 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E610);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E690);
+void func_shelter_b4_reservoir_8017E690(s32 arg0)
+{
+    switch (arg0) {
+        case 0:
+            D_shelter_b4_reservoir_8018492C = (s32)Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 1, 0x96, 0);
+            break;
+        case 1:
+            if (D_shelter_b4_reservoir_8018492C != 0) {
+                taskKill((Task*)D_shelter_b4_reservoir_8018492C);
+                D_shelter_b4_reservoir_8018492C = 0;
+            }
+            D_shelter_b4_reservoir_80184F80 = -0x1F4;
+            break;
+        case 2:
+            D_shelter_b4_reservoir_8018492C = (s32)Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 2, 0x96, 0);
+            break;
+        case 3:
+            if (D_shelter_b4_reservoir_8018492C != 0) {
+                taskKill((Task*)D_shelter_b4_reservoir_8018492C);
+                D_shelter_b4_reservoir_8018492C = 0;
+            }
+            D_shelter_b4_reservoir_80184F82 = 0;
+            break;
+    }
+}
 
 void func_shelter_b4_reservoir_8017E770(s32 arg0)
 {
