@@ -11,6 +11,8 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/gfx.h"
+#include "main/mem.h"
+#include "main/wipsys.h"
 #include "rooms/mine_cavern.h"
 
 extern void func_mine_cavern_80181864(void);
@@ -74,6 +76,57 @@ extern u8 D_mine_cavern_8018E355[];
 
 /// The six points `func_mine_cavern_80181864` draws a glow at.
 extern SVECTOR D_mine_cavern_8018E36C[6];
+
+/// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
+/// hides the model and skips it. Its wider role is unproven.
+extern u8 D_801153F4;
+
+/// Damage the cavern enemy takes from a contact, indexed by the low seven bits
+/// of the contact's key.
+extern u8 D_mine_cavern_8018EAF4[];
+
+/// Scratch block the radius test squares its operands in.
+typedef struct _MineCavernRangeScratch {
+    s32 dx;
+    s32 dz;
+    s32 r;
+} _MineCavernRangeScratch;
+
+/// Scratch block the enemy's hit check works in: the model's world position
+/// (then the offset to the player's model), the offset to the player or to a
+/// contact, and the values derived from that contact.
+typedef struct _MineCavernHitScratch {
+    VECTOR3 pos;
+    s32     pad_C;
+    SVECTOR d;
+    s32     dist;
+    u32     key;
+    s32     bits;
+    s16     angle;
+    s16     damage;
+} _MineCavernHitScratch;
+
+/// Non-zero when the XZ offset `d` lies outside radius `r`; squares in a
+/// scratch block.
+static __inline__ s32 _mineCavernOutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                      head;
+    _MineCavernRangeScratch* blk;
+    s32                      ret;
+
+    head                                          = *(u8**)G_SCRATCH_HEAD;
+    ((_MineCavernRangeScratch*)(head - 0xC))->dx  = d->vx;
+    blk                                           = (_MineCavernRangeScratch*)(head - 0xC);
+    blk->dz                                       = d->vz;
+    blk->r                                        = r;
+    ((_MineCavernRangeScratch*)(head - 0xC))->dx *= ((_MineCavernRangeScratch*)(head - 0xC))->dx;
+    *(_MineCavernRangeScratch**)G_SCRATCH_HEAD    = blk;
+    blk->dz                                      *= blk->dz;
+    blk->r                                       *= blk->r;
+    *(u8**)G_SCRATCH_HEAD                         = head;
+    ret                                           = ((_MineCavernRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
 
 /// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the
 /// fourth skipped while view 4 is active: per point, a fan of eight
@@ -569,7 +622,137 @@ void func_mine_cavern_80182DC8(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182E34);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_801830F0);
+/// Second state handler of `D_mine_cavern_8017D7F8`: the cavern enemy's
+/// per-frame hit check. Unless gameplay is suspended, it marks the enemy
+/// lockable only while the player is within 0x1770 on the XZ plane and in place
+/// 1 or 4, republishes the model's world position, and looks through the work
+/// block's contacts for one of class 2. A contact taken in place 1 or 4 without
+/// key bit 0x8000 costs the enemy the damage `D_mine_cavern_8018EAF4` gives its
+/// key; when that empties `GpEnemy::hp` the enemy's `Task::spawnArg1` bit is
+/// set in flag nibble 0xE2, the model is hidden, a sound is played at it and
+/// the task advances.
+void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
+{
+    MineCavernWork*        work;
+    Task*                  player;
+    u8*                    head;
+    _MineCavernHitScratch* blk;
+    GsCOORDINATE2*         coords;
+    GpRec18*               recs;
+    SVECTOR*               d;
+    SVECTOR*               dst;
+    s16                    i;
+    s16                    angle;
+    u32                    key;
+    s32                    id;
+    s32                    pan;
+
+    work   = arg1->work;
+    player = gameGetPtrSlot(3);
+    switch (D_801153F4) {
+        case 2:
+            ((TmdObject*)arg1->extra)->flags = 0x80;
+            return;
+        case 0:
+        default:
+            break;
+        case 1:
+            return;
+    }
+
+    coords                                   = ((TmdObject*)arg1->extra)->coords;
+    head                                     = *(u8**)G_SCRATCH_HEAD;
+    ((SVECTOR*)(head - 0x18))->vx            = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    d                                        = (SVECTOR*)(head - 0x18);
+    d->vy                                    = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    *(_MineCavernHitScratch**)G_SCRATCH_HEAD = (_MineCavernHitScratch*)(head - 0x28);
+    d->vz                                    = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    blk                                      = (_MineCavernHitScratch*)(head - 0x28);
+
+    if (_mineCavernOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
+        (gGameSession->at4.loc.place != Gp_StateF0.field_0 && gGameSession->at4.loc.place != 4)) {
+        arg0->node.flags = 1;
+    } else {
+        arg0->node.flags = 0;
+    }
+
+    ((TmdObject*)arg1->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+    blk->pos.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
+    blk->pos.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
+    blk->pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
+    func_800D7A9C(arg1->extra, &blk->pos, 0, 3);
+    ((TmdObject*)arg1->extra)->flags = 0;
+
+    dst  = &blk->d;
+    recs = work->recs;
+    for (i = 0; i < 4; i++) {
+        if (recs[i].key == 0) {
+            break;
+        }
+        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+            dst->vx = recs[i].point.vx;
+            dst->vy = recs[i].point.vy;
+            dst->vz = recs[i].point.vz;
+            key     = recs[i].key;
+            goto found;
+        }
+    }
+    key = 0;
+found:
+    blk->key = key;
+    if (key & 0x8000) {
+        blk->key = 0;
+    }
+    if (gGameSession->at4.loc.place != 1 && gGameSession->at4.loc.place != 4) {
+        blk->key = 0;
+    }
+
+    if (blk->key != 0) {
+        blk->d.vx -= ((TmdObject*)arg1->extra)->coords->workm.t[0];
+        blk->d.vy -= ((TmdObject*)arg1->extra)->coords->workm.t[1];
+        blk->d.vz -= ((TmdObject*)arg1->extra)->coords->workm.t[2];
+        angle = blk->angle = ratan2(blk->d.vx, blk->d.vz) - ratan2(-((TmdObject*)arg1->extra)->coords->workm.m[2][0],
+                                                                   ((TmdObject*)arg1->extra)->coords->workm.m[2][2]);
+        if (angle < 0) {
+        neg:
+            if (angle < -0x800) {
+                angle += 0x1000;
+                goto neg;
+            }
+        } else {
+        pos:
+            if (angle > 0x800) {
+                angle -= 0x1000;
+                goto pos;
+            }
+        }
+        blk->angle  = angle;
+        blk->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0] - ((TmdObject*)arg1->extra)->coords->coord.t[0];
+        blk->pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1] - ((TmdObject*)arg1->extra)->coords->coord.t[1];
+        blk->pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2] - ((TmdObject*)arg1->extra)->coords->coord.t[2];
+        blk->dist   = SquareRoot0(blk->pos.vx * blk->pos.vx + blk->pos.vy * blk->pos.vy + blk->pos.vz * blk->pos.vz);
+        blk->damage = Gp_ComputeDamage(blk->key, blk->dist, 0, 0);
+        blk->damage = D_mine_cavern_8018EAF4[blk->key & 0x7F];
+        arg0->hp   -= blk->damage;
+        func_800DA6E8(&arg0->node, blk->damage, 0);
+        if (arg0->hp <= 0) {
+            blk->bits = GameFlag_GetNibble(0xE2);
+            if (!((blk->bits >> (u16)arg1->spawnArg1) & 1)) {
+                blk->bits |= 1 << (u16)arg1->spawnArg1;
+                GameFlag_SetNibble(0xE2, blk->bits);
+                ((TmdObject*)arg1->extra)->flags = 0x80;
+            }
+            id  = ((arg0->placeKey >> 12) << 8) | 0x54020014;
+            pan = (s8)Gp_GetObjPan(((TmdObject*)arg1->extra)->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(((TmdObject*)arg1->extra)->coords) / 2));
+            arg1->state++;
+        }
+    }
+    Gp_ClearRec18Occupied(&work->recs[0]);
+    Gp_ClearRec18Occupied(&work->recE0);
+    *(u8**)G_SCRATCH_HEAD += 0x28;
+}
 
 /// Second state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
 /// dispatches it). It allocates the work block, parks it at `Task::work` and

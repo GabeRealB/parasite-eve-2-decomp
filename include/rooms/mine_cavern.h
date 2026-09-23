@@ -23,6 +23,10 @@
 /// model's own coordinate (`TmdObject::coords`) under it as `sub`, which is
 /// what leaves the model's positions relative to that spot.
 ///
+/// `recs` and `recE0` are contact tables the collision tests fill:
+/// `func_mine_cavern_801830F0` looks through `recs` for a contact of class 2 and
+/// releases both tables at the end of its tick.
+///
 /// `light` and `color` are the two matrices the block itself supplies to the
 /// model: `func_mine_cavern_801836D0` publishes `&work->light` / `&work->color`
 /// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
@@ -31,9 +35,9 @@ typedef struct MineCavernWork {
     /* 0x000 */ MATRIX        light;
     /* 0x020 */ MATRIX        color;
     /* 0x040 */ GpObj         obj40;
-    /* 0x060 */ byte          pad_60[0x60];
+    /* 0x060 */ GpRec18       recs[4];
     /* 0x0C0 */ GpObj         objC0;
-    /* 0x0E0 */ byte          pad_E0[0x18];
+    /* 0x0E0 */ GpRec18       recE0;
     /* 0x0F8 */ GsCOORDINATE2 coord;
     /* 0x148 */ u16           field_148;
     /* 0x14A */ byte          pad_14A[2];

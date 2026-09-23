@@ -137855,3 +137855,23 @@ The same trick needs a use where an immediate is legal after substitution —
 shift counts, `slti`/`addiu` operands. A constant that feeds an `and`/`or`
 with another constant, or a store, is reloaded into a spill register instead
 and shows up in the output.
+
+### A store in a `j` delay slot that repeats the insn just before the jump's target is one store at the join (func_mine_cavern_801830F0, 2026-09-23)
+
+A search loop's "found" arm ended `lw v0,4(v1)` / `j L+4` / `sw v0,0x1C(s1)`,
+and the fall-out path ended `move v0,zero` / `L: sw v0,0x1C(s1)`. Writing the
+store in both arms (`key = rec->key; blk->key = key; goto found;` and
+`key = 0; blk->key = key;`) let CSE turn the second into `sw zero`, and the
+`move v0,zero` survived only for the later `andi`. The target has a single
+store after the label: reorg filled the `j`'s delay slot with the insn at its
+target and retargeted the jump one insn on, which is what makes it look
+duplicated.
+
+```c
+        key = rec->key;
+        goto found;
+    ...
+    key = 0;
+found:
+    blk->key = key;
+```
