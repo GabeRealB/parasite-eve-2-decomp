@@ -138360,3 +138360,24 @@ The digit-blanking loop in front of it is the reversed count-up loop from the
 `u = 0xA; i = 6; d = &D[i]; for (; i >= 0; i--) *d-- = u;` also matches
 byte for byte, but only because the early `u = 0xA` stretches the constant's
 live range as far as the reversal does. Look for the reversed form first.
+
+## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (func_acropolis_cafeteria_8017F390, 2026-09-23)
+
+Each arm of `if (w > 0x400) { lcg; w -= 0x10; w -= rnd; } else { lcg; ... }`
+materialises `0x71357911` (`lui`/`ori`). Written as a literal, each arm's
+constant is a **local** pseudo. local-alloc runs before global-alloc, so it
+takes the first free register (`a1`, after `v0`/`v1`/`a0`). The global `w`
+then conflicts with `a1` and falls to `a2`. Retail has the pair swapped:
+`w` in `a1` and the constant in `a2`.
+
+**Symptom:** a 99.7% match with only `a1`/`a2` swapped between the arm-crossing
+value and the constant. No rewrite of `w` fixes it: separate per-arm temps,
+separate result variables, a store per arm, or moving the `- 0x10`. Some of
+those change sched1's order or cause reassociation instead.
+
+**Fix:** assign the constant to one variable in both arms
+(`k = 0x71357911; Gp_LcgState = Gp_LcgState * 5 + k;`). One pseudo set in two
+blocks is global, so global-alloc places it after the higher-priority `w`.
+That gives `w` `a1` and `k` `a2`. The `.greg` conflict list gives it away:
+if the arm-crossing pseudo lists a hard register that only a local constant
+occupies, making the constant global is the lever.
