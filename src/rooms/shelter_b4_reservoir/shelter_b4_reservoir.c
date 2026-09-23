@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/shelter_b4_reservoir.h"
 extern s16 D_shelter_b4_reservoir_80184F82;
@@ -37,7 +38,13 @@ s32 func_shelter_b4_reservoir_8017E3C4(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E3CC);
+s32 func_shelter_b4_reservoir_8017E3CC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 2) {
+        SndEvt_EnqueueType6(0x542D0000 | 2, 0, 0);
+    }
+    return 0;
+}
 
 void func_shelter_b4_reservoir_8017E400(Task* arg0)
 {
