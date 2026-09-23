@@ -138186,3 +138186,31 @@ head disappears. Put the reset at the top of the outer body instead
 (`do { ang = 0; do { ... } while (ang < 0x1000); ... } while (++ring < 3)`);
 jump threading still places one copy before entry and one in the outer
 branch's delay slot, which is what the target has.
+
+### Porting a scratch-block sibling: `head - N` vs `block` per access decides whether `head` stays live
+
+**Problem:** A room glow draw was a near-copy of a matched shared body (same
+calls, same wedge loops, 0x1C scratch instead of 0x14). Transplanting the
+sibling verbatim scored 99.2% with `regs=34`: the scratch `head` was kept in a
+callee-saved register (`lw s1,0(v1)` instead of `lw a2,0(v1)`), shifting the
+argument copy from `$s1` to `$s2` and every save slot with it.
+
+**Cause:** The sibling reads `otz` for its radius divisions as
+`((T*)(head - N))->otz`, which keeps `head` live past the calls. The target
+emits `addiu v0,a2,-0x14` for `gte_stszotz` (so that store goes through
+`head`) but loads both divisors as `lw v1,8(s3)` from the block pointer, and
+stores both radii only after the second divide.
+
+**Fix:** Keep each access in the form the target addresses it with:
+
+```c
+gte_stszotz(&((T*)(head - 0x1C))->otz);   /* a2-relative */
+block->rOuter = (size * 64) / block->otz;  /* s3-relative, loaded twice */
+block->rInner = (size * 8) / block->otz;
+color         = pulse / 34 + 0x78;
+```
+
+Read the base register of every scratch access in the target before copying
+a sibling's spelling; an `addiu vN,aK,-off` means `head`, `lw x,off(sN)` means
+`block`. The sibling's `SOFT_TOUCH_REG` on the carve was not needed here - the
+plain `block = (T*)(*scratch = head - N);` form matched.

@@ -26,6 +26,22 @@ typedef struct {
 
 STATIC_ASSERT_SIZEOF(MineRefugeCapScript, 0x18);
 
+/// 0x1C-byte scratch block `func_mine_refuge_80180710` takes from
+/// `G_SCRATCH_HEAD`. `otz`, `flag` and `sx`/`sy` receive the projection of the
+/// glow's centre; `rOuter` and `rInner` are its two on-screen radii, derived
+/// from that `otz`. Nothing in the function touches the leading bytes.
+typedef struct {
+    u8  _pad0[8];
+    s32 otz;
+    s32 flag;
+    s32 rOuter;
+    s32 rInner;
+    u16 sx;
+    u16 sy;
+} MineRefugeGlowScratch;
+
+STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
+
 extern MineRefugeCapScript D_mine_refuge_80182AE0;
 
 #endif // ROOMS_MINE_REFUGE_H
