@@ -164,7 +164,73 @@ void func_shelter_r47_801808D4(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_8018097C);
+s32 func_shelter_r47_8018097C(Task* task)
+{
+    ShelterR47State* work;
+    POLY_G3*         tri;
+    DR_MODE*         mode;
+    s32              angle;
+    s32              done;
+    s16              i;
+
+    work = task->work;
+    done = 0;
+    if (work->field_3C != 0) {
+        work->field_3C -= 0x20;
+        if (work->field_3C < 0) {
+            work->field_3C = 0;
+        }
+    }
+    if (work->field_3C < 0xA0) {
+        if (work->field_3E != 0) {
+            work->field_3E -= 0x20;
+            if (work->field_3E < 0) {
+                work->field_3E = 0;
+            }
+        }
+    }
+    if (work->field_3E < 0xA0) {
+        if (work->field_3A != 0) {
+            work->field_3A -= 0x20;
+            if (work->field_3A < 0) {
+                work->field_3A = 0;
+            }
+        }
+    }
+    if (work->field_3A < 0xA0) {
+        if (work->field_40 != 0) {
+            work->field_40 -= 0x20;
+            if (work->field_40 < 0) {
+                work->field_40 = 0;
+                done           = 1;
+            }
+        }
+    }
+    for (i = 0; i < 0x20; i++) {
+        tri            = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(tri + 1);
+        setPolyG3(tri);
+        setRGB0(tri, work->field_3A, work->field_3C, work->field_3E);
+        setRGB1(tri, work->field_40, work->field_40, work->field_40);
+        setRGB2(tri, work->field_40, work->field_40, work->field_40);
+        setSemiTrans(tri, 1);
+        angle   = i << 7;
+        tri->x0 = 0;
+        tri->y0 = 0;
+        tri->x1 = rsin(angle) >> 4;
+        tri->y1 = rcos(angle) >> 4;
+        angle  += 0x80;
+        tri->x2 = rsin(angle) >> 4;
+        tri->y2 = rcos(angle) >> 4;
+        addPrim(&gGpuCurrentOt[11], tri);
+        mode           = (DR_MODE*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(mode + 1);
+        setlen(mode, 1);
+        mode->code[0] = 0xE100004A;
+        addPrim(&gGpuCurrentOt[11], mode);
+    }
+    return done;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80180C48);
 
