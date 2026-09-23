@@ -138260,3 +138260,30 @@ Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
 - combine.c's 2-to-3 `REG_N_REFS` bump in `distribute_notes` only fires when combine keeps a rewritten i2 (`newi2pat`). When i2 is deleted, it is passed as `NULL`.
 
 When each leftover is "one insn of live length" or "one priority tie", read the sched1 ready lists (`.sched` shows `ready list at T-n` with priorities). Look for the release or birthing decision that would move the load, not for a no-code insn.
+
+## A walk that advances mid-body through a temporary (`q = p + 1; ...; p = q`) keeps an unbiased biv and a `move s0,a0` copy (func_dryfield_night_motel_loft_8017E540, 2026-09-23)
+
+**Symptom:** A three-iteration loop writes `8(s0)`, `0xa(s0)`, `0xc(s0)` early,
+then at the end reads `lhu 8(s0)`, computes `addiu a0,s0,8`, updates the next
+two fields through `2(a0)` / `4(a0)`, and copies `move s0,a0` before the last
+store. Ours, written as `p[1].vx += ...; p[1].vy += ...; p[1].vz += ...; p++`,
+had loop.c bias the pointer (`addiu s0,head,-0x14` and fields at `-4/-2/0`).
+
+**Fix:** name the next pointer before the tail fields and assign it back:
+
+```c
+p[1].vx = *(u16*)&p[1].vx + t[0];
+q       = p + 1;
+q->vy   = *(u16*)&q->vy + t[1];
+q->vz   = *(u16*)&q->vz + t[2];
+p       = q;
+```
+
+`p = q` is not the `p = p + const` form loop.c recognises as a biv increment,
+so no giv is reduced against it, and the new pointer lives in its own register
+until the copy. This went from 94.6% to 98% on its own; the remaining
+prologue-order difference was an `s16` parameter (see "A narrower parameter
+type can change scheduling"). A second IV in the same loop, the byte offset
+`off` fed to the GTE loads, had to stay a source local initialised with the
+counter: indexing `&blk->v[j]` moved its `li s2,8` to the end of the
+preheader (99.7%).
