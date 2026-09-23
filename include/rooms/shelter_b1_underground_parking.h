@@ -38,7 +38,7 @@ void func_shelter_b1_underground_parking_80183B9C(void);
 
 void func_shelter_b1_underground_parking_801848A4(void);
 
-void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s32 arg2, s32 arg3);
+void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
 
 void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
