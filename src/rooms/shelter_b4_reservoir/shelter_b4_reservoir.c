@@ -1,6 +1,7 @@
 #include "common.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -10,21 +11,80 @@ extern s16 D_shelter_b4_reservoir_80184F82;
 extern s32 D_shelter_b4_reservoir_8018492C;
 extern s16 D_shelter_b4_reservoir_80184F80;
 
-extern u8        D_shelter_b4_reservoir_80184F78;
-extern u8        D_shelter_b4_reservoir_80184F79;
-extern u8        D_shelter_b4_reservoir_80184F7A;
-extern s16       D_shelter_b4_reservoir_80184F7C;
-extern s32       D_shelter_b4_reservoir_80187510;
-extern Task*     D_shelter_b4_reservoir_80184930;
-extern u8        D_8007216C;
-extern u8        D_801153F4;
-extern TaskDesc  D_shelter_b4_reservoir_801848EC;
-extern GpSaveLoc D_shelter_b4_reservoir_80187508;
+extern u8             D_shelter_b4_reservoir_80184F78;
+extern u8             D_shelter_b4_reservoir_80184F79;
+extern u8             D_shelter_b4_reservoir_80184F7A;
+extern s16            D_shelter_b4_reservoir_80184F7C;
+extern s32            D_shelter_b4_reservoir_80187510;
+extern Task*          D_shelter_b4_reservoir_80184930;
+extern u8             D_8007216C;
+extern u8             D_801153F4;
+extern u8             D_8007216D;
+extern s16            D_80114D08;
+extern u8             D_80115680;
+extern u8             D_80115690;
+extern u8             D_shelter_b4_reservoir_80184948;
+extern u8             D_shelter_b4_reservoir_80184DC8;
+extern GpAreaApplyRec D_shelter_b4_reservoir_801874A0;
+extern TaskDesc       D_shelter_b4_reservoir_801848EC;
+extern GpSaveLoc      D_shelter_b4_reservoir_80187508;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017DE8C);
+void func_shelter_b4_reservoir_8017DE8C(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            gGameSession->eventState = 1;
+            gGameSession->hideHud    = 1;
+            task->state++;
+            break;
+        case 1:
+            Gp_RunCapCmd(3, 0);
+            D_80115690 = 1;
+            D_80115680 = 5;
+            task->state++;
+            break;
+        case 2:
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
+        case 3:
+            D_801153F4 = 0;
+            if (Gp_GetCapEventKey() == 0xC) {
+                taskKill(task);
+                D_8007216C = 5;
+                Gp_MsgPlayerWeapon(1);
+                Gp_MsgPlayer3F3(1);
+                Gp_MsgAllyWeapon(1);
+                Gp_MsgAlly3F3(1);
+                gGameSession->eventState = 0;
+                gGameSession->hideHud    = 0;
+                D_80114D08               = 0xA;
+                break;
+            }
+            Gp_MsgSlot4Chain(0, 0);
+            func_800E8634((s32)&D_shelter_b4_reservoir_80184948, 0, (s32)&D_shelter_b4_reservoir_80184DC8);
+            task->state++;
+            break;
+        case 4:
+            if (gGameSession->eventState == 0) {
+                D_8007216D                  = 2;
+                gGameSession->at4.loc.room  = 2;
+                gGameSession->roomObjsDirty = 1;
+                GameFlag_SetNibble(0xB7, 1);
+                GameFlag_SetNibble(0x1BF, 2);
+                GameFlag_SetNibble(0xB6, 1);
+                GameFlag_SetNibble(0x1BE, 2);
+                Gp_ApplyAreaRecs(&D_shelter_b4_reservoir_801874A0);
+                D_80114D08 = 0xA;
+                taskKill(task);
+            }
+            break;
+    }
+}
 
 void func_shelter_b4_reservoir_8017E068(void)
 {
