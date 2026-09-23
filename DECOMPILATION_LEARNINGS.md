@@ -69203,6 +69203,13 @@ Use a dedicated local for `t`. Reusing the function's loop counter `i` matched
 the instructions but put the negation in `$a0` (the counter's home) instead of
 `$v0`.
 
+`field *= -1` gets the same `sll`/`sra`/`negu` with no temp at all
+(`func_dryfield_dilapidated_house_8017FAD4`, mirroring two `SVECTOR`s under
+`if (side == 1)`): the multiply is not shortened like a unary minus, and
+combine turns `mult -1` into `neg` of the sign-extended value. Both
+`a.vx = -a.vx` and re-reading the table (`a.vx = -tbl[0].vx`) gave the bare
+`negu`.
+
 ## Hoisted `move tN,tM` copies of a mask are `s16` locals; a borderline `%hi` hoist is fixed by an `s16` temp
 
 `func_actor_503500_80135644` builds two small bit masks (`8/0x10/0x20/0x40`

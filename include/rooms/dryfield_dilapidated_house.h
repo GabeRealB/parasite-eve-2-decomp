@@ -125,6 +125,29 @@ typedef struct DdhCaptureArgs {
 } DdhCaptureArgs;
 STATIC_ASSERT_SIZEOF(DdhCaptureArgs, 0x4);
 
+/// One `gte_rtps` result kept on the stack: the screen position, and the slot
+/// the depth-cue value is written to. Only the first entry's slot is ever
+/// written.
+typedef struct DdhScreenPoint {
+    DVECTOR sxy;
+    s32     depthCue;
+} DdhScreenPoint;
+
+/// The first five words of a `MATRIX`, so an identity rotation can be written
+/// two halfwords at a time before `RotMatrixZ` fills it in.
+typedef struct DdhMatWords {
+    s32 m00_m01;
+    s32 m02_m10;
+    s32 m11_m12;
+    s32 m20_m21;
+    s16 m22;
+} DdhMatWords;
+
+typedef union DdhRotMatrix {
+    MATRIX      mat;
+    DdhMatWords words;
+} DdhRotMatrix;
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);

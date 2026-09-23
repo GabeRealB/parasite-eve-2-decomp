@@ -28,6 +28,9 @@ extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
 extern SVECTOR    D_dryfield_dilapidated_house_801866B4[];
 extern s8         D_dryfield_dilapidated_house_801866F4[16][4];
 extern u8         D_dryfield_dilapidated_house_80186734[24][4];
+extern SVECTOR    D_dryfield_dilapidated_house_80186794[2];
+extern SVECTOR    D_dryfield_dilapidated_house_801867A4[6];
+extern SVECTOR    D_dryfield_dilapidated_house_801867D4[6];
 extern TaskDesc   D_dryfield_dilapidated_house_80186854;
 extern void       Room_Script16(Task* task);
 
@@ -357,7 +360,140 @@ void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 ar
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017FAD4);
+/// Lays out 24 screen-space points in `verts` as four rings of six around two
+/// ends of a segment. The ends come from `D_dryfield_dilapidated_house_80186794`,
+/// mirrored in x when the task's spawn arg 1 is 1, rotated by the parent task's
+/// `DdhCoordWork` matrix; the far end is pulled toward the near one by the
+/// parent's `field_4` ramp before both are moved by the matrix translation and
+/// projected. Each ring's offsets are rotated to the segment's screen angle and
+/// scaled by the projection distance over the last projected depth, which is
+/// left in `*arg2` (`*arg3` gets the GTE flags). Rings 0 and 1 use the tables at
+/// their natural size, rings 2 and 3 scaled by a factor that pulses with
+/// `killCountdown`.
+void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
+{
+    SVECTOR        a;
+    SVECTOR        b;
+    DdhRotMatrix   rot;
+    DdhScreenPoint proj[2];
+    DdhCoordWork*  work;
+    MATRIX*        mtx;
+    SVECTOR*       src;
+    s16            t;
+    s16            r;
+    s32            scale;
+    DdhMatWords*   words;
+    s32            i;
+    u16            f;
+    u16            x0;
+    s32            y0;
+    u16            x1;
+    s32            y1;
+    s32            dx;
+    s32            dy;
+    s32            side;
+
+    side = task->spawnArg1;
+    work = ((Task*)task->spawnArg2)->work;
+    mtx  = &work->mtx;
+    f    = work->field_4;
+    a.vx = D_dryfield_dilapidated_house_80186794[0].vx;
+    a.vy = D_dryfield_dilapidated_house_80186794[0].vy;
+    a.vz = D_dryfield_dilapidated_house_80186794[0].vz;
+    src  = &D_dryfield_dilapidated_house_80186794[1];
+    b.vx = src->vx;
+    b.vy = src->vy;
+    b.vz = src->vz;
+    if (side == 1) {
+        a.vx *= -1;
+        b.vx *= -1;
+    }
+    gte_SetRotMatrix(mtx);
+    gte_ldv0(&a);
+    gte_mvmva_real();
+    gte_stsv(&a);
+    gte_ldv0(&b);
+    gte_mvmva_real();
+    gte_stsv(&b);
+    t     = (s16)f * 0.75 + 1024.0;
+    b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
+    b.vy  = a.vy + (b.vy - a.vy) * t / 4096;
+    b.vz  = a.vz + (b.vz - a.vz) * t / 4096;
+    a.vx += mtx->t[0];
+    a.vy += mtx->t[1];
+    a.vz += mtx->t[2];
+    b.vx += mtx->t[0];
+    b.vy += mtx->t[1];
+    b.vz += mtx->t[2];
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(&a);
+    gte_rtps_real();
+    gte_stsxy(&proj[0].sxy);
+    gte_stdp(&proj[0].depthCue);
+    gte_stflg(arg3);
+    gte_stszotz(arg2);
+    gte_ldv0(&b);
+    gte_rtps_real();
+    gte_stsxy(&proj[1].sxy);
+    gte_stdp(&proj[0].depthCue);
+    gte_stflg(arg3);
+    gte_stszotz(arg2);
+    dy                = proj[0].sxy.vy - proj[1].sxy.vy;
+    dx                = proj[1].sxy.vx - proj[0].sxy.vx;
+    x1                = proj[1].sxy.vx;
+    x0                = proj[0].sxy.vx;
+    y0                = proj[0].sxy.vy;
+    y1                = proj[1].sxy.vy;
+    i                 = ratan2(dx, dy);
+    scale             = gDisplayState.screenDistance;
+    rot.words.m00_m01 = 0x1000;
+    rot.words.m02_m10 = 0;
+    words             = &rot.words;
+    words->m11_m12    = 0x1000;
+    rot.words.m20_m21 = 0;
+    words->m22        = 0x1000;
+    RotMatrixZ(i, &rot.mat);
+    gte_SetRotMatrix(&rot.mat);
+    for (i = 0; i < 6; i++) {
+        a.vx = D_dryfield_dilapidated_house_801867A4[i].vx * scale / *arg2;
+        a.vy = D_dryfield_dilapidated_house_801867A4[i].vy * scale / *arg2;
+        gte_ldv0(&a);
+        gte_mvmva_real();
+        gte_stsv(&b);
+        verts[i].vx = b.vx + x0;
+        verts[i].vy = b.vy + y0;
+    }
+    USE_REG(x0);
+    for (i = 0; i < 6; i++) {
+        a.vx = D_dryfield_dilapidated_house_801867D4[i].vx * scale / *arg2;
+        a.vy = D_dryfield_dilapidated_house_801867D4[i].vy * scale / *arg2;
+        gte_ldv0(&a);
+        gte_mvmva_real();
+        gte_stsv(&b);
+        verts[i + 6].vx = b.vx + x1;
+        verts[i + 6].vy = b.vy + y1;
+    }
+    r = 4096.0 - rsin(task->killCountdown) * 0.5 + 4096.0;
+    for (i = 0; i < 6; i++) {
+        a.vx = ((D_dryfield_dilapidated_house_801867A4[i].vx * r) >> 12) * scale / *arg2;
+        a.vy = ((D_dryfield_dilapidated_house_801867A4[i].vy * r) >> 12) * scale / *arg2;
+        gte_ldv0(&a);
+        gte_mvmva_real();
+        gte_stsv(&b);
+        verts[i + 12].vx = b.vx + x0;
+        verts[i + 12].vy = b.vy + y0;
+    }
+    for (i = 0; i < 6; i++) {
+        a.vx = ((D_dryfield_dilapidated_house_801867D4[i].vx * r) >> 12) * scale / *arg2;
+        a.vy = ((D_dryfield_dilapidated_house_801867D4[i].vy * r) >> 12) * scale / *arg2;
+        gte_ldv0(&a);
+        gte_mvmva_real();
+        gte_stsv(&b);
+        verts[i + 18].vx = b.vx + x1;
+        verts[i + 18].vy = b.vy + y1;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_801803A4);
 
