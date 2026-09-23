@@ -25,9 +25,54 @@ extern GpObj4A D_dryfield_night_motel_loft_80180440;
 /// so they are elements 1, 2, 3, 4 and 5 of this one array.
 extern SVECTOR D_dryfield_night_motel_loft_8017ED78[];
 
+/// The room's grid params: `8017ED54` is the template this function copies
+/// from, `8017F120` the live copy it writes and shifts.
+extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
+extern GpGridParams D_dryfield_night_motel_loft_8017F120;
+
 void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_loft/dryfield_night_motel_loft_4", func_dryfield_night_motel_loft_8017D9BC);
+/// Restores the live grid's first face normal, its face record and its four
+/// face corners from the template, then raises the corners by 0xBB8 in Y when
+/// `arg0` is set.
+void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
+{
+    GpGridParams* dst;
+    GpGridParams* src;
+    SVECTOR       d;
+    s32           i;
+
+    dst = &D_dryfield_night_motel_loft_8017F120;
+    src = &D_dryfield_night_motel_loft_8017ED54;
+
+    for (i = 0; i < 1; i++) {
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
+    }
+
+    for (i = 0; i < 4; i++) {
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
+    }
+
+    if (arg0 == 0) {
+        d.vx = 0;
+        d.vy = 0;
+    } else {
+        d.vx = 0;
+        d.vy = 0xBB8;
+    }
+    d.vz = 0;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_8[i].vx += d.vx;
+        dst->field_8[i].vy += d.vy;
+        dst->field_8[i].vz += d.vz;
+    }
+}
 
 /// Per-view room draw. Views 2 and 9, 4, 6 and 7 and 11 each queue one or two
 /// of the room's points, and views 3, 10 and 8 additionally run a burst of
