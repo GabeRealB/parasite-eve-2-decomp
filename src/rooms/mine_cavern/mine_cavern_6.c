@@ -1,11 +1,30 @@
 #include "common.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "rooms/room_common.h"
 #include "rooms/mine_cavern.h"
 
 extern s32 D_mine_cavern_8018EB54;
 extern u8  D_8007216D;
+
+extern s32 D_80115720;
+extern s32 D_80115728;
+extern s32 D_8011573C;
+extern s32 D_80115744;
+extern u32 Gp_LcgState;
+
+extern SVECTOR D_mine_cavern_80188F64[];
+extern SVECTOR D_mine_cavern_80188F7C[];
+extern SVECTOR D_mine_cavern_80188F84[];
+extern SVECTOR D_mine_cavern_80188F8C[];
+extern SVECTOR D_mine_cavern_80188F94[];
+extern SVECTOR D_mine_cavern_80188F9C[];
+extern SVECTOR D_mine_cavern_80188FB4[];
+extern SVECTOR D_mine_cavern_80188FBC;
+extern SVECTOR D_mine_cavern_80188FC4[];
 
 void func_mine_cavern_8017E330(void)
 {
@@ -61,4 +80,104 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_6", func_mine_cavern_8017E474);
+void func_mine_cavern_8017E474(Task* arg0)
+{
+    u32 rnd;
+
+    if (arg0->state == 0) {
+        D_80115728                 = 0x60244;
+        D_80115744                 = 0x60250;
+        D_8011573C                 = 0x6023F;
+        D_80115720                 = 0x60267;
+        Gp_State1C->roomEffectMode = 2;
+        arg0->state                = 1;
+    }
+
+    if (GameFlag_GetNibble(0xC4) == 1) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (((Gp_LcgState >> 16) & 7) == 0) {
+            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+            D_mine_cavern_80188FBC.vx = ((Gp_LcgState >> 16) & 0x3F) + 0x1766;
+            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+            D_mine_cavern_80188FBC.vy = ((Gp_LcgState >> 16) & 0x3F) - 0x5B4;
+            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+            D_mine_cavern_80188FBC.vz = ((Gp_LcgState >> 16) & 0x3F) - 0x14A;
+            Gp_SpawnEff(0x600E0, NULL, 0x300, &D_mine_cavern_80188FBC);
+        }
+    }
+
+    switch (Gp_GetViewIndex() & 0xFF) {
+        case 2:
+        case 3:
+        case 9: {
+            SVECTOR* p = D_mine_cavern_80188F84;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[2], 1, 0x300);
+            break;
+        }
+        case 4: {
+            SVECTOR* p = D_mine_cavern_80188F7C;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[5], 1, 0x300);
+            break;
+        }
+        case 5:
+            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+        case 23: {
+            SVECTOR* p = D_mine_cavern_80188F64;
+            Room_Draw01(&p[0], 0x180, 0x222);
+            Room_Draw01(&p[1], 0x180, 0x222);
+            Room_Draw17(&p[3], 1, 0x300);
+            break;
+        }
+        case 6: {
+            SVECTOR* p = D_mine_cavern_80188F8C;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[2], 1, 0x300);
+            Room_Draw17(&p[4], 1, 0x300);
+            break;
+        }
+        case 7: {
+            SVECTOR* p = D_mine_cavern_80188F84;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[2], 1, 0x300);
+            Room_Draw17(&p[3], 1, 0x300);
+            break;
+        }
+        case 8:
+        case 20:
+            Room_Draw17(D_mine_cavern_80188F94, 1, 0x300);
+            break;
+        case 10:
+            Room_Draw17(D_mine_cavern_80188FB4, 1, 0x300);
+            break;
+        case 11:
+            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+        case 13: {
+            SVECTOR* p = D_mine_cavern_80188F7C;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[5], 1, 0x300);
+            Room_Draw17(&p[6], 1, 0x300);
+            break;
+        }
+        case 14:
+        case 16:
+        case 21:
+            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+            break;
+        case 17:
+            Room_Draw17(D_mine_cavern_80188F9C, 1, 0x300);
+            break;
+        case 24:
+            Room_Draw17(D_mine_cavern_80188FC4, 1, 0x300);
+        case 22:
+            Room_Draw17(D_mine_cavern_80188F7C, 1, 0x300);
+            break;
+        case 25: {
+            SVECTOR* p = D_mine_cavern_80188F7C;
+            Room_Draw17(&p[0], 1, 0x300);
+            Room_Draw17(&p[2], 1, 0x300);
+            break;
+        }
+    }
+}
