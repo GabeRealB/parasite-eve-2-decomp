@@ -42,7 +42,46 @@ void func_shelter_r47_8017FB94(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017FCC0);
+void func_shelter_r47_8017FCC0(void)
+{
+    u8 place = gGameSession->at4.loc.place;
+
+    if (place != 1 || D_80114C12 == place) {
+        return;
+    }
+    switch (GameFlag_GetNibble(0x82)) {
+        case 1:
+            if (gGameSession->eventState == 0) {
+                D_shelter_r47_8018A690 = Task_SpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
+                Gp_MsgPlayer3F3(0);
+                Gp_MsgPlayerWeapon(0);
+                Gp_MsgSlot4Chain(0, 0);
+                GameFlag_SetNibble(0x82, 2);
+            }
+            break;
+        case 2:
+            if (gGameSession->cutsceneHold == 0) {
+                func_800E8634((s32)&D_80141D9C, 0, (s32)&D_80142A74);
+                GameFlag_SetNibble(0x82, 3);
+            }
+            break;
+        case 3:
+            if (gGameSession->eventState == 0) {
+                D_shelter_r47_8018A690 = Task_SpawnFromTable(&D_shelter_r47_80187618, 0, 2, 0);
+                Gp_MsgPlayer3F3(0);
+                Gp_MsgPlayerWeapon(0);
+                Gp_MsgSlot4Chain(0, 0);
+                GameFlag_SetNibble(0x82, 4);
+            }
+            break;
+        case 4:
+            if (gGameSession->cutsceneHold == 0) {
+                func_800E8634((s32)&D_80142C24, 0, (s32)&D_801432FC);
+                GameFlag_SetNibble(0x82, 5);
+            }
+            break;
+    }
+}
 
 s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
 {

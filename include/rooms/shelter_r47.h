@@ -16,10 +16,15 @@ typedef struct ShelterR47Object {
 } ShelterR47Object;
 STATIC_ASSERT_SIZEOF(ShelterR47Object, 0x2AC);
 
+extern s8                     D_80114C12;
 extern s32                    D_801350BC;
 extern s32                    D_801359D4;
 extern s32                    D_8014152C;
 extern s32                    D_80141C1C;
+extern s32                    D_80141D9C;
+extern s32                    D_80142A74;
+extern s32                    D_80142C24;
+extern s32                    D_801432FC;
 extern s32                    D_80143494;
 extern TaskDesc               D_shelter_r47_80186F70;
 extern TaskDesc               D_shelter_r47_80186F94;
