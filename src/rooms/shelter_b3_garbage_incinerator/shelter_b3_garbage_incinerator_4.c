@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -10,11 +12,16 @@ typedef struct {
     /* 0x30 */ s32  field_30;
 } GarbageIncineratorState;
 
-/// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`;
-/// only the child task stored into it is known.
+/// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`.
+/// `field_2C` is the task animation messages are dispatched to, `child` the
+/// task spawned from the room's table, and `field_38` the last animation set
+/// selected.
 typedef struct {
-    byte  pad_0[0x30];
+    byte  pad_0[0x2C];
+    Task* field_2C;
     Task* child;
+    byte  pad_34[0x4];
+    s16   field_38;
 } GarbageIncineratorWork;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
@@ -22,6 +29,11 @@ extern Task*    D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the base
+/// animation-set id and `D_8007218A` selects the alternate range when it is 1.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F0A8);
 
@@ -38,7 +50,29 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(GarbageIncineratorState* arg0,
     arg0->field_30 = arg2;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F8AC);
+/// Select animation set `arg0 + 0x2F`, record it in the work block, and send
+/// it to `field_2C` with message 0x3E8. The set's block is `D_80073BA9 + 1`
+/// when `D_8007218A` is 1 and `D_80073BA9 + 0x22` otherwise.
+void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
+{
+    GarbageIncineratorWork* work;
+    GpAnimArg               msg;
+    s16                     anim;
+    s32                     weaponId;
+    s32                     setId;
+
+    work           = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    anim           = arg0 + 0x2F;
+    weaponId       = D_80073BA9;
+    setId          = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0    = (void*)setId;
+    work->field_38 = anim;
+    msg.field_4    = anim;
+    msg.field_8    = 1;
+    msg.field_C    = 0xF;
+    msg.field_10   = 0;
+    Gp_DispatchMsg(work->field_2C, 0x3E8, (s32)&msg, 0);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F930);
 
