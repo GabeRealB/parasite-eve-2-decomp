@@ -139138,3 +139138,20 @@ also stops competing for registers from the entry block. That alone fixed the
 unrelated `regs=18` swap of the session pointer and switch value. When a
 global's address shows up whole in a branch delay slot, assign the pointer in
 the block before the branch. Input: `base_4.i` `ced5d17fd7fcf754dc166566e75d80372ebf5d597f4dafdd3022c2ea79bee988` (100%).
+
+### Two `x++` in a row fold to `+2` unless another store sits between them; `v += c ? K : -K` keeps one reload of a stack field (func_shelter_b3_garbage_incinerator_8017DF24, 2026-09-23)
+
+The target stored a u16 state twice: `lhu; addiu 1; sh; addiu 1; sh`, with
+`sh zero,0x62` (a sibling field) scheduled ahead of them. `state++; state++;`
+and a temp form `st = state + 1; state = st; state = st + 1;` both compiled to
+one `addiu 2`. CSE knows the first store's value, and flow then drops it as a
+dead store. Writing `state++; timer = 0; state++;` kept both stores. The
+intervening store to another field of the same struct blocks the fold.
+
+The same function jittered a field of an address-taken local message:
+`lw v0,D; lw v1,0x14(sp); andi; bnez; addiu v0,v1,10` (delay slot), then
+`addiu v0,v1,-10` and one shared `sw v0,0x14(sp)`. m2c's form
+`y = msg.vy + 10; if (!(D & 1)) y = msg.vy - 10; msg.vy = y;` loaded the field
+first into another register (98.9%). Separate `+=` / `-=` arms loaded and stored
+in each arm (92.5%). `msg.vy += (D & 1) ? 10 : -10;` matched. Inputs: `base_5.i`
+`cfda7581…5308` (98.9%) and `base_11.i` `7708d4e2…e711` (100%).
