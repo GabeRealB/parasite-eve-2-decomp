@@ -18,6 +18,10 @@ extern s32 Gp_LcgState;
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 
+/// Declared without a prototype because the effect task calls it with a third
+/// argument, always 0, that the definition does not take.
+void func_dryfield_night_motel_balcony_80180C60();
+
 /// One row of the sprite table `func_dryfield_night_motel_balcony_8017FF78`
 /// indexes by `Task::spawnArg1`: `tpageX` selects the texture page, `w` is the
 /// frame width (the u step between frames and the billboard scale) and `v` the
@@ -424,7 +428,86 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", func_dryfield_night_motel_balcony_801809CC);
+void func_dryfield_night_motel_balcony_801809CC(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    s16            flag;
+    u16            age;
+    s16            t;
+    u8             color[3];
+
+    work  = task->spawnArg2;
+    flag  = Gp_State1C->eventState;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (flag >= 2) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    Gp_UpdateCoord(coord);
+    age       = work->age;
+    work->age = age + 1;
+    switch (task->state) {
+        case 0:
+            rot           = (GpMtxWords*)&coord->coord;
+            rot->w0       = 0x1000;
+            rot->w1       = 0;
+            rot->w2       = 0x1000;
+            rot->w3       = 0;
+            rot->h4       = 0x1000;
+            work->pos.vx  = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            work->scale   = 0xA0;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->index   = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            work->move.vy = ((u32)Gp_LcgState >> 16) & 0xFF;
+            task->state   = 1;
+            break;
+        case 1:
+            if (Gp_State1C->eventState == 0) {
+                work->index++;
+                coord->coord.t[1] += work->move.vy;
+                coord->flg         = 0;
+                if (coord->coord.t[1] > 0) {
+                    if (work->age < 0x1E) {
+                        Gp_SpawnEff(0x60095, coord, work->pos.vx + 0x20010400, NULL);
+                    }
+                    task->state = 2;
+                } else if (work->scale > 0) {
+                    work->move.vy += 6;
+                }
+            } else {
+                work->age = age;
+            }
+            t = work->age;
+            if (t < 0x14) {
+                func_dryfield_night_motel_balcony_80180C60(task, NULL, 0);
+            } else if (t < 0x1E) {
+                color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
+                func_dryfield_night_motel_balcony_80180C60(task, color, 0);
+            } else {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+        case 2:
+            if (Gp_State1C->eventState != 0) {
+                work->age = age;
+            }
+            t = work->age;
+            if (t < 0x14) {
+                func_dryfield_night_motel_balcony_80180C60(task, NULL, 0);
+            } else if (t < 0x1E) {
+                color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
+                func_dryfield_night_motel_balcony_80180C60(task, color, 0);
+            } else {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 /// Projects the task model's world position through `GsWSMATRIX` and, when the
 /// GTE flag is non-negative, queues one `POLY_FT4` billboard (tpage 0x2C, clut

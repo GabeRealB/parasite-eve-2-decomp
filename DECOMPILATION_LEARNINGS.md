@@ -139099,3 +139099,11 @@ if (mask & D_flags[12]) ...
 Tell: a pointer register re-initialised to `sym + k*stride` beside an index
 register set to `k`, with a live counter kept for the `slti` exit, is
 strength reduction over `a[i]`. Write the index form before tuning walkers.
+
+### An invented trailing argument adds hard-register sets and can stop another call's setup from birthing (func_dryfield_night_motel_balcony_801809CC, 2026-09-23)
+
+**Symptom.** 99.636%, one swap in a call setup: target `lui/ori a0; lh a2; move a1; move a3,zero; jal; addu a2` (delay slot), ours had `move a1` before the `lh`. Two earlier sessions and the permuter treated it as a sched1 tie on the `lh` and found nothing.
+
+**Cause.** The seed called a same-TU helper with four arguments, `f(task, color, 0, t)`, but the helper's matched definition takes two. The fourth argument made every helper call set `$a3`, so `move a3,zero` for the other call was not birthing (`REG_N_SETS($a3) > 1`). With `$a3` set only once in the function, `move a3,zero` gets `LAUNCH_PRIORITY` at T-2 and beats the add, the add falls to T-3, and the `lh` becomes ready at T-5, after `move a1` has been placed. That is the target's order. The helper happened to find `t` in `$a3` in the target because the allocator put it there, not because it was passed.
+
+**Fix.** Pass exactly what the target loads (`f(task, color, 0)`: `$a2 = 0` is set, `$a3` is not an argument). When the call site passes more arguments than the definition takes, declare the helper without a prototype (`void f();`) ahead of the caller. Before blaming the scheduler for an argument-register swap, compare every call's argument count against the callee's real definition and count the sets of each argument register (entries on birthing call setup above).
