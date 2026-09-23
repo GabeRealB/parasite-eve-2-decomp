@@ -17,6 +17,8 @@
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 /// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+/// `rtpt`, with the two leading nops the original emits.
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// 0x2C-byte scratch block `func_shelter_b2_pod_bottom_8018101C` takes from
 /// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
@@ -36,12 +38,109 @@ typedef struct {
     u16     sy1;
 } _ShelterB2PodBottomBeamScratch;
 
+/// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
+/// `G_SCRATCH_HEAD`: the 32 rotated ring points and the disc centre, the
+/// quad's depth and GTE flag, and the four projected corners of one quad.
+typedef struct {
+    SVECTOR pts[32];
+    SVECTOR center;
+    s32     otz;
+    s32     flag;
+    DVECTOR sxy0;
+    DVECTOR sxy1;
+    DVECTOR sxy2;
+    DVECTOR sxy3;
+} _ShelterB2PodBottomRingScratch;
+
 extern u32 Gp_LcgState;
 
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_3", func_shelter_b2_pod_bottom_80180A4C);
+/// Draws a flat white disc of radius `radius` in `coord`'s local XY plane,
+/// centred on `center` (the frame's origin when it is NULL). 32 rim points are
+/// rotated by `coord->workm`, the centre is projected through the full
+/// `workm`, and the disc is queued as 16 `POLY_F4` fans, each joining the
+/// centre to three consecutive rim points; any piece with a negative GTE flag
+/// is dropped.
+void func_shelter_b2_pod_bottom_80180A4C(GsCOORDINATE2* coord, s16 radius, SVECTOR* center)
+{
+    void**                          scratch;
+    _ShelterB2PodBottomRingScratch* block;
+    POLY_F4*                        prim;
+    s32                             i;
+    s32                             ang;
+    u8*                             head;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch - 0x120;
+    *scratch = head;
+    block    = (_ShelterB2PodBottomRingScratch*)head;
+    gte_SetTransMatrix(&coord->workm);
+    if (center != NULL) {
+        for (i = 0; i < 32; i++) {
+            block->pts[i].vx = *(u16*)&center->vx + ((rsin(i << 7) * radius) >> 12);
+            block->pts[i].vy = *(u16*)&center->vy + ((rcos(i << 7) * radius) >> 12);
+            block->pts[i].vz = center->vz;
+            gte_SetRotMatrix(&coord->workm);
+            gte_ldv0(&block->pts[i]);
+            gte_rtv0_real();
+            gte_stsv(&block->pts[i]);
+        }
+        block->center.vx = center->vx;
+        block->center.vy = center->vy;
+        block->center.vz = center->vz;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->center);
+        gte_rtv0_real();
+        gte_stsv(&block->center);
+    } else {
+        for (i = 0; i < 32; i++) {
+            ang              = i << 7;
+            block->pts[i].vx = (rsin(ang) * radius) >> 12;
+            block->pts[i].vy = (rcos(ang) * radius) >> 12;
+            block->pts[i].vz = 0;
+            gte_SetRotMatrix(&coord->workm);
+            gte_ldv0(&block->pts[i]);
+            gte_rtv0_real();
+            gte_stsv(&block->pts[i]);
+        }
+        block->center.vx = 0;
+        block->center.vy = 0;
+        block->center.vz = 0;
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&block->center);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        for (i = 0; i < 32; i += 2) {
+            gte_ldv3(&block->pts[i], &block->pts[(i + 2) & 0x1F], &block->pts[i + 1]);
+            gte_rtpt_real();
+            gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+            gte_stflg(&block->flag);
+            if (block->flag >= 0) {
+                gte_stszotz(&block->otz);
+                prim           = (POLY_F4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
+                setPolyF4(prim);
+                setRGB0(prim, 0xFF, 0xFF, 0xFF);
+                prim->x0 = *(u16*)&block->sxy0.vx;
+                prim->y0 = *(u16*)&block->sxy0.vy;
+                prim->x1 = *(u16*)&block->sxy1.vx;
+                prim->y1 = *(u16*)&block->sxy1.vy;
+                prim->x2 = *(u16*)&block->sxy2.vx;
+                prim->y2 = *(u16*)&block->sxy2.vy;
+                prim->x3 = *(u16*)&block->sxy3.vx;
+                prim->y3 = *(u16*)&block->sxy3.vy;
+                addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x120;
+}
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 {
