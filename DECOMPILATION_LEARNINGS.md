@@ -139598,3 +139598,20 @@ scalars. The prologue statement order still mattered after that: assigning
 `block = head` *after* the colour scalars placed the `move $s3` where the
 target has it, which removed the one `head asm("v1")` pin the attempt had
 needed.
+
+## `-(p * 16)` on an `s16` parameter keeps its sign extension; `-(p << 4)` drops it (func_shelter_b2_pod_bottom_8018101C, 2026-09-24)
+
+Storing a negated, scaled `s16` parameter into a 16-bit field:
+
+```c
+block->tip.vy = -(size * 16);   /* sll a1,16; sra 12; negu; sh */
+block->tip.vy = -(size << 4);   /* sll a1,4;  negu;         sh */
+```
+
+Only the low half reaches the `sh`, so the promotion of `size` is dead, but
+combine only removes it through the shift form - the multiply keeps the
+`sll 16`/`sra 12` pair. A target with a bare `sll a1,4` on a parameter that
+is spilled later as a halfword (`sh a1,…($sp)` / `lhu`+`sll 16`+`sra 16`) is
+still an `s16` parameter; widening it to `s32` to lose the extension breaks
+the frame and the spill instead. This is the reverse of the `x * 16` keeps
+the `lw` entry above: there the multiply form was the one the ROM had.

@@ -4,13 +4,42 @@
 #include "gameplay/D4.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
+#include "main/display.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+
+/// `rtps`, with the two leading nops the original emits.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+/// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// 0x2C-byte scratch block `func_shelter_b2_pod_bottom_8018101C` takes from
+/// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
+/// it, and both points' projections. `otz0`/`sx0`/`sy0` belong to `base`,
+/// `otz1`/`sx1`/`sy1` to `tip`; `r0`/`r1` are the wedge radii at each end.
+typedef struct {
+    SVECTOR base;
+    SVECTOR tip;
+    s32     otz0;
+    s32     otz1;
+    s32     flag;
+    s32     r0;
+    s32     r1;
+    u16     sx0;
+    u16     sy0;
+    u16     sx1;
+    u16     sy1;
+} _ShelterB2PodBottomBeamScratch;
 
 extern u32 Gp_LcgState;
 
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_3", func_shelter_b2_pod_bottom_80180A4C);
 
@@ -45,7 +74,139 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_3", func_shelter_b2_pod_bottom_8018101C);
+/// Queues a beam of gouraud `POLY_G4` wedges along `coord`'s local up axis:
+/// the tip sits `size * 16` units above the coordinate's world position, and
+/// both ends are projected. Two passes widen the wedge radii (`size * 64` and
+/// `size * 128` over each end's depth) and draw a fan at each end plus a
+/// connecting quad. `color` packs `[r][g][b]` nibbles scaled by `scale`, with
+/// `gDisplayState.animFrame & 1` adding a 16-unit flicker to every channel.
+void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s16 size, u16 color, u16 scale)
+{
+    void**                          scratch;
+    u8*                             head;
+    _ShelterB2PodBottomBeamScratch* block;
+    POLY_G4*                        prim;
+    s32                             pass;
+    u8                              r;
+    u8                              g;
+    u8                              b;
+    s32                             limit;
+    s32                             angStart;
+    s32                             scaled;
+    s32                             ang;
+    s32                             next;
+    s32                             mid;
+    s32                             blend;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (_ShelterB2PodBottomBeamScratch*)(*scratch = head - 0x2C);
+    block->tip.vy = -(size << 4);
+    block->tip.vx = 0;
+    block->tip.vz = 0;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&block->tip);
+    gte_rtv0_real();
+    gte_stsv(&block->tip);
+    block->base.vx = coord->workm.t[0];
+    block->base.vy = coord->workm.t[1];
+    block->base.vz = coord->workm.t[2];
+    block->tip.vx += block->base.vx;
+    block->tip.vy += block->base.vy;
+    block->tip.vz += block->base.vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->base);
+    gte_rtps_real();
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(&block->tip);
+        gte_rtps_real();
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
+        gte_stszotz(&block->otz1);
+        if (block->flag >= 0) {
+            blend = (*(u8*)&gDisplayState.animFrame & 1) << 4;
+            r     = scale * ((color >> 8) & 0xF) + blend;
+            g     = scale * ((color >> 4) & 0xF) + blend;
+            b     = scale * (color & 0xF) + blend;
+            for (pass = 1; pass < 3; pass++) {
+                scaled    = size * (pass << 6);
+                block->r0 = scaled / block->otz0;
+                block->r1 = scaled / block->otz1;
+                ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+                if (ang < ang + 0x800) {
+                    angStart = ang;
+                    limit    = ang + 0x800;
+                    do {
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, 0, 0, 0);
+                        prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
+                        prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
+                        prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
+                        prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
+                        prim->x2 = block->sx1;
+                        prim->y2 = block->sy1;
+                        prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
+                        prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
+                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, 0, 0, 0);
+                        prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                        prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+                        prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
+                        prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                        next     = ang + 0x400;
+                        prim->x2 = block->sx0;
+                        prim->y2 = block->sy0;
+                        prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
+                        prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
+                        addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        mid            = angStart + (ang - angStart) * 2;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, r, g, b);
+                        prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
+                        prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
+                        prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
+                        prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
+                        prim->x2 = block->sx0;
+                        prim->y2 = block->sy0;
+                        prim->x3 = block->sx1;
+                        prim->y3 = block->sy1;
+                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        ang = next;
+                    } while (ang < limit);
+                }
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+}
 
 void func_shelter_b2_pod_bottom_80181940(Task* arg0)
 {
