@@ -18,6 +18,7 @@ typedef struct {
 void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part);
 void func_shelter_r48_8018258C(void* arg0, s32 arg1, s32 arg2);
+void func_shelter_r48_80180804(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern u32 Gp_LcgState;
 extern u8  D_shelter_r48_8018300C[];
@@ -110,7 +111,56 @@ void func_shelter_r48_8017E4C4(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E704);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E9B8);
+void func_shelter_r48_8017E9B8(Task* arg0)
+{
+    ClumpMem*      mem;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+
+    mem   = (ClumpMem*)arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    if (arg0->state == 0) {
+        m                            = &coord->coord;
+        coord->sub                   = mem->field_8;
+        *(s32*)&coord->coord.m[0][0] = 0x1000;
+        *(s32*)&m->m[0][2]           = 0;
+        *(s32*)&m->m[1][1]           = 0x1000;
+        *(s32*)&m->m[2][0]           = 0;
+        m->m[2][2]                   = 0x1000;
+        coord->coord.t[2]            = 0;
+        coord->coord.t[1]            = 0;
+        coord->coord.t[0]            = 0;
+        coord->flg                   = 0;
+        Gp_UpdateCoord(coord);
+        arg0->state = 1;
+    }
+    mem->field_22 += 1;
+    switch (arg0->spawnArg1) {
+        case 0:
+            Gp_SpawnEff(0x6018C, coord, 0x94002A00, NULL);
+            arg0->spawnArg1 = 1;
+            return;
+        case 1:
+            func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12 | 0x1000) & 0xFFFF, 0x800, 0);
+            if (!(mem->field_22 & 1)) {
+                Gp_SpawnEff(0x6018C, coord, 0x92801800, NULL);
+            }
+            mem->field_22 += 1;
+            return;
+        case 2:
+            if (!(mem->field_22 & 1)) {
+                Gp_SpawnEff(0x6018C, coord, 0x92603C00, NULL);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017EC18);
 
