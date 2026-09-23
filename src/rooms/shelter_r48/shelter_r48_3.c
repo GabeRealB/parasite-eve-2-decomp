@@ -109,7 +109,59 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E704);
+void func_shelter_r48_8017E704(Task* arg0)
+{
+    ClumpMem*      mem;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+
+    mem   = (ClumpMem*)arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12) & 0xFFFF, 0x800, 0);
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    if (arg0->state == 0) {
+        m                            = &coord->coord;
+        coord->sub                   = mem->field_8;
+        *(s32*)&coord->coord.m[0][0] = 0x1000;
+        *(s32*)&m->m[0][2]           = 0;
+        *(s32*)&m->m[1][1]           = 0x1000;
+        *(s32*)&m->m[2][0]           = 0;
+        m->m[2][2]                   = 0x1000;
+        coord->coord.t[2]            = 0;
+        coord->coord.t[1]            = 0;
+        coord->coord.t[0]            = 0;
+        coord->flg                   = 0;
+        Gp_UpdateCoord(coord);
+        arg0->state = 1;
+    }
+    mem->field_22 += 1;
+    switch (arg0->spawnArg1) {
+        case 0:
+            Gp_SpawnEff(0x6018B, coord, 0x14002800, NULL);
+            arg0->spawnArg1 = 1;
+            return;
+        case 1:
+            func_shelter_r48_80180804(coord, ((s16)((s16)mem->field_22 / 2) % 12) & 0xFFFF, 0x800, 0);
+            if (!(mem->field_22 & 1)) {
+                Gp_SpawnEff(0x6018B, coord, 0x12801800, NULL);
+            }
+            mem->field_22 += 1;
+            return;
+        case 2:
+            if ((s16)((s16)mem->field_22 % 6) == 0) {
+                Gp_SpawnEff(0x6018C, coord, 0x2802800, NULL);
+            }
+            if (!(mem->field_22 & 1)) {
+                Gp_SpawnEff(0x6018B, coord, 0x12803800, NULL);
+            }
+            return;
+    }
+}
 
 void func_shelter_r48_8017E9B8(Task* arg0)
 {
