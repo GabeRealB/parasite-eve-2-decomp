@@ -23,9 +23,11 @@ typedef struct {
     /* 0x1E */ s16 field_1E; ///< committed to game flag 0xD6 when the script ends
     /* 0x20 */ s16 field_20; ///< committed to game flag 0xD2 when the script ends
     /* 0x22 */ u8  pad_22[0x12];
-    /* 0x34 */ u8  field_34; ///< selects the `D_shelter_r47_80186FAC` byte published as the area view
-    /* 0x35 */ u8  pad_35;
-    /* 0x36 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
+    /* 0x34 */ union {
+        u16 word;        ///< the high byte gates whether the action prompt keeps its kind
+        u8  low;         ///< selects the `D_shelter_r47_80186FAC` byte published as the area view
+    } field_34;
+    /* 0x36 */ u16 fade; ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x38 */ u8  pad_38[2];
     /* 0x3A */ s16 field_3A;
     /* 0x3C */ s16 field_3C;
@@ -35,9 +37,10 @@ typedef struct {
     /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
     /* 0x46 */ u8  pad_46[2];
     /* 0x48 */ s16 field_48;
-    /* 0x4A */ u8  pad_4A[4];
-    /* 0x4E */ u8  field_4E; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
-    /* 0x4F */ s8  field_4F; ///< selects which of the five halves from `field_18` a step toggles
+    /* 0x4A */ s8  promptKind; ///< display mode forwarded to `func_800D4E78`
+    /* 0x4B */ u8  pad_4B[3];
+    /* 0x4E */ u8  field_4E;   ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
+    /* 0x4F */ s8  field_4F;   ///< selects which of the five halves from `field_18` a step toggles
     /* 0x50 */ u8  pad_50;
     /* 0x51 */ s8  field_51;
     /* 0x52 */ u8  pad_52[2];
@@ -102,7 +105,26 @@ void func_shelter_r47_80182C78(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182CA4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182DAC);
+/// Clears the action prompt's mode and target, drops the prompt kind to 0 when
+/// its gating flags are clear, shows the prompt, and moves the script to state 5.
+void func_shelter_r47_80182DAC(Task* task)
+{
+    ShelterR47State*  state;
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    state = (ShelterR47State*)task->work;
+    func_shelter_r47_80181914(task, 0);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (state->field_51 == 0 && (state->field_34.word >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
+        state->promptKind = 0;
+    }
+    if (((s16)state->field_34.word >> 8) == 1 && D_shelter_r47_8018A694 == 0) {
+        state->promptKind = 0;
+    }
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
+    task->state = 5;
+}
 
 void func_shelter_r47_80182E78(Task* task)
 {
@@ -169,7 +191,7 @@ void func_shelter_r47_80182FDC(Task* task)
     state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 1);
     if ((s16)func_shelter_r47_80180C48(task) != 0) {
-        D_8007216C.view = D_shelter_r47_80186FAC[state->field_34];
+        D_8007216C.view = D_shelter_r47_80186FAC[state->field_34.low];
         state->field_48 = 0;
         work            = (ShelterR47State*)task->work;
         work->field_3A  = 0xFF;
