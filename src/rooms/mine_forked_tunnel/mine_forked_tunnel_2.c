@@ -90,4 +90,45 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     task->state = task->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_2", func_mine_forked_tunnel_8017DF34);
+/// Restores the room's layout lists from their template, then offsets the eight
+/// `field_8` coordinates by (0, 0, -0xC8), or by (0, -0xBB8, -0xC8) when `arg0`
+/// is non-zero. The callers pass game-flag nibble 0x75.
+void func_mine_forked_tunnel_8017DF34(s32 arg0)
+{
+    MineForkedTunnelLayout* dst;
+    MineForkedTunnelLayout* src;
+    MineForkedTunnelVec     d;
+    s32                     i;
+
+    dst = &D_mine_forked_tunnel_80183D70;
+    src = &D_mine_forked_tunnel_80181C5C;
+
+    for (i = 0; i < 3; i++) {
+        dst->field_4[i].x = src->field_4[i].x;
+        dst->field_4[i].y = src->field_4[i].y;
+        dst->field_4[i].z = src->field_4[i].z;
+        dst->field_C[i]   = src->field_C[i];
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x = src->field_8[i].x;
+        dst->field_8[i].y = src->field_8[i].y;
+        dst->field_8[i].z = src->field_8[i].z;
+    }
+
+    if (arg0 == 0) {
+        d.x = 0;
+        d.y = 0;
+        d.z = -0xC8;
+    } else {
+        d.y = -0xBB8;
+        d.x = 0;
+        d.z = -0xC8;
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += d.x;
+        dst->field_8[i].y += d.y;
+        dst->field_8[i].z += d.z;
+    }
+}

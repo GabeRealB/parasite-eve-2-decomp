@@ -128,4 +128,32 @@ typedef struct MineForkedTunnelSprtRec {
 } MineForkedTunnelSprtRec;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelSprtRec, 0x38);
 
+/// Coordinate triple in the room's layout lists, 8 bytes apart; the fourth
+/// halfword is never read.
+typedef struct MineForkedTunnelVec {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad;
+} MineForkedTunnelVec;
+
+/// 12-byte record copied whole, byte-aligned, alongside each `field_4` entry.
+typedef struct MineForkedTunnelBlob {
+    /* 0x0 */ s8 b[12];
+} MineForkedTunnelBlob;
+
+/// Pointers to the room's layout lists. `D_mine_forked_tunnel_80181C5C` is the
+/// template and `D_mine_forked_tunnel_80183D70` the working copy that
+/// `func_mine_forked_tunnel_8017DF34` refills from it: three `field_4` entries
+/// with their `field_C` records, and eight `field_8` entries which it then
+/// shifts. `field_0` is not read there.
+typedef struct MineForkedTunnelLayout {
+    /* 0x0 */ s32                   field_0;
+    /* 0x4 */ MineForkedTunnelVec*  field_4;
+    /* 0x8 */ MineForkedTunnelVec*  field_8;
+    /* 0xC */ MineForkedTunnelBlob* field_C;
+} MineForkedTunnelLayout;
+extern MineForkedTunnelLayout D_mine_forked_tunnel_80181C5C;
+extern MineForkedTunnelLayout D_mine_forked_tunnel_80183D70;
+
 #endif // ROOMS_MINE_FORKED_TUNNEL_H
