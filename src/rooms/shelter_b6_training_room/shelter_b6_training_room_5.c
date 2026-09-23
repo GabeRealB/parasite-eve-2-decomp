@@ -24,7 +24,7 @@ void func_shelter_b6_training_room_8017DB70(void)
     SndEvt_EnqueueType7(0x80000000, 1);
 }
 
-void func_shelter_b6_training_room_8017DBB0(void)
+void func_shelter_b6_training_room_8017DBB0(s32 arg0)
 {
     RoomsShared801807d4Task = NULL;
 }

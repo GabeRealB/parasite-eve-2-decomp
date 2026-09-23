@@ -1,17 +1,23 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 
 extern s16 D_800691CA;
 
-extern s32 D_shelter_b6_training_room_80182B24;
-extern s32 D_shelter_b6_training_room_80183BB4;
-extern s32 D_shelter_b6_training_room_80184124;
-extern s32 D_shelter_b6_training_room_80184274;
-extern s32 D_shelter_b6_training_room_80185C58;
+extern GpMsgEntry D_shelter_b6_training_room_80182AF4[];
+extern s32        D_shelter_b6_training_room_80182B24;
+extern s32        D_shelter_b6_training_room_80183BB4;
+extern s32        D_shelter_b6_training_room_80184124;
+extern s32        D_shelter_b6_training_room_80184274;
+extern s32        D_shelter_b6_training_room_80185C58;
+
+void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 
 s32 func_shelter_b6_training_room_8017D764(void)
 {
@@ -22,7 +28,26 @@ s32 func_shelter_b6_training_room_8017D764(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_2", func_shelter_b6_training_room_8017D7D4);
+void func_shelter_b6_training_room_8017D7D4(Task* arg0)
+{
+    u16* ptr;
+    s32  i;
+
+    arg0->msgTable = D_shelter_b6_training_room_80182AF4;
+    Game_SetPtrSlot(arg0, 7);
+    ptr = (u16*)Fs_ImgBuffers;
+    i   = 0;
+    do {
+        *ptr = (u16)(*ptr | 0x8000);
+        i   += 1;
+        ptr += 1;
+    } while (i <= 0x12BFF);
+    GameFlag_SetNibble(0x4D, 1);
+    D_80062735 = 0xA;
+    func_shelter_b6_training_room_8017DBB0(0);
+    arg0->state                         = (s32)(arg0->state + 1);
+    D_shelter_b6_training_room_80185C58 = 0;
+}
 
 void func_shelter_b6_training_room_8017D874(void)
 {
