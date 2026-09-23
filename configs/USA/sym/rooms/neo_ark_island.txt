@@ -14,3 +14,5 @@ RoomsShared8017ef80 = 0x8017FB9C; // shared body, see src/lib/
 RoomsShared8017d878 = 0x8017EB10; // shared body, see src/lib/
 RoomsShared8017d878Table = 0x8017D614; // shared body data, see src/lib/
 RoomsShared8017eb68 = 0x8017EB68; // shared body, see src/lib/
+RoomsShared8017efe8 = 0x8017EFE8; // shared body, see src/lib/
+func_neo_ark_island_8017EFE8 = 0x8017EFE8; // type:func absolute:True
