@@ -56,7 +56,16 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80182804);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8018294C);
+void func_shelter_b6_training_room_8018294C(Task* task)
+{
+    if (Gp_State1C->eventState == 0) {
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if (((Gp_LcgState >> 16) & 7) == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            Gp_SpawnEff(0x601AB, ((TmdObject*)task->extra)->coords + ((u16)((Gp_LcgState >> 16) % 18) + 1), 0, NULL);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80182A14);
 
