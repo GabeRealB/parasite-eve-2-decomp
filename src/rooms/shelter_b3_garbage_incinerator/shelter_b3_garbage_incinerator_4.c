@@ -39,10 +39,14 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
 extern s32 D_shelter_b3_garbage_incinerator_80186F78[];
 
+/// Table indexed by `field_38 - 0x2F`: each entry is the following animation
+/// set less 0x2F, and a negative entry means there is none.
+extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
+
 /// Model/animation set installed with `func_800E8614` on arming.
 extern u8 D_shelter_b3_garbage_incinerator_80186FB8[];
 
-void         func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
+s32          func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
@@ -55,7 +59,48 @@ extern s8 D_8007218A;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F0A8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F318);
+/// Step `field_2C` to the next animation set in the table. Returns 0 when
+/// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
+/// with `field_38` below 0x2F, or with a negative table entry nothing is sent;
+/// else the entry plus 0x2F is recorded in `field_38` and sent with message
+/// 0x3E8. The set's block is `D_80073BA9 + 1` when `D_8007218A` is 1 and
+/// `D_80073BA9 + 0x22` otherwise.
+s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
+{
+    GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
+    GarbageIncineratorWork* msgWork;
+    GpAnimArg               msg;
+    s16                     anim;
+    s32                     weaponId;
+    s32                     setId;
+
+    if (work->field_2C == NULL) {
+    ret1:
+        COMPILER_BARRIER();
+        return 1;
+    }
+    if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
+        return 0;
+    }
+    if (work->field_38 < 0x2F) {
+        return 1;
+    }
+    if (D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] < 0) {
+        goto ret1;
+    }
+    anim              = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
+    msgWork           = (GarbageIncineratorWork*)arg0->work;
+    weaponId          = D_80073BA9;
+    setId             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0       = (void*)setId;
+    msgWork->field_38 = anim;
+    msg.field_4       = anim;
+    msg.field_8       = 1;
+    msg.field_C       = 0xA;
+    msg.field_10      = 0;
+    Gp_DispatchMsg(msgWork->field_2C, 0x3E8, (s32)&msg, 0);
+    return 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F410);
 
