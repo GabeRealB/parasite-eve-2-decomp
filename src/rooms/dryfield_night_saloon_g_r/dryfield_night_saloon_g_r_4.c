@@ -10,10 +10,6 @@
 
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
-/// The room's effect positions, one `SVECTOR` per quad. Entries 12 and 13 are
-/// the pair `func_dryfield_night_saloon_g_r_8017F0A4` is handed; the runs the
-/// frame hook draws are 0-10 and 20-27.
-extern SVECTOR D_dryfield_night_saloon_g_r_80185074[];
 extern SVECTOR D_dryfield_night_saloon_g_r_801850DC[];
 
 /// One view bitmask per effect, tested against `1 << view`. Entries 0-10 gate

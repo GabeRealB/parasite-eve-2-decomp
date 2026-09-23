@@ -18,6 +18,12 @@ typedef struct DnsgrMsg7DA {
 } DnsgrMsg7DA;
 STATIC_ASSERT_SIZEOF(DnsgrMsg7DA, 0x4);
 
+/// The room's effect positions in the model's local space. The frame hook
+/// draws a quad at each of 0-10 and 20-27; 12 and 13 are the two ends
+/// `func_dryfield_night_saloon_g_r_8017F0A4` is handed; 14-19 are the two
+/// light shafts of `func_dryfield_night_saloon_g_r_8017EB38`.
+extern SVECTOR D_dryfield_night_saloon_g_r_80185074[];
+
 /// Builds the room's display mode object and reports success. Its argument is
 /// unused; `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
 s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0);

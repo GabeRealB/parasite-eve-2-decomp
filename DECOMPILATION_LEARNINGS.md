@@ -138214,3 +138214,33 @@ Read the base register of every scratch access in the target before copying
 a sibling's spelling; an `addiu vN,aK,-off` means `head`, `lw x,off(sN)` means
 `block`. The sibling's `SOFT_TOUCH_REG` on the carve was not needed here - the
 plain `block = (T*)(*scratch = head - N);` form matched.
+
+## `(i + K) * 8 + tbl` recomputed every iteration: a reused index local, the table symbol inside the loop, one pointer local per site (func_dryfield_night_saloon_g_r_8017EB38, 2026-09-23)
+
+**Problem:** A two-iteration loop reads `tbl[i + 15]` and `tbl[i + 18]`. The
+target recomputes each address from scratch (`addiu a0,s3,0xf; sll a0,a0,3;
+addu a0,a0,s1`), keeps `0xFFFFFF` for `addPrim` inside the loop, and hoists
+only `tbl`, `&gDisplayState` and the scratch addresses.
+
+**What moved it, in order (78% -> 100%):**
+
+- `p = &tbl[i + 15]` folds to `i*8 + 120` and loop.c reduces it into a
+  walking pointer. **Assigning the index to one local reused for both
+  lookups** (`j = i + 15; ... j = i + 18;`) keeps `(j << 3) + tbl`: `j` has
+  two sets, so it is neither a biv nor a giv. Two separate index locals made
+  the first a giv again (-6 points).
+- `tbl = D_x;` before the loop left `0xFFFFFF` hoisted. The loop dump showed
+  it passing `threshold * savings * lifetime >= insn_count` by one step.
+  **Writing `D_x[...]` directly in the loop** adds a movable (`high` +
+  `lo_sum`, which forces its pair), and each move lowers `threshold` by 3
+  (`loop.c` `move_movables`), so the constant stays in the loop. Read the
+  `Insn N: regno R (life L), savings S moved to / not desirable` lines at the
+  top of `.loop` to see how close a movable is to that threshold.
+- The last difference was the first `sll` landing in `$v0`. With one pointer
+  local reused for both sites it is global, so the shift result is its own
+  local quantity and takes the first free register. **A separate pointer local
+  per site** (`dirA`, `dirB`, each set once) lets local-alloc tie the shift
+  result into the pointer's quantity. That quantity lives across the `lhu v0`
+  and `lhu v1` loads, so it gets `$a0`.
+
+Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
