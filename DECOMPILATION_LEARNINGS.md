@@ -139665,3 +139665,14 @@ written inline as `(u32)(otz + 1) << shift` in both, not as a preceding `otz++`
 ### An early exit that leaves `$v0` unset is a bare `return;` in a non-void function (func_shelter_b1_sterilization_room_8017FF80, 2026-09-24)
 
 A room message handler returns `0` at its common exit, but one early path jumps to the epilogue with a `nop` in the `j` delay slot instead of `move v0,zero`. Writing `return 0;` there scores 98.5% with a single insert/delete at that slot. The original wrote `return;` inside an `s32` function: the `-w` build accepts it, and GCC emits no `$v0` set on that path. When the only difference is a missing `li`/`move v0` before a jump to the shared exit, try a valueless `return;` before restructuring the control flow.
+
+### A `(u16)` cast keeps `mask + 0x180` apart; an `s32` local for an `s16` field flips the `addu` operands (func_shelter_b1_sterilization_room_801823D8, 2026-09-24)
+
+Target: `andi v0,0xff; addiu v0,0x180; addu v0,v0,v1` with `v1 = lh 0x36(s1)`. Written as `mask + 0x180 + hi`, fold moves the constant outermost (`addu` then `addiu`). `(u16)(mask + 0x180) + hi` keeps the inner sum, but the result still lands in the field's register (`addu v1,v1,v0`): the plus is `(subreg:SI (reg:HI)) + reg`, and the subreg sorts first. Reading the field into an `s32` local in its own statement makes it a plain SImode pseudo, the operands swap, and the sum reuses the mask's register. That was the last 2%:
+
+```c
+base           = ((GpEffSpawnArg*)&task->spawnArg1)->field_2;   /* s32 base */
+work->field_24 = (u16)((rand8) + 0x180) + base;
+```
+
+In the same function a store to a *struct* field did not force a reload of `Gp_LcgState` (a fixed-address scalar), but a store to another struct (`task->spawnArg1 &= 0xFFF`) did force a reload of a `work` field (`lhu` again). Placing that statement between the two uses is what reproduced the target's reload.

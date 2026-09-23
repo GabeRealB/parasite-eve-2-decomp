@@ -6,6 +6,15 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "gameplay/1A8.h"
+#include "gameplay/3FB8.h"
+#include "main/tmd.h"
+#include "rooms/room_common.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/libgte.h>
+
+/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern TaskDesc D_shelter_b1_sterilization_room_80188504;
 extern s32      D_shelter_b1_sterilization_room_8018C340;
@@ -15,6 +24,11 @@ extern s32      D_shelter_b1_sterilization_room_80188E14;
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern s32  D_shelter_b1_sterilization_room_8018873C;
 extern s32  D_shelter_b1_sterilization_room_80188AB4;
+
+extern u32     Gp_LcgState;
+extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
+
+void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3);
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
@@ -182,6 +196,59 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_8018188C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801823D8);
+/// Per-frame update of a drifting effect drawn by
+/// `func_shelter_b1_sterilization_room_801826F0`. State 0 seeds the work block
+/// from the LCG and takes a direction from a table indexed by the 12-bit angle
+/// in `spawnArg1`, scaled through the GTE by `field_28` and jittered into the
+/// velocity `field_10`. Each tick then moves the coordinate by that velocity
+/// and adds `field_2A` to `field_24`; while an event is running the tick
+/// counter is held instead. The drawn frame advances every `field_20` ticks
+/// and the task is released once ten frames have passed.
+void func_shelter_b1_sterilization_room_801823D8(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            base;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            base             = ((GpEffSpawnArg*)&task->spawnArg1)->field_2;
+            work->field_24   = (u16)((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
+            work->field_26   = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+            task->spawnArg1 &= 0xFFF;
+            work->field_20   = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
+            work->field_28   = ((s16)work->field_24 >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+            work->field_2A   = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            gte_lddp(work->field_28);
+            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1 / 16]);
+            gte_gpf12_real();
+            vec = &work->field_10;
+            gte_stsv(vec);
+            work->field_10.vx -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            work->field_10.vy -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            work->field_10.vz -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            task->state        = 1;
+        case 1:
+            if (Gp_State1C->eventState == 0) {
+                coord->coord.t[0] += work->field_10.vx;
+                coord->coord.t[1] += work->field_10.vy;
+                coord->coord.t[2] += work->field_10.vz;
+                coord->flg         = 0;
+                work->field_24    += work->field_2A;
+            } else {
+                work->field_22--;
+            }
+            func_shelter_b1_sterilization_room_801826F0(coord, ((s16)work->field_22 - 1) / (s16)work->field_20,
+                                                        work->field_24, work->field_26);
+            if ((s16)work->field_20 * 10 - 1 < (s16)work->field_22) {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801826F0);
