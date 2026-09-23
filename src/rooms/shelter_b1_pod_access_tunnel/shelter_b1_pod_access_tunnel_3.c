@@ -2,8 +2,16 @@
 #include "main/task.h"
 #include "main/session.h"
 #include "gameplay/gameplay.h"
+#include "main/mem.h"
 extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
 extern TaskDesc D_801348D8;
+
+/// Work block allocated by func_shelter_b1_pod_access_tunnel_8017E5B4. Only the
+/// first word is written there; the rest of the allocation is untyped.
+typedef struct {
+    s32 field_0; // 0xF00000 divided by the task's first spawn argument
+    u8  _pad[0x8];
+} _ShelterB1PodAccessTunnelWork;
 
 void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
 {
@@ -38,7 +46,23 @@ void func_shelter_b1_pod_access_tunnel_8017E52C(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E55C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E5B4);
+void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
+{
+    _ShelterB1PodAccessTunnelWork* work;
+
+    if (gGameSession->at4.loc.view != 0xB) {
+        taskKill(task);
+        return;
+    }
+    work = memCalloc(sizeof(_ShelterB1PodAccessTunnelWork), 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work    = work;
+    work->field_0 = 0xF00000 / task->spawnArg1;
+    task->state  += 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E66C);
 
