@@ -9,6 +9,7 @@
 #include "main/gameflow.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `RoomsShared8017d8d0States` (dispatcher `func_shelter_r47_80182B18`).
@@ -16,19 +17,21 @@
 /// at `Task::work`.
 typedef struct {
     /* 0x00 */ u8  pad_0[0x18];
-    /* 0x18 */ s16 field_18; ///< committed to game flag 0xAC when the script ends
-    /* 0x1A */ s16 field_1A; ///< committed to game flag 0xD5 when the script ends
-    /* 0x1C */ s16 field_1C; ///< committed to game flag 0xAE when the script ends
-    /* 0x1E */ s16 field_1E; ///< committed to game flag 0xD6 when the script ends
-    /* 0x20 */ s16 field_20; ///< committed to game flag 0xD2 when the script ends
-    /* 0x22 */ u8  pad_22[0x14];
-    /* 0x36 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
+    /* 0x18 */ s16 field_18;  ///< committed to game flag 0xAC when the script ends
+    /* 0x1A */ s16 field_1A;  ///< committed to game flag 0xD5 when the script ends
+    /* 0x1C */ s16 field_1C;  ///< committed to game flag 0xAE when the script ends
+    /* 0x1E */ s16 field_1E;  ///< committed to game flag 0xD6 when the script ends
+    /* 0x20 */ s16 field_20;  ///< committed to game flag 0xD2 when the script ends
+    /* 0x22 */ u8  pad_22[0x12];
+    /* 0x34 */ s16 selection; ///< `id` of the hotspot the player confirmed
+    /* 0x36 */ u16 fade;      ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x38 */ u8  pad_38[0xA];
-    /* 0x42 */ s16 field_42; ///< counter gating the move to state 3
-    /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
+    /* 0x42 */ s16 field_42;  ///< counter gating the move to state 3
+    /* 0x44 */ s16 step;      ///< sub-step selected by the running cap event
     /* 0x46 */ u8  pad_46[2];
     /* 0x48 */ s16 field_48;
-    /* 0x4A */ u8  pad_4A[7];
+    /* 0x4A */ u8  promptKind; ///< `promptKind` of the hotspot the player confirmed
+    /* 0x4B */ u8  pad_4B[6];
     /* 0x51 */ s8  field_51;
     /* 0x52 */ u8  pad_52[2];
 } ShelterR47State;
@@ -74,12 +77,16 @@ void func_shelter_r47_80183E24(void);
 void func_shelter_r47_80183F0C(void);
 void func_shelter_r47_80183FF4(Task* task, s16 arg1);
 void func_shelter_r47_80184124(Task* task, s16 arg1);
+s32  func_shelter_r47_80182B9C(Task* task, RoomHotspot* table, s16 x, s16 y);
 
 /// Task spawned by the room's cap script; polled and cleared by
 /// `func_shelter_r47_80180714`.
 extern Task* D_shelter_r47_8018A690;
 
 extern u8 D_shelter_r47_80186FAD;
+
+/// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
+extern RoomHotspot D_shelter_r47_80186FB4[];
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -150,7 +157,56 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_8018138C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181568);
+/// Hotspot state of the room's first cap script: redraws the scene, then
+/// hit-tests the action cursor against the room's hotspot table. A miss
+/// highlights the prompt (`mode` 1); a hit with the prompt confirmed
+/// (`buttons[0].state` 2) hands the raised entry's `id` / `promptKind` to the
+/// work block and advances to state 4. `field_51` value 4 jumps to state 0xC,
+/// and with `field_51` clear a dismissed prompt advances to state 6.
+void func_shelter_r47_80181568(Task* task)
+{
+    ShelterR47State*  work;
+    RoomHotspot*      hs;
+    RoomActionPrompt* prompt;
+
+    hs     = D_shelter_r47_80186FB4;
+    prompt = &D_80114D28;
+    work   = (ShelterR47State*)task->work;
+    func_shelter_r47_80181914(task, 0);
+    gGameSession->hideHud    = 1;
+    gGameSession->eventState = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    if (work->field_51 == 4) {
+        task->state = 0xC;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (func_shelter_r47_80182B9C(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
+            do {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->selection  = hs->id;
+                    work->promptKind = hs->promptKind;
+                    task->state      = 4;
+                    return;
+                }
+                hs++;
+            } while (hs->id != -1);
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (work->field_51 == 0 && prompt->buttons[1].state == 2) {
+        task->state = 6;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801816CC);
 
