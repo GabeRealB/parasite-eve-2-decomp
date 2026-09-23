@@ -137775,3 +137775,33 @@ uninitialized stack slot. Check a large permuter gain for that before trusting i
 Input `base_6.i` SHA256
 `a9b5dc8370e1fa2e0c925fccedd419f4053bc52b97ce6a286256006dfeefd00e`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
+## A value computed before a call but used after it keeps a callee-saved home even when sched1 sinks it (func_neo_ark_woodland_path_8017E2E8, 2026-09-23)
+
+The target computed `y0 = y - 0x78` in `$s0` *after* the loop's `rsin`/`rcos`
+calls, sharing `$s0` with the local `rsin` result. Writing the statement after
+the calls put it in `$a3` and shifted every caller-saved home after it.
+Writing it as the first statement of the loop body, before `rsin`, matched.
+flow then counts it as crossing both calls, so the allocators treat it as
+call-crossing and it gets a callee-saved register. sched1 is still free to sink
+it below the calls, because a pseudo that already crosses calls gets no
+dependence on `last_function_call`. The object shows the insn after the calls,
+but the source had it before them. When a value sits in an `$s` register
+without visibly crossing a call, try moving its statement above the call.
+
+## A spilled value's subreg reload is pinned behind every earlier store by a `(use (mem))` (same function)
+
+Reloading a `(subreg:HI)` of a spilled SImode pseudo, here a loop-invariant
+`getTPage` value stored with `prim->tpage = ...`, emits
+`(use (mem:SI slot))` before the load. sched2 makes that USE depend on every
+earlier store in the block. So the `lhu` could not be issued ahead of them, and
+a `nop` filled its load delay. The target issued the `lhu` right after the four
+`y` stores. The fix was source order: write the `tpage` store directly after
+the stores that precede the load in the target, before the `x`/`u` stores.
+
+Unresolved in the same function: the target frame has one spill slot
+(`0x18`) that nothing references, between the slots of two spilled locals and
+the loop-invariant temporaries. Every instruction matches (99.86%). reload
+assigns initial slots in pseudo order, so a pseudo numbered in that range got
+a slot and lost all its references. Session notes list the shapes tried.
+Input `base_48.i` SHA256
+`358230054c365c0b56807c9550c97c09a666fde944dd48084e3e18e31dd84876`.
