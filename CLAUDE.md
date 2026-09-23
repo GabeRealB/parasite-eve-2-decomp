@@ -328,6 +328,12 @@ overlay.
   § Tooling states what they reach and what stays a hand edit — handwritten
   assembly, inline asm, macro-reached references and a symbol map's prose are
   all outside them.
+- `python3 tools/refactor/check_decls.py [PATH_PREFIX ...]` report C symbols
+  whose declarations disagree with their definition, or with each other,
+  within one linked image, plus unprototyped and implicit declarations. The
+  build never compares them, so a function declared `f(s32)` and defined
+  `f(u16)` in another file still matches; such a conflict usually means one
+  side's type was fitted to the instructions rather than recovered.
 
 ## Code Quality Standards
 
