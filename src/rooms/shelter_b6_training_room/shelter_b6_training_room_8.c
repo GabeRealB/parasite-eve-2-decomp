@@ -2,9 +2,34 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+/// Scratchpad block `func_shelter_b6_training_room_80180530` takes from
+/// `G_SCRATCH_HEAD`: the two ground points, their projected depths, screen
+/// positions and GTE flags, and the perspective-scaled cap radius at each end.
+typedef struct {
+    SVECTOR base;
+    SVECTOR tip;
+    s32     otz0;
+    s32     otz1;
+    s32     flag;
+    s32     r0;
+    s32     r1;
+    u16     sx0;
+    u16     sy0;
+    u16     sx1;
+    u16     sy1;
+} _ShelterB6TrainingRoomBeamScratch;
 
 extern s32            D_80070F70;
 extern u32            Gp_LcgState;
@@ -12,6 +37,7 @@ extern GsCOORDINATE2* D_shelter_b6_training_room_80185C90;
 extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
 extern u16            D_shelter_b6_training_room_80185C98;
 extern SVECTOR        D_shelter_b6_training_room_80184334[];
+extern u16            D_shelter_b6_training_room_801843FC[];
 
 void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
@@ -96,7 +122,141 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017FC40);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80180530);
+/// Draws a glowing capsule between the ground points under `from` and `to`.
+/// Both coordinates are traced down to the floor, and nothing is drawn unless
+/// both traces land and both points project on-screen. Each end gets a
+/// half-disc of radius `size * 64 / otz`, built from two gouraud quarter
+/// fans, and one quad per half joins the two discs. The fill colour comes from
+/// the 4-bit-per-channel palette entry `color`, doubled and brightened on
+/// alternate fields; the outer vertices are black, so the glow fades outward.
+void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color)
+{
+    GsCOORDINATE2                      c0;
+    GsCOORDINATE2                      c1;
+    void**                             scratch;
+    u8*                                head;
+    _ShelterB6TrainingRoomBeamScratch* block;
+    POLY_G4*                           prim;
+    u8                                 r;
+    u8                                 g;
+    u8                                 b;
+    s32                                blend;
+    s32                                scaled;
+    s32                                limit;
+    s32                                angStart;
+    s32                                ang;
+    s32                                next;
+    s32                                mid;
+    DisplayState*                      ds;
+
+    if (Gp_TraceGroundCoord(from, &c0) != 1 || Gp_TraceGroundCoord(to, &c1) != 1) {
+        return;
+    }
+    scratch        = (void**)G_SCRATCH_HEAD;
+    head           = *scratch;
+    block          = (_ShelterB6TrainingRoomBeamScratch*)(*scratch = head - 0x2C);
+    block->base.vx = c0.workm.t[0];
+    block->base.vy = c0.workm.t[1];
+    block->base.vz = c0.workm.t[2];
+    block->tip.vx  = c1.workm.t[0];
+    block->tip.vy  = c1.workm.t[1];
+    block->tip.vz  = c1.workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->base);
+    gte_rtps_real();
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(&block->tip);
+        gte_rtps_real();
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
+        gte_stszotz(&block->otz1);
+        if (block->flag >= 0) {
+            color     = D_shelter_b6_training_room_801843FC[color];
+            r         = ((color >> 8) & 0xF) << 1;
+            g         = ((color >> 4) & 0xF) << 1;
+            b         = (color & 0xF) << 1;
+            ds        = &gDisplayState;
+            blend     = (*(u8*)&ds->animFrame & 1) << 1;
+            r        += blend;
+            g        += blend;
+            b        += blend;
+            scaled    = size << 6;
+            block->r0 = scaled / block->otz0;
+            block->r1 = scaled / block->otz1;
+            ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+            if (ang < ang + 0x800) {
+                angStart = ang;
+                limit    = ang + 0x800;
+                do {
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, r, g, b);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
+                    prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
+                    prim->x2 = block->sx1;
+                    prim->y2 = block->sy1;
+                    prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
+                    prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, r, g, b);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+                    prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
+                    prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                    next     = ang + 0x400;
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
+                    prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    mid            = angStart + (ang - angStart) * 2;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, r, g, b);
+                    setRGB3(prim, r, g, b);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx1;
+                    prim->y3 = block->sy1;
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    ang = next;
+                } while (ang < limit);
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+}
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
 {

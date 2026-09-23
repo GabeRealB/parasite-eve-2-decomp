@@ -139443,3 +139443,24 @@ statements hoisted the loop invariants in the wrong order: `lui g` and `K` came
 before `&buf`, and the task and buffer registers swapped (`$t1`/`$t2`). Writing
 the store around the assignment, `buf[t->x][i] = (g = g * 5 + K) >> 16;`, hoists
 `&buf` first and matches. That took it from 98.1% to 99.6%.
+
+### A narrow parameter type can break a global-alloc priority tie between two arguments
+
+**Symptom.** Two incoming arguments that both cross calls land in each other's
+callee-saved registers (`$s1`/`$s2` swapped at entry), with the rest of the
+function matching (func_shelter_b6_training_room_80180530, 99.90%).
+
+**Cause.** `global.c`'s `allocno_compare` ranks by
+`floor_log2(refs) * refs / live_length`, truncated after `* 10000`, and breaks
+ties by allocno number, which follows parameter order. There, `to` (2 refs over
+14 insns) and `color` (5 refs over 70) both scored exactly 1428, so the earlier
+parameter `to` took `$s1`. Reordering statements moved `color`'s length by one
+or two insns in either direction but never broke the tie cleanly.
+
+**Fix.** The caller passed `color` with `lhu`, so the parameter really is
+`u16`. Declaring it `u16` adds the incoming-argument conversion insns at the top
+of the function, which lengthens every earlier argument's live range (`to`
+became 2 refs over 16 = 1250), and `color` (5 over 74 = 1351) then wins
+`$s1`. Check the `Register N used X times across Y insns` lines in `.lreg`
+for an exact tie before rearranging statements. Then check the caller's
+argument loads (`lhu`/`lh`/`sll+sra`) for the true parameter width.
