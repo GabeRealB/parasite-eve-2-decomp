@@ -3,6 +3,7 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 /// Spawn payload handed to `RoomsShared80181228Desc` as
@@ -31,4 +32,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183360);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801833DC);
+s32 func_shelter_b1_underground_parking_801833DC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0x63) {
+        SndEvt_EnqueueType6(0x54140010, 0, 0);
+    }
+    return 0;
+}
