@@ -138443,3 +138443,24 @@ The in-place `sll a1,a1` is not idempotent, so `fill_eager_delay_slots` cannot
 copy it from the branch target and takes the fallthrough insn instead, as the
 target does. Seen in `func_neo_ark_submarine_gallery_80180AC8` (a `Room_Draw13`
 variant with an `otz` clamp before the divide).
+
+## `tbl[base + (i + 4)]` in a loop: give `i + 4` its own statement or loop.c hoists `base + 4`
+
+**Symptom:** the target indexes a table inside a loop as `addiu v0,a1,4;
+addu v0,s0,v0` (the counter plus a constant first, then the loop-invariant
+base), but `tbl[arg1 + (i + 4)]` compiles to a preheader `addiu a3,s7,4` and a
+single in-loop `addu v0,a3,a1`. The parenthesised sum is folded by the
+front end into `(arg1 + 4) + i`, and loop.c then moves the invariant half out,
+which also claims a callee-saved register and shuffles every other allocation
+(`regs=58` from one expression).
+
+**Fix:** compute the offset into a local in its own statement, as the matched
+sibling bodies do:
+
+```c
+far = i + 4;
+gte_ldv0(&tbl[arg1 + far]);
+```
+
+Seen in `func_neo_ark_submarine_gallery_80180E80` (98.66% to 100% with that
+change alone); `func_dryfield_dilapidated_house_801815E8` has the same shape.

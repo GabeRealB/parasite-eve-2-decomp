@@ -4,6 +4,7 @@
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "rooms/neo_ark_submarine_gallery.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -11,6 +12,10 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+extern SVECTOR D_neo_ark_submarine_gallery_801818C8[];
 
 /// Projects `arg0` and `arg0 + 1` through `Gfx_ViewWorldMtx` and sweeps three
 /// gouraud `POLY_G4` wedges per 0x400 step around the screen-space angle between
@@ -254,4 +259,144 @@ void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery_4", func_neo_ark_submarine_gallery_80180E80);
+/// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`
+/// as five `POLY_G4` quads: entries 0..3 are one ring of corners and 4..7 the
+/// opposite ring. Each corner is rotated by `coord->workm` and moved by its
+/// translation before projection through `GsWSMATRIX`. The four side quads fade
+/// from a pulsing grey on the first ring to black on the second; the closing
+/// cap over the first ring is flat grey. The grey swings a couple of steps
+/// around 0x18 with `gDisplayState.animFrame`.
+void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
+{
+    NeoArkSubmarineGalleryPrismScratch* blk;
+    POLY_G4*                            prim;
+    s32                                 i;
+    s32                                 next;
+    s32                                 far;
+    s32                                 farNext;
+    u8                                  shade;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(NeoArkSubmarineGalleryPrismScratch);
+    blk                     = (NeoArkSubmarineGalleryPrismScratch*)*(void**)G_SCRATCH_HEAD;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[0]);
+        blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+        blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+        blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        next = (i + 1) & 3;
+        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + next]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[1]);
+        blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+        blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+        blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        far = i + 4;
+        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + far]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[2]);
+        blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+        blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+        blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        farNext = next + 4;
+        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + farNext]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[3]);
+        blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+        blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+        blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        gte_stsxy(&blk->sxy[0]);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
+        gte_stflg(&blk->flag);
+        if (blk->flag >= 0) {
+            gte_stszotz(&blk->otz);
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, shade, shade, shade);
+            setRGB1(prim, shade, shade, shade);
+            setRGB2(prim, 0, 0, 0);
+            setRGB3(prim, 0, 0, 0);
+            addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            prim->x0 = blk->sxy[0].vx;
+            prim->y0 = blk->sxy[0].vy;
+            prim->x1 = blk->sxy[1].vx;
+            prim->y1 = blk->sxy[1].vy;
+            prim->x2 = blk->sxy[2].vx;
+            prim->y2 = blk->sxy[2].vy;
+            prim->x3 = blk->sxy[3].vx;
+            prim->y3 = blk->sxy[3].vy;
+            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        }
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[0]);
+    blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+    blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+    blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 1]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[1]);
+    blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+    blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+    blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 3]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[2]);
+    blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+    blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+    blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 2]);
+    gte_rtv0_real();
+    gte_stsv(&blk->v[3]);
+    blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+    blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+    blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    gte_stsxy(&blk->sxy[0]);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
+    gte_stflg(&blk->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(&blk->otz);
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setPolyG4(prim);
+        setRGB0(prim, shade, shade, shade);
+        setRGB1(prim, shade, shade, shade);
+        setRGB2(prim, shade, shade, shade);
+        setRGB3(prim, shade, shade, shade);
+        prim->x0 = blk->sxy[0].vx;
+        prim->y0 = blk->sxy[0].vy;
+        prim->x1 = blk->sxy[1].vx;
+        prim->y1 = blk->sxy[1].vy;
+        prim->x2 = blk->sxy[2].vx;
+        prim->y2 = blk->sxy[2].vy;
+        prim->x3 = blk->sxy[3].vx;
+        prim->y3 = blk->sxy[3].vy;
+        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(NeoArkSubmarineGalleryPrismScratch);
+}

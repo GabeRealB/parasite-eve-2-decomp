@@ -16,7 +16,7 @@ extern s32 D_8011574C;
 
 void func_neo_ark_submarine_gallery_80180254(SVECTOR* pos, s32 arg1, s32 arg2);
 void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* pos, s32 arg1, s32 arg2);
-void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s32 arg1);
+void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1);
 
 /// Per-view draw callback for the gallery's display cases. The first state
 /// latches the two effect ids the display cases animate with; every later run
