@@ -137994,3 +137994,23 @@ The constant then stays attached to `i` and nothing invariant is left to hoist
 preceding `gte_SetRotMatrix` asm, rather than at the top of the loop. Volatile
 asm is a scheduling barrier, so where the statement sits decides which side of
 the asm the arithmetic lands on (99.2% to a match).
+
+### A table read once through a pointer is not hoisted; spelling `tbl[i].f` at each use is (func_neo_ark_shrine_8017DF7C)
+
+Symptom: inside a loop, the target loads a table's address into a callee-free
+temp in the preheader (`lui t5,%hi(T); addiu t5,t5,%lo(T)`) and only does
+`addu v1,idx4,t5` at the use, but the attempt keeps the `lui`/`addiu` inline
+in the conditional block. The attempt bound `p = &T[idx]` once and read
+`p->x`, `p->y` through it.
+
+Fix: drop the pointer and write `T[idx].x` / `T[idx].y` at every use (here
+inside `setUVWH` / `setXYWH`, which expand each argument several times). The
+extra references make the address a profitable movable for `loop.c`, so it is
+hoisted as in the target; CSE still folds the repeated index arithmetic to one
+`addu`. The same edit took the function from 94.6% straight to a match.
+
+Two smaller traps in the same function: a tile index read from an `s16` array
+into an `s16` local is re-read after every `u16` store through the slot tables,
+because those stores may alias it, while an `s32` local keeps it in one register
+as the target does. And `ori code, 1` is `setShadeTex(p, 1)`; `setSemiTrans`
+sets bit 1 (`ori code, 2`).
