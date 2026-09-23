@@ -138381,3 +138381,42 @@ blocks is global, so global-alloc places it after the higher-priority `w`.
 That gives `w` `a1` and `k` `a2`. The `.greg` conflict list gives it away:
 if the arm-crossing pseudo lists a hard register that only a local constant
 occupies, making the constant global is the lever.
+
+### Duplicated arm stores that cross-jump still count as refs: they decide a callee-saved swap (func_acropolis_cafeteria_8017EA90, 2026-09-23)
+
+Symptom: 99.9% with only `regs`, two long-lived pointers (`block`, a scratchpad
+block, and `prim`, a `POLY_FT4*`) on swapped `$s1`/`$s2`. Final instruction
+counts for both were identical to the target, so the difference was not in the
+emitted code. `tools/trace_gcc.py` gave the global priorities: `block` refs=32
+span=297 -> 5387, `prim` refs=30 span=293 -> 4095. `floor_log2(refs)` jumps from
+4 to 5 at 32 refs, so two refs decide the order. `REG_N_REFS` is counted in
+`flow`, **before** jump2 cross-jumping. So code that is later merged away still
+counts. The target's
+
+```
+lh v1,0x22(s0); slti v0,v1,10; bnez v0,L; sll v0,v1,2; li v0,0x28
+L: sb v0,4(s1); sb v0,5(s1); sb v0,6(s1)
+```
+
+came from the colour stores written in **both** arms:
+
+```c
+if (work->age < 10) { shade = work->age * 4; setRGB0(prim, shade, shade, shade); }
+else                { shade = 40;            setRGB0(prim, shade, shade, shade); }
+```
+
+The stored value must be a local. `setRGB0(prim, work->age * 4, ...)` re-reads
+`age` after each byte store and the tails stop being identical. The permuter found
+the same +2 refs with a nonsense split (`prim->v2 = q / 5; prim->v2 = prim->v2 * 48 + 47;`).
+When it proposes an edit like that, look for a natural source of the same extra
+refs.
+
+Same function, same kind of fix for a local-alloc swap. A load whose value goes
+through `and` and then a store forms one tied quantity (`[lhu, and]`, refs 4).
+Its span is what outranks a long-lived constant (refs 5). sched1 places the load
+as late as possible: after the store it truly depends on, and before the next
+work-field store that anti-depends on it. Putting `work->move.vx = 0;` directly
+after the `angle` statement makes that constant store the upper bound, so the
+load moves up. The span grows past the tie point, and the constant takes `$a3`.
+Moving the whole statement earlier instead moved the `and` and the store too,
+and broke the rest of the block.

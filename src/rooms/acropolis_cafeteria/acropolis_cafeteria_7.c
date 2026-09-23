@@ -7,13 +7,18 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/acropolis_cafeteria.h"
 
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s8  D_8007106B;
 extern s32 D_8011572C;
@@ -130,7 +135,121 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     work->scale = gGameSession->at4.loc.view;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria_7", func_acropolis_cafeteria_8017EA90);
+/// While the room's effect gate is set and the session view is mode 9, draws
+/// the effect as a semi-transparent billboard animated through a 5-column
+/// sheet of 48-pixel cells, one cell every `step` frames. The first frame it
+/// projects in front of the camera seeds a random spin, drift and frame
+/// period; spawn flag `0x1000` starts it ten frames in. Each frame it drifts
+/// along Z until Z reaches `0xB00` and along Y after that. The effect is
+/// released once it has shown all ten cells, or as soon as the gate or the
+/// view mode no longer hold.
+void func_acropolis_cafeteria_8017EA90(Task* task)
+{
+    GpEffWork*                                   work;
+    GsCOORDINATE2*                               coord;
+    u8*                                          head;
+    AcropolisCafeteriaBillboardScratch*          block;
+    register AcropolisCafeteriaBillboardScratch* newHead asm("v0");
+    POLY_FT4*                                    prim;
+    u8                                           mode;
+    u8                                           shade;
+    s32                                          quot;
+    u16                                          vz;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (D_acropolis_cafeteria_80184CFC != 0) {
+        mode = gGameSession->at4.loc.view;
+        if (mode == 9) {
+            Gp_UpdateCoord(coord);
+            head                                                  = *(u8**)G_SCRATCH_HEAD;
+            newHead                                               = (AcropolisCafeteriaBillboardScratch*)(head - 0x18);
+            block                                                 = newHead;
+            block->vec.vx                                         = *(u16*)&coord->workm.t[0];
+            block->vec.vy                                         = *(u16*)&coord->workm.t[1];
+            vz                                                    = *(u16*)&coord->workm.t[2];
+            *(AcropolisCafeteriaBillboardScratch**)G_SCRATCH_HEAD = block;
+            block->vec.vz                                         = vz;
+            gte_SetTransMatrix(&GsWSMATRIX);
+            gte_SetRotMatrix(&GsWSMATRIX);
+            gte_ldv0(&((AcropolisCafeteriaBillboardScratch*)(head - 0x18))->vec);
+            gte_rtps_real();
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setcode(prim, 0x2C);
+            setlen(prim, mode);
+            gte_stsxy(&((AcropolisCafeteriaBillboardScratch*)(head - 0x18))->sxy);
+            gte_stszotz(&block->otz);
+            if (((AcropolisCafeteriaBillboardScratch*)(head - 0x18))->otz > 16 && work->age == 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                work->angle   = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+                work->move.vx = 0;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) + 4;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->move.vz = -(((u32)Gp_LcgState >> 16) & 0xF) - 4;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                work->step    = (((u32)Gp_LcgState >> 16) & 3) + 3;
+                if (task->spawnArg1 & 0x1000) {
+                    work->age = 10;
+                }
+            }
+            if (work->age < 10) {
+                shade = work->age * 4;
+                setRGB0(prim, shade, shade, shade);
+            } else {
+                shade = 40;
+                setRGB0(prim, shade, shade, shade);
+            }
+            prim->tpage = 0x2B;
+            prim->clut  = 0x4380;
+            setSemiTrans(prim, 1);
+            quot      = work->age / work->step;
+            prim->u0  = (quot % 5) * 48;
+            quot      = work->age / work->step;
+            prim->v0  = (quot / 5) * 48;
+            quot      = work->age / work->step;
+            prim->u1  = (quot % 5) * 48 + 47;
+            quot      = work->age / work->step;
+            prim->v1  = (quot / 5) * 48;
+            quot      = work->age / work->step;
+            prim->u2  = (quot % 5) * 48;
+            quot      = work->age / work->step;
+            prim->v2  = (quot / 5) * 48 + 47;
+            quot      = work->age / work->step;
+            prim->u3  = (quot % 5) * 48 + 47;
+            quot      = work->age / work->step;
+            prim->v3  = (quot / 5) * 48 + 47;
+            block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale)) >> 12;
+            block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale)) >> 12;
+            prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale + 0x400)) >> 12;
+            block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale + 0x400)) >> 12;
+            prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+            prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+            prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+            prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            *(u8**)G_SCRATCH_HEAD += 0x18;
+            if (coord->coord.t[2] > 0xB00) {
+                coord->coord.t[2] += work->move.vz;
+            } else {
+                coord->coord.t[1] += work->move.vy;
+            }
+            coord->flg = 0;
+            work->age++;
+            if (work->age <= work->step * 10 - 1) {
+                return;
+            }
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 void func_acropolis_cafeteria_8017F390(Task* task)
 {

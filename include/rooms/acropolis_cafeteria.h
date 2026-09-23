@@ -37,6 +37,20 @@ typedef struct AcropolisCafeteriaDebris {
 } AcropolisCafeteriaDebris;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
+/// Scratchpad block `func_acropolis_cafeteria_8017EA90` pushes on
+/// `G_SCRATCH_HEAD` to project and size one billboard. `vec` is the effect
+/// coordinate's world position fed to the GTE, `sxy` and `otz` are the
+/// projected screen point and depth, and `dx` / `dy` are the rotated half
+/// extents added to and subtracted from `sxy` to place the quad's corners.
+typedef struct AcropolisCafeteriaBillboardScratch {
+    s32     otz;
+    s32     dx;
+    s32     dy;
+    SVECTOR vec;
+    DVECTOR sxy;
+} AcropolisCafeteriaBillboardScratch;
+STATIC_ASSERT_SIZEOF(AcropolisCafeteriaBillboardScratch, 0x18);
+
 void func_807245E4(void*);
 void func_80724608(void*, s32, s32, void*);
 
