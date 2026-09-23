@@ -138838,3 +138838,59 @@ later compare keeps `k`; combine's `nonzero_bits` then drops the redundant
 `andi`. Declaring `k` as `s16` and reading the table twice
 (`for (j = 0; j < 8 && tbl[i][j] != 0; j++) { k = tbl[i][j]; ...`) gave
 retail's `lbu v0; beqz v0; move s0,v0` copy.
+
+## A reload for a block's first insn is emitted outside the block, so sched2 cannot fill its load delay; a dead constant set at the head fixes it (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+**Symptom.** Retail has `lw t2,0x38(sp); lw s6,0x6c(sp); srav v1,s0,t2`, ours
+`lw t2,0x38(sp); nop; srav v1,s0,t2; lw s6,0x6c(sp)`. The extra `nop` shifts every later
+branch target by 4.
+
+**Observed.** The block (the then-arm of an `if`, entered by fall-through) starts at the
+`srav`, which needs a spilled pseudo. Reload emits that input reload before the insn, but
+`reload1.c` never updates `basic_block_head`, and the `.greg` dump prints
+`;; Insn is not within a basic block` for it. sched2 schedules per block, so the second
+spilled operand's reload (`lw s6`) cannot move above the `srav`.
+
+**Fix.** Make the block's first insn something that disappears in place. The permuter found
+`v = 0x79; v = y0 + (v + w);` for `v = (y0 + 0x79) + w`. The constant set heads the block
+and is later deleted as a `NOTE_INSN_DELETED`, which stays as `basic_block_head`, so both
+reloads land inside the block and sched2 emits the retail order. The operand grouping still
+decides the add shape: `y0 + (v + w)` gives retail's `addiu v0,v1,0x79; addu t0,s6,v0`.
+
+## A value computed through another giv carries both benefits, so it is strength-reduced on its own (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+`y - 0x77` stored from an inner loop (hoisted by the inner pass) is a giv of `y` with
+benefit 2, and alone it is `not worth while, 0 vs N`. Written as `y0 + 1`, where `y0 = y - 0x78`
+is itself a giv, the `.loop` dump shows `benefit 4`, so it is reduced without a partner. All
+four stores written as `y0 + 1` became one matched movable (savings 2, summed life 4) and one
+preheader copy of the reduced register, the retail shape. Mixing the two spellings gave two
+movables, and `threshold -= 3` per hoist rejected the second at `4 * 43 = 172 < 173` insns.
+The copy's extra references also let it outrank another pseudo in global, which moved that
+pseudo from `t2` to retail's `t3`.
+
+## A set placed before a test whose other arm returns lengthens the variable's live range (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+`split = 0x3E8; if (view == 2) { ... } else { return; }` keeps `split` live through the
+view load and compare. Written inside the then-arm, it is live from the set onward, 3 insns
+shorter. That was enough to reverse a near-tie in global priority (2562 vs 2573). dbr still
+takes the set into the compare's delay slot from the fall-through, so the object is the same
+apart from the allocation.
+
+## A clamp variable reused in a later block becomes CSE's canonical register in the earlier compare (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+`x = xl; if (xl < 0) x = 0;` compiled the test as `bgez a0` on `x` when `x` was reused for a
+second clamp further down. `x` then outlived `xl`, and `make_regs_eqv` prefers the longer-lived
+register. The `if/else` spelling changes nothing, because jump rewrites it to the same RTL.
+A separate variable for the second clamp keeps the test on `xl` (`bgez s1`) and lets `x`
+share `v0` with `x + 0x20`, as in retail.
+
+## A `static inline` rotate helper keeps the `gte_ldv0` address after `gte_SetRotMatrix` (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+With `sv = scratch->origin; gte_SetRotMatrix(m); gte_ldv0(&sv);` written inline, the first
+CSE pass replaces the asm operand's `(plus fp 16)` with the block-move destination pseudo.
+Its `addiu v0,sp,0x10` then sits before the copy, because volatile asm is a sched barrier.
+Retail computes it right before the `lwc2`. The same body written as
+`static inline void rotTrans(MATRIX* m, SVECTOR* v) { SVECTOR tmp; tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0_real(); gte_stsv(v); }`,
+the form `func_actor_361100_80161FF8` already used, matches. Look for an inline helper when a
+GTE address is materialised late. A pointer temporary assigned after the barrier does not
+help.
