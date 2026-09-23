@@ -61,11 +61,30 @@ typedef struct DgsCutsceneSlot {
 } DgsCutsceneSlot;
 STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
 
-/// Draws the gas station's shaft from the same four arguments `Room_Draw37`
-/// takes: `arg0` is updated with `Gp_UpdateCoord` and the beam is `arg1`
-/// rotated by its `workm`. Larger and textured where `Room_Draw37` is not --
-/// its body is still `INCLUDE_ASM`, so the rest is unverified.
-void func_dryfield_gas_station_80181058(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+/// 0x18-byte scratch block `func_dryfield_gas_station_80181058` takes from
+/// `G_SCRATCH_HEAD`. `vec` is the `data` point rotated through the
+/// coordinate's world matrix and offset by its translation; `otz` and
+/// `sx` / `sy` are that point projected through `GsWSMATRIX`, and `rOuter` /
+/// `rInner` are `(s16)arg3 * 64 / otz` and `(s16)arg3 * 8 / otz`, the
+/// on-screen radii of the glow and of its inner quads.
+typedef struct {
+    s32     otz;
+    s32     rOuter;
+    s32     rInner;
+    SVECTOR vec;
+    u16     sx;
+    u16     sy;
+} DgsGlowScratch;
+STATIC_ASSERT_SIZEOF(DgsGlowScratch, 0x18);
+
+/// Draws a pulsing cyan glow at `data` in `coord`'s space: the point is
+/// projected through `GsWSMATRIX`, and nothing is drawn when its `otz` is 16 or
+/// less. Around the projected centre it lays a fan of gouraud `POLY_G4`
+/// wedges of radius `rOuter`, each paired with a brighter one of half that
+/// radius, then four quads reaching out from `rInner` towards `rOuter`.
+/// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
+/// halved on the outer wedges and on the four quads.
+void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 /// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
 /// `field_0` is the area id forced for the duration of the scene (negative =
