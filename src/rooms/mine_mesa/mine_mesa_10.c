@@ -20,11 +20,20 @@ typedef struct {
     s16 yaw;
 } _MineMesaSpawnPoint;
 
+/// One of the room's four wall segments: the two corners along its
+/// base. The trailing bytes are not read by the code that builds the walls.
+typedef struct {
+    SVECTOR start;
+    SVECTOR end;
+    u8      unk10[8];
+} _MineMesaWall;
+
 extern s16                 D_mine_mesa_80189B6C;
 extern s16                 D_mine_mesa_80189B6E;
 extern GpEnemy*            D_mine_mesa_80189B74[2];
 extern s32                 D_mine_mesa_80189B1C;
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
+extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern char                D_mine_mesa_8017D624[];
 extern TaskDesc            D_8014D8A4;
 extern u32                 Gp_LcgState;
@@ -36,7 +45,44 @@ extern s16                 D_801153F6;
 
 void func_mine_mesa_801811C4(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_10", func_mine_mesa_801811C4);
+/// Rebuilds collision faces 3-6 of the room's grid as vertical walls, one per
+/// entry of `D_mine_mesa_80189A9C`. Each face is a quad whose lower corners are
+/// the wall's two base points and whose upper corners sit `height` above them
+/// (the grid's y axis points down), with a horizontal normal perpendicular to
+/// the base.
+void func_mine_mesa_801811C4(s32 height)
+{
+    SVECTOR*    normals;
+    SVECTOR*    verts;
+    GpGridFace* faces;
+    s16         i;
+    s16         face;
+
+    normals = Gp_GridParams->field_4;
+    verts   = Gp_GridParams->field_8;
+    faces   = Gp_GridParams->field_C;
+    for (i = 0; i < 4; i++) {
+        face               = i + 3;
+        verts[face * 4].vx = verts[face * 4 + 2].vx = D_mine_mesa_80189A9C[i].start.vx;
+        verts[face * 4].vy = verts[face * 4 + 2].vy = D_mine_mesa_80189A9C[i].start.vy;
+        verts[face * 4].vz = verts[face * 4 + 2].vz = D_mine_mesa_80189A9C[i].start.vz;
+        verts[face * 4 + 1].vx = verts[face * 4 + 3].vx = D_mine_mesa_80189A9C[i].end.vx;
+        verts[face * 4 + 1].vy = verts[face * 4 + 3].vy = D_mine_mesa_80189A9C[i].end.vy;
+        verts[face * 4 + 1].vz = verts[face * 4 + 3].vz = D_mine_mesa_80189A9C[i].end.vz;
+        verts[face * 4 + 2].vy                         -= height;
+        verts[face * 4 + 3].vy                         -= height;
+        faces[face].verts[1]                            = face * 4 + 1;
+        faces[face].verts[0]                            = face * 4;
+        faces[face].verts[2]                            = face * 4 + 2;
+        faces[face].verts[3]                            = face * 4 + 3;
+        faces[face].field_A                             = 3;
+        faces[face].field_8                             = face;
+        normals[face].vx                                = D_mine_mesa_80189A9C[i].start.vz - D_mine_mesa_80189A9C[i].end.vz;
+        normals[face].vy                                = 0;
+        normals[face].vz                                = D_mine_mesa_80189A9C[i].end.vx - D_mine_mesa_80189A9C[i].start.vx;
+        VectorNormalSS(&normals[face], &normals[face]);
+    }
+}
 
 /// Keeps the room's two enemy slots in `D_mine_mesa_80189B74` filled while the
 /// kill counter `D_mine_mesa_80189B6C` is non-zero. An empty slot gets a new
