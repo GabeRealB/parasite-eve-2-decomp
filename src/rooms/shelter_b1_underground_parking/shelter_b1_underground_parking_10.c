@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
@@ -75,7 +76,28 @@ void func_shelter_b1_underground_parking_80184778(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_801847D0);
+void func_shelter_b1_underground_parking_801847D0(Task* task)
+{
+    SbupExamineWork* work = (SbupExamineWork*)task->work;
+
+    func_shelter_b1_underground_parking_80183B9C();
+    work->fadeLevel += 6;
+    if (work->fadeLevel >= 0x100) {
+        work->fadeLevel = 0xFF;
+    }
+    Fade_DrawOverlay((u8)work->fadeLevel, (u8)work->fadeLevel, (u8)work->fadeLevel, 2);
+    if (work->fadeLevel == 0xFF) {
+        D_80114D08 = 0xA;
+        Gp_MsgPlayerWeapon(1);
+        Gp_MsgPlayer3F3(1);
+        Display_ReleaseRef();
+        gGameSession->eventState   = 0;
+        gGameSession->hideHud      = 0;
+        gGameSession->cutsceneHold = 0;
+        D_8007216C                 = 2;
+        Task_RequestKill(task, 0);
+    }
+}
 
 void func_shelter_b1_underground_parking_801848A4(void)
 {

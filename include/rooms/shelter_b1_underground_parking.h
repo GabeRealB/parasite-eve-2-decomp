@@ -14,8 +14,13 @@
 /// two table fields into `field_C` and `promptKind`;
 /// `func_shelter_b1_underground_parking_80184594` forwards `promptKind` to
 /// `func_800D4E78` as the display mode of the prompt it spawns.
+/// `fadeLevel` is the intensity of the closing fade: the last state raises it
+/// each frame, clamps it at 0xFF and draws it on all three channels of
+/// `Fade_DrawOverlay`.
 typedef struct SbupExamineWork {
-    /* 0x00 */ byte pad_0[0xC];
+    /* 0x00 */ byte pad_0[0x8];
+    /* 0x08 */ s16  fadeLevel;
+    /* 0x0A */ byte pad_A[0x2];
     /* 0x0C */ s16  field_C;
     /* 0x0E */ s8   promptKind;
     /* 0x0F */ byte pad_F[0x1];
