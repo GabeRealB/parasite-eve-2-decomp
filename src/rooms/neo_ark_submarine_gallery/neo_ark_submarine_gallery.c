@@ -4,6 +4,8 @@
 #include "gameplay/gameplay.h"
 #include "gameplay/D4.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/mc.h"
@@ -14,6 +16,7 @@
 extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818AC;
+extern s16        D_neo_ark_submarine_gallery_801818B8;
 
 extern s16 D_80071076;
 extern s8  D_801153F4;
@@ -116,7 +119,28 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* sr
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_gallery/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EABC);
+s32 func_neo_ark_submarine_gallery_8017EABC(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 2:
+            if (D_neo_ark_submarine_gallery_801818B8 == 1) {
+                Gp_SpawnIfCapIdle(2, 0);
+            } else {
+                Gp_SpawnIfCapIdle(4, 0);
+            }
+            break;
+        case 3:
+            if (gGameSession->at4.loc.place == 4) {
+                Gp_SpawnIfCapIdle(5, 0);
+            } else if (Gp_StateF0.field_0 == 1) {
+                Gp_SpawnIfCapIdle(3, 0);
+            } else {
+                Gp_SpawnIfCapIdle(6, 0);
+            }
+            break;
+    }
+    return 0;
+}
 
 s32 func_neo_ark_submarine_gallery_8017EB48(void)
 {
