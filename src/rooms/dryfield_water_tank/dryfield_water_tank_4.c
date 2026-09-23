@@ -14,14 +14,15 @@ extern Task* D_dryfield_water_tank_80188D4C;
 /// commits a view switch.
 extern s8 D_8007216C;
 
-/// Message 0x7DB handler: restarts the water-tank script, clearing the two
-/// work-block counters and moving the task to the state the payload carries.
+/// Message 0x7DB handler of the model task: restarts its script, clearing the
+/// script state and `field_54` in its work block and moving the task to the
+/// state the payload carries.
 void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, DwtMsg7DB* msg)
 {
-    DwtScriptWork* work;
-    s32            state;
+    DwtColorMtx* work;
+    s32          state;
 
-    work                = (DwtScriptWork*)task->work;
+    work                = (DwtColorMtx*)task->work;
     work->field_4C      = 0;
     work->field_54      = 0;
     state               = msg->field_2;

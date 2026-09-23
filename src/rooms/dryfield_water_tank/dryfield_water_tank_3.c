@@ -13,12 +13,12 @@
 #include "main/tmd.h"
 #include "main/gfx.h"
 #include "rooms/dryfield_water_tank.h"
+#include "rooms/room_common.h"
 
 extern s8             D_8007216C;
 extern TaskDesc       D_dryfield_water_tank_8017F34C;
 extern s32            D_dryfield_water_tank_8017F114;
 extern s32            D_dryfield_water_tank_8017F21C;
-extern s32            D_dryfield_water_tank_8017FD60;
 extern GpMsgEntry     D_dryfield_water_tank_8017FD90[];
 extern s32            D_dryfield_water_tank_8017FDC0;
 extern s32            D_dryfield_water_tank_8017FEC8;
@@ -27,6 +27,22 @@ extern s32            D_dryfield_water_tank_80184E0C;
 extern s32            D_dryfield_water_tank_801859DC;
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern Task*          D_dryfield_water_tank_80188D4C;
+
+/// Main-executable flag word with no module header yet: while its bit 2 is
+/// raised the model task nudges the model 5 units off each position it snaps to.
+extern s32 D_80070F6C[];
+
+/// The model's placement run at 0x8017FD60. `[1]` (0x8017FD78) is the lowered
+/// record: the model sinks until its Z passes `pos.vz` and is snapped to its
+/// `pos.vy` and then `pos.vx`. The model task reaches that record both from
+/// this head and by its own symbol, so the head is declared one element long;
+/// the driver sends the head itself as the 0x7D4 placement.
+extern RoomPlacement D_dryfield_water_tank_8017FD60[1];
+extern RoomPlacement D_dryfield_water_tank_8017FD78;
+
+/// X offsets the model task spawns effect 0x60054 with, indexed by the 0..10
+/// `killCountdown` counter it wraps.
+extern u16 D_dryfield_water_tank_8017FDA8[];
 
 void func_dryfield_water_tank_8017DB48(void)
 {
@@ -42,7 +58,66 @@ void func_dryfield_water_tank_8017DB48(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_3", func_dryfield_water_tank_8017DB98);
+/// The model task's script, run each frame while the task is in state 2;
+/// returning 1 tells the caller the model has arrived.
+///
+/// Script state 0 lowers the model: its Z grows by 0x14 a frame, its Y snaps to
+/// the lowered record's `pos.vy` (nudged by the `D_80070F6C` flag), and once the
+/// Z has passed that record's `pos.vz` the script steps to state 1. Every frame
+/// of state 0 also spawns effect 0x60054 at the model, offset in X by the next
+/// entry of the wrapping `killCountdown` table. State 1 advances the settle
+/// counter; on its 0x3D-th tick it publishes the lowered record to the task
+/// itself as the 0x7D4 placement and returns 1, and until then snaps the
+/// model's X to that record's `pos.vx`. Every path that returns 0 clears
+/// `coord->flg`, so the coordinate is recomputed on the next update.
+///
+/// The body is the water tower's `func_dryfield_water_tower_8017E428`; as there,
+/// the Z test is written with the coordinate on the left, which is what loads it
+/// before the record.
+s32 func_dryfield_water_tank_8017DB98(Task* arg0)
+{
+    DwtColorMtx*   work  = (DwtColorMtx*)arg0->work;
+    GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2* effCoord;
+    SVECTOR        pos;
+
+    switch (work->field_4C) {
+        case 0:
+            coord->coord.t[2] += 0x14;
+            coord->coord.t[1]  = D_dryfield_water_tank_8017FD60[1].pos.vy;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[1] += 5;
+            }
+            if (coord->coord.t[2] > D_dryfield_water_tank_8017FD60[1].pos.vz) {
+                work->field_4C++;
+            }
+            effCoord = ((TmdObject*)arg0->extra)->coords;
+            if (arg0->killCountdown >= 0xA) {
+                arg0->killCountdown = 0;
+            } else {
+                arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            }
+            pos.vy = 0;
+            pos.vz = 0;
+            pos.vx = D_dryfield_water_tank_8017FDA8[arg0->killCountdown];
+            Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+            break;
+
+        case 1:
+            work->field_4E++;
+            if ((s16)work->field_4E >= 0x3D) {
+                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tank_8017FD78, 0);
+                return 1;
+            }
+            coord->coord.t[0] = D_dryfield_water_tank_8017FD78.pos.vx;
+            if (D_80070F6C[0] & 4) {
+                coord->coord.t[0] += 5;
+            }
+            break;
+    }
+    coord->flg = 0;
+    return 0;
+}
 
 /// Drives the model task the room's script spawns: state 0 allocates the
 /// light/colour matrix pair for the task's `TmdObject` and reparents the task

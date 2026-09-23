@@ -48,7 +48,7 @@ STATIC_ASSERT_SIZEOF(DwtMsg7DB, 0x4);
 /// `D_dryfield_water_tank_8017FF88`, the one messages 0x7D4 / 0x7D5 / 0x7DB are
 /// sent to. `field_50` is a request the driver's per-frame switch consumes and
 /// clears, and `func_dryfield_water_tank_8017E194` is what sets it.
-/// `field_4C`, `field_52` and `field_54` have no identified role yet.
+/// `field_52` has no identified role yet.
 ///
 /// Distinct from `DwtWork`: that one belongs to the cutscene task named by
 /// `RoomsShared80180b2cTask`.
@@ -56,13 +56,10 @@ typedef struct DwtScriptWork {
     /* 0x00 */ byte  pad_0[0x40];
     /* 0x40 */ Task* owner;
     /* 0x44 */ Task* child;
-    /* 0x48 */ byte  pad_48[0x4];
-    /* 0x4C */ s16   field_4C;
-    /* 0x4E */ byte  pad_4E[0x2];
+    /* 0x48 */ byte  pad_48[0x8];
     /* 0x50 */ u16   field_50;
     /* 0x52 */ s16   field_52;
-    /* 0x54 */ s16   field_54;
-    /* 0x56 */ byte  pad_56[0x2];
+    /* 0x54 */ byte  pad_54[0x4];
 } DwtScriptWork;
 STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 
@@ -73,15 +70,24 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
 /// is registered with (`gameGetPtrSlot(3)`).
 ///
+/// The same block carries the model task's script state: `field_4C` is the
+/// state `func_dryfield_water_tank_8017DB98` switches on (0 lowers the model,
+/// 1 lets it settle) and `field_4E` the settle counter state 1 advances. The
+/// task's message 0x7DB handler, `func_dryfield_water_tank_8017E174`, restarts
+/// that script by clearing `field_4C` and `field_54`.
+///
 /// A different block from `DwtScriptWork`, which the room's script driver
-/// allocates at the same 0x58 size: this one belongs to the model task and
-/// stops at `owner`, and its 0x44 tail is left unknown rather than folded into
-/// the driver's script fields.
+/// allocates at the same 0x58 size.
 typedef struct DwtColorMtx {
     /* 0x00 */ MATRIX light; // TmdObject::lightMtx
     /* 0x20 */ MATRIX color; // TmdObject::colorMtx
     /* 0x40 */ Task*  owner; // gameGetPtrSlot(3)
-    /* 0x44 */ byte   pad_44[0x14];
+    /* 0x44 */ byte   pad_44[0x8];
+    /* 0x4C */ u16    field_4C;
+    /* 0x4E */ s16    field_4E;
+    /* 0x50 */ byte   pad_50[0x4];
+    /* 0x54 */ s16    field_54;
+    /* 0x56 */ byte   pad_56[0x2];
 } DwtColorMtx;
 STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 
@@ -137,7 +143,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0);
 
 /// Per-frame model update `func_dryfield_water_tank_8017DD20` runs while its
 /// state is 2; non-zero (the caller keeps only the low 16 bits) moves the task
-/// back to state 1. Still `INCLUDE_ASM` in this unit.
+/// back to state 1.
 s32 func_dryfield_water_tank_8017DB98(Task* arg0);
 
 #endif // ROOMS_DRYFIELD_WATER_TANK_H

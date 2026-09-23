@@ -139049,3 +139049,34 @@ rather than two statements: `expand_assignment` expands the left side's
 address (`lui`/`lw` of the session pointer) before the right-hand store, which
 is the pseudo birth order the target's allocation reflects (actor_335800 uses
 the same chain). Input: `base_3.i` `648ce2c8c69b81174075530a1ef2cec37b577dae14712e716526d647f96ff9bf` (100%).
+
+### Conditional nudge of a just-stored field: `+=` on the field, not `local + 5`
+
+`func_dryfield_water_tank_8017DB98` plateaued at 98.6% over 29 attempts, then
+matched on the first build by porting the already-matched sibling body
+`func_dryfield_water_tower_8017E428` that the brief's `similar` list ranked
+first in three classes. The target is
+
+```
+sw    v1,0x1C(s0)        # field = record
+lw    v0,flag ; andi v0,v0,4
+beqz  v0,1f
+ addiu v0,v1,5           # eager fill from the taken arm
+sw    v0,0x1C(s0)
+1:
+```
+
+The seed held the record in a local (`y = rec; field = y; if (flag) field = y
++ 5;`), and reorg's simple fill then took the store for the branch slot; barriers
+around it only reached 98.6%. Writing it on the field itself lets CSE reuse the
+stored value and gives reorg the target's eager fill:
+
+```c
+coord->coord.t[1] = D_rec[1].pos.vy;
+if (D_flag[0] & 4) {
+    coord->coord.t[1] += 5;
+}
+```
+
+Lesson: when a give-up has a `similar` candidate starred in more than one
+class, port that body first - it is cheaper than any delay-slot experiment.
