@@ -70,6 +70,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea68Title);
 
 s32  func_shelter_r47_8018097C(Task* task);
+void func_shelter_r47_80180F38(s32 arg0, s16 arg1, s32 arg2);
 void func_shelter_r47_80181914(Task* task, s32 arg1);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_80183B84(Task* task);
@@ -84,6 +85,10 @@ s32  func_shelter_r47_80182B9C(Task* task, RoomHotspot* table, s16 x, s16 y);
 extern Task* D_shelter_r47_8018A690;
 
 extern u8 D_shelter_r47_80186FAD;
+
+/// Byte sequences selected by `ShelterR47State::step` and walked by
+/// `field_48`; `0xFF` ends a sequence.
+extern u8* D_shelter_r47_80187374[];
 
 /// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
 extern RoomHotspot D_shelter_r47_80186FB4[];
@@ -212,7 +217,42 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181914);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181F14);
+/// Draws the current byte of the `step` sequence at row `y` through
+/// `func_shelter_r47_80180F38`, with a textured quad whose left edge follows
+/// the byte's value, advancing `field_48` on odd animation frames. At the
+/// terminator it redraws the previous byte for eight frames out of every
+/// sixteen instead.
+void func_shelter_r47_80181F14(Task* task, s16 y)
+{
+    ShelterR47State* work;
+    POLY_FT4*        poly;
+    u8*              p;
+    s32              c;
+
+    work = (ShelterR47State*)task->work;
+    p    = D_shelter_r47_80187374[work->step] + work->field_48;
+    c    = *p;
+    if (c != 0xFF) {
+        func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(poly + 1);
+        setPolyFT4(poly);
+        setUVWH(poly, 0x48, 0xB9, 0x2C, 0xE);
+        poly->tpage = 0xD;
+        poly->clut  = 0x3FC3;
+        setXY4(poly, c - 0x96, y + 1, 0x69, y + 1, c - 0x96, y + 0xF, 0x69, y + 0xF);
+        poly->code |= 1;
+        addPrim(&gGpuCurrentOt[10], poly);
+        if (gDisplayState.animFrame & 1) {
+            work->field_48++;
+        }
+    } else {
+        c = p[-1];
+        if ((u32)(gDisplayState.animFrame & 0xF) < 8) {
+            func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
+        }
+    }
+}
 
 void func_shelter_r47_801820C0(s16 arg0)
 {
