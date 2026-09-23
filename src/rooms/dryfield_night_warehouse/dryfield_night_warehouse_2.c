@@ -14,7 +14,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s32 arg1);
+void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1);
 void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
@@ -36,7 +36,133 @@ extern SVECTOR D_dryfield_night_warehouse_8017E858[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_night_warehouse_8017E8D8[];
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_warehouse/dryfield_night_warehouse_2", func_dryfield_night_warehouse_8017D6B4);
+/// Draws a four-sided prism from `D_dryfield_night_warehouse_8017E858[arg1..]`
+/// as five gouraud `POLY_G4`: four sides joining the lit ring `[0..3]` to the
+/// far ring `[4..7]`, then a cap over the lit ring. Each corner is rotated by
+/// `coord`'s `workm` and moved by its translation before projection through
+/// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
+/// quarters of its green and blue; the far corners are black.
+void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
+{
+    _DryfieldNightWarehouseBandScratch* blk;
+    POLY_G4*                            prim;
+    s32                                 i;
+    s32                                 next;
+    s32                                 far;
+    s32                                 farNext;
+    s16                                 pulse;
+    s16                                 red;
+    s16                                 blue;
+    s16                                 green;
+
+    pulse                  = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(_DryfieldNightWarehouseBandScratch);
+    blk                    = *(_DryfieldNightWarehouseBandScratch**)G_SCRATCH_HEAD;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    red   = pulse * 3 / 4;
+    green = pulse;
+    blue  = pulse;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + i]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[0]);
+        blk->v[0].vx += coord->workm.t[0];
+        blk->v[0].vy += coord->workm.t[1];
+        blk->v[0].vz += coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        next = (i + 1) & 3;
+        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + next]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[1]);
+        blk->v[1].vx += coord->workm.t[0];
+        blk->v[1].vy += coord->workm.t[1];
+        blk->v[1].vz += coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        far = i + 4;
+        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + far]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[2]);
+        blk->v[2].vx += coord->workm.t[0];
+        blk->v[2].vy += coord->workm.t[1];
+        blk->v[2].vz += coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        farNext = next + 4;
+        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + farNext]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[3]);
+        blk->v[3].vx += coord->workm.t[0];
+        blk->v[3].vy += coord->workm.t[1];
+        blk->v[3].vz += coord->workm.t[2];
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        setPolyG4(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+        gte_stszotz(&blk->otz);
+        setRGB0(prim, red, green, blue);
+        setRGB1(prim, red, green, blue);
+        setRGB2(prim, 0, 0, 0);
+        setRGB3(prim, 0, 0, 0);
+        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[0]);
+    blk->v[0].vx += coord->workm.t[0];
+    blk->v[0].vy += coord->workm.t[1];
+    blk->v[0].vz += coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 1]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[1]);
+    blk->v[1].vx += coord->workm.t[0];
+    blk->v[1].vy += coord->workm.t[1];
+    blk->v[1].vz += coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 3]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[2]);
+    blk->v[2].vx += coord->workm.t[0];
+    blk->v[2].vy += coord->workm.t[1];
+    blk->v[2].vz += coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 2]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[3]);
+    blk->v[3].vx += coord->workm.t[0];
+    blk->v[3].vy += coord->workm.t[1];
+    blk->v[3].vz += coord->workm.t[2];
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(prim + 1);
+    setPolyG4(prim);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    setRGB0(prim, red, green, blue);
+    setRGB1(prim, red, green, blue);
+    setRGB2(prim, red, green, blue);
+    setRGB3(prim, red, green, blue);
+    addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                      (s32)gGpuCurrentOt),
+            prim);
+    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    *(u8**)G_SCRATCH_HEAD += sizeof(_DryfieldNightWarehouseBandScratch);
+}
 
 /// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
 /// `POLY_G4` segments, starting at an angle that turns with
