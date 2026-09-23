@@ -139619,3 +139619,34 @@ the `lw` entry above: there the multiply form was the one the ROM had.
 ### A callee prototyped in the scratch but defined *later* in the host `.c` is unprototyped there (func_shelter_b2_pod_bottom_8017D850, 2026-09-24)
 
 The mirror of "A callee prototyped only in the host `.c` is unprototyped in the scratch env". The scratch declared the two drawers `(GsCOORDINATE2*, u16, s16, s16)` and scored 100%. The host file defines them *after* the caller, with no forward declaration, so the call was implicit. The unconverted `u16` fields were loaded with `lhu` where the target has `lh`. The overlay failed its checksum by 8 bytes (4 call sites × 2 args), with nothing but a `0x96`→`0x86` opcode byte to go on. Fix: add the forward prototypes near the top of the host file. When the scratch declares a callee, check the host declares it before the call site too.
+
+## `lui $t1` / `addiu $t1,$t1` for a symbol address inside a loop is a hoisted invariant that lost the last callee-saved register (func_shelter_b4_reservoir_8017FB84, 2026-09-24)
+
+**Symptom.** A loop that calls functions stores `&gGfxViewCoord` into a stack
+struct as `lui $t1,%hi(sym)` / `addiu $t1,$t1,%lo(sym)`, back to back in one
+register. Nothing else in the function uses `$t1` except `mflo`. Every `$s`
+register and `$fp` are already live across the loop. Written as a plain
+`coord.sub = &gGfxViewCoord;`, the compile gives `lui $v1` / `addiu $v1,$v1`
+split around other instructions. The same loop's `&Gfx_ViewWorldMtx` call
+argument is loaded into `$a0` each iteration instead of coming from `$fp`.
+
+**Cause.** In the target, loop.c hoisted both addresses out of the loop, so
+each crosses calls and needs a callee-saved register. Only one register was
+left, so global-alloc left the other pseudo unallocated. Reload then
+rematerialises its `REG_EQUIV` symbol at the use as one `la` into a spill
+register, which is where the single-register `lui`/`addiu` pair comes from.
+As direct operands, the addresses have a lifetime of 1-2 luids, which is "not
+desirable" to move (`threshold * savings * lifetime < insn_count`).
+
+**Fix.** Make each address loop-invariant with a long enough life: assign it
+to a local at the top of the loop body (`parent = &gGfxViewCoord; view =
+&Gfx_ViewWorldMtx;`) and use the locals at the call and the store. Which one
+gets the register is a global-alloc tie. Here the local assigned *second* got
+`$fp`, and swapping the two assignments swapped the outcome.
+
+In the same function, `f4 + ((RAND() & M) + C)` became `(f4 + C) + x`
+(see the `fold` reassociation entries). The target added `x + C` first and
+read `f4` before the draw. Reading `f4` into a local first and putting
+`(RAND() & M) + C` into a second local reproduced it. That form also kept
+the `lo_sum` of the struct's address short-lived enough that loop.c did not
+hoist it into an extra `$s` register.
