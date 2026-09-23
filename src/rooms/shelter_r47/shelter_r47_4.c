@@ -63,6 +63,11 @@ extern u8  D_8007216C;
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
+extern u8 D_shelter_r47_8018A694;
+extern u8 D_shelter_r47_8018A695;
+extern u8 D_shelter_r47_8018A696;
+extern u8 D_shelter_r47_8018A697;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182B9C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182C78);
@@ -145,7 +150,13 @@ void func_shelter_r47_801831C8(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183210);
+void func_shelter_r47_80183210(void)
+{
+    D_shelter_r47_8018A694 = 0;
+    D_shelter_r47_8018A695 = 0;
+    D_shelter_r47_8018A696 = 0;
+    D_shelter_r47_8018A697 = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183234);
 
