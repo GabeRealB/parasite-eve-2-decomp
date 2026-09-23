@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x30];
@@ -118,7 +119,64 @@ s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F410);
+/// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
+/// model and `spawnArgLo` the scale that goes with it.
+extern GpEffArg D_shelter_b3_garbage_incinerator_80186F90;
+
+/// Model parts the effect record is aimed at, as indices into the
+/// display object's coordinate array.
+extern u16 D_shelter_b3_garbage_incinerator_80186F98[];
+
+/// Global counter whose low bits gate the state-1 picks.
+extern s32 D_80070F70;
+
+/// Random-number state rolled once per tick.
+extern u32 Gp_LcgState;
+
+/// Each tick rolls the LCG and aims the effect record at one part of the
+/// model owned by `gameGetPtrSlot(3)`. State 0 fires with one of the first
+/// four parts at scale 0x100 and steps to state 1. State 1 fires only on
+/// frames `D_80070F70` lets through: with `spawnArg1` zero, one of the first
+/// four parts at scale 0x10 every sixteenth frame; otherwise one of the first
+/// sixteen at scale 0x100 every eighth frame.
+void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
+{
+    Task* slot;
+    s32   idx;
+
+    slot        = gameGetPtrSlot(3);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    idx         = Gp_LcgState >> 16;
+
+    switch (arg0->state) {
+        case 0:
+            idx                                                 &= 3;
+            D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
+            D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+            arg0->state++;
+            return;
+        case 1:
+            if (arg0->spawnArg1 == 0) {
+                if (D_80070F70 & 0xF) {
+                    return;
+                }
+                idx                                                 &= 3;
+                D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x10;
+                D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+                func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+                return;
+            }
+            if (D_80070F70 & 7) {
+                return;
+            }
+            idx                                                 &= 0xF;
+            D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
+            D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+            return;
+    }
+}
 
 /// Arms the encounter on state 0: sends `field_2C` message 0x3F7 with the
 /// table and its live-entry count, raises `Gp_StateC08.field_6` bit 0,
