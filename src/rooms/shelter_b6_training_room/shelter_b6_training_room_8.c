@@ -10,6 +10,9 @@ extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
 extern u16            D_shelter_b6_training_room_80185C98;
 extern SVECTOR        D_shelter_b6_training_room_80184334[];
 
+void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017F8B8);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017FC40);
@@ -45,7 +48,48 @@ void func_shelter_b6_training_room_80181930(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181A3C);
+void func_shelter_b6_training_room_80181A3C(Task* task)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+
+    mem   = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState == 0) {
+        mem->age++;
+        coord->flg = 0;
+        if (task->state == 0) {
+            GpMtxWords* rot;
+            u32         first;
+
+            rot               = (GpMtxWords*)&coord->coord;
+            coord->sub        = mem->parent;
+            rot->w0           = 0x1000;
+            rot->w1           = 0;
+            rot->w2           = 0x1000;
+            rot->w3           = 0;
+            rot->h4           = 0x1000;
+            coord->coord.t[0] = mem->pos.vx;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            first             = Gp_LcgState;
+            coord->coord.t[1] = mem->pos.vy;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            coord->coord.t[2] = mem->pos.vz;
+            coord->flg        = 0;
+            mem->scale        = ((first >> 16) & 0x1FF) + 0x100;
+            mem->angle        = (Gp_LcgState >> 16) & 0xFFF;
+            mem->period       = ((Gp_LcgState >> 16) & 0xF) + 6;
+            task->state       = 1;
+        }
+        func_shelter_b6_training_room_80181BAC(coord, mem->age, mem->scale, mem->angle);
+        if (mem->age & 1) {
+            func_shelter_b6_training_room_80181FDC(coord, D_shelter_b6_training_room_80185C94, mem->age >> 1, mem->scale);
+        }
+        if (mem->age > mem->period) {
+            Gp_ReleaseState1CMem(mem, task);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181BAC);
 
