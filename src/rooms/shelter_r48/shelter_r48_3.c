@@ -24,7 +24,58 @@ extern u32 Gp_LcgState;
 extern u8  D_shelter_r48_8018300C[];
 extern u8  D_shelter_r48_8018BE54[6][16];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E27C);
+void func_shelter_r48_8017E27C(u8 arg0)
+{
+    GpAreaKey* loc = &gGameSession->at4.loc;
+    GpSprtRec* rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
+    GpSprtCmd* cmd;
+
+    if (arg0 == 0) {
+        cmd            = rec[1].field_4;
+        cmd[1].field_4 = 1;
+        cmd[3].field_4 = 1;
+        cmd            = rec[2].field_4;
+        cmd[1].field_4 = 1;
+        cmd[4].field_4 = 1;
+        cmd            = rec[3].field_4;
+        cmd[1].field_4 = 1;
+        cmd[4].field_4 = 1;
+        cmd            = rec[5].field_4;
+        cmd[2].field_4 = 1;
+        cmd[3].field_4 = 1;
+        cmd            = rec[6].field_4;
+        cmd[1].field_4 = 1;
+        cmd[4].field_4 = 1;
+        cmd            = rec[7].field_4;
+        cmd[1].field_4 = 1;
+        cmd[5].field_4 = 1;
+        cmd            = rec[17].field_4;
+        cmd[1].field_4 = 1;
+        cmd[5].field_4 = 1;
+    } else if (arg0 == 1) {
+        cmd            = rec[1].field_4;
+        cmd[1].field_4 = 0;
+        cmd[3].field_4 = 0;
+        cmd            = rec[2].field_4;
+        cmd[1].field_4 = 0;
+        cmd[4].field_4 = 0;
+        cmd            = rec[3].field_4;
+        cmd[1].field_4 = 0;
+        cmd[4].field_4 = 0;
+        cmd            = rec[5].field_4;
+        cmd[2].field_4 = 0;
+        cmd[3].field_4 = 0;
+        cmd            = rec[6].field_4;
+        cmd[1].field_4 = 0;
+        cmd[4].field_4 = 0;
+        cmd            = rec[7].field_4;
+        cmd[1].field_4 = 0;
+        cmd[5].field_4 = 0;
+        cmd            = rec[17].field_4;
+        cmd[1].field_4 = 0;
+        cmd[5].field_4 = 0;
+    }
+}
 
 void func_shelter_r48_8017E3B8(Task* task)
 {
