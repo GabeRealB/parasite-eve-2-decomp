@@ -29,7 +29,9 @@ typedef struct {
     /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
     /* 0x46 */ u8  pad_46[2];
     /* 0x48 */ s16 field_48;
-    /* 0x4A */ u8  pad_4A[7];
+    /* 0x4A */ u8  pad_4A[4];
+    /* 0x4E */ u8  field_4E; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
+    /* 0x4F */ u8  pad_4F[2];
     /* 0x51 */ s8  field_51;
     /* 0x52 */ u8  pad_52[2];
 } ShelterR47State;
@@ -61,6 +63,8 @@ extern s16 Gp_MenuLockDelay;
 extern s16 D_80114D08;
 extern u8  D_8007216C;
 
+void func_shelter_r47_8018337C(Task* task);
+
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
@@ -88,7 +92,26 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182DAC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182E78);
+void func_shelter_r47_80182E78(Task* task)
+{
+    ShelterR47State* state;
+
+    state      = (ShelterR47State*)task->work;
+    D_80114D08 = 0xA;
+    func_shelter_r47_8018337C(task);
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    Display_ReleaseRef();
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    D_8007216C                 = state->field_4E;
+    /* Keeps the `spawnArg2` load below the `D_8007216C` store, so that it
+       does not fill `taskKill`'s delay slot. */
+    SOFT_BARRIER();
+    taskKill((Task*)task->spawnArg2);
+    Task_RequestKill(task, 0);
+}
 
 void func_shelter_r47_80182F18(Task* task)
 {
