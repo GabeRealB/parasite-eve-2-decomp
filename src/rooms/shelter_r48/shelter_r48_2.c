@@ -11,8 +11,12 @@
 
 extern GpMsgEntry D_shelter_r48_80182FB8[];
 
-extern s32 D_8014BD48;
-extern s32 D_8014C288;
+extern s32      D_8014BD48;
+extern s32      D_8014C288;
+extern TaskDesc D_8014B964;
+extern s32      D_8014C540;
+extern s32      D_8014CAF8;
+extern s32      D_8014D158;
 
 void func_80132F58(s32 arg0);
 
@@ -31,7 +35,20 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_2", func_shelter_r48_8017E0EC);
+s32 func_shelter_r48_8017E0EC(void)
+{
+    if (GameFlag_GetNibble(0x12A) == 1) {
+        func_800E8614((s32)&D_8014D158, 0);
+        GameFlag_SetNibble(0x12A, 2);
+    } else {
+        func_800E8634((s32)&D_8014C540, 0, (s32)&D_8014CAF8);
+        Task_SpawnFromTable(&D_8014B964, 0, 0, 0);
+        Task_SpawnFromTable(&D_8014B964, 0, 1, 0);
+        Task_SpawnFromTable(&D_8014B964, 0, 3, 0);
+        GameFlag_SetNibble(0x12A, 3);
+    }
+    return 0;
+}
 
 void func_shelter_r48_8017E1A4(Task* arg0)
 {
