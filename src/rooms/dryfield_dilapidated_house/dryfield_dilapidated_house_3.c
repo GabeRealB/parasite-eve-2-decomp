@@ -16,6 +16,7 @@
 
 #define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
@@ -495,7 +496,90 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_801803A4);
+/// Projects the two 16-vertex rings in `verts` (inner at 0..15, outer at
+/// 16..31) and joins them with 16 semi-transparent `POLY_G4`s, wrapping the
+/// last quad back to vertex 0. The inner edge is a grey whose level is the
+/// parent task's `DdhCoordWork::field_8` clamped to 0x400 and scaled to 0..0xFF;
+/// the outer edge is black. Each quad goes into the ordering table four entries
+/// past its average depth, preceded by a `DR_TPAGE` selecting blend mode 3.
+void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
+{
+    s32       sxy[32];
+    s32       sz[16];
+    CVECTOR   c0;
+    CVECTOR   c1;
+    POLY_G4*  prim;
+    DR_TPAGE* tp;
+    s16       level;
+    s32       i;
+    s32*      xy;
+    SVECTOR*  v;
+    s32*      p;
+    s32*      z;
+
+    v     = verts;
+    p     = sxy;
+    z     = sz;
+    level = ((DdhCoordWork*)((Task*)task->spawnArg2)->work)->field_8;
+    SetRotMatrix(&Gfx_ViewWorldMtx);
+    SetTransMatrix(&Gfx_ViewWorldMtx);
+    for (i = 0; i < 16; i++) {
+        gte_ldv3(v, v + 1, v + 16);
+        gte_rtpt_real();
+        gte_stsxy3(p, p + 1, p + 16);
+        gte_stszotz(z);
+        p++;
+        z++;
+        v++;
+    }
+    if (level > 0x400) {
+        level = 0x400;
+    }
+    c0.r = level * 0xFF / 0x400;
+    c0.g = level * 0xFF / 0x400;
+    c0.b = 0;
+    c1.r = 0;
+    c1.g = 0;
+    c1.b = 0;
+    for (i = 0; i < 16; i++) {
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        setlen(prim, 8);
+        setcode(prim, 0x3A);
+        prim->r0 = c0.r;
+        prim->g0 = c0.g;
+        prim->b0 = c0.b;
+        prim->r1 = c0.r;
+        prim->g1 = c0.g;
+        prim->b1 = c0.b;
+        prim->r2 = c1.r;
+        prim->g2 = c1.g;
+        prim->b2 = c1.b;
+        prim->r3 = c1.r;
+        prim->g3 = c1.g;
+        prim->b3 = c1.b;
+        // Packed screen words, one per vertex; each `xy` word is two words past
+        // the previous one because a colour word sits between them.
+        xy = (s32*)&prim->x0;
+        if (i < 15) {
+            xy[0] = sxy[i];
+            xy[2] = sxy[i + 1];
+            xy[4] = sxy[i + 16];
+            xy[6] = sxy[i + 17];
+        } else {
+            xy[0] = sxy[15];
+            xy[2] = sxy[0];
+            xy[4] = sxy[31];
+            xy[6] = sxy[16];
+        }
+        addPrim((u_long*)(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) + 4, prim);
+        tp             = (DR_TPAGE*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(tp + 1);
+        setlen(tp, 1);
+        tp->code[0] = 0xE1000465;
+        addPrim((u_long*)(((((u32)sz[i] << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt) + 4, tp);
+    }
+}
 
 void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 {

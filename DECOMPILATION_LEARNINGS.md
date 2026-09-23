@@ -139117,3 +139117,11 @@ strength reduction over `a[i]`. Write the index form before tuning walkers.
 **Fix.** Reuse the variable for a different value between the groups: `val = 0xA; ...group 1...; val = -0x262; f(val, m); ...; val = 0xA; ...group 2...` (93% -> 97%). Routing an *observed* value through it instead (`val = rand() % 60 + 0x50`) also splits it, but moves that value into the variable's register.
 
 **Follow-on, local-alloc tie.** The last registers were a `$s5`/`$s6` swap between a short local (`x1`, 2 refs over 13 insns: `QTY_CMP_PRI` 1538) and `%hi(gGpuPrimCursor)` (11 refs over 215: 1534). Reading the third projection's `x` into its own local right after `RotTransPers` (the target loads it before the prim-cursor bump) lengthened `x1`'s range enough to flip the order without moving any store. Compute `QTY_CMP_PRI` by hand from `lregwalk.py` numbering when two callee-saved locals trade places. The last reorder was the known union-vs-cast identity-matrix case ("`*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps").
+
+### One quotient stored to two bytes: repeat the expression rather than naming it, when the bias copy survives in the delay slot (func_dryfield_dilapidated_house_801803A4, 2026-09-23)
+
+**Symptom.** 96.8%, all in the `x * 0xFF / 0x400` block: target `bgez $v1; move $v0,$v1 (slot); addiu $v0,$v1,0x3FF; sra $a0,$v0,10; sb $a0,0xD0($sp)` with the second byte store much later, and the clamp above it (`if (level > 0x400) level = 0x400;`) left with a `nop` slot. Ours tied the bias copy to the product (`addiu $v1,$v1,0x3FF`), filled the `bgez` slot from the loop setup, and emitted both `sb` together after it.
+
+**Cause.** `t = x * 0xFF / 0x400; c.r = t; c.g = t;` makes the shift result a user variable (`reg/v`); `c.r = x * 0xFF / 0x400; c.g = x * 0xFF / 0x400;` gives the same `.cse` RTL except that the result is an anonymous temp, which cse shares between the two stores. The different pseudo kind moved allocation and sched1 enough to reproduce every difference at once, including the unrelated-looking clamp slot.
+
+**Fix.** Write the expression at both stores. `c.r = c.g = expr` behaved like the named temp. Same family as "Two `move`s out of one temp: the pair was assigned from a named intermediate", in the opposite direction.
