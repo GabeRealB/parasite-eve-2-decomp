@@ -139615,3 +139615,7 @@ is spilled later as a halfword (`sh a1,…($sp)` / `lhu`+`sll 16`+`sra 16`) is
 still an `s16` parameter; widening it to `s32` to lose the extension breaks
 the frame and the spill instead. This is the reverse of the `x * 16` keeps
 the `lw` entry above: there the multiply form was the one the ROM had.
+
+### A callee prototyped in the scratch but defined *later* in the host `.c` is unprototyped there (func_shelter_b2_pod_bottom_8017D850, 2026-09-24)
+
+The mirror of "A callee prototyped only in the host `.c` is unprototyped in the scratch env". The scratch declared the two drawers `(GsCOORDINATE2*, u16, s16, s16)` and scored 100%. The host file defines them *after* the caller, with no forward declaration, so the call was implicit. The unconverted `u16` fields were loaded with `lhu` where the target has `lh`. The overlay failed its checksum by 8 bytes (4 call sites × 2 args), with nothing but a `0x96`→`0x86` opcode byte to go on. Fix: add the forward prototypes near the top of the host file. When the scratch declares a callee, check the host declares it before the call site too.
