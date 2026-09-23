@@ -12,7 +12,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s32 arg1);
+void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1);
 void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 
 /// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
@@ -22,19 +22,137 @@ void func_dryfield_warehouse_8017ED34(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 /// `mvmva` rotating V0 by the rotation matrix with no translation.
 #define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Scratch block one ring segment is built in: the GTE depth of its far
+/// Scratch block one quad is built in: the GTE depth of its last three
 /// corners, then the four corners after they are placed in world space.
 typedef struct _DryfieldWarehouseBandScratch {
     s32     otz;
     SVECTOR v[4];
 } _DryfieldWarehouseBandScratch;
 
-/// Ring centres, one per circle, in the space of the coordinate drawn under.
+/// Points in the space of the coordinate drawn under: ring centres, one per
+/// circle, for the ring drawer, and prism corners for the prism drawer, which
+/// the room's only caller points at `[8..15]`.
 extern SVECTOR D_dryfield_warehouse_8017FB2C[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_warehouse_8017FBAC[];
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_4", func_dryfield_warehouse_8017E414);
+/// Draws one prism from `D_dryfield_warehouse_8017FB2C[arg1..]` as five gouraud
+/// `POLY_G4`: four sides joining the lit ring `[0..3]` to the far ring `[4..7]`,
+/// then a cap over the lit ring. Each corner is rotated by `coord`'s `workm` and
+/// moved by its translation before projection through `GsWSMATRIX`. The lit
+/// corners share a grey of 0x18 plus a small pulse; the far corners are black.
+void func_dryfield_warehouse_8017E414(GsCOORDINATE2* coord, s16 arg1)
+{
+    _DryfieldWarehouseBandScratch* blk;
+    POLY_G4*                       prim;
+    s32                            i;
+    s32                            next;
+    s32                            far;
+    s32                            farNext;
+    u8                             shade;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(_DryfieldWarehouseBandScratch);
+    blk                     = (_DryfieldWarehouseBandScratch*)*(void**)G_SCRATCH_HEAD;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + i]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[0]);
+        blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+        blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+        blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        next = (i + 1) & 3;
+        gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + next]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[1]);
+        blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+        blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+        blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        far = i + 4;
+        gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + far]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[2]);
+        blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+        blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+        blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&coord->workm);
+        farNext = next + 4;
+        gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + farNext]);
+        gte_mvmva_real();
+        gte_stsv(&blk->v[3]);
+        blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+        blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+        blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&blk->v[0]);
+        gte_rtps_real();
+        prim           = (POLY_G4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(prim + 1);
+        setPolyG4(prim);
+        gte_stsxy(&prim->x0);
+        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+        gte_stszotz(&blk->otz);
+        setRGB0(prim, shade, shade, shade);
+        setRGB1(prim, shade, shade, shade);
+        setRGB2(prim, 0, 0, 0);
+        setRGB3(prim, 0, 0, 0);
+        addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    }
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[0]);
+    blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
+    blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
+    blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + 1]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[1]);
+    blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
+    blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
+    blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + 3]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[2]);
+    blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
+    blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
+    blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&D_dryfield_warehouse_8017FB2C[arg1 + 2]);
+    gte_mvmva_real();
+    gte_stsv(&blk->v[3]);
+    blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
+    blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
+    blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_G4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(prim + 1);
+    setPolyG4(prim);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    setRGB0(prim, shade, shade, shade);
+    setRGB1(prim, shade, shade, shade);
+    setRGB2(prim, shade, shade, shade);
+    setRGB3(prim, shade, shade, shade);
+    addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(_DryfieldWarehouseBandScratch);
+}
 
 /// Draws one ring of gouraud `POLY_G4` segments between two circles in the XZ
 /// plane of `coord`: circle `arg1` of the room's centre/radius tables forms the
