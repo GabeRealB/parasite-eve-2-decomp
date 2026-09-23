@@ -137906,3 +137906,22 @@ stored to `G_SCRATCH_HEAD`, the explicit `__asm__("move %0,%1")` already used by
 `func_dryfield_night_motel_balcony_8018221C`. The compound push stores the carve
 instead (98.87%), and `SOFT_TOUCH_REG` on the carve leaves the reload move ahead
 of the `lhu` (99.07%), as the scratch-push entries above predict.
+
+## When the target puts one short-lived temp in the same argument register in two distant blocks, reuse one variable for both (func_dryfield_breezeway_8017EB8C, 2026-09-23)
+
+**Symptom.** The entry block computed `(arg2 + 0x50)` into `$a1` in the target
+(`addiu a1,s2,0x50; mult a1,a1`), while the C put it in `$v0`, and a mult
+result went to `$t4`. The tail block of the same target computed
+`(cursorY + 0x50)` into `$a1` as well.
+
+**Cause.** With a separate temporary for each value, each has one set and one
+death, so local-alloc takes it and gives it the first free register (`$v0`). If
+one variable holds both values (`ty = arg2 + 0x50; ... ty = y + 0x50;`), it has
+two sets, so local-alloc skips it and global-alloc gives it a register that is
+free across *both* live ranges. In this function that register was `$a1`.
+This is the reverse of entry [63], where reusing a variable is what breaks the
+match. Use it only when the target shows the same register at both sites.
+
+**Fix.** One `s32 ty` for both sums. With it, the entry block matched exactly
+(99.634% -> 99.890%, together with setting the `&D_80114D28` pointer before
+the first call).
