@@ -139252,3 +139252,34 @@ into the scratch and into the host file next to the existing ones.
 **Cause.** At equal priority, `schedule_select` (sched.c) takes the ready insn with the largest `potential_hazard`. For the memory unit that value is nonzero only when `unit_n_insns[memory]` > 1, meaning the *block* holds at least two loads/stores (the counter is never decremented). Argument moves use no unit and score 0. A block whose only memory insn is the store gets 0 as well, so the tie falls back to luid and the store stays ahead of the argument moves.
 
 **Fix.** Write the trailing `task->state = 2` on every path with early `return`s, instead of once after the `if`. The last arm's block then holds `sb` and `sw`, so the sched1 trace shows `insn N has a greater potential hazard` and the `sb` lands directly above the call. jump2 later merges the identical `jal; li; sw` tails into what the target has. Check the `.sched` trace for that line. When no `potential hazard` line appears, the block has only one memory insn.
+
+### sched1 sinks every single-set `li` onto its store; an empty `do {} while (0)` after the constant locals keeps them grouped (func_shelter_r47_8018431C, 2026-09-23)
+
+**Problem.** Five constants are stored in one block (`li`+`sh` each) and stored again, unchanged, in
+a conditional body later on (the same pseudos, one `sh` apart). Global allocation handed them out in
+reverse (`-9C a1, 60 a2, 50 t0, CE t1, E8 t2` against the target's `a1, a2, t0, t1, t2`). Each has 3
+refs, so priority is live length alone, and the lengths were strictly decreasing (48/42/42/40/38).
+
+**Mechanism.** `sched.c` gives an insn `LAUNCH_PRIORITY` when it becomes ready, as long as
+`birthing_insn_p` holds (dest is a REG with `REG_N_SETS == 1`). So in the first block each `li` is
+scheduled directly in front of its own `sh`, and the sets end up two insns apart. The body uses are
+one insn apart, so every later constant has a shorter life. No store order and no body order fixes
+this. Pinning the registers breaks it too: hard-register sets are not "birthing", so every `li`
+hoists and the neighbouring allocation changes.
+
+**Fix.** Load the constants into locals, then put an empty `do {} while (0)` before the stores. Its
+loop notes are a scheduling barrier (sched1 and sched2), so the `li`s stay grouped ahead of it. All
+five live lengths tie, and `allocno_compare` falls back to allocno (pseudo) number. Declare the
+local that has to win first, because pseudo numbers follow declaration order here. The same barrier
+between a `state->p = cond ? A : B;` store and the loop over `state->p` stopped sched2's
+potential-hazard tie from lifting the `move` copy above the `sw`. Plausible origin: a
+compiled-out debug macro.
+
+```c
+s16 spriteX;              /* declared first: lowest pseudo */
+...
+quadW = 0xE8; quadH = 0xCE; quad2W = 0x50; quad2H = 0x60; spriteX = -0x9C;
+do {
+} while (0);
+state->field_E = quadW; ... state->field_1E = spriteX;
+```

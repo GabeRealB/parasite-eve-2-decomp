@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gameflow.h"
+#include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
@@ -16,7 +17,76 @@ extern u8 D_shelter_r47_8018A697;
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_7", D_shelter_r47_8017D7DC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_7", func_shelter_r47_8018431C);
+extern RoomHotspot D_shelter_r47_8018739C[];
+extern RoomHotspot D_shelter_r47_801873D8[];
+extern TaskDesc    D_shelter_r47_8018760C;
+
+/// State-0 entry of the second cap script. It allocates the `ShelterR47State2`
+/// work, spawns the companion task from `D_shelter_r47_8018760C`, picks the
+/// hotspot table by `spawnArg1` (2 selects the alternate table) and clears every
+/// entry's `hit`. It holds the HUD and cutscene, sets the two quads' and the
+/// sprite's targets, saves the view byte and switches the view to 0x25. With
+/// `spawnArg1` 1 or 2 it also opens the quads fully, starts the fade at 0xFF
+/// and records the argument in `field_2A`.
+///
+/// The empty `do {} while (0)` statements are required for the match: their
+/// loop notes stop the scheduler moving instructions across them.
+void func_shelter_r47_8018431C(Task* task)
+{
+    ShelterR47State2* state;
+    s16               spriteX;
+    RoomHotspot*      hs;
+    s32               arg;
+    u8                view;
+    s32               level;
+    s16               quadW, quadH, quad2W, quad2H;
+
+    state = (ShelterR47State2*)memCalloc(0x30, false);
+    if (state == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->spawnArg2 = Task_SpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
+    task->work      = (void*)state;
+    task->state    += 1;
+    Display_AcquireRef();
+    state->hotspots = task->spawnArg1 == 2 ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
+    do {
+    } while (0);
+    for (hs = state->hotspots; hs->id != -1; hs++) {
+        hs->hit = 0;
+    }
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
+    quadW                      = 0xE8;
+    quadH                      = 0xCE;
+    quad2W                     = 0x50;
+    quad2H                     = 0x60;
+    spriteX                    = -0x9C;
+    do {
+    } while (0);
+    view                     = Mc_SaveData.at4.loc.view;
+    state->field_20          = -0x104;
+    state->field_E           = quadW;
+    state->field_10          = quadH;
+    state->field_16          = quad2W;
+    state->field_18          = quad2H;
+    state->field_1E          = spriteX;
+    state->field_29          = view;
+    Mc_SaveData.at4.loc.view = 0x25;
+    if ((arg = task->spawnArg1) == 1 || arg == 2) {
+        state->fade     = 0xFF;
+        level           = (u8)state->fade;
+        state->field_A  = quadW;
+        state->field_C  = quadH;
+        state->field_12 = quad2W;
+        state->field_14 = quad2H;
+        state->field_20 = spriteX;
+        Fade_DrawOverlay(level, level, level, 2);
+        state->field_2A = arg;
+    }
+}
 
 /// Idle state of the second cap script. It counts `field_2C` down (with a
 /// sound on reaching zero), runs `func_shelter_r47_801851B8`, and while no cap
