@@ -76,8 +76,11 @@ extern GpAreaKey D_8007216C;
 extern u8        D_shelter_r47_80186FAC[];
 extern s16       D_shelter_r47_801875EC[];
 
-s32 func_shelter_r47_80180C48(Task* task);
+s32  func_shelter_r47_8018097C(Task* task);
+s32  func_shelter_r47_80180C48(Task* task);
+void func_shelter_r47_80181914(Task* task, s32 arg1);
 
+void func_shelter_r47_801832E4(s16 step);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_8018337C(Task* task);
 void func_shelter_r47_801833DC(Task* task, s16 arg1);
@@ -105,7 +108,46 @@ void func_shelter_r47_80182C78(Task* task)
     task->state         = task->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182CA4);
+void func_shelter_r47_80182CA4(Task* task)
+{
+    ShelterR47State* state;
+    s32              flag;
+    s32              value;
+
+    state = (ShelterR47State*)task->work;
+    func_shelter_r47_80181914(task, 0);
+    if ((s16)func_shelter_r47_8018097C(task) != 0) {
+        if (state->field_51 == 1) {
+            Gp_StartCapSlot(0xA, 0, 0);
+        }
+        if (state->field_51 == 0) {
+            func_shelter_r47_801832E4(state->step);
+        }
+        switch (((ShelterR47State*)task->work)->step) {
+            case 0:
+                flag  = 0x1C6;
+                value = 2;
+                break;
+            case 1:
+                flag  = 0x1C6;
+                value = 0;
+                break;
+            case 4:
+                flag  = 0x1C4;
+                value = 2;
+                break;
+            case 5:
+                flag  = 0x1C4;
+                value = 0;
+                break;
+            default:
+                task->state++;
+                return;
+        }
+        GameFlag_SetNibble(flag, value);
+        task->state++;
+    }
+}
 
 /// Clears the action prompt's mode and target, drops the prompt kind to 0 when
 /// its gating flags are clear, shows the prompt, and moves the script to state 5.
