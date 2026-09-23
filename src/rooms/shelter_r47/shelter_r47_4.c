@@ -9,6 +9,7 @@
 #include "main/gameflow.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).
@@ -70,7 +71,18 @@ extern u8 D_shelter_r47_8018A697;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182B9C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182C78);
+/// Zeroes the action prompt's target id, mode and screen position, and steps
+/// the caller's script on one state.
+void func_shelter_r47_80182C78(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0;
+    prompt->mode        = 0;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    task->state         = task->state + 1;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182CA4);
 
