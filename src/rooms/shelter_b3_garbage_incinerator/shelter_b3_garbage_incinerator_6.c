@@ -37,7 +37,7 @@ extern SVECTOR D_shelter_b3_garbage_incinerator_80187614[];
 
 void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
 void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
 
 void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 {

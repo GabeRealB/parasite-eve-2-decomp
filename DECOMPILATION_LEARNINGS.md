@@ -139191,3 +139191,36 @@ refs and `floor_log2` doubles (2*4/37), putting it ahead of the copy; combine
 then folds the two insns into the same single `andi`, so no instruction changes.
 This is the same lever as entry "Global-alloc's allocno race is decided by
 `floor_log2(n_refs)`", applied to a local instead of a parameter copy.
+
+### Three tells that fixed a 94% seed: `u16` parameters, a `u8` quotient, and `+` that combine prints as `ori` (func_shelter_b3_garbage_incinerator_801842A4, 2026-09-23)
+
+A `Room_Draw21`-shaped disc drawer went from 94.5% to 100% in three source changes,
+each read off a specific pattern in the target.
+
+**`move t1,a3` in the prologue, then `a3` itself still read later.** The
+parameter's pseudo was not given its incoming register, and post-reload CSE put
+`a3` back into the uses where it still held the value. With `s32` parameters
+the seed kept `arg3` in `a3` and the scratch pointer in `a1`, so reload's
+spill register became `t0` instead of the target's `t2` - some 150 `regs`
+differences from one allocation decision. Declaring the three scalar parameters
+`u16` (the callers already pass a `u16` field and small constants) moved all
+of it at once: 94.5% → 99.8%. When the uses are all `andi 0xFFFF` and the
+prologue copies an argument register it could have kept, try narrow parameters
+before touching anything else.
+
+**Signed `/15` as `mult` + `addu` + `srl 3` with no `sra 31` / `subu`.**
+That is the signed magic sequence with the sign fix-up gone and `sra` weakened
+to `srl`. Combine does this only when the quotient is *stored narrow*: `u8 r`
+matched. A `u8` multiplicand alone, a `(u8)` cast on the result into an
+`s32`, and a `u32` operand (which gives `multu`) all failed.
+
+**`ori v0,start,0x1000` as a loop bound, and a loop-entry `li v0,1; beqz v0`.**
+The source is `ang < start + 0x1000`: `start` could only hold `0` or
+`(frame << 7) & 0xF80`, so its nonzero bits do not overlap `0x1000` and
+combine rewrites the `plus` as `ior`. The first loop's copied entry test
+`start < start + 0x1000` folds to the constant `1` too late to be deleted.
+Writing `start | 0x1000` literally gives a real `slt` there instead.
+
+Last, `andi a0,a0,1` has to come before `andi v1,s0,0xFFFF`:
+`blend = frame & 1; packed = arg2; blend <<= packed >> 12;` with `u32 packed`
+did it. Input: `base_12.i` `c3c2e89c…` (100%).

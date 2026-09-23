@@ -15,6 +15,7 @@
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+extern u16      D_80070F70;
 extern s8       D_8007218A;
 extern u8       D_80073BA9;
 extern TaskDesc D_80164190;
@@ -78,7 +79,154 @@ void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_7", func_shelter_b3_garbage_incinerator_801842A4);
+void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* arg0, u16 arg1, u16 arg2, u16 arg3)
+{
+    RoomDraw05Scratch* block;
+    POLY_G4*           prim;
+    s32                ang;
+    s32                t;
+    s32                t2;
+    s32                ua;
+    s32                ub;
+    s32                uc;
+    u16                frame;
+    u16                start;
+    s32                blend;
+    u32                packed;
+    u8                 lvl;
+    u8                 r;
+    u8                 g;
+    u8                 b;
+
+    {
+        void** scratch;
+        u8*    tmp;
+
+        scratch = (void**)G_SCRATCH_HEAD;
+        tmp     = (*scratch = (u8*)*scratch - 0x14);
+        block   = (RoomDraw05Scratch*)tmp;
+    }
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        frame = D_80070F70;
+        if (arg3 & 0x1000) {
+            start = (frame << 7) & 0xF80;
+        } else {
+            start = 0;
+        }
+        arg3 &= 0xFFF;
+        if (arg2 & 0xF000) {
+            blend   = frame & 1;
+            packed  = arg2;
+            blend <<= packed >> 12;
+            r       = blend + ((packed >> 4) & 0xF0);
+            g       = blend + (packed & 0xF0);
+            b       = blend + ((arg2 & 0xF) << 4);
+        } else {
+            lvl = rsin((frame * arg3) & 0xFFF) / 68 - 0x4C;
+            r   = lvl * ((arg2 >> 8) & 0xF) / 15;
+            g   = lvl * ((arg2 >> 4) & 0xF) / 15;
+            b   = lvl * (arg2 & 0xF) / 15;
+        }
+        block->rOuter = (arg1 * 64) / block->otz;
+        block->rInner = (arg1 * 8) / block->otz;
+        for (ang = start; ang < start + 0x1000; ang = t2) {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, (u8)r >> 1, (u8)g >> 1, (u8)b >> 1);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            t        = ang + 0x100;
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            t2       = ang + 0x200;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, r, g, b);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+
+        r = (u8)r >> 1;
+        g = (u8)g >> 1;
+        b = (u8)b >> 1;
+        for (ang = start + 0x200; ang < start + 0x1000; ang = uc) {
+            ua             = ang - 0x400;
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, r, g, b);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx + ((block->rInner * rsin(ua)) >> 13);
+            prim->y0 = block->sy + ((block->rInner * rcos(ua)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            ub       = ang + 0x400;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(ub)) >> 13);
+            prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 13);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, r, g, b);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(ub)) >> 11);
+            prim->y1 = block->sy + ((block->rOuter * rcos(ub)) >> 11);
+            uc       = ang + 0x800;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(uc)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(uc)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
 
 void func_shelter_b3_garbage_incinerator_80184D7C(void)
 {
