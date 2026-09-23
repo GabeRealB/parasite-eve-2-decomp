@@ -118739,6 +118739,15 @@ is the low half, on big-endian it would be `lbu` at offset 1.
 record's `u16`-in-a-`u16` field shape; the two-record staging itself is the
 `*dst = *src; func_80179A04(src, dst);` idiom already documented for the map
 resolvers, with the caller's descriptor playing `src`.
+**Addendum (func_shelter_b1_underground_parking_80182DB4, 2026-09-24).** The
+helper is not required. The same two tells - the staged record read back
+through `addiu $s0,$sp,0x10`, and `jalr $s1` - came out of a plain caller body
+with two locals: `p = &rec;` written after the separating call and used for the
+reads and write-backs, and `handler = func_...;` assigned before that call.
+Neither local on its own is enough: without the function-pointer local the call
+is a direct `jal` (93%), and with it but without `p` the record stays
+`$sp`-relative. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
+by storing `msg.field_5 = 0` after `msg.field_3` rather than before it.
 ## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (func_neo_ark_altar_8017E92C, 2026-09-17)
 
 Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
