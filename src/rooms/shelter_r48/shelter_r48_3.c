@@ -99,7 +99,79 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_801810B0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8018147C);
+void func_shelter_r48_8018147C(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+    u8             rgb[3];
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        func_shelter_r48_8017F124(work, coord, 3);
+        func_shelter_r48_8017F124(work, coord, 4);
+        func_shelter_r48_8017F124(work, coord, 5);
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+    } else {
+        work->age++;
+        switch (task->state) {
+            case 0:
+                m                            = &coord->coord;
+                coord->sub                   = work->parent;
+                *(s32*)&coord->coord.m[0][0] = 0x1000;
+                *(s32*)&m->m[0][2]           = 0;
+                *(s32*)&m->m[1][1]           = 0x1000;
+                *(s32*)&m->m[2][0]           = 0;
+                m->m[2][2]                   = 0x1000;
+                coord->coord.t[2]            = 0;
+                coord->coord.t[1]            = 0;
+                coord->coord.t[0]            = 0;
+                coord->flg                   = 0;
+                Gp_UpdateCoord(coord);
+                work->age   = 1;
+                work->scale = 0x80;
+                task->state = 1;
+                return;
+            case 1:
+                func_shelter_r48_8017F124(work, coord, 3);
+                func_shelter_r48_8017F124(work, coord, 4);
+                func_shelter_r48_8017F124(work, coord, 5);
+                work->angle  += 0x10;
+                work->period += 0x10;
+                work->step   += 0x10;
+                rgb[0]        = work->scale;
+                rgb[1]        = (u16)work->scale >> 1;
+                rgb[2]        = (u16)work->scale >> 2;
+                Gp_DrawFadeQuad(rgb, 1);
+                if (work->age >= 0x31) {
+                    task->state = 2;
+                }
+                return;
+            case 2:
+                if (work->scale >= 0x11) {
+                    work->scale  -= 0x10;
+                    work->angle  += 0x10;
+                    work->period += 0x10;
+                    work->step   += 0x10;
+                    func_shelter_r48_8017F124(work, coord, 3);
+                    func_shelter_r48_8017F124(work, coord, 4);
+                    func_shelter_r48_8017F124(work, coord, 5);
+                    rgb[0] = work->scale;
+                    rgb[1] = (u16)work->scale >> 1;
+                    rgb[2] = (u16)work->scale >> 2;
+                    Gp_DrawFadeQuad(rgb, 1);
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_80181704);
 
