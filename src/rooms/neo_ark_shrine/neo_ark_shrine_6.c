@@ -12,6 +12,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/gfx.h"
+#include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
@@ -51,15 +52,6 @@ extern s8  D_8007216C;
 extern u8  D_8007216D;
 extern s8  D_80115410;
 extern s16 D_80114D08;
-
-/// One slot of the shrine's 16-slot arrangement puzzle, as a pair of 16-bit
-/// board coordinates. `D_neo_ark_shrine_8018256C` / `_8018252C` hold the room's
-/// initial and target layouts; `_8018688C` / `_801868CC` are the work copies
-/// the puzzle animates between.
-typedef struct {
-    /* 0x00 */ u16 x;
-    /* 0x02 */ u16 y;
-} NeoArkShrineSlot;
 
 extern s16              D_neo_ark_shrine_80186868;
 extern s16              D_neo_ark_shrine_8018686A;

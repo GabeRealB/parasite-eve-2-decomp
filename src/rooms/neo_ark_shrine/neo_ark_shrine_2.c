@@ -1,15 +1,66 @@
 #include "common.h"
+
+#include <psyq/abs.h>
+
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "rooms/neo_ark_shrine.h"
 
-extern u8  D_8007216D;
-extern s16 D_neo_ark_shrine_80186868;
-extern s16 D_neo_ark_shrine_8018686A;
-extern s16 D_neo_ark_shrine_8018686C[16];
+extern u8               D_8007216D;
+extern s16              D_neo_ark_shrine_80186868;
+extern s16              D_neo_ark_shrine_8018686A;
+extern s16              D_neo_ark_shrine_8018686C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_8018252C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_801825AC[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_8018688C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_2", func_neo_ark_shrine_8017DF7C);
+/// Animates and draws the shrine's sliding-tile puzzle. Each tile's target
+/// position is taken from the board position it now occupies; its drawn
+/// position eases halfway there every frame and snaps once both axes are
+/// within four units. Every tile but tile 0, the gap, is then drawn as a 32x32
+/// textured quad.
+void func_neo_ark_shrine_8017DF7C(void)
+{
+    s32               i;
+    s32               tile;
+    NeoArkShrineSlot* cur;
+    NeoArkShrineSlot* tgt;
+    POLY_FT4*         prim;
+
+    for (i = 0; i < 16; i++) {
+        tile                              = D_neo_ark_shrine_8018686C[i];
+        D_neo_ark_shrine_801868CC[tile].x = D_neo_ark_shrine_8018252C[i].x;
+        D_neo_ark_shrine_801868CC[tile].y = D_neo_ark_shrine_8018252C[i].y;
+    }
+
+    for (i = 0; i < 16; i++) {
+        tile    = D_neo_ark_shrine_8018686C[i];
+        cur     = &D_neo_ark_shrine_8018688C[tile];
+        tgt     = &D_neo_ark_shrine_801868CC[tile];
+        cur->x += ((s16)tgt->x - (s16)cur->x) >> 1;
+        cur->y += ((s16)tgt->y - (s16)cur->y) >> 1;
+        if (ABS((s16)cur->x - (s16)tgt->x) < 4 &&
+            ABS((s16)D_neo_ark_shrine_8018688C[tile].y - (s16)D_neo_ark_shrine_801868CC[tile].y) < 4) {
+            D_neo_ark_shrine_8018688C[tile].x = D_neo_ark_shrine_801868CC[tile].x;
+            D_neo_ark_shrine_8018688C[tile].y = D_neo_ark_shrine_801868CC[tile].y;
+        }
+        if (tile != 0) {
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(prim + 1);
+            setPolyFT4(prim);
+            setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y, 0x20, 0x20);
+            prim->tpage = 0x8D;
+            prim->clut  = 0x3FC0;
+            setShadeTex(prim, 1);
+            setXYWH(prim, D_neo_ark_shrine_8018688C[tile].x, D_neo_ark_shrine_8018688C[tile].y, 0x20, 0x20);
+            addPrim(&gGpuCurrentOt[10], prim);
+        }
+    }
+}
 
 s16 func_neo_ark_shrine_8017E254(void)
 {
