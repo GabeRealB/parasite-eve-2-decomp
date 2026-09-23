@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
@@ -186,7 +187,44 @@ done:
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_801801DC);
+/// Room request handler. Request 1 plays the room's cutscene through the shared
+/// runner once flag 0x13E is set (or runs CAP command 0x2A instead while the
+/// 2-bit flag 0x22 reads 1); the first time, it sets that flag and spawns entry
+/// 2 of the room's task table. Request 8 spawns entry 0 or 1 of the second task
+/// table, depending on which of flags 0x83 and 0x80 is set.
+s32 func_shelter_r47_801801DC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        if (GameFlag_GetNibble(0x13E) != 0) {
+            if (Gp_GetCurBit2Flag(0x22) == arg2) {
+                Gp_RunCapCmd1(0x2A);
+                return 0;
+            }
+            D_shelter_r47_8018A698.field_0  = 0x2C;
+            D_shelter_r47_8018A698.field_1  = arg2;
+            D_shelter_r47_8018A698.field_3  = 3;
+            D_shelter_r47_8018A698.field_2  = 0;
+            D_shelter_r47_8018A698.field_4  = 0x542F000C;
+            D_shelter_r47_8018A698.field_8  = 0x542F000F;
+            D_shelter_r47_8018A698.field_10 = 0x542F000D;
+            D_shelter_r47_8018A698.field_C  = 0x542F000E;
+            Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 0xA, (s32)&D_shelter_r47_8018A698);
+        } else {
+            GameFlag_SetNibble(0x13E, 1);
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_shelter_r47_80186F70, 2, 1, 0);
+        }
+    } else if (arg2 == 8) {
+        if (GameFlag_GetNibble(0x83) > 0) {
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_shelter_r47_80186F94, 0, 0, 0);
+        } else if (GameFlag_GetNibble(0x80) > 0) {
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_shelter_r47_80186F94, 1, 0, 0);
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_80180324);
 
