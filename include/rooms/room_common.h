@@ -927,4 +927,34 @@ typedef struct RoomHotspot {
 } RoomHotspot;
 STATIC_ASSERT_SIZEOF(RoomHotspot, 0xC);
 
+/// Parameters of one light record, filled by the room that switches the light
+/// on. `x` / `y` / `z` take the light's world position; the halfwords and the
+/// two words after them take per-room values - constants, an intensity scaled
+/// by a level, or a draw from the gameplay LCG. What consumes them is not yet
+/// decompiled, so their meaning is unproven.
+typedef struct AhlpLightWork {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x14];
+    /* 0x18 */ s32  x;
+    /* 0x1C */ s32  y;
+    /* 0x20 */ s32  z;
+    /* 0x24 */ byte pad_24[0x2C];
+    /* 0x50 */ s16  field_50;
+    /* 0x52 */ s16  field_52;
+    /* 0x54 */ s16  field_54;
+    /* 0x56 */ byte pad_56[0x2];
+    /* 0x58 */ s32  field_58;
+    /* 0x5C */ s32  field_5C;
+} AhlpLightWork;
+STATIC_ASSERT_SIZEOF(AhlpLightWork, 0x60);
+
+/// One record of the light array in main BSS at `D_801150C0`, which several
+/// rooms share: each writes the records it owns. A room turns a light on by
+/// setting `state` nonzero and filling `work`, and off by clearing `state`.
+typedef struct AhlpLight {
+    /* 0x00 */ s32           state;
+    /* 0x04 */ AhlpLightWork work;
+} AhlpLight;
+STATIC_ASSERT_SIZEOF(AhlpLight, 0x64);
+
 #endif // ROOMS_ROOM_COMMON_H

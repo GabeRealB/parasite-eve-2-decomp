@@ -39,35 +39,6 @@ typedef struct AhlpMsg7D3 {
 } AhlpMsg7D3;
 STATIC_ASSERT_SIZEOF(AhlpMsg7D3, 0x8);
 
-/// Per-light 0x60 work block inside an `AhlpLight`. Filled by
-/// `func_acropolis_helicopter_landing_pad_8017F010` every frame the light is
-/// drawn: `x` / `y` / `z` copy the light's world `SVECTOR`, `field_50` is
-/// `level * 16`, and `field_58` / `field_5C` are the constants 0x640 / 0x3200.
-typedef struct AhlpLightWork {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x14];
-    /* 0x18 */ s32  x;
-    /* 0x1C */ s32  y;
-    /* 0x20 */ s32  z;
-    /* 0x24 */ byte pad_24[0x2C];
-    /* 0x50 */ s16  field_50;
-    /* 0x52 */ s16  field_52;
-    /* 0x54 */ s16  field_54;
-    /* 0x56 */ byte pad_56[0x2];
-    /* 0x58 */ s32  field_58;
-    /* 0x5C */ s32  field_5C;
-} AhlpLightWork;
-STATIC_ASSERT_SIZEOF(AhlpLightWork, 0x60);
-
-/// One of the two helipad floodlight records at `D_80115188` (main BSS).
-/// Light `index` uses record `index & 1`. `state` is 2 while the light is
-/// being drawn and reset to 0 once `Gp_State1C->eventState` reaches 4.
-typedef struct AhlpLight {
-    /* 0x00 */ s32           state;
-    /* 0x04 */ AhlpLightWork work;
-} AhlpLight;
-STATIC_ASSERT_SIZEOF(AhlpLight, 0x64);
-
 /// 0x14 scratch block `func_acropolis_helicopter_landing_pad_8017F010` takes
 /// from `G_SCRATCH_HEAD` for one light. `otz` is `SZ3 >> 2` of the `RTPS`,
 /// `flag` the GTE flag word (bit 31 rejects the light), `outer` / `inner` the

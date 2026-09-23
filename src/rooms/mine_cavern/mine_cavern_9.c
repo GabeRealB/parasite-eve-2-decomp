@@ -14,6 +14,7 @@
 #include "main/mem.h"
 #include "main/wipsys.h"
 #include "rooms/mine_cavern.h"
+#include "rooms/room_common.h"
 
 extern void func_mine_cavern_80181864(void);
 extern void func_mine_cavern_80182184(void);
@@ -34,6 +35,17 @@ extern const TaskFuncTable3 D_mine_cavern_8017D65C;
 /// Sound emitter positions for the cavern's four ambient loops, indexed by the
 /// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
 extern SVECTOR D_mine_cavern_8018E39C[4];
+
+/// The shared light records in main BSS; the cavern owns one per emitter point.
+extern AhlpLight D_801150C0[];
+
+/// Parameters `func_mine_cavern_80181CAC` writes into a cavern light record.
+/// `D_mine_cavern_8018E368` is the base the LCG draw is added to.
+extern u16 D_mine_cavern_8018E360;
+extern u16 D_mine_cavern_8018E362;
+extern u16 D_mine_cavern_8018E364;
+extern u16 D_mine_cavern_8018E366;
+extern u16 D_mine_cavern_8018E368;
 
 /// The four spots the cavern's enemy can be parked at, indexed by the low half
 /// of `Task::spawnArg1` (the spawn table `D_mine_cavern_8018EB38` packs the
@@ -229,7 +241,26 @@ void func_mine_cavern_80181864(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181CAC);
+/// Switches on the light record for cavern point `point`: fills it from the
+/// cavern's light parameters and the point's position in
+/// `D_mine_cavern_8018E39C`, with `field_5C` jittered by a draw from the shared
+/// LCG.
+void func_mine_cavern_80181CAC(s16 point)
+{
+    AhlpLight*     light = &D_801150C0[point];
+    AhlpLightWork* work  = &light->work;
+
+    light->state        = 2;
+    work->field_58      = D_mine_cavern_8018E366;
+    work->field_5C      = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
+    work->field_50      = D_mine_cavern_8018E360;
+    work->field_52      = D_mine_cavern_8018E362;
+    work->field_54      = D_mine_cavern_8018E364;
+    work->x             = D_mine_cavern_8018E39C[point].vx;
+    work->y             = D_mine_cavern_8018E39C[point].vy;
+    work->z             = D_mine_cavern_8018E39C[point].vz;
+    light->work.field_0 = 0;
+}
 
 /// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of
 /// eight semi-transparent Gouraud triangles around the point's projected

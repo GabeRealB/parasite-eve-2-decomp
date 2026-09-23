@@ -40466,6 +40466,26 @@ assignment where the value is consumed (`rng = Gp_LcgState = Gp_LcgState * 5 +
 0x71357911;`) restored the target's allocation and the `lui $a0, 0x7135` in the
 loop-back delay slot — worth 1.5% on `Gp_DrawEffShard`.
 
+### Straight-line form: no reordering of a split step can recover it
+
+`func_mine_cavern_80181CAC` fills a light record in one block and folds
+`((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF` into one field's
+value. A previous session tried ~35 statement orders, all with a split
+`rng = …; Gp_LcgState = rng;`, and plateaued at 75%. A hill-climb over every
+single-statement move from that seed found nothing better. The inline form in
+the order the sibling helipad room fills the same record
+(`state, 58, 5C, 50, 52, 54, x, y, z, field_0`) matched at once.
+
+The mechanism, from the `.sched` trace: backward sched1 breaks ties between
+equal-priority ready insns by LUID, higher first. The loads feeding
+statements written *after* the LCG therefore land between `srl`/`andi` and the
+`addu` that uses the mask. That stretches the mask quantity's life until its
+local-alloc priority (`floor_log2(refs)*refs/span`) falls below the work
+pointer's, and the two swap registers. The statement order, and whether the
+step is split, decide which loads sit inside the mask's live range.
+Search order and form together, and take the order from a matched sibling that
+writes the same record when one exists.
+
 ## Forced `$v1` divisor copy, and the `$v1` it steals back
 
 `Gp_EffSprTaskA7` divides `mem->field_22` by the same `n` four times, and the
