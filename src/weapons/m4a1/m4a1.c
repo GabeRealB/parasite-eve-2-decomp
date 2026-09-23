@@ -11,6 +11,14 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
+#include "weapons/weapon.h"
+
+/// The weapon's index: 0x10 for the M4A1, 0x14 and 0x15 for its two upgrades.
+/// The three packages are this source built once each, and each declares its
+/// index in the manifest. It keys the firing sound, the shot effect and the item.
+#ifndef WEAPON_ID
+#error "WEAPON_ID is a per-package build parameter"
+#endif
 
 void func_m4a1_8011D1C4(GpActorWork* arg0)
 {
@@ -66,14 +74,14 @@ void func_m4a1_8011D1C4(GpActorWork* arg0)
                     actor->field_934  = 3;
                     actor->field_981  = 0;
                     actor->field_12A |= 0xC000;
-                    Gp_ConsumeSlotQty(0x8F, 1);
+                    Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20100004, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     Gp_SpawnEff(0x6006B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                                0x10, NULL);
+                                WEAPON_ID, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 }

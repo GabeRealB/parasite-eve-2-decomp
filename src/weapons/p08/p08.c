@@ -11,6 +11,19 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/tmd.h"
+#include "weapons/weapon.h"
+
+/// The P08, the P08 with the snail magazine and the Mongoose are this source
+/// built once each, and each declares these values in the manifest.
+///
+/// `WEAPON_ID` is the weapon's index (4, 1 and 9), which keys the firing sound
+/// and the item. `P08_FLASH_EFFECT` is the muzzle-flash effect spawned per shot
+/// and `P08_FLASH_WEAPON` the weapon index it is handed - 1 for both P08s, the
+/// Mongoose its own. `P08_FIELD_940` is what `field_940` is set to when the
+/// firing pose ends.
+#if !defined(WEAPON_ID) || !defined(P08_FLASH_EFFECT) || !defined(P08_FLASH_WEAPON) || !defined(P08_FIELD_940)
+#error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
+#endif
 
 void func_p08_8011D1D8(GpActorWork* arg0)
 {
@@ -54,10 +67,11 @@ void func_p08_8011D1D8(GpActorWork* arg0)
             actor->field_95E++;
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xCC00;
-            Gp_ConsumeSlotQty(0x83, 1);
-            Gp_PlayObjSfx(arg0->extra->coords, 0x20040004, 1);
-            Gp_SpawnEff(0x6002B,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 1, NULL);
+            Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
+            Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+            Gp_SpawnEff(P08_FLASH_EFFECT,
+                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                        P08_FLASH_WEAPON, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
             break;
         case 3:
@@ -73,7 +87,7 @@ void func_p08_8011D1D8(GpActorWork* arg0)
             }
             if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
-                actor->field_940 = 0xC;
+                actor->field_940 = P08_FIELD_940;
                 func_80106550(arg0);
             }
             break;

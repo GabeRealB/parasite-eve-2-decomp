@@ -20,6 +20,7 @@
 #include "main/wipsys.h"
 #include "weapons/grenade_pistol.h"
 #include "weapons/m4a1_grenade.h"
+#include "weapons/weapon.h"
 
 /// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
 /// translation vector. The `inline_c.h` macro of that name assembles to a
@@ -37,9 +38,6 @@ void func_grenade_pistol_8011DB8C(Task* task);
 
 /// The weapon's index. It also keys the firing sound and the shot effect.
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
-
-/// The item the rounds are taken from.
-#define GRENADE_ITEM (0x8A + GRENADE_VARIANT)
 
 void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
 {
@@ -76,7 +74,7 @@ void func_grenade_pistol_8011D1D4(GpActorWork* arg0)
             Gp_SpawnEff(0x6006C,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, GRENADE_WEAPON,
                         NULL);
-            Gp_ConsumeSlotQty(GRENADE_ITEM, 1);
+            Gp_ConsumeSlotQty(WEAPON_ITEM(GRENADE_WEAPON), 1);
             /* The projectile's kind and its row of the muzzle-offset and speed tables
                (bits 16-19 of its spawn argument) both follow the variant. */
             func_80104490(arg0, 0, 1 + GRENADE_VARIANT,

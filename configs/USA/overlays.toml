@@ -134,10 +134,16 @@ objects = [
 
 [weapons.overlays.m4a1]
 label = "M4A1 Rifle"
-id = 23
+# One source built three times: the upgrades differ from the rifle only in the
+# weapon index, and the item follows from it.
+slots = [
+  { package = "m4a1", id = 23, label = "M4A1 Rifle", defines = { WEAPON_ID = 0x10 } },
+  { package = "m4a1_p1", id = 27, label = "M4A1(+1)", defines = { WEAPON_ID = 0x14 } },
+  { package = "m4a1_p2", id = 28, label = "M4A1(+2)", defines = { WEAPON_ID = 0x15 } },
+]
 objects = [
   { kind = "packageId" },
-  { unit = "m4a1/m4a1", rodata = "0x4", text = "0x4" },
+  { unit = "m4a1", variant = true, rodata = "0x4", text = "0x4" },
   { kind = "model", at = "0x2E4" },
   { kind = "data", at = "0xD28" },
 ]
@@ -189,26 +195,6 @@ objects = [
   { unit = "m4a1_javelin/m4a1_javelin_work", data = "0x119A0" },
 ]
 
-[weapons.overlays.m4a1_p1]
-label = "M4A1(+1)"
-id = 27
-objects = [
-  { kind = "packageId" },
-  { unit = "m4a1_p1/m4a1_p1", rodata = "0x4", text = "0x4" },
-  { kind = "model", at = "0x2E4" },
-  { kind = "data", at = "0xD28" },
-]
-
-[weapons.overlays.m4a1_p2]
-label = "M4A1(+2)"
-id = 28
-objects = [
-  { kind = "packageId" },
-  { unit = "m4a1_p2/m4a1_p2", rodata = "0x4", text = "0x4" },
-  { kind = "model", at = "0x2E4" },
-  { kind = "data", at = "0xD28" },
-]
-
 [weapons.overlays.m4a1_pyke]
 label = "M4A1 Pyke"
 id = 35
@@ -239,24 +225,14 @@ objects = [
   { kind = "data", at = "0x900" },
 ]
 
-[weapons.overlays.mongoose]
-label = "Mongoose"
-id = 16
-objects = [
-  { kind = "packageId" },
-  { unit = "mongoose/mongoose", rodata = "0x4", text = "0x18" },
-  { kind = "model", at = "0x268" },
-  { kind = "data", at = "0x798" },
-]
-
 [weapons.overlays.mp5a5]
 label = "MP5A5"
 # One source built three times: the upgrades differ from the base weapon only
-# in the weapon index and item id, both derived from MP5A5_LEVEL.
+# in the weapon index, and the item follows from it.
 slots = [
-  { package = "mp5a5", id = 37, label = "MP5A5", defines = { MP5A5_LEVEL = 0 } },
-  { package = "mp5a5_p1", id = 38, label = "MP5A5(+1)", defines = { MP5A5_LEVEL = 1 } },
-  { package = "mp5a5_p2", id = 39, label = "MP5A5(+2)", defines = { MP5A5_LEVEL = 2 } },
+  { package = "mp5a5", id = 37, label = "MP5A5", defines = { WEAPON_ID = 0x1E } },
+  { package = "mp5a5_p1", id = 38, label = "MP5A5(+1)", defines = { WEAPON_ID = 0x1F } },
+  { package = "mp5a5_p2", id = 39, label = "MP5A5(+2)", defines = { WEAPON_ID = 0x20 } },
 ]
 objects = [
   { kind = "packageId" },
@@ -268,20 +244,21 @@ objects = [
 
 [weapons.overlays.p08]
 label = "P08"
-id = 11
-objects = [
-  { kind = "packageId" },
-  { unit = "p08/p08", rodata = "0x4", text = "0x18" },
-  { kind = "model", at = "0x268" },
-  { kind = "data", at = "0x788" },
+# One source built three times. The weapon index keys the sound and the item;
+# the flash, the index it is handed and the pose timer are declared as found.
+slots = [
+  { package = "p08", id = 11, label = "P08", defines = { WEAPON_ID = 0x4, P08_FLASH_EFFECT = 0x6002B, P08_FLASH_WEAPON = 0x1, P08_FIELD_940 = 0xC } },
+  { package = "p08_snail", id = 8, label = "P08(S. Magazine)", defines = { WEAPON_ID = 0x1, P08_FLASH_EFFECT = 0x6002B, P08_FLASH_WEAPON = 0x1, P08_FIELD_940 = 0xC } },
+  { package = "mongoose", id = 16, label = "Mongoose", defines = { WEAPON_ID = 0x9, P08_FLASH_EFFECT = 0x6006A, P08_FLASH_WEAPON = 0x9, P08_FIELD_940 = 0xF }, objects = [
+    { kind = "packageId" },
+    { unit = "p08", variant = true, rodata = "0x4", text = "0x18" },
+    { kind = "model", at = "0x268" },
+    { kind = "data", at = "0x798" },
+  ] },
 ]
-
-[weapons.overlays.p08_snail]
-label = "P08(S. Magazine)"
-id = 8
 objects = [
   { kind = "packageId" },
-  { unit = "p08_snail/p08_snail", rodata = "0x4", text = "0x18" },
+  { unit = "p08", variant = true, rodata = "0x4", text = "0x18" },
   { kind = "model", at = "0x268" },
   { kind = "data", at = "0x788" },
 ]
@@ -299,22 +276,22 @@ objects = [
 
 [weapons.overlays.pa3]
 label = "PA3"
-id = 20
+# One source built twice: the SP12 differs in the weapon index, which keys the
+# sound, shot and item, and in the value field_979 is primed with.
+slots = [
+  { package = "pa3", id = 20, label = "PA3", defines = { WEAPON_ID = 0xD, PA3_FIELD_979 = 0x20 } },
+  { package = "sp12", id = 21, label = "SP12", defines = { WEAPON_ID = 0xE, PA3_FIELD_979 = 0x24 }, objects = [
+    { kind = "packageId" },
+    { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C" },
+    { kind = "model", at = "0x3A4" },
+    { kind = "data", at = "0x9A8" },
+  ] },
+]
 objects = [
   { kind = "packageId" },
-  { unit = "pa3/pa3", rodata = "0x4", text = "0x1C" },
+  { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C" },
   { kind = "model", at = "0x3A4" },
   { kind = "data", at = "0x868" },
-]
-
-[weapons.overlays.sp12]
-label = "SP12"
-id = 21
-objects = [
-  { kind = "packageId" },
-  { unit = "sp12/sp12", rodata = "0x4", text = "0x1C" },
-  { kind = "model", at = "0x3A4" },
-  { kind = "data", at = "0x9A8" },
 ]
 
 [weapons.overlays.tonfa_baton]

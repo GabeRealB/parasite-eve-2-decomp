@@ -18,6 +18,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "weapons/mp5a5.h"
+#include "weapons/weapon.h"
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
 
@@ -32,18 +33,12 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 
 extern s32 Gp_LcgState;
 
-/// Upgrade level this build is for: 0 for the MP5A5, 1 for the MP5A5(+1), 2 for
-/// the MP5A5(+2). The three packages are this source built once each, and each
-/// declares its level in the manifest.
-#ifndef MP5A5_LEVEL
-#error "MP5A5_LEVEL is a per-package build parameter"
+/// The weapon's index: 0x1E for the MP5A5, 0x1F and 0x20 for its two upgrades.
+/// The three packages are this source built once each, and each declares its
+/// index in the manifest. It keys the firing sounds, the shot id and the item.
+#ifndef WEAPON_ID
+#error "WEAPON_ID is a per-package build parameter"
 #endif
-
-/// The weapon's index. It also keys the firing sounds and the actor's shot id.
-#define MP5A5_WEAPON (0x1E + MP5A5_LEVEL)
-
-/// The item the magazine's rounds are taken from.
-#define MP5A5_ITEM (0x9D + MP5A5_LEVEL)
 
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 SVECTOR D_mp5a5_8011E128 = { 0, 0x240, 0x40, 0 };
@@ -374,29 +369,29 @@ void func_mp5a5_8011DDA4(GpActorWork* arg0)
                     actor->field_95E  = 4;
                     actor->field_934  = 3;
                     actor->field_940  = 0;
-                    actor->field_124  = Player_Status.weaponSlotItem | 0x20000 | (MP5A5_WEAPON << 8);
+                    actor->field_124  = Player_Status.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
                     rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (MP5A5_WEAPON << 16), 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     Gp_SpawnEff(0x6002B,
                                 (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                                MP5A5_WEAPON, NULL);
-                    Gp_ConsumeSlotQty(MP5A5_ITEM, 1);
+                                WEAPON_ID, NULL);
+                    Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                 } else {
                     actor->field_95E  = 5;
                     actor->field_940  = 0x12;
                     actor->field_934  = 0x12;
-                    actor->field_124  = 0x20016 | (MP5A5_WEAPON << 8);
+                    actor->field_124  = 0x20016 | (WEAPON_ID << 8);
                     rec->end0Radius   = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000005 | (MP5A5_WEAPON << 16), 0);
-                    Gp_ConsumeSlotQty(MP5A5_ITEM, 0x101);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20000005 | (WEAPON_ID << 16), 0);
+                    Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 0x101);
                     eff = Gp_SpawnEff(0x60041,
                                       (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                                      MP5A5_WEAPON, NULL);
+                                      WEAPON_ID, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);
                     }

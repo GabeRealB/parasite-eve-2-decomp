@@ -13,14 +13,24 @@
 #include "main/session.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "weapons/weapon.h"
 
-/// Per-frame firing state machine for the PA3 shotgun. Case 0 arms the shot -
-/// clearing the recoil counters, priming the `field_979` grace at 0x20 and the
+/// The PA3 and SP12 shotguns are this source built once each, and each declares
+/// these values in the manifest. `WEAPON_ID` is the weapon's index (0xD and
+/// 0xE), which keys the sound bank, the shot effect and the item.
+/// `PA3_FIELD_979` is the value `field_979` is primed with when the shot is
+/// armed.
+#if !defined(WEAPON_ID) || !defined(PA3_FIELD_979)
+#error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
+#endif
+
+/// Per-frame firing state machine for the shotgun. Case 0 arms the shot -
+/// clearing the recoil counters, priming the `field_979` grace at `PA3_FIELD_979` and the
 /// `field_934` frame delay at 0x1F - and queues the ready animation, using the
 /// long variant when the weapon was left dirty (`field_958`) or the actor is
 /// flagged in `field_975`; the muzzle grip bit in `field_12A` is set only for
 /// the 0xE weapon variant. Case 1 waits for that animation to reach its second
-/// slot. Case 2 fires, consuming ammo 0x8C, playing the report and spawning the
+/// slot. Case 2 fires, consuming the weapon's item, playing the report and spawning the
 /// flash. Case 3 re-acquires the lock-on target, sourcing the impact sound from
 /// the actor's own contact point on the 0xE variant. Case 4 runs out the
 /// `field_934` delay before playing the pump-action sound, and case 5 runs out
@@ -46,7 +56,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
         case 0:
             actor->field_956 = 4;
             actor->field_95E = 1;
-            actor->field_979 = 0x20;
+            actor->field_979 = PA3_FIELD_979;
             actor->field_954 = 0;
             actor->field_95A = 0;
             actor->field_95C = 0;
@@ -75,12 +85,12 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
         case 2:
             actor->field_95E++;
             actor->field_12A |= 0xC000;
-            Gp_ConsumeSlotQty(0x8C, 1);
+            Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra->coords,
-                          ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0005, 1);
+                          ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             Gp_SpawnEff(0x600A1,
                         (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
-                        (Player_Status.weaponSlotItem << 0x10) | 0xD, NULL);
+                        (Player_Status.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
         case 3:
@@ -94,7 +104,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
                         spot->workm.t[1] = actor->field_32C[0].point.vy;
                         spot->workm.t[2] = actor->field_32C[0].point.vz;
                         Gp_PlayObjSfx(spot,
-                                      ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0004, 1);
+                                      ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
                     }
                 } else if (hit != 0) {
                     Gp_PlayObjSfx(spot, 0x17, 1);
@@ -105,7 +115,7 @@ void func_pa3_8011D1DC(GpActorWork* arg0)
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
                 Gp_PlayObjSfx(arg0->extra->coords,
-                              ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200D0002, 0);
+                              ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */
         case 5:
