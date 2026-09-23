@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -9,6 +10,7 @@
 #include "main/gameflow.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
 /// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).
@@ -44,12 +46,13 @@ typedef struct {
     /* 0x0C */ u8  pad_C[0xA];
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18;
-    /* 0x1A */ u8  pad_1A[2];
+    /* 0x1A */ s16 field_1A;
     /* 0x1C */ s16 field_1C;
     /* 0x1E */ u8  pad_1E[4];
-    /* 0x22 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x24 */ u8  pad_24[5];
-    /* 0x29 */ u8  field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
+    /* 0x22 */ u16 fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
+    /* 0x24 */ u8  pad_24[4];
+    /* 0x28 */ s8  promptKind; ///< display mode forwarded to `func_800D4E78`
+    /* 0x29 */ u8  field_29;   ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
     /* 0x2A */ s8  field_2A;
     /* 0x2B */ u8  pad_2B[5];
 } ShelterR47State2;
@@ -63,9 +66,31 @@ extern u8  D_8007216C;
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
+extern u8 D_shelter_r47_8018A696;
+extern u8 D_shelter_r47_8018A697;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185354);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185450);
+void func_shelter_r47_80185450(Task* task)
+{
+    ShelterR47State2* state;
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    state = (ShelterR47State2*)task->work;
+    func_shelter_r47_801851B8(task);
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (state->field_2A == 0) {
+        if (state->field_1A == 2 && D_shelter_r47_8018A696 == 0) {
+            state->promptKind = 0;
+        }
+        if (state->field_1A == 3 && D_shelter_r47_8018A697 == 0) {
+            state->promptKind = 0;
+        }
+    }
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
+    task->state = 4;
+}
 
 void func_shelter_r47_80185510(Task* task)
 {
