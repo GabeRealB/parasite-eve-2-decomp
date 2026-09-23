@@ -1,6 +1,10 @@
 #include "common.h"
 
+#include "main/display.h"
+#include "main/mem.h"
+
 #include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 
 #include "rooms/room_common.h"
 
@@ -9,6 +13,7 @@
 #include "gameplay/3CD8.h"
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern u32 Gp_LcgState;
 
@@ -76,4 +81,70 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_3", func_shelter_b1_golem_freezer_1_8017E254);
+void func_shelter_b1_golem_freezer_1_8017E254(GsCOORDINATE2* coord, u16 arg1, s16 arg2, s16 arg3)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw27Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    s32                ang;
+    s32                ang2;
+    u16                vz;
+
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    ((RoomDraw27Scratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                       = (RoomDraw27Scratch*)(head - 0x1C);
+    block->vec.vy                               = *(u16*)&coord->workm.t[1];
+    vz                                          = *(u16*)&coord->workm.t[2];
+    *scratch                                    = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw27Scratch*)(head - 0x1C))->otz);
+        if (block->otz >= 0x41) {
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            ang            = arg3;
+            gGpuPrimCursor = prim + 1;
+            setlen(prim, 9);
+            setcode(prim, 0x2E);
+            setRGB0(prim, 0x50, 0x50, 0x50);
+            prim->tpage = 0x2B;
+            prim->clut  = 0x43D0;
+            u0          = (arg1 % 5) * 0x30;
+            v0          = (arg1 / 5) * 0x30;
+            u1          = u0 + 0x2F;
+            v1          = v0 - 0x51;
+            v0          = v0 - 0x80;
+            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
+            block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
+            block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
+            prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+            prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+            prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+            ang2      = ang + 0x400;
+            prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+            block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
+            block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
+            prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+            prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+            prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+            prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
