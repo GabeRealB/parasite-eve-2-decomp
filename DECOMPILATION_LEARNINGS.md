@@ -139405,3 +139405,41 @@ task->spawnArg1 = g;
 
 CSE still forwards the stored value, so the re-read is not emitted, but the
 `li 1` is no longer scheduled ahead of the add. 90.8% to 100%.
+
+## A switch arm that jumps into another arm's absolute-address tail *past a dead base load* is its own copy of the tail, cross-jumped; a `goto` hands the full merge to the wrong arm (func_shelter_b6_training_room_8017DDE8, 2026-09-23)
+
+**Symptom.** A `Room_Draw13` switch over one `SVECTOR` array. The last arm
+loads `lui $s0,%hi(A+16)` / `addiu $s0,...`, never reads `$s0`, then draws six
+elements with fresh `lui a0` / `addiu a0` constants. An earlier arm (base in
+`$s0` = `A+80`) jumps to just after that dead `$s0` load, with a `nop` in the
+delay slot. Three other arms draw the same six elements `$s0`-relative and only
+share the final `li a1` / `li a2` / `jal`.
+
+**Cause.** The absolute tail is what `find_cross_jump` leaves after it replaces
+both sides' `SET_SRC` with their shared `REG_EQUAL` constant (see "A merged
+tail's address is rewritten from its `REG_EQUAL` constant"). The dead load is
+the last arm's own base, left behind because the merge stops at it. The last
+`jump_optimize` visits jumps in insn order. The first arm whose jump reaches the
+tail gets the whole six-call merge. In the target, the later arms only matched
+from the argument loads on (`a1`, `a2`, the call). Why they stopped at `a0` is
+unresolved: their `REG_EQUAL` constants are the same as the tail's.
+
+**Fix.** Write the shared tail out in each arm that owns it, relative to that
+arm's own base (`&A[2]`...`&A[7]` in the early arm, `&A[2]`...`&A[7]` again in
+the last). Use no `goto` label. With `goto common;` the early arm jumps in by
+source and never cross-jumps, so the *next* arm takes the full merge instead (a
+`j` into the tail from the wrong case: 90.3%). Keep one array symbol for every
+arm. Splitting it into the per-address symbols splat names (`D_..._80184344`,
+...) makes the notes' constants unequal, so nothing merges (93.2%). Reaching the
+elements as `&A[k]` directly, with no `SVECTOR* p` local, gives the target's
+`lui $s0` / `addiu $s0,$s0` (CSE's related-value base) where a pointer local
+gives `lui $v0` / `addiu $s0,$v0` (97.9% to 98.1%). The scratch then stays at
+99.6% with only relocation-name differences, and `build-and-verify.sh` is the
+arbiter. The same unit also needed the trailing `.rodata` pad word in C (see "A
+trailing `.rodata` pad word goes in C").
+
+The same function's init loop had a separate problem. `g = g * 5 + K; buf[t->x][i] = g >> 16;` as two
+statements hoisted the loop invariants in the wrong order: `lui g` and `K` came
+before `&buf`, and the task and buffer registers swapped (`$t1`/`$t2`). Writing
+the store around the assignment, `buf[t->x][i] = (g = g * 5 + K) >> 16;`, hoists
+`&buf` first and matches. That took it from 98.1% to 99.6%.
