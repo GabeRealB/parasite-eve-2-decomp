@@ -138810,3 +138810,25 @@ loop. Writing the store-and-increment pair in both arms of the `fade` test
 that jump2 cross-jumps into the single retail store, and the wrapper lifts
 their weight from 2 to 3. Wrapping the whole `if`/`else` instead also weights
 the multiply and the phases and loses (94.7%).
+
+## A masked call result's local type decides whether it rides the next call's delay slot; a cast at the compare keeps cse from swapping a paired register (func_mine_cavern_80182184, 2026-09-23)
+
+**Symptom.** `view = Gp_GetViewIndex() & 0xFF;` followed by
+`flags = GameFlag_GetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
+an `s16 view` gives `andi; jal; li a0` (`reorder`).
+
+**Observed.** With `s16`, combine leaves `(set (subreg:SI (reg/v:HI)) (and v0 255))`
+and sched1 ranks it against the `li a0` by luid alone. With `s32` the insn is
+`(set (reg/v:SI) (zero_extend (subreg:QI v0)))`, it receives `LAUNCH_PRIORITY`
+when the call is scheduled, and dbr puts it in the call's delay slot.
+
+**Knock-on.** An SImode `view` makes `k == view` (with `k` a table byte) a
+plain register pair, and cse then rewrites a later `D_prev == k` to use `view`,
+which lives longer (see the entry on cse rewriting a compared pair). That frees
+a callee-saved register, so loop's hoisted table base gets one instead of being
+rematerialised with `lui/addiu` each iteration. `if (k != (u8)view)` keeps the
+masked value in a short-lived temp, so the equivalence goes to the temp and the
+later compare keeps `k`; combine's `nonzero_bits` then drops the redundant
+`andi`. Declaring `k` as `s16` and reading the table twice
+(`for (j = 0; j < 8 && tbl[i][j] != 0; j++) { k = tbl[i][j]; ...`) gave
+retail's `lbu v0; beqz v0; move s0,v0` copy.

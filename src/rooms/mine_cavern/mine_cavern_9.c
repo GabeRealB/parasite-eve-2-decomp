@@ -18,6 +18,7 @@
 
 extern void func_mine_cavern_80181864(void);
 extern void func_mine_cavern_80182184(void);
+void        func_mine_cavern_801825C8(s16 arg0);
 extern void func_mine_cavern_80182454(void);
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -93,6 +94,21 @@ extern u8 D_mine_cavern_8018E355[];
 
 /// The six points `func_mine_cavern_80181864` draws a glow at.
 extern SVECTOR D_mine_cavern_8018E36C[6];
+
+/// For each of the four emitter points, the views it spawns its effect in: up
+/// to eight view indices, ended early by a zero.
+extern u8 D_mine_cavern_8018E3BC[4][8];
+
+/// The view index `func_mine_cavern_80182184` saw on its previous run.
+extern s16 D_mine_cavern_8018E3DC;
+
+/// The `GameFlag_GetNibble(0xE2)` emitter set `func_mine_cavern_80182184` saw
+/// on its previous run.
+extern s32 D_mine_cavern_8018EB58;
+
+/// Tick counter `func_mine_cavern_80182184` advances while `D_801153F4` is
+/// clear; the emitters spawn on every ninth tick.
+extern u16 D_mine_cavern_8018EB5C;
 
 /// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
 /// hides the model and skips it. Its wider role is unproven.
@@ -355,7 +371,69 @@ void func_mine_cavern_80181D80(s16 point)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182184);
+/// Runs the cavern's four emitter points while `GameFlag_GetNibble(0x7A)` is
+/// below 5. Each point whose bit is set in `GameFlag_GetNibble(0xE2)` has its
+/// light refreshed, and its sound restarted when the view has just been set up
+/// or the enabled set changed since the last run. A point listed for the
+/// current view in `D_mine_cavern_8018E3BC` also runs
+/// `func_mine_cavern_80181D80`, and on every ninth tick or on entering the view
+/// spawns effect `0x60080` within 64 units of the point on each axis, unless
+/// `D_801153F4` is set.
+void func_mine_cavern_80182184(void)
+{
+    VECTOR        unused;
+    GsCOORDINATE2 coord;
+    MATRIX*       m;
+    SVECTOR*      pos;
+    s32           view;
+    s32           flags;
+    s16           i;
+    s16           j;
+    s16           k;
+
+    view  = Gp_GetViewIndex() & 0xFF;
+    flags = GameFlag_GetNibble(0xE2);
+    for (i = 0; i < 4 && GameFlag_GetNibble(0x7A) < 5; i++) {
+        if (!((flags >> i) & 1)) {
+            continue;
+        }
+        func_mine_cavern_80181CAC(i);
+        if (gGameSession->viewReady == 1 || D_mine_cavern_8018EB58 != flags) {
+            func_mine_cavern_801825C8(i);
+        }
+        for (j = 0; j < 8 && D_mine_cavern_8018E3BC[i][j] != 0; j++) {
+            k = D_mine_cavern_8018E3BC[i][j];
+            if (k != (u8)view) {
+                continue;
+            }
+            func_mine_cavern_80181D80(i);
+            if ((s16)((s16)D_mine_cavern_8018EB5C % 9) != 0 && D_mine_cavern_8018E3DC == k) {
+                continue;
+            }
+            if (D_801153F4 != 0) {
+                continue;
+            }
+            m                           = &coord.coord;
+            *(s32*)&coord.coord.m[0][0] = 0x1000;
+            *(s32*)&coord.coord.m[0][2] = 0;
+            *(s32*)&m->m[1][1]          = 0x1000;
+            *(s32*)&coord.coord.m[2][0] = 0;
+            m->m[2][2]                  = 0x1000;
+            coord.sub                   = &gGfxViewCoord;
+            pos                         = &D_mine_cavern_8018E39C[i];
+            coord.coord.t[0]            = pos->vx + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[1]            = pos->vy + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[2]            = pos->vz + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.flg                   = 0;
+            Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
+        }
+    }
+    if (D_801153F4 == 0) {
+        D_mine_cavern_8018EB5C++;
+    }
+    D_mine_cavern_8018E3DC = view;
+    D_mine_cavern_8018EB58 = flags;
+}
 
 /// Queues the cavern's darkness overlay: a semi-transparent flat quad filling
 /// the screen with the tint `D_mine_cavern_8018E3E0` holds for the number of
