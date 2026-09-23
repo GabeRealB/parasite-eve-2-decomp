@@ -4,15 +4,21 @@
 
 #include "rooms/room_common.h"
 
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+#include <psyq/libgte.h>
+
+#include "main/display.h"
+#include "main/mem.h"
 
 #include "gameplay/3CD8.h"
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern u32 Gp_LcgState;
 
-void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 arg1, s16 arg2);
+void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 frame, s16 size);
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
@@ -80,4 +86,73 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir_6", func_shelter_b4_reservoir_80181668);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// the GTE flag is non-negative, queues one semi-transparent shade-tex
+/// `POLY_FT4` (tpage 0x2B, clut 0x4393). `frame` selects one of six 32-texel
+/// UV columns at u = `(frame % 6) * 32 + 0x40`, v = 0x40..0x5F. `size` is a
+/// half-extent; the on-screen radius is `size * 31 / otz`, and the quad is
+/// axis-aligned about the projected point.
+void func_shelter_b4_reservoir_80181668(GsCOORDINATE2* coord, u16 frame, s16 size)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw14Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    DisplayState*      ds;
+    s32                col;
+    s16                xy;
+    u16                vz;
+
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                       = (RoomDraw14Scratch*)(head - 0x18);
+    block->vec.vy                               = *(u16*)&coord->workm.t[1];
+    vz                                          = *(u16*)&coord->workm.t[2];
+    *scratch                                    = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage   = 0x2B;
+        prim->clut    = 0x4393;
+        prim->v0      = 0x40;
+        prim->v1      = 0x40;
+        prim->v2      = 0x5F;
+        prim->v3      = 0x5F;
+        col           = (u16)(frame % 6) << 5;
+        prim->u0      = col + 0x40;
+        prim->u2      = col + 0x40;
+        prim->u1      = col + 0x5F;
+        prim->u3      = col + 0x5F;
+        block->radius = (size * 31) / block->otz;
+        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
+        prim->x2      = xy;
+        prim->x0      = xy;
+        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
+        prim->x3      = xy;
+        prim->x1      = xy;
+        xy            = *(u16*)&block->sy - *(u16*)&block->radius;
+        prim->y1      = xy;
+        prim->y0      = xy;
+        xy            = *(u16*)&block->sy + *(u16*)&block->radius;
+        prim->y3      = xy;
+        prim->y2      = xy;
+        ds            = &gDisplayState;
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x18;
+}
