@@ -21,7 +21,11 @@ typedef struct SbupExamineWork {
     /* 0x0F */ byte pad_F[0x1];
 } SbupExamineWork;
 
+void func_shelter_b1_underground_parking_8018390C(void);
+
 void func_shelter_b1_underground_parking_80183B9C(void);
+
+void func_shelter_b1_underground_parking_801848A4(void);
 
 void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
