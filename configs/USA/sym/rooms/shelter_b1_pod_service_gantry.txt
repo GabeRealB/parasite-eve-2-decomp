@@ -2,3 +2,5 @@
 Room_Util02 = 0x8017D7C8; // shared body, see src/lib/
 RoomsShared8017d878 = 0x8017D89C; // shared body, see src/lib/
 RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
+RoomsShared80180898 = 0x8017F8C8; // shared body, see src/lib/
+func_shelter_b1_pod_service_gantry_8017F8C8 = 0x8017F8C8; // type:func absolute:True
