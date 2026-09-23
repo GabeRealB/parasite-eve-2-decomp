@@ -75,6 +75,7 @@ extern s16       D_80114D08;
 extern GpAreaKey D_8007216C;
 extern u8        D_shelter_r47_80186FAC[];
 extern s16       D_shelter_r47_801875EC[];
+extern s16       D_shelter_r47_801875F8[][2];
 
 s32  func_shelter_r47_8018097C(Task* task);
 s32  func_shelter_r47_80180C48(Task* task);
@@ -441,7 +442,49 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
     gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80184124);
+void func_shelter_r47_80184124(Task* task, s16 arg1)
+{
+    GpTpageSprt*      p;
+    SPRT*             sprt;
+    ShelterR47State2* state;
+
+    p              = (GpTpageSprt*)gGpuPrimCursor;
+    state          = (ShelterR47State2*)task->work;
+    sprt           = &p->sprt;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE100002F;
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->clut  = 0x3FC3;
+    sprt->code |= 3;
+    sprt->x0    = state->field_20;
+    sprt->y0    = 0x35;
+    sprt->u0    = 0;
+    sprt->v0    = D_shelter_r47_801875F8[arg1][0] + 0x38;
+    sprt->w     = 0x50;
+    sprt->h     = 8;
+    addPrim(&gGpuCurrentOt[11], p);
+
+    p                = (GpTpageSprt*)gGpuPrimCursor;
+    sprt             = &p->sprt;
+    gGpuPrimCursor   = (u8*)(p + 1);
+    p->tpage.code[0] = 0xE100002F;
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->clut  = 0x3FC3;
+    sprt->code |= 3;
+    sprt->x0    = state->field_20;
+    sprt->y0    = 0x60;
+    sprt->u0    = 0;
+    sprt->v0    = D_shelter_r47_801875F8[arg1][1] + 0x38;
+    sprt->w     = 0x50;
+    sprt->h     = 8;
+    addPrim(&gGpuCurrentOt[11], p);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_4", D_shelter_r47_8017D7DC);
 
