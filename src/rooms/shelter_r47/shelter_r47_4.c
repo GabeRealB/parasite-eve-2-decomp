@@ -299,7 +299,30 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183E24);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183F0C);
+void func_shelter_r47_80183F0C(void)
+{
+    GpTpageSprt* p;
+    SPRT*        sprt;
+
+    p              = (GpTpageSprt*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE100002F;
+    setcode(&p->sprt, 0x64);
+    sprt = &p->sprt;
+    MargePrim(p, sprt);
+    sprt->clut        = 0x3FC5;
+    sprt->x0          = -0x90;
+    sprt->y0          = 0x50;
+    sprt->u0          = 0x50;
+    sprt->v0          = 0x10;
+    sprt->w           = 0x38;
+    sprt->h           = 0x10;
+    sprt->code       |= 3;
+    p->tpage.tag      = (p->tpage.tag & 0xFF000000) | (gGpuCurrentOt[11] & 0xFFFFFF);
+    gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183FF4);
 
