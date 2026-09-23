@@ -139487,3 +139487,37 @@ loads stay the same. Use `u32`: an `s32` word narrows to `lh`. The matched
 `pe/inferno` fan (`InfernoFanScratch`) uses the same packed form. A `s16`
 local for the UV base also adds insns (138), but its sign extension survives
 and changes the scheduling.
+
+## Escaping local-alloc's three-quantity order with a duplicated tail store that crossjump merges (func_shelter_b1_underground_parking_801845F8, 2026-09-24)
+
+**Symptom.** A block `lui hi; lbu a,%lo(g)(hi); lbu b,0xC(s1); xor; jal; sb` came out
+with the three registers permuted (`hi` in `$v0`, target `$a3`). The instruction
+order was already right, and neither operand order nor a `u8` local fixed it
+without breaking the order.
+
+**Cause.** The block held exactly three local quantities, so `block_alloc` used its
+fixed-ID case-3 swap (`CODEGEN_MODEL.md`, "Three-quantity exception"), not `qsort`.
+The trace showed priorities hi 3000, xor+load 10000, field 5000, but allocation
+order `[0,1,2]`, so the lowest-priority quantity took `$v0`.
+
+**Fix.** The arm fell through to a shared `task->state = 2;`. Repeating that store
+inside the arm with a `return` adds a fourth quantity (the constant 2), so the block
+is sorted by priority and allocation follows the target. Crossjump merges the
+duplicated `li v0,2; sw` tail after reload, so the block layout does not change:
+
+```c
+} else {
+    D_8018D789 ^= work->field_C;
+    SndEvt_EnqueueType6(0x54140004, 0, 0);
+    task->state = 2;   /* duplicate of the tail store: 4th qty, merged later */
+    return;
+}
+```
+
+The permuter found the half of this that breaks behaviour: it moved the store into
+the arm instead of copying it there.
+
+A related shape in the same function: `SndEvt(c ? K1 : K2, 0, 0)` (or an if/else
+into a local) is if-converted into `a0=K2; if (c) a0=K1`. Writing the call in both
+arms keeps the if/else, and crossjump merges the shared `a1/a2/jal` tail to give
+the target's `j` into the common call.

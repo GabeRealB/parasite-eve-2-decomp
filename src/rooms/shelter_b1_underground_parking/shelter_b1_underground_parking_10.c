@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
 extern u8  D_shelter_b1_underground_parking_8018D788;
@@ -44,7 +45,35 @@ void func_shelter_b1_underground_parking_80184594(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_801845F8);
+void func_shelter_b1_underground_parking_801845F8(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+
+    func_shelter_b1_underground_parking_80183B9C();
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    if (func_800D4EC0() != 0) {
+        if (work->field_C == 0x10) {
+            SndEvt_EnqueueType6(0x54140004, 0, 0);
+            if (D_shelter_b1_underground_parking_8018D788 != D_shelter_b1_underground_parking_8018D789) {
+                if (gGameSession->at4.loc.room == 1) {
+                    SndEvt_EnqueueType6(0x54140006, 0, 0);
+                } else {
+                    SndEvt_EnqueueType6(0x54140005, 0, 0);
+                }
+                task->state = 6;
+                return;
+            }
+        } else {
+            D_shelter_b1_underground_parking_8018D789 ^= work->field_C;
+            SndEvt_EnqueueType6(0x54140004, 0, 0);
+            task->state = 2;
+            return;
+        }
+    }
+    task->state = 2;
+}
 
 void func_shelter_b1_underground_parking_801846EC(Task* arg0)
 {
