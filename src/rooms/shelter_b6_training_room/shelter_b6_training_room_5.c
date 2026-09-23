@@ -5,7 +5,15 @@
 
 #include "rooms/rooms_shared_801807d4.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_5", func_shelter_b6_training_room_8017DAF8);
+extern s8 D_801153F1;
+
+void func_shelter_b6_training_room_8017DAF8(s32 arg0)
+{
+    gGameSession->flowFlags |= 0x80;
+    if (arg0 != 0) {
+        D_801153F1 = arg0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_5", func_shelter_b6_training_room_8017DB28);
 
