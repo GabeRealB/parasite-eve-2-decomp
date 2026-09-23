@@ -15,8 +15,6 @@ extern u32 Gp_LcgState;
 extern SVECTOR D_neo_ark_garden_801813D8;
 extern SVECTOR D_neo_ark_garden_801813E0[];
 
-void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
-
 /// Garden ambience task tick. On its first tick it installs three effect ids
 /// and moves `state` to 1. `spawnArg1` holds the view seen on the previous
 /// tick; whenever `Gp_GetViewIndex()` differs from it, `soundDelay` restarts at
