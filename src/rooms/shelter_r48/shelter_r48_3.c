@@ -2,14 +2,44 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part);
+void func_shelter_r48_8018258C(void* arg0, s32 arg1, s32 arg2);
+
+extern u32 Gp_LcgState;
+extern u8  D_shelter_r48_8018300C[];
+extern u8  D_shelter_r48_8018BE54[6][16];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E27C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E3B8);
+void func_shelter_r48_8017E3B8(Task* task)
+{
+    s32 viewMask;
+    s32 i;
+    s32 j;
+
+    viewMask = 1 << Gp_GetViewIndex();
+    if (task->state == 0) {
+        Gp_State1C->groundTrace = 0;
+        for (i = 0; i < 6; i++) {
+            for (j = 0; j < 16; j++) {
+                D_shelter_r48_8018BE54[i][j] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            }
+        }
+        task->state = 1;
+    }
+    if (viewMask & 0x401D8) {
+        if (GameFlag_GetNibble(0x100) == 1) {
+            func_shelter_r48_8018258C(D_shelter_r48_8018300C, 0x100, 0x5C40);
+        } else if (GameFlag_GetNibble(0x100) == 2) {
+            func_shelter_r48_8018258C(D_shelter_r48_8018300C, 0x100, 0x504C);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017E4C4);
 

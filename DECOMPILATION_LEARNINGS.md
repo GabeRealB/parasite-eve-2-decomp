@@ -139283,3 +139283,15 @@ do {
 } while (0);
 state->field_E = quadW; ... state->field_1E = spriteX;
 ```
+### Folding the RHS update into the array store puts the array base first in the loop preheader (func_shelter_r48_8017E3B8, 2026-09-23)
+
+A fill loop `D[i][j] = lcg >> 16` whose target preheader materialises the
+array base (`lui`/`addiu`) *before* the LCG global's `lui` and constant
+scored 95.5% (`regs=8 reorder=1`) written as two statements:
+`Gp_LcgState = Gp_LcgState * 5 + K; D[i][j] = Gp_LcgState >> 16;`. Loop
+invariants are hoisted in the order they appear in the body, and with two
+statements the LCG update comes first. Writing it as one assignment,
+`D[i][j] = (Gp_LcgState = Gp_LcgState * 5 + K) >> 16;`, matched: `expand_assignment`
+expands the array reference's address before the right-hand side, so the base
+is the first invariant loop.c meets. m2c's `temp_a0 = j + i*16` computed ahead
+of the LCG is the hint.
