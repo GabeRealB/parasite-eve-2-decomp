@@ -2,6 +2,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/gfx.h"
 #include "rooms/room_common.h"
@@ -9,6 +10,7 @@
 extern u32 Gp_LcgState;
 
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
+void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
 
 extern s16 D_shelter_b2_pod_bottom_80188790[3][16];
@@ -48,7 +50,68 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017E788);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017EC78);
+/// State 0 resets the coordinate frame's rotation to identity and starts the
+/// colour ramp at 0xA0. State 1 steps the ramps while no event is running
+/// (holding the tick otherwise), calls `func_shelter_b2_pod_bottom_8017EEAC`
+/// for indices 0-2, then draws three arcs stacked up the frame's Y axis and a
+/// fade quad in the ramp colour. The work is released once the ramp reaches 8
+/// or an event of state 4 or above starts.
+void func_shelter_b2_pod_bottom_8017EC78(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    u16            tick;
+    u8             rgb[3];
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState < 4) {
+        coord->flg     = 0;
+        tick           = work->field_22;
+        work->field_22 = tick + 1;
+        switch (task->state) {
+            case 0:
+                rot            = (GpMtxWords*)&coord->coord;
+                rot->w0        = 0x1000;
+                rot->w1        = 0;
+                rot->w2        = 0x1000;
+                rot->w3        = 0;
+                rot->h4        = 0x1000;
+                work->field_24 = 0xA0;
+                task->state++;
+                return;
+            case 1:
+                if ((s16)work->field_24 < 9) {
+                    break;
+                }
+                if (Gp_State1C->eventState == 0) {
+                    work->field_24 -= 8;
+                    work->field_26 += 0x80;
+                    work->field_28 -= 0x20;
+                    work->field_2A += 0x20;
+                } else {
+                    work->field_22 = tick;
+                }
+                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 0);
+                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 1);
+                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 2);
+                rgb[0] = rgb[1]    = work->field_24;
+                rgb[2]             = (s16)work->field_24 * 3 / 2;
+                coord->workm.t[1] -= (s16)work->field_22 * 0x30;
+                Gp_DrawArc(coord, (s16)(work->field_22 << 6), 0x100, rgb);
+                coord->workm.t[1] -= (s16)work->field_22 * 0x30;
+                Gp_DrawArc(coord, (s16)(work->field_22 << 7), 0x100, rgb);
+                coord->workm.t[1] -= (s16)work->field_22 * 0x30;
+                Gp_DrawArc(coord, (s16)((s16)work->field_22 * 0xC0), 0x100, rgb);
+                Gp_DrawFadeQuad(rgb, 1);
+                return;
+            default:
+                return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017EEAC);
 
