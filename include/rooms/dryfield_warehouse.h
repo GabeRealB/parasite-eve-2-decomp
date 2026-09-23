@@ -17,11 +17,12 @@
 /// is the flag guarding `Gp_SpawnWeaponEff` / `Gp_KillPlayerEffs`.
 typedef struct DwhWork {
     /* 0x00 */ void* owner;
-    /* 0x04 */ s16   field_4;
-    /* 0x06 */ s16   field_6;
-    /* 0x08 */ byte  pad_8[0x4];
+    /* 0x04 */ u16   field_4;
+    /* 0x06 */ u16   field_6;
+    /* 0x08 */ u16   field_8;
+    /* 0x0A */ byte  pad_A[0x2];
     /* 0x0C */ u16   playerEffActive;
-    /* 0x0E */ byte  pad_E[0x2];
+    /* 0x0E */ u16   field_E;
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
 

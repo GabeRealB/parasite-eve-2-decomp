@@ -7,22 +7,28 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
+#include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 #include "rooms/dryfield_warehouse.h"
 #include "rooms/rooms_shared_80180b2c.h"
 
-extern u8  D_80071075;
-extern u8  D_80073BA9;
-extern s8  D_8007218A;
-extern s8  D_80114C12;
-extern s32 D_dryfield_warehouse_8017F868;
-extern s16 D_dryfield_warehouse_801821C4;
-extern s32 D_dryfield_warehouse_8017F880;
-extern s32 D_dryfield_warehouse_8017FA00;
+extern u8       D_80071075;
+extern u8       D_80073BA9;
+extern s8       D_8007218A;
+extern s8       D_8007216D;
+extern s8       D_80114C12;
+extern s32      D_dryfield_warehouse_8017F848;
+extern s32      D_dryfield_warehouse_8017F850;
+extern s32      D_dryfield_warehouse_8017F868;
+extern s16      D_dryfield_warehouse_801821C4;
+extern s32      D_dryfield_warehouse_8017F880;
+extern s32      D_dryfield_warehouse_8017FA00;
+extern TaskDesc D_dryfield_warehouse_8017FB08;
 
 /// Message handler of the warehouse's cutscene task. Message 0 re-opens the
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
@@ -81,7 +87,155 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse_2", func_dryfield_warehouse_8017DBB0);
+/// Per-frame script step of the warehouse's cutscene task, dispatched on
+/// `DwhWork::field_4` with `field_6` as the sub-step. States 1 and 5 advance a
+/// frame counter in `field_E` and play a sound every 60 frames; 3 re-sends the
+/// weapon record and spawns five staggered effects until `field_8` reaches 36;
+/// 4 and 5 draw a white fade. State 2 spawns entry 1 of the room task table into
+/// `D_dryfield_warehouse_801821C0`; it, state 0 and any unknown state reset
+/// `field_4` to 0, as does state 3 once its timer runs out.
+void func_dryfield_warehouse_8017DBB0(Task* arg0)
+{
+    DwhWork* work;
+    DwhWork* shared;
+    DwhWork* cur;
+    union {
+        GpRec14 rec;
+        SVECTOR pos;
+    } msg;
+    s32 weaponId;
+    s32 anim;
+
+    work = (DwhWork*)arg0->work;
+    switch (work->field_4) {
+        case 0:
+            break;
+        case 1:
+            switch (work->field_6) {
+                case 0:
+                    SetDispMask(1);
+                    Task_SpawnFromTable(&D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                    Gp_KillPlayerEffs();
+                    work->playerEffActive = 1;
+                    cur                   = (DwhWork*)arg0->work;
+                    if (cur->owner != NULL) {
+                        msg.rec.field_0  = (s32)&D_dryfield_warehouse_8017F848;
+                        msg.rec.field_4  = 1;
+                        msg.rec.field_8  = 0;
+                        msg.rec.field_C  = 0;
+                        msg.rec.field_10 = 0;
+                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                    }
+                    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F850, 0);
+                    work->field_8 = 0;
+                    work->field_6++;
+                    break;
+                case 1:
+                    if ((work->field_E % 60) == 0) {
+                        SndEvt_EnqueueType6(0x52070003, 0, 0);
+                    }
+                    break;
+            }
+            work->field_E++;
+            return;
+        case 2:
+            D_dryfield_warehouse_801821C0 = Task_SpawnFromTable(&D_dryfield_warehouse_8017FB08, 1, 8, 0);
+            break;
+        case 3:
+            shared = (DwhWork*)RoomsShared80180b2cTask->work;
+            if (shared->playerEffActive != 0) {
+                Gp_SpawnWeaponEff();
+                shared->playerEffActive = 0;
+                Gp_MsgPlayerWeapon(0);
+            }
+            weaponId         = D_80073BA9;
+            anim             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.rec.field_0  = anim;
+            msg.rec.field_4  = 1;
+            msg.rec.field_8  = 0;
+            msg.rec.field_C  = 0;
+            msg.rec.field_10 = 1;
+            Gp_DispatchMsg((Task*)shared->owner, 0x3E8, (s32)&msg.rec, 0);
+            Gp_DispatchMsg((Task*)shared->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
+            switch (work->field_6) {
+                case 0:
+                    Task_SpawnFromTable(&D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                    work->field_8 = 0;
+                    work->field_6++;
+                    return;
+                case 1:
+                    work->field_8++;
+                    shared     = (DwhWork*)arg0->work;
+                    msg.pos.vx = 0x1644;
+                    msg.pos.vy = 0;
+                    if (!(shared->field_8 & 7)) {
+                        msg.pos.vz = -500;
+                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                    }
+                    if (!((shared->field_8 + 1) & 7)) {
+                        msg.pos.vz = -700;
+                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                    }
+                    if (!((shared->field_8 + 2) & 7)) {
+                        msg.pos.vz = -900;
+                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                    }
+                    if (!((shared->field_8 + 3) & 7)) {
+                        msg.pos.vz = -1100;
+                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                    }
+                    if (!((shared->field_8 + 4) & 7)) {
+                        msg.pos.vz = -1300;
+                        Gp_SpawnEff(0x60054, NULL, 0x80002300, &msg.pos);
+                    }
+                    if (work->field_8 >= 36) {
+                        work->field_4 = 0;
+                    }
+                    SetDispMask(1);
+                    return;
+            }
+            break;
+        case 4:
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            switch (work->field_6) {
+                case 0:
+                    D_8007216D                 = 2;
+                    gGameSession->at4.loc.room = 2;
+                    work->field_8              = 0;
+                    work->field_6++;
+                    break;
+                case 1:
+                    gGameSession->viewDirty     = 1;
+                    gGameSession->roomObjsDirty = 1;
+                    work->field_6++;
+                    break;
+                case 2:
+                    break;
+            }
+            if (work->field_8 == 10) {
+                SndEvt_EnqueueType6(0x52070004, 0, 0);
+            }
+            work->field_8++;
+            return;
+        case 5:
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            switch (work->field_6) {
+                case 0:
+                    D_80115768    = 0;
+                    work->field_E = 0;
+                    work->field_6++;
+                    break;
+                case 1:
+                    if ((work->field_E % 60) == 0) {
+                        SndEvt_EnqueueType6(0x52070003, 0, 0);
+                    }
+                    break;
+            }
+            work->field_E++;
+            return;
+    }
+    work->field_4 = 0;
+}
 
 /// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
 /// `DwhWork` block. State 0 arms the script once: a `D_80114C12` of 1 or a live

@@ -1376,7 +1376,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_warehouse/dryfield_warehouse", rodata = "0x4", text = "0x28" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x440" },
-  { unit = "dryfield_warehouse/dryfield_warehouse_2", text = "0x498" },
+  { unit = "dryfield_warehouse/dryfield_warehouse_2", rodata = "0x10", text = "0x498" },
   { lib = true, unit = "rooms_shared_8017ff5c", text = "0xC6C" },
   { unit = "dryfield_warehouse/dryfield_warehouse_3", text = "0xD48" },
   { lib = true, unit = "rooms_shared_80180b2c", text = "0xE34" },
