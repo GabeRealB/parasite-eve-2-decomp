@@ -1,19 +1,26 @@
 #include "common.h"
 #include "gameplay/D4.h"
+#include "gameplay/3CD8.h"
+#include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern u16        D_shelter_b3_garbage_incinerator_801855DC;
-extern TaskDesc   D_shelter_b3_garbage_incinerator_801855E0;
-extern TaskDesc   D_8016BFE0;
-extern TaskDesc   D_801449F4;
-extern s16        D_shelter_b3_garbage_incinerator_801855DE;
-extern GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[];
-extern Task*      D_shelter_b3_garbage_incinerator_801855D8;
-extern TaskDesc   D_shelter_b3_garbage_incinerator_80185BA0;
-extern TaskDesc   D_shelter_b3_garbage_incinerator_80187150[];
+extern u16          D_shelter_b3_garbage_incinerator_801855DC;
+extern TaskDesc     D_shelter_b3_garbage_incinerator_801855E0;
+extern TaskDesc     D_8016BFE0;
+extern TaskDesc     D_801449F4;
+extern s16          D_shelter_b3_garbage_incinerator_801855DE;
+extern GpMsgEntry   D_shelter_b3_garbage_incinerator_80185594[];
+extern Task*        D_shelter_b3_garbage_incinerator_801855D8;
+extern TaskDesc     D_shelter_b3_garbage_incinerator_80185BA0;
+extern TaskDesc     D_shelter_b3_garbage_incinerator_80187150[];
+extern TaskDesc     D_shelter_b3_garbage_incinerator_801855CC;
+extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
+extern u8           D_801153F4;
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 void RoomsShared801830f0(s16 arg0, s16 arg1, s16 arg2);
 void func_shelter_b3_garbage_incinerator_8018108C(s32 arg0, s32 arg1, s32 arg2);
@@ -27,7 +34,36 @@ s32 func_shelter_b3_garbage_incinerator_8017D838(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017D840);
+s32 func_shelter_b3_garbage_incinerator_8017D840(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId == 0x29) {
+        if (in->field_5 != 0) {
+            return 0;
+        }
+        D_801153F4 = 1;
+        if (gGameSession->at4.loc.room < 4) {
+            Gp_SpawnIfCapIdle(3, 1);
+            return 0;
+        }
+        if (GameFlag_GetNibble(0x73) != 0) {
+            GameFlag_SetNibble(0x4C, 10);
+        } else {
+            GameFlag_SetNibble(0x4C, 5);
+        }
+        out->field_2                              = 4;
+        D_shelter_b3_garbage_incinerator_8018FC2C = *out;
+        GameFlag_SetNibble(3, 0);
+        GameFlag_SetNibble(0x155, 1);
+        Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);
+        return 2;
+    }
+    if (in->msgId == 0x27 && in->field_5 == 0) {
+        out->field_3 = gGameSession->field_133 + 1;
+    }
+    return 1;
+}
 
 s32 func_shelter_b3_garbage_incinerator_8017D9B4(void)
 {
