@@ -18,7 +18,8 @@
 /// each frame, clamps it at 0xFF and draws it on all three channels of
 /// `Fade_DrawOverlay`.
 typedef struct SbupExamineWork {
-    /* 0x00 */ byte pad_0[0x8];
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x4];
     /* 0x08 */ s16  fadeLevel;
     /* 0x0A */ byte pad_A[0x2];
     /* 0x0C */ s16  field_C;

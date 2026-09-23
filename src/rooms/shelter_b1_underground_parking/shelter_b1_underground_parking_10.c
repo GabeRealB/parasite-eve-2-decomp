@@ -9,14 +9,46 @@
 #include "main/sound.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
-extern u8  D_shelter_b1_underground_parking_8018D788;
-extern u8  D_shelter_b1_underground_parking_8018D789;
-extern s8  D_8007216C;
-extern s16 D_80114D08;
+extern u8          D_shelter_b1_underground_parking_8018D788;
+extern u8          D_shelter_b1_underground_parking_8018D789;
+extern s8          D_8007216C;
+extern s16         D_80114D08;
+extern TaskDesc    D_shelter_b1_underground_parking_80187664[];
+extern RoomHotspot D_shelter_b1_underground_parking_8018767C[];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184284);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184304);
+void func_shelter_b1_underground_parking_80184304(Task* task)
+{
+    SbupExamineWork* st;
+    RoomHotspot*     hs;
+
+    st = memCalloc(0x10, 0);
+    if (st == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->spawnArg2 = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->work      = (TaskIdMap*)st;
+    D_8007216C      = 0x15;
+    /* The once-loops fold away, but flow weights the references inside them
+       by loop depth. The outer one keeps the state load below the mode store;
+       the inner one lifts the work pointer's global-alloc priority back above
+       the parameter's so the two keep their callee-saved homes. */
+    do {
+        task->state++;
+        do {
+            st->field_0 = 0;
+        } while (0);
+    } while (0);
+    Display_AcquireRef();
+    for (hs = D_shelter_b1_underground_parking_8018767C; hs->id != -1; hs++) {
+        hs->hit = 0;
+    }
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
+}
 
 void func_shelter_b1_underground_parking_801843F0(Task* task)
 {
