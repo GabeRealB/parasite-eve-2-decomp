@@ -8,6 +8,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/display.h"
+#include "main/gameflow.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 extern TaskDesc  D_shelter_b1_sterilization_room_80188504;
@@ -17,6 +18,23 @@ extern u8        D_801153F4;
 extern s32       D_shelter_b1_sterilization_room_80188590;
 extern s32       D_shelter_b1_sterilization_room_80188624;
 extern GpU16Pair D_shelter_b1_sterilization_room_80188738;
+
+/// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
+/// stride is known.
+typedef struct {
+    u8 data[0x18];
+} _ShelterB1SterilizationRoomMsg;
+
+/// One destination: the view written to the session and the save, and the
+/// index of the message block sent with it.
+typedef struct {
+    u8 view;
+    s8 msg;
+} _ShelterB1SterilizationRoomDest;
+
+extern u8                              D_8007216C;
+extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
+extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
@@ -59,7 +77,47 @@ void RoomsShared8017e144(s32 shade)
     Room_Draw42(0x180, 0x100);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_5", func_shelter_b1_sterilization_room_80180D74);
+void func_shelter_b1_sterilization_room_80180D74(Task* task)
+{
+    s32 c;
+
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            SndEvt_EnqueueType6(0x5410000A, 0, 0);
+            task->state++;
+            break;
+        case 1:
+            if (++task->killCountdown >= 30) {
+                task->state++;
+            }
+            c = (task->killCountdown * 0xFF / 30) & 0xFF;
+            Fade_DrawOverlay(c, c, c, 2);
+            break;
+        case 2:
+            D_8007216C                 = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
+            gGameSession->at4.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
+            gGameSession->viewDirty    = 1;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9,
+                           (s32)&D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1].msg],
+                           0);
+            SndEvt_EnqueueType6(0x5410000B, 0, 0);
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            task->state++;
+            break;
+        case 3:
+            if (--task->killCountdown <= 0) {
+                task->state++;
+            }
+            c = (task->killCountdown * 0xFF / 30) & 0xFF;
+            Fade_DrawOverlay(c, c, c, 2);
+            break;
+        default:
+            Gp_MsgPlayerWeapon(1);
+            taskKill(task);
+            break;
+    }
+}
 
 void func_shelter_b1_sterilization_room_80180F74(Task* task)
 {
