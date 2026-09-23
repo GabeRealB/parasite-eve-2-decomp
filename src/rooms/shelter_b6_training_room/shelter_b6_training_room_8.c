@@ -50,6 +50,19 @@ typedef struct {
     DVECTOR sxy1;
 } _ShelterB6TrainingRoomRibbonScratch;
 
+/// Scratchpad block `func_shelter_b6_training_room_80181BAC` takes from
+/// `G_SCRATCH_HEAD`: the world point the sprite is centred on, its projected
+/// depth and GTE flag, the sprite's perspective-scaled half-size rotated into
+/// screen space, and the point's screen position.
+typedef struct {
+    SVECTOR vec;
+    s32     otz;
+    s32     flag;
+    s32     dx;
+    s32     dy;
+    DVECTOR sxy;
+} _ShelterB6TrainingRoomFlashScratch;
+
 /// Scratchpad block `func_shelter_b6_training_room_80181368` takes from
 /// `G_SCRATCH_HEAD`: the six world-space points of the band's raised rim and of
 /// its ground rim, then the projected depth, GTE flag and packed screen
@@ -85,7 +98,7 @@ extern u16                             D_shelter_b6_training_room_801843FC[];
 extern _ShelterB6TrainingRoomBandShape D_shelter_b6_training_room_80184404[];
 extern u8                              D_shelter_b6_training_room_80185C60[][16];
 
-void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 band);
 void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color);
@@ -747,7 +760,70 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181BAC);
+/// Draws one spinning sprite frame: a semi-transparent `POLY_FT4` centred on
+/// the coordinate's world position, projected by a single `RTPS`. Its half-size
+/// is `arg2 * 39 / otz`, and the four corners are that half-size swung to
+/// `arg3` and to `arg3 + 0x400`. `arg1` picks one of six 40-pixel-wide frames
+/// from the texture page. Nothing is drawn if the point fails the GTE flag test.
+void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                              scratch;
+    u8*                                 head;
+    _ShelterB6TrainingRoomFlashScratch* block;
+    _ShelterB6TrainingRoomFlashScratch* vecp;
+    POLY_FT4*                           prim;
+    s16                                 u;
+    u16                                 vz;
+
+    scratch                                                      = (void**)G_SCRATCH_HEAD;
+    head                                                         = *scratch;
+    ((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                                        = (_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C);
+    block->vec.vy                                                = *(u16*)&coord->workm.t[1];
+    vz                                                           = *(u16*)&coord->workm.t[2];
+    *scratch                                                     = block;
+    block->vec.vz                                                = vz;
+    vecp                                                         = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->vec);
+    gte_rtps_real();
+    gte_stsxy(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2A;
+        prim->clut  = 0x42C9;
+        prim->v0    = 0x38;
+        prim->v1    = 0x38;
+        prim->v2    = 0x5F;
+        prim->v3    = 0x5F;
+        u           = arg1 % 6;
+        prim->u0    = u * 40;
+        prim->u1    = u * 40 + 0x27;
+        prim->u2    = u * 40;
+        prim->u3    = u * 40 + 0x27;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
+        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// Draws a textured `POLY_FT4` strip between the world positions of two
 /// coordinates. Both ends are projected and the strip is dropped if either
