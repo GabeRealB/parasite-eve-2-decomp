@@ -1,14 +1,82 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/fs.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+
+#include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgte.h>
+
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s8       D_8007218A;
 extern u8       D_80073BA9;
 extern TaskDesc D_80164190;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_7", func_shelter_b3_garbage_incinerator_80183E78);
+void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
+{
+    u8*                head;
+    RoomDraw13Scratch* block;
+    POLY_G4*           prim;
+    s32                ang;
+    s32                t;
+    s32                t2;
+    u8                 lvl;
+    u8                 r;
+    u8                 g;
+    u8                 b;
+
+    head                    = *(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = head - 0x10;
+    block                   = (RoomDraw13Scratch*)*(void**)G_SCRATCH_HEAD;
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(v);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
+    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        lvl           = rsin(gDisplayState.animFrame * (s16)arg3) / 34 + 0x78;
+        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        r             = lvl * (((s16)arg2 >> 8) & 0xF) / 15;
+        g             = lvl * (((s16)arg2 >> 4) & 0xF) / 15;
+        b             = lvl * (arg2 & 0xF) / 15;
+        ang           = 0;
+        block->radius = arg1;
+        do {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, r, g, b);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
+            t        = ang + 0x200;
+            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
+            t2       = ang + 0x400;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
+            ang      = t2;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_7", func_shelter_b3_garbage_incinerator_801842A4);
 
