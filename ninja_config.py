@@ -379,6 +379,7 @@ match PLATFORM:
         ICONV = "iconv"
 
 OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
+OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
 POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'postbuild.py'}"
 
 # Compilation flags (General)
@@ -520,15 +521,17 @@ def ninja_setup_list_add_source(
             if re.search("^asm.(USA|JAP).main.*", source_path):
                 objdiff_file.build(
                     outputs=f"{expected_path}.o",
-                    rule="as",
+                    rule="objdiff-as",
                     inputs=source_target_path,
+                    implicit=[str(OBJDIFF_TARGET_ASM)],
                     variables={"DLFLAG": DL_EXE_FLAGS},
                 )
             else:
                 objdiff_file.build(
                     outputs=f"{expected_path}.s.o",
-                    rule="as",
+                    rule="objdiff-as",
                     inputs=source_target_path,
+                    implicit=[str(OBJDIFF_TARGET_ASM)],
                     variables={"DLFLAG": DL_OVL_FLAGS},
                 )
         else:
@@ -885,6 +888,15 @@ def ninja_build(
         "as",
         description="as $in",
         command=f"{AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $in",
+        depfile="$out.d",
+        deps="gcc",
+    )
+    # objdiff's target objects only: the assembly is first brought in line with
+    # what GCC emits, so identical bytes pair up (see target_asm.py).
+    ninja_rules_file.rule(
+        "objdiff-as",
+        description="objdiff-as $in",
+        command=f"{PYTHON} {OBJDIFF_TARGET_ASM} $in > $out.s && {AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $out.s",
         depfile="$out.d",
         deps="gcc",
     )
