@@ -138518,3 +138518,27 @@ conversion, which survives as the `andi` ahead of the store. A sibling
 non-inlined function computing the same walk (with a different mask) is the
 hint that one exists. Seen in `func_dryfield_water_tower_8017EB7C`
 (93.8% → 99.8%).
+
+## Two `sh` stores to one 4-byte stack word are two `s16` spills, not a struct (func_dryfield_night_warehouse_8017DFF4, 2026-09-23)
+
+**Symptom.** The target stores one value to both `0x20($sp)` and `0x22($sp)`, while
+its other halfword spills sit 8 bytes apart (`0x10`, `0x18`, `0x28`, `0x30`).
+That looks like a two-`s16` struct. It is not one. A `DVECTOR` local gets both
+halves right, but `purge_addressof` has to put the struct on the stack *before*
+reload, so its slot comes first (`0x10`), ahead of every spill slot (97.5%).
+
+**Mechanism.** `alter_reg` (reload1.c) sizes a spill slot as
+`MAX(inherent, reg_max_ref_width)`. An HImode pseudo that is also read through a
+paradoxical `(subreg:SI (reg:HI))` gets `align == -1`, which is 8-byte aligned and
+8 bytes wide. An HImode pseudo that is only ever narrowed, for example to a colour
+byte, gets a plain 2-byte, 2-aligned slot. So two such pseudos spilled back to back
+share one word. Slot order is pseudo order, and pseudo order is declaration order.
+
+**Fix.** Declare separate `s16` locals in slot order (`red; blue; green; step;
+start`). If the target stores them late, make them copies of an unspilled temp,
+not the computed value itself. A spill store sits at the pseudo's definition:
+```c
+pulse = (rsin(...) >> 12) + 0x10;   /* stays in a register */
+...
+red = pulse * 3 / 4; green = pulse; blue = pulse;
+```
