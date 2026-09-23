@@ -6,6 +6,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -513,12 +514,15 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8018098C);
 
 typedef struct {
-    u8    pad_00[0x80];
-    Task* field_80;
-    Task* field_84;
-    Task* field_88;
-    u8    pad_8C[0xA];
-    s16   field_96;
+    MATRIX lightMtx;
+    MATRIX colorMtx;
+    u8     pad_40[0x40];
+    Task*  field_80;
+    Task*  field_84;
+    Task*  field_88;
+    u8     pad_8C[0x8];
+    s16    field_94;
+    s16    field_96;
 } DumpingHoleEntity4;
 
 typedef struct {
@@ -571,7 +575,74 @@ void func_shelter_b3_dumping_hole_80181430(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_80181560);
+extern u8  D_80071075;
+extern s8  D_80114C12;
+extern s32 D_shelter_b3_dumping_hole_8018F4D8;
+extern s32 D_shelter_b3_dumping_hole_8018965C;
+extern s32 D_shelter_b3_dumping_hole_8018968C;
+extern s32 D_shelter_b3_dumping_hole_801899A4;
+void       func_shelter_b3_dumping_hole_8018098C(Task* task);
+void       func_shelter_b3_dumping_hole_80183218(s32 arg0);
+
+void func_shelter_b3_dumping_hole_80181560(Task* task)
+{
+    s32                 desc[5];
+    TmdObject*          obj;
+    TmdObject*          tail;
+    DumpingHoleEntity4* work;
+
+    switch (task->state) {
+        case 0:
+            if (D_80114C12 == 1 || D_80071075 != 0) {
+                return;
+            }
+            obj        = task->extra;
+            task->work = memCalloc(0xA0, false);
+            if (task->work == NULL) {
+                taskKill(task);
+            } else {
+                ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
+                work                                   = task->work;
+                Mem_Set(work, 0, 0xA0);
+                work->field_80                     = gameGetPtrSlot(3);
+                D_shelter_b3_dumping_hole_8018F4AC = (DumpingHoleState4*)task;
+                work->field_84                     = (Task*)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                obj->lightMtx                      = &work->lightMtx;
+                obj->colorMtx                      = &work->colorMtx;
+                task->msgTable                     = &D_shelter_b3_dumping_hole_8018965C;
+                func_shelter_b3_dumping_hole_80183218(0);
+            }
+            D_shelter_b3_dumping_hole_8018F4D8          = 0;
+            ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->at4.loc.view;
+            Gp_MsgPlayerWeapon(0);
+            desc[0] = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+            desc[1] = 9;
+            desc[2] = 1;
+            desc[3] = 0xA;
+            desc[4] = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)desc, 0);
+            task->state++;
+            break;
+        case 1:
+            D_shelter_b3_dumping_hole_8018809C = 0;
+            func_800E8634((s32)&D_shelter_b3_dumping_hole_8018968C, 0, (s32)&D_shelter_b3_dumping_hole_801899A4);
+            task->state++;
+            break;
+        case 2:
+            if (gGameSession->eventState == 0) {
+                GameFlag_SetNibble(0x11D, 1);
+                taskKill(task);
+            } else {
+                func_shelter_b3_dumping_hole_8018098C(task);
+            }
+            break;
+    }
+    tail    = task->extra;
+    desc[0] = tail->coords->workm.t[0];
+    desc[1] = ((TmdObject*)task->extra)->coords->workm.t[1];
+    desc[2] = ((TmdObject*)task->extra)->coords->workm.t[2];
+    func_800D7A9C(tail, (VECTOR*)desc, 0, 3);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", D_shelter_b3_dumping_hole_8017D650);
 
