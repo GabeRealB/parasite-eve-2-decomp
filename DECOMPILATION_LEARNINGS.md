@@ -138923,3 +138923,26 @@ writer (here `lui v1,%hi(gGameSession)` and `move a0,s2`). Putting the two
 uses of each literal apart (`0x28,0x2A,0x2C,0x2E,0x30,0x32,0x24,0x26`, the
 rest in retail order) matched. Read a late-stored shared literal as "its uses
 are far apart in the source", not as the source order of the stores.
+
+### A mid-unit jump table: add a named `objects` entry, which renumbers nothing (shelter_r47, 2026-09-23)
+
+A switch in the *middle* of a unit whose table sits at 4 mod 8 from the unit's
+rodata base scores 100% in the scratch and fails only the overlay checksum: GCC's
+`.align 3` pads the table by one word. The byte diff shows the table's words
+shifted by 4, not wrong. Neither documented shortcut applies here. The function
+is not first in its unit, and `rodata_head` only works for the first unit.
+
+Read the boundary off the data. The package's id word shifts every original
+offset by 4, so an original object started at a package offset that is
+congruent to the table's offset mod 8. A zero word just before the table is the
+original `.align 3` pad. Here the only candidate was the start of the second
+cap script's state table (`0x21C`, table at `0x24C`). Its trailing zero was that
+pad, and the text cut went at the state-0 function that the table lists first.
+
+With the explicit `objects` list in `overlays.toml`, a new unit is one line
+with its own name (`{ unit = "shelter_r47/shelter_r47_7", rodata = "0x21C",
+text = "0x6D5C" }`). No later unit renumbers, unlike the older `units` cut. Let
+`ninja_config.py` create the skeleton `.c`, then move each body into it by hand.
+Move the struct the two files now share, plus prototypes for the functions
+called across the cut, into the overlay header. Calls that used to see an
+earlier definition would otherwise become implicit.
