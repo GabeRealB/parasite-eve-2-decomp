@@ -1,5 +1,6 @@
 func_actor_105100_801347D4 27 99.778
 func_actor_361100_80161FF8 18 97.662
+func_dryfield_breezeway_8017EB8C 29 99.890
 func_dryfield_dilapidated_house_8017E8E8 13 92.000
 func_dryfield_dilapidated_house_801803A4 23 96.891
 func_dryfield_dilapidated_house_80180A0C 29 96.415
@@ -27,4 +28,3 @@ func_neo_ark_woodland_path_8017E2E8 69 99.861
 func_shelter_b1_golem_freezer_1_8017DA7C 6 ~85%
 func_shelter_b1_golem_freezer_1_8017E254 5 ~87%
 func_shelter_b3_dumping_hole_80181560 7 98%
-func_dryfield_breezeway_8017EB8C 29 99.890
