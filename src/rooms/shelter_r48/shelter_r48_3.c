@@ -21,6 +21,7 @@
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 /// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 typedef struct {
     u8             pad0[8];
@@ -47,6 +48,15 @@ typedef struct {
     u16     sy1;
 } _ShelterR48BeamScratch;
 
+/// Per-band radius and height offsets `func_shelter_r48_8017F124` adds to the
+/// effect work's ring parameters: `rInner` widens the inner ring, `rExtra` the
+/// outer ring on top of the step, `yOff` raises the inner ring.
+typedef struct {
+    s16 rInner;
+    s16 yOff;
+    s16 rExtra;
+} _ShelterR48RingScale;
+
 void func_shelter_r48_8017FB7C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part);
@@ -54,9 +64,10 @@ void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_80180804(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 color);
 
-extern u32     Gp_LcgState;
-extern SVECTOR D_shelter_r48_8018300C;
-extern u8      D_shelter_r48_8018BE54[6][16];
+extern u32                  Gp_LcgState;
+extern SVECTOR              D_shelter_r48_8018300C;
+extern u8                   D_shelter_r48_8018BE54[6][16];
+extern _ShelterR48RingScale D_shelter_r48_80182FE8[];
 
 void func_shelter_r48_8017E27C(u8 arg0)
 {
@@ -421,7 +432,101 @@ void func_shelter_r48_8017EFD8(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_8017F124);
+/// Draws one of the ring bands of the effect as sixteen textured `POLY_FT4`
+/// segments. Builds an inner and an outer 16-vertex ring in the XZ plane from
+/// the work's radii plus the band's `D_shelter_r48_80182FE8` offsets, moves them
+/// into world space through `coord`, then projects each segment and picks its
+/// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
+void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
+{
+    void**                scratch;
+    u8*                   head;
+    GpBandScratch*        block;
+    SVECTOR*              op;
+    POLY_FT4*             prim;
+    _ShelterR48RingScale* row;
+    s32                   i;
+    s32                   next;
+    s32                   ang;
+    s32                   u;
+    u16                   idx;
+    s16                   r0;
+    s16                   r1;
+    u16                   y;
+    u16                   f28;
+
+    row      = &D_shelter_r48_80182FE8[part];
+    f28      = (u16)work->period;
+    r1       = (u16)work->angle;
+    y        = f28 + (u16)row->yOff;
+    r1      += (u16)row->rInner;
+    r0       = r1 + (u16)work->step + (u16)row->rExtra;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch;
+    *scratch = head - 0x118;
+    block    = (GpBandScratch*)(head - 0x118);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        ang                = i << 8;
+        block->inner[i].vx = (rsin(ang) * r0) >> 12;
+        block->inner[i].vy = -y;
+        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * r1) >> 12;
+        op                 = &block->inner[i] + 16;
+        op->vy             = 0;
+        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&coord->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        gte_stsxy(&block->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        gte_rtpt_real();
+        idx = (D_shelter_r48_8018BE54[part][i] + work->age) % 6;
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setlen(prim, 9);
+            prim->code = 0x2E;
+            setRGB0(prim, *(u8*)&work->scale, *(u8*)&work->scale, *(u8*)&work->scale);
+            prim->tpage = 0x2A;
+            prim->clut  = part < 3 ? 0x42C6 : 0x4282;
+            u           = idx * 0x28;
+            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            prim->x2 = *(u16*)&block->sxy2.vx;
+            prim->y2 = *(u16*)&block->sxy2.vy;
+            prim->x3 = *(u16*)&block->sxy3.vx;
+            prim->y3 = *(u16*)&block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+}
 
 /// Per-frame update of an effect task drawn with `func_shelter_r48_8017FB7C`
 /// (state 1) or `func_shelter_r48_8017FF74` (state 2). State 0 seeds the work
