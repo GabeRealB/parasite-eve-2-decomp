@@ -13,5 +13,3 @@ void func_shelter_b1_underground_parking_8018491C(void)
     gGameSession->at4.loc.room  = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->roomObjsDirty = 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_11", jtbl_shelter_b1_underground_parking_8017D9F4);

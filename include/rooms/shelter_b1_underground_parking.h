@@ -27,6 +27,11 @@ typedef struct SbupExamineWork {
     /* 0x0F */ byte pad_F[0x1];
 } SbupExamineWork;
 
+/// Flag tested as zero / non-zero when drawing the room's view-dependent
+/// markers: it selects 0x180 or 0x60 as the second argument of their draw
+/// calls. Its meaning is unproven.
+extern u16 D_shelter_b1_underground_parking_8018D78C;
+
 void func_shelter_b1_underground_parking_8018390C(void);
 
 void func_shelter_b1_underground_parking_80183B9C(void);
