@@ -137830,3 +137830,28 @@ local-alloc, `sched.c` (schedule_insns, `reload_completed == 0`) overwrites
 (`base_24.i` `02d39d5c…` vs `base_25.i` `fca46c03…`). A live-length lever has to move code
 across a block boundary or change the reference count. Rearranging statements within a
 block only moves sched1's input order, which it re-derives.
+
+## Stopping a marginal `%hi` hoist: an earlier constant local used only as a shift amount spends the threshold invisibly (func_mine_cavern_80181864, 2026-09-23)
+
+The inverse of the "threshold decays by 3 per hoist" entry. Here the target kept
+`lui a1,%hi(Gp_LcgState)` local to the outer loop's block (one `lui` for both the
+`lw` and the write-back), while the build hoisted it: `-dL` showed
+`Insn 202: regno 130 (life 6), move-insn savings 1  moved to 630` against
+`170 real insns`, i.e. 29 × 6 = 174 >= 170 (29 = 1 + 28 non-fixed regs under
+`-msoft-float`, loop has calls). Hoisted, it lost allocation and reload
+rematerialised it in the function's only spill register `a3` twice, since the
+spilled `size` reload in between clobbered it.
+
+Nested `if`s vs `continue`, `do/while` vs `for` and `&a[j]` vs `a + j` all left
+the count at 170. What worked was a movable *earlier* in the loop body that gets
+moved and then vanishes: `shift = 12;` at the top of the outer loop, used as
+the `>> shift` of the inner loop's `rsin`/`rcos` products. Its lifetime spans
+the inner loop, so it is moved first (threshold 29 → 26, and 26 × 6 = 156 < 170
+declines the `%hi`); the hoisted pseudo has a `REG_EQUIV` constant, loses
+allocation, and reload substitutes `12` straight back into the `sra` immediate,
+so the moved insn emits nothing. The permuter found it as `new_var = 12`.
+
+The same trick needs a use where an immediate is legal after substitution —
+shift counts, `slti`/`addiu` operands. A constant that feeds an `and`/`or`
+with another constant, or a store, is reloaded into a spill register instead
+and shows up in the output.

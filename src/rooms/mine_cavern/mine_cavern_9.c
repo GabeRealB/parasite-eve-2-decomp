@@ -61,7 +61,120 @@ extern u8 D_mine_cavern_8018E35B[];
 extern u8 D_mine_cavern_8018E35C[];
 extern u8 D_mine_cavern_8018E35D[];
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181864);
+/// Colour of the point glow fans' centre vertex, one channel per symbol and
+/// declared as arrays for the same reason as the cavern glow's colours.
+extern u8 D_mine_cavern_8018E350[];
+extern u8 D_mine_cavern_8018E351[];
+extern u8 D_mine_cavern_8018E352[];
+
+/// Colour of the point glow fans' two rim vertices.
+extern u8 D_mine_cavern_8018E353[];
+extern u8 D_mine_cavern_8018E354[];
+extern u8 D_mine_cavern_8018E355[];
+
+/// The six points `func_mine_cavern_80181864` draws a glow at.
+extern SVECTOR D_mine_cavern_8018E36C[6];
+
+/// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the
+/// fourth skipped while view 4 is active: per point, a fan of eight
+/// semi-transparent Gouraud triangles around its projected position, each
+/// followed by a drawing-mode packet, both linked at the point's depth. The
+/// radius is scaled by depth and jittered by the shared LCG, and its base
+/// shrinks as more `GameFlag_GetNibble(0xE2)` bits are set. A point whose
+/// projection flags an error is skipped.
+void func_mine_cavern_80181864(void)
+{
+    s32       sxy;
+    s32       flag;
+    s32       otz;
+    POLY_G3*  prim;
+    DR_TPAGE* dr;
+    s32       radius;
+    s32       i;
+    s32       flags;
+    u8        count;
+    s32       j;
+    s32       base;
+    u16       view;
+    s32       size;
+    s32       shift;
+    u16       x;
+    u16       y;
+
+    flags = GameFlag_GetNibble(0xE2);
+    view  = Gp_GetViewIndex() & 0xFF;
+    count = 0;
+    for (j = 0; j < 4; j++) {
+        if ((flags >> j) & 1) {
+            count++;
+        }
+    }
+    switch (count) {
+        case 0:
+        case 1:
+            base = 0x428;
+            break;
+        case 2:
+            base = 0x3C0;
+            break;
+        case 3:
+            base = 0xC8;
+            break;
+        case 4:
+        default:
+            base = 0x80;
+            break;
+    }
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(&gGfxViewCoord);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    size = base;
+    for (j = 0; j < 6; j++) {
+        shift = 12; // fraction bits of rsin/rcos
+        if (j == 3 && view == 4) {
+            continue;
+        }
+        gte_ldv0(&D_mine_cavern_8018E36C[j]);
+        gte_rtps_real();
+        gte_stsxy(&sxy);
+        gte_stflg(&flag);
+        gte_stszotz(&otz);
+        if (flag < 0) {
+            continue;
+        }
+        x           = sxy;
+        y           = sxy >> 16;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        radius      = (s32)(size + ((Gp_LcgState >> 16) & 0xF)) * 0x160 / (otz * 4);
+        for (i = 0; i < 8; i++) {
+            prim           = (POLY_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = (POLY_GT3*)prim + 1;
+            setPolyG3(prim);
+            prim->r0 = D_mine_cavern_8018E350[0];
+            prim->g0 = D_mine_cavern_8018E351[0];
+            prim->b0 = D_mine_cavern_8018E352[0];
+            prim->x0 = x;
+            prim->y0 = y;
+            prim->r1 = D_mine_cavern_8018E353[0];
+            prim->g1 = D_mine_cavern_8018E354[0];
+            prim->b1 = D_mine_cavern_8018E355[0];
+            prim->r2 = D_mine_cavern_8018E353[0];
+            prim->g2 = D_mine_cavern_8018E354[0];
+            prim->b2 = D_mine_cavern_8018E355[0];
+            setSemiTrans(prim, 1);
+            prim->x1 = x + ((rsin(i << 9) * radius) >> shift);
+            prim->y1 = y + ((rcos(i << 9) * radius) >> shift);
+            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> shift);
+            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> shift);
+            addPrim(&gGpuCurrentOt[otz >> 4], prim);
+            dr             = gGpuPrimCursor;
+            gGpuPrimCursor = (DR_MODE*)dr + 1;
+            setDrawTPage(dr, 0, 0, 0x2A);
+            addPrim(&gGpuCurrentOt[otz >> 4], dr);
+        }
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80181CAC);
 
