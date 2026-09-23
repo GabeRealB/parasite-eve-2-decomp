@@ -52,7 +52,37 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8018245C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_801825C0);
+void func_shelter_b6_training_room_801825C0(Task* task)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+
+    mem   = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState == 0) {
+        mem->age++;
+        if (task->state == 0) {
+            mem->move.vx = 0;
+            mem->move.vy = 8;
+            mem->move.vz = 0;
+            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
+            mem->scale   = ((Gp_LcgState >> 16) & 0xFFF) | 0x1000;
+            task->state  = 1;
+        }
+        coord->coord.t[1] += mem->move.vy;
+        coord->flg         = 0;
+        if (!(mem->age & 1)) {
+            mem->index++;
+        }
+        if (mem->index < 8) {
+            if (mem->age & 1) {
+                Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
+            }
+        } else {
+            Gp_ReleaseState1CMem(mem, task);
+        }
+    }
+}
 
 void func_shelter_b6_training_room_801826E0(Task* task)
 {
