@@ -73,6 +73,7 @@ extern u8        D_shelter_r47_80186FAC[];
 
 s32 func_shelter_r47_80180C48(Task* task);
 
+void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_8018337C(Task* task);
 void func_shelter_r47_801833DC(Task* task, s16 arg1);
 
@@ -254,11 +255,29 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183284);
 
-void func_shelter_r47_801832E4(void)
+void func_shelter_r47_801832E4(s16 step)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_801832EC);
+void func_shelter_r47_801832EC(Task* task)
+{
+    ShelterR47State* state = (ShelterR47State*)task->work;
+
+    switch (state->field_51) {
+        case 0:
+            func_shelter_r47_801832E4(state->step);
+            break;
+        case 2:
+            Gp_StartCapSlot(0xB, 0, 0);
+            break;
+        case 3:
+            Gp_StartCapSlot(0xC, 0, 0);
+            break;
+        case 4:
+            Gp_StartCapSlot(0xD, 0, 0);
+            break;
+    }
+}
 
 void func_shelter_r47_8018337C(Task* task)
 {
