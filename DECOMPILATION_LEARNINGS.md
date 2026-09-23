@@ -137925,3 +137925,20 @@ match. Use it only when the target shows the same register at both sites.
 **Fix.** One `s32 ty` for both sums. With it, the entry block matched exactly
 (99.634% -> 99.890%, together with setting the `&D_80114D28` pointer before
 the first call).
+
+### `s16` parameter copies sink below the scratch prologue; a volatile asm there stops them (func_dryfield_dilapidated_house_801832A8, 2026-09-23)
+
+**Problem.** A GTE sprite drawer (`lw t0,0(a1)` scratch head, `move t1,a1`,
+`move s0,a2`) put the scratch head in `$a2` instead of `$t0` whenever the
+parameters were `s32` or a `USE_REG(head)` followed the head load.
+
+**Why.** With `s16` parameters, the `HImode` copies out of `$a2`/`$a3` have
+distant uses, so sched1 sinks them to just before the first volatile GTE asm -
+past the head load. The head is then born while `$a2`/`$a3` are live, conflicts
+with both, and global-alloc hands it `$t0`. `s32` parameters (or any volatile
+asm between the head load and the GTE block, such as `USE_REG(head)`) keep the
+copies above the load, and `$a2` is free again.
+
+**Fix.** Declare the parameters `s16` and keep volatile asm out of the prologue;
+a trailing `DEF_REG(head)` (the `func_energyball_8013035C` form) fixed the
+remaining `lw head` / `lhu vx` order without blocking the sink.

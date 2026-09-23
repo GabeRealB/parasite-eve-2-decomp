@@ -21,7 +21,7 @@
 extern u32 Gp_LcgState;
 
 void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
-void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* coord, s16 arg1, s16 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* coord, s32 arg1, s16 arg2);
 void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* coord, s16 arg1, s32 arg2, s16 arg3);
 void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s32 arg1);
@@ -678,7 +678,81 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801832A8);
+/// Draws a spinning textured sprite at `arg0`'s `workm` translation, projected
+/// once through `GsWSMATRIX`. The `POLY_FT4` is taken from the primitive
+/// cursor before the projection flag is checked, so a dropped sprite (negative
+/// `gte_stflg`) still consumes its slot. The low bit of `arg1` alternates two
+/// semi-transparent looks: odd draws the 0x428B cell tinted
+/// `(0xC0, 0x60, 0x40)`, even draws the 0x428C cell untinted. The corners sit
+/// `arg2 * 55 / otz` from the projected centre along `arg3` and
+/// `arg3 + 0x400`, so the sprite shrinks with depth.
+void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    void**                    scratch;
+    u8*                       head;
+    GpFxQuadScratch*          block;
+    register GpFxQuadScratch* p asm("v0");
+    register u16              vx asm("v0");
+    POLY_FT4*                 prim;
+    s32                       ang;
+    u16                       vz;
+
+    scratch                                   = (void**)G_SCRATCH_HEAD;
+    head                                      = *scratch;
+    vx                                        = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
+    p                                         = (GpFxQuadScratch*)(head - 0x1C);
+    block                                     = p;
+    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
+    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vz                             = vz;
+    *scratch                                  = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyFT4(prim);
+    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+        block->otz++;
+        if (arg1 & 1) {
+            setRGB0(prim, 0xC0, 0x60, 0x40);
+            prim->tpage = 0x29;
+            prim->clut  = 0x428B;
+            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
+            setSemiTrans(prim, 1);
+        } else {
+            prim->tpage = 0x29;
+            prim->clut  = 0x428C;
+            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
+            setSemiTrans(prim, 1);
+            setShadeTex(prim, 1);
+        }
+        ang       = arg3;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang       = ang + 0x400;
+        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    DEF_REG(head);
+}
 
 /// Draws the flame band: two 16-vertex rings of radius `arg1` and
 /// `arg1 + arg2` are built in the XZ plane by `rsin` / `rcos`, rotated by
