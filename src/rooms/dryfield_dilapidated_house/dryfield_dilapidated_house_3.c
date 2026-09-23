@@ -29,6 +29,8 @@ extern SVECTOR    D_dryfield_dilapidated_house_801866B4[];
 extern TaskDesc   D_dryfield_dilapidated_house_80186854;
 extern void       Room_Script16(Task* task);
 
+void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
+
 void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
@@ -119,7 +121,113 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
     } while (i < 8);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EE58);
+/// Debug view of the two cubic Bezier segments whose control points start at
+/// `D_dryfield_dilapidated_house_801866B4`: samples each at 21 positions,
+/// projects every point through the parent task's `DdhCoordWork` matrix and
+/// `Gfx_ViewWorldMtx`, and queues a small `LINE_F2` X at it in
+/// `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
+void func_dryfield_dilapidated_house_8017EE58(Task* task)
+{
+    SVECTOR  vec;
+    DVECTOR  sx;
+    DVECTOR  sy;
+    s32      out[3];
+    s32      sxy;
+    s32      dp;
+    s32      flag;
+    s32      otz;
+    MATRIX*  mtx;
+    LINE_F2* line;
+    s32      i;
+
+    mtx = &((DdhCoordWork*)((Task*)task->spawnArg2)->work)->mtx;
+    for (i = 20; i >= 0; i--) {
+        func_dryfield_dilapidated_house_8017F418(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
+        vec.vx = out[0];
+        vec.vy = out[1];
+        vec.vz = out[2];
+        gte_SetRotMatrix(mtx);
+        gte_ldv0(&vec);
+        gte_mvmva_real();
+        gte_stsv(&vec);
+        vec.vx = *(u16*)&vec.vx + *(u16*)&mtx->t[0];
+        vec.vy = *(u16*)&vec.vy + *(u16*)&mtx->t[1];
+        vec.vz = *(u16*)&vec.vz + *(u16*)&mtx->t[2];
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(&vec);
+        gte_rtps_real();
+        gte_stsxy(&sxy);
+        gte_stdp(&dp);
+        gte_stflg(&flag);
+        gte_stszotz(&otz);
+        sx.vx = sxy;
+        sy.vx = sxy >> 16;
+
+        line           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
+        setLineF2(line);
+        setRGB0(line, 0, 0xFF, 0);
+        line->x0 = sx.vx - 1;
+        line->y0 = sy.vx - 1;
+        line->x1 = sx.vx + 1;
+        line->y1 = sy.vx + 1;
+        addPrim(gGpuCurrentOt + 10, line);
+
+        line           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
+        setLineF2(line);
+        setRGB0(line, 0, 0xFF, 0);
+        line->x0 = sx.vx + 1;
+        line->y0 = sy.vx - 1;
+        line->x1 = sx.vx - 1;
+        line->y1 = sy.vx + 1;
+        addPrim(gGpuCurrentOt + 10, line);
+    }
+    for (i = 20; i >= 0; i--) {
+        func_dryfield_dilapidated_house_8017F418(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
+        vec.vx = out[0];
+        vec.vy = out[1];
+        vec.vz = out[2];
+        gte_SetRotMatrix(mtx);
+        gte_ldv0(&vec);
+        gte_mvmva_real();
+        gte_stsv(&vec);
+        vec.vx = *(u16*)&vec.vx + *(u16*)&mtx->t[0];
+        vec.vy = *(u16*)&vec.vy + *(u16*)&mtx->t[1];
+        vec.vz = *(u16*)&vec.vz + *(u16*)&mtx->t[2];
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_ldv0(&vec);
+        gte_rtps_real();
+        gte_stsxy(&sxy);
+        gte_stdp(&dp);
+        gte_stflg(&flag);
+        gte_stszotz(&otz);
+        sx.vx = sxy;
+        sy.vx = sxy >> 16;
+
+        line           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
+        setLineF2(line);
+        setRGB0(line, 0, 0, 0xFF);
+        line->x0 = sx.vx - 1;
+        line->y0 = sy.vx - 1;
+        line->x1 = sx.vx + 1;
+        line->y1 = sy.vx + 1;
+        addPrim(gGpuCurrentOt + 10, line);
+
+        line           = (LINE_F2*)gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
+        setLineF2(line);
+        setRGB0(line, 0, 0, 0xFF);
+        line->x0 = sx.vx + 1;
+        line->y0 = sy.vx - 1;
+        line->x1 = sx.vx - 1;
+        line->y1 = sy.vx + 1;
+        addPrim(gGpuCurrentOt + 10, line);
+    }
+}
 
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
 /// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`

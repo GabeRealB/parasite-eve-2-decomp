@@ -137942,3 +137942,24 @@ copies above the load, and `$a2` is free again.
 **Fix.** Declare the parameters `s16` and keep volatile asm out of the prologue;
 a trailing `DEF_REG(head)` (the `func_energyball_8013035C` form) fixed the
 remaining `lw head` / `lhu vx` order without blocking the sink.
+
+### A constant-address argument instead of a pointer variable spends LICM threshold and keeps a later mask in the loop (func_dryfield_dilapidated_house_8017EE58, 2026-09-23)
+
+Two back-to-back loops with identical bodies, each calling
+`f(pts, pts + 3, ...)`. The first passed the array itself (`D`), the second a
+local `pts = D + 3`. Loop 1 matched; loop 2 hoisted `0xFF000000` (the
+`addPrim` mask) into a callee-saved register, which pushed every constant up a
+register and moved `pts` from `$t0` to `$t1`.
+
+`.i.loop` showed why: `move_movables` starts each loop at
+`threshold = (call ? 1 : 2) * (1 + n_non_fixed_regs)` and subtracts 3 per
+invariant it moves. Loop 1 moved `D`'s `lui`/`addiu` first, so by the time it
+reached the mask (lifetime 39, 127 insns) it was `not desirable`. Loop 2 had
+one movable fewer, so the same mask passed.
+
+Fix: write the second call as `f(D + 3, D + 6, ...)`. `D + 3` becomes a
+movable (the extra `threshold -= 3`), cse still spells `D + 6` as
+`reg + 0x18`, and the hoisted `D + 3` lands in `$t0` with a caller-save slot,
+exactly as the target has it. So when one loop of a pair hoists a constant the
+other does not, count the `moved to` lines in `.i.loop` for each: a missing
+move earlier in the loop is a lever the source controls.
