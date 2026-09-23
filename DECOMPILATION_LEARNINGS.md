@@ -138570,3 +138570,32 @@ change also decides which copy of a shared `call; state = 0` tail survives
 cross-jumping (arms that `break` merge into the last copy, arms that store
 and `return` merge into the first), see "A `return` written per path
 cross-jumps away".
+
+## A symbol address built in `$t0` inside a call-heavy loop is a spilled constant pointer local, rematerialised by reload (func_dryfield_water_hole_8017E040, 2026-09-23)
+
+**Symptom.** Inside a loop with several calls, the target builds
+`&gGfxViewCoord` as `lui t0` / `addiu t0,t0` right before its one store
+(`sw t0,0x5c(sp)`), and it is scheduled *after* an unrelated load that
+precedes it in the source. Writing `local.sub = &gGfxViewCoord;` at that point
+gives the same two instructions in `$v1`, placed first, and one reordered
+block (96.7%).
+
+**Cause.** `$t0` here is a reload register, not a local-alloc choice: the same
+function reloads its spilled `mask` into `$t0` too. The original held the
+address in a pointer local set *before* the loop. That pseudo lives across
+every call in the loop, every callee-saved register is already taken, so
+global-alloc leaves it unallocated; its only set is a constant, so it carries a
+`REG_EQUIV` and reload rematerialises `lui`/`addiu` into a reload register at
+the use instead of giving it a stack slot. No frame space appears for it.
+
+**Fix.**
+
+```c
+view = &gGfxViewCoord;          /* before the loop */
+for (i = 0; i < 2; i++) {
+    ...
+    local.sub = view;
+```
+
+Setting the pointer at function entry instead scored lower (96.4%, the
+residue moving to other blocks); the set belongs just before the loop.
