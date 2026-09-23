@@ -139125,3 +139125,16 @@ strength reduction over `a[i]`. Write the index form before tuning walkers.
 **Cause.** `t = x * 0xFF / 0x400; c.r = t; c.g = t;` makes the shift result a user variable (`reg/v`); `c.r = x * 0xFF / 0x400; c.g = x * 0xFF / 0x400;` gives the same `.cse` RTL except that the result is an anonymous temp, which cse shares between the two stores. The different pseudo kind moved allocation and sched1 enough to reproduce every difference at once, including the unrelated-looking clamp slot.
 
 **Fix.** Write the expression at both stores. `c.r = c.g = expr` behaved like the named temp. Same family as "Two `move`s out of one temp: the pair was assigned from a named intermediate", in the opposite direction.
+### A global's address in a delay slot, then `lh off(reg)`, means the pointer was taken one block earlier (func_shelter_b3_garbage_incinerator_8017F6D8, 2026-09-23)
+
+The target read `Player_Status.hp` as `addiu v0,v0,%lo(Player_Status)` in the
+delay slot of the preceding `bgtz`, then `lh v0,0x18(v0)`. It did not fold the
+offset into `%lo(Player_Status+0x18)`. Plain `Player_Status.hp` folds it. A
+`PlayerStatus* ps = &Player_Status` at function scope hoists the address into
+the entry block (93.2%). Assigning `ps = &Player_Status;` at the top of the
+switch case, before the `if` on another field, matched at 100%. The use then
+sits in a later block, so combine cannot fold the offset. The address pseudo
+also stops competing for registers from the entry block. That alone fixed the
+unrelated `regs=18` swap of the session pointer and switch value. When a
+global's address shows up whole in a branch delay slot, assign the pointer in
+the block before the branch. Input: `base_4.i` `ced5d17fd7fcf754dc166566e75d80372ebf5d597f4dafdd3022c2ea79bee988` (100%).

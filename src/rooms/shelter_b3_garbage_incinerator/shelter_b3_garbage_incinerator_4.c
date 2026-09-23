@@ -8,6 +8,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x30];
@@ -71,8 +72,13 @@ extern s8 D_8007218A;
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
 extern GarbageIncineratorCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
 extern u8                          D_801153F4;
-void                               RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
-void                               func_shelter_b3_garbage_incinerator_8017FB80(void);
+extern u8                          D_80071075;
+extern u8                          D_80114CF8;
+
+/// Task table entry spawned once when the controller starts.
+extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
+void            RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
+void            func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F0A8);
 
@@ -218,7 +224,68 @@ s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017F6D8);
+/// Does nothing while `gGameSession->field_65`, `Gp_StateC08.field_9`,
+/// `D_801153F4` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
+/// fails), records `gameGetPtrSlot(3)` in `field_2C` and the task in
+/// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
+/// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
+/// the scene clock has run out while the player is alive, unless
+/// `field_135` is 1 in view 0x21. State 2 advances when
+/// `func_shelter_b3_garbage_incinerator_8017F588` returns nonzero.
+void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
+{
+    GameSession*            session = gGameSession;
+    GarbageIncineratorWork* work;
+    s32                     ok;
+    PlayerStatus*           ps;
+
+    if (session->field_65 != 0 || (s8)Gp_StateC08.field_9 != 0 || D_801153F4 != 0 || D_80114CF8 != 0) {
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            if (Gp_StateC08.field_A == 1 || D_80071075 != 0) {
+                return;
+            }
+            work       = Mem_Malloc(0x40, false);
+            arg0->work = work;
+            if (work == NULL) {
+                taskKill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x40);
+                work->field_2C                            = gameGetPtrSlot(3);
+                D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
+            }
+            Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
+            if (arg0->spawnArg1 == 0) {
+                SndEvt_EnqueueType6(0x54280005, 0, 0);
+            }
+            break;
+        case 1:
+            ps = &Player_Status;
+            if (session->sceneClock > 0) {
+                ok = 0;
+            } else if (ps->hp <= 0) {
+                ok = 0;
+            } else if (session->field_135 != 1 || session->at4.loc.view != 0x21) {
+                ok = 1;
+            } else {
+                ok = 0;
+            }
+            if (!ok) {
+                return;
+            }
+            break;
+        case 2:
+            if ((s16)func_shelter_b3_garbage_incinerator_8017F588(arg0) == 0) {
+                return;
+            }
+            break;
+        default:
+            return;
+    }
+    arg0->state++;
+}
 
 void func_shelter_b3_garbage_incinerator_8017F8A4(GarbageIncineratorState* arg0, s32 arg1, s32 arg2)
 {
