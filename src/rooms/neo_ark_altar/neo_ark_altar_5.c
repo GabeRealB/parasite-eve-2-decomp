@@ -37,7 +37,158 @@ s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
 s16  func_neo_ark_altar_8017E260(Task* task);
 void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017DC40);
+/// Steps the altar's switch state `D_neo_ark_altar_801800AE` by one per call,
+/// in the direction `arg0` (the 0xD9 game-flag nibble) selects: 0 sets
+/// `field_4` of the second command in `rec[3]` and `rec[6]` and counts up
+/// towards 6, 1 clears them and counts down towards 0; any other value, or a
+/// state already at the end of its range, changes nothing. Each step rewrites
+/// the six commands after the first in `rec[4]` so exactly one holds 0: index
+/// `6 - s`, where `s` is the lower of the old and new states.
+void func_neo_ark_altar_8017DC40(s32 arg0)
+{
+    GpAreaKey* sess;
+    GpSprtRec* rec;
+    GpSprtCmd* cmd;
+
+    sess  = &gGameSession->at4.loc;
+    rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    arg0 &= 0xFF;
+    if (arg0 == 0) {
+        cmd            = rec[3].field_4;
+        cmd[1].field_4 = 1;
+        cmd            = rec[6].field_4;
+        cmd[1].field_4 = 1;
+        switch (D_neo_ark_altar_801800AE) {
+            case 0:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 0;
+                D_neo_ark_altar_801800AE = 1;
+                break;
+            case 1:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 0;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 2;
+                break;
+            case 2:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 0;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 3;
+                break;
+            case 3:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 0;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 4;
+                break;
+            case 4:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 0;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 5;
+                break;
+            case 5:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 0;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 6;
+                break;
+        }
+    } else if (arg0 == 1) {
+        cmd            = rec[3].field_4;
+        cmd[1].field_4 = 0;
+        cmd            = rec[6].field_4;
+        cmd[1].field_4 = 0;
+        switch (D_neo_ark_altar_801800AE) {
+            case 6:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 0;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 5;
+                break;
+            case 5:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 0;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 4;
+                break;
+            case 4:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 0;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 3;
+                break;
+            case 3:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 0;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 2;
+                break;
+            case 2:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 0;
+                cmd[6].field_4           = 1;
+                D_neo_ark_altar_801800AE = 1;
+                break;
+            case 1:
+                cmd                      = rec[4].field_4;
+                cmd[1].field_4           = 1;
+                cmd[2].field_4           = 1;
+                cmd[3].field_4           = 1;
+                cmd[4].field_4           = 1;
+                cmd[5].field_4           = 1;
+                cmd[6].field_4           = 0;
+                D_neo_ark_altar_801800AE = 0;
+                break;
+        }
+    }
+}
 
 /// Altar state 2: records the tile the player walks onto and, while
 /// `func_neo_ark_altar_8017E260` reports the altar sequence has matched, raises
