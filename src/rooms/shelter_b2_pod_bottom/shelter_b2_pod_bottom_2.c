@@ -36,7 +36,23 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8018101C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80181940);
+void func_shelter_b2_pod_bottom_80181940(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u32            rnd;
+
+    if (Gp_State1C->eventState == 0) {
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        coord       = &((TmdObject*)arg0->extra)->coords[(u16)((rnd >> 16) % 18) + 2];
+        Gp_SpawnEff(0x600E0, coord, 0x10300, 0);
+        rnd         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rnd;
+        if ((rnd >> 16) & 1) {
+            Gp_SpawnEff(0x600E1, coord, 0x10300, 0);
+        }
+    }
+}
 
 void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
 {
