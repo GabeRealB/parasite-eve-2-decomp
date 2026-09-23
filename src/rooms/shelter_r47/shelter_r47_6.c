@@ -17,13 +17,24 @@
 /// `memCalloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
 /// at `Task::work`.
 typedef struct {
-    /* 0x00 */ u8  pad_0[0x18];
-    /* 0x18 */ s16 field_18;  ///< committed to game flag 0xAC when the script ends
-    /* 0x1A */ s16 field_1A;  ///< committed to game flag 0xD5 when the script ends
-    /* 0x1C */ s16 field_1C;  ///< committed to game flag 0xAE when the script ends
-    /* 0x1E */ s16 field_1E;  ///< committed to game flag 0xD6 when the script ends
-    /* 0x20 */ s16 field_20;  ///< committed to game flag 0xD2 when the script ends
-    /* 0x22 */ u8  pad_22[0x12];
+    /* 0x00 */ s16 field_0[5]; ///< x of each of the five rows, eased toward a per-row target
+    /* 0x0A */ u8  pad_A[2];
+    /* 0x0C */ s16 field_C[5]; ///< y of each of the five rows
+    /* 0x16 */ u8  pad_16[2];
+    /* 0x18 */ s16 field_18;   ///< committed to game flag 0xAC when the script ends
+    /* 0x1A */ s16 field_1A;   ///< committed to game flag 0xD5 when the script ends
+    /* 0x1C */ s16 field_1C;   ///< committed to game flag 0xAE when the script ends
+    /* 0x1E */ s16 field_1E;   ///< committed to game flag 0xD6 when the script ends
+    /* 0x20 */ s16 field_20;   ///< committed to game flag 0xD2 when the script ends
+    /* 0x22 */ u8  pad_22[2];
+    /* 0x24 */ s16 field_24;
+    /* 0x26 */ s16 field_26;
+    /* 0x28 */ s16 field_28;
+    /* 0x2A */ s16 field_2A;
+    /* 0x2C */ s16 field_2C;
+    /* 0x2E */ s16 field_2E;
+    /* 0x30 */ s16 field_30;
+    /* 0x32 */ s16 field_32;
     /* 0x34 */ s16 selection; ///< `id` of the hotspot the player confirmed
     /* 0x36 */ u16 fade;      ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x38 */ u8  pad_38[2];
@@ -31,16 +42,17 @@ typedef struct {
     /* 0x3C */ s16 field_3C;
     /* 0x3E */ s16 field_3E;
     /* 0x40 */ s16 field_40;
-    /* 0x42 */ s16 field_42; ///< counter gating the move to state 3
-    /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
-    /* 0x46 */ u8  pad_46[2];
+    /* 0x42 */ s16 field_42;   ///< counter gating the move to state 3
+    /* 0x44 */ s16 step;       ///< sub-step selected by the running cap event
+    /* 0x46 */ s16 field_46;   ///< background scroll, clamped to 0..0x140
     /* 0x48 */ s16 field_48;
     /* 0x4A */ u8  promptKind; ///< `promptKind` of the hotspot the player confirmed
     /* 0x4B */ u8  pad_4B[4];
     /* 0x4F */ s8  field_4F;   ///< low byte of the last `selection` accepted with kind 0
     /* 0x50 */ s8  field_50;   ///< previous `field_4F`, kept when a new one is accepted
     /* 0x51 */ s8  field_51;
-    /* 0x52 */ u8  pad_52[2];
+    /* 0x52 */ s8  field_52;   ///< bit 0 scrolls the background back toward 0
+    /* 0x53 */ u8  pad_53;
 } ShelterR47State;
 STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 
@@ -49,8 +61,12 @@ extern s16 Gp_MenuLockDelay;
 extern s16 D_80114D08;
 
 void func_shelter_r47_80180F38(s32 arg0, s16 arg1, s32 arg2);
-void func_shelter_r47_80181914(Task* task, s32 arg1);
+void func_shelter_r47_80181914(Task* task, s16 arg1);
+void func_shelter_r47_80181F14(Task* task, s16 y);
+void func_shelter_r47_801820C0(s16 arg0);
 s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
+
+extern u8 D_8007216C;
 
 extern u8 D_shelter_r47_80186FAD;
 
@@ -184,7 +200,202 @@ void func_shelter_r47_801816CC(Task* task)
     task->state = 3;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_80181914);
+/// Sets the task's `step` to `st` and draws sprite `id` at (`field_30`,
+/// `field_32`).
+#define SHELTER_R47_DRAW_STEP(id, st)                          \
+    {                                                          \
+        s16 x_                               = work->field_30; \
+        s16 y_                               = work->field_32; \
+        ((ShelterR47State*)task->work)->step = (st);           \
+        func_shelter_r47_80180F38(x_, y_, (id));               \
+    }
+
+/// Per-frame draw of the cap script's selection screen. While `D_8007216C` is
+/// 0x14 it scrolls the background by `field_46`. Every positioned sprite is
+/// eased a quarter of the way toward its target each frame. `arg1` picks the
+/// layout: the entry drawn is `field_4F` when it is 0 and `field_50` otherwise,
+/// that entry's flag (`field_18`..`field_20`) selects `step`, and the five rows
+/// in `field_0`/`field_C` either all settle at one column or fan out, with the
+/// selected row marked.
+void func_shelter_r47_80181914(Task* task, s16 arg1)
+{
+    ShelterR47State* work;
+    s32              i;
+    s16              id;
+    s16              nx;
+    s32              x;
+    s32              ny;
+    s16              y;
+    s8               c;
+    s16              sel;
+
+    work = (ShelterR47State*)task->work;
+    if (D_8007216C == 0x14) {
+        if (work->field_52 & 1) {
+            work->field_46--;
+            if (work->field_46 < 0) {
+                work->field_46 = 0;
+            }
+        } else {
+            work->field_46++;
+            if (work->field_46 > 0x140) {
+                work->field_46 = 0x140;
+            }
+        }
+        func_shelter_r47_801820C0(work->field_46);
+    }
+    if (work->field_42 > 0) {
+        work->field_42--;
+    }
+    work->field_28 += (-0x98 - work->field_28) >> 2;
+    func_shelter_r47_80180F38(work->field_28, work->field_2A, 0);
+    id = 1;
+    if (arg1 == 0) {
+        work->field_2E += (0x48 - work->field_2E) >> 2;
+        if (work->field_42 == 0) {
+            func_shelter_r47_80180F38(work->field_2C, work->field_2E, id);
+        } else {
+            func_shelter_r47_80180F38(work->field_2C, work->field_2E, 2);
+        }
+        work->field_32 += (0x58 - work->field_32) >> 2;
+        func_shelter_r47_80181F14(task, work->field_32);
+        switch (work->field_4F) {
+            case 0:
+                if (work->field_18 == 0) {
+                    SHELTER_R47_DRAW_STEP(3, 0);
+                } else {
+                    SHELTER_R47_DRAW_STEP(4, 1);
+                }
+                break;
+            case 1:
+                if (work->field_1A == 0) {
+                    SHELTER_R47_DRAW_STEP(5, 2);
+                } else {
+                    SHELTER_R47_DRAW_STEP(6, 3);
+                }
+                break;
+            case 2:
+                if (work->field_1C == 0) {
+                    SHELTER_R47_DRAW_STEP(7, 4);
+                } else {
+                    SHELTER_R47_DRAW_STEP(8, 5);
+                }
+                break;
+            case 3:
+                if (work->field_1E == 0) {
+                    SHELTER_R47_DRAW_STEP(9, 6);
+                } else {
+                    SHELTER_R47_DRAW_STEP(10, 7);
+                }
+                break;
+            case 4:
+                if (work->field_20 == 0) {
+                    SHELTER_R47_DRAW_STEP(11, 8);
+                } else {
+                    SHELTER_R47_DRAW_STEP(12, 9);
+                }
+                break;
+        }
+    } else {
+        work->field_2E += (0x80 - work->field_2E) >> 2;
+        func_shelter_r47_80180F38(work->field_2C, work->field_2E, id);
+        work->field_32 += (0x90 - work->field_32) >> 2;
+        func_shelter_r47_80181F14(task, work->field_32);
+        switch (work->field_50) {
+            case 0:
+                if (work->field_18 == 0) {
+                    SHELTER_R47_DRAW_STEP(3, 0);
+                } else {
+                    SHELTER_R47_DRAW_STEP(4, 1);
+                }
+                break;
+            case 1:
+                if (work->field_1A == 0) {
+                    SHELTER_R47_DRAW_STEP(5, 2);
+                } else {
+                    SHELTER_R47_DRAW_STEP(6, 3);
+                }
+                break;
+            case 2:
+                if (work->field_1C == 0) {
+                    SHELTER_R47_DRAW_STEP(7, 4);
+                } else {
+                    SHELTER_R47_DRAW_STEP(8, 5);
+                }
+                break;
+            case 3:
+                if (work->field_1E == 0) {
+                    SHELTER_R47_DRAW_STEP(9, 6);
+                } else {
+                    SHELTER_R47_DRAW_STEP(10, 7);
+                }
+                break;
+            case 4:
+                if (work->field_20 == 0) {
+                    SHELTER_R47_DRAW_STEP(11, 8);
+                } else {
+                    SHELTER_R47_DRAW_STEP(12, 9);
+                }
+                break;
+        }
+    }
+    if (arg1 == 0) {
+        for (i = 0; i < 5; i++) {
+            nx               = work->field_0[i] + ((0x78 - work->field_0[i]) >> 2);
+            work->field_0[i] = nx;
+            if (work->field_4F == i) {
+                ny = work->field_C[i];
+                func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
+                func_shelter_r47_80180F38(nx, ny, 0x12);
+            } else {
+                func_shelter_r47_80180F38(nx, work->field_C[i], 0x12);
+            }
+        }
+    } else {
+        for (i = 0; i < 5; i++) {
+            if (work->field_4F == i) {
+                nx               = work->field_0[i] + ((0x78 - work->field_0[i]) >> 2);
+                ny               = work->field_C[i];
+                work->field_0[i] = nx;
+                func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
+                func_shelter_r47_80180F38(nx, ny, 0x13);
+            } else {
+                switch (i) {
+                    case 0:
+                        work->field_0[i] += (0xAA - work->field_0[i]) >> 2;
+                        break;
+                    case 1:
+                        work->field_0[i] += (0xBE - work->field_0[i]) >> 2;
+                        break;
+                    case 2:
+                        work->field_0[i] += (0xD2 - work->field_0[i]) >> 2;
+                        break;
+                    case 3:
+                        work->field_0[i] += (0xE6 - work->field_0[i]) >> 2;
+                        break;
+                    case 4:
+                        work->field_0[i] += (0xFA - work->field_0[i]) >> 2;
+                        break;
+                }
+                func_shelter_r47_80180F38(work->field_0[i], work->field_C[i], 0x12);
+            }
+        }
+    }
+    if (arg1 == 0) {
+        c = work->field_4F;
+        x = work->field_24;
+        y = work->field_26;
+    } else {
+        c = work->field_50;
+        x = work->field_24;
+        y = work->field_26;
+    }
+    work->field_24 += (0x7E - x) >> 2;
+    sel             = c;
+    if ((u16)sel < 5) {
+        func_shelter_r47_80180F38(work->field_24, y, (s16)(sel + 0xD));
+    }
+}
 
 /// Draws the current byte of the `step` sequence at row `y` through
 /// `func_shelter_r47_80180F38`, with a textured quad whose left edge follows

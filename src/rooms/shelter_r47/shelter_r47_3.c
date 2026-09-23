@@ -86,7 +86,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea68Title);
 
 s32  func_shelter_r47_8018097C(Task* task);
-void func_shelter_r47_80181914(Task* task, s32 arg1);
+void func_shelter_r47_80181914(Task* task, s16 arg1);
 void func_shelter_r47_80182AA0(Task* task);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_80183B84(Task* task);

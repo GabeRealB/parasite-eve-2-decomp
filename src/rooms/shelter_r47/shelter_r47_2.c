@@ -61,7 +61,7 @@ extern s16 D_80114D08;
 extern u8  D_8007216C;
 
 s32  func_shelter_r47_8018097C(Task* task);
-void func_shelter_r47_80181914(Task* task, s32 arg1);
+void func_shelter_r47_80181914(Task* task, s16 arg1);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_80183B84(Task* task);
 void func_shelter_r47_80183E24(void);
