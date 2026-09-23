@@ -1,10 +1,15 @@
 #include "common.h"
 
 #include "gameplay/3688.h"
+#include "gameplay/3CD8.h"
+#include "main/display.h"
+#include "main/session.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
-extern u8 D_shelter_b1_underground_parking_8018D788;
-extern u8 D_shelter_b1_underground_parking_8018D789;
+extern u8  D_shelter_b1_underground_parking_8018D788;
+extern u8  D_shelter_b1_underground_parking_8018D789;
+extern s8  D_8007216C;
+extern s16 D_80114D08;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184284);
 
@@ -28,7 +33,21 @@ void func_shelter_b1_underground_parking_80184594(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_801845F8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_801846EC);
+void func_shelter_b1_underground_parking_801846EC(Task* arg0)
+{
+    D_80114D08 = 0xA;
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    Display_ReleaseRef();
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    D_8007216C                 = 2;
+    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
+    SOFT_BARRIER();
+    taskKill((Task*)arg0->spawnArg2);
+    Task_RequestKill(arg0, 0);
+}
 
 /// Commits the pending destination selected in the parking-lot map task:
 /// promotes the pending value into the committed one, tears down the prompt
