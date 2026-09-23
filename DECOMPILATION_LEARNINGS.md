@@ -138037,3 +138037,27 @@ task->state = task->spawnArg1 < 0 ? 2 : 1;
 
 The ternary's pseudo is the `a0` value, and CSE rewrites the first store's
 constant as a copy of it rather than a fresh `li`.
+
+## Early-return guards vs one nested `if`: whether a global's `%hi` is kept in `$sN` across calls (func_dryfield_night_main_street_8017DA6C, 2026-09-23)
+
+**Symptom.** A gate stores a global flag twice with calls in between (`flag = 0; … GameFlag_GetNibble(); … Task_SpawnFromTable(); flag = 1;`). The target does `lui $s0,%hi(flag)` once and uses `%lo(flag)($s0)` for both stores. The seed rebuilt the `lui` into a scratch register before the second store (99.1%, `regs=13`).
+
+**Cause.** The seed wrote the guards as early returns:
+
+```c
+if (GameFlag_GetNibble(ev.flagId) != 0 && ev.flagId != 0) return 1;
+if (out->field_5 != 0) return 2;
+/* latch, spawn */ flag = 1; return 2;
+```
+
+With the same tests written as **one nested `if`**, cse's path reaches both stores, the `(high sym)` pseudo is reused, and because it now lives across calls it gets `$s0`:
+
+```c
+if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+    if (out->field_5 == 0) { /* latch, spawn */ flag = 1; return 2; }
+    return 2;
+}
+return 1;
+```
+
+This also fixed an unrelated-looking `$v0`/`$v1` swap in the stores before the call. Adding a `ret` variable (`ret = 1; … ret = 2;`), as `RoomsShared8017d638` does, shares the `%hi` too, but it costs a callee-saved register for `ret`. A local pointer to the global (the fix in "A direct global store materializes its address *after* a call") is the wrong tool for this target. It keeps the full `lui+addiu` address in `$sN`, and the target keeps only the `%hi`.
