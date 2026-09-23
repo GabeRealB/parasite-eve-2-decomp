@@ -80,7 +80,36 @@ void func_neo_ark_shrine_8017EDE0(Task* task)
     task->state = 4;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017EE44);
+/// Clears the action prompt's highlight state and runs the shrine's per-step
+/// helper. When `func_800D4EC0` reports success, starts cap slot 2 if the
+/// script's `field_C` is 0x10, and otherwise sets `field_F` and starts cap
+/// slot 1. The task advances to state 2 on every path.
+void func_neo_ark_shrine_8017EE44(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_neo_ark_shrine_8017EAC0();
+    /* Same `task` / `work` home swap as `func_neo_ark_shrine_8017EDE0`. */
+    SOFT_TOUCH_REG(task);
+    /* Each path writes `task->state` itself. That puts a second store in the
+       last arm's block, so sched1 moves the `field_F` store below the
+       argument setup; jump2 then merges only the `jal` and the state store. */
+    if (func_800D4EC0() == 0) {
+        task->state = 2;
+        return;
+    }
+    if (work->field_C == 0x10) {
+        Gp_StartCapSlot(2, 0, 0);
+        task->state = 2;
+        return;
+    }
+    work->field_F = 1;
+    Gp_StartCapSlot(1, 0, 0);
+    task->state = 2;
+}
 
 void func_neo_ark_shrine_8017EED4(Task* task)
 {
