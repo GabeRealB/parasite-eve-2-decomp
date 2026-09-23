@@ -2,6 +2,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -19,6 +20,7 @@ extern TaskDesc     D_shelter_b3_garbage_incinerator_80187150[];
 extern TaskDesc     D_shelter_b3_garbage_incinerator_801855CC;
 extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
 extern u8           D_801153F4;
+extern s16          D_80071076;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -27,7 +29,46 @@ void func_shelter_b3_garbage_incinerator_8018108C(s32 arg0, s32 arg1, s32 arg2);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_8017D6EC);
+void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            D_801153F4 = 1;
+            Gp_RunCapCmd(0x12, 0);
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (Gp_GetCapEventKey() == 0) {
+                D_801153F4 = 0;
+                Gp_MsgPlayerWeapon(1);
+                taskKill(arg0);
+            } else {
+                Gp_EnqueueStageSnd6(0x54280006, 0, 0);
+                arg0->state++;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(0x54280006) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.msgId;
+            Mc_SaveData.at4.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.field_2;
+            Mc_SaveData.at4.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_shelter_b3_garbage_incinerator_8017D838(void)
 {
