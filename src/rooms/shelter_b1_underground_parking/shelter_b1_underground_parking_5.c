@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -31,7 +32,33 @@ extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183284);
+s32 func_shelter_b1_underground_parking_80183284(s32 arg0, s32 arg1, s32 arg2)
+{
+    GpObj4C* node;
+    s32      found;
+
+    if (arg2 == 0x121 || arg2 == 0x122) {
+        if (gGameSession->at4.loc.room == 6) {
+            node = Gp_PendingObj4C;
+            while (node != NULL) {
+                if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                    found = 1;
+                    goto check;
+                }
+                node = node->next;
+            }
+            found = 0;
+        check:
+            if (found != 0) {
+                Task_SpawnOnDefaultList(D_shelter_b1_underground_parking_8018726C, 2, 0, 0);
+                gGameSession->hideHud    = 1;
+                gGameSession->eventState = 1;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_b1_underground_parking_80183360(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
