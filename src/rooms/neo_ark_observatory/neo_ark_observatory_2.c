@@ -17,6 +17,23 @@ extern s16     D_80071076;
 
 void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset);
 
+extern void func_80132220(void);
+extern s8   D_8007272D;
+
+extern TaskDesc D_80137EE4;
+extern TaskDesc D_80138694;
+extern TaskDesc D_8013C72C;
+extern TaskDesc D_8013CAEC;
+extern TaskDesc D_8013FC58;
+extern TaskDesc D_80140078;
+extern TaskDesc D_neo_ark_observatory_80180DD4;
+extern TaskDesc D_neo_ark_observatory_80181200;
+extern TaskDesc D_neo_ark_observatory_801812C0;
+
+/// A marker resolver: fills in the marker state for the room id in its first
+/// record, writing through the second.
+typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
+
 /// Fills in the marker state of one room's spot on the map. Most rooms have no
 /// marker; the six that do read a GameFlag nibble, either straight (plus one -
 /// rooms 5 / 41 / 45) or folded into a fixed state (rooms 2, 16, 20). The
@@ -169,7 +186,93 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_2", func_neo_ark_observatory_8017F6F8);
+/// Copies the destination bytes of `desc` into a marker record, lets `resolve`
+/// rewrite the record in place, and copies the result back into `desc`.
+static __inline__ void _neoArkObservatoryStageMarker(NeoArkObservatoryEventDesc* desc, _MapMarkerResolve resolve)
+{
+    MapMarkerRec rec;
+
+    rec.field_0  = desc->field_1;
+    rec.pad_2[0] = desc->field_2;
+    rec.pad_2[1] = desc->field_3;
+    rec.field_5  = 0;
+    resolve(&rec, (MapMarkerOut*)&rec);
+    desc->field_1 = rec.field_0;
+    desc->field_2 = rec.pad_2[0];
+    desc->field_3 = rec.pad_2[1];
+}
+
+s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
+{
+    NeoArkObservatoryEventDesc desc;
+    _MapMarkerResolve          resolve;
+    s32                        temp;
+
+    if (arg2->field_2 == 0xA) {
+        if (GameFlag_GetNibble(0xD1) == 2) {
+            GameFlag_SetNibble(0x4C, 8);
+        }
+        if (GameFlag_GetNibble(0xF7) == 0) {
+            temp = GameFlag_GetNibble(0xDF);
+            if (temp == 1) {
+                _MapMarkerResolve resolve;
+
+                GameFlag_SetNibble(0xF7, 1);
+                desc.field_0 = 4;
+                desc.field_1 = 0x12;
+                desc.field_2 = 3;
+                desc.field_3 = temp;
+                desc.field_8 = 0x55070005;
+                desc.field_4 = 0x400;
+                resolve      = func_neo_ark_observatory_8017F44C;
+                Gp_MsgPlayerWeapon(0);
+                _neoArkObservatoryStageMarker(&desc, resolve);
+                D_neo_ark_observatory_80187A30 = desc;
+                Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+                return 0;
+            }
+        }
+        desc.field_0 = 4;
+        desc.field_1 = arg2->field_3;
+        desc.field_3 = 1;
+        desc.field_2 = 4;
+        desc.field_8 = 0x55070005;
+        desc.field_4 = 0x400;
+        resolve      = func_neo_ark_observatory_8017F44C;
+        Gp_MsgPlayerWeapon(0);
+        _neoArkObservatoryStageMarker(&desc, resolve);
+        D_neo_ark_observatory_80187A30 = desc;
+        Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+    }
+    if (arg2->field_2 == 1 && GameFlag_GetNibble(0xD7) == 0) {
+        GameFlag_SetNibble(0xD7, 1);
+        if (GameFlag_GetNibble(0x83) != 0) {
+            func_800E3FAC(0xA2, 0x2C);
+            func_800E8634((s32)&D_8013C72C, 0, (s32)&D_8013CAEC);
+        } else {
+            func_800E3FAC(0xA2, 0x2D);
+            GameFlag_SetNibble(0xD1, 3);
+            func_800E8634((s32)&D_80137EE4, 0, (s32)&D_80138694);
+        }
+    }
+    if (arg2->field_2 == 2) {
+        if (GameFlag_GetNibble(0xE1) == 0) {
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 6);
+            GameFlag_SetNibble(0xE1, 1);
+            D_8007272D = 0x15;
+            func_800E8634((s32)&D_8013FC58, 0, (s32)&D_80140078);
+        }
+    }
+    if (arg2->field_2 == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->at4.loc.view == 2) {
+        func_80132220();
+    }
+    if (arg2->field_2 == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
+        GameFlag_SetNibble(0x16E, 1);
+        func_800E8634((s32)&D_neo_ark_observatory_80181200, 0, (s32)&D_neo_ark_observatory_801812C0);
+    }
+    return 0;
+}
 
 /// Aims the observatory's model at slot 0xA when one is resident, otherwise at
 /// the slot-3 game pointer, and publishes the y of the vertex offset

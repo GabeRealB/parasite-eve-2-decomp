@@ -138995,3 +138995,19 @@ downstream of how the seed typed its memory. When the seed still uses
 `5073035ca5e2be8223034d69eefc1e1bed8f6d28e8ae151f90f161d10e15ed5d` (100%),
 `base_8.i` `6d57d9cfaac56d01c46271d962232c0d7090c5025458b741761ecb15d83a533b`
 (scalar source vector, 99.151%).
+
+## `lui $s1 / addiu $s1,$s1` for a function pointer means its variable is local to one block; one variable assigned in two blocks gives `lui $v0 / addiu $s1,$v0` (func_neo_ark_observatory_8017F6F8, 2026-09-23)
+
+A resolver was called through a variable (`jalr $s1`) in two separate bodies,
+each assigning it just before an intervening call. With one function-scope
+variable assigned in both bodies the pseudo spans two blocks, so it is left to
+global-alloc and cannot be tied to the `%hi` temporary: the address comes out
+as `lui $v0 ; addiu $s1,$v0`, and sched1 hoists the pair to the top of the
+block (95.2%). Declaring a second variable of the same name in the inner body
+gives each body its own pseudo, born and dying inside one block (a call does
+not end a block), so local-alloc takes it, ties the temporary to it, and emits
+`lui $s1 ; addiu $s1,$s1` at the target's position (98.7%). No statement-order
+permutation had moved the pair.
+
+Fix: when the target materialises an address into its final callee-saved
+register directly, give each block its own variable instead of reusing one.
