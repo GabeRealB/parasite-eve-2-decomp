@@ -105,6 +105,10 @@ extern SVECTOR D_actor_105100_801413E8[];
 extern s16     D_actor_105100_80141448[];
 extern s16     D_actor_105100_80141450[];
 
+/// Where each spawned projectile starts relative to the parent's coordinate,
+/// indexed by `Actor105100Work::field_5AE`.
+extern SVECTOR D_actor_105100_801414E0[];
+
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the
 /// light matrix, 0x43C the colour one) and fills the context's coordinate,
@@ -1199,7 +1203,129 @@ void func_actor_105100_80134284(Actor105100Ctx* arg0, Actor105100* arg1)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_105100/actor_105100_4", func_actor_105100_801347D4);
+/// Setup handler of the projectile task. It allocates the task's
+/// `Actor105100ProjWork` and, if that fails, tears the enemy down and stays on
+/// this handler.
+///
+/// The model's coordinate starts as a copy of the parent's, moved by the
+/// `D_actor_105100_801414E0` entry the parent's `field_5AE` selects and then
+/// jittered on each axis by up to 127 units either way from the gameplay LCG.
+/// The two list nodes are linked into list 3 - `obj0` on the model coordinate,
+/// `obj38` on the pose segment - the collision table is initialised, the
+/// billboard size and a random frame count are seeded, and the task moves to
+/// `state` 1.
+///
+/// `seed`, `transY`, `index` and `temp` are shared or split the way they are
+/// because the original's register allocation and scheduling depend on it:
+/// the state is read before the Y store, which goes through a plain `long*`,
+/// and the third table index and address live in temporaries reused later.
+void func_actor_105100_801347D4(GpEnemy* arg0, Task* arg1)
+{
+    Task*                parent;
+    Actor105100Work*     parentWork;
+    Actor105100ProjWork* work;
+    GsCOORDINATE2*       coord;
+    GsCOORDINATE2*       parentCoord;
+    long*                transY;
+    void*                temp;
+    s32                  index;
+    s32                  offsetY;
+    u32                  seed;
+    u32                  rollX;
+    u32                  rollY;
+    u32                  rollZ;
+    u32                  rollA;
+    u32                  rollB;
+    s32                  amountX;
+    s32                  amountY;
+    s32                  amountZ;
+    s32                  signX;
+    s32                  signY;
+    s32                  signZ;
+    s32                  posX;
+    s32                  posY;
+    s32                  posZ;
+
+    parent      = arg1->parent;
+    coord       = ((TmdObject*)arg1->extra)->coords;
+    parentCoord = ((TmdObject*)parent->extra)->coords;
+    parentWork  = (Actor105100Work*)parent->work;
+    work        = (Actor105100ProjWork*)memCalloc(0x80, 0);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+
+    arg1->work        = work;
+    coord->sub        = &gGfxViewCoord;
+    coord->coord      = parentCoord->coord;
+    coord->coord.t[0] = parentCoord->coord.t[0] + D_actor_105100_801414E0[(s16)parentWork->field_5AE].vx;
+    offsetY           = D_actor_105100_801414E0[(s16)parentWork->field_5AE].vy;
+    seed              = Gp_LcgState;
+    transY            = &coord->coord.t[1];
+    *transY           = parentCoord->coord.t[1] + offsetY;
+    rollX             = (Gp_LcgState = seed * 5 + 0x71357911) >> 16;
+    index             = (s16)parentWork->field_5AE;
+    temp              = &D_actor_105100_801414E0[index];
+    coord->coord.t[2] = parentCoord->coord.t[2] + (amountX = ((SVECTOR*)temp)->vz);
+    amountX           = rollX & 0x7F;
+    signX             = rollX & 0x80;
+    posX              = coord->coord.t[0];
+    coord->coord.t[0] = !signX ? posX - amountX : posX + amountX;
+
+    rollY             = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+    amountY           = rollY & 0x7F;
+    signY             = rollY & 0x80;
+    posY              = coord->coord.t[1];
+    coord->coord.t[1] = !signY ? posY - amountY : posY + amountY;
+
+    rollZ             = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+    amountZ           = rollZ & 0x7F;
+    signZ             = rollZ & 0x80;
+    posZ              = coord->coord.t[2];
+    coord->coord.t[2] = !signZ ? posZ - amountZ : posZ + amountZ;
+
+    coord->flg          = 0;
+    work->obj0.coord    = ((TmdObject*)arg1->extra)->coords;
+    work->obj0.ctx.recs = &work->rec20;
+    work->obj0.pos.vx   = 0;
+    work->obj0.pos.vy   = 0;
+    work->obj0.pos.vz   = 0;
+    work->obj0.key      = Gp_PackPair(&D_actor_105100_80141380, 0);
+    work->obj0.radius   = 0xC8;
+    work->obj0.flags    = 1;
+    Gp_LinkObj(3, &work->obj0);
+    work->pose.end0.vx    = 0;
+    work->pose.end0.vy    = 0;
+    work->pose.end0.vz    = 0;
+    work->pose.end1.vx    = 0;
+    work->pose.end1.vy    = 0;
+    work->pose.end1.vz    = -0x190;
+    work->pose.end0Radius = 1;
+    work->pose.end1Radius = 1;
+    work->pose.recs       = &work->rec20;
+    index                 = work->obj0.flags;
+    index                &= 0x7FFF;
+    work->obj0.flags      = index;
+    temp                  = ((TmdObject*)arg1->extra)->coords;
+    work->obj38.ctx.d4rec = &work->pose;
+    work->obj38.pos.vx    = 0;
+    work->obj38.pos.vy    = 0;
+    work->obj38.pos.vz    = 0;
+    work->obj38.key       = 0;
+    work->obj38.radius    = 0;
+    work->obj38.flags     = 3;
+    work->obj38.coord     = temp;
+    Gp_LinkObj(3, &work->obj38);
+    work->obj38.flags &= 0xBFFF;
+    Gp_InitRec18Table(&work->rec20, 1, 0);
+    work->field_7E = 0x190;
+    rollA          = (Gp_LcgState * 5) + 0x71357911;
+    rollB          = (rollA * 5) + 0x71357911;
+    Gp_LcgState    = rollB;
+    work->field_78 = ((rollA >> 16) & 0xF) + ((rollB >> 16) & 7);
+    arg1->state    = 1;
+}
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105100/actor_105100_4", D_actor_105100_80131E90);
 

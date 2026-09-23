@@ -138244,3 +138244,19 @@ only `tbl`, `&gDisplayState` and the scratch addresses.
   and `lhu v1` loads, so it gets `$a0`.
 
 Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
+## Two register ties decided by sched1's order, which sched2 later undoes (func_actor_105100_801347D4, 2026-09-23)
+
+**Symptom.** Instruction order matched, but two pairs of values swapped registers. In one block, two local quantities traded `$v1`/`$a0`: an LCG load (3 refs over 8 half-insns, priority 3750) beat a table load (2 refs over 6, 3333). In a second pair, two callee-saved pointers swapped `$s1`/`$s3` because one live length was a single insn off. No change to statement order moved either.
+
+**Cause.** local-alloc and global-alloc read the order sched1 produces. The final order comes from sched2, which recomputes it after allocation. In the target, sched1 had placed two loads differently from the final code, and sched2 put them back. So the lever was sched1's order, not the source order:
+
+- A load is **birthing** (`birthing_insn_p`: its destination has `REG_N_SETS == 1`), so it is raised to the ready list's top priority and issued just before its consumer. If the load's destination is a variable set in *another* basic block as well, the load is no longer birthing. It then drops to its path priority and sched1 issues it earlier. That shortened one pointer's live range and fixed `$s1`/`$s3`. The other set must be in a block where that variable already sits in the same hard register and has no local competing for it. A partner set in the same block, or one whose own computation relied on local ties, broke other code.
+- Moving that load freed a slot, so the LCG load was released one cycle earlier and issued too late. What held it back was a **non-struct store**. `long* p = &dst->coord.t[1]; *p = ...;` makes a MEM without `MEM_IN_STRUCT_P`, which may alias the scalar global `Gp_LcgState`. With the state read (`seed = Gp_LcgState;`) placed before that store, sched1 cannot issue the read until the store is scheduled. A plain `dst->coord.t[1] = ...` is a struct MEM, which the 2.8.1 alias rules separate from a fixed scalar, and gives no dependence. Routing all three translation stores through the pointer adds dependences elsewhere and breaks the block.
+- An address computed from a global index (`sll` plus the table `addu`) forms a two-insn local quantity with priority 20000. That beat the `*5` chain for `$v0`. Keeping the address in a global temporary as well (shared with a later pointer local) left only the one-insn `sll` temporary local, and the chain took `$v0`.
+
+**Measured and refuted along the way:**
+- `REG_N_REFS` is weighted by loop depth, so `do { } while (0)` doubles the refs of everything inside it. That fixed the `$s1`/`$s3` tie, but loop notes are sched barriers. Inside a block, `nop`s appeared. Around a prologue, the `LOOP_BEG` note after the argument copies pinned `li a0` below the register saves.
+- `x = load; x = (s16)x;`: combine folds the extension and decrements `REG_N_SETS` back to 1, but `REG_N_REFS` stays at 4 (priority 13333). That can tie a quantity it should lose to.
+- combine.c's 2-to-3 `REG_N_REFS` bump in `distribute_notes` only fires when combine keeps a rewritten i2 (`newi2pat`). When i2 is deleted, it is passed as `NULL`.
+
+When each leftover is "one insn of live length" or "one priority tie", read the sched1 ready lists (`.sched` shows `ready list at T-n` with priorities). Look for the release or birthing decision that would move the load, not for a no-code insn.
