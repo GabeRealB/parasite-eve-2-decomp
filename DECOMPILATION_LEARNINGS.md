@@ -87285,6 +87285,16 @@ so CSE loses the `carve == head - K` equivalence and every offset-0 access comes
 back as `0(sN)` instead of the target's `-K(head)` (95.34%). `Actor01900_Fn083E8`
 in the same TU is the same shape.
 
+The asm is also a scheduling barrier, so anything the target issues *before* the
+`addiu` carve must be written before the `SOFT_USE_REG` too. In
+`func_dryfield_toilet_8017DEF4` the target loads the first `workm.t` half
+(`lhu v1,0x38(s3)`) ahead of `addiu v0,a0,-0x18` / `move s0,v0`; with the load
+written as `block->vec.vx = *(u16*)&coord->workm.t[0]` after the asm, the copy
+appeared but the `lhu` stayed below it (`reorder=2`, 99.46%). Reading it into a
+local first - `vx = ...; tmp = head - 0x18; SOFT_USE_REG(tmp); block = tmp;
+block->vec.vx = vx;` - and holding the last half in a local until after
+`*scratch = block` matched.
+
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 
