@@ -137875,3 +137875,34 @@ duplicated.
 found:
     blk->key = key;
 ```
+
+## A narrow local never "births": `u16`/`u8` entry conversions keep source order under sched1 (RoomsShared8017dcb8Draw, 2026-09-23)
+
+**Symptom.** A draw routine opens with four argument conversions
+(`andi/srl` for `arg2 >> 12`, `andi 0xFFF`, `andi/srl` for `arg3 >> 12`,
+`andi 0xFF`) sitting, in source order, above the scratch-head load. Written as
+`s32` locals (`row = (u16)arg2 >> 12; col = arg3 & 0xFF;`), sched1 scattered
+them down the block toward the first GTE asm (80-88%), and one of them took
+`$a1` away from `arg1` (`move t3,a1`).
+
+**Mechanism.** `birthing_insn_p` (`sched.c`) only promotes a newly ready insn to
+`LAUNCH_PRIORITY` when `SET_DEST` is a plain `REG` with `REG_N_SETS == 1`. A
+store into a `u16`/`u8` local, or an in-place `arg &= mask` on a `u16`
+parameter, expands to `(set (subreg:SI (reg:HI n) 0) ...)` - not a `REG` - so it
+is never launched, stays at priority 1 and is placed last in the backward pass,
+i.e. at the top of the block in source order. The in-place parameter form also
+gives the later zero-extensions the target shows (`andi v1,t2,0xffff` on the
+masked extent, `andi v0,t7,0xffff` on the palette nibble).
+
+**Fix.** Match the gameplay copy's spelling: `u16` parameters, `row = arg2 >> 12;
+arg2 &= 0xFFF; pal = arg3 >> 12; arg3 &= 0xFF;` with `row`/`pal` as `u16`
+(80% -> 94.7%). When conversions hug the top of a block in the target and yours
+drift toward their consumers, check whether yours are SImode single sets.
+
+The remaining gap closed with two further spellings: `setUV4` (its store order
+u0,v0,u1,v1,u2,... is what keeps `u1` in its own register) and, for the scratch
+block's `addiu v0,head,-0x18` / `move t1,v0` pair whose copy is the value later
+stored to `G_SCRATCH_HEAD`, the explicit `__asm__("move %0,%1")` already used by
+`func_dryfield_night_motel_balcony_8018221C`. The compound push stores the carve
+instead (98.87%), and `SOFT_TOUCH_REG` on the carve leaves the reload move ahead
+of the `lhu` (99.07%), as the scratch-push entries above predict.
