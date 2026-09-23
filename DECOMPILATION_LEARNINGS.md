@@ -139011,3 +139011,41 @@ permutation had moved the pair.
 
 Fix: when the target materialises an address into its final callee-saved
 register directly, give each block its own variable instead of reusing one.
+
+## A flag cleared before a list scan leaves a reorg `(use insn)` marker that blocks an earlier branch from stealing `move v0,zero`; clear it on the loop-exit path (func_mine_gorge_8017D5F8, 2026-09-23)
+
+Target shape: an early `bnez v0,<epilogue>` whose delay slot is a copy of the
+shared return-0 `move v0,zero` (dbr took it from the target thread), followed
+by a list walk whose `found` flag lives in `$v0`. Writing `found = 0;` before
+a `while (node)` loop puts the flag in `$v0` but the early branch fills its
+slot from the fallthrough (`lui v0`) instead (97.5%). Cause, from
+`reorg.c`: fill_simple moves the pre-loop `found = 0` into the loop-entry
+`beqz` slot and `update_block` leaves `(use (insn found=0))` where it was.
+When fill_eager later tries the early branch's target thread,
+`mark_target_live_regs` on the fallthrough walks past that marker, which
+re-marks `$v0` live, so `move v0,zero` "sets a register needed on the
+other path" and is refused. With the flag in `$a0` (the `for`/reset-in-loop
+form) the marker names `$a0` and the steal works, which is why the two
+earlier seed families each got one half right.
+
+Fix: set the flag only on the exits, so no insn before the loop is moved:
+
+```c
+node = head;
+while (node != NULL) {
+    if (match(node)) { found = 1; goto check; }
+    node = node->next;
+}
+found = 0;
+check:
+if (found != 0) { ... }
+```
+
+The `found = 0` then reaches the entry test's slot from its target thread and
+the loop-bottom slot from the fallthrough, and no marker is left. A
+`while (1) { if (!node) { found = 0; break; } ... }` spelling loses the loop
+rotation (88.9%). The same function's tail needed `s->room = (D_x = 2);`
+rather than two statements: `expand_assignment` expands the left side's
+address (`lui`/`lw` of the session pointer) before the right-hand store, which
+is the pseudo birth order the target's allocation reflects (actor_335800 uses
+the same chain). Input: `base_3.i` `648ce2c8c69b81174075530a1ef2cec37b577dae14712e716526d647f96ff9bf` (100%).
