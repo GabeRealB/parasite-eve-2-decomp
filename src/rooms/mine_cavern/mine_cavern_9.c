@@ -59,6 +59,11 @@ extern GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8;
 /// bits.
 extern TaskDesc D_mine_cavern_8018EB38;
 
+/// Parameter record of the cavern enemy's kind.
+extern GpPairSrcE D_mine_cavern_8018EAE4;
+
+void func_mine_cavern_80183860(Task* arg0);
+
 /// Colour of the glow fan's centre vertex, one channel per symbol.
 ///
 /// Each channel is its own symbol, reloaded on every use, and is declared as an
@@ -651,7 +656,87 @@ void func_mine_cavern_80182DC8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern_9", func_mine_cavern_80182E34);
+/// Spawn state of the cavern enemy: allocates its work block, parks it in
+/// `Task::work` and installs `func_mine_cavern_80183860` as the exit callback,
+/// or destroys the enemy when the allocation fails. The model is hung under the
+/// view coordinate, given the block's two matrices and seated on the spawn spot
+/// `Task::spawnArg1` names. Two collision bodies are then linked through
+/// `Gp_LinkObj`: a small one (kind 2) with four contact records and flag 0x8000
+/// set, and a wide one (kind 1) with a single record and flag 0x8000 cleared.
+/// The enemy takes its hit points and parameters from `D_mine_cavern_8018EAE4`,
+/// the model is republished through `func_800D7A9C`, and the enemy's node is
+/// linked with its flags set to 1.
+///
+/// The wide body's x and y offset are read from a structure at address 0. The
+/// read has to be a structure member: the scheduler lets a load from a plain
+/// scalar at a fixed address pass the stores into the body before it, and the
+/// original keeps it behind them.
+void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
+{
+    MineCavernWork* mem;
+    MineCavernWork* work;
+    GpObj*          obj40;
+    GpObj*          objC0;
+    u16             temp;
+    VECTOR          vec;
+
+    mem        = (MineCavernWork*)memCalloc(0x14C, false);
+    work       = mem;
+    arg1->work = mem;
+    if (mem == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+    arg1->exitCallback                            = func_mine_cavern_80183860;
+    ((TmdObject*)arg1->extra)->coords->sub        = &gGfxViewCoord;
+    ((TmdObject*)arg1->extra)->flags              = 0;
+    ((TmdObject*)arg1->extra)->lightMtx           = &work->light;
+    ((TmdObject*)arg1->extra)->colorMtx           = &work->color;
+    ((TmdObject*)arg1->extra)->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
+    ((TmdObject*)arg1->extra)->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
+    ((TmdObject*)arg1->extra)->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    ((TmdObject*)arg1->extra)->coords->flg        = 0;
+    obj40                                         = &work->obj40;
+    obj40->coord                                  = ((TmdObject*)arg1->extra)->coords;
+    obj40->ctx.recs                               = work->recs;
+    obj40->pos.vx                                 = 0;
+    obj40->pos.vy                                 = -0x320;
+    obj40->pos.vz                                 = 0;
+    obj40->key                                    = 0x50000;
+    obj40->radius                                 = 0x100;
+    obj40->flags                                  = 1;
+    Gp_LinkObj(2, obj40);
+    obj40->flags |= 0x8000;
+    Gp_InitRec18Table(obj40->ctx.recs, 4, 0);
+    work->obj40.flags |= 0x8000;
+    objC0              = &work->objC0;
+    objC0->coord       = ((TmdObject*)arg1->extra)->coords;
+    objC0->ctx.recs    = &work->recE0;
+    temp               = ((SVECTOR*)NULL)->vy;
+    objC0->pos.vz      = 0;
+    objC0->radius      = 0xBB8;
+    objC0->flags       = 1;
+    objC0->pos.vy      = temp;
+    objC0->pos.vx      = temp;
+    Gp_LinkObj(1, objC0);
+    Gp_InitRec18Table(objC0->ctx.recs, 1, 0);
+    work->objC0.key    = 0x22121;
+    work->objC0.flags &= 0x7FFF;
+    arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
+    arg0->param        = &D_mine_cavern_8018EAE4;
+    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+    vec.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
+    vec.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
+    vec.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
+    func_800D7A9C(arg1->extra, &vec, 0, 3);
+    arg0->bodyPos.vx = 0;
+    arg0->bodyPos.vy = -0x320;
+    arg0->bodyPos.vz = 0;
+    arg0->coord      = ((TmdObject*)arg1->extra)->coords;
+    Gp_LinkNode(&arg0->node);
+    arg0->node.flags = 1;
+    arg1->state++;
+}
 
 /// Second state handler of `D_mine_cavern_8017D7F8`: the cavern enemy's
 /// per-frame hit check. Unless gameplay is suspended, it marks the enemy
