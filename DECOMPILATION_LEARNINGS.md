@@ -138061,3 +138061,18 @@ return 1;
 ```
 
 This also fixed an unrelated-looking `$v0`/`$v1` swap in the stores before the call. Adding a `ret` variable (`ret = 1; … ret = 2;`), as `RoomsShared8017d638` does, shares the `%hi` too, but it costs a callee-saved register for `ret`. A local pointer to the global (the fix in "A direct global store materializes its address *after* a call") is the wrong tool for this target. It keeps the full `lui+addiu` address in `$sN`, and the target keeps only the `%hi`.
+
+## An LCG draw written *inside* a field store puts the destination's address before the draw (func_dryfield_night_main_street_8017E484, 2026-09-23)
+
+**Symptom.** A loop fills `D[16].vx/.vy/.vz` from three LCG draws. Written as separate statements (`Gp_LcgState = Gp_LcgState * 5 + 0x71357911; D[16].vx = (Gp_LcgState >> 16) % 300 - 0x4A1;`), the object is 98.8% (`regs=18`). Loop hoisting emits `lui %hi(Gp_LcgState)` before `lui/addiu D`, where the target has the opposite order, and the non-loop copy of the same code swaps `$t3`/`$t4`.
+
+**Cause.** `store_field` (expr.c) builds the component's address with `change_address` *before* `store_expr` expands the right-hand side. The two-statement form reads `Gp_LcgState` first, so its `high` pseudo is created first, and `loop` hoists movables in that order. Moving the update into the expression puts the destination address first.
+
+**Fix.** Write the draw as an assignment expression inside the store:
+
+```c
+#define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+D[16].vx = RAND() % 300 - 0x4A1;   /* 100% */
+```
+
+When the first mention of a global in the hoisted invariants comes out in the wrong order, check whether the target's address is expanded before or after the value.
