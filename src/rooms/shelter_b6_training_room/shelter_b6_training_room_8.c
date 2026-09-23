@@ -98,7 +98,85 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80180530);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80180DB4);
+void func_shelter_b6_training_room_80180DB4(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    u8             rgb[3];
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState < 4) {
+        work->age++;
+        switch (task->state) {
+            case 0:
+                rot         = (GpMtxWords*)&coord->coord;
+                rot->w0     = 0x1000;
+                rot->w1     = 0;
+                rot->w2     = 0x1000;
+                rot->w3     = 0;
+                rot->h4     = 0x1000;
+                coord->flg  = 0;
+                work->scale = 0;
+                work->angle = 0x100;
+                work->step  = 0xC0 / task->spawnArg1;
+                if (work->step == 0) {
+                    work->step = 1;
+                }
+                task->state = 1;
+            case 1:
+                if (Gp_State1C->eventState != 0) {
+                    rgb[0] = work->scale;
+                    rgb[1] = (u16)work->scale >> 1;
+                    rgb[2] = (u16)work->scale >> 2;
+                    Gp_DrawRing(coord, work->angle, rgb);
+                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    Gp_DrawArc(coord, (s16)((task->spawnArg1 % 15) * (work->scale << 2)), 0x100, rgb);
+                    return;
+                }
+                work->scale += work->step;
+                if (work->scale > 0xC0) {
+                    work->scale = 0xC0;
+                }
+                work->angle = (u16)work->scale * 8 + 0x100;
+                task->spawnArg1--;
+                rgb[0] = work->scale;
+                rgb[1] = (u16)work->scale >> 1;
+                rgb[2] = (u16)work->scale >> 2;
+                Gp_DrawRing(coord, work->angle, rgb);
+                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                Gp_DrawArc(coord, (s16)((task->spawnArg1 % 15) * (work->scale << 2)), 0x100, rgb);
+                if (task->spawnArg1 == 0) {
+                    work->scale = 0xFF;
+                    task->state = 2;
+                    Gp_SpawnEff(0x601AA, coord, 0, NULL);
+                    Gp_SpawnEff(0x601AA, coord, 1, NULL);
+                    Gp_SpawnEff(0x601AA, coord, 2, NULL);
+                    work->period = 0x600;
+                    work->step   = 0;
+                }
+                return;
+            case 2:
+                if (work->scale >= 5) {
+                    rgb[0] = work->scale;
+                    rgb[1] = (u16)work->scale >> 1;
+                    rgb[2] = (u16)work->scale >> 2;
+                    Gp_DrawRing(coord, work->angle, rgb);
+                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    if (Gp_State1C->eventState == 0) {
+                        work->scale -= 4;
+                    }
+                    Gp_DrawFadeQuad(rgb, 1);
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 void func_shelter_b6_training_room_801811AC(Task* task)
 {
