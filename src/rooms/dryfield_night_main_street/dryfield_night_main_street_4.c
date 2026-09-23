@@ -22,8 +22,52 @@ extern SVECTOR D_dryfield_night_main_street_801821D8;
 extern SVECTOR D_dryfield_night_main_street_801821E8;
 extern s32     D_dryfield_night_main_street_80182230[];
 extern u32     Gp_LcgState;
+extern u8**    D_dryfield_night_main_street_80182168;
+extern u8**    D_dryfield_night_main_street_8018216C;
+extern u8**    D_dryfield_night_main_street_80182170;
+extern u8**    D_dryfield_night_main_street_80182174;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_4", func_dryfield_night_main_street_8017E118);
+/// Applies the patch list `table[GameFlag_GetNibble(nibble)]` to the current
+/// area's view sprite commands. The list is a stream of byte pairs ended by a
+/// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
+/// other `(cmd, value)` stores `value` in that command's `field_4`. The list
+/// starts on the view named by its first byte.
+#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)      \
+    {                                                                   \
+        GpAreaKey* sess;                                                \
+        GpSprtRec* rec;                                                 \
+        GpSprtCmd* cmd;                                                 \
+        u8*        p;                                                   \
+        s16        idx;                                                 \
+        u8**       tbl;                                                 \
+                                                                        \
+        idx  = GameFlag_GetNibble(nibble);                              \
+        tbl  = table;                                                   \
+        p    = tbl[idx];                                                \
+        sess = &gGameSession->at4.loc;                                  \
+        rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1]; \
+        cmd  = rec[p[0]].field_4;                                       \
+        if (p[0] != 0xFF) {                                             \
+            do {                                                        \
+                if (p[1] == 0xFF) {                                     \
+                    cmd = rec[p[0]].field_4;                            \
+                    p  += 2;                                            \
+                }                                                       \
+                cmd[p[0]].field_4 = p[1];                               \
+                p                += 2;                                  \
+            } while (p[0] != 0xFF);                                     \
+        }                                                               \
+    }
+
+/// Applies the sprite-command patch lists selected by game-flag nibbles 0x88,
+/// 0x89, 0x8A and 0x8C, one table of lists per nibble.
+void func_dryfield_night_main_street_8017E118(void)
+{
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182168, 0x88);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_8018216C, 0x89);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182170, 0x8A);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182174, 0x8C);
+}
 
 /// Per-frame room task. On its first run it stores the ids 0x60286-0x60289 in
 /// four gameplay globals. Each run it draws the anchors whose view mask in
