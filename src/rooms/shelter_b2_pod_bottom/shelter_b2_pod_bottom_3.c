@@ -9,7 +9,7 @@
 
 extern u32 Gp_LcgState;
 
-void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
+void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_3", func_shelter_b2_pod_bottom_80180A4C);

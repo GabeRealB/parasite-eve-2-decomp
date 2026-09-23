@@ -139578,3 +139578,23 @@ A function that shows up in another overlay as a `dlabel` of instruction-shaped
 `.word`s in the leading rodata points to that overlay's derived `.text` span
 starting one function too late. It also hides the copy from
 `overlay_dup_index.py`.
+### Byte stores to `0x10(sp)` reloaded by `lbu` before every use are spilled `u8` scalars, not a stack array
+
+**Symptom.** A GTE ring function stores a colour to `sb 0x10/0x11/0x12(sp)`
+once at entry, then re-reads each byte with `lbu $a3,0x10(sp)` right before
+every `sb` into the primitive. Declaring the colour as `u8 rgb[3]` or a
+`CVECTOR` reproduced the stores and the reloads but put them in `$v0`
+(func_shelter_b2_pod_bottom_8017E788, 96.9%).
+
+**Cause.** Every callee-saved register (`$s0`-`$s7`, `$fp`) was already taken,
+so three `u8` locals live across the whole draw loop get no hard register.
+Reload gives them stack slots, and the reload register it picks for each use is
+`$a3`, not the first free one that local-alloc would pick for an array read.
+
+**Fix.** Declare three scalars (`u8 red, grn, blu;`) and use them directly in
+`setRGB0`/`setRGB1`. When a function uses every `$s` register, `lbu`/`lw`
+reloads from low stack slots into an odd register are a sign of spilled
+scalars. The prologue statement order still mattered after that: assigning
+`block = head` *after* the colour scalars placed the `move $s3` where the
+target has it, which removed the one `head asm("v1")` pin the attempt had
+needed.
