@@ -16,6 +16,20 @@ extern u32 Gp_LcgState;
 /// nops; the `inline_c.h` macro of that name assembles to a different word.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
+/// Scratch block `func_shelter_b2_pod_bottom_8017F994` pops from
+/// `G_SCRATCH_HEAD`: the projected world position, its `gte_stszotz` depth
+/// and `gte_stflg` flag, the two screen radii derived from them, and the
+/// `gte_stsxy` screen point.
+typedef struct _BillboardScratch {
+    SVECTOR vec;
+    s32     otz;
+    s32     flag;
+    s32     rOuter;
+    s32     rInner;
+    s16     sx;
+    s16     sy;
+} _BillboardScratch;
+
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
 void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2);
 
@@ -128,7 +142,125 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017F448);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017F994);
+/// Projects `coord`'s world position through `GsWSMATRIX` into a scratch block
+/// popped from `G_SCRATCH_HEAD` and, when the GTE flag is non-negative, queues
+/// twenty gouraud `POLY_G4` wedges fanned about the projected point. The radii
+/// are `(s16)arg1 * 64 / otz` (outer) and `(s16)arg1 * 8 / otz` (inner). Each
+/// of the first eight steps draws a half-bright wedge at the outer radius and
+/// a full-bright one at half of it; four half-bright spikes follow, reaching
+/// twice the outer radius between two inner-radius corners. Only the apex at
+/// the projected point is coloured, from `rgb`; every rim corner is black.
+void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb)
+{
+    register _BillboardScratch* block asm("s3");
+    register POLY_G4*           prim asm("s2");
+    register s32                ang asm("s4");
+    register void**             scratch asm("a1");
+    register u8*                head asm("a2");
+    s32                         t;
+    s32                         t2;
+    u16                         vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u16 vx asm("v0");
+        vx                                          = *(u16*)&coord->workm.t[0];
+        ((_BillboardScratch*)(head - 0x1C))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x1C;
+        block = (_BillboardScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((_BillboardScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((_BillboardScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((_BillboardScratch*)(head - 0x1C))->otz);
+        USE_REG(head);
+        block->rOuter = ((s16)arg1 * 64) / block->otz;
+        block->rInner = ((s16)arg1 * 8) / block->otz;
+
+        ang = 0;
+        do {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb[0] >> 1, rgb[1] >> 1, rgb[2] >> 1);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            t        = ang + 0x100;
+            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
+            t2       = ang + 0x200;
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 13);
+            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 13);
+            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 13);
+            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 13);
+            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            ang      = t2;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        } while (ang < 0x1000);
+
+        ang = 0x200;
+        do {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb[0] >> 1, rgb[1] >> 1, rgb[2] >> 1);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
+            t2       = ang + 0x400;
+            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 11);
+            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 11);
+            t        = ang + 0x800;
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            ang      = t2;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 /// State 0 resets the coordinate frame's rotation to identity, starts the
 /// colour ramp at 0 and the size ramp at 0x80, derives the colour step from
