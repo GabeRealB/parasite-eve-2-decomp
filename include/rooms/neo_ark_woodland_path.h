@@ -5,6 +5,8 @@
 
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
 /// it, `func_...80180DDC` counts it down): a load whose result is truncated by
@@ -130,6 +132,21 @@ extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[];
 /// `Gp_StateF0.field_6` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 D_neo_ark_woodland_path_801849F0;
+
+/// The object `Task::spawnArg2` holds for the task that runs
+/// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
+/// the chance, out of 0x200, of spawning an effect this frame. It is recomputed
+/// from how far the tracked model parts moved. Nothing yet shows whether this
+/// is the same object as `NeoArkWoodlandPathObj`.
+typedef struct NeoArkWoodlandPathTrailObj {
+    /* 0x00 */ byte pad_0[0x26];
+    /* 0x26 */ s16  chance;
+} NeoArkWoodlandPathTrailObj;
+
+/// World position (`workm.t`) of model parts 15 and 18 of the slot-3 task, as
+/// `func_neo_ark_woodland_path_8017EA08` last saw them. Each frame it compares
+/// the parts against these entries to measure how far they moved.
+extern SVECTOR D_neo_ark_woodland_path_80181684[2];
 
 s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, NeoArkWoodlandPathMsg* msg);
 
