@@ -1,19 +1,24 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgte.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+extern s32 Gp_LcgState;
 
 typedef struct {
     /* 0x00 */ byte pad_0[0x24];
@@ -378,4 +383,115 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_6", func_shelter_b3_garbage_incinerator_80182F18);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_6", func_shelter_b3_garbage_incinerator_80183364);
+void func_shelter_b3_garbage_incinerator_80183364(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            kind;
+    s32            step;
+    s32            state;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 0xF;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            state          = 1;
+            if (task->spawnArg1 & 0xF0000000) {
+                state = 2;
+            }
+            task->state = state;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                switch (kind & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            return;
+        case 1:
+            Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            break;
+        case 2:
+            Room_Draw41(coord, work->field_20, (s16)work->field_24);
+            break;
+        default:
+            return;
+    }
+    if ((s16)work->field_2A != 0) {
+        coord->coord.t[0] += work->field_10.vx;
+        coord->coord.t[1] += work->field_10.vy;
+        coord->coord.t[2] += work->field_10.vz;
+        coord->flg         = 0;
+        work->field_10.vy += 6;
+    }
+    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+        work->field_20++;
+        if ((s16)work->field_20 >= 8) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+    }
+}
