@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/display.h"
+#include "main/mem.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -10,11 +12,14 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+/// `rtps` with the two leading `nop`s the original emitted.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern TaskDesc D_shelter_b1_sterilization_room_80188504;
 extern s32      D_shelter_b1_sterilization_room_8018C340;
@@ -251,4 +256,65 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801826F0);
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// the GTE flag is non-negative, queues one semi-transparent textured
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D0) rotated about the projected point.
+/// `frame` picks a 48x48 cell from a 5-column sheet; the half-extent is
+/// `arg2 * 47 / otz` and `arg3` is the spin angle.
+void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw27Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    s32                u0;
+    s32                v0;
+    s32                ang2;
+    u16                vz;
+
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    ((RoomDraw27Scratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                       = (RoomDraw27Scratch*)(head - 0x1C);
+    block->vec.vy                               = *(u16*)&coord->workm.t[1];
+    vz                                          = *(u16*)&coord->workm.t[2];
+    *scratch                                    = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw27Scratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43D0;
+        u0          = (s16)(frame % 5) * 0x30;
+        v0          = (s16)(frame / 5) * 0x30;
+        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
+        block->dx = (((arg2 * 47) / block->otz) * rsin(arg3)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(arg3)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = arg3 + 0x400;
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+}
