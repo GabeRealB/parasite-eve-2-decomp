@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
@@ -30,6 +32,13 @@ typedef void (*Mm1StateFn)(Mm1Task* task);
 
 /// Impact clip id per attachment, indexed by `sfx - 0xA`.
 extern u16 D_mm1_8012D2D0[4];
+
+/// Per-ammo muzzle offset the spawn state places the projectile at, indexed by
+/// the ammo nibble of `Task::spawnArg1`.
+extern SVECTOR D_mm1_8012D2C0[2];
+
+/// Per-ammo launch speed, same index.
+extern u8 D_mm1_8012D2D8[4];
 
 void func_mm1_8011D704(Task* arg0);
 void func_mm1_8011DBD8(Mm1Task* arg0);

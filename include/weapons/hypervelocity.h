@@ -129,7 +129,7 @@ typedef struct HyperGroundScratch {
 STATIC_ASSERT_SIZEOF(HyperGroundScratch, 0x30);
 
 /// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
-/// `Task::work`. It leads with the `GpObj` list node `WeaponsShared8011e4ac`
+/// `Task::work`. It leads with the `GpObj` list node `func_hypervelocity_8011F11C`
 /// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
 /// `GpRec18` collision table `obj.ctx.recs` points at, and its `flags` is set
 /// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.

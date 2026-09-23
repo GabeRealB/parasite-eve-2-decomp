@@ -22,7 +22,7 @@
 /// keyed on. A main-executable global with no module header yet.
 extern u8 D_80073BA9;
 
-void WeaponsShared8011de24(Task* task);
+void func_m4a1_grenade_8011DE24(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
 /// the shot and raises the weapon (clip 8 instead of 1 when it was already up),
@@ -194,7 +194,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
         return;
     }
     arg0->work         = (TaskIdMap*)work;
-    arg0->exitCallback = WeaponsShared8011de24;
+    arg0->exitCallback = func_m4a1_grenade_8011DE24;
     arg0->state++;
     Mem_Set(work, 0, sizeof(M4a1GrenadeWork));
     blk->vx     = 0;
@@ -369,4 +369,42 @@ move:
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1GrenadeScratch);
+}
+
+/// Flight state: steps the `field_88` flight timer down and moves the task to
+/// state 3 once it runs out. Grenade Pistol and MM1 carry identical copies.
+void func_m4a1_grenade_8011DDF8(Task* task)
+{
+    M4a1GrenadeWork* work  = task->work;
+    s32              timer = work->field_88.w - 1;
+
+    work->field_88.w = timer;
+    if (timer <= 0) {
+        task->state = 3;
+    }
+}
+
+/// Exit callback: unlinks both collision nodes the spawn state linked and kills
+/// the task. Grenade Pistol and MM1 carry identical copies.
+void func_m4a1_grenade_8011DE24(Task* task)
+{
+    M4a1GrenadeWork* work = task->work;
+
+    Gp_UnlinkObj(&work->obj);
+    Gp_UnlinkObj(&work->obj2);
+    taskKill(task);
+}
+
+/// Per-frame entry point: runs the weapon task's current state. The table is a
+/// local, so GCC copies it from `.rodata` onto the stack every frame.
+void func_m4a1_grenade_8011DE68(Task* arg0)
+{
+    M4a1GrenadeStateFn states[4] = {
+        func_m4a1_grenade_8011D654,
+        func_m4a1_grenade_8011D994,
+        func_m4a1_grenade_8011DDF8,
+        func_m4a1_grenade_8011DE24,
+    };
+
+    states[arg0->state](arg0);
 }

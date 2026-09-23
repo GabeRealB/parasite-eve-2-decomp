@@ -5,11 +5,13 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -38,9 +40,8 @@ extern s32 Gp_LcgState;
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
 
-/// Teardown callback shared with the other weapon overlays; it unlinks
-/// `Task::work` and releases the `Gp_State1C` work block.
-void WeaponsShared8011e4ac(Task* task);
+void func_hypervelocity_8011F11C(Task* task);
+void func_hypervelocity_8011F6A0(Task* task);
 
 void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 side);
 void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 ang);
@@ -298,7 +299,7 @@ void func_hypervelocity_8011D830(Task* task)
                 work->age = 0;
                 return;
             }
-            task->exitCallback = WeaponsShared8011e4ac;
+            task->exitCallback = func_hypervelocity_8011F11C;
             player             = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
             dstm               = (GpMtxWords*)&coord->coord;
             srcm               = (GpMtxWords*)&player->coord;
@@ -796,4 +797,329 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
         i++;
     } while (i < 2);
     SCRATCH_SP += sizeof(HyperConeScratch);
+}
+
+/// Exit callback: unlinks the collision node leading `Task::work`, if one was
+/// linked, and releases the `Gp_State1C` block in `Task::spawnArg2`. M4A1 Pyke
+/// carries an identical copy.
+void func_hypervelocity_8011F11C(Task* task)
+{
+    GpObj* obj = task->work;
+    void*  mem = task->spawnArg2;
+
+    if (obj != NULL) {
+        Gp_UnlinkObj(obj);
+    }
+    Gp_ReleaseState1CMem(mem, task);
+}
+
+void func_hypervelocity_8011F168(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s16            val;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->eventState;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+
+    Gp_UpdateCoord(coord);
+    mem->age++;
+    if (arg0->state == 0) {
+        mem->scale  = 0xF0;
+        mem->angle  = 0x100;
+        arg0->state = 1;
+    }
+    rgb[0] = mem->scale >> 1;
+    rgb[1] = mem->scale >> 1;
+    rgb[2] = mem->scale;
+    Gp_DrawBand(coord, mem->angle, rgb);
+    mem->angle += 0x40;
+    val         = mem->scale - 0x10;
+    mem->scale  = val;
+    if (val < 0x10) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
+
+void func_hypervelocity_8011F270(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s16            val;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->eventState;
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+
+    Gp_UpdateCoord(coord);
+    mem->age++;
+    if (arg0->state == 0) {
+        mem->scale  = 0x80;
+        mem->angle  = 0x200;
+        arg0->state = 1;
+    }
+    rgb[0] = mem->scale;
+    rgb[1] = mem->scale;
+    rgb[2] = mem->scale;
+    func_hypervelocity_8011EC1C(coord, mem->age, mem->angle, rgb);
+    mem->angle += 0x60;
+    val         = mem->scale - 8;
+    mem->scale  = val;
+    if (val < 6) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
+
+void func_hypervelocity_8011F374(Task* arg0)
+{
+    Task*        parent;
+    TmdObject*   extra;
+    TmdObject*   playerExtra;
+    HyperCoord*  coord;
+    GpActorWork* work;
+    HyperMat*    mat;
+    s16          count;
+
+    parent      = arg0->parent;
+    work        = (GpActorWork*)gameGetPtrSlot(3);
+    extra       = (TmdObject*)arg0->extra;
+    playerExtra = work->extra;
+    coord       = (HyperCoord*)extra->coords;
+
+    coord->flg      = 0;
+    extra->flags    = playerExtra->flags;
+    extra->colorMtx = playerExtra->colorMtx;
+    extra->lightMtx = playerExtra->lightMtx;
+
+    SCRATCH_SP -= 0x10;
+    switch (arg0->spawnArg1 & 0xF) {
+        case 0:
+            if (*(u32*)&work->actor->field_954 != 0x40000) {
+                arg0->spawnArg1 = 0;
+            }
+            break;
+        case 1:
+            if (parent->spawnArg1 & 0x10) {
+                if (arg0->killCountdown < 0x3C) {
+                    arg0->killCountdown = arg0->killCountdown + 1;
+                }
+            } else if (arg0->killCountdown > 0) {
+                count               = arg0->killCountdown - 1;
+                arg0->killCountdown = count;
+                if (count == 0) {
+                    SndEvt_EnqueueType7(0x20160004, 1);
+                }
+            }
+            coord->coord.mat.t[0] = 0;
+            coord->coord.mat.t[1] = -arg0->killCountdown * 4;
+            coord->coord.mat.t[2] = -0x16;
+            break;
+        case 2:
+            if (parent->spawnArg1 & 0x20) {
+                if (coord->angle >= -0x3FF) {
+                    coord->angle = coord->angle - 0x110;
+                }
+            } else if (coord->angle < 0) {
+                coord->angle = coord->angle + 0x110;
+            }
+            coord->coord.mat.t[0] = -0x14;
+            coord->coord.mat.t[1] = -0x15C;
+            coord->coord.mat.t[2] = 0xA8;
+
+            mat                = &coord->coord;
+            mat->ident.m00_m01 = 0x1000;
+            mat->ident.m02_m10 = 0;
+            mat->ident.m11_m12 = 0x1000;
+            mat->ident.m20_m21 = 0;
+            mat->ident.m22     = 0x1000;
+            RotMatrixX(coord->angle, &mat->mat);
+            break;
+    }
+    SCRATCH_SP += 0x10;
+}
+
+void func_hypervelocity_8011F570(Task* arg0)
+{
+    Task*          child;
+    TmdObject*     childExtra;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+
+    extra               = (TmdObject*)arg0->extra;
+    coord               = (GsCOORDINATE2*)extra->coords;
+    arg0->state        += 1;
+    arg0->exitCallback  = func_hypervelocity_8011F6A0;
+    arg0->killCountdown = 0;
+    coord->flg          = 0;
+    extra->flags        = 0;
+    if (!(arg0->spawnArg1 & 0xF)) {
+        child = Task_Spawn(7, 0x70, 1, 0);
+        if (child != NULL) {
+            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
+            childExtra                                                = (TmdObject*)child->extra;
+            childExtra->colorMtx                                      = extra->colorMtx;
+            childExtra->lightMtx                                      = extra->lightMtx;
+            Task_Reparent(arg0, child);
+        }
+        child = Task_Spawn(7, 0x74, 2, 0);
+        if (child != NULL) {
+            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
+            childExtra                                                = (TmdObject*)child->extra;
+            childExtra->colorMtx                                      = extra->colorMtx;
+            childExtra->lightMtx                                      = extra->lightMtx;
+            Task_Reparent(arg0, child);
+            coord->coord.t[0] = -6;
+            coord->coord.t[1] = -0x3C;
+            coord->coord.t[2] = -0x16;
+        }
+    }
+}
+
+void func_hypervelocity_8011F694(Task* arg0)
+{
+    arg0->state = 3;
+}
+
+/// Exit callback: kills the task.
+void func_hypervelocity_8011F6A0(Task* task)
+{
+    taskKill(task);
+}
+
+/// Per-frame entry point: runs the weapon task's current state. The table is a
+/// local, so GCC copies it from `.rodata` onto the stack every frame.
+void func_hypervelocity_8011F6C0(Task* arg0)
+{
+    TaskFunc states[4] = {
+        func_hypervelocity_8011F570,
+        func_hypervelocity_8011F374,
+        func_hypervelocity_8011F694,
+        func_hypervelocity_8011F6A0,
+    };
+
+    states[arg0->state](arg0);
+}
+
+/// Per-frame state machine for the hypervelocity's charge-up shot. Case 0 arms
+/// the charge: it resets the weapon slots, wakes the muzzle-glow task
+/// (`field_914`), sets the charge bit on the barrel effect task (`field_91C`)
+/// and starts the wind-up animation. Case 1 runs the charge while the fire
+/// button is still held (`field_962 & 0xA`): the charge ticks up, crosses a
+/// half-way mark at 60 that adds the second glow stage, and completes at 90 by
+/// consuming a round and firing. Releasing the button early jumps straight to
+/// case 3 and cancels both loops. Case 2 is the 0x15-tick recoil: for the last
+/// 18 ticks the third column of the weapon coordinate is scaled by the
+/// remaining ticks over 378 (or 244 on the first tick) and subtracted from the
+/// coordinate's translation, kicking the gun back along its own barrel.
+void func_hypervelocity_8011F724(GpActorWork* arg0)
+{
+    void**         scratch;
+    u8*            head;
+    HyperRecoil*   rec;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    Task*          eff;
+    s32            div;
+    s32            count;
+    s32            step;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    rec      = (HyperRecoil*)(head - 0x18);
+    *scratch = rec;
+    actor    = arg0->actor;
+    eff      = actor->field_91C;
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_954            = 0;
+            actor->field_956            = 4;
+            actor->field_958            = 0;
+            actor->field_95A            = 0;
+            actor->field_95C            = 0;
+            actor->field_95E            = 1;
+            actor->field_914->spawnArg1 = 1;
+            actor->field_934            = 0;
+            eff->spawnArg1             |= 0x10;
+            Gp_PlayObjSfx(arg0->extra->coords, 0x20160003, 0);
+            Gp_PlayObjSfx(arg0->extra->coords, 0x20160005, 0);
+            Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
+            /* fallthrough */
+        case 1:
+            if (actor->field_962 & 0xA) {
+                count            = actor->field_934 + 1;
+                actor->field_934 = count;
+                if (count >= 0x5A) {
+                    actor->field_981 = 0;
+                    actor->field_95E++;
+                    eff->spawnArg1   = 0;
+                    actor->field_934 = 0x15;
+                    Gp_ConsumeSlotQty(0x95, 1);
+                    SndEvt_EnqueueType7(0x20160005, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20160007, 1);
+                    Gp_AnimResetChildSlots(arg0, 0xB);
+                } else if (count == 0x3C) {
+                    eff->spawnArg1 |= 0x20;
+                    SndEvt_EnqueueType7(0x20160003, 1);
+                    Gp_PlayObjSfx(arg0->extra->coords, 0x20160002, 0);
+                }
+                SndEvt_EnqueueType7(0x20160004, 1);
+            } else {
+                actor->field_95E            = 3;
+                actor->field_914->spawnArg1 = -1;
+                eff->spawnArg1              = 0;
+                SndEvt_EnqueueType7(0x20160003, 1);
+                SndEvt_EnqueueType7(0x20160005, 1);
+                Gp_PlayObjSfx(arg0->extra->coords, 0x20160004, 0);
+                Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 3);
+            }
+            break;
+        case 2:
+            step             = actor->field_934 - 1;
+            actor->field_934 = step;
+            if (step != 0) {
+                if (step < 0x13) {
+                    coord = (GsCOORDINATE2*)arg0->extra->coords;
+                    div   = 0x17A;
+                    if (step == 0x12) {
+                        div = 0xF4;
+                    }
+                    actor->field_973 = -1;
+                    Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 8));
+                    rec->vx            = -(rec->dir.vx * actor->field_934 / div);
+                    rec->vy            = -(rec->dir.vy * actor->field_934 / div);
+                    rec->vz            = -(rec->dir.vz * actor->field_934 / div);
+                    coord->coord.t[0] += rec->vx;
+                    coord->coord.t[1] += rec->vy;
+                    coord->coord.t[2] += rec->vz;
+                }
+            } else {
+                actor->field_95E++;
+            }
+            /* fallthrough */
+        case 3:
+            if (func_80105894(arg0, D_80112E04[Mc_SaveData.characterId][1], 0, 0) == 0) {
+                func_80106550(arg0);
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
 }

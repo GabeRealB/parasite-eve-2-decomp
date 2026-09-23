@@ -10,11 +10,11 @@
 
 /// 0xA0 work block the grenade's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the two `GpObj` list nodes
-/// `WeaponsShared8011de24` hands back to `Gp_UnlinkObj` on teardown: `obj` is
+/// the exit callback hands back to `Gp_UnlinkObj` on teardown: `obj` is
 /// a `flags & 7 == 1` node whose `ctx.recs` is `rec0` directly, `obj2` is a
 /// `flags & 7 == 3` node whose `ctx.d4rec` is `d4rec`, reaching `rec1` through
 /// the shape's `recs`. `field_88` is the flight countdown
-/// `WeaponsShared8011ddf8` decrements, and `dir` is the launch direction:
+/// the flight state decrements, and `dir` is the launch direction:
 /// column 2 of the muzzle matrix pitched up 0x400, normalized. `field_88` is
 /// 16.16: the whole word is the flight timer, while its high half is the
 /// per-frame divisor `func_m4a1_grenade_8011D994` steps `dir` by, so the

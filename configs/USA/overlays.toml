@@ -78,11 +78,7 @@ label = "Grenade Pistol"
 id = 18
 objects = [
   { kind = "packageId" },
-  { unit = "grenade_pistol/grenade_pistol_3", rodata = "0x4", text = "0xA10" },
   { unit = "grenade_pistol/grenade_pistol", rodata = "0x4", text = "0x14" },
-  { lib = true, unit = "weapons_shared_8011d3a0", text = "0x1E0" },
-  { unit = "grenade_pistol/grenade_pistol_2", text = "0x53C" },
-  { lib = true, unit = "weapons_shared_8011ddf8", text = "0x9A0" },
   { kind = "model", at = "0xA74" },
   { kind = "data", at = "0x10F0" },
   { unit = "grenade_pistol/grenade_pistol_work", data = "0xE260" },
@@ -107,10 +103,6 @@ id = 29
 objects = [
   { kind = "packageId" },
   { unit = "hypervelocity/hypervelocity", rodata = "0x4", text = "0x28", data = "0x29B4" },
-  { unit = "hypervelocity/hypervelocity_3", rodata = "0x18", text = "0x2500" },
-  { lib = true, unit = "weapons_shared_8011e4ac", text = "0x1F5C" },
-  { unit = "hypervelocity/hypervelocity_2", text = "0x1FA8" },
-  { lib = true, unit = "weapons_shared_8011db78", text = "0x24E0" },
   { kind = "model", at = "0x29BC" },
   { kind = "model", at = "0x315C" },
   { kind = "model", at = "0x3448" },
@@ -156,8 +148,6 @@ id = 34
 objects = [
   { kind = "packageId" },
   { unit = "m4a1_grenade/m4a1_grenade", rodata = "0x4", text = "0x2C" },
-  { unit = "m4a1_grenade/m4a1_grenade_2", rodata = "0x1C", text = "0xCA8" },
-  { lib = true, unit = "weapons_shared_8011ddf8", text = "0xC38" },
   { kind = "model", at = "0xD0C" },
   { kind = "data", at = "0x1890" },
   { unit = "m4a1_grenade/m4a1_grenade_work", data = "0x10ECC" },
@@ -213,8 +203,6 @@ id = 35
 objects = [
   { kind = "packageId" },
   { unit = "m4a1_pyke/m4a1_pyke", rodata = "0x4", text = "0x38", data = "0x174C" },
-  { unit = "m4a1_pyke/m4a1_pyke_2", rodata = "0x1C", text = "0x1338" },
-  { lib = true, unit = "weapons_shared_8011e4ac", text = "0x12EC" },
   { kind = "model", at = "0x1754" },
   { kind = "data", at = "0x23D0" },
 ]
@@ -244,11 +232,7 @@ label = "MM1"
 id = 19
 objects = [
   { kind = "packageId" },
-  { unit = "mm1/mm1_3", rodata = "0x4", text = "0xA18" },
   { unit = "mm1/mm1", rodata = "0x4", text = "0x14" },
-  { lib = true, unit = "weapons_shared_8011d3a0", text = "0x1E8" },
-  { unit = "mm1/mm1_2", text = "0x544" },
-  { lib = true, unit = "weapons_shared_8011ddf8", text = "0x9A8" },
   { kind = "model", at = "0xA7C" },
   { kind = "data", at = "0x12F8" },
   { unit = "mm1/mm1_work", data = "0x10100" },
@@ -270,9 +254,7 @@ label = "MP5A5"
 id = 37
 objects = [
   { kind = "packageId" },
-  { unit = "mp5a5/mp5a5_2", rodata = "0x4", text = "0xBE4" },
   { unit = "mp5a5/mp5a5", rodata = "0x4", text = "0x20", data = "0xF68" },
-  { lib = true, unit = "weapons_shared_8011d468", text = "0x2A8" },
   { kind = "model", at = "0xF70" },
   { kind = "data", at = "0x1960" },
   { unit = "mp5a5/mp5a5_work", data = "0xE348" },
@@ -283,9 +265,7 @@ label = "MP5A5(+1)"
 id = 38
 objects = [
   { kind = "packageId" },
-  { unit = "mp5a5_p1/mp5a5_p1_2", rodata = "0x4", text = "0xBE4" },
   { unit = "mp5a5_p1/mp5a5_p1", rodata = "0x4", text = "0x20", data = "0xF68" },
-  { lib = true, unit = "weapons_shared_8011d468", text = "0x2A8" },
   { kind = "model", at = "0xF70" },
   { kind = "data", at = "0x1960" },
   { unit = "mp5a5_p1/mp5a5_p1_work", data = "0xE348" },
@@ -296,9 +276,7 @@ label = "MP5A5(+2)"
 id = 39
 objects = [
   { kind = "packageId" },
-  { unit = "mp5a5_p2/mp5a5_p2_2", rodata = "0x4", text = "0xBE4" },
   { unit = "mp5a5_p2/mp5a5_p2", rodata = "0x4", text = "0x20", data = "0xF68" },
-  { lib = true, unit = "weapons_shared_8011d468", text = "0x2A8" },
   { kind = "model", at = "0xF70" },
   { kind = "data", at = "0x1960" },
   { unit = "mp5a5_p2/mp5a5_p2_work", data = "0xE348" },
@@ -329,9 +307,7 @@ label = "P229"
 id = 12
 objects = [
   { kind = "packageId" },
-  { unit = "p229/p229_2", rodata = "0x4", text = "0xBE0" },
   { unit = "p229/p229", rodata = "0x4", text = "0x1C", data = "0xF30" },
-  { lib = true, unit = "weapons_shared_8011d468", text = "0x2A4" },
   { kind = "model", at = "0xF38" },
   { kind = "data", at = "0x1448" },
   { unit = "p229/p229_work", data = "0xE498" },
@@ -362,9 +338,7 @@ label = "Tonfa Baton"
 id = 26
 objects = [
   { kind = "packageId" },
-  { unit = "tonfa_baton/tonfa_baton_2", rodata = "0x4", text = "0x9D8" },
   { unit = "tonfa_baton/tonfa_baton", rodata = "0x4", text = "0x2C", data = "0xF30" },
-  { lib = true, unit = "weapons_shared_8011db78", text = "0x9B8" },
   { kind = "model", at = "0xF40" },
   { kind = "model", at = "0x12C4" },
   { kind = "data", at = "0x1450" },
