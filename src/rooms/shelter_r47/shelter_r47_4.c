@@ -94,7 +94,29 @@ extern u8 D_shelter_r47_8018A695;
 extern u8 D_shelter_r47_8018A696;
 extern u8 D_shelter_r47_8018A697;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182B9C);
+/// Hit-tests the point (`x`, `y`) against every entry of a hotspot table up to
+/// its -1 terminator, raising `hit` on each entry whose rectangle contains the
+/// point (edges inclusive) and clearing it on the rest. Entry 0x101 is never
+/// raised while the task's `field_4F` is 1. Returns 1 if any entry was raised.
+s32 func_shelter_r47_80182B9C(Task* task, RoomHotspot* table, s16 x, s16 y)
+{
+    ShelterR47State* work;
+    s32              hit;
+
+    work = (ShelterR47State*)task->work;
+    hit  = 0;
+    while (table->id != -1) {
+        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y) &&
+            ((work->field_4F != 1) || (table->id != 0x101))) {
+            table->hit = 1;
+            hit        = 1;
+        } else {
+            table->hit = 0;
+        }
+        table++;
+    }
+    return hit;
+}
 
 /// Zeroes the action prompt's target id, mode and screen position, and steps
 /// the caller's script on one state.
