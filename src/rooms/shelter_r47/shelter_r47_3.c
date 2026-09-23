@@ -105,6 +105,23 @@ extern RoomHotspot D_shelter_r47_80186FB4[];
 
 extern TaskDesc D_shelter_r47_801872F0;
 
+/// One textured piece of a sprite drawn by `func_shelter_r47_80180F38`: its
+/// CLUT position, its offset from the sprite's origin, and its texture window.
+/// A piece whose `clutX` is 0xFFFF ends the list.
+typedef struct {
+    u16 clutX;
+    u16 clutY;
+    s16 x;
+    s16 y;
+    u8  u;
+    u8  v;
+    u8  w;
+    u8  h;
+} ShelterR47SpritePart;
+
+/// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
+extern ShelterR47SpritePart* D_shelter_r47_8018729C[];
+
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
@@ -300,7 +317,31 @@ s32 func_shelter_r47_80180C48(Task* task)
     return done;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80180F38);
+/// Draws sprite `id` with its origin at (`x`, `y`), one raw-textured quad
+/// per piece into OT slot 10. Sprites 1 and 2 are skipped while
+/// the current view is 0x12.
+void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
+{
+    ShelterR47SpritePart* g;
+    POLY_FT4*             p;
+
+    g = D_shelter_r47_8018729C[id];
+    if (gGameSession->at4.loc.view == 0x12 && (u16)(id - 1) < 2) {
+        return;
+    }
+    while (g->clutX != 0xFFFF) {
+        p              = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = (u8*)(p + 1);
+        setPolyFT4(p);
+        setUVWH(p, g->u, g->v, g->w, g->h);
+        p->tpage = 0xD;
+        setShadeTex(p, 1);
+        p->clut = getClut(g->clutX, g->clutY);
+        setXYWH(p, x + g->x, y + g->y, g->w, g->h);
+        addPrim(&gGpuCurrentOt[10], p);
+        g++;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181148);
 
