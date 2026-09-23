@@ -19,6 +19,8 @@
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+/// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 typedef struct {
     u8             pad0[8];
@@ -27,12 +29,30 @@ typedef struct {
     u16            field_22;
 } ClumpMem;
 
+/// 0x2C-byte scratch block `func_shelter_r48_80181C14` takes from
+/// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
+/// it, and both points' projections. `otz0`/`sx0`/`sy0` belong to `base`,
+/// `otz1`/`sx1`/`sy1` to `tip`; `r0`/`r1` are the wedge radii at each end.
+typedef struct {
+    SVECTOR base;
+    SVECTOR tip;
+    s32     otz0;
+    s32     otz1;
+    s32     flag;
+    s32     r0;
+    s32     r1;
+    u16     sx0;
+    u16     sy0;
+    u16     sx1;
+    u16     sy1;
+} _ShelterR48BeamScratch;
+
 void func_shelter_r48_8017FB7C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part);
 void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_80180804(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 color);
 
 extern u32     Gp_LcgState;
 extern SVECTOR D_shelter_r48_8018300C;
@@ -807,7 +827,156 @@ void func_shelter_r48_80181704(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_80181C14);
+/// Offsets a point (0, 0x800, 0x1400) from `coord`, turned by `yaw` about Y
+/// and then by the coordinate's world matrix, and projects both the
+/// coordinate's world position and that tip through `GsWSMATRIX`. When both
+/// project, it draws two passes of gouraud `POLY_G4` wedges, with radii of
+/// `size * 64` and `size * 128` over each end's depth: every 0x400 step
+/// across the half-turn facing along the screen-space line between the points
+/// queues a fan at the tip, a fan at the base and a quad joining them. `color`
+/// packs `0xRGB` nibbles, each shifted into its channel's high nibble, with
+/// `gDisplayState.animFrame & 1` shifted into bit 4 of every channel.
+void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 color)
+{
+    MATRIX                  m;
+    void**                  scratch;
+    u8*                     head;
+    _ShelterR48BeamScratch* block;
+    POLY_G4*                prim;
+    s32                     pass;
+    u8                      r;
+    u8                      g;
+    u8                      b;
+    s32                     limit;
+    s32                     angStart;
+    s32                     scaled;
+    s32                     ang;
+    s32                     next;
+    s32                     mid;
+    s32                     blend;
+    s32                     tr;
+    s32                     tg;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (_ShelterR48BeamScratch*)(*scratch = head - 0x2C);
+    block->tip.vy = 0x800;
+    block->tip.vx = 0;
+    block->tip.vz = 0x1400;
+    Gfx_RotMatrixY(&m, (s16)yaw, 1);
+    ang = color;
+    gte_SetRotMatrix(&m);
+    gte_ldv0(&block->tip);
+    gte_rtv0_real();
+    gte_stsv(&block->tip);
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&block->tip);
+    gte_rtv0_real();
+    gte_stsv(&block->tip);
+    block->base.vx = coord->workm.t[0];
+    block->base.vy = coord->workm.t[1];
+    block->base.vz = coord->workm.t[2];
+    block->tip.vx += block->base.vx;
+    block->tip.vy += block->base.vy;
+    block->tip.vz += block->base.vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->base);
+    gte_rtps_real();
+    gte_stsxy(&block->sx0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(&block->tip);
+        gte_rtps_real();
+        gte_stsxy(&block->sx1);
+        gte_stflg(&block->flag);
+        gte_stszotz(&block->otz1);
+        if (block->flag >= 0) {
+            tr    = (((u16)ang >> 8) & 0xF) << 4;
+            tg    = (((u16)ang >> 4) & 0xF) << 4;
+            blend = (*(u8*)&gDisplayState.animFrame & 1) << 4;
+            r     = tr + blend;
+            g     = tg + blend;
+            // Dead: never read before the loop sets it, but it has to be
+            // here for `b` to read `color` rather than the copy in `ang`.
+            ang = 0;
+            b   = ((color & 0xF) << 4) + blend;
+            for (pass = 1; pass < 3; pass++) {
+                scaled    = size * (pass << 6);
+                block->r0 = scaled / block->otz0;
+                block->r1 = scaled / block->otz1;
+                ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+                if (ang < ang + 0x800) {
+                    angStart = ang;
+                    limit    = ang + 0x800;
+                    do {
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, 0, 0, 0);
+                        prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
+                        prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
+                        prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
+                        prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
+                        prim->x2 = block->sx1;
+                        prim->y2 = block->sy1;
+                        prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
+                        prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
+                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, 0, 0, 0);
+                        prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                        prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+                        prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
+                        prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                        next     = ang + 0x400;
+                        prim->x2 = block->sx0;
+                        prim->y2 = block->sy0;
+                        prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
+                        prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
+                        addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+                        prim           = (POLY_G4*)gGpuPrimCursor;
+                        mid            = angStart + (ang - angStart) * 2;
+                        gGpuPrimCursor = prim + 1;
+                        setPolyG4(prim);
+                        setRGB0(prim, 0, 0, 0);
+                        setRGB1(prim, 0, 0, 0);
+                        setRGB2(prim, r, g, b);
+                        setRGB3(prim, r, g, b);
+                        prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
+                        prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
+                        prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
+                        prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
+                        prim->x2 = block->sx0;
+                        prim->y2 = block->sy0;
+                        prim->x3 = block->sx1;
+                        prim->y3 = block->sy1;
+                        addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                prim);
+                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        ang = next;
+                    } while (ang < limit);
+                }
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+}
 
 /// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag is
 /// non-negative, queues a glow of gouraud `POLY_G4` wedges around the projected
