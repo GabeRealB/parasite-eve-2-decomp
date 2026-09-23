@@ -93,7 +93,44 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
     } while (i < 6);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_8", func_shelter_b3_garbage_incinerator_801853C4);
+void func_shelter_b3_garbage_incinerator_801853C4(void)
+{
+    SVECTOR     normal;
+    SVECTOR*    normals;
+    SVECTOR*    verts;
+    GpGridFace* faces;
+    s16         i;
+
+    i       = 0;
+    normals = Gp_GridParams->field_4;
+    verts   = Gp_GridParams->field_8;
+    faces   = Gp_GridParams->field_C;
+    func_shelter_b3_garbage_incinerator_80184EEC();
+    do {
+        verts[i * 4].vx = verts[i * 4 + 2].vx = D_shelter_b3_garbage_incinerator_8018FBFC[i][0];
+        verts[i * 4].vy = verts[i * 4 + 2].vy = 0;
+        verts[i * 4].vz = verts[i * 4 + 2].vz = D_shelter_b3_garbage_incinerator_8018FBFC[i][1];
+        verts[i * 4 + 1].vx = verts[i * 4 + 3].vx = D_shelter_b3_garbage_incinerator_8018FBFC[i][2];
+        verts[i * 4 + 1].vy = verts[i * 4 + 3].vy = 0;
+        verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = D_shelter_b3_garbage_incinerator_8018FBFC[i][3];
+        verts[i * 4].vy                          += 1000;
+        verts[i * 4 + 1].vy                      += 1000;
+        verts[i * 4 + 2].vy                      += 2000;
+        verts[i * 4 + 3].vy                      += 2000;
+        faces[i].verts[1]                         = i * 4 + 1;
+        faces[i].verts[0]                         = i * 4;
+        faces[i].verts[2]                         = i * 4 + 2;
+        faces[i].verts[3]                         = i * 4 + 3;
+        faces[i].field_8                          = i;
+        faces[i].field_A                          = 1;
+        normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][3] - D_shelter_b3_garbage_incinerator_8018FBFC[i][1];
+        normal.vy                                 = 0;
+        normal.vz                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][0] - D_shelter_b3_garbage_incinerator_8018FBFC[i][2];
+        VectorNormalSS(&normal, &normal);
+        normals[i] = normal;
+        i++;
+    } while (i < 6);
+}
 
 void func_shelter_b3_garbage_incinerator_80185574(void)
 {
