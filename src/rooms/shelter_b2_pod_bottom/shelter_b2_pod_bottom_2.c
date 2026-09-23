@@ -2,10 +2,12 @@
 
 #include "gameplay/3CD8.h"
 #include "main/task.h"
+#include "main/gfx.h"
 #include "rooms/room_common.h"
 
 extern u32 Gp_LcgState;
 
+void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D760);
@@ -103,6 +105,39 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80181B48);
+void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    s16            y;
+
+    work  = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (Gp_State1C->eventState >= 4) {
+        Gp_ReleaseState1CMem(work, arg0);
+        return;
+    }
+    work->field_22++;
+    switch (arg0->state) {
+        case 0:
+            Gfx_RotMatrixX(&coord->coord, arg0->spawnArg1, 0);
+            work->field_24 = 0xC0;
+            work->field_26 = 0x180;
+            arg0->state    = 1;
+        case 1:
+            func_shelter_b2_pod_bottom_8017E788(coord, (s16)work->field_26, (s16)work->field_24);
+            if (Gp_State1C->eventState == 0) {
+                work->field_26 += 0x60;
+                y               = work->field_24 - 0x18;
+                work->field_24  = y;
+                if (y < 0x18) {
+                    Gp_ReleaseState1CMem(work, arg0);
+                }
+            } else {
+                work->field_22--;
+            }
+            break;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", D_shelter_b2_pod_bottom_8017D5EC);
