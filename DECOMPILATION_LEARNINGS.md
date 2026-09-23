@@ -139295,3 +139295,25 @@ statements the LCG update comes first. Writing it as one assignment,
 expands the array reference's address before the right-hand side, so the base
 is the first invariant loop.c meets. m2c's `temp_a0 = j + i*16` computed ahead
 of the LCG is the hint.
+
+### `field += step; field2 += step << 3` with a `move` copy: reload the addend, no asm needed (func_shelter_r48_801810B0, 2026-09-23)
+
+The `addu / sh / move v0,v1 / lhu v1,field2 / sll v0,v0,3` shape described
+under "Earlyclobber empty asm copies an SI value" also comes out of plain C.
+The `move` is `reload_cse` replacing a *second* `lhu` of the addend with the
+register that already holds it - which it only does when the first load was a
+full SI `zero_extend`, not the HI load a narrowed `s16 += (u16)x` produces
+(that gives `andi v0,v1,0xffff`). So read the addend twice, the first time
+through an `s32` local:
+
+```c
+scale       = work->scale;          /* s16 local: puts the lhu of scale first */
+step        = (u16)work->step;      /* s32 local: SI zero_extend, not narrowed */
+work->scale = scale + step;
+work->angle += (u16)work->step * 8; /* second load -> reload_cse `move` */
+```
+
+The `scale` local fixes the load order only: with `work->scale += step` the
+HI mem of `scale` is not loaded until the add, after `step`'s assignment has
+already been emitted, so the two `lhu`s come out swapped. Embedding the
+assignment (`work->scale += (step = ...)`, either operand order) does not help.
