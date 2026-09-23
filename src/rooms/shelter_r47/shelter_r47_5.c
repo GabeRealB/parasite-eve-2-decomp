@@ -43,12 +43,16 @@ STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 typedef struct {
     /* 0x00 */ u8  pad_0[0xA];
     /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  pad_C[0xA];
+    /* 0x0C */ u8  pad_C[2];
+    /* 0x0E */ s16 field_E;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ u8  pad_12[4];
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18;
     /* 0x1A */ s16 field_1A;
-    /* 0x1C */ s16 field_1C;
-    /* 0x1E */ u8  pad_1E[4];
+    /* 0x1C */ s16 field_1C; ///< index into `D_shelter_r47_801873FC`, wrapping over 0..4
+    /* 0x1E */ s16 field_1E;
+    /* 0x20 */ u8  pad_20[2];
     /* 0x22 */ u16 fade;       ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x24 */ s16 field_24;   ///< frame counter; past 300 the task moves to state 9
     /* 0x26 */ u8  pad_26[2];
@@ -69,6 +73,7 @@ extern u8  D_8007216C;
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
 
+extern u8 D_shelter_r47_801873FC[];
 extern u8 D_shelter_r47_8018A696;
 extern u8 D_shelter_r47_8018A697;
 
@@ -148,7 +153,35 @@ void func_shelter_r47_80185510(Task* task)
     Task_RequestKill(task, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801855B8);
+void func_shelter_r47_801855B8(Task* task)
+{
+    ShelterR47State2* state;
+
+    state = (ShelterR47State2*)task->work;
+    func_shelter_r47_801851B8(task);
+    if (state->field_A <= 0) {
+        state->field_E  = 0xE8;
+        state->field_10 = 0xCE;
+        state->field_1E = -0x9C;
+        switch (state->field_1A) {
+            case 2:
+                state->field_1C--;
+                if (state->field_1C < 0) {
+                    state->field_1C = 4;
+                }
+                D_8007216C = D_shelter_r47_801873FC[state->field_1C];
+                break;
+            case 3:
+                state->field_1C++;
+                if (state->field_1C >= 5) {
+                    state->field_1C = 0;
+                }
+                D_8007216C = D_shelter_r47_801873FC[state->field_1C];
+                break;
+        }
+        task->state++;
+    }
+}
 
 void func_shelter_r47_801856AC(Task* task)
 {
