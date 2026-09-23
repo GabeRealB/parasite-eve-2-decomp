@@ -35,6 +35,10 @@ extern s32 Gp_LcgState;
 void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 
+/// Two scratch rings the shot walks while in flight.
+s16 D_energyshot_80130108[16] = { 0 };
+s16 D_energyshot_80130128[16] = { 0 };
+
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or
 /// `Gp_State1C->fadeState >= 4`) releases the work block.
@@ -44,11 +48,6 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 /// brightness / radius, draws three rings plus `field_0` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
-/// Two scratch rings the shot walks while in flight.
-/// lists an object in the linker script at its first subsegment, and this has
-s16 D_energyshot_80130108[16] = { 0 };
-s16 D_energyshot_80130128[16] = { 0 };
-
 void func_energyshot_8012EF34(Task* arg0)
 {
     GpEffWork*     mem;

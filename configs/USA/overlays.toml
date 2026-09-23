@@ -7427,7 +7427,6 @@ id = 48
 objects = [
   { kind = "packageId" },
   { unit = "pyrokinesis/pyrokinesis", rodata = "0x4", text = "0x18", data = "0x2EA8" },
-  { unit = "pyrokinesis/pyrokinesis_2", text = "0x2288" },
 ]
 
 [pe.overlays.combustion]
@@ -7435,7 +7434,6 @@ id = 49
 objects = [
   { kind = "packageId" },
   { unit = "combustion/combustion", rodata = "0x4", text = "0x4", data = "0x1A50" },
-  { unit = "combustion/combustion_2", text = "0xFDC" },
 ]
 
 [pe.overlays.inferno]
@@ -7478,7 +7476,6 @@ id = 55
 objects = [
   { kind = "packageId" },
   { unit = "healing/healing", rodata = "0x4", text = "0x4", data = "0xCEC" },
-  { unit = "healing/healing_2", text = "0x6B4" },
 ]
 
 [pe.overlays.lifedrain]
@@ -7486,8 +7483,6 @@ id = 56
 objects = [
   { kind = "packageId" },
   { unit = "lifedrain/lifedrain", rodata = "0x4", text = "0x18", data = "0x1B84" },
-  { unit = "lifedrain/lifedrain_2", text = "0xBC8" },
-  { unit = "lifedrain/lifedrain_3", text = "0x1990" },
 ]
 
 [pe.overlays.antibody]
