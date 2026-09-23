@@ -10,10 +10,13 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "rooms/dryfield_water_tank.h"
+#include "rooms/room_common.h"
 #include "rooms/rooms_shared_80180b2c.h"
 
 /// Spawn table for the task that takes over once the intro stream is done.
@@ -32,6 +35,15 @@ extern s8 D_8007218A;
 /// The two blocks `func_800E8634` is handed as raw addresses.
 extern s32 D_dryfield_water_tank_8018050C;
 extern s32 D_dryfield_water_tank_8018068C;
+
+/// Script record the cutscene owner is handed with msg 0x3F4.
+extern s32 D_dryfield_water_tank_801804EC;
+
+/// The placement the room sends its cutscene owner with message 0x3E9.
+extern RoomPlacement D_dryfield_water_tank_801804F4;
+
+/// Main-executable flag set to 1 before the view tasks are respawned.
+extern s8 D_8007106B;
 
 /// Fade the water tank to white and tear the task down.
 ///
@@ -169,11 +181,103 @@ void func_dryfield_water_tank_8017E568(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tank/dryfield_water_tank_5", func_dryfield_water_tank_8017E78C);
+/// Carries out the script command in `DwtWork::field_4`, then clears it; the
+/// multi-frame commands step `field_6` and return early until they finish.
+/// 2 hands the owner the `D_dryfield_water_tank_801804EC` script record as msg
+/// 0x3F4 over two frames, the second also sending msg 0x3FD. 3 spawns entry 3 of
+/// the room task table, 4 sends the owner the 0x800 warp (msg 0x3EE). 5 spawns
+/// the view tasks, waits two frames, then hands the owner the room placement
+/// (msg 0x3E9) and slot 3 the equipped weapon's 0x3E8 animation record, and
+/// marks the view dirty.
+void func_dryfield_water_tank_8017E78C(Task* task)
+{
+    DwtWork* work;
+    DwtWork* cur;
+    union {
+        GpRec14  rec;
+        GpMsg3EE warp;
+    } msg;
+    GpRec14  script;
+    GpRec14* rec;
+    u16      step;
+    s32      weaponId;
+    s32      idx;
 
-/// Body `func_dryfield_water_tank_8017E9F8` runs from its state 1 while the
-/// session is up. Still `INCLUDE_ASM` in this unit.
-void func_dryfield_water_tank_8017E78C(Task* task);
+    work = (DwtWork*)task->work;
+    switch ((u16)work->field_4) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            step = work->field_6;
+            switch (step) {
+                case 0:
+                    cur = (DwtWork*)task->work;
+                    if (cur->owner != NULL) {
+                        msg.rec.field_0  = (s32)&D_dryfield_water_tank_801804EC;
+                        msg.rec.field_4  = 0;
+                        msg.rec.field_8  = 0;
+                        msg.rec.field_C  = 0;
+                        msg.rec.field_10 = 0;
+                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                    }
+                    work->field_6++;
+                    return;
+                case 1:
+                    cur = (DwtWork*)task->work;
+                    if (cur->owner != NULL) {
+                        msg.rec.field_0  = (s32)&D_dryfield_water_tank_801804EC;
+                        msg.rec.field_4  = step;
+                        msg.rec.field_8  = step;
+                        msg.rec.field_C  = 0xF;
+                        msg.rec.field_10 = 0;
+                        Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
+                    }
+                    Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
+                    break;
+            }
+            break;
+        case 3:
+            Task_SpawnFromTable(&D_dryfield_water_tank_80180764, 3, 8, 0);
+            break;
+        case 4:
+            msg.warp.field_12 = 0x800;
+            Gp_DispatchMsg((Task*)work->owner, 0x3EE, (s32)&msg.warp, 0);
+            break;
+        case 5:
+            idx = (u16)work->field_6;
+            switch (idx) {
+                case 0:
+                    Display_SpawnWithOt(&D_dryfield_water_tank_80180764, 1, 0, 0);
+                    D_8007106B = 1;
+                    Gp_SpawnViewTasks();
+                    work->field_6++;
+                    return;
+                case 1:
+                case 2:
+                    work->field_6 = idx + 1;
+                    return;
+                case 3:
+                    Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_water_tank_801804F4, 0);
+                    // Taken before the record is filled, the address sits in
+                    // $a1 and `field_4` is stored through it.
+                    rec             = &script;
+                    weaponId        = D_80073BA9;
+                    script.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                    rec->field_4    = 1;
+                    script.field_8  = 0;
+                    script.field_C  = 0;
+                    script.field_10 = 0;
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
+                    gGameSession->viewDirty = 1;
+                    break;
+                default:
+                    return;
+            }
+            break;
+    }
+    work->field_4 = 0;
+}
 
 /// Cutscene task state machine. State 0 refuses to run when the cutscene flag
 /// is already up or one is live, otherwise it parks the freshly zeroed
