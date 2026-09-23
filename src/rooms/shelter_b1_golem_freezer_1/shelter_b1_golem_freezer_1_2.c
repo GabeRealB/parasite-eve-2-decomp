@@ -1,10 +1,12 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
@@ -26,6 +28,12 @@ extern s16      D_shelter_b1_golem_freezer_1_8017E6D0;
 extern s16      D_shelter_b1_golem_freezer_1_8017E6D2;
 extern GolemXfm D_shelter_b1_golem_freezer_1_8017E714;
 extern GolemXfm D_shelter_b1_golem_freezer_1_8017E9C0;
+extern SVECTOR  D_shelter_b1_golem_freezer_1_8017E738[];
+extern SVECTOR  D_shelter_b1_golem_freezer_1_8017E740[];
+extern s32      D_80070F70;
+extern u32      Gp_LcgState;
+
+#define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* arg0, s16* arg1);
 
@@ -105,4 +113,33 @@ void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_2", func_shelter_b1_golem_freezer_1_8017DA7C);
+void func_shelter_b1_golem_freezer_1_8017DA7C(void)
+{
+    SVECTOR pos;
+    s32     i;
+    s32     ang;
+    s32     r;
+
+    if (!(D_80070F70 & 3)) {
+        for (i = 0; i < 9; i++) {
+            ang    = GOLEM_RAND() & 0xFFF;
+            r      = (GOLEM_RAND() & 0x3C0) + 0x40;
+            pos.vx = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vx + ((r * rcos(ang)) >> 12);
+            pos.vy = -(GOLEM_RAND() & 0xFF);
+            pos.vz = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vz + ((r * rsin(ang)) >> 12);
+            Gp_SpawnEff(0x601A6, NULL, (GOLEM_RAND() & 0x10FF) + 0x85400, &pos);
+        }
+    }
+    switch (Gp_GetViewIndex() & 0xFF) {
+        case 3:
+            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
+            break;
+        case 4:
+            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
+            break;
+        case 2:
+        case 5:
+            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
+            break;
+    }
+}
