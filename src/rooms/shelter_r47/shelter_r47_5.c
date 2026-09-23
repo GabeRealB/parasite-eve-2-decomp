@@ -54,7 +54,9 @@ typedef struct {
     /* 0x28 */ s8  promptKind; ///< display mode forwarded to `func_800D4E78`
     /* 0x29 */ u8  field_29;   ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
     /* 0x2A */ s8  field_2A;
-    /* 0x2B */ u8  pad_2B[5];
+    /* 0x2B */ u8  pad_2B;
+    /* 0x2C */ s8  field_2C;
+    /* 0x2D */ u8  pad_2D[3];
 } ShelterR47State2;
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
@@ -69,7 +71,42 @@ extern SVECTOR D_shelter_r47_80187664[];
 extern u8 D_shelter_r47_8018A696;
 extern u8 D_shelter_r47_8018A697;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_80185354);
+void func_shelter_r47_80185354(Task* task)
+{
+    ShelterR47State2* state;
+    RoomActionPrompt* prompt = &D_80114D28;
+    u8                level;
+
+    state = (ShelterR47State2*)task->work;
+    if (state->field_2A == 1) {
+        level = state->fade;
+        Fade_DrawOverlay(level, level, level, 2);
+        task->state      = 8;
+        prompt->targetId = 0;
+        prompt->mode     = 0;
+    } else if (state->field_2A == 2) {
+        prompt->targetId = 0;
+        prompt->mode     = 0;
+        if ((s16)state->fade > 0) {
+            state->fade -= 8;
+            if ((s16)state->fade < 0) {
+                state->fade = 0;
+                Gp_StartCapSlot(0x12, 0, 0);
+                task->state++;
+            } else {
+                level = state->fade;
+                Fade_DrawOverlay(level, level, level, 2);
+            }
+        }
+    } else {
+        state->field_2C  = 6;
+        prompt->targetId = 0x80;
+        prompt->mode     = 1;
+        task->state++;
+    }
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+}
 
 void func_shelter_r47_80185450(Task* task)
 {
