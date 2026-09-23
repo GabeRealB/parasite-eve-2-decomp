@@ -18,6 +18,37 @@ typedef struct MineMesaEvent {
 } MineMesaEvent;
 STATIC_ASSERT_SIZEOF(MineMesaEvent, 0xC);
 
+/// One entry of the lists a `MineMesaLayout` points at: an x/y/z triple
+/// padded to 8 bytes.
+typedef struct MineMesaVec {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad;
+} MineMesaVec;
+STATIC_ASSERT_SIZEOF(MineMesaVec, 0x8);
+
+/// A 12-byte record that is only ever copied whole, so its fields are unknown.
+typedef struct MineMesaRecord {
+    /* 0x0 */ u16 field_0[6];
+} MineMesaRecord;
+STATIC_ASSERT_SIZEOF(MineMesaRecord, 0xC);
+
+/// Pointers into the room's layout data. The overlay holds a template
+/// (`D_mine_mesa_801864A4`) and a live copy (`D_mine_mesa_8018700C`), which
+/// `func_mine_mesa_8017EB54` fills from the template. `field_4` and `field_C`
+/// have three entries each, and `field_8` has eight. The struct may extend
+/// past `field_C`.
+typedef struct MineMesaLayout {
+    /* 0x0 */ s32             field_0;
+    /* 0x4 */ MineMesaVec*    field_4;
+    /* 0x8 */ MineMesaVec*    field_8;
+    /* 0xC */ MineMesaRecord* field_C;
+} MineMesaLayout;
+
+extern MineMesaLayout D_mine_mesa_801864A4;
+extern MineMesaLayout D_mine_mesa_8018700C;
+
 extern GpSaveLoc     D_mine_mesa_80189B40;
 extern s8            D_mine_mesa_80189B48;
 extern MineMesaEvent D_mine_mesa_80189B60;

@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/task.h"
+#include "rooms/mine_mesa.h"
 #include "rooms/room_common.h"
 
 extern Task* RoomsShared8018459cTask;
@@ -32,7 +33,42 @@ void func_mine_mesa_8017EB38(void)
     RoomsShared8017e8a8Task = NULL;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_mesa/mine_mesa_9", func_mine_mesa_8017EB54);
+/// Refreshes the live layout from the template. It copies the three `field_4`
+/// entries with their `field_C` records and the eight `field_8` entries, then
+/// shifts every `field_8` entry by (0x1838, -0xB4, 0x9F6), or by
+/// (0x1838, 0x7D0, 0x9F6) when `arg0` is non-zero.
+void func_mine_mesa_8017EB54(s32 arg0)
+{
+    MineMesaLayout* dst = &D_mine_mesa_8018700C;
+    MineMesaLayout* src = &D_mine_mesa_801864A4;
+    MineMesaVec     ofs;
+    s32             i;
+
+    for (i = 0; i < 3; i++) {
+        dst->field_4[i].x = src->field_4[i].x;
+        dst->field_4[i].y = src->field_4[i].y;
+        dst->field_4[i].z = src->field_4[i].z;
+        dst->field_C[i]   = src->field_C[i];
+    }
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x = src->field_8[i].x;
+        dst->field_8[i].y = src->field_8[i].y;
+        dst->field_8[i].z = src->field_8[i].z;
+    }
+    if (arg0 == 0) {
+        ofs.x = 0x1838;
+        ofs.y = -0xB4;
+    } else {
+        ofs.x = 0x1838;
+        ofs.y = 0x7D0;
+    }
+    ofs.z = 0x9F6;
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += ofs.x;
+        dst->field_8[i].y += ofs.y;
+        dst->field_8[i].z += ofs.z;
+    }
+}
 
 /// Publishes the mesa's three effect ids as `Gp_State1C->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
