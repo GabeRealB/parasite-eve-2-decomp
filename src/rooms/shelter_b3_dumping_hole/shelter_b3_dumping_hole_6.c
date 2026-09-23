@@ -83,6 +83,7 @@ extern TaskDesc        D_801575F0;
 extern s16             D_shelter_b3_dumping_hole_8018B578;
 extern s16             D_shelter_b3_dumping_hole_8018B57A;
 extern TaskDesc        D_shelter_b3_dumping_hole_8018B594;
+extern TaskDesc        D_shelter_b3_dumping_hole_8018B83C;
 extern TaskFuncTable4  D_shelter_b3_dumping_hole_8017D654;
 extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D664;
 extern TaskFuncTable3  D_shelter_b3_dumping_hole_8017D670;
@@ -151,7 +152,41 @@ void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183298);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_801833EC);
+void func_shelter_b3_dumping_hole_801833EC(DumpingHoleState* arg0)
+{
+    DumpingHoleEntityC* ent = (DumpingHoleEntityC*)arg0->field_1C;
+    s16                 count;
+    s16                 i;
+    s16                 idx;
+    s16                 type;
+    s16                 arg;
+
+    count = 0;
+    for (i = 0; i < 16; i++) {
+        if (D_shelter_b3_dumping_hole_8018B7BC[i].field_6 == 1) {
+            count++;
+        }
+    }
+    if (count < 3) {
+        idx = ent->field_2;
+        if (idx < 16 && gGameSession->sceneClock >= 0x3D) {
+            type = D_shelter_b3_dumping_hole_8018B7BC[idx].field_0;
+            arg  = D_shelter_b3_dumping_hole_8018B7BC[idx].field_2;
+            switch (type) {
+                case 0:
+                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
+                    break;
+                case 1:
+                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
+                    break;
+                case 2:
+                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
+                    break;
+            }
+            ent->field_2++;
+        }
+    }
+}
 
 void func_shelter_b3_dumping_hole_80183530(DumpingHoleState* arg0, s32 arg1, DumpingHoleMsg* arg2)
 {
