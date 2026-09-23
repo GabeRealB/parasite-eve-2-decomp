@@ -139688,3 +139688,24 @@ Target loop body: `lui t2,%hi(gGfxViewCoord); addiu t2,…; sw t2,0x5c(sp)`, whi
 ### An `s16` field divided by 2 loads as `lhu` + `sll 16`/`sra 16`, so a `(s16)` cast on a `u16` field may just be a mistyped field (func_shelter_b4_water_supply_8017DE74, 2026-09-24)
 
 `e->depth / 2` with `s16 depth` compiles to `lhu; sll v0,v0,16; sra v1,v0,16; srl v0,v0,31; addu; sra 1`, the same bytes as `(s16)e->depth / 2` with `u16 depth`. The signed bias reads the sign bit from the shifted-up copy, so the value is never loaded with `lh`. The same field divided by 16 uses `lh` and a `bgez`/`addiu 0xF` bias. Two drawers reading one surface array showed this: one divided offset 4 by 16 and offset 6 by 2, the other did the reverse, and a single all-`s16` struct matched both with no casts. Before adding a second struct type to explain an `lhu`-then-sign-extend load, check whether the load feeds a signed `/ 2`.
+
+### cse's jump-following path holds at most 9 followed branches; `if (...) { kill; return; }` per test spends them (func_shelter_b3_dumping_hole_8017E94C, 2026-09-24)
+**Symptom.** A `switch (state)` whose `case 2` ends in a nested `switch
+(spawnArg1)`. Ours compared `spawnArg1` against `$s6` (the `li 1` from the outer
+switch) and against the `state` register (known `== 2` from the jump), both kept
+across `ratan2`/`rcos` calls in saved registers - two extra `$s` regs and a
+bigger frame. The target reloads `li v0,1` / `li v0,2` fresh.
+**Cause.** `cse_end_of_basic_block` (`cse.c`) extends a path by following
+conditional jumps whose label has one use, capped at `PATHLENGTH - 1` = 9
+followed (TAKEN or AROUND) branches. Only while the path lasts do the
+outer switch's constant pseudo and `record_jump_equiv` facts reach the inner
+switch. A signed `/ 4096` adds an AROUND branch each; a `goto kill` to a shared
+label or an `a || b || c` chain adds none, because the shared label has several
+uses and is not followed.
+**Fix.** The screen-bounds tests were written as five separate
+`if (c) { taskKill(arg0); return; }` blocks. Each fallthrough label has a single
+use behind a barrier, so each test spends one path entry; the path ran out
+before the inner switch and the constants were rematerialised. Jump2
+cross-jumps the five kill blocks back into the single one the target has.
+Separate `if`s also stop `fold` from merging `x < -A || x > A` into the
+`addiu; andi 0xffff; sltiu` range test.

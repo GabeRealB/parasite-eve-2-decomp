@@ -14,6 +14,9 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+#include <psyq/libgte.h>
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04;
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8;
 extern s16      D_shelter_b3_dumping_hole_8018809C;
@@ -295,7 +298,20 @@ typedef struct {
 typedef struct {
     MATRIX field_0;
     MATRIX field_20;
-    u8     pad_40[0x1C];
+    u16    rotX; // Accumulated rotation about X, advanced by `spinX` each frame
+    u16    rotY; // Accumulated rotation about Y, advanced by `spinY` each frame
+    u16    rotZ; // Accumulated rotation about Z; advanced but never applied
+    u8     pad_46[0x2];
+    s16    velX; // Per-frame translation added to the coordinate
+    s16    velY;
+    s16    velZ;
+    u8     pad_4E[0x2];
+    s16    spinX; // Per-frame rotation step, chosen at random at launch
+    s16    spinY;
+    s16    spinZ;
+    u8     pad_56[0x2];
+    u16    fall; // Downward speed added to `velY`, growing by 5 each frame
+    u8     pad_5A[0x2];
 } DumpingHoleCoordWork;
 
 void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
@@ -338,7 +354,131 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     func_800D7A9C(e2, &v, 0, 3);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017E94C);
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+#define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
+
+/// Stack block for projecting a point through `GsWSMATRIX`: the point, then
+/// the screen position and depth the projection writes back.
+typedef struct {
+    SVECTOR pos;
+    s16     sx;
+    s16     sy;
+    s32     otz;
+} DumpingHoleProjection;
+
+/// Debris thrown from the hole. Once the room signals, the piece is projected
+/// to the screen: off-screen or behind the camera it is dropped, otherwise it
+/// is launched away from the screen centre with a random speed and spin, and
+/// then falls under a growing downward speed.
+void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
+{
+    DumpingHoleCoordWork* work  = (DumpingHoleCoordWork*)arg0->work;
+    u16                   flag  = D_shelter_b3_dumping_hole_8018F4A8->field_1C->field_40;
+    GsCOORDINATE2*        coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2*        c2;
+    DumpingHoleProjection p;
+    s32                   sx;
+    s32                   sy;
+    s16                   angle;
+    s32                   x;
+    s32                   y;
+    s32                   z;
+
+    if (flag == 2) {
+        taskKill(arg0);
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            func_shelter_b3_dumping_hole_8017E7DC(arg0);
+            arg0->state++;
+            return;
+        case 1:
+            if (flag == 1) {
+                arg0->state = 2;
+            }
+            return;
+        case 2:
+            p.pos.vx = coord->workm.t[0];
+            p.pos.vy = coord->workm.t[1];
+            p.pos.vz = coord->workm.t[2];
+            gte_SetTransMatrix(&GsWSMATRIX);
+            gte_SetRotMatrix(&GsWSMATRIX);
+            gte_ldv0(&p.pos);
+            gte_rtps_real();
+            gte_stsxy(&p.sx);
+            gte_stszotz(&p.otz);
+            sx = p.sx;
+            sy = p.sy;
+            if (sx < -0xA0) {
+                taskKill(arg0);
+                return;
+            }
+            if (sx > 0xA0) {
+                taskKill(arg0);
+                return;
+            }
+            if (sy < -0x78) {
+                taskKill(arg0);
+                return;
+            }
+            if (sy > 0x78) {
+                taskKill(arg0);
+                return;
+            }
+            if (p.otz < 0) {
+                taskKill(arg0);
+                return;
+            }
+            angle      = ratan2(sy, sx);
+            work->velZ = rcos(angle) * ((DUMPING_HOLE_RAND() & 7) + 0x11) / 4096;
+            work->velY = rsin(angle) * ((DUMPING_HOLE_RAND() & 7) + 5) / 4096;
+            switch (arg0->spawnArg1) {
+                case 0:
+                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x32;
+                    break;
+                case 1:
+                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x28;
+                    break;
+                case 2:
+                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x1E;
+                    break;
+            }
+            x = DUMPING_HOLE_RAND() & 0x7F;
+            if (DUMPING_HOLE_RAND() & 0x8000) {
+                x = -x;
+            }
+            work->spinX = x;
+            y           = DUMPING_HOLE_RAND() & 0x7F;
+            if (DUMPING_HOLE_RAND() & 0x8000) {
+                y = -y;
+            }
+            work->spinY = y;
+            z           = DUMPING_HOLE_RAND() & 0x7F;
+            if (DUMPING_HOLE_RAND() & 0x8000) {
+                z = -z;
+            }
+            work->spinZ = z;
+            work->fall  = 0;
+            arg0->state++;
+            return;
+        case 3:
+            work->rotX     += work->spinX;
+            work->rotY     += work->spinY;
+            work->rotZ     += work->spinZ;
+            work->fall     += 5;
+            c2              = ((TmdObject*)arg0->extra)->coords;
+            c2->sub         = &gGfxViewCoord;
+            c2->coord.t[0] += work->velX;
+            c2->coord.t[1] += work->velY + work->fall;
+            c2->coord.t[2] += work->velZ;
+            Gfx_RotMatrixY(&c2->coord, (s16)work->rotY, 1);
+            Gfx_RotMatrixX(&c2->coord, (s16)work->rotX, 0);
+            c2->flg = 0;
+            return;
+    }
+}
 
 /// Payload of message 0x7DA: the current stage and area, and a flag word.
 typedef struct {
