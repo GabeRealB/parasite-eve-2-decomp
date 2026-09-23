@@ -31,6 +31,22 @@ typedef struct {
     u16     sy1;
 } _ShelterB6TrainingRoomBeamScratch;
 
+/// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
+/// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first
+/// point's projected depth, the GTE flag of the latest projection, the strip's
+/// perspective-scaled half-width rotated into screen space, and both points'
+/// screen positions.
+typedef struct {
+    SVECTOR from;
+    SVECTOR to;
+    s32     otz;
+    s32     flag;
+    s32     dx;
+    s32     dy;
+    DVECTOR sxy0;
+    DVECTOR sxy1;
+} _ShelterB6TrainingRoomRibbonScratch;
+
 extern s32            D_80070F70;
 extern u32            Gp_LcgState;
 extern GsCOORDINATE2* D_shelter_b6_training_room_80185C90;
@@ -40,7 +56,7 @@ extern SVECTOR        D_shelter_b6_training_room_80184334[];
 extern u16            D_shelter_b6_training_room_801843FC[];
 
 void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 arg2);
 void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* to, s16 size, u16 color);
 
@@ -607,7 +623,80 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181BAC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181FDC);
+/// Draws a textured `POLY_FT4` strip between the world positions of two
+/// coordinates. Both ends are projected and the strip is dropped if either
+/// fails the GTE flag test. Its half-width is `arg3 * 23 / otz`, laid
+/// perpendicular to the screen-space line between the ends, and `arg2`
+/// selects one of four 128x24 texture frames. The primitive is queued at the
+/// first end's depth.
+void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s32 arg2, s16 arg3)
+{
+    void**                               scratch;
+    u8*                                  head;
+    _ShelterB6TrainingRoomRibbonScratch* block;
+    _ShelterB6TrainingRoomRibbonScratch* vecp;
+    POLY_FT4*                            prim;
+    s16                                  ang;
+    u16                                  vz;
+
+    scratch                                                        = (void**)G_SCRATCH_HEAD;
+    head                                                           = *scratch;
+    ((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->from.vx = *(u16*)&arg0->workm.t[0];
+    block                                                          = (_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28);
+    block->from.vy                                                 = *(u16*)&arg0->workm.t[1];
+    block->from.vz                                                 = *(u16*)&arg0->workm.t[2];
+    block->to.vx                                                   = *(u16*)&arg1->workm.t[0];
+    block->to.vy                                                   = *(u16*)&arg1->workm.t[1];
+    vz                                                             = *(u16*)&arg1->workm.t[2];
+    *scratch                                                       = block;
+    block->to.vz                                                   = vz;
+    vecp                                                           = block;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&vecp->from);
+    gte_rtps_real();
+    gte_stsxy(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->sxy0);
+    gte_stflg(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->otz);
+        gte_ldv0(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->to);
+        gte_rtps_real();
+        gte_stsxy(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->sxy1);
+        gte_stflg(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->flag);
+        if (block->flag >= 0) {
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setlen(prim, 9);
+            setcode(prim, 0x2F);
+            prim->tpage = 0x28;
+            prim->clut  = 0x42C8;
+            prim->u0    = (arg2 & 1) << 7;
+            prim->v0    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
+            prim->u1    = ((arg2 & 1) << 7) + 0x7F;
+            prim->v1    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
+            prim->u2    = (arg2 & 1) << 7;
+            prim->v2    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
+            prim->u3    = ((arg2 & 1) << 7) + 0x7F;
+            prim->v3    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
+            ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
+            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
+            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
+            prim->x0    = *(u16*)&block->sxy0.vx + *(u16*)&block->dx;
+            prim->x3    = *(u16*)&block->sxy1.vx - *(u16*)&block->dx;
+            prim->y0    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
+            prim->y3    = *(u16*)&block->sxy1.vy + *(u16*)&block->dy;
+            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
+            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
+            prim->x1    = *(u16*)&block->sxy1.vx + *(u16*)&block->dx;
+            prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
+            prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
+            prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+}
 
 void func_shelter_b6_training_room_8018245C(Task* task)
 {
