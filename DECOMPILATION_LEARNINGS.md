@@ -138287,3 +138287,24 @@ type can change scheduling"). A second IV in the same loop, the byte offset
 `off` fed to the GTE loads, had to stay a source local initialised with the
 counter: indexing `&blk->v[j]` moved its `li s2,8` to the end of the
 preheader (99.7%).
+
+## A reload register mismatch in one `switch` case can be caused by allocation in another case (func_dryfield_night_motel_loft_8017E090, 2026-09-23)
+
+**Symptom:** Cases 1 and 2 matched except `gte_lddp(w->gain)`: the target
+reloads the `u16` field into `$t0` for the asm's `"r"` input, ours into `$t2`.
+Nothing in those cases used `$t0`/`$t1`.
+
+**Cause:** that load is a reload insn (it first appears in `.greg`), and
+`order_regs_for_reload` ranks spill registers by the use count of every pseudo
+allocated to them *across the whole function* (`CODEGEN_MODEL.md` section 11).
+In case 0 five LCG results were live at once, because all five
+`Gp_LcgState` stores had sunk to just before the call, so two of them got
+`$t0`/`$t1`, and those registers were no longer "unused" for reload.
+
+**Fix:** match case 0 first. There the source position of an unrelated
+statement, `w->size = task->spawnArg1 & 0xFFF;`, decided how far sched1 sank
+the seed stores: written after the fifth LCG step, all the stores sank (95.5%);
+written between the fourth and fifth, the first two stores stayed next to
+their field stores, the rand values stopped overlapping, and `lddp` fell into
+`$t0` on its own (100%). When a reload register is off, look for pseudos in
+*other* blocks sitting in the registers reload skipped.
