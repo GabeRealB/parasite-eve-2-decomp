@@ -46,4 +46,31 @@ typedef struct DryfieldNightGasStationSprtRec {
 } DryfieldNightGasStationSprtRec;
 STATIC_ASSERT_SIZEOF(DryfieldNightGasStationSprtRec, 0xC8);
 
+/// One entry of the room's vector lists: three coordinates plus padding, eight
+/// bytes apart. Only the three coordinates are ever read or written.
+typedef struct DryfieldNightGasStationVec {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad;
+} DryfieldNightGasStationVec;
+STATIC_ASSERT_SIZEOF(DryfieldNightGasStationVec, 0x8);
+
+/// A 12-byte record copied whole, never read field by field.
+typedef struct DryfieldNightGasStationBlob {
+    /* 0x0 */ s8 b[12];
+} DryfieldNightGasStationBlob;
+STATIC_ASSERT_SIZEOF(DryfieldNightGasStationBlob, 0xC);
+
+/// A table of pointers into layout data: a four-entry vector list, an
+/// eight-entry vector list and four 12-byte records. The room keeps a template
+/// and a live copy, and `func_dryfield_night_gas_station_8017FBD4` resets the
+/// live lists from the template. Nothing pins where the table ends.
+typedef struct DryfieldNightGasStationLayout {
+    /* 0x0 */ s32                          field_0;
+    /* 0x4 */ DryfieldNightGasStationVec*  field_4;
+    /* 0x8 */ DryfieldNightGasStationVec*  field_8;
+    /* 0xC */ DryfieldNightGasStationBlob* field_C;
+} DryfieldNightGasStationLayout;
+
 #endif // ROOMS_DRYFIELD_NIGHT_GAS_STATION_H

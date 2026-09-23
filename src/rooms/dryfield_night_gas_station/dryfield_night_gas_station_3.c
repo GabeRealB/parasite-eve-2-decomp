@@ -8,11 +8,17 @@
 
 #include <psyq/rand.h>
 
+#include "rooms/dryfield_night_gas_station.h"
+
 void func_dryfield_night_gas_station_80180D1C(void);
 void func_dryfield_night_gas_station_80180DC8(s16 arg0);
 
 extern TaskFuncTable3 D_dryfield_night_gas_station_8017D644;
 extern SVECTOR        D_dryfield_night_gas_station_8017D658;
+
+/// The layout template and the live copy the reset below restores from it.
+extern DryfieldNightGasStationLayout D_dryfield_night_gas_station_80184374;
+extern DryfieldNightGasStationLayout D_dryfield_night_gas_station_8018ABBC;
 
 /// Gates the room's two sprite records on nibble 0x8D, then dispatches the task
 /// through the room's own three-state table, copied onto the stack first.
@@ -25,7 +31,47 @@ void func_dryfield_night_gas_station_8017FB70(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_8017FBD4);
+/// Resets the live layout lists from the template: the four-entry vector list
+/// and its 12-byte records, then the eight-entry list, which is afterwards
+/// raised by 0xBB8 on y when `arg0` is nonzero.
+void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
+{
+    DryfieldNightGasStationLayout* dst;
+    DryfieldNightGasStationLayout* src;
+    DryfieldNightGasStationVec     d;
+    s32                            i;
+
+    dst = &D_dryfield_night_gas_station_8018ABBC;
+    src = &D_dryfield_night_gas_station_80184374;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_4[i].x = src->field_4[i].x;
+        dst->field_4[i].y = src->field_4[i].y;
+        dst->field_4[i].z = src->field_4[i].z;
+        dst->field_C[i]   = src->field_C[i];
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x = src->field_8[i].x;
+        dst->field_8[i].y = src->field_8[i].y;
+        dst->field_8[i].z = src->field_8[i].z;
+    }
+
+    if (arg0 == 0) {
+        d.x = 0;
+        d.y = 0;
+    } else {
+        d.x = 0;
+        d.y = 0xBB8;
+    }
+    d.z = 0;
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += d.x;
+        dst->field_8[i].y += d.y;
+        dst->field_8[i].z += d.z;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_3", func_dryfield_night_gas_station_8017FD80);
 
