@@ -6,6 +6,8 @@
 
 extern u32 Gp_LcgState;
 
+void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D760);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D850);
@@ -32,7 +34,36 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80180A4C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_80180F10);
+void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    u32            rnd;
+
+    work  = arg0->spawnArg2;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState < 4) {
+            rnd         = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = rnd;
+            func_shelter_b2_pod_bottom_8018101C(coord, 0x100, (rnd >> 16) & 0x777, 0x10);
+            return;
+        }
+        Gp_ReleaseState1CMem(work, arg0);
+        return;
+    }
+    work->field_22++;
+    coord->coord.t[1] += arg0->spawnArg1;
+    coord->flg         = 0;
+    if ((s16)work->field_22 < 8) {
+        func_shelter_b2_pod_bottom_8018101C(coord, 0x100, 0xCCC, 0x10);
+        return;
+    }
+    func_shelter_b2_pod_bottom_8018101C(coord, 0x100, 0xCCC, (u16)((0x10 - (s16)work->field_22) * 2));
+    if ((s16)work->field_22 >= 0x10) {
+        Gp_ReleaseState1CMem(work, arg0);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8018101C);
 
