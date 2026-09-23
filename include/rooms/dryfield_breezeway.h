@@ -263,6 +263,22 @@ extern u32 Gp_LcgState;
 /// below, together with the room task's coordinate frame.
 extern u8 D_dryfield_breezeway_80183164[];
 
+/// 0x18-byte scratch block `func_dryfield_breezeway_80180858` takes from
+/// `G_SCRATCH_HEAD`. `vec` is the `data` point rotated through the
+/// coordinate's world matrix and offset by its translation; `otz` and
+/// `sx` / `sy` are that point projected through `GsWSMATRIX`, and `rOuter` /
+/// `rInner` are `(s16)arg3 * 64 / otz` and `(s16)arg3 * 8 / otz`, the
+/// on-screen radii of the disc and of its inner cross.
+typedef struct DbwGlowScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     rOuter;
+    /* 0x08 */ s32     rInner;
+    /* 0x0C */ SVECTOR vec;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
+} DbwGlowScratch;
+STATIC_ASSERT_SIZEOF(DbwGlowScratch, 0x18);
+
 void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
 void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
 
