@@ -595,6 +595,22 @@ typedef struct _RoomQuadScratch {
 } RoomQuadScratch;
 STATIC_ASSERT_SIZEOF(RoomQuadScratch, 0x24);
 
+/// Scratch block a pulsing glow draw takes from `G_SCRATCH_HEAD`. `vec` is
+/// the glow's anchor point rotated through the coordinate's world matrix and
+/// offset by its translation; `otz` and `sx` / `sy` are that point projected
+/// through `GsWSMATRIX`. `rOuter` and `rInner` are the caller's size scaled by
+/// `64 / otz` and `8 / otz`: the on-screen radii of the glow and of its inner
+/// quads.
+typedef struct {
+    s32     otz;
+    s32     rOuter;
+    s32     rInner;
+    SVECTOR vec;
+    u16     sx;
+    u16     sy;
+} RoomGlowScratch;
+STATIC_ASSERT_SIZEOF(RoomGlowScratch, 0x18);
+
 /// 0xC-byte scratch block `Room_Draw20`, `Room_Draw25`, `Room_Draw29` and
 /// `Room_Draw30` take from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of
 /// `arg0` through `Gfx_ViewWorldMtx`; `sx`/`sy` are that screen point and

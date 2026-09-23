@@ -138610,3 +138610,40 @@ for (i = 0; i < 2; i++) {
 
 Setting the pointer at function entry instead scored lower (96.4%, the
 residue moving to other blocks); the set belongs just before the loop.
+
+## `move sN,v1; sll v1,v1,16`: local-alloc's `optimize_reg_copy_1` rewrites a temp read after a copy to read the copy, unless the temp is overwritten (func_dryfield_trailer_coach_80182EB4, 2026-09-23)
+
+**Symptom.** The target computes a value into `$v1`, copies it to a
+callee-saved variable, then shifts the temp *in place*:
+`addiu v1,v1,0x78; move s6,v1; sll v1,v1,16; sra s7,v1,17`. Natural source
+(`color = x; half = (s16)color >> 1;`) gives `addiu s6,…` with no copy. Putting
+`half` first gives the copy but `sll v0,v1` (99.89%). `half = (s16)x; color = x;
+half >>= 1;` lets sched1 put the copy first, and then emits `sll v0,s6` (99.98%).
+
+**Cause.** Two passes. (1) cse makes the copy's destination canonical because
+it lives longer, so any read of the temp *after* `color = tmp` becomes a read of
+`color` (the `make_regs_eqv` rule already recorded above). (2) Even when the
+read survives cse, `update_equiv_regs` → `optimize_reg_copy_1`
+(local-alloc.c) handles every reg-reg copy whose source is still live: it scans
+forward to the source's death and replaces the source with the destination in
+every insn in between. It stops without replacing only at a label, jump, loop
+note, a `USE`, or an insn that **sets** the source or the destination.
+
+**Fix.** Make the shift overwrite the temp (the "sets the source" exit), and
+keep the temp canonical in cse by mentioning its variable after the copy's
+destination is last used. The epilogue was the only place that did not
+lengthen its live range across calls:
+
+```c
+work  = pulse / 34 + 0x78;
+color = work;
+work <<= 16;
+half  = work >> 17;
+...
+work = (s32)G_SCRATCH_HEAD;   /* last mention: keeps `work` canonical */
+*(u8**)work += 0x18;
+```
+
+Global-alloc then gives both of `work`'s live ranges `$v1`, and the epilogue's
+`lui v1,0x1f80; ori v1,v1,0x3fc` matches as well. Recognise the case by a copy
+whose source register is overwritten by the next instruction that reads it.

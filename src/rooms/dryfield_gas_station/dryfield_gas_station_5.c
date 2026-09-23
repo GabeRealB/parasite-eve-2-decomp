@@ -25,17 +25,17 @@ extern SVECTOR D_dryfield_gas_station_80183144;
 
 void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
-    u8*             head;
-    DgsGlowScratch* block;
-    POLY_G4*        prim;
-    s32             pulse;
-    s32             color;
-    s32             half;
-    s32             size;
-    s32             ang;
-    s32             t;
-    s32             t2;
-    s32             u;
+    u8*              head;
+    RoomGlowScratch* block;
+    POLY_G4*         prim;
+    s32              pulse;
+    s32              color;
+    s32              half;
+    s32              size;
+    s32              ang;
+    s32              t;
+    s32              t2;
+    s32              u;
 
     Gp_UpdateCoord(coord);
     {
@@ -45,29 +45,29 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
-        block   = (DgsGlowScratch*)tmp;
+        block   = (RoomGlowScratch*)tmp;
     }
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
     gte_rtv0_real();
-    gte_stsv(&((DgsGlowScratch*)(head - 0x18))->vec);
+    gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
     block->vec.vz += coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((DgsGlowScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
     gte_rtps_real();
-    gte_stsxy(&((DgsGlowScratch*)(head - 0x18))->sx);
+    gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&block->otz);
-    if (((DgsGlowScratch*)(head - 0x18))->otz > 16) {
+    if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {
         pulse         = rsin(gDisplayState.animFrame * (s16)arg2);
         ang           = 0;
         size          = (s16)arg3;
-        block->rOuter = (size * 64) / ((DgsGlowScratch*)(head - 0x18))->otz;
+        block->rOuter = (size * 64) / ((RoomGlowScratch*)(head - 0x18))->otz;
         color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((DgsGlowScratch*)(head - 0x18))->otz;
+        block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
