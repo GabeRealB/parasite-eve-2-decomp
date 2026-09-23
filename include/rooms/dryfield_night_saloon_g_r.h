@@ -22,4 +22,8 @@ STATIC_ASSERT_SIZEOF(DnsgrMsg7DA, 0x4);
 /// unused; `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
 s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 
+void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0);
+void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord);
+void func_dryfield_night_saloon_g_r_8017F0A4(GsCOORDINATE2* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+
 #endif // ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
