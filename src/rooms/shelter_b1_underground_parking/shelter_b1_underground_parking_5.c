@@ -5,6 +5,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Spawn payload handed to `RoomsShared80181228Desc` as
 /// `Task_SpawnFromTable` arg3 by the day-13 branch of
@@ -28,9 +29,22 @@ extern TaskDesc               RoomsShared80181228Desc[];
 extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
 
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183284);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183360);
+s32 func_shelter_b1_underground_parking_80183360(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179A04(in, out);
+    if (D_shelter_b1_underground_parking_8018D758 == 0) {
+        return 1;
+    }
+    if (in->field_5 == 0) {
+        Gp_RunCapCmd1(0x1E);
+    }
+    return 2;
+}
 
 s32 func_shelter_b1_underground_parking_801833DC(s32 arg0, s32 arg1, s32 arg2)
 {
