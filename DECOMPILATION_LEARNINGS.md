@@ -138744,3 +138744,48 @@ Two things that do **not** get there: a local copy of the pointer (`rec = &D;
 rec->field_C = ...`) is folded back by cse, and pinning the pointer to `a3`
 sets `a3` too early. Reusing a parameter as the copy gives the store the right
 register but not the move order.
+
+## An unused first-pass stack slot is an uninitialised pseudo whose only use combine folds away (func_actor_361100_80161FF8, 2026-09-23)
+
+**Symptom.** Everything matches but the frame: the target leaves one word
+between the first-pass spill slots unused (here 0x24), so every later
+first-pass slot sits 4 bytes higher, and the padding word ours has at the end
+of that run is gone. A `short` local gets the same frame through its 8-byte
+paradoxical slot, but then its loads and stores become `lhu`/`sh`.
+
+**Cause.** combine.c only zeroes `REG_N_REFS` of a pseudo whose last set it
+merged away if the pseudo is *not* live at the start of block 0
+(`try_combine`, `REG_N_SETS == 0 && ! REGNO_REG_SET_P (basic_block_live_at_start[0], …)`).
+A pseudo that is read before it is ever written is live at entry, so when
+combine folds away its only use, the pseudo keeps a stale non-zero ref count
+and flow's stale live-at-start sets. Global allocation then sees a long-lived,
+low-priority allocno that conflicts with everything, leaves it without a hard
+register, and reload's first `alter_reg` pass gives it a slot that nothing ever
+touches. Its number decides where the gap lands, so declare it among the
+locals that precede the slot.
+
+**Fix used.** An uninitialised `u16 spare;` read once as
+`ang2 += 0x1F + (spare >> 16);` in the loop tail. The shift survives tree fold
+and cse, combine's `nonzero_bits` makes it zero, and the tail was chosen
+because only pseudos that are already unallocated or safely ranked live there
+(each flow-time insn still lengthens every pseudo live across it). Placing the
+same use in the inner loop reproduced the frame too but reshuffled `s5`-`s7`.
+Check a candidate with gdb on the bundled cc1: break on `alter_reg` and
+`assign_stack_local`, printing `frame_offset` (read `reg_renumber` as `short*`).
+
+**Tooling note.** decomp-permuter normalises stack offsets away unless run with
+`--stack-diffs`; the router's runs could never see this difference.
+
+## `do { } while (0)` raises flow's loop weight for the references inside it (func_actor_361100_80161FF8, 2026-09-23)
+
+flow.c adds `loop_depth` to `REG_N_REFS` per reference and counts
+`NOTE_INSN_LOOP_BEG`, which a `do { } while (0)` still emits, so every
+reference inside one weighs one more than its surroundings without adding an
+instruction. Here `wave` needed about 11 weighted references (global priority
+`floor_log2(n) * n / live_length` above the 0xFF000000 mask's 1390) but the
+retail code shows only a store, one use in the outer body and one in the inner
+loop. Writing the store-and-increment pair in both arms of the `fade` test
+(`do { wave = wave1; wave1 = wave + 1; } while (0);` twice) gives two stores
+that jump2 cross-jumps into the single retail store, and the wrapper lifts
+their weight from 2 to 3. Wrapping the whole `if`/`else` instead also weights
+the multiply and the phases and loses (94.7%).

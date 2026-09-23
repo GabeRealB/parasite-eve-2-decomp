@@ -169,6 +169,29 @@ typedef struct Actor361100HeadAim {
 } Actor361100HeadAim;
 STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
 
+/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// Scratch record `func_actor_361100_80161FF8` carves off `G_SCRATCH_HEAD` for
+/// the duration of one call and hands back before returning. `mtx` is the
+/// transpose of the view's world matrix, loaded as the GTE rotation for every
+/// projection the body makes. `trans` receives the view translation rotated by
+/// `mtx`; its `vy` plus 0x712, scaled by the display's screen distance, is kept
+/// in `depth` as the dividend of each scanline's depth. `in` is the per-scanline
+/// point handed to the GTE and `out` the rotated result read back from it.
+///
+/// Nothing in the body touches the last 0x10 bytes; the size is the amount the
+/// scratch head moves, which is the one thing that fixes it.
+typedef struct Actor361100RippleScratch {
+    MATRIX  mtx;
+    SVECTOR in;
+    SVECTOR out;
+    SVECTOR trans;
+    s32     depth;
+    u8      pad[0x10];
+} Actor361100RippleScratch;
+STATIC_ASSERT_SIZEOF(Actor361100RippleScratch, 0x4C);
+
 /// Places the actor at `placement`: drops the opcode's translation straight
 /// into the root part's local matrix, stores its Euler angles in the
 /// coordinate's own `rot` slot and rebuilds the rotation from them with
