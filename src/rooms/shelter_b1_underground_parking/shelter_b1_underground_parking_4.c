@@ -34,6 +34,8 @@ extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
 extern u8                     D_80071075;
 extern s8                     D_80114C12;
 
+extern void func_80131E38(void);
+
 /// Spawn payload handed to `Task_Spawn(1, 0x31, ...)` as arg3 when caption key
 /// 0xB is answered. Only the three stores the caller makes are known.
 typedef struct {
@@ -114,7 +116,66 @@ void func_shelter_b1_underground_parking_801826C0(void)
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", func_shelter_b1_underground_parking_80182830);
+/// Room event handler keyed on `msg->field_2`: 1 calls `func_80131E38` in
+/// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
+/// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
+s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg)
+{
+    if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
+        func_80131E38();
+    }
+    if (msg->field_2 == 0xA) {
+        if ((u8)msg->field_3 == 1 && gGameSession->at4.loc.room < 7) {
+            Gp_StartCapSlot(0xA, 1, 0);
+            GameFlag_SetNibble(0x1B4, 2);
+        }
+    }
+    if (msg->field_2 == 0xB) {
+        switch (gGameSession->at4.loc.room) {
+            case 2:
+                Gp_RunCapCmd1(8);
+                break;
+            case 3:
+                Gp_RunCapCmd1(0xF);
+                break;
+            case 4:
+                Gp_RunCapCmd1(9);
+                break;
+            case 5:
+                Gp_MsgPlayerWeapon(0);
+                Gp_RunCapCmd1(0xC);
+                Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 1, 0, 0);
+                break;
+            case 6:
+            case 7:
+            case 8:
+                Gp_RunCapCmd1(0xE);
+                break;
+        }
+    }
+    if (msg->field_2 == 0xC) {
+        switch (gGameSession->at4.loc.room) {
+            case 6:
+                Gp_StartCapSlot(0xB, 1, 0);
+                break;
+            case 7:
+                if (D_shelter_b1_underground_parking_8018D758 != 0) {
+                    Gp_RunCapCmd1(0x1E);
+                } else if (GameFlag_GetNibble(0x7A) < 6) {
+                    Gp_MsgPlayerWeapon(0);
+                    Gp_StartCapSlot(0xB, 1, 1);
+                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
+                } else {
+                    Gp_StartCapSlot(0xB, 1, 2);
+                }
+                break;
+            case 8:
+                Gp_StartCapSlot(0xB, 1, 2);
+                break;
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
