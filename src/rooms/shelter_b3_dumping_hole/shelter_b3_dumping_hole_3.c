@@ -30,9 +30,10 @@ typedef struct {
     Task* field_24;
     Task* field_28;
     Task* field_2C;
-    s16   field_30;
-    s16   field_32;
-    u8    pad_34[0x4];
+    u16   field_30;
+    u16   field_32;
+    u16   field_34;
+    u8    pad_36[0x2];
     s16   field_38;
     s16   field_3A;
     u8    pad_3C[0x4];
@@ -339,7 +340,147 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017E94C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017EDB8);
+/// Payload of message 0x7DA: the current stage and area, and a flag word.
+typedef struct {
+    u8  stage;
+    u8  area;
+    s16 field_2;
+} DumpingHoleMsg7DA;
+
+extern u8  D_80073BA9;
+extern s8  D_8007218A;
+extern s32 D_shelter_b3_dumping_hole_8018819C[];
+extern u8  D_shelter_b3_dumping_hole_801881CC;
+
+void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
+{
+    DumpingHoleEntity* work = (DumpingHoleEntity*)arg0->work;
+    union {
+        GpAnimArg         anim;
+        DumpingHoleMsg7DA loc;
+    } msg;
+    u8 area;
+
+    if (work->field_24 != NULL) {
+        Gp_DispatchMsg(work->field_24, 0x3ED, 0, 0);
+    }
+    switch (work->field_30) {
+        case 0:
+            break;
+        case 1:
+            switch (work->field_32) {
+                case 0:
+                    Gp_DispatchMsg(work->field_24, 0x3E9, (s32)D_shelter_b3_dumping_hole_8018819C, 0);
+                    Gp_DispatchMsg(work->field_24, 0x3F2, (s32)&D_shelter_b3_dumping_hole_8018819C[6], 0);
+                    work->field_32++;
+                    return;
+                case 1:
+                    if (Gp_DispatchMsg(work->field_24, 0x3F0, 0, 0) == 0) {
+                        work->field_34 = 0;
+                        work->field_32++;
+                    }
+                    return;
+                case 2:
+                    if (++work->field_34 < 6) {
+                        return;
+                    }
+                    {
+                        DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+                        s32                weaponId = D_80073BA9;
+                        msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                        msg.anim.field_4            = 0x2F;
+                        msg.anim.field_8            = 1;
+                        msg.anim.field_C            = 0xA;
+                        msg.anim.field_10           = 0;
+                        Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+                    }
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 2: {
+            DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+            s32                weaponId = D_80073BA9;
+            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.field_4            = 0x32;
+            msg.anim.field_8            = 0;
+            msg.anim.field_C            = 0;
+            msg.anim.field_10           = 0;
+            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+        } break;
+        case 3:
+            Gp_DispatchMsg(work->field_24, 0x3F3, 2, 0);
+            break;
+        case 4:
+            Gp_DispatchMsg(work->field_24, 0x3F3, 1, 0);
+            Gp_DispatchMsg(work->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
+            {
+                DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+                s32                weaponId = D_80073BA9;
+                msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                msg.anim.field_4            = 9;
+                msg.anim.field_8            = 0;
+                msg.anim.field_C            = 0;
+                msg.anim.field_10           = 0;
+                Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+            }
+            break;
+        case 5:
+            switch (work->field_32) {
+                case 0:
+                    msg.loc.stage   = gGameSession->at4.loc.stage;
+                    area            = gGameSession->at4.loc.area;
+                    msg.loc.field_2 = 1;
+                    msg.loc.area    = area;
+                    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                    work->field_34 = 0;
+                    work->field_32++;
+                    return;
+                case 1:
+                    if (++work->field_34 < 0x10) {
+                        return;
+                    }
+                    {
+                        DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+                        s32                weaponId = D_80073BA9;
+                        msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+                        msg.anim.field_4            = 0x30;
+                        msg.anim.field_8            = 1;
+                        msg.anim.field_C            = 0xA;
+                        msg.anim.field_10           = 0;
+                        Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+                    }
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 6: {
+            DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+            s32                weaponId = D_80073BA9;
+            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.field_4            = 0x33;
+            msg.anim.field_8            = 1;
+            msg.anim.field_C            = 0xA;
+            msg.anim.field_10           = 0;
+            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+        }
+            Gp_DispatchMsg(work->field_24, 0x3FD, 0x20, 0);
+            break;
+        case 7: {
+            DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
+            s32                weaponId = D_80073BA9;
+            msg.anim.field_0            = (void*)((D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22);
+            msg.anim.field_4            = 0x31;
+            msg.anim.field_8            = 1;
+            msg.anim.field_C            = 0xA;
+            msg.anim.field_10           = 0;
+            Gp_DispatchMsg(w2->field_24, 0x3E8, (s32)&msg, 0);
+        } break;
+    }
+    work->field_30 = 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017F1B0);
 
@@ -355,9 +496,7 @@ typedef struct {
     u8 field_4A;
 } DumpingHoleFlags;
 
-extern u8               D_80073BA9;
 extern u8               D_80071075;
-extern s8               D_8007218A;
 extern s8               D_80114C12;
 extern s8               D_8007272D[];
 extern MATRIX*          D_80073B8C;
@@ -581,10 +720,6 @@ void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
     p->field_38          = arg0;
     p->field_3A          = 0;
 }
-
-extern s8 D_8007218A;
-extern u8 D_80073BA9;
-extern u8 D_shelter_b3_dumping_hole_801881CC;
 
 void func_shelter_b3_dumping_hole_8017FF14(void)
 {
