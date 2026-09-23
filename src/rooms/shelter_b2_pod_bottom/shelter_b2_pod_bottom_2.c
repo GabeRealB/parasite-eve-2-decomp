@@ -35,7 +35,18 @@ typedef struct _BillboardScratch {
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
 void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2);
 
-extern s16 D_shelter_b2_pod_bottom_80188790[3][16];
+/// Per-ring offsets `func_shelter_b2_pod_bottom_8017EEAC` adds to the work's
+/// ramps: `rInner` widens the ring drawn at the frame's origin height, `rExtra`
+/// widens the second ring beyond that plus the work's step, and `yOff` raises
+/// the second ring on top of the work's height.
+typedef struct {
+    s16 rInner;
+    s16 yOff;
+    s16 rExtra;
+} _RingScale;
+
+extern u16        D_shelter_b2_pod_bottom_80188790[3][16];
+extern _RingScale D_shelter_b2_pod_bottom_80181C94[];
 
 /// Tint rows for `func_shelter_b2_pod_bottom_8017F448`: per-channel right
 /// shifts (0-2) applied to its colour ramp, one row chosen at random.
@@ -235,7 +246,103 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017EEAC);
+/// Draws band `arg2` of the effect as sixteen semi-transparent `POLY_FT4`
+/// segments. Builds two 16-vertex rings in the XZ plane - one at the frame's
+/// origin height, one raised and wider - from the work's ramps plus the row's
+/// `D_shelter_b2_pod_bottom_80181C94` offsets, moves them into world space
+/// through `coord`, then projects each segment between the rings and picks its
+/// texture cell from the row's `D_shelter_b2_pod_bottom_80188790` value and the
+/// work's tick.
+void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2)
+{
+    void**         scratch;
+    u8*            head;
+    GpBandScratch* block;
+    SVECTOR*       op;
+    POLY_FT4*      prim;
+    _RingScale*    row;
+    s32            i;
+    s32            next;
+    s32            ang;
+    s32            u;
+    u16            idx;
+    s16            r0;
+    s16            r1;
+    u16            y;
+    u16            f28;
+
+    row      = &D_shelter_b2_pod_bottom_80181C94[arg2];
+    f28      = work->field_28;
+    r1       = work->field_26;
+    y        = f28 + (u16)row->yOff;
+    r1      += (u16)row->rInner;
+    r0       = r1 + work->field_2A + (u16)row->rExtra;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = (u8*)*scratch;
+    *scratch = head - 0x118;
+    block    = (GpBandScratch*)(head - 0x118);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        ang                = i << 8;
+        block->inner[i].vx = (rsin(ang) * r0) >> 12;
+        block->inner[i].vy = -y;
+        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->inner[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->inner[i]);
+        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
+        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
+        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (rsin(ang) * r1) >> 12;
+        op                 = &block->inner[i] + 16;
+        op->vy             = 0;
+        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&block->outer[i]);
+        gte_rtv0_real();
+        gte_stsv(&block->outer[i]);
+        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
+        op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
+        op->vz             = *(u16*)&op->vz + *(u16*)&coord->workm.t[2];
+    }
+    gte_SetRotMatrix(&GsWSMATRIX);
+    for (i = 0; i < 16; i++) {
+        gte_ldv0(&block->inner[i]);
+        gte_rtps_real();
+        idx = (D_shelter_b2_pod_bottom_80188790[arg2][i] + (s16)work->field_22) % 6;
+        gte_stsxy(&block->sxy0);
+        next = (i + 1) & 0xF;
+        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyFT4(prim);
+            setRGB0(prim, *(u8*)&work->field_24, *(u8*)&work->field_24, *(u8*)&work->field_24);
+            setSemiTrans(prim, 1);
+            prim->tpage = 0x2A;
+            prim->clut  = 0x42C1;
+            u           = idx * 0x28;
+            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
+            prim->x0 = *(u16*)&block->sxy0.vx;
+            prim->y0 = *(u16*)&block->sxy0.vy;
+            prim->x1 = *(u16*)&block->sxy1.vx;
+            prim->y1 = *(u16*)&block->sxy1.vy;
+            prim->x2 = *(u16*)&block->sxy2.vx;
+            prim->y2 = *(u16*)&block->sxy2.vy;
+            prim->x3 = *(u16*)&block->sxy3.vx;
+            prim->y3 = *(u16*)&block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
+}
 
 /// State 0 resets the coordinate frame's rotation to identity, starts the
 /// colour ramp at 0 and the ring radius at 0x80, derives the colour step from
