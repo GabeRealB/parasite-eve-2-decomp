@@ -139359,3 +139359,18 @@ afterwards. Combine then leaves `(ashift (lt x 0) 12)` alone.
 zero           = 0;
 work->field_18 = (task->spawnArg1 < zero) << 12;
 ```
+## Call sites that all sign-extend an argument mean the parameter is `s16`
+
+If every call to a function builds one argument with a 16-bit sign extension
+just before the `jal` (`sll 16; sra 16`, or a shift folded into it such as
+`lhu; sll 16; sra 17` for `(s16)x >> 1` or `sll 17; sra 16` for `x * 2`), the
+parameter is `s16`. Declaring it `s32` and reproducing the extension with casts
+like `(s32)((u16)x << 16) >> 17` matches the caller, but the callee then only
+matches with a different parameter type, and the two can no longer share one
+prototype - which reads as two source files when it is one.
+
+Declare the parameter `s16` on both sides and write the argument plainly
+(`(u16)t.field * 2`, `(u16)t.field - 0x100`). One caveat from the same
+function: an argument computed from an `s16` field (`mem->scale * 8`) still
+needs its explicit `(s16)` cast, because the prototype conversion alone did not
+emit the extension there.
