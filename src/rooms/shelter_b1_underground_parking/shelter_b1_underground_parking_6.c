@@ -1,15 +1,32 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "main/gameflag.h"
 #include "main/task.h"
 
-extern u8 D_8007216D;
+extern u8  D_8007216D;
+extern s32 D_shelter_b1_underground_parking_801873DC;
+extern s32 D_shelter_b1_underground_parking_80187544;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801834D4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_80183560);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_8018363C);
+void func_shelter_b1_underground_parking_8018363C(Task* arg0)
+{
+    if (arg0->state == 0) {
+        SetDispMask(0);
+        D_80115768            = 1;
+        gGameSession->hideHud = 1;
+        func_800E8634((s32)&D_shelter_b1_underground_parking_801873DC, 0, (s32)&D_shelter_b1_underground_parking_80187544);
+        GameFlag_SetNibble(0xF4, 2);
+        GameFlag_SetNibble(0x1B4, 0);
+        arg0->state += 1;
+        return;
+    }
+    taskKill(arg0);
+}
 
 void func_shelter_b1_underground_parking_801836D8(Task* arg0)
 {
