@@ -139339,3 +139339,23 @@ The same function also depended on which loop temporaries local-alloc sees (see
 the angles inline (`rsin(ang + 0x800)`) gives single-death CSE temporaries, which
 local-alloc places first. That moved the `POLY_G4*` cursor from `$s1` to the
 target's `$s2`, and every other callee-saved register fell into place: 94% to 98.8%.
+
+## `slti $v0,$v0,0` on a sign test means the source compared against a zero-valued variable, not a literal 0 (func_shelter_r48_80180210, 2026-09-23)
+
+**Symptom.** The target computes a sign flag as `slti v0,v0,0; sll v0,v0,12`.
+`(x < 0) << 12` emits `srl v0,v0,31` (or, once combine folds the shift,
+`srl 19; andi 0x1000`). The ternary `x < 0 ? 0x1000 : 0` and an if/else into a
+local fold the same way.
+
+**Cause.** `emit_store_flag` (`expmed.c`) expands any `A < 0` / `A >= 0` whose
+second operand is `const0_rtx` *at expand time* as a sign-bit shift, before it
+ever tries the `slt` pattern. The only way to reach `(lt:SI x (const_int 0))`
+is for expand to see a register, emit `slt`, and let CSE substitute the constant
+afterwards. Combine then leaves `(ashift (lt x 0) 12)` alone.
+
+**Fix.** Compare against a local assigned 0 just before:
+
+```c
+zero           = 0;
+work->field_18 = (task->spawnArg1 < zero) << 12;
+```

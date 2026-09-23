@@ -62,6 +62,7 @@ void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part);
 void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_80180804(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_r48_80180C5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 color);
 
 extern u32                  Gp_LcgState;
@@ -797,7 +798,147 @@ void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
     *scratch = (u8*)*scratch + 0x18;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_3", func_shelter_r48_80180210);
+/// Per-frame handler for one animated sprite effect, drawn by
+/// `func_shelter_r48_80180804`, or by `func_shelter_r48_80180C5C` when any of
+/// `spawnArg1`'s top four bits is set. Its first frame unpacks `spawnArg1`: the
+/// low 12 bits are the sprite size, bits 12..14 the frames per animation cell
+/// (1 when zero), and the sign bit becomes the drawer's clut selector. When the
+/// work block arrives without a velocity, bits 24..27 choose how one is rolled
+/// from `Gp_LcgState` (0 leaves it still) and it is normalised to a speed from
+/// bits 16..23 (0x40 when zero). Each later frame draws the current cell,
+/// moves the coordinate by the velocity and bends its Y component, then frees
+/// the effect after the drawer's last cell (12 or 10). While the player is in
+/// an event it only draws, and frees once the event aborts.
+void func_shelter_r48_80180210(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            step;
+    s32            level;
+    s32            zero;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        if (task->spawnArg1 < 0) {
+            func_shelter_r48_80180C5C(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+        } else {
+            func_shelter_r48_80180804(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+        }
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = task->spawnArg1 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 7;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            task->state    = task->spawnArg1 & 0xF0000000 ? 2 : 1;
+            zero           = 0;
+            work->field_18 = (task->spawnArg1 < zero) << 12;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                switch ((task->spawnArg1 >> 24) & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                    case 6:
+                        work->field_10.vy = 0;
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            break;
+        case 1:
+            func_shelter_r48_80180804(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                work->field_10.vy -= 2;
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 12) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+        case 2:
+            func_shelter_r48_80180C5C(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                work->field_10.vy -= 1;
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 10) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+    }
+}
 
 void func_shelter_r48_80180804(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
