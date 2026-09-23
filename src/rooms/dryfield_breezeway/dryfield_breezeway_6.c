@@ -325,4 +325,77 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_6", func_dryfield_breezeway_80181264);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_6", func_dryfield_breezeway_80181938);
+/// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
+/// translation of its model's coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
+/// block. Nothing is drawn when the projection flags a negative result. The
+/// frame is `field_20 & 7` along row 0xF0 of texture page 0x2B, and the quad's
+/// half extent is `field_18 * 23 / otz`, rotated by the angle in `field_1C`.
+/// A non-null `color` tints the sprite and makes it semi-transparent.
+void func_dryfield_breezeway_80181938(Task* task, u8* color)
+{
+    TmdObject*        extra = (TmdObject*)task->extra;
+    RoomEffWork*      work  = task->spawnArg2;
+    void**            scratch;
+    GsCOORDINATE2*    coord;
+    u8*               head;
+    GpEffBeamScratch* block;
+    GpEffBeamScratch* vecp;
+    POLY_FT4*         prim;
+    u16               vz;
+
+    scratch                                    = (void**)G_SCRATCH_HEAD;
+    head                                       = *scratch;
+    coord                                      = (GsCOORDINATE2*)extra->coords;
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
+    __asm__("move %0,%1" : "=r"(block) : "r"(vecp));
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (color != NULL) {
+            prim->r0 = color[0];
+            prim->g0 = color[1];
+            prim->b0 = color[2];
+            setSemiTrans(prim, 1);
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43C0;
+        prim->u0    = (work->field_20 & 7) * 16;
+        prim->v0    = 0xF0;
+        prim->u1    = (work->field_20 & 7) * 16 + 0xF;
+        prim->v1    = 0xF0;
+        prim->u2    = (work->field_20 & 7) * 16;
+        prim->v2    = 0xFF;
+        prim->u3    = (work->field_20 & 7) * 16 + 0xF;
+        prim->v3    = 0xFF;
+        block->dx   = ((((s16)work->field_18 * 0x17) / block->otz) * rsin((s16)work->field_1C)) >> 12;
+        block->dy   = ((((s16)work->field_18 * 0x17) / block->otz) * rcos((s16)work->field_1C)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = ((((s16)work->field_18 * 0x17) / block->otz) * rsin((s16)work->field_1C + 0x400)) >> 12;
+        block->dy   = ((((s16)work->field_18 * 0x17) / block->otz) * rcos((s16)work->field_1C + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
