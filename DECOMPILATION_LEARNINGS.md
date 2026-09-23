@@ -118744,9 +118744,8 @@ helper is not required. The same two tells - the staged record read back
 through `addiu $s0,$sp,0x10`, and `jalr $s1` - came out of a plain caller body
 with two locals: `p = &rec;` written after the separating call and used for the
 reads and write-backs, and `handler = func_...;` assigned before that call.
-Neither local on its own is enough: without the function-pointer local the call
-is a direct `jal` (93%), and with it but without `p` the record stays
-`$sp`-relative. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
+Without the function-pointer local the call is a direct `jal` (93%); whether
+`p` is needed was not tested separately. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
 by storing `msg.field_5 = 0` after `msg.field_3` rather than before it.
 ## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (func_neo_ark_altar_8017E92C, 2026-09-17)
 
