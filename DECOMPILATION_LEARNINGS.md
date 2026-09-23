@@ -139080,3 +139080,22 @@ if (D_flag[0] & 4) {
 
 Lesson: when a give-up has a `similar` candidate starred in more than one
 class, port that body first - it is cheaper than any delay-slot experiment.
+
+### Walking pointers that restart at a constant offset are loop.c's givs, not source locals (func_dryfield_saloon_g_r_8017DA70, 2026-09-23)
+
+Two consecutive loops each walked a vector table and a mask table with
+registers that were re-set to `base + 6*stride` between them, and after the
+second loop the mask register was reset to the table base and read at `0x18` /
+`0x16`. m2c and a 20-build give-up wrote those as explicit `vec++` / `flags++`
+locals and stalled at 98.8% on an `$s1`/`$s2` swap plus a folded loop-2 init.
+The sibling room's plain form matched on the first build:
+
+```c
+for (i = 0; i < 6; i++)  if (mask & D_flags[i]) Room_Draw35(coord, &D_vec[i], 0, 0x200);
+for (i = 6; i < 11; i++) if (mask & D_flags[i]) Room_Draw35(coord, &D_vec[i], 2, 0x200);
+if (mask & D_flags[12]) ...
+```
+
+Tell: a pointer register re-initialised to `sym + k*stride` beside an index
+register set to `k`, with a live counter kept for the `slti` exit, is
+strength reduction over `a[i]`. Write the index form before tuning walkers.
