@@ -2873,7 +2873,8 @@ id = 390
 objects = [
   { kind = "packageId" },
   { lib = true, unit = "rooms_shared_8017d6d0", rodata = "0x4", text = "0x490" },
-  { unit = "shelter_b1_underground_parking/shelter_b1_underground_parking", rodata = "0x50", text = "0x224C" },
+  { kind = "rodata", at = "0x50" },
+  { unit = "shelter_b1_underground_parking/shelter_b1_underground_parking", rodata = "0x84", text = "0x224C" },
   { lib = true, unit = "rooms_shared_80181228", rodata = "0x1D4", text = "0x4B94" },
   { unit = "shelter_b1_underground_parking/shelter_b1_underground_parking_4", rodata = "0x234", text = "0x5100" },
   { lib = true, unit = "rooms_shared_8017ed38", rodata = "0x404", text = "0x672C" },

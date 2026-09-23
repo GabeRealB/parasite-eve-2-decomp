@@ -139553,3 +139553,28 @@ if (msg->field_2 == 0xA) {
 The `(u8)` was a separate issue: the shared `RoomEventMsg.field_3` is `s8`
 (loads `lb`), while this site loads `lbu`, so the cast is applied at the use
 rather than retyping the shared field.
+
+## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
+
+**Symptom.** The first build compiles all 412 instructions yet scores 0% with
+`insert=412`, and `target.s` is a `.section .rodata` block of `.word`s rather
+than a `glabel` function.
+
+**Cause.** A shared symbol name is placed in several overlays' symbol maps.
+The bootstrap resolved the name to another room's `.s` (`dryfield_night_garage_7`),
+where the same function had been split as leading rodata, not to the overlay
+whose `INCLUDE_ASM` was being matched.
+
+**Fix.** Rebuild the target from the host overlay's own `.s`, the way
+`tools/claude` does:
+
+```sh
+cat prelude.inc ../../include/macro.inc <host .s> > target.s
+(cd ../.. && mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -Iinclude \
+    -o <scratch>/target.o <scratch>/target.s)
+```
+
+A function that shows up in another overlay as a `dlabel` of instruction-shaped
+`.word`s in the leading rodata points to that overlay's derived `.text` span
+starting one function too late. It also hides the copy from
+`overlay_dup_index.py`.
