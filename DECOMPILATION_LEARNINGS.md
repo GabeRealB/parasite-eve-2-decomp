@@ -138103,3 +138103,68 @@ After that, the last two priority flips (`step` and the half radius each landing
 one callee-saved register off) were fixed by declaring those locals `s16`
 instead of `s32`, with no instruction change. The mechanism behind the flip was
 not traced.
+
+## A redundant store that flow counts and post-reload CSE deletes can win a register (RoomsShared8017d7a4, 2026-09-23)
+
+A hoisted `li t3,0x2e` (a `POLY_FT4` code) needed to beat a hoisted `%hi` copy
+for `$t3`. The two tie closely on `floor_log2(refs) * refs / span`, so the
+constant needed 5 refs (set + two in-loop uses), but the target has one store.
+`setPolyFT4(p); setSemiTrans(p, 1);` then `setShadeTex(p, 0)` in the
+`field_8 == 1` arm and `setShadeTex(p, 1)` in the other arm matches. CSE turns
+the then-arm store into a second store of the same register. flow counts it.
+After reload, `reload_cse_noop_set_p` deletes it, because the register is known
+to hold that memory's value.
+
+When a loop constant has too few refs to win its register, look for a Psy-Q
+macro that stores the same value again in one arm.
+
+## A copy loop whose reduced pointers include the member offset (RoomsShared8017d7a4, 2026-09-23)
+
+The target copies `parts[j].coord = src[j].coord` with pointers initialised to
+`base + 4` after the zero-count test, stepping 0x50, at offset 0. Every indexed
+spelling gives the same code, `parts[j]`, `&parts[j].coord` and `(u8*)` casts
+alike. expand moves the `+4` outward, CSE folds it into the `movstr` address,
+and only `base + 80j` is a giv. A `(plus giv const)` MEM is never recorded as a
+`DEST_ADDR` giv here. What matches is pointers of the element type, set to the
+member, inside a guard, with a bottom-tested loop:
+
+```c
+j = 0;
+if (src->partCount != 0) {
+    GsCOORDINATE2* from = (GsCOORDINATE2*)&srcCoords->coord;
+    GsCOORDINATE2* to   = (GsCOORDINATE2*)&parts->coord;
+    do { *(MATRIX*)to = *(MATRIX*)from; to++; from++; } while (++j < src->partCount);
+}
+```
+
+The `for` form also referenced `j` in the duplicated entry test (`sltu j,n`
+with `j = 0`, which CSE cannot fold with the constant in operand 1). That gave
+`j` 8 refs instead of 7, and it outranked both pointers.
+
+## An inline helper's local takes a struct copy's address out of CSE's reach (RoomsShared8017d7a4, 2026-09-23)
+
+`tmp = s->offset; gte_SetRotMatrix(m); gte_ldv0(&tmp); ...` computes
+`addiu v0,sp,0x10` before the copy. `expand_block_move` put `sp+16` in a
+register and CSE reused it for the `ldv0` operand. The target computes it after
+the `ctc2` block. A block-scoped or function-scoped `tmp`, `do {} while (0)` and
+an inline taking `&tmp` all keep the early form. What matches is an inline that
+makes the copy into its own local:
+
+```c
+static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
+{
+    SVECTOR v;
+    v = *out;
+    gte_SetRotMatrix(m); gte_ldv0(&v); gte_rtv0_real(); gte_stsv(out);
+}
+```
+
+## Reusing one prim-pointer variable across two draw blocks costs a register (RoomsShared8017d7a4, 2026-09-23)
+
+One `DR_TPAGE* tpage` in two unrelated packet-building blocks is one pseudo with
+a long, combined live range. It took a different register than the target in the
+second block, and the effect spread into reload's spill choice for the whole
+function. Here `$t1` lost to `$s5` in `order_regs_for_reload`, and every
+`movstr` scratch and remat changed register. A separate local per block fixed
+~150 register differences at once. Check for shared locals before chasing a
+function-wide register shift.
