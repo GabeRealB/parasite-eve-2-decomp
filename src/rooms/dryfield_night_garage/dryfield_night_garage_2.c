@@ -53,7 +53,7 @@ s32 func_800D4D2C(s32 arg0);
 
 s32 func_dryfield_night_garage_80180A64(s32 arg0);
 
-s32 func_dryfield_night_garage_80180604(s32 arg0);
+void func_dryfield_night_garage_80180604(s32 arg0);
 
 /// State 0 of this room's message task, run when the garage scene starts.
 /// Publishes the room's message table in `Task::msgTable` and the task itself

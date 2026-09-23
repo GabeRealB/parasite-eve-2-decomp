@@ -24,6 +24,32 @@ typedef struct {
 
 STATIC_ASSERT_SIZEOF(DryfieldNightGarageObj, 0x98);
 
+/// One entry of the room's vector lists: three coordinates plus padding, eight
+/// bytes apart. Only the three coordinates are ever read or written.
+typedef struct DryfieldNightGarageVec {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad;
+} DryfieldNightGarageVec;
+STATIC_ASSERT_SIZEOF(DryfieldNightGarageVec, 0x8);
+
+/// A 12-byte record copied whole, never read field by field.
+typedef struct DryfieldNightGarageBlob {
+    /* 0x0 */ s8 b[12];
+} DryfieldNightGarageBlob;
+STATIC_ASSERT_SIZEOF(DryfieldNightGarageBlob, 0xC);
+
+/// A table of pointers into layout data: a four-entry vector list, an
+/// eight-entry vector list and four 12-byte records. The room keeps a template
+/// and a live copy. Nothing pins where the table ends.
+typedef struct DryfieldNightGarageLayout {
+    /* 0x0 */ s32                      field_0;
+    /* 0x4 */ DryfieldNightGarageVec*  field_4;
+    /* 0x8 */ DryfieldNightGarageVec*  field_8;
+    /* 0xC */ DryfieldNightGarageBlob* field_C;
+} DryfieldNightGarageLayout;
+
 extern TaskDesc               D_8013B11C[];
 extern s32                    D_dryfield_night_garage_80182DE0;
 extern s32                    D_dryfield_night_garage_80182DE4;
@@ -32,13 +58,57 @@ extern s32                    D_dryfield_night_garage_80182DF8;
 extern s32                    D_dryfield_night_garage_801831B8;
 extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
 
+/// The layout template and the live copy the reset below restores from it.
+extern DryfieldNightGarageLayout D_dryfield_night_garage_80181E40;
+extern DryfieldNightGarageLayout D_dryfield_night_garage_80183DD4;
+
 s32 func_800D4D2C(s32 arg0);
 
 s32 func_dryfield_night_garage_80180A64(s32 arg0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180414);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage_5", func_dryfield_night_garage_80180604);
+/// Resets the live layout lists from the template: the four-entry vector list,
+/// the eight-entry list two entries per pass, and the 12-byte records. The
+/// eight-entry list is then raised by 0x7D0 on y when `arg0` is nonzero.
+void func_dryfield_night_garage_80180604(s32 arg0)
+{
+    DryfieldNightGarageLayout* dst;
+    DryfieldNightGarageLayout* src;
+    DryfieldNightGarageVec     d;
+    s32                        i;
+
+    dst = &D_dryfield_night_garage_80183DD4;
+    src = &D_dryfield_night_garage_80181E40;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_4[i].x         = src->field_4[i].x;
+        dst->field_4[i].y         = src->field_4[i].y;
+        dst->field_4[i].z         = src->field_4[i].z;
+        dst->field_8[i * 2].x     = src->field_8[i * 2].x;
+        dst->field_8[i * 2].y     = src->field_8[i * 2].y;
+        dst->field_8[i * 2].z     = src->field_8[i * 2].z;
+        dst->field_8[i * 2 + 1].x = src->field_8[i * 2 + 1].x;
+        dst->field_8[i * 2 + 1].y = src->field_8[i * 2 + 1].y;
+        dst->field_8[i * 2 + 1].z = src->field_8[i * 2 + 1].z;
+        dst->field_C[i]           = src->field_C[i];
+    }
+
+    if (arg0 == 0) {
+        d.x = 0;
+        d.y = 0;
+    } else {
+        d.x = 0;
+        d.y = 0x7D0;
+    }
+    d.z = 0;
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += d.x;
+        dst->field_8[i].y += d.y;
+        dst->field_8[i].z += d.z;
+    }
+}
 
 void func_dryfield_night_garage_801807E4(Task* arg0)
 {
