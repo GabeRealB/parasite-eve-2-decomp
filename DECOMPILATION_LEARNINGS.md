@@ -138972,3 +138972,26 @@ plain-C form. Inputs: `base_54.i`
 `area`, 99.844%), `base_62.i`
 `04fc9381abcdfa41f9a64db7baa8ee7d0511a25669f8721f892673b9650ce4db` (per-copy
 `area`, 100%).
+
+### A sched1 priority diagnosis on an untyped m2c seed can come from aliasing: retype the seed before you chase the scheduler (func_neo_ark_power_plant_2_8017D8AC, 2026-09-23)
+
+The earlier session left this function at 98.868% (`reorder=2`). It traced the
+swap to sched1's birthing boost on the LCG load, confirmed that with a
+`REG_N_SETS` experiment, and called the mechanism settled. The retry matched on
+its first build by writing the body with the real types: `AhlpLight` for the
+light array and `SVECTOR` for the position it copies from.
+
+Controlled builds isolated the cause to one declaration. The m2c seed declared
+the source vector as a 4-byte `M2C_UNK` and read `vx`/`vy`/`vz` as
+`*(s16*)((u8*)&sym + n)`. Put that back into the matching body and the score
+drops to 99.151% (`regs=6 reorder=1`). The light array's declaration, the
+switch shape and the LCG temporaries had no effect. This fits the entry on
+fixed scalars not aliasing struct stores. A cast read from a scalar-typed
+symbol is not `MEM_IN_STRUCT_P`, so its dependences against the `work->…`
+stores change, and so do the block's priorities. That mechanism was not traced
+here. The lesson: a "settled" scheduler explanation on an untyped seed may be
+downstream of how the seed typed its memory. When the seed still uses
+`M2C_FIELD`/`M2C_UNK`, retype it first. Inputs: `base_2.i`
+`5073035ca5e2be8223034d69eefc1e1bed8f6d28e8ae151f90f161d10e15ed5d` (100%),
+`base_8.i` `6d57d9cfaac56d01c46271d962232c0d7090c5025458b741761ecb15d83a533b`
+(scalar source vector, 99.151%).
