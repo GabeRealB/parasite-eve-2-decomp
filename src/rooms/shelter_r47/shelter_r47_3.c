@@ -7,6 +7,7 @@
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
+#include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
@@ -16,24 +17,42 @@
 /// `memCalloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
 /// at `Task::work`.
 typedef struct {
-    /* 0x00 */ u8  pad_0[0x18];
-    /* 0x18 */ s16 field_18;  ///< committed to game flag 0xAC when the script ends
-    /* 0x1A */ s16 field_1A;  ///< committed to game flag 0xD5 when the script ends
-    /* 0x1C */ s16 field_1C;  ///< committed to game flag 0xAE when the script ends
-    /* 0x1E */ s16 field_1E;  ///< committed to game flag 0xD6 when the script ends
-    /* 0x20 */ s16 field_20;  ///< committed to game flag 0xD2 when the script ends
-    /* 0x22 */ u8  pad_22[0x12];
+    /* 0x00 */ s16 field_0[5];
+    /* 0x0A */ u8  pad_A[2];
+    /* 0x0C */ s16 field_C[5];
+    /* 0x16 */ u8  pad_16[2];
+    /* 0x18 */ s16 field_18; ///< committed to game flag 0xAC when the script ends
+    /* 0x1A */ s16 field_1A; ///< committed to game flag 0xD5 when the script ends
+    /* 0x1C */ s16 field_1C; ///< committed to game flag 0xAE when the script ends
+    /* 0x1E */ s16 field_1E; ///< committed to game flag 0xD6 when the script ends
+    /* 0x20 */ s16 field_20; ///< committed to game flag 0xD2 when the script ends
+    /* 0x22 */ u8  pad_22[2];
+    /* 0x24 */ s16 field_24;
+    /* 0x26 */ s16 field_26;
+    /* 0x28 */ s16 field_28;
+    /* 0x2A */ s16 field_2A;
+    /* 0x2C */ s16 field_2C;
+    /* 0x2E */ s16 field_2E;
+    /* 0x30 */ s16 field_30;
+    /* 0x32 */ s16 field_32;
     /* 0x34 */ s16 selection; ///< `id` of the hotspot the player confirmed
     /* 0x36 */ u16 fade;      ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x38 */ u8  pad_38[0xA];
-    /* 0x42 */ s16 field_42;  ///< counter gating the move to state 3
-    /* 0x44 */ s16 step;      ///< sub-step selected by the running cap event
-    /* 0x46 */ u8  pad_46[2];
+    /* 0x38 */ u8  pad_38[2];
+    /* 0x3A */ s16 field_3A;
+    /* 0x3C */ s16 field_3C;
+    /* 0x3E */ s16 field_3E;
+    /* 0x40 */ s16 field_40;
+    /* 0x42 */ s16 field_42; ///< counter gating the move to state 3
+    /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
+    /* 0x46 */ s16 field_46;
     /* 0x48 */ s16 field_48;
     /* 0x4A */ u8  promptKind; ///< `promptKind` of the hotspot the player confirmed
-    /* 0x4B */ u8  pad_4B[6];
+    /* 0x4B */ u8  pad_4B[3];
+    /* 0x4E */ u8  field_4E;   ///< `Mc_SaveData.at4.loc.view` saved on entry
+    /* 0x4F */ u8  pad_4F[2];
     /* 0x51 */ s8  field_51;
-    /* 0x52 */ u8  pad_52[2];
+    /* 0x52 */ s8  field_52; ///< set when `field_1E` is non-zero on entry
+    /* 0x53 */ u8  pad_53;
 } ShelterR47State;
 STATIC_ASSERT_SIZEOF(ShelterR47State, 0x54);
 
@@ -68,6 +87,7 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea
 
 s32  func_shelter_r47_8018097C(Task* task);
 void func_shelter_r47_80181914(Task* task, s32 arg1);
+void func_shelter_r47_80182AA0(Task* task);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_80183B84(Task* task);
 void func_shelter_r47_80183E24(void);
@@ -82,6 +102,8 @@ extern Task* D_shelter_r47_8018A690;
 
 /// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
 extern RoomHotspot D_shelter_r47_80186FB4[];
+
+extern TaskDesc D_shelter_r47_801872F0;
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
@@ -150,7 +172,72 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181148);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_8018138C);
+void func_shelter_r47_8018138C(Task* task)
+{
+    ShelterR47State* work;
+    RoomHotspot*     hs;
+    s32              arg1;
+
+    work = memCalloc(0x54, false);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->spawnArg2          = Task_SpawnFromTable(&D_shelter_r47_801872F0, 0, 1, 0);
+    task->work               = work;
+    work->field_4E           = Mc_SaveData.at4.loc.view;
+    Mc_SaveData.at4.loc.view = 0x10;
+    task->state++;
+    Display_AcquireRef();
+
+    hs = D_shelter_r47_80186FB4;
+    while (hs->id != -1) {
+        hs->hit = 0;
+        hs++;
+    }
+
+    work->field_28             = -0xF8;
+    work->field_2A             = -0x68;
+    work->field_2C             = -0x98;
+    work->field_2E             = 0x80;
+    work->field_30             = -0x98;
+    work->field_32             = 0x90;
+    work->field_24             = 0xB0;
+    work->field_26             = -0x68;
+    work->field_0[0]           = 0xAA;
+    work->field_C[0]           = -0x53;
+    work->field_0[1]           = 0xBE;
+    work->field_C[1]           = -0x43;
+    work->field_0[2]           = 0xD2;
+    work->field_C[2]           = -0x33;
+    work->field_0[3]           = 0xE6;
+    work->field_C[3]           = -0x23;
+    work->field_0[4]           = 0xFA;
+    work->field_C[4]           = -0x13;
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    gGameSession->eventState   = 1;
+    func_shelter_r47_80182AA0(task);
+    if (work->field_1E == 0) {
+        work->field_52 = 0;
+        work->field_46 = 0x140;
+    } else {
+        work->field_52 = 1;
+        work->field_46 = 0;
+    }
+    {
+        ShelterR47State* w = (ShelterR47State*)task->work;
+
+        w->field_3A = 0xFF;
+        w->field_3C = 0xFF;
+        w->field_3E = 0xFF;
+        w->field_40 = 0xFF;
+    }
+    arg1 = task->spawnArg1;
+    if (arg1 == 1) {
+        work->field_51 = arg1;
+    }
+}
 
 /// Hotspot state of the room's first cap script: redraws the scene, then
 /// hit-tests the action cursor against the room's hotspot table. A miss

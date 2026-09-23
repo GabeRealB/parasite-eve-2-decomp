@@ -138907,3 +138907,19 @@ priority mechanism was not traced. When the target copies an argument into an
 `$s` reg and every use of it ends in a halfword store, `s16` is the first thing
 to try. The last 1.3% was the order of two stores (`clut` before `x0`), which
 moved where the scheduler put a hoisted `li`.
+
+### A shared literal hoisted to the top with its stores sunk late: the source bracketed other stores with it (func_shelter_r47_8018138C, 2026-09-23)
+
+A run of constant `sh`s into one work block opened with `li a0,-0x68` /
+`li v1,-0x98` and stored those registers only at the very end of the block,
+while every other literal cycled through `$v0`. Writing the stores in the
+retail order left the two shared literals in `$v0` next to their stores (93%).
+CSE folds a named `s16` temporary back into the constant, so declaring one
+changes nothing. What decides it is local-alloc: the literal's pseudo is born
+at its first store and dies at its last, and only a range spanning other
+`$v0` literals gets a register of its own. sched2 then hoists the `li` to the
+top of the block and sinks both stores to just before the register's next
+writer (here `lui v1,%hi(gGameSession)` and `move a0,s2`). Putting the two
+uses of each literal apart (`0x28,0x2A,0x2C,0x2E,0x30,0x32,0x24,0x26`, the
+rest in retail order) matched. Read a late-stored shared literal as "its uses
+are far apart in the source", not as the source order of the stores.
