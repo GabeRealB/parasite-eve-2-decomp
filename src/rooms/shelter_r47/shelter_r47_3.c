@@ -58,10 +58,7 @@ typedef struct {
 } ShelterR47State2;
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
-/// Menu input lock, counted down by `Gp_TickMenuLock`.
-extern s16 Gp_MenuLockDelay;
-extern s16 D_80114D08;
-extern u8  D_8007216C;
+extern u8 D_8007216C;
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017de9cHundred);
@@ -70,7 +67,6 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea68Title);
 
 s32  func_shelter_r47_8018097C(Task* task);
-void func_shelter_r47_80180F38(s32 arg0, s16 arg1, s32 arg2);
 void func_shelter_r47_80181914(Task* task, s32 arg1);
 void func_shelter_r47_801832EC(Task* task);
 void func_shelter_r47_80183B84(Task* task);
@@ -83,12 +79,6 @@ s32  func_shelter_r47_80182B9C(Task* task, RoomHotspot* table, s16 x, s16 y);
 /// Task spawned by the room's cap script; polled and cleared by
 /// `func_shelter_r47_80180714`.
 extern Task* D_shelter_r47_8018A690;
-
-extern u8 D_shelter_r47_80186FAD;
-
-/// Byte sequences selected by `ShelterR47State::step` and walked by
-/// `field_48`; `0xFF` ends a sequence.
-extern u8* D_shelter_r47_80187374[];
 
 /// Hotspot table hit-tested by `func_shelter_r47_80182B9C`.
 extern RoomHotspot D_shelter_r47_80186FB4[];
@@ -211,194 +201,4 @@ void func_shelter_r47_80181568(Task* task)
     if (work->field_51 == 0 && prompt->buttons[1].state == 2) {
         task->state = 6;
     }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801816CC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80181914);
-
-/// Draws the current byte of the `step` sequence at row `y` through
-/// `func_shelter_r47_80180F38`, with a textured quad whose left edge follows
-/// the byte's value, advancing `field_48` on odd animation frames. At the
-/// terminator it redraws the previous byte for eight frames out of every
-/// sixteen instead.
-void func_shelter_r47_80181F14(Task* task, s16 y)
-{
-    ShelterR47State* work;
-    POLY_FT4*        poly;
-    u8*              p;
-    s32              c;
-
-    work = (ShelterR47State*)task->work;
-    p    = D_shelter_r47_80187374[work->step] + work->field_48;
-    c    = *p;
-    if (c != 0xFF) {
-        func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
-        poly           = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(poly + 1);
-        setPolyFT4(poly);
-        setUVWH(poly, 0x48, 0xB9, 0x2C, 0xE);
-        poly->tpage = 0xD;
-        poly->clut  = 0x3FC3;
-        setXY4(poly, c - 0x96, y + 1, 0x69, y + 1, c - 0x96, y + 0xF, 0x69, y + 0xF);
-        poly->code |= 1;
-        addPrim(&gGpuCurrentOt[10], poly);
-        if (gDisplayState.animFrame & 1) {
-            work->field_48++;
-        }
-    } else {
-        c = p[-1];
-        if ((u32)(gDisplayState.animFrame & 0xF) < 8) {
-            func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
-        }
-    }
-}
-
-void func_shelter_r47_801820C0(s16 arg0)
-{
-    GpTpageSprt* p;
-    SPRT*        sprt;
-
-    p              = (GpTpageSprt*)gGpuPrimCursor;
-    sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE1000096;
-    setcode(&p->sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x4000;
-    sprt->x0    = -0xA0 - arg0;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x100;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
-
-    p              = (GpTpageSprt*)gGpuPrimCursor;
-    sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE1000098;
-    setcode(&p->sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->x0    = 0x60 - arg0;
-    sprt->clut  = 0x4000;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x80;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
-
-    p              = (GpTpageSprt*)gGpuPrimCursor;
-    sprt           = &p->sprt;
-    gGpuPrimCursor = (u8*)(p + 1);
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100008E;
-    setcode(&p->sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x4040;
-    sprt->x0    = 0xE0 - arg0;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x100;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
-}
-
-void func_shelter_r47_80182348(Task* task)
-{
-    ShelterR47State* state;
-    ShelterR47State* done;
-    u16              fade;
-    u8               level;
-
-    state = (ShelterR47State*)task->work;
-    func_shelter_r47_80181914(task, 0);
-    fade        = state->fade + 0x10;
-    state->fade = fade;
-    if ((s16)fade >= 0x100) {
-        state->fade = 0xFF;
-        done        = (ShelterR47State*)task->work;
-        GameFlag_SetNibble(0xAC, done->field_18);
-        GameFlag_SetNibble(0xD5, done->field_1A);
-        GameFlag_SetNibble(0xAE, done->field_1C);
-        GameFlag_SetNibble(0xD6, done->field_1E);
-        GameFlag_SetNibble(0xD2, done->field_20);
-        Gp_MsgPlayerWeapon(1);
-        Gp_MsgPlayer3F3(1);
-        Gp_MenuLockDelay = 8;
-        D_80114D08       = 0xA;
-        Display_ReleaseRef();
-        gGameSession->eventState   = 0;
-        gGameSession->hideHud      = 0;
-        gGameSession->cutsceneHold = 0;
-        taskKill((Task*)task->spawnArg2);
-        Task_RequestKill(task, 0);
-    }
-    level = (u8)state->fade;
-    Fade_DrawOverlay(level, level, level, 2);
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_80182470);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_3", func_shelter_r47_801828D0);
-
-s32 func_shelter_r47_801829B8(Task* task, s16 arg1)
-{
-    ShelterR47State* state;
-    s8               step;
-
-    state = (ShelterR47State*)task->work;
-    step  = state->field_51;
-    switch (step) {
-        case 1:
-            if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 1);
-                return 0;
-            }
-            state->field_51 = 2;
-            return 1;
-        case 2:
-            if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 2);
-                return 0;
-            }
-            state->field_51 = 3;
-            return 1;
-        case 3:
-            if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 3);
-                return 0;
-            }
-            state->field_51 = 4;
-            return 1;
-    }
-    return 0;
-}
-
-/// Loads the script's working copies of game flags 0xAC, 0xD5, 0xAE, 0xD6 and
-/// 0xD2, and sets `D_shelter_r47_80186FAD` from the low bit of flag 0xD5.
-void func_shelter_r47_80182AA0(Task* task)
-{
-    ShelterR47State* state = (ShelterR47State*)task->work;
-
-    state->field_18 = GameFlag_GetNibble(0xAC);
-    state->field_1A = GameFlag_GetNibble(0xD5);
-    if (!(state->field_1A & 1)) {
-        D_shelter_r47_80186FAD = 0x12;
-    } else {
-        D_shelter_r47_80186FAD = 0x24;
-    }
-    state->field_1C = GameFlag_GetNibble(0xAE);
-    state->field_1E = GameFlag_GetNibble(0xD6);
-    state->field_20 = GameFlag_GetNibble(0xD2);
 }
