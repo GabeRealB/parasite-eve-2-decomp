@@ -22,9 +22,15 @@ typedef struct {
     /* 0x1C */ s16 field_1C; ///< committed to game flag 0xAE when the script ends
     /* 0x1E */ s16 field_1E; ///< committed to game flag 0xD6 when the script ends
     /* 0x20 */ s16 field_20; ///< committed to game flag 0xD2 when the script ends
-    /* 0x22 */ u8  pad_22[0x14];
+    /* 0x22 */ u8  pad_22[0x12];
+    /* 0x34 */ u8  field_34; ///< selects the `D_shelter_r47_80186FAC` byte published as the area view
+    /* 0x35 */ u8  pad_35;
     /* 0x36 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
-    /* 0x38 */ u8  pad_38[0xA];
+    /* 0x38 */ u8  pad_38[2];
+    /* 0x3A */ s16 field_3A;
+    /* 0x3C */ s16 field_3C;
+    /* 0x3E */ s16 field_3E;
+    /* 0x40 */ s16 field_40;
     /* 0x42 */ s16 field_42; ///< counter gating the move to state 3
     /* 0x44 */ s16 step;     ///< sub-step selected by the running cap event
     /* 0x46 */ u8  pad_46[2];
@@ -59,9 +65,12 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
 /// Menu input lock, counted down by `Gp_TickMenuLock`.
-extern s16 Gp_MenuLockDelay;
-extern s16 D_80114D08;
-extern u8  D_8007216C;
+extern s16       Gp_MenuLockDelay;
+extern s16       D_80114D08;
+extern GpAreaKey D_8007216C;
+extern u8        D_shelter_r47_80186FAC[];
+
+s32 func_shelter_r47_80180C48(Task* task);
 
 void func_shelter_r47_8018337C(Task* task);
 
@@ -105,7 +114,7 @@ void func_shelter_r47_80182E78(Task* task)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = state->field_4E;
+    D_8007216C.view            = state->field_4E;
     /* Keeps the `spawnArg2` load below the `D_8007216C` store, so that it
        does not fill `taskKill`'s delay slot. */
     SOFT_BARRIER();
@@ -149,7 +158,24 @@ void func_shelter_r47_80182F18(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80182FDC);
+void func_shelter_r47_80182FDC(Task* task)
+{
+    ShelterR47State* state;
+    ShelterR47State* work;
+
+    state = (ShelterR47State*)task->work;
+    func_shelter_r47_80181914(task, 1);
+    if ((s16)func_shelter_r47_80180C48(task) != 0) {
+        D_8007216C.view = D_shelter_r47_80186FAC[state->field_34];
+        state->field_48 = 0;
+        work            = (ShelterR47State*)task->work;
+        work->field_3A  = 0xFF;
+        work->field_3C  = 0xFF;
+        work->field_3E  = 0xFF;
+        work->field_40  = 0xFF;
+        task->state++;
+    }
+}
 
 void func_shelter_r47_80183068(Task* task)
 {
