@@ -271,7 +271,85 @@ s16 func_neo_ark_altar_8017E260(Task* task)
     return 3;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar_5", func_neo_ark_altar_8017E658);
+/// Draws one side of a raised altar tile as 32 horizontal strips. `p0` and
+/// `p1` are the side's top corners and `p2` the corner below `p0`; only the
+/// height difference `p2 - p0` is used, split into 32 equal steps, and `p3` is
+/// not read. Each strip that projects without a clipping error becomes a
+/// Gouraud quad whose top edge is shade `c` and bottom edge `c - 6`, linked at
+/// its projected depth together with a 0xE100002A draw-mode packet; the shade
+/// only steps down for strips that are drawn.
+void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3)
+{
+    SVECTOR  v0;
+    SVECTOR  v1;
+    SVECTOR  v2;
+    SVECTOR  v3;
+    s32      sxy0;
+    s32      sxy1;
+    s32      sxy2;
+    s32      sxy3;
+    s32      p;
+    s32      flag;
+    s32      otz;
+    s16      step;
+    s32      i;
+    u8       c;
+    u8       c2;
+    POLY_G4* poly;
+    DR_MODE* dr;
+
+    c     = 0xC0;
+    step  = (p2->vy - p0->vy) / 32;
+    v0.vx = p0->vx;
+    v0.vy = p0->vy;
+    v0.vz = p0->vz;
+    v1.vx = p1->vx;
+    v1.vy = p1->vy;
+    v1.vz = p1->vz;
+    v2.vx = p0->vx;
+    v2.vy = p0->vy + step;
+    v2.vz = p0->vz;
+    v3.vx = p1->vx;
+    v3.vy = p1->vy + step;
+    v3.vz = p1->vz;
+    for (i = 0; i < 32; i++) {
+        otz    = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
+        v0.vy  = v2.vy;
+        v2.vy += step;
+        v1.vy  = v3.vy;
+        v3.vy += step;
+        if (flag >= 0) {
+            poly           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(poly + 1);
+            setlen(poly, 8);
+            setcode(poly, 0x3A);
+            *(s32*)&poly->x0 = sxy0;
+            *(s32*)&poly->x1 = sxy1;
+            *(s32*)&poly->x2 = sxy2;
+            *(s32*)&poly->x3 = sxy3;
+            c2               = c - 6;
+            poly->r0         = c;
+            poly->g0         = c;
+            poly->b0         = c;
+            poly->r1         = c;
+            poly->g1         = c;
+            poly->b1         = c;
+            poly->r2         = c2;
+            poly->g2         = c2;
+            poly->b2         = c2;
+            poly->r3         = c2;
+            poly->g3         = c2;
+            poly->b3         = c2;
+            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), poly);
+            dr             = (DR_MODE*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(dr + 1);
+            setlen(dr, 1);
+            dr->code[0] = 0xE100002A;
+            addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
+            c = c2;
+        }
+    }
+}
 
 /// Walls in one altar tile. The view matrix is re-derived from
 /// `gGfxViewCoord` and `Gfx_ViewWorldMtx` pushed into the GTE first, then each
