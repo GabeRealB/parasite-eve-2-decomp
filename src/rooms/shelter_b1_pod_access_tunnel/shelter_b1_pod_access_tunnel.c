@@ -22,7 +22,56 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_acce
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", D_shelter_b1_pod_access_tunnel_8017D5D8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017DA74);
+void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
+{
+    s32 var_v0;
+    s32 room;
+
+    switch (task->state) {
+        case 0:
+            Gp_RunCapCmd1(GameFlag_GetNibble(0xFC) != 0 ? 5 : 1);
+            D_801153F4 = 1;
+            goto L_advance;
+        case 1:
+            var_v0 = Gp_CapBusy();
+            goto L_idle;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xA) {
+                if (Gp_GetCapEventKey() == 1) {
+                    GameFlag_SetNibble(0x1B6, 2);
+                }
+                D_801153F4 = 0;
+                taskKill(task);
+                Gp_MsgPlayerWeapon(1);
+                return;
+            }
+            GameFlag_SetNibble(0x1B6, 0);
+            SndEvt_EnqueueType6(0x54110006, 0, 0);
+            goto L_advance;
+        case 3:
+            var_v0 = SndVoice_HasActiveId(0x54110006);
+        L_idle:
+            if (var_v0 != 0) {
+                return;
+            }
+        L_advance:
+            task->state++;
+            return;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            Mc_SaveData.at4.loc.area = 0x23;
+            Mc_SaveData.at4.loc.warp = 3;
+            Mc_SaveData.at4.loc.room = 1;
+            room                     = GameFlag_GetNibble(0x118);
+            if (room == 2) {
+                Mc_SaveData.at4.loc.room = room;
+            }
+            D_80071076 = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(task);
+            break;
+    }
+}
 
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
 {
