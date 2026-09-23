@@ -21,6 +21,11 @@ void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord
 
 extern s16 D_shelter_b2_pod_bottom_80188790[3][16];
 
+void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb);
+void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+
+extern s16 D_shelter_b2_pod_bottom_801887F0[8];
+
 /// On its first frame (state 0) fills three rows of 16 random bytes in
 /// `D_shelter_b2_pod_bottom_80188790` from the gameplay LCG and turns off
 /// `groundTrace`; every frame, disables the ground shadow in view 0xF and
@@ -125,7 +130,102 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017F994);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8018016C);
+/// State 0 resets the coordinate frame's rotation to identity, starts the
+/// colour ramp at 0 and the size ramp at 0x80, derives the colour step from
+/// `Task::spawnArg1`, and fills `D_shelter_b2_pod_bottom_801887F0` with eight
+/// angles, one random angle inside each eighth of the circle. State 1 grows
+/// both ramps once per frame while no event is running (holding the tick
+/// otherwise) and draws the ramp-coloured effect, a ring and an arc that
+/// shrinks as `spawnArg1` counts down; when it reaches 0 the colour is set to
+/// 0xFF and state 2 begins. State 2 draws the effect, the ring and a blade at
+/// each of the eight angles, fading the colour by 0x10 per frame. While
+/// animating, `field_20` is re-rolled to a random value below 18 every frame.
+/// The work is released once the fade reaches 0x10 or an event of state 4 or
+/// above starts.
+void func_shelter_b2_pod_bottom_8018016C(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    s32            i;
+    s32            sum;
+    u8             rgb[3];
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState < 4) {
+        work->field_22++;
+        switch (task->state) {
+            case 0:
+                rot            = (GpMtxWords*)&coord->coord;
+                rot->w0        = 0x1000;
+                rot->w1        = 0;
+                rot->w2        = 0x1000;
+                rot->w3        = 0;
+                rot->h4        = 0x1000;
+                coord->flg     = 0;
+                work->field_24 = 0;
+                work->field_26 = 0x80;
+                work->field_2A = 0xC0 / task->spawnArg1;
+                task->state    = 1;
+                for (i = 0; i < 8; i++) {
+                    Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
+                    D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);
+                }
+            case 1:
+                if (Gp_State1C->eventState != 0) {
+                    work->field_22--;
+                    rgb[0] = work->field_24;
+                    rgb[1] = work->field_24;
+                    rgb[2] = work->field_24 >> 1;
+                    func_shelter_b2_pod_bottom_8017F994(coord, (s16)(work->field_26 * 2), rgb);
+                    Gp_DrawRing(coord, (s16)(work->field_26 * 4), rgb);
+                    Gp_DrawArc(coord, (s16)(task->spawnArg1 * (s16)work->field_2A * 16), 0x80, rgb);
+                    return;
+                }
+                sum            = work->field_24 + work->field_2A;
+                work->field_24 = sum;
+                work->field_26 = sum * 4 + 0x80;
+                task->spawnArg1--;
+                rgb[0] = work->field_24;
+                rgb[1] = work->field_24;
+                rgb[2] = work->field_24 >> 1;
+                func_shelter_b2_pod_bottom_8017F994(coord, (s16)(work->field_26 * 2), rgb);
+                Gp_DrawRing(coord, (s16)(work->field_26 * 4), rgb);
+                Gp_DrawArc(coord, (s16)(task->spawnArg1 * (s16)work->field_2A * 16), 0x80, rgb);
+                if (task->spawnArg1 == 0) {
+                    work->field_24 = 0xFF;
+                    task->state    = 2;
+                    work->field_28 = 0x300;
+                    work->field_2A = 0;
+                }
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                work->field_20 = (Gp_LcgState >> 16) % 18;
+                return;
+            case 2:
+                if ((s16)work->field_24 < 0x11) {
+                    break;
+                }
+                rgb[0] = work->field_24;
+                rgb[1] = work->field_24;
+                rgb[2] = work->field_24 >> 1;
+                func_shelter_b2_pod_bottom_8017F994(coord, (s16)(work->field_26 * 2), rgb);
+                Gp_DrawRing(coord, (s16)(work->field_26 * 4), rgb);
+                for (i = 0; i < 8; i++) {
+                    func_shelter_b2_pod_bottom_801805A0(coord, (s16)(work->field_26 * 2), D_shelter_b2_pod_bottom_801887F0[i], rgb);
+                }
+                if (Gp_State1C->eventState == 0) {
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_24 -= 0x10;
+                    work->field_20  = (Gp_LcgState >> 16) % 18;
+                }
+                return;
+            default:
+                return;
+        }
+    }
+    Gp_ReleaseState1CMem(work, task);
+}
 
 /// Draws one Gouraud triangle as a fan blade about `arg2`. `arg0`'s world
 /// position is projected through `GsWSMATRIX` into a scratch block popped from
