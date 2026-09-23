@@ -1,5 +1,8 @@
 #include "common.h"
+#include "main/session.h"
 #include "main/sound.h"
+
+void func_shelter_b1_sterilization_room_8018049C(void);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017ef20Title);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017de9cHundred);
@@ -15,6 +18,11 @@ s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", func_shelter_b1_sterilization_room_80180464);
+void func_shelter_b1_sterilization_room_80180464(void)
+{
+    if (gGameSession->at4.loc.place == 5) {
+        func_shelter_b1_sterilization_room_8018049C();
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", func_shelter_b1_sterilization_room_8018049C);
