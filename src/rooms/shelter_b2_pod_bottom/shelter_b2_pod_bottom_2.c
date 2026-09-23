@@ -5,9 +5,16 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/gfx.h"
+#include "main/mem.h"
 #include "rooms/room_common.h"
 
+#include <psyq/inline_c.h>
+
 extern u32 Gp_LcgState;
+
+/// The bytes of `rtps` as this build emits them, with its two leading hazard
+/// nops; the `inline_c.h` macro of that name assembles to a different word.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
 void func_shelter_b2_pod_bottom_8017EEAC(RoomEffWork* work, GsCOORDINATE2* coord, s32 arg2);
@@ -120,6 +127,61 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8018016C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_801805A0);
+/// Draws one Gouraud triangle as a fan blade about `arg2`. `arg0`'s world
+/// position is projected through `GsWSMATRIX` into a scratch block popped from
+/// `G_SCRATCH_HEAD`; the apex sits on that point in `rgb`, and the two black
+/// outer corners sit at angles `arg2 - 0x20` and `arg2 + 0x20`, `arg1` scaled
+/// down by the projected depth away. A negative GTE flag drops the triangle.
+void func_shelter_b2_pod_bottom_801805A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+{
+    void**         scratch;
+    u8*            head;
+    GpRingScratch* block;
+    SVECTOR*       vec;
+    POLY_G3*       prim;
+    s32            ang;
+    s32            ang2;
+    u16            vz;
+
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    head                                    = *scratch;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                   = (GpRingScratch*)(head - 0x18);
+    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
+    vz                                      = *(u16*)&arg0->workm.t[2];
+    *scratch                                = block;
+    block->vec.vz                           = vz;
+    vec                                     = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        prim           = (POLY_G3*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setPolyG3(prim);
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        setRGB0(prim, rgb[0], rgb[1], rgb[2]);
+        setRGB1(prim, 0, 0, 0);
+        setRGB2(prim, 0, 0, 0);
+        block->step = ((s16)arg1 * 128) / block->otz;
+        ang         = (s16)arg2;
+        ang2        = ang - 0x20;
+        prim->x0    = *(u16*)&block->sx;
+        prim->y0    = *(u16*)&block->sy;
+        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        ang        += 0x20;
+        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", D_shelter_b2_pod_bottom_8017D5EC);
