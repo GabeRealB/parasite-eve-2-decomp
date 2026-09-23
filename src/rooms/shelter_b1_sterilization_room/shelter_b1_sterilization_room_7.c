@@ -57,7 +57,26 @@ void func_shelter_b1_sterilization_room_801814B0(void)
     Task_Spawn(0, 0x11, 0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_801814FC);
+void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
+{
+    s32 state = arg0->state;
+
+    switch (state) {
+        case 0:
+            gGameSession->viewDirty = 1;
+            arg0->state            += 1;
+            break;
+        case 1:
+            Mc_SaveData.at4.loc.room    = 2;
+            gGameSession->at4.loc.room  = 2;
+            gGameSession->roomObjsDirty = state;
+            arg0->state                += 1;
+            break;
+        default:
+            taskKill(arg0);
+            break;
+    }
+}
 
 void func_shelter_b1_sterilization_room_80181588(Task* arg0)
 {
