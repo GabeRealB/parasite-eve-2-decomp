@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gameplay/3CD8.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/shelter_b4_reservoir.h"
@@ -7,12 +8,15 @@ extern s16 D_shelter_b4_reservoir_80184F82;
 extern s32 D_shelter_b4_reservoir_8018492C;
 extern s16 D_shelter_b4_reservoir_80184F80;
 
-extern u8    D_shelter_b4_reservoir_80184F78;
-extern u8    D_shelter_b4_reservoir_80184F79;
-extern u8    D_shelter_b4_reservoir_80184F7A;
-extern s16   D_shelter_b4_reservoir_80184F7C;
-extern s32   D_shelter_b4_reservoir_80187510;
-extern Task* D_shelter_b4_reservoir_80184930;
+extern u8       D_shelter_b4_reservoir_80184F78;
+extern u8       D_shelter_b4_reservoir_80184F79;
+extern u8       D_shelter_b4_reservoir_80184F7A;
+extern s16      D_shelter_b4_reservoir_80184F7C;
+extern s32      D_shelter_b4_reservoir_80187510;
+extern Task*    D_shelter_b4_reservoir_80184930;
+extern u8       D_8007216C;
+extern u8       D_801153F4;
+extern TaskDesc D_shelter_b4_reservoir_801848EC;
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017DE8C);
@@ -31,7 +35,19 @@ s32 func_shelter_b4_reservoir_8017E25C(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E264);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E354);
+s32 func_shelter_b4_reservoir_8017E354(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 3) {
+        Gp_MsgPlayer3F3(0);
+        Gp_MsgAlly3F3(0);
+        Gp_MsgPlayerWeapon(0);
+        Gp_MsgAllyWeapon(0);
+        D_8007216C = 6;
+        D_801153F4 = 2;
+        Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 0, 0, 0);
+    }
+    return 0;
+}
 
 s32 func_shelter_b4_reservoir_8017E3C4(void)
 {
