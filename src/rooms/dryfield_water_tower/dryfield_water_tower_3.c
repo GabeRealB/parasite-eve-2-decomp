@@ -135,6 +135,41 @@ extern s8 D_80114C11;
 /// own task in state 0, the same slot the cap script publishes a table into.
 extern u32 D_dryfield_water_tower_80181B00;
 
+/// Main-executable gates the cap script checks, with no module header yet:
+/// the script only runs while `D_80073BA0` is non-zero, and its state 8 holds
+/// back on `D_80114C12` == 1 or a non-zero `D_80071075`.
+extern s16 D_80073BA0;
+extern s8  D_80114C12;
+extern u8  D_80071075;
+
+/// The raised-cap sources the cap script restores the room's script-table
+/// blocks from, and the lowered-cap ones it uses when the cap is already down.
+/// The destinations are runs of two blocks each (0x10, 0x18 and 0x40 bytes),
+/// reached by their first symbol plus the block size or by the second symbol
+/// minus it.
+extern u8 D_dryfield_water_tower_80181B60;
+extern u8 D_dryfield_water_tower_80181BB8;
+extern u8 D_dryfield_water_tower_80181BC8;
+extern u8 D_dryfield_water_tower_80181C08;
+extern u8 D_dryfield_water_tower_80181C48;
+extern u8 D_dryfield_water_tower_801828CC[];
+extern u8 D_dryfield_water_tower_801829B4[];
+extern u8 D_dryfield_water_tower_80182F2C[];
+
+/// The pair of blocks the cap script's state 8 hands to `func_800E8634`.
+extern u8 D_dryfield_water_tower_801820B0;
+extern u8 D_dryfield_water_tower_80182248;
+
+/// The cap script's message table, published into its own `Task::msgTable`.
+extern s32 D_dryfield_water_tower_80182374;
+
+/// The task table the cap script spawns its state-3 task from (entry 0).
+extern TaskDesc D_dryfield_water_tower_8018277C;
+
+/// The room's run of 4A objects; element 14 is `D_dryfield_water_tower_80187074`.
+extern GpObj4A D_dryfield_water_tower_80186C4C[];
+
+u16  func_dryfield_water_tower_8017EB7C(Task* arg0);
 void func_dryfield_water_tower_8017DCB4(void);
 s32  func_dryfield_water_tower_8017DFAC(Task* arg0);
 
@@ -647,7 +682,233 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017EB7C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_3", func_dryfield_water_tower_8017F128);
+/* The jump table `func_dryfield_water_tower_8017EB7C` switches through, which
+   follows the one `func_dryfield_water_tower_8017E93C` compiles in the same
+   rodata run; the `.align 3` ahead of it is the word between them, and its
+   trailing zero word pads the run to the 8-byte boundary the table the cap
+   script below compiles starts on. It is an item of unit 5's run -- the
+   function belongs to this unit, so the split cannot pair it with a body of
+   its own -- and it has to be emitted here, before that compiled table. */
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", jtbl_dryfield_water_tower_8017D618);
+
+/// State 7 of the cap script, one call per frame, returning non-zero once the
+/// step is complete. On its first frame (`field_58` 0) it sends message 0x7DA to
+/// the slot-4 game task with a `DwtwMsg7DB` record naming the current stage and
+/// area and carrying 2 as the requested state, the reply message being 0x7DB;
+/// after that it waits for the `field_6C` latch.
+static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
+{
+    DryfieldWaterTowerState* work = (DryfieldWaterTowerState*)arg0->work;
+    DwtwMsg7DB               msg;
+
+    switch (work->field_58) {
+        case 0:
+            msg.field_0 = gGameSession->at4.loc.stage;
+            msg.field_1 = gGameSession->at4.loc.area;
+            msg.field_2 = 2;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            work->field_58++;
+            break;
+        case 1:
+            if (work->field_6C != 0) {
+                return 1;
+            }
+            break;
+        default:
+            return 0;
+    }
+    return 0;
+}
+
+/// State 8 of the cap script, one call per frame, returning non-zero once the
+/// step is complete. On its first frame (`field_58` 0) it hands the room's two
+/// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
+/// frames while `D_80114C12` is 1 or `D_80071075` is set; after that it waits
+/// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
+static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
+{
+    DryfieldWaterTowerState* work = (DryfieldWaterTowerState*)arg0->work;
+
+    switch (work->field_58) {
+        case 0:
+            if (D_80114C12 == 1) {
+                break;
+            }
+            if (D_80071075 != 0) {
+                return 0;
+            }
+            func_800E8634((s32)&D_dryfield_water_tower_801820B0, 0, (s32)&D_dryfield_water_tower_80182248);
+            work->field_58++;
+            break;
+        case 1:
+            if (gGameSession->eventState != 0) {
+                return 0;
+            }
+            GameFlag_SetNibble(0x32, 2);
+            return 1;
+        default:
+            return 0;
+    }
+    return 0;
+}
+
+/// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
+/// runs. It does nothing while the session's `field_65` or `D_80114C11` is set
+/// or `D_80073BA0` is zero. State 0 allocates the 0x7C-byte
+/// `DryfieldWaterTowerState`, publishes the task and its message table, and
+/// restores the room's three pairs of script-table blocks; state 1 spawns
+/// entries 1 and 2 of the same table into `field_44` / `field_48` and state 2
+/// places them.
+///
+/// Nibble 0x32 then picks where the script resumes. At 0 it waits (state 3) for
+/// a pending 4C record with id 5 (low 15 bits) and a second byte of 1, spawns
+/// entry 0 of `D_dryfield_water_tower_8018277C` into `field_4C` and sets the
+/// nibble to 1, then waits for that task to end (state 4). At 1 it goes
+/// straight to state 5, which waits on the `field_6E` latch. At 2 it clears
+/// bit 0x40 of 4A objects 0 and 14, moves the `field_48` prop to
+/// `D_dryfield_water_tower_80181A70[2]` and raises its `field_70`, and
+/// overwrites the second block of each pair; when nibble 0x55 is also 3 it
+/// clears object 3 too, moves the `field_44` prop to its second record,
+/// overwrites the first block of each pair and parks in state 9, which does
+/// nothing.
+///
+/// State 6 runs `func_dryfield_water_tower_8017EB7C`, going back to state 5
+/// when it returns 1 and on to state 7 when it returns 2. Every frame the
+/// script runs, it records the session's view in `field_74` and executes the
+/// queued command.
+void func_dryfield_water_tower_8017F128(Task* arg0)
+{
+    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
+    DryfieldWaterTowerState* work;
+    u16                      objId;
+    u8                       objA;
+    u8                       objB;
+    s32                      out;
+    s32                      mask;
+    GpObj4A*                 p0;
+    GpObj4A*                 p3;
+    GpObj4A*                 p14;
+
+    if (gGameSession->field_65 != 0 || D_80114C11 != 0 || D_80073BA0 == 0) {
+        return;
+    }
+
+    switch (arg0->state) {
+        case 0:
+            work       = Mem_Malloc(0x7C, 0);
+            arg0->work = work;
+            if (work == NULL) {
+                taskKill(arg0);
+            } else {
+                Mem_Set(work, 0, 0x7C);
+                work->field_40                  = gameGetPtrSlot(3);
+                D_dryfield_water_tower_801876A4 = arg0;
+                arg0->msgTable                  = &D_dryfield_water_tower_80182374;
+            }
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181C08, D_dryfield_water_tower_801829B4, 0x40);
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, 0x18);
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181B10, D_dryfield_water_tower_801828CC + 0x10, 0x10);
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181BA0, D_dryfield_water_tower_80182F2C + 0x18, 0x18);
+            Mem_CopyUnaligned(&D_dryfield_water_tower_80181B60, D_dryfield_water_tower_801829B4 + 0x40, 0x40);
+            state = (DryfieldWaterTowerState*)arg0->work;
+            arg0->state++;
+            break;
+
+        case 1:
+            state->field_44 = Task_SpawnFromTable(&D_dryfield_water_tower_80182384, 1, 0, 0);
+            state->field_48 = Task_SpawnFromTable(&D_dryfield_water_tower_80182384, 2, 0, 0);
+            arg0->state++;
+            break;
+
+        case 2:
+            Gp_DispatchMsg(state->field_44, 0x7D4, (s32)D_dryfield_water_tower_80181A40, 0);
+            Gp_DispatchMsg(state->field_48, 0x7D4, (s32)D_dryfield_water_tower_80181A70, 0);
+            state->field_64 = GameFlag_GetNibble(0x55);
+            if (GameFlag_GetNibble(0x32) == 0) {
+                arg0->state++;
+            } else if (GameFlag_GetNibble(0x32) == 1) {
+                arg0->state = 5;
+            } else if (GameFlag_GetNibble(0x32) == 2) {
+                mask           = ~0x40;
+                p0             = &D_dryfield_water_tower_80186C4C[0];
+                p0->field_4A  &= mask;
+                p14            = &D_dryfield_water_tower_80186C4C[14];
+                p14->field_4A &= mask;
+                Gp_DispatchMsg(state->field_48, 0x7D4, (s32)&D_dryfield_water_tower_80181A70[2], 0);
+                ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
+                Mem_CopyUnaligned(&D_dryfield_water_tower_80181B10, &D_dryfield_water_tower_801828DC, 0x10);
+                Mem_CopyUnaligned(&D_dryfield_water_tower_80181BA0, &D_dryfield_water_tower_80182F44, 0x18);
+                Mem_CopyUnaligned(&D_dryfield_water_tower_80181B20, &D_dryfield_water_tower_801829F4, 0x40);
+                if (state->field_64 == 3) {
+                    p3            = &D_dryfield_water_tower_80186C4C[3];
+                    p3->field_4A &= mask;
+                    Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A40[1], 0);
+                    Mem_CopyUnaligned(&D_dryfield_water_tower_80181BC8, &D_dryfield_water_tower_801829F4 - 0x40, 0x40);
+                    Mem_CopyUnaligned(&D_dryfield_water_tower_80181BB8, &D_dryfield_water_tower_801828DC - 0x10, 0x10);
+                    Mem_CopyUnaligned(&D_dryfield_water_tower_80181C48, &D_dryfield_water_tower_80182F44 - 0x18, 0x18);
+                    arg0->state = 9;
+                }
+            }
+            break;
+
+        case 3:
+            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && (objId & 0x7FFF) == 5 && (s8)objA == 1) {
+                state->field_4C = Task_SpawnFromTable(&D_dryfield_water_tower_8018277C, 0, 0, 0);
+                GameFlag_SetNibble(0x32, 1);
+                arg0->state++;
+            }
+            break;
+
+        case 4:
+            if (Task_PollKill(state->field_4C, &out) != 0) {
+                arg0->state++;
+            }
+            break;
+
+        case 5:
+            if (state->field_6E != 0) {
+                state->field_6E = 0;
+                state->field_58 = 0;
+                arg0->state++;
+            }
+            break;
+
+        case 6:
+            switch (func_dryfield_water_tower_8017EB7C(arg0)) {
+                case 0:
+                    break;
+                case 1:
+                    state->field_58 = 0;
+                    arg0->state--;
+                    break;
+                case 2:
+                    state->field_58 = 0;
+                    arg0->state++;
+                    break;
+            }
+            break;
+
+        case 7:
+            if (_dryfieldWaterTowerState7Step(arg0)) {
+                state->field_58 = 0;
+                arg0->state++;
+            }
+            break;
+
+        case 8:
+            if (_dryfieldWaterTowerState8Step(arg0)) {
+                state->field_58 = 0;
+                arg0->state++;
+            }
+            break;
+
+        case 9:
+            break;
+    }
+    state->field_74 = gGameSession->at4.loc.view;
+    func_dryfield_water_tower_8017E93C(arg0);
+}
 
 /// The 0x0D entry of three of the room's script tables -- at 0x80181C94,
 /// 0x80181EEC and 0x801820E4, each one word above its `.word 0x0D` opcode. The
@@ -677,13 +938,3 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     rec.field_10 = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
 }
-
-/* The jump tables the two script commands `func_dryfield_water_tower_8017EB7C`
-   and `func_dryfield_water_tower_8017F128` switch through, which follow the one
-   `func_dryfield_water_tower_8017E93C` compiles in the same rodata run; the
-   `.align 3` ahead of the first is the word between them. They are items of
-   unit 5's run -- the two functions belong to this unit, so the split cannot
-   pair them with a body of their own. */
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", jtbl_dryfield_water_tower_8017D618);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower_5", jtbl_dryfield_water_tower_8017D630);

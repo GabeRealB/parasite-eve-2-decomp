@@ -138464,3 +138464,39 @@ gte_ldv0(&tbl[arg1 + far]);
 
 Seen in `func_neo_ark_submarine_gallery_80180E80` (98.66% to 100% with that
 change alone); `func_dryfield_dilapidated_house_801815E8` has the same shape.
+
+## An empty `case 0: break;` is what puts `slti v,2` between `== 1` and `== 2` in a two-case switch
+
+**Symptom:** the target dispatches a helper's result as `beq v1,1,L1;
+slti v0,v1,2; bnez v0,end; li v0,2; beq v1,v0,L2; j end`, but `switch (f())
+{ case 1: ... case 2: ... }` emits only the two `beq`s. With cases {1, 2}
+`emit_case_nodes` (stmt.c) proves node 2's low bound from its parent and skips
+the range test. With {0, 1, 2} the root is 1 with children on both sides, and
+for a signed index neither side is bounded, so it emits `index > 1` to split
+them; the left leaf's label is the end of the switch, and jump optimisation
+folds that into the inverted `slti`/`bnez` to the end.
+
+**Fix:** write the case that does nothing: `case 0: break;`. The index must be
+`int` (a `u16` return promoted is fine); an unsigned index bounds node 0 at
+`TYPE_MIN` and changes the tree again. Seen in
+`func_dryfield_water_tower_8017F128`.
+
+## Clearing a bit on several elements of one global array: one pointer per element, each assigned once
+
+**Symptom:** the target keeps the array base in `s0`, makes `a0 = s0 + 0x428`,
+and interleaves the two read-modify-writes (`lbu; lbu; and; and; sb; sb`) at
+offset `0x4a` of each register. `arr[0].f &= m; arr[14].f &= m;` folds the
+second address to `0x472(s0)`, and reusing one pointer variable for two
+elements serialises the pairs (`lbu; and; sb; lbu; and; sb`), because the
+scheduler can no longer prove the two stores and loads independent.
+
+**Fix:** a separate pointer per element, each assigned exactly once
+(`p0 = &arr[0]; p14 = &arr[14]; p3 = &arr[3];`). A pseudo set once to a
+constant address gets a known value, so alias analysis sees two distinct
+`symbol + offset` addresses and the loads can move above the first store. The
+position of the assignments matters too: `p14 = &arr[14]` placed *after*
+`p0->f &= m` put the `li` of the mask ahead of the `addiu`, matching the
+target; assigning both pointers first did not. A mask constant the target
+keeps in a register (`li s2,-0x41; and`) rather than `andi 0xbf` comes from a
+`s32 mask = ~0x40` local, as in `acropolis_sanctuary`. Seen in
+`func_dryfield_water_tower_8017F128`.
