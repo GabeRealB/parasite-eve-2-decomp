@@ -7,6 +7,7 @@
 #include "main/gameflow.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "rooms/rooms_shared_8017ecb4.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
 extern u8          D_shelter_b1_underground_parking_8018D788;
@@ -63,7 +64,41 @@ void func_shelter_b1_underground_parking_801843F0(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184468);
+void func_shelter_b1_underground_parking_80184468(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    RoomHotspot*      hs     = D_shelter_b1_underground_parking_8018767C;
+    SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+
+    func_shelter_b1_underground_parking_80183B9C();
+    gGameSession->hideHud = 1;
+    if (Gp_CapBusy() != 0) {
+        prompt->mode     = 0;
+        prompt->targetId = 0;
+        return;
+    }
+    prompt->targetId = 0x80;
+    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        prompt->mode = 2;
+        if (prompt->buttons[0].state == 2) {
+            for (; hs->id != -1; hs++) {
+                if (hs->hit != 0) {
+                    prompt->mode     = 0;
+                    prompt->targetId = 0;
+                    work->field_C    = hs->id;
+                    work->promptKind = hs->promptKind;
+                    task->state      = 3;
+                    return;
+                }
+            }
+        }
+    } else {
+        prompt->mode = 1;
+    }
+    if (prompt->buttons[1].state == 2) {
+        task->state = 5;
+    }
+}
 
 void func_shelter_b1_underground_parking_80184594(Task* task)
 {
