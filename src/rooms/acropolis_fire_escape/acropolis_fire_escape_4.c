@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "decomp/common.h"
+
 #include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -29,6 +31,7 @@ extern GpObj4A        D_acropolis_fire_escape_801826A8;
 extern s32            D_acropolis_fire_escape_80183040;
 extern s16            D_acropolis_fire_escape_80181D7C[];
 extern u32            Gp_LcgState;
+extern s32            D_80070F70;
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -223,4 +226,205 @@ void func_acropolis_fire_escape_80180154(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_fire_escape/acropolis_fire_escape_4", func_acropolis_fire_escape_80180B20);
+void func_acropolis_fire_escape_80180B20(Task* task)
+{
+    u8*                             head;
+    u8*                             raw;
+    AcropolisFireEscapeGlowScratch* blk;
+    POLY_G4*                        prim;
+    LINE_G3*                        line;
+    GsCOORDINATE2*                  coord;
+    void*                           mem;
+    u16                             vz;
+    s32                             i;
+    s32                             pulse;
+    s32                             level;
+    s32                             height;
+    s16                             amp;
+    s16                             flip;
+    s32                             ampSi;
+    s32                             ampHalf;
+    u8                              red;
+    u8                              cyan;
+    s32                             z;
+    s32                             shift;
+    u32                             depth;
+    u32                             tag;
+    u_long*                         ot;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    mem   = task->spawnArg2;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x18;
+    SOFT_TOUCH_REG(raw);
+    blk                     = (AcropolisFireEscapeGlowScratch*)raw;
+    blk->vec.vx             = *(u16*)&coord->workm.t[0];
+    blk->vec.vy             = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = blk;
+    blk->vec.vz             = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->sx);
+    gte_stszotz(&blk->otz);
+    if (((AcropolisFireEscapeGlowScratch*)(head - 0x18))->otz >= 0x11) {
+        pulse  = D_80070F70;
+        pulse *= task->spawnArg1 & 0xFF;
+        flip   = (task->spawnArg1 >> 16) & 1;
+        if (pulse & 0x80) {
+            level = ~pulse & 0x7F;
+        } else {
+            level = pulse & 0x7F;
+        }
+        amp   = level * 2;
+        level = task->spawnArg1;
+        if (level < 0) {
+            height       = (level >> 8) & 0xFF;
+            blk->radius  = (height << 10) / blk->otz;
+            blk->radius2 = (((task->spawnArg1 >> 8) & 0xFF) << 7) / blk->otz;
+            for (i = 0; i < 0x10; i += 2) {
+                ampSi          = amp;
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, (ampSi * (flip ^ 1)) >> 1, (flip * ampSi) >> 1, (flip * ampSi) >> 1);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
+                prim->y0 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i]) >> 12);
+                prim->x1 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 12);
+                prim->y1 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 12);
+                prim->y3 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 12);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, ampSi * (flip ^ 1), flip * ampSi, flip * ampSi);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
+                prim->y0 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i]) >> 13);
+                prim->x1 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 13);
+                prim->y1 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 13);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 13);
+                prim->y3 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 13);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            ampHalf = amp >> 1;
+            for (i = 2; i < 0x10; i += 8) {
+                do {
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    red  = ampHalf * (flip ^ 1);
+                    cyan = flip * ampHalf;
+                    setRGB2(prim, red, cyan, cyan);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = blk->sx + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i]) >> 12);
+                    prim->y0 = blk->sy + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i - 4]) >> 12);
+                    prim->x1 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 11);
+                    prim->y1 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i]) >> 11);
+                    prim->x2 = blk->sx;
+                    prim->y2 = blk->sy;
+                    prim->x3 = blk->sx + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i + 8]) >> 12);
+                    prim->y3 = blk->sy + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
+                    shift    = gDisplayState.otDepthShift;
+                    depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
+                    __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
+                    setaddr(prim, getaddr((u_long*)(depth + (s32)gGpuCurrentOt)));
+                    ot  = (u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt);
+                    tag = (*ot & 0xFF000000) | ((u32)prim & 0xFFFFFF);
+                    *ot = tag;
+                    z   = blk->otz;
+                    SOFT_TOUCH_REG(z);
+                    SOFT_TOUCH_REG(z);
+                    SOFT_TOUCH_REG_USE(z, tag);
+                    SOFT_TOUCH_REG_USE(prim, z);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, z);
+
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, red, cyan, cyan);
+                } while (0);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
+                prim->y0 = blk->sy + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i]) >> 13);
+                prim->x1 = blk->sx + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 8]) >> 12);
+                prim->y1 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
+                prim->x2 = blk->sx;
+                prim->y2 = blk->sy;
+                prim->x3 = blk->sx + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i + 0xC]) >> 13);
+                prim->y3 = blk->sy + ((blk->radius2 * D_acropolis_fire_escape_80181D7C[i + 8]) >> 13);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+                z = blk->otz;
+                __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_fire_escape_80181D7C[i]));
+                __asm__("" : "+r"(prim) : "r"(z), "r"(cyan));
+                Gp_AddTpageShift((P_TAG*)prim, 1, z);
+            }
+        } else {
+            blk->radius  = (((level >> 8) & 0xFF) << 9) / blk->otz;
+            blk->radius2 = (((task->spawnArg1 >> 8) & 0xFF) << 9) / blk->otz;
+            for (i = 0; i < 2; i++) {
+                prim           = (POLY_G4*)gGpuPrimCursor;
+                gGpuPrimCursor = prim + 1;
+                setPolyG4(prim);
+                setRGB0(prim, 0, 0, 0);
+                setRGB1(prim, 0, 0, 0);
+                setRGB2(prim, amp * (flip ^ 1), flip * amp, flip * amp);
+                setRGB3(prim, 0, 0, 0);
+                prim->x0 = blk->sx - blk->radius;
+                prim->x1 = prim->x2 = blk->sx;
+                prim->x3            = blk->sx + blk->radius;
+                prim->y0 = prim->y2 = prim->y3 = blk->sy;
+                prim->y1                       = (blk->sy - blk->radius2) + blk->radius2 * (i + i);
+                addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            }
+            if (task->spawnArg1 & 0x10000000) {
+                for (i = 0; i < 2; i++) {
+                    line           = (LINE_G3*)gGpuPrimCursor;
+                    gGpuPrimCursor = (u8*)line + sizeof(LINE_G3);
+                    setLineG3(line);
+                    setRGB0(line, 0, 0, 0);
+                    setRGB1(line, amp * (flip ^ 1), flip * amp, flip * amp);
+                    setRGB2(line, 0, 0, 0);
+                    line->x0 = blk->sx + blk->radius * (i * 3 - 1);
+                    line->y0 = blk->sy - blk->radius2 * (i + 1);
+                    line->x1 = blk->sx;
+                    line->y1 = blk->sy;
+                    line->x2 = blk->sx - blk->radius * (i * 3 - 1);
+                    line->y2 = blk->sy + blk->radius2 * (i + 1);
+                    addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                                      (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                }
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    Gp_ReleaseState1CMem(mem, task);
+}
