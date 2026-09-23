@@ -6,6 +6,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -16,8 +17,11 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+void func_dryfield_breezeway_80181938(Task* task, u8* color);
 
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {
@@ -323,7 +327,151 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_6", func_dryfield_breezeway_80181264);
+/// Per-frame update for a bouncing sprite particle drawn by
+/// `func_dryfield_breezeway_80181938`. The first frame resets the model's
+/// rotation, rolls a frame period, start frame, angle and spin from the LCG,
+/// picks a random direction in `field_10` when none was supplied, and
+/// normalises it. Afterwards it steps along `field_10` at speed `field_24`
+/// and tests the step with `func_800DE7CC`; a hit undoes the step, blends the
+/// direction with the returned vector, halves speed and spin, and spawns
+/// effect 0x60054 while the particle is young, settling into state 2 once hits
+/// come close together at low speed. A miss adds `0x5000 / field_24` to the
+/// direction's y component. Age is `field_22`: the sprite fades from 30 to 60 and
+/// is then released. The age does not advance while an event is running.
+void func_dryfield_breezeway_80181264(Task* task)
+{
+    RoomEffWork*   work  = task->spawnArg2;
+    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    MATRIX*        m;
+    SVECTOR        delta;
+    SVECTOR        dir;
+    SVECTOR        pos;
+    u8             color[3];
+
+    if (Gp_State1C->eventState >= 2) {
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+
+    Gp_UpdateCoord(coord);
+    work->field_22++;
+
+    switch (task->state) {
+        case 0:
+            m                  = &coord->coord;
+            *(s32*)&m->m[0][0] = 0x1000;
+            *(s32*)&m->m[0][2] = 0;
+            *(s32*)&m->m[1][1] = 0x1000;
+            *(s32*)&m->m[2][0] = 0;
+            m->m[2][2]         = 0x1000;
+            work->field_18     = (u16)task->spawnArg1 & 0xFFF;
+            work->field_24     = 0x50;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_1A     = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_20     = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_1C     = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            work->field_28     = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            if ((work->field_10.vx | work->field_10.vy | work->field_10.vz) == 0) {
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                work->field_10.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                gte_SetRotMatrix(&work->field_8->coord);
+                gte_ldv0(&work->field_10);
+                gte_rtv0_real();
+                gte_stsv(&work->field_10);
+            }
+            VectorNormalSS(&work->field_10, &work->field_10);
+            coord->flg  = 0;
+            task->state = 1;
+            break;
+        case 1:
+            if (Gp_State1C->eventState != 0) {
+                work->field_22--;
+            } else {
+                work->field_1C += work->field_28;
+                if ((s16)work->field_1A != 0 && (s16)work->field_22 % (s16)work->field_1A == 0) {
+                    work->field_20++;
+                }
+                gte_lddp(work->field_24);
+                gte_ldsv(&work->field_10);
+                gte_gpf12_real();
+                gte_stsv(&delta);
+                coord->coord.t[0] += delta.vx;
+                coord->coord.t[1] += delta.vy;
+                coord->coord.t[2] += delta.vz;
+                coord->flg         = 0;
+                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_ldv0(&delta);
+                gte_rtv0_real();
+                gte_stsv(&dir);
+                pos.vx  = coord->workm.t[0];
+                pos.vy  = coord->workm.t[1];
+                pos.vz  = coord->workm.t[2];
+                dir.vx += pos.vx;
+                dir.vy += pos.vy;
+                dir.vz += pos.vz;
+                if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
+                    coord->coord.t[0] -= delta.vx;
+                    coord->coord.t[1] -= delta.vy;
+                    coord->coord.t[2] -= delta.vz;
+                    work->field_10.vx  = (pos.vx >> 1) + (work->field_10.vx >> 1);
+                    work->field_10.vy  = pos.vy + (work->field_10.vy >> 1);
+                    work->field_10.vz  = (pos.vz >> 1) + (work->field_10.vz >> 1);
+                    VectorNormalSS(&work->field_10, &work->field_10);
+                    work->field_24 = (s16)work->field_24 >> 1;
+                    work->field_28 = (s16)work->field_28 >> 1;
+                    gte_lddp(work->field_24);
+                    gte_ldsv(&work->field_10);
+                    gte_gpf12_real();
+                    gte_stsv(&delta);
+                    coord->coord.t[0] += delta.vx;
+                    coord->coord.t[1] += delta.vy;
+                    coord->coord.t[2] += delta.vz;
+                    if ((s16)work->field_22 < 60) {
+                        Gp_SpawnEff(0x60054, coord, (s16)work->field_18 + 0x2100, NULL);
+                    }
+                    if ((s16)work->field_22 - (s16)work->field_2A < 8 && (s16)work->field_24 < 0x20) {
+                        task->state = 2;
+                    } else {
+                        work->field_2A = work->field_22;
+                    }
+                } else if ((s16)work->field_24 > 0) {
+                    work->field_10.vy += 0x5000 / (s16)work->field_24;
+                }
+            }
+            if ((s16)work->field_22 < 30) {
+                func_dryfield_breezeway_80181938(task, NULL);
+            } else if ((s16)work->field_22 < 60) {
+                color[0] = color[1] = color[2] = (60 - (s16)work->field_22) * 4;
+                func_dryfield_breezeway_80181938(task, color);
+            } else {
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+        case 2:
+            if (Gp_State1C->eventState != 0) {
+                work->field_22--;
+            }
+            if ((s16)work->field_22 < 30) {
+                func_dryfield_breezeway_80181938(task, NULL);
+            } else if ((s16)work->field_22 < 60) {
+                color[0] = color[1] = color[2] = (60 - (s16)work->field_22) * 4;
+                func_dryfield_breezeway_80181938(task, color);
+            } else {
+            release:
+                Gp_ReleaseState1CMem(work, task);
+            }
+            break;
+    }
+}
 
 /// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
 /// translation of its model's coordinate, through a 0x1C-byte `G_SCRATCH_HEAD`
