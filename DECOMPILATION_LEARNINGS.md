@@ -137805,3 +137805,28 @@ assigns initial slots in pseudo order, so a pseudo numbered in that range got
 a slot and lost all its references. Session notes list the shapes tried.
 Input `base_48.i` SHA256
 `358230054c365c0b56807c9550c97c09a666fde944dd48084e3e18e31dd84876`.
+
+### `x + (y + c)` comes out as `(x + c) + y`: to keep `addu d, y0, (w + c)`, write `(y0 + c) + w` (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+A target computes `addiu v0, w, 0x78; addu t0, y0, v0`: the constant goes onto `w`,
+and `y0` is the first `addu` operand. Both natural spellings miss:
+
+- `y0 + (w + 0x78)` compiles to `addiu v0, y0, 0x78; addu t0, v0, w`.
+- `w + (y0 + 0x78)` compiles to `addiu v0, w, 0x78; addu t0, v0, y0` (wrong operand order).
+
+When combine merges the inner add into the outer one, it re-associates the constant onto
+the *other* operand, so `(a + c) + b` becomes `a + (b + c)`. The spelling that matches is
+`(y0 + 0x78) + w`, which gives `(plus y0 (plus w 0x78))`. The same held for a second site
+with `0x79`. Inputs: `base_16.i` `edda389b…` (y0 + (w + c)), `base_19.i` `d9999c2e…`
+((w + c) + y0), `base_20.i` `7a44dc9e…` ((y0 + c) + w, matching shape).
+
+### Statement order inside one block cannot change a global allocation: sched1 rewrites `REG_LIVE_LENGTH` (func_neo_ark_woodland_path_8017D694, 2026-09-23)
+
+Global allocation ranks allocnos by `floor_log2(refs) * refs / live_length`. Before
+local-alloc, `sched.c` (schedule_insns, `reload_completed == 0`) overwrites
+`REG_LIVE_LENGTH` with the live lengths it measures on the *scheduled* order. So moving
+`split = 0` after two loads in the same prologue block did not shorten `split`'s range. The
+`.lreg` still said "31 times across 484 insns", and the assembly was byte-identical
+(`base_24.i` `02d39d5c…` vs `base_25.i` `fca46c03…`). A live-length lever has to move code
+across a block boundary or change the reference count. Rearranging statements within a
+block only moves sched1's input order, which it re-derives.
