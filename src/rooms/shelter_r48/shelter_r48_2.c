@@ -7,6 +7,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+
 extern GpMsgEntry D_shelter_r48_80182FB8[];
 
 extern s32 D_8014BD48;
@@ -14,7 +16,20 @@ extern s32 D_8014C288;
 
 void func_80132F58(s32 arg0);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_2", func_shelter_r48_8017E090);
+s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in)
+{
+    if (in->field_2 == 1) {
+        switch (GameFlag_GetNibble(0x100)) {
+            case 0:
+                Gp_RunCapCmd1(6);
+                break;
+            case 1:
+                Gp_RunCapCmd1(7);
+                break;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r48/shelter_r48_2", func_shelter_r48_8017E0EC);
 
