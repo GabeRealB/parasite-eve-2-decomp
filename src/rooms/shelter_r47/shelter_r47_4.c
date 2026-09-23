@@ -59,7 +59,8 @@ typedef struct {
     /* 0x18 */ s16 field_18;
     /* 0x1A */ u8  pad_1A[2];
     /* 0x1C */ s16 field_1C;
-    /* 0x1E */ u8  pad_1E[4];
+    /* 0x1E */ s16 field_1E; ///< target that `field_20` eases toward by a quarter of the gap a frame
+    /* 0x20 */ s16 field_20; ///< x of the sprite drawn by `func_shelter_r47_80183FF4`
     /* 0x22 */ u16 fade;     ///< fade-to-black ramp: +0x10 a frame, clamped at 0xFF
     /* 0x24 */ u8  pad_24[5];
     /* 0x29 */ u8  field_29; ///< low byte of `Mc_SaveData.at4.loc.view` saved on entry
@@ -73,6 +74,7 @@ extern s16       Gp_MenuLockDelay;
 extern s16       D_80114D08;
 extern GpAreaKey D_8007216C;
 extern u8        D_shelter_r47_80186FAC[];
+extern s16       D_shelter_r47_801875EC[];
 
 s32 func_shelter_r47_80180C48(Task* task);
 
@@ -369,7 +371,33 @@ void func_shelter_r47_80183F0C(void)
     gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183FF4);
+void func_shelter_r47_80183FF4(Task* task, s16 arg1)
+{
+    GpTpageSprt*      p;
+    SPRT*             sprt;
+    ShelterR47State2* state;
+
+    p                = (GpTpageSprt*)gGpuPrimCursor;
+    state            = (ShelterR47State2*)task->work;
+    sprt             = &p->sprt;
+    gGpuPrimCursor   = (u8*)(p + 1);
+    state->field_20 += (state->field_1E - state->field_20) >> 2;
+    setlen(&p->tpage, 1);
+    setlen(&p->sprt, 4);
+    p->tpage.code[0] = 0xE100002F;
+    setcode(&p->sprt, 0x64);
+    MargePrim(p, sprt);
+    sprt->clut        = 0x3FC2;
+    sprt->code       |= 3;
+    sprt->x0          = state->field_20;
+    sprt->y0          = -0x67;
+    sprt->u0          = 0;
+    sprt->v0          = D_shelter_r47_801875EC[arg1];
+    sprt->w           = 0x50;
+    sprt->h           = 0xA;
+    p->tpage.tag      = (p->tpage.tag & 0xFF000000) | (gGpuCurrentOt[11] & 0xFFFFFF);
+    gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80184124);
 
