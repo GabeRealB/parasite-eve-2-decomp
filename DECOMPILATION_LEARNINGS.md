@@ -139236,3 +139236,11 @@ the object shows `jal gte_rtv0_real` where the target has `nop; nop; c2 …`, an
 the lost call clobbers enough registers to look like an allocation problem
 (here 98.5% with `regs`/`branch` penalties). Copy the define from the sibling
 into the scratch and into the host file next to the existing ones.
+
+### A local reused for an early load that combine folds away keeps its references, and that reorders global-alloc (func_dryfield_breezeway_8017EB8C, 2026-09-23)
+
+**Symptom.** 99.890%, `regs=9` only: three callee-saved values in the function's tail, `y` (`lh cursorY`) and `sx`/`sy` (`lhu cursorX/Y`, HImode `s16` locals), permuted over `$s6`/`$s7`/`$fp`. The target has `sx=$s6, sy=$s7, y=$fp`. Two sessions and the permuter did not find it. `.greg` listed `y` before `sx`/`sy` in `regs to allocate`: `y` had 3 refs over 55 insns (priority 545), `sx`/`sy` 3 refs over 128/130 (234/230). The schedule already matched the target, so the live lengths were the target's too. The only thing left to change was the reference count.
+
+**Cause.** `allocno_compare` ranks by `floor_log2(refs) * refs / live_length`, with `REG_N_REFS` taken from `flow`, which runs before combine. Combine never lowers `REG_N_REFS` unless it deletes the pseudo's *last* set (combine.c: `REG_N_SETS--`, refs zeroed only at 0), and sched1 recomputes only the live length. So if a variable has one extra set that combine folds away, its early refs still count and its live length does not grow.
+
+**Fix.** Load the early `dx`/`dy` terms through the same locals: `sx = work->cursorX; dx = sx - prompt->x; sy = work->cursorY; dy = sy - ...`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `sx`/`sy` reach 5 refs (priority about 780, above `y`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.

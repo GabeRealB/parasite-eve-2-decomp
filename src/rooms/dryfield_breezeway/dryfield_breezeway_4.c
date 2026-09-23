@@ -11,7 +11,7 @@
 /// asks this of each point it generates while it looks for somewhere to put the
 /// hotspot prompt, and leaves its loop on the first point this accepts, so the
 /// answer marks the candidate that has converged onto the target.
-s32 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
+s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 {
     s16 dx = pos->vx - target->vx;
     s16 dy = pos->vy - target->vy;
@@ -51,7 +51,7 @@ s32 func_dryfield_breezeway_8017FBC8(Task* task, s32 msgId, s32 item, s32 arg3)
     return 0;
 }
 
-s16 func_dryfield_breezeway_8017FBEC(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s16 func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     SVECTOR vec;
 

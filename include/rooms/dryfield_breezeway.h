@@ -83,7 +83,11 @@ typedef struct DbwEventWork {
     /* 0x4C */ s16    field_4C;
     /* 0x4E */ s16    cursorX;
     /* 0x50 */ s16    cursorY;
-    /* 0x52 */ byte   pad_52[0xA];
+    /* 0x52 */ u16    field_52;
+    /* 0x54 */ u16    field_54;
+    /* 0x56 */ s16    field_56;
+    /* 0x58 */ s16    field_58;
+    /* 0x5A */ s16    field_5A;
     /* 0x5C */ s8     promptKind;
     /* 0x5D */ byte   pad_5D[0x3];
 } DbwEventWork;
@@ -253,6 +257,16 @@ void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
 /// 680); clearing `flg` is what makes the next coord-tree update rebuild the
 /// world matrix from the new translation.
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
+
+/// Draws one segment of the prompt beam from `arg2`, rotated by `arg0` and
+/// `arg1` long, and writes the segment's tip to `arg3`.
+void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4);
+
+/// 1 when `pos` lies within 9 units of `target` in the XY plane.
+s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos);
+
+/// The `ratan2` angle of the direction from (`arg0`, `arg1`) to (`arg2`, `arg3`).
+s16 func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// The game-wide LCG every effect draw steps as `state * 5 + 0x71357911`,
 /// taking its upper half as the random value.

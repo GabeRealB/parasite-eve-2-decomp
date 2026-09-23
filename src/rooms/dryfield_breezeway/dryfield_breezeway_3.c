@@ -1,11 +1,172 @@
 #include "common.h"
 
 #include "main/display.h"
+#include "main/sound.h"
 #include "rooms/dryfield_breezeway.h"
 
 #include <psyq/libgpu.h>
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway_3", func_dryfield_breezeway_8017EB8C);
+void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
+{
+    s32           x;
+    s32           ay;
+    s32           ty;
+    SVECTOR       pos;
+    SVECTOR       out;
+    SVECTOR       target;
+    DbwBeamEdge   edge;
+    DbwEventWork* work;
+    s32           dist;
+    s32           cdist;
+    s32           dx;
+    s32           dy;
+    s16           y;
+    s16           sx;
+    s16           sy;
+    s32           scale;
+    s32           px;
+    s32           py;
+    s32           r;
+    s32           d;
+    s32           i;
+    s16           a;
+    s16           angle;
+    s16           t;
+
+    RoomActionPrompt* prompt;
+
+    x      = arg1;
+    ay     = arg2;
+    work   = (DbwEventWork*)task->work;
+    prompt = &D_80114D28;
+    ty     = ay + 0x50;
+    dist   = SquareRoot0(x * x + ty * ty);
+    sx     = work->cursorX;
+    dx     = sx - prompt->screen.xy.x;
+    sy     = work->cursorY;
+    dy     = sy - prompt->screen.xy.y;
+    cdist  = SquareRoot0(dx * dx + dy * dy);
+    if (dist >= 0x70 || ay < -0x4F || cdist > 0x20) {
+        prompt->mode   = 1;
+        work->cursorY += work->field_52;
+        dist           = 0x70;
+        if (work->cursorY >= 0x20) {
+            work->cursorY  = 0x20;
+            work->field_52 = 0;
+        } else {
+            work->field_52++;
+        }
+        if (work->field_56 < 8) {
+            work->field_58 = work->cursorX;
+            if (work->cursorX > 0) {
+                work->field_54 = (u16)(work->field_54 - 2) - work->field_56;
+            }
+            if (work->cursorX < 0) {
+                work->field_54 = work->field_56 + (u16)(work->field_54 + 2);
+            }
+            work->cursorX += (s16)work->field_54 >> work->field_56;
+            if ((work->cursorX > 0 && work->field_58 <= 0) || (work->cursorX < 0 && work->field_58 >= 0)) {
+                work->field_56++;
+            }
+        }
+    } else {
+        prompt->mode   = 2;
+        work->field_56 = 3;
+        work->field_54 = 0;
+        work->field_52 = 0;
+        work->field_58 = work->cursorX;
+        work->field_5A = work->cursorY;
+        work->cursorX += (prompt->screen.xy.x - work->cursorX) >> 2;
+        work->cursorY += (prompt->screen.xy.y - work->cursorY) >> 2;
+        if (work->cursorX != work->field_58 || work->cursorY != work->field_5A) {
+            SndEvt_EnqueueType6(0x5216000D, 0, 0);
+        }
+    }
+
+    y     = work->cursorY;
+    x     = work->cursorX;
+    ty    = y + 0x50;
+    scale = 0x800 - (ty << 12) / 224;
+    scale = 0xE00 - scale;
+    sx    = work->cursorX;
+    sy    = work->cursorY;
+    r     = 0x70 - dist;
+    px    = (x * scale / 8) >> 9;
+    py    = ((ty * scale / 8) >> 9) + ((r * scale / 8) >> 9);
+    py   -= 0x50;
+
+    target.vx = 0;
+    target.vy = -0x50;
+    target.vz = 0;
+    pos.vx    = px;
+    pos.vy    = py;
+    pos.vz    = 0;
+    a         = func_dryfield_breezeway_8017FBEC(0, -0x50, px, py);
+    angle     = -((func_dryfield_breezeway_8017FBEC(px, py, x, y) + a) / 2) + 0x800;
+    for (i = 0; i < 30; i++) {
+        if (i == 0) {
+            edge.mode = 0;
+        } else {
+            edge.mode = 1;
+        }
+        func_dryfield_breezeway_8017F1F4(angle, 4, (DbwVec*)&pos, (DbwVec*)&out, &edge);
+        if (func_dryfield_breezeway_8017FAD0((DbwVec*)&target, (DbwVec*)&out) != 0) {
+            break;
+        }
+        t   = angle + func_dryfield_breezeway_8017FBEC(out.vx, out.vy, 0, -0x50);
+        d   = (t << 20) >> 20;
+        pos = out;
+        if (d > 0x200) {
+            angle -= 0x200;
+        } else if (d > 0x100) {
+            angle -= 0x100;
+        } else if (d > 0x80) {
+            angle -= 0x80;
+        } else if (d < -0x200) {
+            angle += 0x200;
+        } else if (d < -0x100) {
+            angle += 0x100;
+        } else if (d < -0x80) {
+            angle += 0x80;
+        } else {
+            angle = -func_dryfield_breezeway_8017FBEC(out.vx, out.vy, 0, -0x50);
+        }
+    }
+
+    target.vx = sx;
+    target.vy = sy;
+    target.vz = 0;
+    pos.vx    = px;
+    pos.vy    = py;
+    pos.vz    = 0;
+    a         = func_dryfield_breezeway_8017FBEC(0, -0x50, px, py);
+    angle     = -((func_dryfield_breezeway_8017FBEC(px, py, sx, sy) + a) / 2);
+    for (i = 0; i < 30; i++) {
+        func_dryfield_breezeway_8017F1F4(angle, 4, (DbwVec*)&pos, (DbwVec*)&out, &edge);
+        if (func_dryfield_breezeway_8017FAD0((DbwVec*)&target, (DbwVec*)&out) != 0) {
+            break;
+        }
+        t   = angle + func_dryfield_breezeway_8017FBEC(out.vx, out.vy, sx, sy);
+        d   = (t << 20) >> 20;
+        pos = out;
+        if (d > 0x200) {
+            angle -= 0x200;
+        } else if (d > 0x100) {
+            angle -= 0x100;
+        } else if (d > 0x80) {
+            angle -= 0x80;
+        } else if (d < -0x200) {
+            angle += 0x200;
+        } else if (d < -0x100) {
+            angle += 0x100;
+        } else if (d < -0x80) {
+            angle += 0x80;
+        } else {
+            angle = -func_dryfield_breezeway_8017FBEC(out.vx, out.vy, sx, sy);
+        }
+    }
+    func_dryfield_breezeway_8017FB30(task, out.vx, out.vy);
+}
 
 /// Draws one segment of the breezeway's prompt beam: a raw-textured quad of
 /// two `arg0`-rotated edges, eight halfwords wide, whose far edge is `arg1`
