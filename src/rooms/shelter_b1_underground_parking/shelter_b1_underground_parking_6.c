@@ -3,6 +3,8 @@
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 
+extern u8 D_8007216D;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801834D4);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_80183560);
@@ -40,4 +42,10 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801837D8);
+void func_shelter_b1_underground_parking_801837D8(u8 arg0)
+{
+    gGameSession->at4.loc.room  = arg0;
+    D_8007216D                  = arg0;
+    gGameSession->roomObjsDirty = 1;
+    gGameSession->viewDirty     = 1;
+}
