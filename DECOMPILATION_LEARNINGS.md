@@ -139464,3 +139464,26 @@ became 2 refs over 16 = 1250), and `color` (5 over 74 = 1351) then wins
 `$s1`. Check the `Register N used X times across Y insns` lines in `.lreg`
 for an exact tie before rearranging statements. Then check the caller's
 argument loads (`lhu`/`lh`/`sll+sra`) for the true parameter width.
+
+### Packed `u32` SXY words instead of `DVECTOR` halves grow a loop past a `%hi` hoist
+
+**Symptom.** A `POLY_FT4` emit loop reads four GTE screen positions back from a
+scratch block. It matched except that `lui %hi(gGpuPrimCursor)` was hoisted
+into a `$t` register ahead of the loop, which shifted the other hoisted
+invariants (func_shelter_b6_training_room_80181368, 99.1%).
+
+**Cause.** `move_movables` hoists an invariant when
+`threshold * savings * lifetime >= loop insns`, and `threshold` drops by 3
+for every earlier move. The `%hi` (lifetime 3) was tested at threshold 46:
+3 * 46 = 138 against a 136-insn loop. The next invariant along, with the same
+lifetime, had to stay hoisted, so the target loop had between 139 and 147
+insns.
+
+**Fix.** Declare the four screen positions as `u32` words and write
+`prim->x0 = sxy0; prim->y0 = sxy0 >> 16;` in place of reading `DVECTOR`
+`.vx`/`.vy`. Each `y` is then a word load and a shift, which combine narrows
+back to `lhu 2(...)`. That adds four insns at loop time (140), and the emitted
+loads stay the same. Use `u32`: an `s32` word narrows to `lh`. The matched
+`pe/inferno` fan (`InfernoFanScratch`) uses the same packed form. A `s16`
+local for the UV base also adds insns (138), but its sign extension survives
+and changes the scheduling.
