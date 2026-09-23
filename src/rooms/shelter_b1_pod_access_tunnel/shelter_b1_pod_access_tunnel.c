@@ -3,9 +3,15 @@
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
+extern s32      D_shelter_b1_pod_access_tunnel_801810D8;
 extern TaskDesc D_shelter_b1_pod_access_tunnel_80181108;
+extern TaskDesc D_shelter_b1_pod_access_tunnel_801811C8;
+extern s32      D_shelter_b1_pod_access_tunnel_80182FFC;
+extern s32      D_shelter_b1_pod_access_tunnel_8018380C;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017D61C);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017D7B4);
@@ -48,6 +54,20 @@ s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", func_shelter_b1_pod_access_tunnel_8017DE10);
+void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
+{
+    arg0->msgTable = &D_shelter_b1_pod_access_tunnel_801810D8;
+    Game_SetPtrSlot(arg0, 7);
+    if (GameFlag_GetNibble(0x118) == 1) {
+        Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
+        GameFlag_SetNibble(0x118, 2);
+        func_800E3FAC(0xA2, 0x37);
+    } else if (GameFlag_GetNibble(0x7E) == 0) {
+        func_800E8634((s32)&D_shelter_b1_pod_access_tunnel_80182FFC, 0, (s32)&D_shelter_b1_pod_access_tunnel_8018380C);
+        func_800E3FAC(0xA2, 0x1E);
+        GameFlag_SetNibble(0x7E, 1);
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", D_shelter_b1_pod_access_tunnel_8017D610);
