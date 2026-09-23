@@ -139155,3 +139155,24 @@ The same function jittered a field of an address-taken local message:
 first into another register (98.9%). Separate `+=` / `-=` arms loaded and stored
 in each arm (92.5%). `msg.vy += (D & 1) ? 10 : -10;` matched. Inputs: `base_5.i`
 `cfda7581…5308` (98.9%) and `base_11.i` `7708d4e2…e711` (100%).
+
+### `u8 r = a + ((x >> n) & 0xF0)` masks with `li -16` / `and`: move the mask into an `s32` temp (func_shelter_b3_garbage_incinerator_80181FC4, 2026-09-23)
+
+The target computed a colour byte as `sra; andi 0xF0; addu`, spilled it with
+`sb`/`lbu`. Assigning the whole expression to a `u8` compiled the mask as
+`li a1,-16` / `and`: the front end narrows `(u8)(a + (b & 0xF0))` into
+unsigned-char arithmetic, and in QImode `0xF0` is `-16`, which `andi` cannot
+encode. It also reshuffled the division result into another argument register
+(96.6%). An `s32` result kept `andi 0xF0` but spilled it with `sw` (98.5%).
+Computing the mask into an `s32` temp in its own statement,
+`tr = (packed >> 20) & 0xF0; r = blend + tr;` with `u8 r`, matched. The `&`
+stays SImode and only the add narrows.
+
+The same body did not need the `register u8* tmp asm("v0")` pin its matched
+sibling `Room_Draw13` carries. It closed unpinned with the compound scratch push
+(`head = *G; *G = head - 0x10; block = *G;`). `gDisplayState.animFrame` and
+`.otDepthShift` were read directly rather than through a
+`ds = &gDisplayState` local. The direct reads give the target's
+`addiu v0,%lo` / `move s5,v0` copy. A `ds` local with `SOFT_TOUCH_REG` computes
+the address straight into `$s5` (99.0%). Inputs: `base_1.i` `ac83f1a6…fa2c`
+(96.6%), `base_2.i` `db3f17d4…4a80` (98.5%) and `base_10.i` `fb5aa854…4b21` (100%).
