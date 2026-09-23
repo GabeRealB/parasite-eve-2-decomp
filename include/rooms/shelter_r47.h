@@ -24,8 +24,10 @@ extern TaskDesc         D_shelter_r47_80186F70;
 extern TaskDesc         D_shelter_r47_80187020;
 extern TaskDesc         D_shelter_r47_80187618;
 extern ShelterR47Object D_shelter_r47_80187960[];
+extern ShelterR47Object D_shelter_r47_80187C0C;
 extern Task*            D_shelter_r47_8018A690;
 
-s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2);
+void func_shelter_r47_80183210(void);
+s32  func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2);
 
 #endif // ROOMS_SHELTER_R47_H

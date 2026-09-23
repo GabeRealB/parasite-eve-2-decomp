@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -10,7 +11,35 @@
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017FB94);
+/// Message table the room's controller task answers with.
+extern GpMsgEntry D_shelter_r47_80186F2C[];
+
+/// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
+/// payload of the 0x3E8 message.
+extern s32 D_shelter_r47_80186F5C;
+
+void func_shelter_r47_8017FB94(Task* task)
+{
+    Task* player;
+
+    task->msgTable = D_shelter_r47_80186F2C;
+    Game_SetPtrSlot(task, 7);
+    player = gameGetPtrSlot(0xA);
+    if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
+        Gp_DispatchMsg(player, 0x3F3, 0, 0);
+        Gp_AllyAnimId(&D_shelter_r47_80186F5C);
+        Gp_DispatchMsg(player, 0x3E8, (s32)&D_shelter_r47_80186F5C, 0);
+    }
+    D_shelter_r47_8018A690 = NULL;
+    func_shelter_r47_80183210();
+    Task_SpawnFromTable(&D_shelter_r47_80186F70, 1, 0, 0);
+    if (GameFlag_GetNibble(0x83) == 1 || GameFlag_GetNibble(0x80) == 1) {
+        D_shelter_r47_80187960[0].field_4A &= 0xBF;
+    } else {
+        D_shelter_r47_80187C0C.field_4A &= 0xBF;
+    }
+    task->state++;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47", func_shelter_r47_8017FCC0);
 
