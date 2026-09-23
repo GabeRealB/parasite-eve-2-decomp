@@ -8,6 +8,7 @@
 
 extern s32            D_80070F70;
 extern u32            Gp_LcgState;
+extern GsCOORDINATE2* D_shelter_b6_training_room_80185C90;
 extern GsCOORDINATE2* D_shelter_b6_training_room_80185C94;
 extern u16            D_shelter_b6_training_room_80185C98;
 extern SVECTOR        D_shelter_b6_training_room_80184334[];
@@ -16,7 +17,82 @@ void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 a
 void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017F8B8);
+void func_shelter_b6_training_room_8017F8B8(Task* task)
+{
+    GpEffWork*     work;
+    GsCOORDINATE2* coord;
+    u8             rgb[3];
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState < 4) {
+        work->age++;
+        switch (task->state) {
+            case 0:
+                task->state                         = 1;
+                work->scale                         = 0;
+                work->angle                         = 0x100;
+                D_shelter_b6_training_room_80185C90 = NULL;
+                work->step                          = 0x80 / task->spawnArg1;
+            case 1:
+                if (Gp_State1C->eventState != 0) {
+                    rgb[0] = (u16)work->scale >> 1;
+                    rgb[1] = (u16)work->scale >> 2;
+                    rgb[2] = work->scale;
+                    Gp_DrawRing(coord, work->angle, rgb);
+                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    Gp_DrawArc(coord, (s16)((task->spawnArg1 << 5) + 0x300), 0x100, rgb);
+                    break;
+                }
+                work->scale += work->step;
+                work->angle += work->step << 3;
+                task->spawnArg1--;
+                rgb[0] = (u16)work->scale >> 1;
+                rgb[1] = (u16)work->scale >> 2;
+                rgb[2] = work->scale;
+                Gp_DrawRing(coord, work->angle, rgb);
+                Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                Gp_DrawArc(coord, (s16)((task->spawnArg1 << 5) + 0x300), 0x100, rgb);
+                if (task->spawnArg1 == 0) {
+                    work->scale                         = 0xFF;
+                    task->state                         = 2;
+                    work->period                        = 0x600;
+                    work->step                          = 0;
+                    D_shelter_b6_training_room_80185C90 = coord;
+                }
+                break;
+            case 2:
+                if (Gp_State1C->eventState != 0) {
+                    rgb[0] = (u16)work->scale >> 1;
+                    rgb[1] = (u16)work->scale >> 2;
+                    rgb[2] = work->scale;
+                    Gp_DrawRing(coord, work->angle, rgb);
+                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    Gp_DrawArc(coord, 0x300, 0x100, rgb);
+                    break;
+                }
+                if (work->scale >= 9) {
+                    rgb[0] = work->scale >> 1;
+                    rgb[1] = (u16)work->scale >> 2;
+                    rgb[2] = work->scale;
+                    Gp_DrawRing(coord, work->angle, rgb);
+                    Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
+                    Gp_DrawArc(coord, 0x300, 0x100, rgb);
+                    work->scale -= 8;
+                    break;
+                }
+                task->state = 3;
+                break;
+            case 3:
+                break;
+            case 4:
+                Gp_ReleaseState1CMem(work, task);
+                break;
+        }
+    } else {
+        Gp_ReleaseState1CMem(work, task);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017FC40);
 
