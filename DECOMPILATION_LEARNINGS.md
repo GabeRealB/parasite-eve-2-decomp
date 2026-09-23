@@ -139374,3 +139374,24 @@ Declare the parameter `s16` on both sides and write the argument plainly
 function: an argument computed from an `s16` field (`mem->scale * 8`) still
 needs its explicit `(s16)` cast, because the prototype conversion alone did not
 emit the extension there.
+
+## `task->spawnArg1 = ++g;` next to a `= 1` store folds the increment into `addu v0,v0,v1`; write `g++;` and re-read `g` (func_shelter_b6_training_room_8018245C, 2026-09-23)
+
+**Symptom.** The target stamps a task with a fresh id from a `u16` global:
+`lhu v0,g; addiu v0,v0,1; sh v0,g; andi v1,v0,0xffff; li v0,1; sw v0,state;
+sw v1,spawnArg1`. Writing `task->spawnArg1 = ++g; task->state = 1;` (or a temp
+`id = ++g;`, in either store order) scored `regs=4 insert=4 delete=4`: sched1
+hoisted the `li 1` for `state` above the add, and post-reload CSE then rewrote
+`addiu v0,v0,1` into `addu v0,v0,v1` against it, shifting the whole block's
+registers.
+
+**Fix.** Split the increment from the read, putting the constant store between:
+
+```c
+g++;
+task->state     = 1;
+task->spawnArg1 = g;
+```
+
+CSE still forwards the stored value, so the re-read is not emitted, but the
+`li 1` is no longer scheduled ahead of the add. 90.8% to 100%.
