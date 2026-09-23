@@ -3,6 +3,7 @@
 #include "main/session.h"
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
+#include "main/display.h"
 extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
 extern TaskDesc D_801348D8;
 
@@ -64,7 +65,19 @@ void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
     task->state  += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E66C);
+/// Append an 8-bit, ABR-0 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
+/// slot 1023.
+void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1)
+{
+    DR_TPAGE* p;
+    s32       y;
+
+    y              = arg1;
+    p              = gGpuPrimCursor;
+    gGpuPrimCursor = p + 1;
+    setDrawTPage(p, 1, 0, getTPage(1, 0, tpage & 0x3C0, y));
+    addPrim(gGpuCurrentOt + 1023, p);
+}
 
 void func_shelter_b1_pod_access_tunnel_8017E704(void)
 {
