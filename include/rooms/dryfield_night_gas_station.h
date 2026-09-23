@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 /// One of the per-view objects the room's sprite-table record points at. Its
 /// flags sit eight bytes apart -- one `GpSprtCmd` record each -- in a run
 /// starting at 0x34. `func_dryfield_night_gas_station_80180DC8` writes the
@@ -72,5 +74,18 @@ typedef struct DryfieldNightGasStationLayout {
     /* 0x8 */ DryfieldNightGasStationVec*  field_8;
     /* 0xC */ DryfieldNightGasStationBlob* field_C;
 } DryfieldNightGasStationLayout;
+
+/// The block the room's effect task carries as its `spawnArg2`.
+/// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
+/// `Gp_SpawnEff` in `pos`, sets `active` once game flag nibble 0x63 has been
+/// seen clear, and stores the per-anchor effect roll in `kind`. The bytes
+/// around those fields are not reached here.
+typedef struct DryfieldNightGasStationEffWork {
+    byte    pad_0[0x10];
+    SVECTOR pos;
+    byte    pad_18[0xC];
+    s16     active;
+    s16     kind;
+} DryfieldNightGasStationEffWork;
 
 #endif // ROOMS_DRYFIELD_NIGHT_GAS_STATION_H
