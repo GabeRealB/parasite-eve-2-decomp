@@ -47280,6 +47280,16 @@ and let the compiler merge them. Splat names the merge point as a label
 express; it is not. `Actor02000_Fn011E8` in `actor_102000_text` matched on the
 first attempt written this way.
 
+m2c renders the same merge as `var_v0 = ...; goto block_N;` with the tail storing
+the locals, and faithfully porting that shape gets close enough to mislead
+(`func_shelter_b6_training_room_801811AC`: 94.6%, only `regs`/`reorder`). How to
+spot it: in the target, each arm loads its fields *after* the arm's own store and
+before the `j`, which the scheduler would not do if the source had a real join
+there, because the scheduler runs before cross-jumping and has nothing stopping
+it from hoisting those loads. A `move a0,s0` in every arm, feeding the merged
+call, is the same sign. Writing each arm out in full, as
+`p->angle += K; p->step += 0x18; f(p, ...); return;`, matched immediately.
+
 ## An `sra` with no matching `sll` is `packed >> 16`, not an `(s16)` cast
 
 An `s16` argument built from an `s32` normally costs a `sll 16` / `sra 16`

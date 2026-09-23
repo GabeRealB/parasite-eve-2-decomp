@@ -12,6 +12,7 @@ extern SVECTOR        D_shelter_b6_training_room_80184334[];
 
 void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord, s32 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_8017F8B8);
 
@@ -21,7 +22,67 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80180DB4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_801811AC);
+void func_shelter_b6_training_room_801811AC(Task* task)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+
+    mem   = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+        if (Gp_State1C->eventState < 4) {
+            return;
+        }
+        goto release;
+    }
+    mem->age++;
+    switch (task->state) {
+        case 0:
+            mem->scale        = 0x80;
+            task->state       = task->spawnArg1 + 1;
+            coord->coord.t[1] = 0;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            return;
+        case 1:
+            if (mem->scale < 5) {
+                goto release;
+            }
+            if (mem->period < 0xC00) {
+                mem->period += 0xC0;
+            } else {
+                mem->scale -= 4;
+            }
+            mem->angle += 0x20;
+            mem->step  += 0x18;
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            return;
+        case 2:
+            if (mem->scale < 4) {
+                goto release;
+            }
+            mem->scale -= 3;
+            mem->angle += 0x40;
+            mem->step  += 0x18;
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            return;
+        case 3:
+            if (mem->scale < 5) {
+                goto release;
+            }
+            mem->scale -= 4;
+            mem->angle += 0x180;
+            mem->step  += 0x18;
+            func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
+            return;
+        case 4:
+        release:
+            Gp_ReleaseState1CMem(mem, task);
+        default:
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", func_shelter_b6_training_room_80181368);
 
