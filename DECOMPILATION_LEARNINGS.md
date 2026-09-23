@@ -139662,3 +139662,6 @@ stored value and the block pointer becomes a copy of it.
 Same function: an OT index of `otz + 1` used by two `addPrim`s matched when
 written inline as `(u32)(otz + 1) << shift` in both, not as a preceding `otz++`
 (which kept the incremented value in a new register and grew the frame).
+### An early exit that leaves `$v0` unset is a bare `return;` in a non-void function (func_shelter_b1_sterilization_room_8017FF80, 2026-09-24)
+
+A room message handler returns `0` at its common exit, but one early path jumps to the epilogue with a `nop` in the `j` delay slot instead of `move v0,zero`. Writing `return 0;` there scores 98.5% with a single insert/delete at that slot. The original wrote `return;` inside an `s32` function: the `-w` build accepts it, and GCC emits no `$v0` set on that path. When the only difference is a missing `li`/`move v0` before a jump to the shared exit, try a valueless `return;` before restructuring the control flow.
