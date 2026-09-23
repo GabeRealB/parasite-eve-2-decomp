@@ -180,6 +180,6 @@ s32 func_dryfield_night_factory_8017E7A4(Task* task);
 
 /// The handler that follows `func_dryfield_night_factory_8017E480` when bit 0 of
 /// game flag 0x49 is clear.
-void func_dryfield_night_factory_8017EBD4(Task* task);
+s32 func_dryfield_night_factory_8017EBD4(Task* task);
 
 #endif // ROOMS_DRYFIELD_NIGHT_FACTORY_H
