@@ -233,7 +233,36 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E558);
+void func_shelter_b4_reservoir_8017E558(Task* arg0)
+{
+    TmdObject*     obj   = arg0->extra;
+    GsCOORDINATE2* coord = obj->coords;
+
+    if (arg0->state == 0) {
+        coord->coord.t[0] = -1000;
+        coord->coord.t[1] = -1000;
+        coord->coord.t[2] = -5000;
+        coord->flg        = 0;
+        arg0->state++;
+    }
+    if (arg0->state == 2) {
+        coord->coord.t[0] = -1000;
+        coord->coord.t[1] = -1000;
+        coord->coord.t[2] = -5000;
+        coord->flg        = 0;
+        arg0->state++;
+    }
+    if (arg0->state == 3) {
+        coord->flg         = 0;
+        coord->coord.t[1] += 4;
+    }
+    if (D_8007216C != 8) {
+        obj->flags = 0x84;
+    } else {
+        obj->flags    = 0;
+        obj->otOffset = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E610);
 
