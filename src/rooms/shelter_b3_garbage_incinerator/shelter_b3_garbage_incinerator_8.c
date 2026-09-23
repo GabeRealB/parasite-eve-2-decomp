@@ -2,7 +2,6 @@
 
 #include "gameplay/3A34.h"
 
-extern void func_shelter_b3_garbage_incinerator_80184EEC(void);
 extern void func_shelter_b3_garbage_incinerator_80185220(void);
 
 /// Four halfwords per entry, read as the two floor-level end points of a wall
@@ -13,7 +12,45 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBFC[][4];
 /// edges built by `func_shelter_b3_garbage_incinerator_8018507C`.
 extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_8", func_shelter_b3_garbage_incinerator_80184EEC);
+void func_shelter_b3_garbage_incinerator_80184EEC(void)
+{
+    SVECTOR     normal;
+    SVECTOR*    normals;
+    SVECTOR*    verts;
+    GpGridFace* faces;
+    s16         i;
+    SVECTOR*    np;
+
+    normals = Gp_GridParams->field_4;
+    verts   = Gp_GridParams->field_8;
+    faces   = Gp_GridParams->field_C;
+    if (gGameSession->at4.loc.place == 2) {
+        i = 6;
+        do {
+            verts[i * 4].vx = verts[i * 4 + 2].vx = 13000;
+            verts[i * 4].vy = verts[i * 4 + 2].vy = 1000;
+            verts[i * 4].vz = verts[i * 4 + 2].vz = -15000;
+            verts[i * 4 + 1].vx = verts[i * 4 + 3].vx = 10000;
+            verts[i * 4 + 1].vy = verts[i * 4 + 3].vy = 1000;
+            verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = -15000;
+            verts[i * 4].vy                           = 200;
+            verts[i * 4 + 1].vy                       = 200;
+            faces[i].verts[1]                         = i * 4 + 1;
+            faces[i].verts[0]                         = i * 4;
+            faces[i].verts[2]                         = i * 4 + 2;
+            faces[i].verts[3]                         = i * 4 + 3;
+            faces[i].field_A                          = 1;
+            faces[i].field_8                          = i;
+            np                                        = &normal;
+            normal.vx                                 = 0;
+            normal.vy                                 = 0;
+            normal.vz                                 = 0x1000;
+            VectorNormalSS(np, np);
+            normals[i] = normal;
+            i++;
+        } while (i < 8);
+    }
+}
 
 void func_shelter_b3_garbage_incinerator_8018507C(void)
 {
