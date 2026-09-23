@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/task.h"
 #include "main/gfx.h"
 #include "rooms/room_common.h"
@@ -10,7 +11,34 @@ extern u32 Gp_LcgState;
 void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s32 arg1, s32 arg2);
 void func_shelter_b2_pod_bottom_8018101C(GsCOORDINATE2* coord, s32 arg1, s32 arg2, s32 arg3);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D760);
+extern s16 D_shelter_b2_pod_bottom_80188790[3][16];
+
+/// On its first frame (state 0) fills three rows of 16 random bytes in
+/// `D_shelter_b2_pod_bottom_80188790` from the gameplay LCG and turns off
+/// `groundTrace`; every frame, disables the ground shadow in view 0xF and
+/// selects shade row 0 elsewhere.
+void func_shelter_b2_pod_bottom_8017D760(Task* task)
+{
+    s32 i;
+
+    if (task->state == 0) {
+        for (i = 0; i < 16; i++) {
+            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+            D_shelter_b2_pod_bottom_80188790[0][i] = (Gp_LcgState >> 16) & 0xFF;
+            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+            D_shelter_b2_pod_bottom_80188790[1][i] = (Gp_LcgState >> 16) & 0xFF;
+            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+            D_shelter_b2_pod_bottom_80188790[2][i] = (Gp_LcgState >> 16) & 0xFF;
+        }
+        task->state             = 1;
+        Gp_State1C->groundTrace = 0;
+    }
+    if ((Gp_GetViewIndex() & 0xFF) == 0xF) {
+        Gp_State1C->groundShade = -1;
+    } else {
+        Gp_State1C->groundShade = 0;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", func_shelter_b2_pod_bottom_8017D850);
 
