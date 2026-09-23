@@ -115,7 +115,7 @@ void func_dryfield_water_tower_8017F908(void)
 
 /// The third of the unit's 0x0D script handlers, between
 /// `func_dryfield_water_tower_8017F908` and `func_dryfield_water_tower_8017FA5C`
-/// and the one that does not recompute the view: it records the state byte
+/// and the one that does not recompute the view: it records the view
 /// `DryfieldWaterTowerState::field_68` in the saved location, starts the prop
 /// task at `field_44` on state 1 with its 0x7D4 (`Room_Util08`) placement
 /// `80181A40` and stops the pad scripts, the same three-step restart the other

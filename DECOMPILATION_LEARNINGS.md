@@ -138500,3 +138500,21 @@ target; assigning both pointers first did not. A mask constant the target
 keeps in a register (`li s2,-0x41; and`) rather than `andi 0xbf` comes from a
 `s32 mask = ~0x40` local, as in `acropolis_sanctuary`. Seen in
 `func_dryfield_water_tower_8017F128`.
+
+## A table walk whose index is a caller-saved `$a2` and whose result keeps an `andi 0xffff` before a `u16` store is an inlined `static inline` helper
+
+**Symptom:** a `do { i++; } while (tbl[i].key < x)` walk followed by
+`g = tbl[i].val * 30;` (`g` a `u16` global) sits in one case of a large
+switch. Written inline, the index took a callee-saved register (it shared the
+function's single pseudo for `i` with a later loop that spans calls), the
+work pointer the walk reloads took `s3`, and the `andi 0xffff` the target
+emits between the multiply and the `sh` disappeared. Using separate locals
+fixed the registers but not the mask.
+
+**Fix:** move the walk into a `static inline u16 helper(Task*)` that returns
+`tbl[i].val * 30`. The helper's locals are fresh pseudos confined to the
+inlined body, and the inlined return value goes through its own `u16`
+conversion, which survives as the `andi` ahead of the store. A sibling
+non-inlined function computing the same walk (with a different mask) is the
+hint that one exists. Seen in `func_dryfield_water_tower_8017EB7C`
+(93.8% → 99.8%).

@@ -138,6 +138,17 @@ typedef struct DwtwStep {
 } DwtwStep;
 STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 
+/// One entry of the room's per-view volume table: while the cap is being
+/// rotated, `func_dryfield_water_tower_8017EB7C` looks up the view the cap
+/// script last recorded and plays its running sound at `field_2` percent of
+/// full volume (0x7F). A `field_0` of 0xFFFF ends the table, and a view with no
+/// entry plays at full volume.
+typedef struct DwtwViewVolume {
+    /* 0x0 */ u16 field_0; // view index
+    /* 0x2 */ u16 field_2; // volume, percent
+} DwtwViewVolume;
+STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
+
 /// Scratch state of the room's cap script, stored at `Task::work`: the
 /// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
 /// task before it runs. Every task the room spawns off `D_..._80182384`
@@ -164,7 +175,8 @@ STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
 /// task `func_dryfield_water_tower_8017DE30` advances it by 4 a frame and adds
 /// the result to the cap coordinate's Y, so the cap accelerates downwards.
 /// `field_64` holds the value of nibble 0x55 the cap script read while placing
-/// its props, and `field_74` the session's view, which the script records every
+/// its props, `field_68` the view index the script later restores into the
+/// saved location, and `field_74` the session's view, which the script records every
 /// frame it runs. `field_6C` / `field_6E` are 0/1 latches set by
 /// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
 /// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
@@ -194,8 +206,7 @@ typedef struct DryfieldWaterTowerState {
     /* 0x62 */ u8    pad_62[0x2];
     /* 0x64 */ u16   field_64;
     /* 0x66 */ u16   field_66;
-    /* 0x68 */ u8    field_68;
-    /* 0x69 */ u8    pad_69[0x1];
+    /* 0x68 */ s16   field_68;
     /* 0x6A */ u16   field_6A;
     /* 0x6C */ u16   field_6C;
     /* 0x6E */ u16   field_6E;
