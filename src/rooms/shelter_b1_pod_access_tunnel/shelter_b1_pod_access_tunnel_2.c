@@ -4,6 +4,8 @@
 #include "gameplay/gameplay.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/display.h"
+#include "rooms/shelter_b1_pod_access_tunnel.h"
 
 extern u8 D_80071075;
 extern s8 D_8007218A;
@@ -50,4 +52,84 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", func_shelter_b1_pod_access_tunnel_8017E048);
+/// Draw state of the vertical image scroll. After a delay the seam moves down
+/// the screen: the image above it slides in from the top, bottom rows first,
+/// while the one below is pushed off the bottom. Each image is drawn as two
+/// sprites spanning the screen width. Kills the task once `viewReady` is set
+/// or no event is running.
+void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
+{
+    ShelterB1PodAccessTunnelWork* work;
+    SPRT*                         p;
+    s32                           y;
+
+    work = task->work;
+    if (gGameSession->viewReady != 0 || gGameSession->eventState == 0) {
+        taskKill(task);
+        return;
+    }
+    y = 0;
+    if (work->timer++ >= 0x2E) {
+        work->offset += work->speed;
+        y             = work->offset >> 16;
+        if (y > 0xF0) {
+            y = 0xF0;
+        }
+    }
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setSprt(p);
+    p->x0 = -0xA0;
+    p->y0 = -0x78;
+    p->w  = 0x100;
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->u0   = 0;
+    p->v0   = -0x11 - y;
+    p->clut = 0x3FC0;
+    p->h    = y + 1;
+    addPrim(gGpuCurrentOt + 1023, p);
+    func_shelter_b1_pod_access_tunnel_8017E66C(0x340, 0);
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setSprt(p);
+    p->x0 = 0x60;
+    p->y0 = -0x78;
+    p->w  = 0x40;
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->u0   = 0;
+    p->v0   = -0x11 - y;
+    p->clut = 0x3FC0;
+    p->h    = y + 1;
+    addPrim(gGpuCurrentOt + 1023, p);
+    func_shelter_b1_pod_access_tunnel_8017E66C(0x3C0, 0);
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setSprt(p);
+    p->x0 = -0xA0;
+    p->w  = 0x100;
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->u0   = 0;
+    p->v0   = 0;
+    p->y0   = y - 0x78;
+    p->clut = 0x4000;
+    p->h    = 0xF0 - y;
+    addPrim(gGpuCurrentOt + 1023, p);
+    func_shelter_b1_pod_access_tunnel_8017E66C(0x240, 0x100);
+
+    p              = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(p + 1);
+    setSprt(p);
+    p->x0 = 0x60;
+    p->w  = 0x40;
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->u0   = 0;
+    p->v0   = 0;
+    p->y0   = y - 0x78;
+    p->clut = 0x4000;
+    p->h    = 0xF0 - y;
+    addPrim(gGpuCurrentOt + 1023, p);
+    func_shelter_b1_pod_access_tunnel_8017E66C(0x2C0, 0x100);
+}

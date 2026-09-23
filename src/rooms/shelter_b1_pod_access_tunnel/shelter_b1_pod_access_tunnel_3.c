@@ -4,15 +4,9 @@
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/display.h"
+#include "rooms/shelter_b1_pod_access_tunnel.h"
 extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
 extern TaskDesc D_801348D8;
-
-/// Work block allocated by func_shelter_b1_pod_access_tunnel_8017E5B4. Only the
-/// first word is written there; the rest of the allocation is untyped.
-typedef struct {
-    s32 field_0; // 0xF00000 divided by the task's first spawn argument
-    u8  _pad[0x8];
-} _ShelterB1PodAccessTunnelWork;
 
 void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
 {
@@ -49,20 +43,20 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_acce
 
 void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
 {
-    _ShelterB1PodAccessTunnelWork* work;
+    ShelterB1PodAccessTunnelWork* work;
 
     if (gGameSession->at4.loc.view != 0xB) {
         taskKill(task);
         return;
     }
-    work = memCalloc(sizeof(_ShelterB1PodAccessTunnelWork), 0);
+    work = memCalloc(sizeof(ShelterB1PodAccessTunnelWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->work    = work;
-    work->field_0 = 0xF00000 / task->spawnArg1;
-    task->state  += 1;
+    task->work   = work;
+    work->speed  = 0xF00000 / task->spawnArg1;
+    task->state += 1;
 }
 
 /// Append an 8-bit, ABR-0 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
