@@ -23,6 +23,8 @@ typedef struct SbupExamineWork {
 
 void func_shelter_b1_underground_parking_80183B9C(void);
 
+void func_shelter_b1_underground_parking_80186890(s16 arg0);
+
 /// Lives in `shelter_b1_underground_parking_10`: maps the committed
 /// selection `D_shelter_b1_underground_parking_8018D788 & 0xF` through the
 /// room's destination table and writes the result into the session.
