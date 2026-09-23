@@ -11,6 +11,7 @@
 #include "rooms/neo_ark_woodland_path.h"
 
 #include <psyq/libgs.h>
+#include <psyq/stdio.h>
 
 extern u16 D_801153F6;
 
@@ -255,7 +256,142 @@ void func_neo_ark_woodland_path_80180C6C(Task* task)
     task->state                      = task->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80180DDC);
+/// Per-frame state of the arming sequence `func_...80180C6C` sets up, the
+/// sibling of `func_...801806D8`: counts the room's countdown down, and once the
+/// reference count on `Gp_StateF0` has dropped to zero folds the still-pending
+/// spawn slots back into game flags 0x167 and 0x10A. When a spawn point has
+/// been requested it hands the first pending slot to a waiting slot-4 task,
+/// sends it the 0x7DB message and places it at one of five fixed points.
+void func_neo_ark_woodland_path_80180DDC(void)
+{
+    s16                    i;
+    s16                    count;
+    s32                    a;
+    s32                    b;
+    NeoArkWoodlandPathObj* obj;
+    s16                    j;
+    s16                    k;
+
+    gameGetPtrSlot(3);
+    if (D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.place] == 0) {
+        return;
+    }
+    if (D_neo_ark_woodland_path_8018498E > 0) {
+        D_neo_ark_woodland_path_8018498E--;
+    }
+    if (D_801153F6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
+        b     = GameFlag_GetNibble(0x10A);
+        count = 0;
+        for (k = 0; k < 5; k++) {
+            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+                count++;
+            }
+        }
+        printf(D_neo_ark_woodland_path_8017D648, b - count);
+        a     = GameFlag_GetNibble(0x167);
+        b     = GameFlag_GetNibble(0x10A);
+        count = 0;
+        for (k = 0; k < 5; k++) {
+            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+                count++;
+            }
+        }
+        GameFlag_SetNibble(0x167, a + (b - count));
+        count = 0;
+        for (k = 0; k < 5; k++) {
+            if (((s16*)D_neo_ark_woodland_path_80184A60)[k] > 0) {
+                count++;
+            }
+        }
+        GameFlag_SetNibble(0x10A, count);
+        Gp_SyncAreaKeyIndex(&gGameSession->at4);
+        D_neo_ark_woodland_path_8018498E = 0x96;
+    }
+    D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
+    if (gGameSession->field_126 == 1 && D_neo_ark_woodland_path_8018498E == 0) {
+        Gp_StateF0.field_0      = 0;
+        Gp_StateF0.field_5      = 0;
+        Gp_StateF0.field_6      = 0;
+        Gp_StateF0.field_8      = 0;
+        Gp_StateF0.field_C      = 0;
+        Gp_StateF0.field_10     = 0;
+        gGameSession->field_126 = 0;
+    }
+    if (Gp_StateF0.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
+        D_neo_ark_woodland_path_80184A5C.field_0 = 5;
+        D_neo_ark_woodland_path_80184A5C.field_1 = 0xB;
+        D_neo_ark_woodland_path_80184A5C.field_2 = 0xB;
+        for (i = 0; i < 2; i++) {
+            if (Gp_LookupSlot4(i) == 0) {
+                break;
+            }
+            obj = ((Task*)Gp_LookupSlot4(i))->spawnArg2;
+            if (obj == NULL) {
+                break;
+            }
+            if ((s16)obj->field_40 == -999) {
+                for (j = 0; j < D_neo_ark_woodland_path_80184990; j++) {
+                    if (((s16*)D_neo_ark_woodland_path_80184A60)[j] > 0) {
+                        obj->field_40                       = D_neo_ark_woodland_path_80184A60[j];
+                        obj->field_4C                       = 0;
+                        D_neo_ark_woodland_path_80184A60[j] = 0;
+                        break;
+                    }
+                }
+                if ((s16)obj->field_40 > 0) {
+                    Gp_IncStateF0Ref(0);
+                    D_neo_ark_woodland_path_8018498E += 0x5A;
+                    Gp_DispatchMsg((Task*)Gp_LookupSlot4(i), 0x7DB, (s32)&D_neo_ark_woodland_path_80184A5C, 0);
+                    switch ((s16)(D_neo_ark_woodland_path_80184992 - 1)) {
+                        case 0:
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[0].x;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[1] = 0;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[0].z;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->flg        = 0;
+                            Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord,
+                                           D_neo_ark_woodland_path_80184A14[0].rotY, 1);
+                            break;
+                        case 1:
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[1].x;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[1] = 0;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[1].z;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->flg        = 0;
+                            Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord,
+                                           D_neo_ark_woodland_path_80184A14[1].rotY, 1);
+                            break;
+                        case 2:
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[1] = 0;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
+                            Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord,
+                                           D_neo_ark_woodland_path_80184A14[2].rotY, 1);
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->flg = 0;
+                            break;
+                        case 3:
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[1] = 0;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
+                            Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord,
+                                           D_neo_ark_woodland_path_80184A14[3].rotY, 1);
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->flg = 0;
+                            break;
+                        case 4:
+                        default:
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[4].x;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[1] = 0;
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
+                            Gfx_RotMatrixY(&((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->coord,
+                                           D_neo_ark_woodland_path_80184A14[4].rotY, 1);
+                            ((TmdObject*)((Task*)Gp_LookupSlot4(i))->extra)->coords->flg = 0;
+                            break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    D_neo_ark_woodland_path_80184992 = 0;
+}
 
 s32 func_neo_ark_woodland_path_80181474(void)
 {

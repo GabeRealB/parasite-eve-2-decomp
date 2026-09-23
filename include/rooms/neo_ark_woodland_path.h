@@ -129,6 +129,15 @@ typedef struct NeoArkWoodlandPathSpawnPos {
 /// The room's spawn placements, indexed by `D_...80184992 - 1`.
 extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[];
 
+/// The second arming sequence's spawn placements, which
+/// `func_...80180DDC` picks from by `D_...80184992 - 1`. Five of them; any
+/// request past the fourth takes the last.
+extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5];
+
+/// Debug format `func_...80180DDC` prints the flag-0x10A count minus the
+/// pending spawn slots with. Its bytes sit in the previous unit's `.rodata`.
+extern char D_neo_ark_woodland_path_8017D648[];
+
 /// `Gp_StateF0.field_6` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 D_neo_ark_woodland_path_801849F0;
