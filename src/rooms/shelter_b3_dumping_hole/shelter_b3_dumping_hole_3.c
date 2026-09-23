@@ -37,9 +37,10 @@ typedef struct {
     u16   field_32;
     u16   field_34;
     u8    pad_36[0x2];
-    s16   field_38;
-    s16   field_3A;
-    u8    pad_3C[0x4];
+    u16   field_38;
+    u16   field_3A;
+    u16   field_3C;
+    u8    pad_3E[0x2];
     s16   field_40;
     u16   field_42;
     s16   field_44;
@@ -622,7 +623,156 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
     work->field_30 = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017F1B0);
+/// An entry of the spawn tables walked by message state 6; a 0xFFFF first
+/// word ends the table.
+typedef struct {
+    s32 field_0;
+    u8  pad_4[0x14];
+} DumpingHoleSpawnEntry;
+
+/// An entry of the third spawn table: a position, and a flag asking for a
+/// ring of debris tasks around it. A 0xFFFF `x` ends the table.
+typedef struct {
+    s32 x;
+    s32 y;
+    s32 z;
+    u8  pad_C[0xC];
+    u16 field_18;
+} DumpingHoleDebrisEntry;
+
+/// The leading bytes of a debris task's work block, copied in whole.
+typedef struct {
+    s16 x;
+    s16 y;
+    s16 z;
+    s16 pad_6;
+    s16 field_8;
+    s16 field_A;
+} DumpingHoleDebrisSeed;
+
+extern s32                    D_shelter_b3_dumping_hole_801881E4;
+extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
+extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
+extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
+
+/// Spawns one debris task and gives it a work block seeded with `seed`.
+#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                               \
+    {                                                                                                 \
+        Task*                  t = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
+        DumpingHoleDebrisSeed* w = Mem_Malloc(0x24, 0);                                               \
+        t->work                  = w;                                                                 \
+        if (w == NULL) {                                                                              \
+            taskKill(t);                                                                              \
+        } else {                                                                                      \
+            Mem_Set(w, 0, 0x24);                                                                      \
+            *w = seed;                                                                                \
+        }                                                                                             \
+    }
+
+void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
+{
+    DumpingHoleEntity*      work = (DumpingHoleEntity*)arg0->work;
+    DumpingHoleMsg7DA       msg;
+    DumpingHoleDebrisSeed   seed;
+    DumpingHoleDebrisEntry* e;
+    DumpingHoleDebrisEntry* p;
+    u16                     i;
+    u8                      area;
+
+    switch (work->field_38) {
+        case 0:
+            break;
+        case 1:
+            switch (work->field_3A) {
+                case 0:
+                    work->field_40 = 1;
+                    work->field_42 = 2;
+                    work->field_3C = 0;
+                    work->field_3A++;
+                    return;
+                case 1:
+                    if (++work->field_3C < 3) {
+                        return;
+                    }
+                    Gp_DispatchMsg(D_shelter_b3_dumping_hole_8018F4A8->field_1C->field_28, 0x7D5, 1, 0);
+                    msg.stage   = gGameSession->at4.loc.stage;
+                    area        = gGameSession->at4.loc.area;
+                    msg.field_2 = 2;
+                    msg.area    = area;
+                    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 2:
+            Gp_DispatchMsg(work->field_28, 0x7D4, (s32)work, 0);
+            msg.stage   = gGameSession->at4.loc.stage;
+            area        = gGameSession->at4.loc.area;
+            msg.field_2 = 3;
+            msg.area    = area;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            break;
+        case 4:
+            msg.stage   = gGameSession->at4.loc.stage;
+            area        = gGameSession->at4.loc.area;
+            msg.field_2 = 5;
+            msg.area    = area;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+            break;
+        case 5:
+            Gp_DispatchMsg(work->field_2C, 0x7D4, (s32)&D_shelter_b3_dumping_hole_801881E4, 0);
+            break;
+        case 6:
+            switch (work->field_3A) {
+                case 0:
+                    work->field_44 = 1;
+                    work->field_3A++;
+                    return;
+                case 1:
+                    for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].field_0 != 0xFFFF; i++) {
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 2, 0, (s32)&D_shelter_b3_dumping_hole_801881FC[i]);
+                    }
+                    for (i = 0; D_shelter_b3_dumping_hole_80188304[i].field_0 != 0xFFFF; i++) {
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 3, 1, (s32)&D_shelter_b3_dumping_hole_80188304[i]);
+                    }
+                    for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].x != 0xFFFF; i++) {
+                        e = &D_shelter_b3_dumping_hole_801884CC[i];
+                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 4, 2, (s32)e);
+                        if (e->field_18 != 0) {
+                            p            = e;
+                            seed.x       = p->x;
+                            seed.y       = p->y;
+                            seed.z       = p->z;
+                            seed.field_8 = 0x1000;
+                            seed.field_A = 1;
+                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
+                            seed.y = p->y + 200;
+                            seed.z = p->z + 200;
+                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
+                            seed.y = p->y + 200;
+                            seed.z = p->z - 200;
+                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
+                            seed.y = p->y - 200;
+                            seed.z = p->z + 200;
+                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
+                            seed.y = p->y - 200;
+                            seed.z = p->z - 200;
+                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
+                        }
+                    }
+                    break;
+                default:
+                    return;
+            }
+            break;
+        case 7:
+            work->field_42 = 1;
+            work->field_40 = 2;
+            break;
+    }
+    work->field_38 = 0;
+}
 
 /// Payload of message 0x3F7: a null-terminated table and the number of
 /// entries counted in it.
