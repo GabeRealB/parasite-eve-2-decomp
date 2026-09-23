@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -15,6 +16,8 @@
 /// different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+/// `mvmva` rotating V0 by the rotation matrix with no translation.
+#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Scratch block one band segment is projected in: the four corners in world
 /// space, the GTE depth and flag, and the projected corners.
@@ -25,22 +28,96 @@ typedef struct _NeoArkObservatoryBandScratch {
     DVECTOR sxy[4];
 } _NeoArkObservatoryBandScratch;
 
-extern SVECTOR D_neo_ark_observatory_80181434[];
-extern SVECTOR D_neo_ark_observatory_801814E4[];
-extern SVECTOR D_neo_ark_observatory_801814F4[];
-extern SVECTOR D_neo_ark_observatory_801814FC[];
-extern SVECTOR D_neo_ark_observatory_8018150C[];
-extern SVECTOR D_neo_ark_observatory_8018151C[];
-extern SVECTOR D_neo_ark_observatory_80181524[];
-extern SVECTOR D_neo_ark_observatory_80181564[];
-extern SVECTOR D_neo_ark_observatory_80181574[];
-extern SVECTOR D_neo_ark_observatory_8018157C[];
-extern s16     D_neo_ark_observatory_80187A3C;
+/// Twelve opaque bytes the mesh copy carries across unchanged.
+typedef struct _NeoArkObservatoryBlk12 {
+    u8 data[12];
+} _NeoArkObservatoryBlk12;
+
+/// A small mesh as a pointer table: `field_4` is rotated without translation,
+/// `field_8` rotated and translated, and `field_C` copied through. The room
+/// keeps a pristine source and a working copy that is rebuilt from it.
+typedef struct _NeoArkObservatoryMesh {
+    s32                      field_0;
+    SVECTOR*                 field_4;
+    SVECTOR*                 field_8;
+    _NeoArkObservatoryBlk12* field_C;
+} _NeoArkObservatoryMesh;
+
+extern _NeoArkObservatoryMesh D_neo_ark_observatory_80181410;
+extern _NeoArkObservatoryMesh D_neo_ark_observatory_80181FA4;
+extern SVECTOR                D_neo_ark_observatory_80181434[];
+extern SVECTOR                D_neo_ark_observatory_801814E4[];
+extern SVECTOR                D_neo_ark_observatory_801814F4[];
+extern SVECTOR                D_neo_ark_observatory_801814FC[];
+extern SVECTOR                D_neo_ark_observatory_8018150C[];
+extern SVECTOR                D_neo_ark_observatory_8018151C[];
+extern SVECTOR                D_neo_ark_observatory_80181524[];
+extern SVECTOR                D_neo_ark_observatory_80181564[];
+extern SVECTOR                D_neo_ark_observatory_80181574[];
+extern SVECTOR                D_neo_ark_observatory_8018157C[];
+extern s16                    D_neo_ark_observatory_80187A3C;
 
 void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory_4", func_neo_ark_observatory_8017FE34);
+/// Rebuilds the working mesh from its source under `coord`: the first four
+/// vectors are rotated only, the eight after them rotated and translated and,
+/// when `offset` is non-NULL, shifted by it afterwards.
+void func_neo_ark_observatory_8017FE34(GsCOORDINATE2* coord, SVECTOR* offset)
+{
+    MATRIX                  m;
+    long                    flag;
+    s32                     i;
+    SVECTOR*                d;
+    SVECTOR*                s;
+    _NeoArkObservatoryMesh* dst = &D_neo_ark_observatory_80181FA4;
+    _NeoArkObservatoryMesh* src = &D_neo_ark_observatory_80181410;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_4[i].vx = src->field_4[i].vx;
+        dst->field_4[i].vy = src->field_4[i].vy;
+        dst->field_4[i].vz = src->field_4[i].vz;
+        dst->field_C[i]    = src->field_C[i];
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].vx = src->field_8[i].vx;
+        dst->field_8[i].vy = src->field_8[i].vy;
+        dst->field_8[i].vz = src->field_8[i].vz;
+    }
+
+    m = coord->coord;
+
+    d = dst->field_4;
+    s = src->field_4;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(&m);
+        gte_ldv0(s);
+        s++;
+        gte_mvmva_real();
+        gte_stsv(d);
+        d++;
+    }
+
+    gte_SetRotMatrix(&m);
+    gte_SetTransMatrix(&m);
+    d = dst->field_8;
+    s = src->field_8;
+    if (offset != NULL) {
+        for (i = 0; i < 8; i++) {
+            RotTransSV(s, d, &flag);
+            s++;
+            d->vx += offset->vx;
+            d->vy += offset->vy;
+            d->vz += offset->vz;
+            d++;
+        }
+    } else {
+        for (i = 0; i < 8; i++) {
+            RotTransSV(s++, d++, &flag);
+        }
+    }
+}
 
 void func_neo_ark_observatory_80180124(Task* task)
 {
