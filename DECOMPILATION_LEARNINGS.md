@@ -139224,3 +139224,15 @@ Writing `start | 0x1000` literally gives a real `slt` there instead.
 Last, `andi a0,a0,1` has to come before `andi v1,s0,0xFFFF`:
 `blend = frame & 1; packed = arg2; blend <<= packed >> 12;` with `u32 packed`
 did it. Input: `base_12.i` `c3c2e89c…` (100%).
+
+### `gte_*_real()` macros are per-TU defines; a scratch without them compiles a `jal` (func_shelter_b3_garbage_incinerator_80182368, 2026-09-23)
+
+`gte_rtv0_real()`, `gte_gpf12_real()` and `gte_rtps_real()` are not in
+`<psyq/inline_c.h>`; each host `.c` (or overlay header) `#define`s the ones it
+uses as `__asm__ volatile("nop; nop; .word 0x…")`. A scratch `base.c` only
+copies the host's `#include`s, so a body ported from a sibling TU that calls one
+the host does not define compiles without error as an implicit function call:
+the object shows `jal gte_rtv0_real` where the target has `nop; nop; c2 …`, and
+the lost call clobbers enough registers to look like an allocation problem
+(here 98.5% with `regs`/`branch` penalties). Copy the define from the sibling
+into the scratch and into the host file next to the existing ones.
