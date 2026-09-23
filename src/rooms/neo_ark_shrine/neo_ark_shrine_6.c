@@ -252,7 +252,29 @@ void func_neo_ark_shrine_8017F320(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_6", func_neo_ark_shrine_8017F398);
+/// Same as `func_neo_ark_shrine_8017EFE4`, but the mode it latches is 1, or 4
+/// when flag 0xE9 is set.
+void func_neo_ark_shrine_8017F398(Task* task)
+{
+    RoomActionPrompt*   prompt = &D_80114D28;
+    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    st->timer        = st->timer + 1;
+    func_neo_ark_shrine_8017EAC0(task);
+    if (st->timer >= 0x1E) {
+        if (GameFlag_GetNibble(0xE9) == 0) {
+            D_8007216D                 = 1;
+            gGameSession->at4.loc.room = 1;
+        } else {
+            D_8007216D                 = 4;
+            gGameSession->at4.loc.room = 4;
+        }
+        gGameSession->roomObjsDirty = 1;
+        task->state                 = 2;
+    }
+}
 
 /// Resets the shrine's 16-slot arrangement puzzle to its starting state: clears
 /// the two puzzle flags, reloads the work copy of the slot layout from the
