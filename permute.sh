@@ -168,6 +168,8 @@ if [ "$RUN" = true ]; then
         -j"$THREADS"
         --better-only
         --stop-on-zero
+        # Score stack offsets too; the default masks them (see vacuum_permute.py).
+        --stack-diffs
         --no-context-output
         --algorithm levenshtein
         "permuter/$FUNCTION_NAME/"

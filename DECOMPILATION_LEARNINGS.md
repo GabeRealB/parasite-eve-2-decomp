@@ -107588,9 +107588,10 @@ print('target-only', (dc - ic).most_common())
 PY
 ```
 
-Also note `read_object_file()` ignores its `preserve_offsets` argument in this
-version, so `--stack-diffs` is a no-op; the stack penalty comes from
-`diff_sameline` alone.
+The permuter itself masks stack offsets unless `--stack-diffs` is passed:
+`simplify_objdump` rewrites every sp-relative operand to `addr(sp)`, so a frame
+difference scores zero. `permute.sh` and `tools/vacuum_permute.py` pass the
+flag.
 
 ### An inlined helper fixes the allocation of its arguments; a twice-assigned local does not
 

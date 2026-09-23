@@ -323,6 +323,10 @@ def run_permuter(
         f"-j{jobs}",
         "--better-only",
         "--stop-on-zero",
+        # Without it the scorer masks stack offsets, so a function whose only
+        # remaining difference is its frame never scores a gain, and a zero
+        # can still differ in the frame.
+        "--stack-diffs",
         "--algorithm",
         "levenshtein",
         str(perm_dir),
