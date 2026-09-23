@@ -138700,3 +138700,47 @@ permute the arm order of the `if`s before trying anything else.
 `newjpos` / `newlpos`. A gdb-python walk of `NEXT_INSN` (rtx +12) that prints
 each JUMP_INSN (code 28) with its `JUMP_LABEL` (rtx +32) shows the chain
 between merges.
+
+### `move a3,sN` then `sw v0,off(a3)` in the `jal` delay slot: the handler forwards all four message arguments (func_dryfield_night_motel_room_6_8018175C, 2026-09-23)
+
+**Symptom.** A message handler builds a record through a callee-saved pointer
+(`sb zero,2(s0)`, `sw v0,4(s0)`, ... across several calls) and then spawns a
+task with it. The target copies the pointer once, *after* the other argument
+moves, and writes the last field through the argument register:
+
+```
+move a1,zero
+move a2,s1
+move a3,s0
+jal  Task_SpawnFromTable
+sw   v0,0xc(a3)      ; candidate: sw v0,0xc(s0)
+```
+
+Every block, predicate and call matched; the base register of that one store
+was the only difference (99.94%).
+
+**Mechanism.** local-alloc's `optimize_reg_copy_1` rewrites a register copy
+whose source does *not* die in it: if the source dies later in the block, the
+uses in between are replaced by the destination. `SMALL_REGISTER_CLASSES` is 0
+on MIPS, so the destination can be the hard argument register. For that to
+happen, sched1 must have put the store *after* `(set a3 P)`. It does not while
+the argument moves are "birthing" insns (`birthing_insn_p`: the destination
+has `REG_N_SETS == 1`). Those get `max_priority` and are placed next to the
+call ahead of the store. The `else` arm here calls another handler, and m2c
+dropped that call's arguments because they are already in `$a0`-`$a3`. Once
+the call forwards `(arg0, arg1, arg2, arg3)`, each of `a1`/`a2`/`a3` is set
+twice. The moves are then ordinary priority-1 insns, the store wins its slot
+on potential hazard, and the copy rewrite does the rest.
+
+**Fix.** Give the function the dispatcher's full signature
+(`GpMsgHandler`: `Task*, s32 msgId, s32 arg2, s32 arg3`) and forward all four
+arguments in the pass-through call. Forwarding only three leaves `a3` birthing
+and still gives `sw v0,0xc(s0)`. When a store in a call's delay slot uses an
+argument register as its base, count how many times each argument register is
+set in the whole function. A pass-through call m2c printed as `f()` is the
+usual missing set.
+
+Two things that do **not** get there: a local copy of the pointer (`rec = &D;
+rec->field_C = ...`) is folded back by cse, and pinning the pointer to `a3`
+sets `a3` too early. Reusing a parameter as the copy gives the store the right
+register but not the move order.

@@ -15,7 +15,7 @@ extern TaskDesc D_dryfield_night_motel_room_6_80182EE0;
 extern GpAreaApplyRec D_dryfield_night_motel_room_6_80186270[];
 extern GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
 
-s32 func_dryfield_night_motel_room_6_80181A9C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_motel_room_6_80181A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
         SOFT_TOUCH_REG(arg2);
