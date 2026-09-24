@@ -12,7 +12,7 @@
 ///
 /// `func_actor_560800_80135BD8` allocates it with `Mem_Malloc(0x68, 0)`, so the
 /// size below is the allocation and not a guess, and fills the first slots with
-/// the sub-tasks from `gameGetPtrSlot(3)` and `ActorsShared80136280Desc`
+/// the sub-tasks from `gameGetPtrSlot(3)` and `D_actor_560800_801718F0`
 /// (`field_4` is filled later by `func_actor_560800_801366B0`). Slots 0x0-0x24
 /// are ten task pointers: `field_8` is handed to `field_10`/`field_14`/`field_18`
 /// as their spawn argument and `field_C` to `field_1C`.
@@ -74,7 +74,7 @@ typedef struct Actor560800AnimStep {
 STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
-/// from `ActorsShared80136280Desc` index 5 (`func_actor_560800_80132C60`).
+/// from `D_actor_560800_801718F0` index 5 (`func_actor_560800_80132C60`).
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
 /// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
 /// is the allocation, not a guess. It is a third work block in this overlay,
@@ -88,9 +88,8 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// 0x14 in `field_4BA`, which is why the slots array is sized 0x14 and the
 /// scratch sits where it does.
 ///
-/// `field_4B8` is the animation id the slots are seeded with (the same role
-/// `ActorsShared80132514Work::field_4B8` plays), `field_4BA` the slot count
-/// the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
+/// `field_4B8` is the animation id the slots are seeded with, `field_4BA` the
+/// slot count the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
 /// slot's `field_9`. `field_4CA` is a phase counter the same handler reads.
 /// `field_4B4` is the animation script `func_actor_560800_80132498` walks by
 /// `field_4B8`, with `field_4BE` as its hold counter.
@@ -329,6 +328,10 @@ extern s32 D_actor_560800_801752E8;
 extern s32 D_actor_560800_801752EC;
 
 extern Task* D_actor_560800_801757AC;
+
+/// Task descriptor table the actor spawns most of its sub-tasks from, by
+/// index.
+extern TaskDesc D_actor_560800_801718F0;
 
 extern u8      D_80071075;
 extern s8      D_8007218A;

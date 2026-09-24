@@ -10,8 +10,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern s8       D_8007106B;
-extern TaskDesc ActorsShared80136280Desc;
+extern s8 D_8007106B;
 
 void func_actor_560800_80136930(s32 arg0)
 {
@@ -27,7 +26,7 @@ void func_actor_560800_80136930(s32 arg0)
 
 void func_actor_560800_801369A0(void)
 {
-    Display_SpawnWithOt(&ActorsShared80136280Desc, 0xD, 0, 0);
+    Display_SpawnWithOt(&D_actor_560800_801718F0, 0xD, 0, 0);
     D_8007106B = 2;
     Gp_SpawnViewTasks();
 }

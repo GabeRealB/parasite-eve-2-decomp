@@ -9,9 +9,8 @@
 #include "main/fs.h"
 #include "psyq/libgpu.h"
 
-extern TaskDesc ActorsShared80136280Desc;
-extern s32      D_actor_560800_8016F57C[];
-extern s8       D_8007106B;
+extern s32 D_actor_560800_8016F57C[];
+extern s8  D_8007106B;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -19,7 +18,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_560800_801362B0(s32 arg0)
 {
-    Task_SpawnFromTable(&ActorsShared80136280Desc, 3, arg0, 0);
+    Task_SpawnFromTable(&D_actor_560800_801718F0, 3, arg0, 0);
 }
 
 void func_actor_560800_801362E0(s16 arg0)
@@ -189,7 +188,7 @@ void func_actor_560800_80136678(s32 arg0)
 /// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
 /// other strip, then re-loads the chunk at `D_8006C45C` with
 /// `D5B498_8006C234` at 8 for the duration, kills this task, resets the
-/// display heap and spawns `ActorsShared80136280Desc` index 0xB into the work
+/// display heap and spawns `D_actor_560800_801718F0` index 0xB into the work
 /// block's `field_4`. Like `func_actor_310100_801620FC`, state 3 hands the
 /// finished work over rather than leaving the task alive.
 void func_actor_560800_801366B0(Task* arg0)
@@ -217,7 +216,7 @@ void func_actor_560800_801366B0(Task* arg0)
             D5B498_8006C234 = 0;
             taskKill(arg0);
             Display_ResetHeapWrapper();
-            work->field_4 = Task_SpawnOnDefaultList(&ActorsShared80136280Desc, 0xB, 1, (s32)D_actor_560800_8017578C);
+            work->field_4 = Task_SpawnOnDefaultList(&D_actor_560800_801718F0, 0xB, 1, (s32)D_actor_560800_8017578C);
             break;
     }
 }

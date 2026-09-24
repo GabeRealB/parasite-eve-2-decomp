@@ -28,7 +28,6 @@
 #include "main/gfx.h"
 
 extern s8       D_8007106B;
-extern TaskDesc ActorsShared80136280Desc;
 extern TaskDesc D_actor_560800_8016EA28;
 extern TaskDesc D_actor_560800_8017575C;
 extern void     D_actor_560800_8016EA74;
@@ -1577,15 +1576,15 @@ void func_actor_560800_80135BD8(Task* arg0)
     Mem_Set(work, 0, 0x68);
     work->field_0           = gameGetPtrSlot(3);
     D_actor_560800_8017578C = arg0;
-    work->field_4           = Task_SpawnFromTable(&ActorsShared80136280Desc, 4, 0, 0);
-    sub5                    = Task_SpawnFromTable(&ActorsShared80136280Desc, 5, 0, 0);
+    work->field_4           = Task_SpawnFromTable(&D_actor_560800_801718F0, 4, 0, 0);
+    sub5                    = Task_SpawnFromTable(&D_actor_560800_801718F0, 5, 0, 0);
     work->field_8           = sub5;
-    work->field_10          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, (s32)sub5);
-    work->field_14          = Task_SpawnFromTable(&ActorsShared80136280Desc, 8, 0, (s32)work->field_8);
-    work->field_18          = Task_SpawnFromTable(&ActorsShared80136280Desc, 9, 2, (s32)work->field_8);
-    sub6                    = Task_SpawnFromTable(&ActorsShared80136280Desc, 6, 0, 0);
+    work->field_10          = Task_SpawnFromTable(&D_actor_560800_801718F0, 7, 1, (s32)sub5);
+    work->field_14          = Task_SpawnFromTable(&D_actor_560800_801718F0, 8, 0, (s32)work->field_8);
+    work->field_18          = Task_SpawnFromTable(&D_actor_560800_801718F0, 9, 2, (s32)work->field_8);
+    sub6                    = Task_SpawnFromTable(&D_actor_560800_801718F0, 6, 0, 0);
     work->field_C           = sub6;
-    work->field_1C          = Task_SpawnFromTable(&ActorsShared80136280Desc, 0xA, 3, (s32)sub6);
+    work->field_1C          = Task_SpawnFromTable(&D_actor_560800_801718F0, 0xA, 3, (s32)sub6);
     work->field_20          = Task_SpawnFromTable(&D_actor_560800_8017575C, 0, 0, (s32)arg0);
     work->field_24          = Task_SpawnFromTable(&D_actor_560800_8017575C, 2, 0, (s32)arg0);
     vec.vx                  = 0x5A0;
@@ -1643,7 +1642,7 @@ void func_actor_560800_80135D54(Task* arg0)
             if (work->field_4 != NULL) {
                 taskKill(work->field_4);
             }
-            Display_SpawnWithOt(&ActorsShared80136280Desc, 0xC, 0, 0);
+            Display_SpawnWithOt(&D_actor_560800_801718F0, 0xC, 0, 0);
             break;
     }
     work->field_58 = 0;
