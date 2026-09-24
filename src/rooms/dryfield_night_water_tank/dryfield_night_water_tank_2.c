@@ -9,8 +9,8 @@
 #include "rooms/room_common.h"
 
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
-/// 0x7FFFFFFF terminator: `Room_Util11`, `Room_Util06` and the two room-local
-/// handlers `func_dryfield_night_water_tank_8017D76C` / `..._8017D73C`.
+/// 0x7FFFFFFF terminator: `func_dryfield_night_water_tank_8017D714`,
+/// `..._8017D70C`, `..._8017D76C` and `..._8017D73C`.
 extern GpMsgEntry D_dryfield_night_water_tank_8017DFE8[];
 
 /// Task descriptions spawned by the room entry task below; only entry 0 of
