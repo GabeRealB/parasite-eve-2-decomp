@@ -43,4 +43,13 @@ typedef struct ApMistScratch {
 } ApMistScratch;
 STATIC_ASSERT_SIZEOF(ApMistScratch, 0xC);
 
+/// The three grey levels a flickering sprite
+/// (`func_acropolis_patio_8017E324`) picks its colour from, one per animation
+/// column. The task copies the whole set onto its stack before indexing it.
+typedef struct ApGreyLevels {
+    u8 level[3];
+} ApGreyLevels;
+
+extern const ApGreyLevels D_acropolis_patio_8017D5E8;
+
 #endif

@@ -9,6 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/acropolis_patio.h"
+#include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -116,7 +117,105 @@ void func_acropolis_patio_8017E100(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_patio/acropolis_patio_4", func_acropolis_patio_8017E324);
+/// Draws one frame of a flickering sprite at the task's own coordinate frame.
+/// Nothing is drawn once `Gp_State1C->eventState` reaches 4, nor for a camera
+/// view whose bit is clear in the anchor mask `D_acropolis_patio_80182E4C`,
+/// indexed by the low nibble of `Task::spawnArg1`.
+///
+/// On the first frame the task unpacks the rest of `spawnArg1` into its effect
+/// work block - the sprite's half extent from bits 16-27 (0x280 when those bits
+/// are clear), its animation column from bits 8-9, and that column's grey level
+/// from `D_acropolis_patio_8017D5E8` - and keeps only the anchor index. Every
+/// frame it projects the coordinate's translation through `GsWSMATRIX` into a
+/// 0x14-byte `G_SCRATCH_HEAD` block and, at `otz` 0x11 or further, queues one
+/// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
+/// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
+/// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
+void func_acropolis_patio_8017E324(Task* task)
+{
+    void**            scratch;
+    RoomShaftScratch* block;
+    GpEffWork*        work;
+    GsCOORDINATE2*    coord;
+    POLY_FT4*         prim;
+    DisplayState*     ds;
+    s32               rgb;
+    s32               flip;
+    s16               xy;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState < 4 &&
+        ((D_acropolis_patio_80182E4C[task->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        Gp_UpdateCoord(coord);
+        scratch  = (void**)G_SCRATCH_HEAD;
+        *scratch = (u8*)*scratch - 0x14;
+        block    = (RoomShaftScratch*)*scratch;
+        if (task->state == 0) {
+            ApGreyLevels levels = D_acropolis_patio_8017D5E8;
+
+            if (task->spawnArg1 & 0xFFF0000) {
+                work->scale = (task->spawnArg1 >> 16) & 0xFFF;
+            } else {
+                work->scale = 0x280;
+            }
+            work->angle     = (task->spawnArg1 >> 8) & 3;
+            task->spawnArg1 = task->spawnArg1 & 0xF;
+            work->period    = levels.level[work->angle];
+            task->state     = task->state + 1;
+        }
+        block->vec.vx = *(u16*)&coord->workm.t[0];
+        block->vec.vy = *(u16*)&coord->workm.t[1];
+        block->vec.vz = *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&block->vec);
+        gte_rtps_real();
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        gte_stsxy(&block->sx);
+        gte_stszotz(&block->otz);
+        if (block->otz >= 0x11) {
+            ds   = &gDisplayState;
+            flip = (u8)ds->animFrame;
+            SOFT_BARRIER();
+            rgb         = (u8)work->period;
+            prim->tpage = 0x2B;
+            rgb        += (flip & 1) << 4;
+            prim->r0    = rgb;
+            prim->g0    = rgb;
+            prim->b0    = rgb;
+            setSemiTrans(prim, 1);
+            setClut(prim, work->angle * 16, 0x10E);
+            prim->u0 = work->angle * 0x28;
+            prim->v0 = 0;
+            prim->u1 = work->angle * 0x28 + 0x27;
+            prim->v1 = 0;
+            prim->u2 = work->angle * 0x28;
+            prim->v2 = 0x27;
+            prim->u3 = work->angle * 0x28 + 0x27;
+            prim->v3 = 0x27;
+
+            block->halfWidth = (work->scale * 0x27) / block->otz;
+            xy               = block->sx - *(u16*)&block->halfWidth;
+            prim->x2         = xy;
+            prim->x0         = xy;
+            xy               = block->sx + *(u16*)&block->halfWidth;
+            prim->x3         = xy;
+            prim->x1         = xy;
+            xy               = block->sy - *(u16*)&block->halfWidth;
+            prim->y1         = xy;
+            prim->y0         = xy;
+            xy               = block->sy + *(u16*)&block->halfWidth;
+            prim->y3         = xy;
+            prim->y2         = xy;
+            addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    }
+}
 
 /// Draws and drifts one puff of the fountain's mist for the current frame.
 ///
