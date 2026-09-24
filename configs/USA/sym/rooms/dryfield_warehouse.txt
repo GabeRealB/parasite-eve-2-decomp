@@ -1,6 +1,1 @@
 // Overlay-local symbols for dryfield_warehouse.
-RoomsShared80180b2c = 0x8017E3F4; // shared body, see src/lib/
-RoomsShared80180b2cTask = 0x801821BC; // shared body data, see src/lib/
-RoomsShared8017d878 = 0x8017DA00; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
-RoomsShared8017ff5c = 0x8017E22C; // shared body, see src/lib/

@@ -1049,11 +1049,11 @@ id = 312
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_warehouse/dryfield_warehouse", rodata = "0x4", text = "0x28" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x440" },
+  { unit = "dryfield_warehouse/dryfield_warehouse_5", text = "0x440" },
   { unit = "dryfield_warehouse/dryfield_warehouse_2", rodata = "0x10", text = "0x498" },
-  { lib = true, unit = "rooms_shared_8017ff5c", text = "0xC6C" },
+  { unit = "dryfield_warehouse/dryfield_warehouse_6", text = "0xC6C" },
   { unit = "dryfield_warehouse/dryfield_warehouse_3", text = "0xD48" },
-  { lib = true, unit = "rooms_shared_80180b2c", text = "0xE34" },
+  { unit = "dryfield_warehouse/dryfield_warehouse_7", text = "0xE34" },
   { unit = "dryfield_warehouse/dryfield_warehouse_4", text = "0xE54" },
   { kind = "data", at = "0x1F94" },
 ]

@@ -47,6 +47,11 @@ STATIC_ASSERT_SIZEOF(DwhFadeWork, 0x8);
 /// kills whatever handle is still there before fading back in.
 extern Task* D_dryfield_warehouse_801821C0;
 
+/// The warehouse's cutscene task, published by its own state 0
+/// (`func_dryfield_warehouse_8017E090`) so the script helpers can reach its
+/// `DwhWork` block.
+extern Task* D_dryfield_warehouse_801821BC;
+
 s32 func_dryfield_warehouse_8017D764(s32 arg0, s32 arg1, s32 arg2);
 s32 func_dryfield_warehouse_8017D824(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 

@@ -15,7 +15,6 @@
 #include "main/task.h"
 
 #include "rooms/dryfield_warehouse.h"
-#include "rooms/rooms_shared_80180b2c.h"
 
 extern u8       D_80071075;
 extern u8       D_80073BA9;
@@ -55,7 +54,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 taskKill(D_dryfield_warehouse_801821C0);
             }
             SetDispMask(1);
-            work = (DwhWork*)RoomsShared80180b2cTask->work;
+            work = (DwhWork*)D_dryfield_warehouse_801821BC->work;
             if (work->playerEffActive != 0) {
                 Gp_SpawnWeaponEff();
                 work->playerEffActive = 0;
@@ -142,7 +141,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
             D_dryfield_warehouse_801821C0 = Task_SpawnFromTable(&D_dryfield_warehouse_8017FB08, 1, 8, 0);
             break;
         case 3:
-            shared = (DwhWork*)RoomsShared80180b2cTask->work;
+            shared = (DwhWork*)D_dryfield_warehouse_801821BC->work;
             if (shared->playerEffActive != 0) {
                 Gp_SpawnWeaponEff();
                 shared->playerEffActive = 0;
@@ -243,7 +242,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
 /// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `Mem_Malloc` kills the task, but the record below is dispatched either way --
 /// fills `owner` from pointer slot 3 and republishes this task as
-/// `RoomsShared80180b2cTask` so the room's script helpers reach that block.
+/// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
 ///
 /// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpRec14`
 /// field 0 is the equipped weapon's animation id, `D_80073BA9` plus 1 or 0x22
@@ -269,8 +268,8 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner             = gameGetPtrSlot(3);
-                    RoomsShared80180b2cTask = arg0;
+                    work->owner                   = gameGetPtrSlot(3);
+                    D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId     = D_80073BA9;
                 anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
