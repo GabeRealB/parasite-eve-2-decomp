@@ -1153,21 +1153,6 @@ id = 307
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_main_street/dryfield_main_street", rodata = "0x4", text = "0x40" },
-  { unit = "dryfield_main_street/dryfield_main_street_2", rodata = "0x34", text = "0x4AC" },
-  { unit = "dryfield_main_street/dryfield_main_street_7", text = "0x8B8" },
-  { unit = "dryfield_main_street/dryfield_main_street_8", text = "0xA94" },
-  { unit = "dryfield_main_street/dryfield_main_street_3", text = "0xA9C" },
-  { unit = "dryfield_main_street/dryfield_main_street_9", text = "0xB98" },
-  { unit = "dryfield_main_street/dryfield_main_street_10", text = "0xBA8" },
-  { unit = "dryfield_main_street/dryfield_main_street_4", text = "0xC00" },
-  { unit = "dryfield_main_street/dryfield_main_street_11", text = "0xD60" },
-  { unit = "dryfield_main_street/dryfield_main_street_5", text = "0xD94" },
-  { unit = "dryfield_main_street/dryfield_main_street_12", text = "0x14C8" },
-  { unit = "dryfield_main_street/dryfield_main_street_13", text = "0x1928" },
-  { unit = "dryfield_main_street/dryfield_main_street_14", text = "0x1BCC" },
-  { unit = "dryfield_main_street/dryfield_main_street_15", text = "0x1FF8" },
-  { unit = "dryfield_main_street/dryfield_main_street_16", text = "0x238C" },
-  { unit = "dryfield_main_street/dryfield_main_street_17", text = "0x2EFC" },
   { kind = "data", at = "0x38BC" },
 ]
 
