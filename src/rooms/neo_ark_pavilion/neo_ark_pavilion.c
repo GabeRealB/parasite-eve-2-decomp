@@ -91,4 +91,4 @@ void func_neo_ark_pavilion_8017EBEC(void)
 {
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", D_neo_ark_pavilion_8017D628);

@@ -2,6 +2,9 @@
 #define ROOMS_NEO_ARK_PAVILION_H
 
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/1A8.h"
 
@@ -23,5 +26,12 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 extern GpSaveLoc           D_neo_ark_pavilion_80187A14;
 extern s8                  D_neo_ark_pavilion_80187A1C;
 extern NeoArkPavilionEvent D_neo_ark_pavilion_80187A20;
+
+void func_neo_ark_pavilion_8017ED98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_pavilion_8017F588(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_pavilion_8017F974(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_pavilion_8017FF54(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_pavilion_80180380(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_pavilion_80181284(GsCOORDINATE2* arg0, s16 arg1, u8* rgb);
 
 #endif // ROOMS_NEO_ARK_PAVILION_H
