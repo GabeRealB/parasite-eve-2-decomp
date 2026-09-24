@@ -2419,18 +2419,12 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_substation]
-label = "no map pool names this room; code starts at 0x48, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue at 0x50, so the span detector starts 8 bytes late; the id word and the shared TaskFuncTable3 (0x0..0x14) are their own object so the first function's switch table, which needs .align 3, starts its unit's .rodata at 0x14"
+label = "no map pool names this room; code starts at 0x48, GCC hoisted the gGameSession lui/lw above the addiu $sp prologue at 0x50, so the span detector starts 8 bytes late"
 id = 452
 text = ["0x48", "0xCD4"]
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "neo_ark_substation/neo_ark_substation", rodata = "0x14", text = "0x48" },
-  { unit = "neo_ark_substation/neo_ark_substation_3", rodata = "0x2C", text = "0x2B4" },
-  { unit = "neo_ark_substation/neo_ark_substation_4", text = "0x164" },
-  { unit = "neo_ark_substation/neo_ark_substation_2", text = "0x1A8" },
-  { unit = "neo_ark_substation/neo_ark_substation_5", text = "0x25C" },
-  { unit = "neo_ark_substation/neo_ark_substation_6", text = "0x490" },
+  { unit = "neo_ark_substation/neo_ark_substation", rodata = "0x4", text = "0x48" },
   { kind = "data", at = "0xCD4" },
 ]
 
