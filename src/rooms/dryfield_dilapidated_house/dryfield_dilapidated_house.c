@@ -30,6 +30,8 @@
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -52,16 +54,17 @@ typedef struct DdhCoordWork {
 } DdhCoordWork;
 STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
 
-/// Record at `D_dryfield_dilapidated_house_8018669C` handed to
-/// `func_dryfield_dilapidated_house_80180A0C` together with the complement of a
-/// 0..0x1000 ramp. Both pairs are a pointer and the entry count of the array it
-/// points at: `field_0` / `field_16` and `field_8` / `field_12`; `field_14` is
-/// the index the caller is currently at, and the callee walks from it.
+/// Vertex-morph record for the model at `D_dryfield_dilapidated_house_8018669C`.
+/// Setup snapshots the model's vertices into `field_8` (`field_10` of them) and,
+/// when `field_4` is set, its normals into `field_C` (`field_12` of them). The
+/// morph restores that snapshot into the model from part index `field_14` and
+/// blends `field_16` vertices toward `field_0` and the normals toward
+/// `field_4`, which is null when the model has no normal pass.
 typedef struct DdhRoomRec {
-    /* 0x00 */ void*    field_0;
-    /* 0x04 */ s32      field_4;
+    /* 0x00 */ SVECTOR* field_0;
+    /* 0x04 */ SVECTOR* field_4;
     /* 0x08 */ SVECTOR* field_8;
-    /* 0x0C */ s32      field_C;
+    /* 0x0C */ SVECTOR* field_C;
     /* 0x10 */ s16      field_10;
     /* 0x12 */ s16      field_12;
     /* 0x14 */ s16      field_14;
@@ -1612,7 +1615,78 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180A0C);
+/// Morphs the task's model by `arg2` (0..0x1000): restores `rec`'s vertex
+/// snapshot into the model from part `rec->field_14`, interpolates those
+/// vertices toward `rec->field_0` through the GTE, and, when `rec->field_4` is
+/// set, blends each normal between `rec->field_4` and the snapshot in
+/// `rec->field_C`.
+void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2)
+{
+    s32        i;
+    s32        count;
+    s32        off;
+    TmdSource* src;
+    u16*       dst;
+    u16*       from;
+    u16*       dstMid;
+    u16*       fromMid;
+    SVECTOR*   nrm;
+    SVECTOR*   nrmA;
+    SVECTOR*   nrmB;
+    SVECTOR*   nrmDst;
+    s32        blend;
+    s32        inv;
+    u16        vx;
+    u16        vz;
+
+    i     = 0;
+    count = rec->field_16;
+    src   = ((TmdObject*)task->extra)->source;
+    off   = rec->field_14 * 8;
+    from  = (u16*)((u8*)rec->field_8 + off);
+    nrm   = src->normals;
+    dst   = (u16*)((u8*)src->verts + off);
+    if (count > 0) {
+        fromMid = from + 2;
+        dstMid  = dst + 2;
+        do {
+            vx         = *from;
+            from      += 4;
+            i         += 1;
+            *dst       = vx;
+            dst       += 4;
+            dstMid[-1] = fromMid[-1];
+            vz         = fromMid[0];
+            fromMid   += 4;
+            dstMid[0]  = vz;
+            dstMid    += 4;
+        } while (i < count);
+    }
+    blend = arg2;
+    inv   = 0x1000 - blend;
+    gteMIMefunc(src->verts + rec->field_14, rec->field_0, rec->field_16, blend);
+    nrmA = rec->field_4;
+    if (nrmA != NULL) {
+        count = rec->field_12;
+        nrmB  = rec->field_C;
+        i     = 0;
+        if (count > 0) {
+            do {
+                gte_lddp(blend);
+                gte_ldsv(nrmA);
+                gte_gpf12_real();
+                nrmDst = nrm + i;
+                gte_lddp(inv);
+                gte_ldsv(nrmB);
+                gte_gpl12_real();
+                nrmB++;
+                i++;
+                nrmA++;
+                gte_stsv(nrmDst);
+            } while (i < count);
+        }
+    }
+}
 
 void func_dryfield_dilapidated_house_80180B84(Task* task)
 {
@@ -1663,7 +1737,7 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     rec    = &D_dryfield_dilapidated_house_8018669C;
     source = ((TmdObject*)task->extra)->source;
     dst    = rec->field_8;
-    dst2   = (SVECTOR*)rec->field_C;
+    dst2   = rec->field_C;
     verts  = source->verts;
     for (i = 0; i < rec->field_10; i++) {
         dst[i].vx = verts[i].vx;
