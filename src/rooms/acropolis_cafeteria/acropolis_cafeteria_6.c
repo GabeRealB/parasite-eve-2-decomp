@@ -18,7 +18,7 @@ extern GpMsgEntry D_acropolis_cafeteria_80182AA8[];
 extern GpObj4A    D_acropolis_cafeteria_80189490[];
 extern s32        D_acropolis_cafeteria_80182DDC;
 
-extern TaskFuncTable3 RoomsShared8017d878Table;
+extern TaskFuncTable3 D_acropolis_cafeteria_8017D5C4;
 
 void func_acropolis_cafeteria_8017E47C(Task* arg0)
 {

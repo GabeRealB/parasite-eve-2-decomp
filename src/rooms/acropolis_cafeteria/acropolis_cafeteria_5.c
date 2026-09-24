@@ -34,4 +34,4 @@ void func_acropolis_cafeteria_8017E348(Task* task)
     }
     task->state = task->state + 1;
 }
-extern TaskFuncTable3 RoomsShared8017d878Table;
+extern TaskFuncTable3 D_acropolis_cafeteria_8017D5C4;

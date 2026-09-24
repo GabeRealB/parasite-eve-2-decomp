@@ -22,7 +22,7 @@ extern s32       D_acropolis_cafeteria_8018330C;
 extern s32       D_acropolis_cafeteria_801834D4;
 extern s32       D_acropolis_cafeteria_80183F3C;
 extern TaskDesc  D_acropolis_cafeteria_80184178;
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_cafeteria/acropolis_cafeteria", D_acropolis_cafeteria_8017D5C4);
 
 static const char CafeteriaPlayerLabel[12] = "Player";
 
