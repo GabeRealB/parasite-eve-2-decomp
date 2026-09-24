@@ -6,10 +6,15 @@
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
 
 extern s16      D_80071076;
 extern u8       D_801153F4;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
+extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017D900);
 
@@ -98,7 +103,33 @@ s32 func_shelter_b3_elevator_hall_8017DC78(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DC80);
+s32 func_shelter_b3_elevator_hall_8017DC80(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    RoomEventReq req;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId == 0x29) {
+        req.field_0 = 1;
+        req.field_4 = 1;
+        req.field_8 = 0x542A0005;
+        req.field_C = 0x542A0003;
+        req.flagId  = 0xA7;
+        req.itemId  = 0;
+        return RoomsShared8017d638(&req, out);
+    }
+    if (in->msgId != 0x1A) {
+        return 1;
+    }
+    if (in->field_5 == 0) {
+        if (GameFlag_GetNibble(0xBA) == 0) {
+            Gp_RunCapCmd1(2);
+            GameFlag_SetNibble(0xBA, 1);
+        }
+        Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);
+    }
+    return 0;
+}
 
 s32 func_shelter_b3_elevator_hall_8017DD88(void)
 {
