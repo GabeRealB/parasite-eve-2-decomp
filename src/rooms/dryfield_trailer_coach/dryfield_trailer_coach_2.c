@@ -126,5 +126,3 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_2", D_dryfield_trailer_coach_8017D7DC);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_2", D_dryfield_trailer_coach_8017D7E8);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_2", RoomsShared8017eb5cIdList);

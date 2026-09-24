@@ -1525,7 +1525,9 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_trailer_coach]
+label = "code starts at 0x234: the first function is a leaf (a switch returning item-id lists, jump tables at 0x4), so the span detector, which keys on a stack prologue, begins at 0x8A4 and left it as rodata words"
 id = 331
+text = ["0x234", "0x6390"]
 objects = [
   { kind = "packageId" },
   { kind = "rodata", at = "0x4" },
@@ -1533,6 +1535,7 @@ objects = [
   { unit = "dryfield_trailer_coach/dryfield_trailer_coach", rodata = "0x188", text = "0xE7C" },
   { lib = true, unit = "rooms_shared_80181228", rodata = "0x1BC", text = "0x47C8" },
   { unit = "dryfield_trailer_coach/dryfield_trailer_coach_2", rodata = "0x21C", text = "0x4D34" },
+  { unit = "dryfield_trailer_coach/dryfield_trailer_coach_6", text = "0x234" },
   { lib = true, unit = "rooms_shared_8017df68", text = "0x8A4" },
   { lib = true, unit = "rooms_shared_8017e90c", text = "0x1248" },
   { lib = true, unit = "rooms_shared_8017ff9c", text = "0x28D8" },
