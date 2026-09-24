@@ -1,10 +1,74 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/neo_ark_savanna_zone.h"
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_savanna_zone/neo_ark_savanna_zone", func_neo_ark_savanna_zone_8017D5E4);
+
+extern s16 D_80071076;
+extern u8  D_801153F4;
+extern u8  D_80115690;
+
+/// Payload handed to the helper task 0x31 the event may start.
+extern GpStateBD8 D_neo_ark_savanna_zone_80180988;
+
+/// The room's event task, spawned when the room latches an event. State 0 runs
+/// the event's CAP command; state 1 waits for it to finish and, when the event
+/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
+/// sound, if any, and wait for it; state 4 writes the latched destination into
+/// the save data and hands over to task type 0x11.
+void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_neo_ark_savanna_zone_8018099C.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_neo_ark_savanna_zone_8018099C.field_A != 0) {
+                    D_neo_ark_savanna_zone_80180988.field_0 = 0;
+                    D_neo_ark_savanna_zone_80180988.field_1 = 0;
+                    D_neo_ark_savanna_zone_80180988.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_neo_ark_savanna_zone_80180988);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_neo_ark_savanna_zone_8018099C.field_4 != 0) {
+                Gp_EnqueueStageSnd6(D_neo_ark_savanna_zone_8018099C.field_4, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_savanna_zone_8018099C.field_4)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_neo_ark_savanna_zone_80180990.field_0;
+            Mc_SaveData.at4.loc.warp = D_neo_ark_savanna_zone_80180990.field_2;
+            Mc_SaveData.at4.loc.room = D_neo_ark_savanna_zone_80180990.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 /// Latches the room's pending event and starts the controller that runs it:
 /// clears the "event running" flag, and once the event's flag nibble is clear
