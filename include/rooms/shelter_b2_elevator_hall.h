@@ -72,7 +72,8 @@ void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_shelter_b2_elevator_hall_8017F4A4(GsCOORDINATE2* coord, s32 frame, s32 arg2, s32 arg3);
 void func_shelter_b2_elevator_hall_8017FB8C(GsCOORDINATE2* coord, s16 frame, u8* rgb);
-void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 frame);
+void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size);
+void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1);
 void func_shelter_b2_elevator_hall_80180D08(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b2_elevator_hall_80181ECC(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b2_elevator_hall_80182DD0(GsCOORDINATE2* coord, s16 frame, u8* rgb);
