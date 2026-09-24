@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actors_shared_801344ac.h"
 #include "gameplay/3CD8.h"
@@ -63,11 +64,6 @@ typedef struct DgsMsg3FE {
     byte pad_13[0x1];
 } DgsMsg3FE;
 STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
-
-/// `rtps` / `rtv0` spelled out as words: the `inline_c.h` macros of those
-/// names assemble to different ones.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern u8           D_80071075;
 extern s8           D_80114C12;
@@ -400,7 +396,7 @@ void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
     block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&arg0->workm.t[0];
     block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
@@ -409,7 +405,7 @@ void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
@@ -498,7 +494,7 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
@@ -506,7 +502,7 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&block->otz);
     if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {

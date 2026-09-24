@@ -26,13 +26,11 @@
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
@@ -2133,13 +2131,13 @@ void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -2277,7 +2275,7 @@ void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
@@ -2444,7 +2442,7 @@ void func_dryfield_night_gas_station_80182024(GsCOORDINATE2* arg0, s32 arg1, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2527,7 +2525,7 @@ void func_dryfield_night_gas_station_80182450(GsCOORDINATE2* arg0, s32 arg1, u8*
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2718,10 +2716,10 @@ void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -2877,7 +2875,7 @@ void func_dryfield_night_gas_station_80183354(GsCOORDINATE2* arg0, s16 arg1, u8*
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
