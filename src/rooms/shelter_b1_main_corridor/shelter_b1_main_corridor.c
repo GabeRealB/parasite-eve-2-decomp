@@ -9,7 +9,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b1_main_corridor.h"
 
 /// Parameters of an event the corridor's message handler starts, latched into
 /// the room's pending copy when it fires. `flagId` is the game-flag nibble that
@@ -100,7 +100,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.field_C = 0x540F0001;
         req.flagId  = 0xA5;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b1_main_corridor_8017D620(&req, out);
     }
     if (in->msgId == 0x18) {
         if (GameFlag_GetNibble(0xAC) == 0) {
@@ -158,4 +158,4 @@ s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", D_shelter_b1_main_corridor_8017D5F0);
