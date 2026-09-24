@@ -1097,15 +1097,7 @@ objects = [
 id = 314
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house", rodata = "0x4", text = "0x8C8" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_5", text = "0x8C" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_6", text = "0x12E8" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_7", text = "0x1308" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_2", text = "0x1328" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_8", text = "0x14BC" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_3", text = "0x14F4" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_9", text = "0x39F8" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house_4", text = "0x3A18" },
+  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house", rodata = "0x4", text = "0x8C" },
   { kind = "data", at = "0x6888" },
   { kind = "model", at = "0x822C" },
   { kind = "model", at = "0x8A64" },
