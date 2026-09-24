@@ -110,4 +110,10 @@ s32 func_shelter_b3_elevator_hall_8017DD90(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017DD98);
+s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2)
+{
+    if (arg2 == 1) {
+        SndEvt_EnqueueType6(0x542A0000 | 1, 0, 0);
+    }
+    return 0;
+}
