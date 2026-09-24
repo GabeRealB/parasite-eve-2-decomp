@@ -1,14 +1,14 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -18,8 +18,8 @@
 /// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and
 /// `(s16)arg2 * 8 / otz` (inner). `arg1` scales `gDisplayState.animFrame` into
 /// `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
-/// blue. Shared body, linked into every room overlay that uses it.
-void Room_Draw05(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// blue.
+void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

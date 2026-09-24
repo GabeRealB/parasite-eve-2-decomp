@@ -18,11 +18,11 @@ extern GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[];
 extern s32            D_801360E4;
 extern s32            D_80136804;
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", D_shelter_b3_incinerator_control_room_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", D_shelter_b3_incinerator_control_room_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", D_shelter_b3_incinerator_control_room_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", D_shelter_b3_incinerator_control_room_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", D_shelter_b3_incinerator_control_room_8017D638);
 
 s32 func_shelter_b3_incinerator_control_room_8017FA84(void)
 {

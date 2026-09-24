@@ -238,4 +238,4 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", D_shelter_b3_incinerator_control_room_8017D6A4);

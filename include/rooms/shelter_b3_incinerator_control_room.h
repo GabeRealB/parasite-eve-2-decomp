@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
@@ -28,5 +30,10 @@ STATIC_ASSERT_SIZEOF(ShelterB3IncineratorControlRoomCapScript, 0x18);
 
 extern TaskDesc                                 D_shelter_b3_incinerator_control_room_80181814;
 extern ShelterB3IncineratorControlRoomCapScript D_shelter_b3_incinerator_control_room_80182A58;
+
+void func_shelter_b3_incinerator_control_room_8017F44C(Task* task);
+void func_shelter_b3_incinerator_control_room_8017FEB4(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b3_incinerator_control_room_801806F8(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b3_incinerator_control_room_80180B6C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_SHELTER_B3_INCINERATOR_CONTROL_ROOM_H
