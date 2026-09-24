@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
 
 extern s32 D_80115720;
 extern s32 D_80115728;
@@ -38,65 +39,65 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
         case 2: {
             SVECTOR* p;
             if (GameFlag_GetNibble(0xA8) != 0) {
-                Room_Draw15(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                func_shelter_b2_north_maintenance_walkway_8017EBB4(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
-                Room_Draw15(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                func_shelter_b2_north_maintenance_walkway_8017EBB4(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
             }
             p = D_shelter_b2_north_maintenance_walkway_80183B90;
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[6], 0x200, -0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[0], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[6], 0x200, -0x400);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            Room_Draw25(p, 0x200);
-            Room_Draw11(&p[-18], 0x200, 0);
-            Room_Draw11(&p[-16], 0x200, 0);
-            Room_Draw11(&p[-14], 0x200, 0);
-            Room_Draw11(&p[-12], 0x200, 0x400);
-            Room_Draw11(&p[-10], 0x200, 0x400);
-            Room_Draw11(&p[-8], 0x200, 0x400);
-            Room_Draw11(&p[-4], 0x200, 0x800);
+            func_shelter_b2_north_maintenance_walkway_8017E858(p, 0x200);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-18], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-16], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-14], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-12], 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-10], 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-8], 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-4], 0x200, 0x800);
             break;
         }
         case 4: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            Room_Draw25(p, 0x200);
-            Room_Draw11(&p[-14], 0x200, 0);
-            Room_Draw11(&p[-8], 0x200, 0x400);
-            Room_Draw11(&p[-4], 0x200, 0x800);
+            func_shelter_b2_north_maintenance_walkway_8017E858(p, 0x200);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-14], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-8], 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-4], 0x200, 0x800);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            Room_Draw25(p, 0x200);
-            Room_Draw11(&p[-14], 0x200, 0);
-            Room_Draw11(&p[-6], 0x200, 0x800);
-            Room_Draw11(&p[-4], 0x200, 0x400);
-            Room_Draw11(&p[-2], 0x200, -0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E858(p, 0x200);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-14], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-6], 0x200, 0x800);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-4], 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-2], 0x200, -0x400);
             break;
         }
         case 6: {
             SVECTOR* p;
             p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            Room_Draw25(p, 0x200);
-            Room_Draw11(&p[-14], 0x200, 0);
-            Room_Draw11(&p[-4], 0x200, 0x800);
-            Room_Draw11(&p[-2], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E858(p, 0x200);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-14], 0x200, 0);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-4], 0x200, 0x800);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(&p[-2], 0x200, 0);
             break;
         }
         case 7:
             if (GameFlag_GetNibble(0xA8) != 0) {
-                Room_Draw15(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                func_shelter_b2_north_maintenance_walkway_8017EBB4(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
             } else {
-                Room_Draw15(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                func_shelter_b2_north_maintenance_walkway_8017EBB4(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
             }
             break;
         case 8:
-            Room_Draw11(D_shelter_b2_north_maintenance_walkway_80183BB0, 0x200, 0x400);
+            func_shelter_b2_north_maintenance_walkway_8017E0DC(D_shelter_b2_north_maintenance_walkway_80183BB0, 0x200, 0x400);
             break;
     }
 }

@@ -8,7 +8,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
 extern s32 D_80165354;
@@ -63,9 +63,9 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, _WalkwayEvent* event
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179A04`. Message 0x1D goes through the rooms' event gate on flag
+/// `func_80179A04`. Message 0x1D goes through the room's event gate on flag
 /// 0xA8 with item 0x22 as prerequisite, answering 2 where the gate answers 0
-/// and marking item 0x122 seen when `RoomsShared8017d638Flag` is set. Message 0x20
+/// and marking item 0x122 seen when the gate started the event. Message 0x20
 /// starts the room's own event on flag 0x137; any other message answers 1.
 s32 func_shelter_b2_north_maintenance_walkway_8017DA88(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -82,11 +82,11 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(s32 arg0, s32 arg1, RoomE
         req.field_C = 0x541E0001;
         req.flagId  = 0xA8;
         req.itemId  = 0x22;
-        result      = RoomsShared8017d638(&req, out);
+        result      = func_shelter_b2_north_maintenance_walkway_8017D7B4(&req, out);
         if (result == 0) {
             result = 2;
         }
-        if (RoomsShared8017d638Flag != 0) {
+        if (D_shelter_b2_north_maintenance_walkway_801863C0 != 0) {
             Gp_SetItemSeenBit(0x122, 1);
         }
         return result;
@@ -146,4 +146,4 @@ void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
     task->state = task->state + 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", D_shelter_b2_north_maintenance_walkway_8017D5F4);
