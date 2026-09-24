@@ -678,4 +678,33 @@ void func_actor_206100_8014D8E8(Task* task);
 /// The state change reads `task->work` again rather than reusing `work`, the
 /// same fresh load `set_state` makes.
 void func_actor_206100_8014DD3C(Task* task);
+
+/// The beam child's three state handlers: the setup
+/// `func_actor_206100_8014EEC0`, the tick `func_actor_206100_8014B8B4` and the
+/// teardown `func_actor_206100_8014EFC8`.
+extern TaskFuncTable3 D_actor_206100_80149E24;
+
+/// Screen-wave child started off `D_actor_206100_80158AF0`.
+void func_actor_206100_80149ED0(Task* task);
+
+/// Teardown state of the beam child, run until its countdown kills it.
+void func_actor_206100_8014EFC8(Task* task);
+
+/// Transforms `pos` from `coord`'s space up the parent chain into the view
+/// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
+/// `gGfxViewCoord`, or 0 with `pos` untouched if the chain ends first.
+s32 func_actor_206100_8014F030(GsCOORDINATE2* coord, SVECTOR* pos);
+
+/// The beam child's callback: runs its current state handler out of
+/// `D_actor_206100_80149E24`, copying the table onto the stack first.
+void func_actor_206100_8014F134(Task* task);
+
+/// Last of the actor's five top-level states (`D_actor_206100_80149E5C`):
+/// hands the task's `GpEnemy`, parked in `Task::spawnArg2`, back to
+/// `Gp_DestroyEnemy`.
+void func_actor_206100_8014F490(Task* task);
+
+/// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation
+/// alone.
+void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst);
 #endif

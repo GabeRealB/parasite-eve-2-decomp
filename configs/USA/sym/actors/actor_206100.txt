@@ -1,16 +1,4 @@
 // Overlay-local symbols for actor_206100.
-ActorsShared801366fc = 0x8014F490; // shared body, see src/lib/
-ActorsShared80138404Table = 0x80149E24; // shared body data, see src/lib/
-ActorsShared80138404 = 0x8014F134; // shared body, see src/lib/
-ActorsShared80132c4c = 0x8014F4B8; // shared body, see src/lib/
-ActorCoordToView = 0x8014F030; // shared body, see src/lib/
-
-Actor00400_Fn0A28C = 0x8014EFC8; // shared body
-ActorsShared80149ed0 = 0x80149ED0; // shared screen-wave task
-ActorsShared80149ed0Context = 0x80158BA8; // shared screen-wave data
-ActorsShared80149ed0Columns = 0x80158BAC; // shared screen-wave data
-ActorsShared80149ed0Rows = 0x80158BFC; // shared screen-wave data
-ActorsShared80149ed0Amplitude = 0x80158B08; // shared screen-wave data
 
 // Referenced in another actor load slot, resident beside this one.
 D_80147E48 = 0x80147E48; // absolute:True

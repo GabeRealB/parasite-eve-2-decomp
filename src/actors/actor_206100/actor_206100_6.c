@@ -1,9 +1,14 @@
-#include "actors/coord_to_view.h"
+#include "common.h"
+
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 #include "main/gfx.h"
+#include "actors/actor_206100.h"
 
-s32 ActorCoordToView(GsCOORDINATE2* coord, SVECTOR* pos)
+s32 func_actor_206100_8014F030(GsCOORDINATE2* coord, SVECTOR* pos)
 {
     SVECTOR        local;
     VECTOR         result;

@@ -1,11 +1,9 @@
 #include "common.h"
 
 #include "main/gfx.h"
+#include "actors/actor_206100.h"
 
-/// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation
-/// row alone. Used to push a freshly built scratch matrix into a part's
-/// `GsCOORDINATE2::coord` without disturbing its position.
-void ActorsShared80132c4c(MATRIX* src, MATRIX* dst)
+void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)
 {
     dst->m[0][0] = src->m[0][0];
     dst->m[0][1] = src->m[0][1];

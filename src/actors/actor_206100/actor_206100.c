@@ -1,5 +1,11 @@
 #include "common.h"
 
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
+#include "psyq/inline_c.h"
+#include "gte.h"
+
 #include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -7,10 +13,6 @@
 #include "main/gfx.h"
 #include "gameplay/3CD8.h"
 #include "actors/actor_206100.h"
-#include "actors/coord_to_view.h"
-#include "actors/actor_400500.h"
-#include "psyq/inline_c.h"
-#include "gte.h"
 
 extern s8 D_8007216C;
 
@@ -244,14 +246,14 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     rot.ident.m20_m21  = 0;
                     ir->m22            = 0x1000;
                     RotMatrix(&work->field_4D8, &rot.mat);
-                    ActorsShared80132c4c(&rot.mat, &c2->coord);
+                    func_actor_206100_8014F4B8(&rot.mat, &c2->coord);
                     rot.ident.m00_m01 = 0x1000;
                     rot.ident.m02_m10 = 0;
                     ir->m11_m12       = 0x1000;
                     rot.ident.m20_m21 = 0;
                     ir->m22           = 0x1000;
                     RotMatrix(&work->field_4E0, &rot.mat);
-                    ActorsShared80132c4c(&rot.mat, &c3->coord);
+                    func_actor_206100_8014F4B8(&rot.mat, &c3->coord);
                     if ((abs(work->field_4D8.vx) < 0x30) && (abs(work->field_4D8.vy) < 0x30) && (abs(work->field_4D8.vz) < 0x30) &&
                         (abs(work->field_4E0.vx) < 0x30) && (abs(work->field_4E0.vy) < 0x30) && (abs(work->field_4E0.vz) < 0x30)) {
                         work->field_53A = 2;
@@ -280,7 +282,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     scale.vy         = 0x1000;
                     scale.vz         = work->field_53C;
                     ScaleMatrix(&ma.mat, &scale);
-                    ActorsShared80132c4c(&ma.mat, &c2->coord);
+                    func_actor_206100_8014F4B8(&ma.mat, &c2->coord);
                     ib               = &mb.ident;
                     mb.ident.m00_m01 = 0x1000;
                     mb.ident.m02_m10 = 0;
@@ -291,7 +293,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     scale.vy         = 0x1000;
                     scale.vz         = 0x1000;
                     ScaleMatrix(&mb.mat, &scale);
-                    ActorsShared80132c4c(&mb.mat, &c3->coord);
+                    func_actor_206100_8014F4B8(&mb.mat, &c3->coord);
                     ic               = &mc.ident;
                     mc.ident.m00_m01 = 0x1000;
                     mc.ident.m02_m10 = 0;
@@ -311,7 +313,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     ir->m22           = 0x1000;
                     RotMatrix(&euler, &rot.mat);
                     MulMatrix(&mc.mat, &rot.mat);
-                    ActorsShared80132c4c(&mc.mat, &c4->coord);
+                    func_actor_206100_8014F4B8(&mc.mat, &c4->coord);
                     base[2].flg = 0;
                     base[3].flg = 0;
                     base[4].flg = 0;
@@ -345,7 +347,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 scale.vy         = 0x1000;
                 scale.vz         = work->field_53C;
                 ScaleMatrix(&ma.mat, &scale);
-                ActorsShared80132c4c(&ma.mat, &c2->coord);
+                func_actor_206100_8014F4B8(&ma.mat, &c2->coord);
                 ib               = &mb.ident;
                 mb.ident.m00_m01 = 0x1000;
                 mb.ident.m02_m10 = 0;
@@ -356,7 +358,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 scale.vy         = 0x1000;
                 scale.vz         = 0x1000;
                 ScaleMatrix(&mb.mat, &scale);
-                ActorsShared80132c4c(&mb.mat, &c3->coord);
+                func_actor_206100_8014F4B8(&mb.mat, &c3->coord);
                 ic               = &mc.ident;
                 mc.ident.m00_m01 = 0x1000;
                 mc.ident.m02_m10 = 0;
@@ -376,7 +378,7 @@ void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 ir->m22           = 0x1000;
                 RotMatrix(&euler, &rot.mat);
                 MulMatrix(&mc.mat, &rot.mat);
-                ActorsShared80132c4c(&mc.mat, &c4->coord);
+                func_actor_206100_8014F4B8(&mc.mat, &c4->coord);
                 base[2].flg = 0;
                 base[3].flg = 0;
                 base[4].flg = 0;
@@ -984,15 +986,15 @@ void func_actor_206100_8014C458(Task* task)
                         scratch.gte.m.alt.vx = 0;
                         scratch.gte.m.alt.vy = 0;
                         mtx->gte.m.alt.vz    = 0x5A;
-                        ActorCoordToView(root, &scratch.gte.vec);
-                        ActorCoordToView(root, &scratch.gte.m.alt);
+                        func_actor_206100_8014F030(root, &scratch.gte.vec);
+                        func_actor_206100_8014F030(root, &scratch.gte.m.alt);
                         spawn->work        = beam;
                         child              = ((TmdObject*)spawn->extra)->coords;
                         launch             = &scratch.gte.out;
                         scratch.gte.out.vx = 0;
                         scratch.gte.out.vy = 0;
                         launch->vz         = 0x15E;
-                        ActorCoordToView(root, launch);
+                        func_actor_206100_8014F030(root, launch);
                         child->coord.t[0] = scratch.gte.out.vx;
                         child->coord.t[1] = scratch.gte.out.vy;
                         child->coord.t[2] = scratch.gte.out.vz;
