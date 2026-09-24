@@ -9,7 +9,7 @@
 #include "gameplay/3FB8.h"
 #include "main/session.h"
 
-/// Payload `func_actor_104000_80138CC8` passes as `Gp_DispatchMsg`'s `arg2`
+/// Payload `Actor04000_Fn06EA8` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
 /// The same four bytes as `Actor444000Msg7DA`: two id bytes followed by a
 /// halfword the receiver switches on.
@@ -27,16 +27,8 @@ typedef union Actor104000Event {
     /* 0x0 */ u16 words[2];
 } Actor104000Event;
 
-/// Two counters the overlay clears together with `D_actor_104000_8013E538`
-/// when it restarts its run; still assembly everywhere they are written.
-extern s32 D_actor_104000_8013E530[2];
-
-/// Six-entry counter table the overlay resets before dispatching its 0x7DA
-/// message.
-extern s32 D_actor_104000_8013E538[8];
-
 /// The actor's per-instance work block (`field_1C` of `Actor104000`),
-/// allocated and filled by `func_actor_204000_8014AED8`. It embeds four
+/// allocated and filled by `Actor04000_Fn010B8`. It embeds four
 /// collision objects linked with `Gp_LinkObj`, each followed by the `GpRec18`
 /// table its `field_C` points at; the high bit of their flag words gates one
 /// behaviour and bit 0x4000 another.
@@ -127,7 +119,7 @@ typedef struct Actor104000Ctx {
     /* 0x0A */ byte pad_A[0xA];
     /* 0x14 */ s8   field_14;
     /* 0x15 */ byte pad_15[0x2B];
-    /* 0x40 */ s16  field_40; // 0 or below frees the actor's lead slot (`func_actor_204000_801501A0`)
+    /* 0x40 */ s16  field_40; // 0 or below frees the actor's lead slot (`Actor04000_Fn06380`)
 } Actor104000Ctx;
 
 typedef struct Actor104000 {
@@ -190,8 +182,8 @@ typedef struct Actor104000MsgArg {
     /* 0x4 */ s32   field_4;
 } Actor104000MsgArg;
 
-/// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
-/// rebuild: the rotation, the uniform scale applied to it and the yaw.
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` for rebuilding a coordinate as a
+/// scaled yaw: the rotation, the uniform scale applied to it and the yaw.
 typedef struct Actor104000FaceScratch {
     /* 0x00 */ MATRIX m;
     /* 0x20 */ VECTOR scale;
@@ -248,8 +240,5 @@ typedef struct Actor104000AvoidDelta {
     /* 0xC */ byte pad_C[0x4];
 } Actor104000AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor104000AvoidDelta, 0x10);
-
-void Actor04000_Fn00E6C(Actor104000* arg0);
-s32  Actor04000_Fn00FDC(Actor104000Work* arg0);
 
 #endif
