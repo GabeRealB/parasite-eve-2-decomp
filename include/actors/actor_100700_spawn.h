@@ -58,10 +58,6 @@ typedef struct Actor00700SpawnWork {
 } Actor00700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 
-extern GpPairSrcE       Actor00700_D07588;
-extern struct GpU16Pair Actor00700_D07584;
-extern u32              Actor00700_D075B4;
-
 /// The 0x39C-byte block `Actor00700_Fn00060` allocates. Larger than
 /// `Actor00700SpawnWork` and laid out differently: the pose buffer
 /// `func_800B3F84` fills sits at +0x12C instead of +0xB4, and the four
@@ -92,13 +88,5 @@ typedef struct Actor00700InitWork {
     /* 0x382 */ byte           pad_382[0x1A];
 } Actor00700InitWork;
 STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
-
-/// The pair table, the enemy's parameter record and the pose source
-/// `Actor00700_Fn00060` hands to `Gp_PackPair` and `func_800B3F84` -- the same
-/// three shapes as the `Actor00700_D075*` trio above, for the actor's other
-/// spawn handler.
-extern struct GpU16Pair Actor00700_D06DDC;
-extern GpPairSrcE       Actor00700_D06DE0;
-extern u32              Actor00700_D06E6C;
 
 #endif

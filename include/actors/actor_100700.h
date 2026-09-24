@@ -138,9 +138,6 @@ typedef struct Actor00700StateFuncTable3 {
     void (*funcs[3])(Actor00700Ctx*, Actor00700*);
 } Actor00700StateFuncTable3;
 
-extern Actor00700StateFuncTable3 Actor00700_D00004;
-extern Actor00700StateFuncTable3 Actor00700_D00054;
-
 /// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
 /// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`; the vector holds
 /// the player displacement in `Actor00700_Fn02820`.
@@ -165,30 +162,5 @@ typedef struct Actor00700TexEntry {
     /* 0x3 */ u8 pad_3;
 } Actor00700TexEntry;
 STATIC_ASSERT_SIZEOF(Actor00700TexEntry, 4);
-
-extern Actor00700TexEntry Actor00700_D075BC[];
-
-extern s16 Actor00700_D06DF0[];
-extern u16 Actor00700_D06E00[];
-extern s16 Actor00700_D06E20[];
-extern u16 Actor00700_D06E30[];
-extern s16 Actor00700_D06E50[];
-extern s16 Actor00700_D06E98[];
-
-/// Per-`field_F` drift speed for the state-1 wander in `Actor00700_Fn02A28`,
-/// summed with a 5-bit `Gp_LcgState` draw.
-extern s16 Actor00700_D07598[];
-
-void Actor00700_Fn008B4(Actor00700* arg0);
-void Actor00700_Fn00BC0(Actor00700* arg0);
-void Actor00700_Fn012E4(Actor00700* arg0);
-void Actor00700_Fn01434(Actor00700Ctx* arg0, Actor00700* arg1);
-void Actor00700_Fn01830(Actor00700* arg0);
-void Actor00700_Fn0188C(Actor00700Ctx* arg0, Actor00700* arg1);
-void Actor00700_Fn01AB8(Actor00700* arg0);
-void Actor00700_Fn02290(Actor00700Ctx* arg0, Actor00700* arg1);
-void Actor00700_Fn02D28(Actor00700Ctx* arg0, Actor00700* arg1);
-void Actor00700_Fn0305C(Actor00700* arg0);
-void Actor00700_Fn03570(Actor00700* arg0);
 
 #endif
