@@ -4,7 +4,7 @@
 #include "main/mc.h"
 #include "main/task.h"
 
-#include "rooms/rooms_shared_801807d4.h"
+#include "rooms/shelter_b6_training_room.h"
 
 extern s8 D_801153F1;
 
@@ -35,5 +35,5 @@ void func_shelter_b6_training_room_8017DB70(void)
 
 void func_shelter_b6_training_room_8017DBB0(s32 arg0)
 {
-    RoomsShared801807d4Task = NULL;
+    D_shelter_b6_training_room_80185C5C = NULL;
 }
