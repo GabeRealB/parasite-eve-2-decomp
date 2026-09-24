@@ -1,35 +1,29 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 /// `rtps` / `mvmva` on v0. The `inline_c.h` macros of those names assemble to
 /// different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Queues one screen-aligned textured sprite. `arg1` is rotated out of `arg0`'s
-/// local space by the coordinate's `workm` and offset by its translation, then
-/// projected through `GsWSMATRIX` with a single `RTPS` into a 0x14-byte
-/// `G_SCRATCH_HEAD` block; anything nearer than `otz` 0x11 is dropped
-/// entirely.
-///
-/// The primitive is a semi-transparent `POLY_FT4` on tpage 0x2B. `arg2` picks
-/// one of the 40-texel-wide animation frames laid out along the texture page's
-/// top row -- u spans `arg2 * 40 .. arg2 * 40 + 39` at v 0..0x27 -- and also
-/// selects the clut, `(arg2 & 0x3F) | 0x4380`. `arg3` is a signed half-extent,
-/// so the axis-aligned quad is `(s16)arg3 * 39 / otz` in every direction from
-/// the projected centre and shrinks with distance. The flat colour alternates
-/// between 0x20 and 0x30 on the parity of `gDisplayState.animFrame`, which makes
-/// the sprite flicker. Shared body, linked into every room overlay that uses
-/// it.
-void Room_Draw35(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+/// Draws one glow sprite at `arg1`, a point in the local space of the model
+/// coordinate `arg0`: the point is rotated by the coordinate's `workm` and
+/// offset by its translation, then projected through `GsWSMATRIX` in 0x14
+/// bytes of scratch, released on exit. Anything nearer than `otz` 0x11 is
+/// dropped. The sprite is a semi-transparent `POLY_FT4` on tpage 0x2B; `arg2`
+/// picks the 40-texel-wide frame (u `arg2 * 40` onwards) and the clut
+/// `(arg2 & 0x3F) | 0x4380`, and `arg3` is a signed half-extent, so the quad
+/// reaches `(s16)arg3 * 39 / otz` from the projected centre. The grey level
+/// alternates between 0x20 and 0x30 with `animFrame`.
+void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;

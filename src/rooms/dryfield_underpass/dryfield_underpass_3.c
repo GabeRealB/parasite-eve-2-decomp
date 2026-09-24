@@ -1,9 +1,14 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_underpass.h"
 #include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_underpass_8017EAD0[8];
@@ -29,7 +34,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
         flags = D_dryfield_underpass_8017EB10;
         do {
             if (mask & *flags) {
-                Room_Draw35(coord, vec, 0, 0x280);
+                func_dryfield_underpass_8017DB20(coord, vec, 0, 0x280);
             }
             vec++;
             i++;

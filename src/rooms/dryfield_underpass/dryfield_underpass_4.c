@@ -1,4 +1,5 @@
 #include "common.h"
+
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
@@ -7,7 +8,13 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-void Room_Script01(Task* task)
+/// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
+/// waits for it to finish, and once its event key reaches 0xA toggles game
+/// nibble `spawnArg1`. When that nibble is 0x51 it also picks the room variant
+/// to load next from nibbles 0xC9, 0x53 and 0x51 and writes it to both the
+/// session and the save data. The last state flags the view dirty when the
+/// chosen room is 5 or above, then kills the task.
+void func_dryfield_underpass_8017D5D0(Task* task)
 {
     GpSaveLoc    src;
     GpSaveLoc    dst;
@@ -76,10 +83,11 @@ void Room_Script01(Task* task)
     }
 }
 
-/// Message 0x20 / 0x22: copies the incoming record onto the outgoing one and,
-/// when not a report-only query (`field_5 == 0`), answers in `field_3` from
-/// nibbles 0x51 / 0x53 / 0x52. Always returns 1 (not consumed).
-s32 Room_Script06(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Handler for message 0x13EE: copies the incoming record onto the outgoing one
+/// and, unless the query is report-only (`field_5` set), answers record id 0x20
+/// with 1 or 2 from nibble 0x51, raised by 2 while nibble 0x53 is set, and
+/// record id 0x22 with 1 or 2 from nibble 0x52. Always returns 1.
+s32 func_dryfield_underpass_8017D788(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 val;
 

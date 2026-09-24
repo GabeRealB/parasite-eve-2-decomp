@@ -37,12 +37,11 @@ void func_dryfield_underpass_8017DA00(void)
 {
 }
 
-/// Builds the message 0x26 record the room asks `Room_Script09` for - the same
-/// nibble 0xC9 / 0x53 / 0x51 answer in `field_3` - and publishes it: the answer
-/// is the room index stored in `gGameSession.at4.loc.room` (and the area-record id
-/// `D_8007216D`), then the session is told to rebuild through
-/// `Gp_RoomObjState1`. `Room_Script01`'s script-mode branch is the same code
-/// with a task wrapper around it.
+/// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
+/// same choice the switch task `func_dryfield_underpass_8017D5D0` makes when it
+/// toggles nibble 0x51, and writes it to the session's room and to
+/// `D_8007216D`, then flags the room objects dirty. Reached from the room's
+/// script data.
 void func_dryfield_underpass_8017DA08(void)
 {
     RoomEventMsg  src;
