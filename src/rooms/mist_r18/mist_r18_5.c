@@ -14,18 +14,17 @@
 #include <psyq/libgte.h>
 
 #include "rooms/room_common.h"
+#include "rooms/mist_r18.h"
 
-extern Task*    RoomsShared8017ea2cTask;
-extern s16      D_80071076;
-extern s8       D_801156F9;
-extern TaskDesc RoomsShared8017e5b8Desc;
+extern s16 D_80071076;
+extern s8  D_801156F9;
 
 void func_mist_r18_8017EA60(void)
 {
-    if (RoomsShared8017ea2cTask != NULL) {
-        taskKill(RoomsShared8017ea2cTask);
+    if (D_mist_r18_80186E98 != NULL) {
+        taskKill(D_mist_r18_80186E98);
     }
-    RoomsShared8017ea2cTask = NULL;
+    D_mist_r18_80186E98 = NULL;
 }
 
 void func_mist_r18_8017EA98(Task* task)
@@ -71,7 +70,7 @@ void func_mist_r18_8017EBB8(void)
 
 void func_mist_r18_8017EBF8(void)
 {
-    if (Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 7, 0, 0) != NULL) {
+    if (Task_SpawnFromTable(&D_mist_r18_80184F04, 7, 0, 0) != NULL) {
         D_801156F9 = 1;
     }
 }

@@ -9,9 +9,8 @@
 
 void func_mist_r18_8017E448(MistR18Sprite* sprite);
 void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
-/// Spawn descriptor handed to entry 5 of `RoomsShared8017e5b8Desc`.
-extern s32      D_mist_r18_80184EE4;
-extern TaskDesc RoomsShared8017e5b8Desc;
+/// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
+extern s32 D_mist_r18_80184EE4;
 /// The two prop tasks `func_mist_r18_8017E784` tears down, by index.
 extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
@@ -135,7 +134,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, idx, 8, (s32)gameGetPtrSlot(3));
+        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, (s32)gameGetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
             ((TmdObject*)task->extra)->flags &= 0xFF7F;
@@ -161,5 +160,5 @@ void func_mist_r18_8017E784(s32 idx)
 
 void func_mist_r18_8017E7F0(void)
 {
-    Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 5, 0, (s32)&D_mist_r18_80184EE4);
+    Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, (s32)&D_mist_r18_80184EE4);
 }

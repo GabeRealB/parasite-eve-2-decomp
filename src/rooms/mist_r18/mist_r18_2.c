@@ -1,11 +1,11 @@
 #include "common.h"
 
 #include "main/display.h"
-#include "rooms/room_common.h"
+#include "rooms/mist_r18.h"
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-void RoomsShared8017e144(s16 shade)
+void func_mist_r18_8017E144(s16 shade)
 {
     SPRT* p;
 
@@ -24,7 +24,7 @@ void RoomsShared8017e144(s16 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0x340, 0);
+    func_mist_r18_8017E994(0x340, 0);
 
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -41,7 +41,7 @@ void RoomsShared8017e144(s16 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0x280, 0x100);
+    func_mist_r18_8017E994(0x280, 0x100);
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E2C8);

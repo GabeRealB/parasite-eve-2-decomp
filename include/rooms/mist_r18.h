@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// Sprite description the overlay's two primitive emitters read from.
 ///
 /// `func_mist_r18_8017E448` turns it into a flat-shaded `TILE` and
@@ -80,5 +82,19 @@ typedef struct MistR18SpriteSpawn {
 } MistR18SpriteSpawn;
 
 STATIC_ASSERT_SIZEOF(MistR18SpriteSpawn, 0x8);
+
+/// The room's task-spawn table; its entries are started by index from the
+/// room's callbacks.
+extern TaskDesc D_mist_r18_80184F04;
+
+/// State handlers of the four-state task `func_mist_r18_8017E854` dispatches.
+extern TaskFuncTable4 D_mist_r18_8017D5DC;
+
+/// Handle of the task `func_mist_r18_8017EA2C` spawns.
+extern Task* D_mist_r18_80186E98;
+
+void func_mist_r18_8017DF80(s32 shade);
+void func_mist_r18_8017E144(s16 shade);
+void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 
 #endif

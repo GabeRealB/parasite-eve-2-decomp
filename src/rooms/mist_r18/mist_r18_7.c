@@ -1,13 +1,13 @@
 #include "common.h"
 
 #include "main/display.h"
-#include "rooms/room_common.h"
+#include "rooms/mist_r18.h"
 
 /// Redraw the room's two backdrop halves as opaque `SPRT`s in OT slot 8,
 /// tinting both with `shade`. Which display buffer is live shifts the source
 /// rows in the off-screen staging area, so both the sprites' `v` texcoord and
-/// the tpage row handed to `Room_Draw42` move with it.
-void RoomsShared8017df80(s32 shade)
+/// the tpage row handed to `func_mist_r18_8017E994` move with it.
+void func_mist_r18_8017DF80(s32 shade)
 {
     SPRT* p;
     s16   tpageY;
@@ -38,7 +38,7 @@ void RoomsShared8017df80(s32 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0, tpageY);
+    func_mist_r18_8017E994(0, tpageY);
 
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -54,5 +54,5 @@ void RoomsShared8017df80(s32 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0xC0, tpageY);
+    func_mist_r18_8017E994(0xC0, tpageY);
 }

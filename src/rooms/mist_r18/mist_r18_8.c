@@ -3,7 +3,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void Room_Script13(Task* task)
+/// Attach this task's model to part `Task::spawnArg1` of the parent task in
+/// `Task::spawnArg2`: parent the coordinate system to that part's, share the
+/// parent's light and colour matrices, reparent the task under it and step
+/// past the set-up state.
+void func_mist_r18_8017E320(Task* task)
 {
     Task*          parent;
     s32            part;
