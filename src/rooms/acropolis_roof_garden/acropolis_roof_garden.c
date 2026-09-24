@@ -58,13 +58,14 @@ extern u8           D_801153F4;
 /// One byte of gameplay state that field actors read back with `lb`.
 extern s8 D_8011540E;
 
-extern s32      D_acropolis_roof_garden_80183BDC;
-extern Task*    D_acropolis_roof_garden_80183C0C;
-extern TaskDesc D_acropolis_roof_garden_80183C10;
-extern s32      D_acropolis_roof_garden_80183D74;
-extern s32      D_acropolis_roof_garden_80184194;
-extern s32      D_acropolis_roof_garden_8018432C;
-extern s32      D_acropolis_roof_garden_80184B08;
+/// Messages the room task answers, terminated by id 0x7FFFFFFF.
+extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
+extern Task*      D_acropolis_roof_garden_80183C0C;
+extern TaskDesc   D_acropolis_roof_garden_80183C10;
+extern s32        D_acropolis_roof_garden_80183D74;
+extern s32        D_acropolis_roof_garden_80184194;
+extern s32        D_acropolis_roof_garden_8018432C;
+extern s32        D_acropolis_roof_garden_80184B08;
 
 /// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by
 /// the effect task's first-frame burst.
@@ -281,7 +282,7 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
 
 void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
-    arg0->msgTable = &D_acropolis_roof_garden_80183BDC;
+    arg0->msgTable = D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData.sceneEvent == 6) {
         Mc_SaveData.sceneEvent = 5;
