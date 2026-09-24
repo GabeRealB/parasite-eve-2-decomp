@@ -1,25 +1,23 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
+/// `rtps`: the `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the OTZ is at least 0x11, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
-/// byte `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0xC scratch
-/// layout as `Room_Draw25`. Shared body, linked into every room overlay that
-/// uses it.
-void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Queues a flickering sprite at the world point `arg0`: a semi-transparent
+/// `POLY_FT4` square centred on the point's projection, with half-width
+/// `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of tpage 0x2B and
+/// shaded 0x20 or 0x30 on alternate frames. Points closer than OTZ 0x11 are
+/// skipped.
+void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

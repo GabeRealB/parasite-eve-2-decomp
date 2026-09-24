@@ -1437,10 +1437,10 @@ id = 352
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_toilet/dryfield_night_toilet", rodata = "0x4", text = "0xB8" },
-  { lib = true, unit = "room_script05", text = "0x10" },
-  { lib = true, unit = "room_snd03", text = "0x84" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x164" },
-  { lib = true, unit = "room_draw20", text = "0x1BC" },
+  { unit = "dryfield_night_toilet/dryfield_night_toilet_3", text = "0x10" },
+  { unit = "dryfield_night_toilet/dryfield_night_toilet_4", text = "0x84" },
+  { unit = "dryfield_night_toilet/dryfield_night_toilet_5", text = "0x164" },
+  { unit = "dryfield_night_toilet/dryfield_night_toilet_6", text = "0x1BC" },
   { unit = "dryfield_night_toilet/dryfield_night_toilet_2", text = "0x438" },
   { kind = "data", at = "0x4B0" },
 ]
