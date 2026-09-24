@@ -2,6 +2,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 
 #include "main/task.h"
 #include "main/tmd.h"
@@ -75,4 +76,52 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor_4", func_shelter_b6_corridor_8017EE08);
+void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
+{
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    GpSprtCmd* cmd;
+    s32        run = arg0 & 0xFF;
+    s32        flag;
+
+    if (run == 0) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            cmd            = rec[1].field_4;
+            cmd[1].field_4 = 1;
+            return;
+        }
+        if (flag == 1) {
+            cmd            = rec[1].field_4;
+            cmd[1].field_4 = 0;
+            return;
+        }
+    } else if (run == 1) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            cmd            = rec[1].field_4;
+            cmd[2].field_4 = run;
+            cmd            = rec[2].field_4;
+            cmd[2].field_4 = run;
+            return;
+        }
+        if (flag == run) {
+            cmd            = rec[1].field_4;
+            cmd[2].field_4 = 0;
+            cmd            = rec[2].field_4;
+            cmd[2].field_4 = 0;
+            return;
+        }
+    } else if (run == 2) {
+        flag = arg1 & 0xFF;
+        if (flag == 0) {
+            cmd            = rec[2].field_4;
+            cmd[1].field_4 = 1;
+            return;
+        }
+        if (flag == 1) {
+            cmd            = rec[2].field_4;
+            cmd[1].field_4 = 0;
+        }
+    }
+}
