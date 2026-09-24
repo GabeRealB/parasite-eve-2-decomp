@@ -3329,14 +3329,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { kind = "rodata", at = "0x50" },
-  { kind = "rodata", at = "0x68" },
-  { unit = "actor_03800/actor_103800_contact", rodata = "0x14", text = "0xA98" },
-  { unit = "actor_03800/actor_103800_detach", rodata = "0x3C", text = "0x1150" },
-  { unit = "actor_03800/actor_103800_idle", rodata = "0x54", text = "0x1EEC" },
-  { unit = "actor_03800/actor_103800_text", rodata = "0x6C", text = "0x2584" },
-  { unit = "actor_03800/actor_103800_init", text = "0xB8" },
+  { unit = "actor_03800/actor_03800", rodata = "0x4", text = "0xB8" },
   { kind = "model", at = "0x38D0" },
   { kind = "model", at = "0x43C4" },
   { kind = "model", at = "0x45C0" },
