@@ -1,18 +1,19 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
-
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_north_maintenance_walkway.h"
 
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
@@ -20,6 +21,22 @@ extern u8         D_80071075;
 extern s16        D_80071076;
 extern u8         D_801153F4;
 extern u8         D_80115690;
+
+extern s32 D_80115720;
+extern s32 D_80115728;
+extern s32 D_8011572C;
+extern s32 D_80115730;
+extern s32 D_80115734;
+extern s32 D_8011573C;
+extern s32 D_80115744;
+extern s32 D_80115750;
+extern s32 D_80115754;
+extern s32 D_80115758;
+
+extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[];
+extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
+extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[];
+extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
 
 void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 
@@ -29,7 +46,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 /// `flagId` is the game-flag nibble that records the event as done: a set
 /// nibble stops it firing again, and starting it sets the nibble (0 means no
 /// flag). A non-zero `field_A` has the event task spawn task 0x31.
-typedef struct _ShelterB1NorthMaintenanceWalkwayEvent {
+typedef struct {
     s32 field_0;
     s32 field_4;
     s16 flagId;
@@ -216,8 +233,96 @@ void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017DAF4(void)
+/// The room task's idle state: does nothing.
+void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task)
 {
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", D_shelter_b1_north_maintenance_walkway_8017D5D8);
+/// The room task's three states: set-up, idle and exit.
+const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
+    { func_shelter_b1_north_maintenance_walkway_8017DA4C, func_shelter_b1_north_maintenance_walkway_8017DAF4, taskKill },
+};
+
+/// The room task. Runs the handler for its current state from the room's
+/// three-entry state table: set-up, an idle tick, and `taskKill`.
+void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b1_north_maintenance_walkway_8017D5D8;
+    sp.funcs[task->state](task);
+}
+
+void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
+{
+    GpAreaKey* sess = &gGameSession->at4.loc;
+    GpSprtRec* rec;
+    GpSprtCmd* cmd;
+    s32        mode;
+
+    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    mode = arg0 & 0xFF;
+    if (mode == 0) {
+        cmd            = rec[2].field_4;
+        cmd[2].field_4 = 1;
+    } else if (mode == 1) {
+        cmd            = rec[2].field_4;
+        cmd[2].field_4 = 0;
+    }
+}
+
+void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
+{
+    if (arg0->state == 0) {
+        D_80115728  = 0x60247;
+        D_80115744  = 0x60253;
+        D_8011573C  = 0x6025E;
+        D_80115720  = 0x6026A;
+        D_80115758  = 0x601CB;
+        D_8011572C  = 0x601E7;
+        D_80115750  = 0x60203;
+        D_80115734  = 0x6021F;
+        D_80115730  = 0x6022A;
+        D_80115754  = 0x60235;
+        arg0->state = 1;
+    }
+
+    switch (gGameSession->at4.loc.view) {
+        case 2: {
+            SVECTOR* p;
+            p = D_shelter_b1_north_maintenance_walkway_80184B18;
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
+            break;
+        }
+        case 3: {
+            SVECTOR* p;
+            p = D_shelter_b1_north_maintenance_walkway_80184B08;
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[2], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
+            break;
+        }
+        case 4:
+        case 6: {
+            SVECTOR* p;
+            p = D_shelter_b1_north_maintenance_walkway_80184B48;
+            func_shelter_b1_north_maintenance_walkway_8017E55C(&p[0], 0x200);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-18], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-16], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-14], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-12], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-10], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-8], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-6], 0x200, 0x800);
+            break;
+        }
+        case 5: {
+            SVECTOR* p;
+            p = D_shelter_b1_north_maintenance_walkway_80184AB8;
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[6], 0x200, -0x400);
+            break;
+        }
+    }
+}
