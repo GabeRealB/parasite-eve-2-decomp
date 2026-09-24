@@ -27,7 +27,8 @@ typedef struct ShelterB2SepticTankWaterWork {
     s16 z;
 } ShelterB2SepticTankWaterWork;
 
-/// The room's water surfaces.
+/// The room's water surfaces, as two lists drawn by separate functions.
+extern ShelterB2SepticTankSurface D_shelter_b2_septic_tank_801832CC[];
 extern ShelterB2SepticTankSurface D_shelter_b2_septic_tank_801832F0[];
 
 /// Height of the water surfaces.
@@ -36,6 +37,7 @@ extern s16 D_shelter_b2_septic_tank_801832BC;
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b2_septic_tank_80187054;
 
+void func_shelter_b2_septic_tank_8017DB68(void);
 void func_shelter_b2_septic_tank_8017E2DC(void);
 
 #endif // ROOMS_SHELTER_B2_SEPTIC_TANK_H
