@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_80136614.h"
+#include "actors/actor_107000.h"
 #include "gameplay/1BC.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -18,7 +18,7 @@ void Actor07000_Fn062A8(Task* arg0)
 
     coords    = ((TmdObject*)arg0->extra)->coords;
     child     = &coords[1];
-    angle     = ActorsShared80136614(coords, &dist);
+    angle     = Actor07000_Fn047F4(coords, &dist);
     offset.vz = 0;
     offset.vy = 0;
     offset.vx = 0;

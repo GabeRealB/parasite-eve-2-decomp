@@ -1,9 +1,6 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_80134680.h"
-#include "actors/actors_shared_80134700.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
@@ -11,7 +8,6 @@
 
 #include <psyq/libgs.h>
 
-void ActorsShared80134690(void* arg0, Task* task);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void Actor07000_Fn00478(Task* arg0);
 void Actor07000_Fn00A1C(Task* arg0);
@@ -62,14 +58,14 @@ default_body:
     Actor07000_Fn00478(arg1);
     Actor07000_Fn026BC(arg1);
     Actor07000_Fn00A1C(arg1);
-    ActorsShared80134680(arg1);
-    ActorsShared80134810(arg1, &((TmdObject*)arg1->extra)->coords[1]);
+    Actor07000_Fn02860(arg1);
+    Actor07000_Fn029F0(arg1, &((TmdObject*)arg1->extra)->coords[1]);
     ((TmdObject*)arg1->extra)->coords[0].flg = 0;
     ((TmdObject*)arg1->extra)->coords[1].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
-    ActorsShared80134690(arg0, arg1);
-    ActorsShared80134700(arg1);
+    Actor07000_Fn02914(arg0, arg1);
+    Actor07000_Fn02984(arg1);
 }
 
 /// Per-frame reaction dispatch, gated on the enemy's flag byte: bit 0x1 runs

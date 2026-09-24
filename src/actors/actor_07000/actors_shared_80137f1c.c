@@ -29,7 +29,11 @@
         : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
         : "$12", "$13", "$14", "memory")
 
-void ActorsShared80137f1c(Task* arg0)
+/// Stretches the model's sixth coordinate by the scale delta `field_384`
+/// while it is non-zero: the matrix's first column is scaled by
+/// `0x1000 + field_384`, the other two by a quarter of that delta, each column
+/// through an `SVECTOR` on the GTE, and the coordinate is marked dirty.
+void Actor07000_Fn060FC(Task* arg0)
 {
     SVECTOR                   vec;
     MATRIX*                   m;

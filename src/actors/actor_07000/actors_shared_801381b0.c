@@ -1,12 +1,16 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_801381b0.h"
 #include "main/tmd.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-void ActorsShared801381b0(Task* arg0)
+/// Applies the second form's reaction twist: the rotation `rotation` is
+/// turned into a matrix on the scratch stack and multiplied into the rotations
+/// of coordinates 3 and 5 on the GTE. The twist's X angle then decays by 0x20
+/// a frame; once it would drop to 0x20 or below it is cleared together with
+/// `field_38C`.
+void Actor07000_Fn06390(Task* arg0)
 {
     Actor107000Spawn2Work* work;
     GsCOORDINATE2*         coord;

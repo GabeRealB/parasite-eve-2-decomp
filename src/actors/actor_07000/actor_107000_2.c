@@ -2,7 +2,6 @@
 #include "actors/actor_107000.h"
 #include "actors/actor_107000_anim.h"
 #include "actors/actors_shared_801673f8.h"
-#include "actors/actors_shared_8013454c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"

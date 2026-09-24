@@ -1,10 +1,7 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_107000.h"
 #include "actors/actor_107000_anim.h"
-#include "actors/actors_shared_8013454c.h"
-#include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -36,20 +33,6 @@ extern SVECTOR Actor07000_D08070;
 extern u32     Actor07000_D06938[];
 extern u32     Actor07000_D06944[];
 extern SVECTOR Actor07000_D08068;
-
-// actor_104600 (func_actor_104600_80131E68), actor_204600
-// (func_actor_204600_80149E68) and actor_207000 (func_actor_207000_80149F0C)
-// carry the same body, refused promotion for the reason its sibling below is:
-// the pair table, the animation bank and the node-3 record it names -
-// Actor07000_D06924, Actor07000_D06928 and
-// Actor07000_D08058 - are this overlay's own data, so one shared object
-// could not link into the other three.
-
-// actor_104600 (func_actor_104600_801325D0), actor_204600
-// (func_actor_204600_8014A5D0) and actor_207000 (func_actor_207000_8014A674)
-// carry the same body, refused promotion because both of its remaining calls -
-// Actor07000_Fn0107C and Actor07000_Fn016A8 - are named in this
-// overlay only, so one shared object could not link into the other three.
 
 void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 {
@@ -90,13 +73,6 @@ void Actor07000_Fn016A8(Task* arg0, u8 arg1)
         work->field_2B2 = 6;
     }
 }
-
-// actor_104600 (func_actor_104600_801335EC), actor_204600
-// (func_actor_204600_8014B5EC) and actor_207000 (func_actor_207000_8014B690)
-// carry the same body, refused promotion because it reads its own overlay's
-// data - the two pair records, the animation source and the message table are
-// named per overlay, so one shared object could not resolve them in the other
-// three.
 
 /// Spawn/setup handler of the caged specimen, entry 0 of
 /// `Actor07000_D00010`. A task already on this handler (`spawnArg1`'s
@@ -223,4 +199,4 @@ void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_07000_3", Actor07000_D0003C);
-INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_07000_3", ActorsShared801385d4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_07000_3", Actor07000_D0004C);

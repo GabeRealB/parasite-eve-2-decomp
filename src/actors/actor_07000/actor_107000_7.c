@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_8013851c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -47,21 +46,21 @@ void Actor07000_Fn049C0(Task* arg0)
             D_80062730 = (s32)&Actor07000_D0B730;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 1, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, arg0);
+                Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 2:
             D_80062730 = (s32)&Actor07000_D0B194;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 5, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, arg0);
+                Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 3:
             D_80062730 = (s32)&Actor07000_D0AB40;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->extra)->coords + 4, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, arg0);
+                Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
     }

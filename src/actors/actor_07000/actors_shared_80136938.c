@@ -1,8 +1,7 @@
 #include "common.h"
 
+#include "actors/actor_107000.h"
 #include "actors/actors_shared_80136938.h"
-#include "actors/actors_shared_80136c80.h"
-#include "actors/actors_shared_801511c8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -15,7 +14,16 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-void ActorsShared80136938(Task* arg0)
+/// Spawn handler of a specimen projectile, entry 0 of `Actor07000_D000E0`.
+/// Allocates the 0x58-byte work, spawns effect 0x60081 on the parent's
+/// coordinate and re-parents the task under it, and derives a launch velocity
+/// from the spawn angle in `spawnArg1` and two `Gp_LcgState` draws, rotated
+/// into the coordinate's frame and scaled on the GTE. The coordinate's rotation
+/// is reset to identity and nudged by that velocity, and the render node is
+/// linked with a capsule collision record keyed by `Actor07000_D08078`. The
+/// task takes `Actor07000_Fn068F0` as its exit callback, cues the launch sound
+/// and runs its first frame through `Actor07000_Fn04E60`.
+void Actor07000_Fn04B18(Task* arg0)
 {
     ActorsShared80136938Work* work;
     GsCOORDINATE2*            coord;
@@ -81,7 +89,7 @@ void ActorsShared80136938(Task* arg0)
     obj->pos.vy        = 0;
     obj->pos.vz        = 0;
     obj->radius        = 0;
-    obj->key           = Gp_PackPair(&ActorsShared80136938Pair, 1);
+    obj->key           = Gp_PackPair(&Actor07000_D08078, 1);
     obj->flags         = 3;
     rec->recs          = &work->rec2;
     rec->end1.vx       = 0;
@@ -95,11 +103,11 @@ void ActorsShared80136938(Task* arg0)
     Gp_InitRec18Table(&work->rec2, 1, 0);
     Gp_LinkObj(3, obj);
     obj->flags                 |= 0xC000;
-    arg0->exitCallback          = ActorsShared801511c8;
+    arg0->exitCallback          = Actor07000_Fn068F0;
     *(SVECTOR**)G_SCRATCH_HEAD += 1;
     arg0->state                += 1;
     __asm__("" : "=r"(rec), "+r"(coord));
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x40460002, pan, (s8)gpGetObjDepth(coord));
-    ActorsShared80136c80(arg0);
+    Actor07000_Fn04E60(arg0);
 }

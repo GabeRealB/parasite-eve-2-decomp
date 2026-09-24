@@ -1,10 +1,7 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_107000.h"
 #include "actors/actor_107000_anim.h"
-#include "actors/actors_shared_8013454c.h"
-#include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -37,18 +34,10 @@ extern u32     Actor07000_D06938[];
 extern u32     Actor07000_D06944[];
 extern SVECTOR Actor07000_D08068;
 
-// actor_104600 (func_actor_104600_80131E68), actor_204600
-// (func_actor_204600_80149E68) and actor_207000 (func_actor_207000_80149F0C)
-// carry the same body, refused promotion for the reason its sibling below is:
-// the pair table, the animation bank and the node-3 record it names -
-// Actor07000_D06924, Actor07000_D06928 and
-// Actor07000_D08058 - are this overlay's own data, so one shared object
-// could not link into the other three.
-
 /// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
 /// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four
-/// `GpObj` render nodes and their `GpRec18` tables into it and hands the task
-/// over to `ActorsShared8014ca28`. The spawn arg's high halfword is the variant
+/// `GpObj` render nodes and their `GpRec18` tables into it and installs
+/// `Actor07000_Fn02CAC` as the exit callback. The spawn arg's high halfword is the variant
 /// the model was spawned as - when it is 1 the specimen is killed instead, and
 /// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
 /// with a matching `spawnType` is the one that carries a streamed model: its
@@ -166,21 +155,13 @@ void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
         }
     }
     work->field_2B4    = 0;
-    arg1->exitCallback = ActorsShared8014ca28;
+    arg1->exitCallback = Actor07000_Fn02CAC;
     arg1->state       += 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000", Actor07000_D00004);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000", Actor07000_D00010);
-
-// actor_104600 (func_actor_104600_801321F4), actor_204600
-// (func_actor_204600_8014A1F4) and actor_207000 (func_actor_207000_8014A298)
-// carry the same body, refused promotion for the reason its sibling below is:
-// its three remaining calls - Actor07000_Fn00654,
-// Actor07000_Fn00854 and ActorsShared80134810 - and the effect
-// offset it spawns at are named in this overlay only, so one shared object
-// could not link into the other three.
 
 /// Per-frame dispatch of the caged specimen, on the reaction state in
 /// `field_2B2`: 0 is the dormant arm `Actor07000_Fn00654` and 1 the
@@ -189,10 +170,10 @@ INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000", Actor07000_D00010
 /// the rebind, waits out the generic flag-2 helper on the spawn arg and, once
 /// that expires, wakes the specimen: the rebind is released and
 /// `field_2B2`/`field_2C8` move to 1, the live stage. The arm ends in
-/// `ActorsShared8013454c` either way.
+/// `Actor07000_Fn027D0` either way.
 ///
 /// 4 and 5 are the two collapse arms. Both drive the model's second coordinate
-/// through `ActorsShared80134810`, count `field_2BC` up and spawn the
+/// through `Actor07000_Fn029F0`, count `field_2BC` up and spawn the
 /// 0x60080 effect on the model's coordinate every 0x10 frames; 5 also counts
 /// `field_2D4` and, on the third count, writes the same death sequence the
 /// reaction dispatch does - a five-frame countdown, `field_2B4` cleared and the
@@ -221,11 +202,11 @@ void Actor07000_Fn00478(Task* arg0)
                 work->field_2C8 = 1;
                 work->field_2BE = 0;
             }
-            ActorsShared8013454c(arg0);
+            Actor07000_Fn027D0(arg0);
             return;
         case 4:
             work->field_2AC = 0x1000;
-            ActorsShared80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
+            Actor07000_Fn029F0(arg0, &((TmdObject*)arg0->extra)->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -237,7 +218,7 @@ void Actor07000_Fn00478(Task* arg0)
             return;
         case 5:
             work->field_2AC = 0x1000;
-            ActorsShared80134810(arg0, &((TmdObject*)arg0->extra)->coords[1]);
+            Actor07000_Fn029F0(arg0, &((TmdObject*)arg0->extra)->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -257,15 +238,3 @@ void Actor07000_Fn00478(Task* arg0)
             work->field_2D2 = 1;
     }
 }
-
-// actor_104600 (func_actor_104600_801323D0), actor_204600
-// (func_actor_204600_8014A3D0) and actor_207000 (func_actor_207000_8014A474)
-// carry the same body. Unlike the siblings around it, nothing this one names is
-// overlay-local - every call it makes is already shared, so one shared object
-// *would* link into all four carriers. It is the span that cannot be placed:
-// 0x654..0x854 sits inside this overlay's first code unit, and this overlay and
-// actor_207000 already carry a hand-placed `rodata` cut, which is the layout
-// `bulk_m2c_promote.py` refuses to re-derive (`already has hand-placed
-// rodata/units cuts; splitting a unit there needs them re-derived by hand`).
-// So the body stays matched in each carrier until that pass is done with a
-// person re-deriving the cut.

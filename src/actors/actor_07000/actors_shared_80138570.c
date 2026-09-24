@@ -4,9 +4,10 @@
 
 #include "gameplay/1BC.h"
 
-/// Task exit callback: flags the enemy's list node, takes it and the three
-/// display nodes back off their lists, and kills the task.
-void ActorsShared80138570(Task* task)
+/// Exit callback of the specimen's second form: flags the enemy's node, takes
+/// it and the three render nodes back off their lists and runs the common
+/// enemy task exit.
+void Actor07000_Fn06750(Task* task)
 {
     ActorShared80138570Work* work;
     GpEnemy*                 enemy;

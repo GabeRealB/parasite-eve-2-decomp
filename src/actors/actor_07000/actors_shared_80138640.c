@@ -2,11 +2,10 @@
 
 #include "actors/actors_shared_80138640.h"
 
-/// Steps the actor's coordinate forward, saving the previous position first.
-/// The horizontal step follows the coordinate's own forward axis
-/// (`coord.m[*][2]`) scaled by `ActorShared80138640Work::field_378`; the
-/// vertical step is a plain per-frame delta.
-void ActorsShared80138640(ActorShared80138640* arg0)
+/// Steps the second form's root one frame: saves the current translation in
+/// `field_33C`, advances X and Z along the rotation's Z column scaled by the
+/// step length `field_378`, and Y by the fall speed `field_398`.
+void Actor07000_Fn06820(ActorShared80138640* arg0)
 {
     GsCOORDINATE2*           coord;
     ActorShared80138640Work* work;

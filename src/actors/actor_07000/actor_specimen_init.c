@@ -1,16 +1,20 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actor_specimen_init.h"
-#include "actors/actors_shared_80136938.h"
-#include "actors/actors_shared_80138570.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorSpecimenInit(GpEnemy* arg0, Task* arg1)
+/// Spawn handler of the specimen's second form, entry 0 of
+/// `Actor07000_D0003C`: allocates the 0x39C-byte `Actor107000Spawn2Work`,
+/// rebinds the model's light and colour matrices into it, links the enemy
+/// node and the three render nodes with their collision tables, seeds the six
+/// helper animation slots, draws the two `Gp_LcgState` timers `field_390`/
+/// `field_392`, installs `Actor07000_Fn06750` as the exit callback and moves
+/// the task on to its per-frame state.
+void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     GpRec18*               table;
@@ -42,13 +46,13 @@ void ActorSpecimenInit(GpEnemy* arg0, Task* arg1)
     arg0->node.flags = 0;
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vz = 0;
-    arg0->param      = &ActorSpecimenInitParams;
-    arg0->hp         = ActorSpecimenInitParams.hpMax;
+    arg0->param      = &Actor07000_D08080;
+    arg0->hp         = Actor07000_D08080.hpMax;
     arg0->recs       = work->field_24C;
     work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360  = 0x280;
     work->field_362  = 2;
-    func_800B3F84((GpAnimCtx*)work, ActorSpecimenInitAnimBank, obj,
+    func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj,
                   work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
@@ -93,7 +97,7 @@ void ActorSpecimenInit(GpEnemy* arg0, Task* arg1)
     work->obj3.pos.vx   = -0x154;
     work->obj3.pos.vy   = 0;
     work->obj3.pos.vz   = 0;
-    work->obj3.key      = Gp_PackPair(&ActorsShared80136938Pair, 0);
+    work->obj3.key      = Gp_PackPair(&Actor07000_D08078, 0);
     work->obj3.radius   = 0x1F4;
     work->obj3.flags    = 1;
     Gp_LinkObj(3, &work->obj3);
@@ -106,6 +110,6 @@ void ActorSpecimenInit(GpEnemy* arg0, Task* arg1)
     rng2               = rng * 5 + 0x71357911;
     Gp_LcgState        = rng2;
     work->field_392    = (u16)((rng2 >> 16) % 50U + 0x32);
-    arg1->exitCallback = ActorsShared80138570;
+    arg1->exitCallback = Actor07000_Fn06750;
     arg1->state       += 1;
 }

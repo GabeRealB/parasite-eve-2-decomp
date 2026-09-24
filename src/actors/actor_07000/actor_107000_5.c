@@ -1,9 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_801381b0.h"
-#include "actors/actors_shared_80137cf4.h"
-#include "actors/actors_shared_80137f1c.h"
+#include "actors/actors_shared_8013777c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
@@ -11,10 +9,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "gameplay/3CD8.h"
-#include "actors/actors_shared_8013777c.h"
-#include "actors/actors_shared_80136614.h"
 
-void           ActorsShared8014fda4(Task* arg0);
 void           Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2);
 void           Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2);
 void           Actor07000_Fn03E08(Task* arg0);
@@ -138,22 +133,15 @@ default_body:
     coord->coord.t[1] += 0x80;
     Actor07000_Fn0662C(arg1);
     Actor07000_Fn03E08(arg1);
-    ActorsShared80137cf4(arg1);
-    ActorsShared80137f1c(arg1);
-    ActorsShared801381b0(arg1);
+    Actor07000_Fn05ED4(arg1);
+    Actor07000_Fn060FC(arg1);
+    Actor07000_Fn06390(arg1);
     ((TmdObject*)arg1->extra)->coords[0].flg = 0;
     ((TmdObject*)arg1->extra)->coords[1].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
-    ActorsShared8014fda4(arg1);
+    Actor07000_Fn05F84(arg1);
 }
-
-// actor_207000 carries the same body at 0x8014CF84, but it cannot be shared:
-// six of its calls - the two reaction handlers, the three per-frame helpers and
-// the spawn-effect helper - plus the `Actor07000_D0D7B8` vector it spawns
-// with are this overlay's own, each at its own address in the two carriers.
-// `overlay_dup_index.py promote` refuses it for that reason; matching it once
-// needs those symbols shared first.
 
 void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
 {
@@ -255,7 +243,7 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
                 Gp_SetStateF0Byte3(1);
                 Gp_ArmStateF0(1);
             }
-            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            Actor07000_Fn047F4(((TmdObject*)arg0->extra)->coords, &distance);
             if (Gp_CountRec18Hi(work->field_214, 0x10000) == 0 || distance >= 5000U) {
                 work->field_36E++;
                 if ((s16)work->field_36E > work->field_390) {
@@ -274,7 +262,7 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             Gp_ArmStateF0(1);
             work->field_370 = 4;
             work->field_378 = 0;
-            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            Actor07000_Fn047F4(((TmdObject*)arg0->extra)->coords, &distance);
             if (distance < 900U) {
                 work->field_386 = 0;
             } else if (distance > 2700U) {
@@ -344,7 +332,7 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             break;
         case 4:
             work->field_370 = 7;
-            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &distance);
+            Actor07000_Fn047F4(((TmdObject*)arg0->extra)->coords, &distance);
             if (distance < 900U) {
                 work->field_386 = 0;
             } else if (distance > 2700U) {
@@ -532,7 +520,7 @@ void Actor07000_Fn03E08(Task* arg0)
 /// 0x33 lands on the long recoil (sub-state 1, animation 4) and 0x15 or above
 /// on the short one (sub-state 0, animation 6). Below both, an idle sub-state
 /// with no branch selected re-measures the coordinate with
-/// `ActorsShared80136614` and picks branch 2 once the target is 2500
+/// `Actor07000_Fn047F4` and picks branch 2 once the target is 2500
 /// units away, branch 1 otherwise.
 void Actor07000_Fn04274(Task* arg0, s32 arg1)
 {
@@ -579,7 +567,7 @@ void Actor07000_Fn04274(Task* arg0, s32 arg1)
             return;
         }
         if (state == 0 || work->field_382 == 0) {
-            ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &sp10);
+            Actor07000_Fn047F4(((TmdObject*)arg0->extra)->coords, &sp10);
             work->field_36A = 1;
             work->field_36E = 0;
             if (sp10 >= 0x9C4) {
@@ -591,9 +579,4 @@ void Actor07000_Fn04274(Task* arg0, s32 arg1)
     }
 }
 
-// actor_207000 carries the same body as func_actor_207000_8014E094; the two
-// were kept apart only because the body's last call was this overlay's own
-// ActorsShared80136614. That call now goes to the shared
-// ActorsShared80136614 in both slots, so the objection no longer holds.
-
-INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000_5", ActorsShared80138404Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_07000/actor_107000_5", Actor07000_D000E0);

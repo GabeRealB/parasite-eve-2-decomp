@@ -17,7 +17,7 @@
 ///
 /// This is the same object the spawn handler takes as `GpEnemy*`, seen from the
 /// side that needs only that one flag: `field_14` is `GpEnemy::node.flags`,
-/// and the handlers that also tear the enemy down (`ActorsShared80136288`
+/// and the handlers that also tear the enemy down (`Actor07000_Fn04468`
 /// spends `recs` and unlinks `node`) spell it as the `GpEnemy` it is.
 typedef struct Actor107000Ctx {
     /* 0x00 */ byte pad_0[0x14];
@@ -62,7 +62,7 @@ STATIC_ASSERT_SIZEOF(Actor107000ContactScratch, 0x4C);
 /// alongside it.
 ///
 /// `field_28C`/`field_2CA` are the same pair as `Actor207200Work`'s
-/// `field_264`/`field_2A0`: the transform `ActorsShared801349d8` folds onto the
+/// `field_264`/`field_2A0`: the transform `Actor07000_Fn02BB8` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
     /* 0x000 */ byte     pad_0[0x11A];
@@ -262,5 +262,44 @@ extern u32 Gp_LcgState;
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
 void Actor07000_Fn046B8(Task* arg0, s32 arg1);
+
+extern GpEnemyTaskFuncTable3 Actor07000_D00004;
+extern GpEnemyTaskFuncTable5 Actor07000_D0004C;
+extern TaskFuncTable3        Actor07000_D000E0;
+extern GpU16Pair             Actor07000_D08078;
+extern GpPairSrcE            Actor07000_D08080;
+extern u8                    Actor07000_D0D77C[];
+
+void Actor07000_Fn00654(Task* arg0);
+void Actor07000_Fn0107C(Task* arg0);
+void Actor07000_Fn011B4(GpEnemy* enemy, Task* task);
+void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1);
+void Actor07000_Fn01EB0(Task* arg0);
+void Actor07000_Fn02548(Task* task);
+void Actor07000_Fn027D0(Task* task);
+void Actor07000_Fn02860(Task* arg0);
+void Actor07000_Fn02914(void* arg0, Task* task);
+void Actor07000_Fn02984(Task* task);
+void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1);
+void Actor07000_Fn02BB8(Task* arg0);
+void Actor07000_Fn02CAC(Task* task);
+void Actor07000_Fn02D78(Task* task);
+void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1);
+void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
+s32  Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1);
+void Actor07000_Fn04B18(Task* arg0);
+void Actor07000_Fn04E60(Task* arg0);
+void Actor07000_Fn05400(Actor107000Ctx* arg0, Task* arg1);
+void Actor07000_Fn0595C(Task* arg0);
+void Actor07000_Fn05ED4(Task* arg0);
+void Actor07000_Fn05F84(Task* task);
+void Actor07000_Fn060FC(Task* arg0);
+void Actor07000_Fn06338(Task* task);
+void Actor07000_Fn06390(Task* arg0);
+void Actor07000_Fn066FC(Task* dst, Task* src);
+void Actor07000_Fn06750(Task* task);
+void Actor07000_Fn067B4(Task* task);
+void Actor07000_Fn068B4(Task* arg0);
+void Actor07000_Fn068F0(Task* arg0);
 
 #endif

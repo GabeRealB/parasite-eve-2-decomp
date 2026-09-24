@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor_107000.h"
 #include "actors/actors_shared_80136288.h"
 #include "actors/actors_shared_80137e18.h"
 #include "actors/actors_shared_80137ea8.h"
@@ -10,7 +11,22 @@
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void ActorsShared80136288(GpEnemy* arg0, Task* arg1)
+void Actor07000_Fn05FF8(ActorShared80137e18* arg0);
+void Actor07000_Fn06088(ActorShared80137ea8* arg0);
+
+/// Death handler of the specimen's second form, entry 2 of
+/// `Actor07000_D0003C`. `D_801153F4` mode 1 does nothing and mode 2 hides the
+/// model. Otherwise `field_36C` steps the death: phase 0 (unless `field_394`
+/// has spent the frame's reaction) cues the death sound, sets the model's flag
+/// word to 2 and splices a scaling coordinate into the model through
+/// `Actor07000_Fn05FF8`, then unlinks the enemy node and the three
+/// render nodes, releases the global state and switches the animation to 0xC;
+/// phase 1 flattens that coordinate through `Actor07000_Fn06088` for 0x3D
+/// frames; phase 2 cues the closing sound,
+/// hides the model, re-parents its second coordinate onto the root and moves
+/// the task to state 3. The six helper animation slots are then rebound or
+/// ticked with the lighting mode set to 1.
+void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
 {
     ActorShared80136288Work* work;
     ActorShared80136288Work* work2;
@@ -50,7 +66,7 @@ default_body:
             if (work->field_394 == 0) {
                 SndEvt_EnqueueType6(0xD, 0, 0);
                 obj->flags = 2;
-                ActorsShared80137e18((ActorShared80137e18*)arg1);
+                Actor07000_Fn05FF8((ActorShared80137e18*)arg1);
             }
             arg0->recs = 0;
             Gp_UnlinkNode(&arg0->node);
@@ -64,7 +80,7 @@ default_body:
             break;
         case 1:
             if (work->field_394 == 0) {
-                ActorsShared80137ea8((ActorShared80137ea8*)arg1);
+                Actor07000_Fn06088((ActorShared80137ea8*)arg1);
             } else {
                 obj->flags = 0x80;
             }

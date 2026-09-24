@@ -6,11 +6,10 @@
 
 void Gp_UpdateActorColor(void* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
-/// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters. `arg0` is the colour target, passed straight through.
-void ActorsShared80134690(void* arg0, Task* task)
+/// Colours the caged specimen from the world position of the model's second
+/// coordinate, staged in a `VECTOR` taken off the scratch stack; `arg0` is the
+/// colour target.
+void Actor07000_Fn02914(void* arg0, Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;

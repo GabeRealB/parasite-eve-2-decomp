@@ -6,11 +6,10 @@
 
 #include "gameplay/3A34.h"
 
-/// Colours the model from the *second* attach coordinate: takes a 0x10-byte
-/// `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's world position
-/// and hands it to `Gp_UpdateActorColor` with no blend parameters. The colour
-/// target is the task's own `spawnArg2`, so it is read first.
-void ActorsShared8014fda4(Task* task)
+/// Colours the specimen's second form from the world position of the model's
+/// second coordinate, staged in a `VECTOR` taken off the scratch stack; the
+/// colour target is the task's enemy.
+void Actor07000_Fn05F84(Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;

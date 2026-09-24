@@ -1,10 +1,7 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_107000.h"
 #include "actors/actor_107000_anim.h"
-#include "actors/actors_shared_8013454c.h"
-#include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -37,20 +34,6 @@ extern u32     Actor07000_D06938[];
 extern u32     Actor07000_D06944[];
 extern SVECTOR Actor07000_D08068;
 
-// actor_104600 (func_actor_104600_80131E68), actor_204600
-// (func_actor_204600_80149E68) and actor_207000 (func_actor_207000_80149F0C)
-// carry the same body, refused promotion for the reason its sibling below is:
-// the pair table, the animation bank and the node-3 record it names -
-// Actor07000_D06924, Actor07000_D06928 and
-// Actor07000_D08058 - are this overlay's own data, so one shared object
-// could not link into the other three.
-
-// actor_104600 (func_actor_104600_801325D0), actor_204600
-// (func_actor_204600_8014A5D0) and actor_207000 (func_actor_207000_8014A674)
-// carry the same body, refused promotion because both of its remaining calls -
-// Actor07000_Fn0107C and Actor07000_Fn016A8 - are named in this
-// overlay only, so one shared object could not link into the other three.
-
 /// Per-frame handler of the caged specimen, dispatched on the reaction stage in
 /// `field_2C8`: 1 is the live specimen, 2 the death throes. Every stage ends in
 /// the shared epilogue, so the switch's default is a jump straight there.
@@ -64,7 +47,7 @@ extern SVECTOR Actor07000_D08068;
 /// call are written out in both arms - the join the compiler builds from them is
 /// what the original binary shows. The stage then re-arms `field_2BE`, switches
 /// the animation to 2, runs the frame through `Actor07000_Fn0107C` and
-/// `ActorsShared8013454c`, and restarts `field_2BC` once it has spent 0x1D
+/// `Actor07000_Fn027D0`, and restarts `field_2BC` once it has spent 0x1D
 /// frames on the id.
 ///
 /// Stage 2 counts `field_2D4` up and advances `field_2AC` by 0xC8 a frame; on
@@ -105,7 +88,7 @@ void Actor07000_Fn00854(Task* arg0)
             work->field_2BE = 0x14;
             work->field_2B8 = 2;
             Actor07000_Fn0107C(arg0);
-            ActorsShared8013454c(arg0);
+            Actor07000_Fn027D0(arg0);
             if ((s16)work->field_2BC >= 0x1D) {
                 work->field_2BC = 0;
             }
@@ -351,11 +334,3 @@ void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
         work->field_2D8 = anim;
     }
 }
-
-// actor_104600 (func_actor_104600_80132DF8), actor_204600
-// (func_actor_204600_8014ADF8) and actor_207000 (func_actor_207000_8014AE9C)
-// carry the same body. It is promotable - its only externals are `Player_Status`
-// and the libgte pair, none of them overlay-local - but the shared span
-// renumbers every unit after it in this overlay and in the three carriers, and
-// splat never rewrites a `.c` that exists, so it needs the pass that rehomes
-// the carriers' `INCLUDE_*` lines at the same time.

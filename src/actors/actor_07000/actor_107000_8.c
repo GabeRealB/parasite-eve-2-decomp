@@ -1,24 +1,14 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actor_specimen_init.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Node 3's pair table, packed by `Gp_PackPair` into `obj3`, and the enemy
-/// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
-/// `field_40`.
-extern GpU16Pair ActorsShared80136938Pair;
-
 /// Message dispatch table this spawn parks in `Task::msgTable`.
 extern u8 Actor07000_D0D7C0[];
-
-// actor_207000 (func_actor_207000_8014EE88) carries the same body. Its message
-// table still uses an overlay-local symbol; the parameter record, animation
-// bank and contact identity now resolve through shared symbols.
 
 /// The variant's spawn handler: allocate the `Actor107000Spawn2Work` block,
 /// rebind the model's light and colour matrices into it, link its three `GpObj`
@@ -74,13 +64,13 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vy = 0;
     arg0->bodyPos.vz = 0;
-    arg0->param      = &ActorSpecimenInitParams;
-    arg0->hp         = ActorSpecimenInitParams.hpMax;
+    arg0->param      = &Actor07000_D08080;
+    arg0->hp         = Actor07000_D08080.hpMax;
     arg0->recs       = &work->field_24C[0];
     work->field_35C  = &((TmdObject*)arg1->extra)->coords[1];
     work->field_360  = 0x100;
     work->field_362  = one;
-    func_800B3F84((GpAnimCtx*)work, ActorSpecimenInitAnimBank, obj, work->field_12C,
+    func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj, work->field_12C,
                   (GpAnimSlot*)&work->slots[0]);
     i = 1;
     do {
@@ -126,7 +116,7 @@ void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     work->obj3.pos.vy   = 0;
     work->obj3.pos.vz   = 0;
     work->obj2.flags    = (u16)(work->obj2.flags & 0x3DFF);
-    work->obj3.key      = Gp_PackPair(&ActorsShared80136938Pair, 0);
+    work->obj3.key      = Gp_PackPair(&Actor07000_D08078, 0);
     work->obj3.radius   = 0x12C;
     work->obj3.flags    = 1U;
     Gp_LinkObj(3, &work->obj3);

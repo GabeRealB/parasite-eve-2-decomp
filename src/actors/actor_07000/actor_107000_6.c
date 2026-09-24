@@ -1,16 +1,10 @@
 #include "common.h"
 
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_80136614.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-// actor_207000 carries the same body as func_actor_207000_8014E4D8; the two
-// were kept apart only because the body's last call was this overlay's own
-// ActorsShared80136614, now the shared ActorsShared80136614 - the same
-// objection ActorsShared80136288 carried before promotion.
 
 /// Both `Gp_LcgState` draws fold `(state >> 16) % 100` down to under 11 for a
 /// hit, and each is taken through its own local so the two divides stay separate
@@ -32,7 +26,7 @@ void Actor07000_Fn046B8(Task* arg0, s32 arg1)
     s16              branch;
 
     work = (Actor107000Work*)arg0->work;
-    ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &sp10);
+    Actor07000_Fn047F4(((TmdObject*)arg0->extra)->coords, &sp10);
     if (Gp_CountRec18Hi(&work->field_214, 0x10000) == 0 || sp10 >= 0xBB8U) {
         work->field_382 = 0;
         work->field_36E = 0;

@@ -4,7 +4,11 @@
 
 #include "gameplay/3CD8.h"
 
-void ActorsShared80137e18(ActorShared80137e18* arg0)
+/// Splices the work's own coordinate between the model's root and its second
+/// part, with an identity rotation, marks both dirty and resets the scale
+/// `SVECTOR` beside it to one. `field_36E` is cleared, and unless the reaction
+/// sub-state `field_36A` is 5 the 0x600A5 effect is spawned on the root.
+void Actor07000_Fn05FF8(ActorShared80137e18* arg0)
 {
     GsCOORDINATE2*           parts;
     GsCOORDINATE2*           coord;

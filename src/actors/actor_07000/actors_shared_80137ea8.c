@@ -2,7 +2,10 @@
 
 #include "actors/actors_shared_80137ea8.h"
 
-void ActorsShared80137ea8(ActorShared80137ea8* arg0)
+/// Flattens the coordinate `Actor07000_Fn05FF8` spliced in: the Y scale
+/// `field_34E` loses 2 and the matrix's second column is scaled by it, then
+/// the coordinate is marked dirty.
+void Actor07000_Fn06088(ActorShared80137ea8* arg0)
 {
     u16                      scale;
     GsCOORDINATE2*           coord;

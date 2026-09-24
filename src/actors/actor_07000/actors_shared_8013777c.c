@@ -6,21 +6,15 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// The step comes out of `func_800E0C10` as the collision response's own mode:
-/// 0 is a free step, 1 a sliding one and 2 a snap back to the position the work
-/// saved in `field_33C`. A sliding step arms the walk - the mode latches into
-/// `field_38C` and `field_39A`, the vertical speed is set to -0x50 and the
-/// forward speed loses a quarter - but only the first one does, since
-/// `field_39A` stays non-zero afterwards. Either way the x and z translation
-/// the walk produced is added onto the model coordinate; a snap back writes the
-/// saved position instead. The two collision tables are wiped before the
-/// scratch is handed back.
-///
-/// Carried by two enemy slots - `actor_107000` and `actor_207000` - which both
-/// reach the block through `Task::work`, so the body takes the `Task` rather
-/// than either carrier's own context type; the shared span is in
-/// `configs/USA/overlays.toml`.
-void ActorsShared8013777c(Task* arg0)
+/// Collision response of the specimen's second form: node 2's collision table
+/// is run through `func_800E0C10` with a 0x38-byte scratch. Response 1 adds
+/// the returned X and Z offsets to the root; only the first one (while
+/// `field_39A` is clear) also adds Y, latches the response in `field_38C` and
+/// `field_39A`, arms `field_2E4` to 0x400, sets the fall speed `field_398` to
+/// -0x50 and takes a quarter off the step length `field_378`. Response 2 puts
+/// the root back at the translation saved in `field_33C`. Both collision
+/// tables are released either way.
+void Actor07000_Fn0595C(Task* arg0)
 {
     ActorsShared8013777cScratch* scratch;
     ActorsShared8013777cWork*    work;

@@ -1,31 +1,28 @@
 #include "common.h"
 
+#include "actors/actor_107000.h"
 #include "actors/actors_shared_80136c80.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-frame tick of the specimen's movement cycle, gated by the mode in
-/// `D_801153F4`: a mode of 1 returns at once, 2 hides the model part
-/// (`field_C = 0x80`) and returns, and 0 zeroes that word and falls through
-/// into the tick.
-///
-/// The tick folds the work's velocity onto the model - negated into the first
-/// collision record's position, and added to the coordinate's own translation,
-/// which is marked dirty - and walks `field_2` on by 0xA a frame. The second
-/// collision record is then read as the hit test: a record of the 0x10000 kind
-/// or any occupied slot cues the specimen's pan/depth sound, arming the child
-/// task's `spawnArg1` to 3 - or, for the occupied-slot arm, to 3 or 2 picked by
-/// whether that record sits at or above the floor cutoff -0xC00. Either arm
-/// then trims the work's flag word to 0x3FFF, arms the task's kill countdown to
-/// 0x1E and advances the state; both end by clearing the collision table.
+/// Per-frame handler of a specimen projectile, entry 1 of
+/// `Actor07000_D000E0`. `D_801153F4` mode 1 returns at once and mode 2 hides
+/// the model; mode 0 shows it again before the update. The update moves the
+/// coordinate by the velocity in the work (mirrored into the first collision
+/// record's position), lets the vertical speed grow by 0xA a frame, and tests
+/// the second collision record: a hit on an object of the 0x10000 kind or on
+/// any occupied slot cues the impact sound, tells the child task how it landed
+/// through `spawnArg1` (3, or 2 for a slot hit below -0xC00 in the normal's Y),
+/// clears the top bits of the flag word, arms a 0x1E-frame kill countdown and
+/// moves on to `Actor07000_Fn068B4`. The collision table is cleared either way.
 ///
 /// The 2/3 pair is written into each arm rather than through a temp: the shared
 /// store m2c reads as one variable is `jump.c` cross-jumping the two arms, and
 /// a named temp puts the value's live range in front of the comparison that
 /// picks it, where it can no longer share `$v0` with the `slti` result.
-void ActorsShared80136c80(Task* arg0)
+void Actor07000_Fn04E60(Task* arg0)
 {
     ActorsShared80136c80Work* work;
     TmdObject*                part;

@@ -1,7 +1,5 @@
 #include "common.h"
 #include "actors/actor_107000.h"
-#include "actors/actors_shared_80137220.h"
-#include "actors/actors_shared_8013777c.h"
 #include "actors/actors_shared_80138640.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -86,7 +84,20 @@ static __inline__ void rotate_parts(Task* arg0)
     *(MATRIX**)0x1F8003FC                  = (MATRIX*)((u8*)*(MATRIX**)0x1F8003FC + 0x20);
 }
 
-void ActorsShared80137220(Actor107000Ctx* arg0, Task* arg1)
+void Actor07000_Fn06820(ActorShared80138640* arg0);
+
+/// Per-frame handler of the specimen's second form while it drops into place,
+/// entry 4 of `Actor07000_D0004C`. `D_801153F4` mode 1 only re-colours the
+/// actor and mode 2 hides the model; otherwise, once `field_396` has armed the
+/// drop, the root is stepped along its facing and by the fall speed
+/// `field_398`, the collision response is applied, the six helper animation
+/// slots tick, the reaction twist is applied to coordinates 3 and 5, and the
+/// root is recomputed, with the step length `field_378` decaying by 2 a frame.
+/// Once the root is below the floor (Y above 0) the landing sound is cued, the
+/// twist is armed at 0x400, the root is pinned at 0 and the task moves to
+/// state 1; until then the fall speed grows by 10 a frame, or 20 once the
+/// collision response has latched `field_39A`.
+void Actor07000_Fn05400(Actor107000Ctx* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
     GsCOORDINATE2*         coord;
@@ -104,8 +115,8 @@ void ActorsShared80137220(Actor107000Ctx* arg0, Task* arg1)
         case 0:
         default:
             if (work->field_396 != 0) {
-                ActorsShared80138640((ActorShared80138640*)arg1);
-                ActorsShared8013777c(arg1);
+                Actor07000_Fn06820((ActorShared80138640*)arg1);
+                Actor07000_Fn0595C(arg1);
                 update_animation(arg1);
                 rotate_parts(arg1);
                 Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
