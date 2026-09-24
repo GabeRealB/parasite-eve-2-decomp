@@ -166,5 +166,3 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
             break;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", D_shelter_b6_growth_room_8017D5E8);
