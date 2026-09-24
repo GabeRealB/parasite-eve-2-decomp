@@ -4,8 +4,6 @@
 
 #include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D608);
-
 s32 func_shelter_b1_sleeping_quarters_8017D668(void)
 {
     return 0;

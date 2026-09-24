@@ -2739,8 +2739,9 @@ objects = [
 id = 384
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0x48" },
+  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0xA8" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_4", rodata = "0x34", text = "0x111C" },
+  { lib = true, unit = "rooms_shared_8017d5e4", text = "0x48" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x27C" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_2", text = "0x2C0" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x2C8" },
@@ -3160,9 +3161,10 @@ objects = [
 id = 402
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room", rodata = "0x4", text = "0x38" },
+  { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room", rodata = "0x4", text = "0x98" },
   { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_2", rodata = "0x10", text = "0xE4" },
   { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_5", rodata = "0x24", text = "0x11B4" },
+  { lib = true, unit = "rooms_shared_8017d5e4", text = "0x38" },
   { lib = true, unit = "room_util02", text = "0xA0" },
   { lib = true, unit = "rooms_shared_8017d730", text = "0x22C" },
   { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_3", text = "0x278" },
@@ -3580,7 +3582,8 @@ objects = [
 id = 421
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", rodata = "0x4", text = "0x24" },
+  { unit = "shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", rodata = "0x4", text = "0x84" },
+  { lib = true, unit = "rooms_shared_8017d5e4", text = "0x24" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x43C" },
   { unit = "shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock_2", text = "0x480" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x488" },

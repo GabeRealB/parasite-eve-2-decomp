@@ -11,3 +11,5 @@ RoomsShared8017d730Msgs = 0x80180414; // shared body data, see src/lib/
 RoomsShared8017d878 = 0x8017D840; // shared body, see src/lib/
 RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
 RoomsShared801807c4 = 0x8017ECCC; // shared body, see src/lib/
+RoomsShared8017d5e4 = 0x8017D5F8; // shared body, see src/lib/
+func_shelter_b2_breeding_room_8017D5F8 = 0x8017D5F8; // type:func absolute:True
