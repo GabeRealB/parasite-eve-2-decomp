@@ -1871,11 +1871,14 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b2_pod_bottom]
+label = "code starts at 0x2C: the first function is a frameless two-instruction `return 0` message handler, so the span detector, which keys on a stack prologue, begins at 0x34 and left it as rodata words"
 id = 392
+text = ["0x2C", "0x46AC"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b2_pod_bottom/shelter_b2_pod_bottom", rodata = "0x4", text = "0x78" },
   { unit = "shelter_b2_pod_bottom/shelter_b2_pod_bottom_2", rodata = "0x10", text = "0x1A0" },
+  { unit = "shelter_b2_pod_bottom/shelter_b2_pod_bottom_4", text = "0x2C" },
   { lib = true, unit = "room_util02", text = "0x34" },
   { lib = true, unit = "room_util05", text = "0x138" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x148" },
