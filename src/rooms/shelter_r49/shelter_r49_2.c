@@ -129,5 +129,3 @@ void func_shelter_r49_8017D8D8(Task* arg0)
 void func_shelter_r49_8017D9D0(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r49/shelter_r49_2", D_shelter_r49_8017D5EC);
