@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,20 +9,15 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
-/// gouraud `LINE_G3` diagonals around the projected centre. Same body as
-/// `Room_Draw18` except the on-screen radius is `(s16)arg2 * 48 / otz` rather
-/// than `* 32`. `arg1` scales `gDisplayState.animFrame` into `rsin` so the lit
-/// vertex pulses as `rsin(...) / 34 + 0x78` on green and blue. Shared body,
-/// linked into every room overlay that uses it.
-void Room_Draw32(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
+/// radius of `(s16)arg2 * 48 / otz`. `arg1` scales `gDisplayState.animFrame`
+/// into `rsin` so the lit vertex pulses as `rsin(...) / 34 + 0x78` on green and
+/// blue.
+void func_dryfield_motel_room_6_80181B70(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
