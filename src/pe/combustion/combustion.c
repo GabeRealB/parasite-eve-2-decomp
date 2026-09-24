@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -31,9 +32,6 @@ extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
 
 void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
-
-/// `rtps`: project V0 through the loaded rotation and translation matrices.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Live flame handle for the combustion effect.
 s32 D_combustion_801309A4 = 0;
@@ -253,7 +251,7 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -431,7 +429,7 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -500,7 +498,7 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -590,7 +588,7 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((CombustionQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((CombustionQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -672,7 +670,7 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     frame = arg1;
     frame = frame % 12;
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);

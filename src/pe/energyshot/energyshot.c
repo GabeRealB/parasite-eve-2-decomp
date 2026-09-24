@@ -13,12 +13,7 @@
 #include "pe/energyshot.h"
 
 #include <psyq/inline_c.h>
-
-/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3. The last
 /// row's `field_6` was split into its own symbol by splat because the code
@@ -281,7 +276,7 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -348,7 +343,7 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -359,7 +354,7 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -368,12 +363,12 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         idx = (u32)(D_energyshot_80130108[i] + gDisplayState.animFrame) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {

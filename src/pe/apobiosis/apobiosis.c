@@ -12,6 +12,7 @@
 #include "pe/apobiosis.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
@@ -25,8 +26,6 @@ ApobiosisStep D_apobiosis_80130B5C[] = {
 
 /// The `SndEvt_EnqueueType6` id for each `D_apobiosis_80130B5C` row.
 s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
@@ -304,7 +303,7 @@ void func_apobiosis_8012F9D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((ApobiosisRingScratch*)(head - 0x1C))->sx);
     gte_stflg(&((ApobiosisRingScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -484,7 +483,7 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -587,14 +586,14 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((ApobiosisShardScratch*)(head - 0x28))->sx0);
     gte_stflg(&((ApobiosisShardScratch*)(head - 0x28))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((ApobiosisShardScratch*)(head - 0x28))->otz);
         block->otz = block->otz + 1;
         gte_ldv0(&((ApobiosisShardScratch*)(head - 0x28))->v1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((ApobiosisShardScratch*)(head - 0x28))->sx1);
         gte_stflg(&((ApobiosisShardScratch*)(head - 0x28))->flag);
         if (block->flag >= 0) {

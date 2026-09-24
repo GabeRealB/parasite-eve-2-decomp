@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -27,12 +28,6 @@ s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
-
-/// `mvmva 1, 0, 0, 3, 0` / `gpf 1`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -101,7 +96,7 @@ void func_necrosis_8012EF34(Task* arg0)
             mem->move.vz = 0x90;
             gte_SetRotMatrix((MATRIX*)srcm);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
             rec                = &work->rec;
             mem->index         = (Gp_StateC08.field_0 % 10) - 1;
@@ -132,7 +127,7 @@ void func_necrosis_8012EF34(Task* arg0)
             if (Gp_State1C->fadeState == 0) {
                 gte_lddp(0x1100);
                 gte_ldsv(&mem->move);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&mem->move);
                 coord->coord.t[0] += mem->move.vx;
                 coord->coord.t[1] += mem->move.vy;
@@ -259,7 +254,7 @@ void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -419,7 +414,7 @@ void func_necrosis_8012FE64(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -505,7 +500,7 @@ void func_necrosis_80130288(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

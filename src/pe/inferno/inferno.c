@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -25,13 +26,6 @@ s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
-
-/// `gpf 12` / `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros
-/// of those names assemble to different words, so spell the instructions out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 
 void func_inferno_8012F3EC(s16 arg0);
 void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map);
@@ -239,11 +233,11 @@ void func_inferno_8012F530(Task* arg0)
             arg0->state = arg0->spawnArg1 + 1;
             gte_lddp(0x80);
             gte_ldsv(&mem->pos);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&mem->move);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
             return;
         case 1:
@@ -369,7 +363,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         block->inner[i].vz = (rcos(ang) * outer) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
@@ -380,7 +374,7 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         op->vz             = (rcos(ang) * inner) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
@@ -389,12 +383,12 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         frame = (map->field_0[kind][i] + mem->age) % 6;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&flag);
         if (flag >= 0) {
@@ -470,7 +464,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         block->inner[i].vz = (rcos(ang) * outer) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
@@ -481,7 +475,7 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
         op->vz             = (rcos(ang) * inner) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
@@ -490,12 +484,12 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         frame = (map->field_0[kind][i] + mem->age) % 6;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&flag);
         if (flag >= 0) {

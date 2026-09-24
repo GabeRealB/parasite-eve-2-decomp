@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -29,12 +30,6 @@ s32 D_pyrokinesis_80131DD8[] = {
 
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3);
@@ -124,7 +119,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             mem->move.vz = (Gp_StateC08.field_0 % 10) * 64 + 0x1C0;
             gte_SetRotMatrix((MATRIX*)srcm);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
             for (i = 0; i < 16; i++) {
                 Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
@@ -489,7 +484,7 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         block->inner[i].vz = 0x100;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -500,7 +495,7 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         op->vz             = 0;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -509,11 +504,11 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -581,7 +576,7 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -651,7 +646,7 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -663,10 +658,10 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -736,7 +731,7 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -854,7 +849,7 @@ void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -962,7 +957,7 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -973,7 +968,7 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -982,11 +977,11 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -1067,7 +1062,7 @@ void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3
         block->inner[i].vz = -back;
         gte_SetRotMatrix(rot);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -1078,7 +1073,7 @@ void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3
         op->vz             = 0;
         gte_SetRotMatrix(rot);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -1087,11 +1082,11 @@ void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 0x10; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {

@@ -12,6 +12,7 @@
 #include "pe/antibody.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
@@ -27,11 +28,6 @@ AntibodyStep D_antibody_80130BD4[] = {
 s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
 extern s32 Gp_LcgState;
-
-/// `gpf 1` / `rtps`. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -283,7 +279,7 @@ void func_antibody_8012F734(Task* arg0)
 
             gte_lddp(0x100);
             gte_ldsv(&mem->pos);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&mem->move);
 
             arg0->state = 1;
@@ -392,7 +388,7 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->v0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AntibodyMoteScratch*)(head - 0x1C))->sx0);
     gte_stflg(&((AntibodyMoteScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -467,7 +463,7 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AntibodyMoteScratch*)(head - 0x1C))->sx0);
     gte_stflg(&((AntibodyMoteScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -546,14 +542,14 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx0);
     gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((AntibodyArcScratch*)(head - 0x28))->otz);
         block->otz = block->otz + 1;
         gte_ldv0(&((AntibodyArcScratch*)(head - 0x28))->v1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx1);
         gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
         if (block->flag >= 0) {
@@ -618,7 +614,7 @@ void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {

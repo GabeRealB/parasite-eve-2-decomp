@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -26,14 +27,6 @@ s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
 /// Scratch for the drain ring (was its own _work unit).
 s16 D_metabolism_8012FB78[16] = { 0 };
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 Gp_LcgState;
 
@@ -124,7 +117,7 @@ void func_metabolism_8012EF34(Task* arg0)
                     Gfx_RotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
                     gte_SetRotMatrix(&coord->coord);
                     gte_ldv0(&mem->move);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stsv(&mem->move);
                     mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
                     temp_lo      = rsin(mem->step) * mem->angle;
@@ -333,7 +326,7 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {

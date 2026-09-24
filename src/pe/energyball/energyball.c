@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -34,13 +35,6 @@ EnergyBallStep D_energyball_80131194[] = {
 
 extern s32 D_80115724;
 extern s32 Gp_LcgState;
-
-/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0` / `gpf 12`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter
@@ -212,7 +206,7 @@ void func_energyball_8012F180(Task* arg0)
                 VectorNormalSS(dir, dir);
                 gte_lddp((u16)mem->step);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
                 mem->pos.vx = 0;
                 mem->pos.vy = -(u16)D_energyball_80131194[mem->index].field_2;
@@ -263,11 +257,11 @@ void func_energyball_8012F180(Task* arg0)
                 mem->pos.vz = vec.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&mem->pos);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->pos);
                 gte_lddp(mem->index * 0x180 + 0xA00);
                 gte_ldsv(&mem->move);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&mem->move);
             }
             if ((u16)mem->age & 1) {
@@ -445,7 +439,7 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -515,7 +509,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((EnergyQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((EnergyQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -600,7 +594,7 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -612,10 +606,10 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sc->sxy0);
     gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
     gte_stflg(&flag);
     if (flag >= 0) {
@@ -693,7 +687,7 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         block->inner[i].vz = (u32)(rcos(ang) * 3) >> 5;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -704,7 +698,7 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         op->vz             = (u32)(rcos(ang) * 3) >> 5;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -713,12 +707,12 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         idx = (u32)(D_energyball_801311A0[i] + gDisplayState.animFrame) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -18,12 +19,6 @@
 
 extern s8  D_80114C0B;
 extern s32 Gp_LcgState;
-
-/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Runs one frame of the pepper spray. State 0 parks the room light slot on
 /// the nozzle coordinate, seeds the spray yaw / spread / brightness from
@@ -130,7 +125,7 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((PepperSprayNozzleScratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
@@ -197,7 +192,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     wm           = &arg0->workm;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[0]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[0]);
     *(u16*)&blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&arg0->workm.t[1];
@@ -208,7 +203,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[1].vz = depth;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[1]);
     *(u16*)&blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&arg0->workm.t[1];
@@ -219,7 +214,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[2].vz = 0;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[2]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[2]);
     *(u16*)&blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&arg0->workm.t[0];
     ang                  = ang + 0xC0;
@@ -231,7 +226,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[3].vz = 0;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[3]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((PepperSprayScratch*)(head - 0x28))->v[3]);
     *(u16*)&blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&arg0->workm.t[1];
@@ -239,7 +234,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((PepperSprayScratch*)(head - 0x28))->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_G4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
@@ -249,7 +244,7 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         gte_ldv3(&((PepperSprayScratch*)(head - 0x28))->v[1],
                  &((PepperSprayScratch*)(head - 0x28))->v[2],
                  &((PepperSprayScratch*)(head - 0x28))->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stflg(&((PepperSprayScratch*)(head - 0x28))->flag);
         if (blk->flag >= 0) {

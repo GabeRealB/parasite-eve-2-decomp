@@ -15,14 +15,9 @@
 #include "pe/lifedrain.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
-/// `mvmva 1, 0, 0, 3, 0` / `gpf 1` / `rtps`. The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Per-level tuning for the life drain: rows are PE levels 1-3.
 LifeDrainScale D_lifedrain_80130AB4[] = {
@@ -234,7 +229,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 0);
             gte_SetRotMatrix((MATRIX*)&coord->coord);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
             mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
             mem->move.vy = (rsin(mem->step) * mem->angle) >> 12;
@@ -432,11 +427,11 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     mem->pos.vz = vec.vz;
                     gte_SetRotMatrix(&coord->coord);
                     gte_ldv0(&mem->pos);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stsv(&mem->pos);
                     gte_lddp(0x1200 / (0x1E - mem->age));
                     gte_ldsv(&mem->pos);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&mem->pos);
                     arg0->state = 2;
                 }
@@ -478,11 +473,11 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 mem->pos.vz = vec.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&mem->pos);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->pos);
                 gte_lddp(0x1200 / (0x1E - mem->age));
                 gte_ldsv(&mem->pos);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&mem->pos);
                 return;
             default:
@@ -524,7 +519,7 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -624,7 +619,7 @@ void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {

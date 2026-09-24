@@ -12,6 +12,7 @@
 #include "pe/plasma.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
@@ -33,10 +34,6 @@ s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 
 /// Per-vertex jitter the ring walks each frame; three banks of 16.
 PlasmaJitter D_plasma_8012FF54 = { 0 };
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 Gp_LcgState;
 
@@ -303,7 +300,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg1->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg1->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg1->workm.t[1];
@@ -314,7 +311,7 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg1->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg1->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg1->workm.t[1];
@@ -323,12 +320,12 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->age) % 6;
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -408,7 +405,7 @@ void func_plasma_8012FB10(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((PlasmaRingScratch*)(head - 0x1C))->sx);
     gte_stflg(&((PlasmaRingScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

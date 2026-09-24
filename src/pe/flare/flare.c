@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -16,14 +17,6 @@
 /// This overlay's id, the `u16` every package opens with.
 
 extern s32 Gp_LcgState;
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
-/// The `inline_c.h` macro of that name assembles to a different word, so spell
-/// the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `rtps`: project V0 through the loaded rotation and translation matrices.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// PROVISIONAL: written before `Task` was processed, so the statements
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
@@ -138,7 +131,7 @@ void flareSparkTask(Task* arg0)
         mem->move.vy = temp_lo >> 12;
         gte_SetRotMatrix((MATRIX*)srcm);
         gte_ldv0(&mem->move);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&mem->move);
         arg0->state = 1;
     }
@@ -181,7 +174,7 @@ void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((FlareQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((FlareQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
