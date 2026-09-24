@@ -30,5 +30,3 @@ void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
 void func_shelter_b2_main_corridor_8017E330(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_2", jtbl_shelter_b2_main_corridor_8017D67C);
