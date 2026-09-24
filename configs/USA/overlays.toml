@@ -862,14 +862,6 @@ text = ["0x24", "0x2844"]
 objects = [
   { kind = "packageId" },
   { unit = "acropolis_promenade/acropolis_promenade", rodata = "0x4", text = "0x24" },
-  { unit = "acropolis_promenade/acropolis_promenade_5", rodata = "0x1C", text = "0x1AFC" },
-  { unit = "acropolis_promenade/acropolis_promenade_6", text = "0x318" },
-  { unit = "acropolis_promenade/acropolis_promenade_2", text = "0x320" },
-  { unit = "acropolis_promenade/acropolis_promenade_7", text = "0x4E4" },
-  { unit = "acropolis_promenade/acropolis_promenade_3", text = "0x588" },
-  { unit = "acropolis_promenade/acropolis_promenade_8", text = "0x9B4" },
-  { unit = "acropolis_promenade/acropolis_promenade_4", text = "0xA7C" },
-  { unit = "acropolis_promenade/acropolis_promenade_9", text = "0x1E74" },
   { kind = "data", at = "0x2844" },
 ]
 
