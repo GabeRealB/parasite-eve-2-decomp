@@ -69,7 +69,24 @@ void func_dryfield_motel_room_1_8017D69C(Task* arg0)
     }
     arg0->state = arg0->state + 1;
 }
-void func_dryfield_motel_room_1_8017D74C(void)
+/// Second state of the room entry task: nothing left to do but idle.
+void func_dryfield_motel_room_1_8017D74C(Task* task)
 {
 }
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", D_dryfield_motel_room_1_8017D5C4);
+
+/// State handlers of the room entry task `func_dryfield_motel_room_1_8017D754`,
+/// indexed by `Task::state`: the set-up tick, which advances the state, the
+/// idle tick, and `taskKill`.
+const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4 = {
+    { func_dryfield_motel_room_1_8017D69C, func_dryfield_motel_room_1_8017D74C, taskKill },
+};
+
+/// Room entry task: runs the state handler `D_dryfield_motel_room_1_8017D5C4`
+/// names for `Task::state`, through a copy of the table taken onto the stack.
+void func_dryfield_motel_room_1_8017D754(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_motel_room_1_8017D5C4;
+    sp.funcs[task->state](task);
+}

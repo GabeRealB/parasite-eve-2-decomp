@@ -89,11 +89,6 @@ typedef union Dmr1DriverBuf {
 } Dmr1DriverBuf;
 STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
 
-/// State handlers of the room entry task `func_dryfield_motel_room_1_8017D754`,
-/// indexed by `Task::state`: install the message table, an empty tick, then
-/// `taskKill`.
-extern const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4;
-
 /// The room's script-driver task, whose `work` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
