@@ -7,8 +7,8 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
 /// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
@@ -150,7 +150,7 @@ extern RoomHotspot D_neo_ark_shrine_80182430[];
 /// confirm-tested (`buttons[0].state == 2`) and its `id` / `promptKind` are
 /// latched into the script state, with the 3-vs-6 split decided by hotspot id
 /// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
-/// shared `RoomsShared8017ecb4` just marked, and `buttons[1].state == 2` leaves
+/// hit test `func_neo_ark_shrine_8017EC10` just marked, and `buttons[1].state == 2` leaves
 /// the scan by advancing the task to state 5.
 ///
 /// Both oddities below are allocator levers, not logic. The `do { } while (0)`
@@ -173,7 +173,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_neo_ark_shrine_8017EC10(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons[0].state == 2) {
             id = hs->id;
@@ -291,8 +291,8 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", RoomsShared80180294States);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D5D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", RoomsShared80181e70Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D610);
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D620);
