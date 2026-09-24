@@ -4,7 +4,10 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
-void Room_Script22(Task* task)
+/// A task that runs cap command `spawnArg2` and waits for it to finish; if the
+/// cap then reports an event key of 0xA or above, it toggles game-flag nibble
+/// `spawnArg1` between 0 and 1. The task then kills itself.
+void func_dryfield_night_general_store_8017DCA8(Task* task)
 {
     s32 flag;
     s32 cmd;
