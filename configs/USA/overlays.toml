@@ -747,24 +747,7 @@ global_vram_end = 0x8017D5C0
 id = 285
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "acropolis_square/acropolis_square_7", rodata = "0x14", text = "0x1EAC" },
-  { unit = "acropolis_square/acropolis_square", rodata = "0x60", text = "0x308" },
-  { unit = "acropolis_square/acropolis_square_8", rodata = "0x94", text = "0x3C68" },
-  { unit = "acropolis_square/acropolis_square_2", rodata = "0xF4", text = "0x41D4" },
-  { unit = "acropolis_square/acropolis_square_4", rodata = "0x134", text = "0x4B50" },
-  { unit = "acropolis_square/acropolis_square_9", text = "0x154" },
-  { unit = "acropolis_square/acropolis_square_10", text = "0x1C8C" },
-  { unit = "acropolis_square/acropolis_square_11", text = "0x2A74" },
-  { unit = "acropolis_square/acropolis_square_12", text = "0x3608" },
-  { unit = "acropolis_square/acropolis_square_13", text = "0x36FC" },
-  { unit = "acropolis_square/acropolis_square_14", text = "0x4A88" },
-  { unit = "acropolis_square/acropolis_square_3", text = "0x4B18" },
-  { unit = "acropolis_square/acropolis_square_15", text = "0x4B48" },
-  { unit = "acropolis_square/acropolis_square_16", text = "0x4CA0" },
-  { unit = "acropolis_square/acropolis_square_5", text = "0x4CE4" },
-  { unit = "acropolis_square/acropolis_square_17", text = "0x4D48" },
-  { unit = "acropolis_square/acropolis_square_6", text = "0x4DA0" },
+  { unit = "acropolis_square/acropolis_square", rodata = "0x4", text = "0x154" },
   { kind = "data", at = "0x5EA4" },
 ]
 

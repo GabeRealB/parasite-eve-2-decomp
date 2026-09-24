@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_square.
+D_acropolis_square_8017D648 = 0x8017D648; // force_not_migration:True string with non-zero bytes after its terminator, read from C
