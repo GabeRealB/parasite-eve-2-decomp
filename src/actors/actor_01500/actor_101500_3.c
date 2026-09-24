@@ -1,6 +1,5 @@
 #include "common.h"
 #include "actors/actor_101500.h"
-#include "actors/actors_shared_80134a54.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -9,7 +8,7 @@
 
 extern MATRIX* D_80073B8C;
 
-void ActorsShared801342a4_Fn337A8(Actor101500* arg0)
+void Actor01500_Fn01988(Actor101500* arg0)
 {
     Actor101500Work* work;
     GsCOORDINATE2*   coord;
@@ -162,7 +161,7 @@ void Actor01500_Fn01AB0(Actor101500* arg0)
 
 /// Per-frame handler for the death sequence. Scene mode 1 only refreshes the
 /// actor colour and mode 2 hides the model. Otherwise `field_35C` steps: state 0
-/// saves the model matrix and unlinks the actor, 1 runs `ActorsShared80134a54`
+/// saves the model matrix and unlinks the actor, 1 runs `Actor01500_Fn02C34`
 /// and spawns an effect at frame 15, 3 frees the model's buffers once
 /// `field_37E` passes 1 and 4 unlinks on its first frame; 1, 3 and 4 move to
 /// 2 once `field_362` runs out, and 2 destroys the enemy.
@@ -207,7 +206,7 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Actor101500* arg1)
             }
             break;
         case 1:
-            ActorsShared80134a54((ActorShared80134a54*)arg1);
+            Actor01500_Fn02C34(arg1);
             work->field_362++;
             if (work->field_362 == 10) {
                 model->flags = 2;
@@ -261,12 +260,11 @@ update:
     Gp_UpdateActorColor(arg1->field_20, &pos, 0, 0);
 }
 
-extern u16     ActorsShared80132fd0Durations[];
 extern SVECTOR Actor01500_D0A090;
 extern s16     Actor01500_D0A092;
 extern SVECTOR Actor01500_D0A098;
 
-void ActorsShared801344f8_Fn33EF8(Actor101500* arg0)
+void Actor01500_Fn020D8(Actor101500* arg0)
 {
     u8*              head;
     VECTOR3*         stk;
@@ -311,7 +309,7 @@ void ActorsShared801344f8_Fn33EF8(Actor101500* arg0)
             work->field_36C = 0;
             if (--work->field_362 < 0) {
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                val             = ActorsShared80132fd0Durations[(Gp_LcgState >> 16) & 0xF];
+                val             = Actor01500_D09FE8[(Gp_LcgState >> 16) & 0xF];
                 work->field_352 = 6;
                 work->field_35C = 2;
                 work->field_35E = val;
@@ -326,7 +324,7 @@ void ActorsShared801344f8_Fn33EF8(Actor101500* arg0)
             work->field_360  = 200;
             work->field_35E -= 200;
             if ((s16)work->field_35E < 0) {
-                tbl             = ActorsShared80132ac4Durations;
+                tbl             = Actor01500_D09FC8;
                 work->field_352 = 5;
                 val2            = tbl[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
                 work->field_34C = 0x400F0002;
@@ -353,5 +351,5 @@ void ActorsShared801344f8_Fn33EF8(Actor101500* arg0)
 }
 
 /// Closes this unit's `.rodata` after the jump table above so
-/// `actors_shared_801344f8`'s rodata starts at 0x80131E8C. Nothing reads it.
+/// the next unit's rodata starts at file offset 0x6C. Nothing reads it.
 const u32 Actor01500_D00068 = 0;

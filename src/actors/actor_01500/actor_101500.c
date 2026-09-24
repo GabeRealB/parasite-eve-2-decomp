@@ -139,7 +139,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Actor101500* arg1)
 
 /// Per-frame contact pass: applies the collision step, reacts to the three
 /// contact records (damage from actors, push-out from walls) and clears them.
-void ActorsShared801342a4_Fn3230C(Actor101500* actor)
+void Actor01500_Fn004EC(Actor101500* actor)
 {
     Actor101500Work*         work;
     Actor101500ContactFrame* frame;
@@ -326,7 +326,7 @@ void Actor01500_Fn00AFC(Actor101500* actor, s32 damage)
     }
     id = ((actor->field_20->placeKey >> 12) << 8) | 0x400F0004;
     SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-    if (enemy->hp <= (ActorsShared80132ac4MaxHp * 60) / 100) {
+    if (enemy->hp <= (Actor01500_D09FB8.hpMax * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
             work->field_35A        = 4;

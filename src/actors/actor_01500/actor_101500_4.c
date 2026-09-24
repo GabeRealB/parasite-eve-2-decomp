@@ -4,7 +4,7 @@
 
 /// Flag bits 0/1 of `field_4C` knock the actor into pose 13; bits 2/3 tick
 /// the damage-over-time effect and apply each hit.
-void ActorsShared801342a4_Fn343E8(Actor101500* actor)
+void Actor01500_Fn025C8(Actor101500* actor)
 {
     GpEnemy*         enemy;
     Actor101500Work* work;

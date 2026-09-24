@@ -1,32 +1,27 @@
 #include "common.h"
 
-#include "actors/actors_shared_801342a4.h"
-#include "actors/actors_shared_801344f8.h"
-#include "actors/actors_shared_8013483c.h"
-#include "actors/actors_shared_80134934.h"
-
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void ActorsShared801342a4_Fn3230C(ActorShared801342a4* arg0);
-void ActorsShared80133658(ActorShared801342a4* arg0);
-void ActorsShared801342a4_Fn337A8(ActorShared801342a4* arg0);
-void ActorsShared801342a4_Fn343E8(ActorShared801342a4* arg0, ActorShared801342a4Obj* arg1, s32 arg2);
-void ActorsShared801342a4_Fn34778(ActorShared801342a4* arg0);
-void ActorsShared80134990(ActorShared801342a4* arg0);
+#include "actors/actor_101500.h"
+#include "gameplay/gameplay.h"
 
 extern u8 D_801153F4;
 
-void ActorsShared801342a4(ActorShared801342a4Ctx* arg0, ActorShared801342a4* arg1)
+/// Per-frame handler. Scene mode 1 only recolours and shadows the actor and
+/// mode 2 hides it; otherwise it applies pending hit reactions and contacts,
+/// hands off to the teardown state once `field_378` is raised in the
+/// states that allow it, runs the behaviour state, turns, moves, animates
+/// and voices the actor and rebuilds its root coordinate.
+void Actor01500_Fn02484(GpEnemy* arg0, Actor101500* arg1)
 {
-    GsCOORDINATE2*           coord;
-    ActorShared801342a4Obj*  obj;
-    ActorShared801342a4Work* work;
-    s32                      state;
-    s32                      one;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    Actor101500Work* work;
+    s32              state;
+    s32              one;
 
     obj   = arg1->field_2C;
     state = D_801153F4;
     work  = arg1->field_1C;
-    coord = obj->field_8;
+    coord = obj->coords;
     one   = 1;
     if (state == one) {
         goto case1;
@@ -44,18 +39,18 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->field_C   = 0;
-    arg0->field_14 = 0;
+    obj->flags       = 0;
+    arg0->node.flags = 0;
     goto default_body;
 case2:
-    obj->field_C   = 0x80;
-    arg0->field_14 = one;
+    obj->flags       = 0x80;
+    arg0->node.flags = one;
     return;
 default_body:
-    if (arg0->field_4C != 0) {
-        ActorsShared801342a4_Fn343E8(arg1, obj, one);
+    if (arg0->reactionFlags != 0) {
+        Actor01500_Fn025C8(arg1);
     }
-    ActorsShared801342a4_Fn3230C(arg1);
+    Actor01500_Fn004EC(arg1);
     if (work->field_378 != 0) {
         if ((work->field_35A == 5) || (work->field_37E != 0)) {
             work->field_35A = 8;
@@ -63,16 +58,16 @@ default_body:
             arg1->field_30  = 2;
         }
     }
-    ActorsShared801344f8((ActorShared801344f8*)arg1);
+    Actor01500_Fn026D8(arg1);
     if (work->field_376 != 0) {
-        ActorsShared80133658(arg1);
+        Actor01500_Fn01838(arg1);
     }
-    ActorsShared801342a4_Fn337A8(arg1);
-    ActorsShared801342a4_Fn34778(arg1);
-    ActorsShared8013483c(arg1);
+    Actor01500_Fn01988(arg1);
+    Actor01500_Fn02958(arg1);
+    Actor01500_Fn02A1C(arg1);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    ActorsShared80134934((ActorShared80134934*)arg1);
-    ActorsShared80134990(arg1);
+    Actor01500_Fn02B14(arg1);
+    Actor01500_Fn02B70(arg1);
 }

@@ -5,8 +5,8 @@
 
 /// Countdown pose. Requests pose 9 and clears the move state each frame; when
 /// `field_362` runs out it switches to pose 7 and reloads the countdown from a
-/// `Gp_LcgState` draw into `ActorsShared80132ac4Durations`.
-void ActorsShared801344f8_Fn346D0(Actor101500* actor)
+/// `Gp_LcgState` draw into `Actor01500_D09FC8`.
+void Actor01500_Fn028B0(Actor101500* actor)
 {
     Actor101500Work* work = actor->field_1C;
     u32              rnd;
@@ -18,7 +18,7 @@ void ActorsShared801344f8_Fn346D0(Actor101500* actor)
     work->field_360 = 0;
     work->field_366 = 0;
     if (--work->field_362 == 0) {
-        tbl             = ActorsShared80132ac4Durations;
+        tbl             = Actor01500_D09FC8;
         work->field_358 = 1;
         work->field_35A = 2;
         work->field_352 = 7;
@@ -37,7 +37,7 @@ void ActorsShared801344f8_Fn346D0(Actor101500* actor)
 /// slots were last queued for, every slot is re-seeded from the per-state
 /// animation id table and the frame counter is cleared; while the two agree
 /// each slot is ticked and the frame counter accumulates the slot index.
-void ActorsShared801342a4_Fn34778(Actor101500* arg0)
+void Actor01500_Fn02958(Actor101500* arg0)
 {
     Actor101500Work* work;
     s32              i;

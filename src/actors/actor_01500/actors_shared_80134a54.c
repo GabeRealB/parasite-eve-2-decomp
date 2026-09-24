@@ -1,34 +1,30 @@
 #include "common.h"
 
-#include "actors/actors_shared_80134a54.h"
+#include "actors/actor_101500.h"
 #include "actors/actors_shared_80135b58.h"
-
 #include "main/mem.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Rescales the actor's attach coordinate through 0x30 bytes borrowed from the
-/// scratchpad and released again: an identity rotation carrying `field_368` on
-/// its Y axis supplies the scale, the work block's `field_32C` matrix is copied
-/// into the coordinate first, and `ScaleMatrix` + `MulMatrix` apply the scale
-/// to that copy in place. `field_368` is wound down by 0x50 a frame once it
-/// passes 0x200. `flg` is cleared so the coordinate's own work matrix is
-/// rebuilt from `coord` next frame.
-///
-/// Shared verbatim by `actor_101500`, `actor_201500` and `actor_301500`.
-void ActorsShared80134a54(ActorShared80134a54* arg0)
+/// Death shrink: restores the root coordinate from the matrix `field_32C`
+/// saved when the death sequence began and squashes it along Y by
+/// `field_368`, which winds down by 0x50 a frame until it reaches 0x200. The
+/// scale is applied through an identity rotation carved off the scratchpad,
+/// `ScaleMatrix` and `MulMatrix`, and `flg` is cleared so the coordinate's work
+/// matrix is rebuilt.
+void Actor01500_Fn02C34(Actor101500* arg0)
 {
     GsCOORDINATE2*              coord;
     MATRIX*                     head;
     ActorShared80135b58Scratch* scratch;
-    ActorShared80134a54Work*    work;
+    Actor101500Work*            work;
 
     head                    = *(MATRIX**)G_SCRATCH_HEAD;
     work                    = arg0->field_1C;
     scratch                 = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
     *(void**)G_SCRATCH_HEAD = scratch;
-    coord                   = arg0->field_2C->field_8;
+    coord                   = arg0->field_2C->coords;
     if (work->field_368 >= 0x201) {
         work->field_368 = (u16)work->field_368 - 0x50;
     }

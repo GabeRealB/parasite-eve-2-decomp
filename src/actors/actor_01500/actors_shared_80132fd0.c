@@ -1,11 +1,15 @@
 #include "common.h"
 #include "actors/actor_101500.h"
-#include "actors/actors_shared_80132fd0.h"
 #include "main/wipsys.h"
 
 extern MATRIX* D_80073B8C;
 
-void ActorsShared80132fd0(Actor101500* actor)
+/// Approach state, stepped by `field_35C`: settle vertically against the
+/// height `D_80073B8C` gives while turning to the player, then advance by a
+/// random `Actor01500_D09FE8` distance; within 1000 units of the player it
+/// switches to pose 10 and rises until its collision object reports contact
+/// or it passes the height limit, then settles again.
+void Actor01500_Fn011B0(Actor101500* actor)
 {
     VECTOR3*         vec;
     Actor101500Work* work;
@@ -52,7 +56,7 @@ void ActorsShared80132fd0(Actor101500* actor)
             work->field_36C = 0;
             if (--work->field_362 < 0) {
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                val             = ActorsShared80132fd0Durations[(Gp_LcgState >> 16) & 0xF];
+                val             = Actor01500_D09FE8[(Gp_LcgState >> 16) & 0xF];
                 work->field_352 = 6;
                 work->field_35C = 2;
                 work->field_35E = val;
@@ -67,7 +71,7 @@ void ActorsShared80132fd0(Actor101500* actor)
             work->field_360  = 200;
             work->field_35E -= 200;
             if ((s16)work->field_35E < 0) {
-                tbl             = ActorsShared80132ac4Durations;
+                tbl             = Actor01500_D09FC8;
                 work->field_352 = 5;
                 seed            = Gp_LcgState * 5 + 0x71357911;
                 val2            = tbl[(seed >> 16) & 0xF];
@@ -117,4 +121,4 @@ void ActorsShared80132fd0(Actor101500* actor)
     *(u8**)0x1F8003FC += 0x10;
 }
 
-const u32 ActorsShared80132fd0Padding = 0;
+const u32 Actor01500_D00050 = 0;

@@ -8,7 +8,7 @@
 /// Once the pose has run 30 frames, re-aims `field_374` along the coordinate's
 /// facing and walks the actor 40 units back along it (state 1 also rises, faster
 /// early on); from frame 59 it queues pose 5 with two `Gp_LcgState` draws.
-void ActorsShared80132de4(Actor101500* actor)
+void Actor01500_Fn00FC4(Actor101500* actor)
 {
     Actor101500Work* work;
     GsCOORDINATE2*   coord;

@@ -4,7 +4,11 @@
 #include "gameplay/3CD8.h"
 #include "main/wipsys.h"
 
-void ActorsShared80132ac4(Actor101500* actor)
+/// Idle hover: waits for the player to come within 2500 units (then switches
+/// to pose 3, or 4 when `field_36E` is set) or for a disturbance - a random
+/// timeout, a `D_801153F2` trigger or lost hit points - that sends it into
+/// pose 7/8 with a fresh `Actor01500_D09FC8` countdown.
+void Actor01500_Fn00CA4(Actor101500* actor)
 {
     Actor101500Work* work;
     GsCOORDINATE2*   coord;
@@ -23,7 +27,7 @@ void ActorsShared80132ac4(Actor101500* actor)
         work->field_35A = 2;
         work->field_352 = 7;
         work->field_356 = 0;
-        pose2           = ActorsShared80132ac4Durations[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+        pose2           = Actor01500_D09FC8[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
         work->field_358 = 1;
         work->field_364 = 0;
         work->field_34C = 0x400F0002;
@@ -66,7 +70,7 @@ void ActorsShared80132ac4(Actor101500* actor)
             Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
             work->field_364 = ((Gp_LcgState >> 16) & 0x1F) + 1;
         }
-        if (actor->field_20->hp != ActorsShared80132ac4MaxHp) {
+        if (actor->field_20->hp != Actor01500_D09FB8.hpMax) {
             flag = 1;
         }
         if (flag != 0) {
@@ -77,7 +81,7 @@ void ActorsShared80132ac4(Actor101500* actor)
             }
             __asm__("" : "+r"(pose2), "=r"(val));
             work->field_352 = pose2;
-            val             = ActorsShared80132ac4Durations[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            val             = Actor01500_D09FC8[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
             work->field_358 = 1;
             work->field_37A = 1;
             work->field_364 = 0;

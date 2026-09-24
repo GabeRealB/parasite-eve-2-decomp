@@ -1,46 +1,37 @@
 #include "common.h"
 
-#include "actors/actors_shared_80132fd0.h"
-#include "actors/actors_shared_801344f8.h"
-#include "actors/actors_shared_801346ac.h"
+#include "actors/actor_101500.h"
 
-void ActorsShared80132ac4(void);
-void ActorsShared80132de4(void);
-void ActorsShared801333fc(ActorShared801344f8* arg0);
-void ActorsShared801344f8_Fn33528(void);
-void ActorsShared801344f8_Fn33EF8(void);
-void ActorsShared801344f8_Fn345D0(void);
-void ActorsShared801344f8_Fn346D0(void);
-
-void ActorsShared801344f8(ActorShared801344f8* arg0)
+/// Runs the behaviour state `field_35A` selects. State 8 has no handler.
+void Actor01500_Fn026D8(Actor101500* arg0)
 {
     switch (arg0->field_1C->field_35A) {
         case 0:
-            ActorsShared80132ac4();
+            Actor01500_Fn00CA4(arg0);
             break;
         case 1:
-            ActorsShared801344f8_Fn345D0();
+            Actor01500_Fn027B0(arg0);
             break;
         case 2:
-            ActorsShared80132de4();
+            Actor01500_Fn00FC4(arg0);
             break;
         case 3:
-            ActorsShared80132fd0((struct Actor101500*)arg0);
+            Actor01500_Fn011B0(arg0);
             break;
         case 4:
-            ActorsShared801346ac((ActorShared801346ac*)arg0);
+            Actor01500_Fn0288C(arg0);
             break;
         case 5:
-            ActorsShared801333fc(arg0);
+            Actor01500_Fn015DC(arg0);
             break;
         case 6:
-            ActorsShared801344f8_Fn346D0();
+            Actor01500_Fn028B0(arg0);
             break;
         case 7:
-            ActorsShared801344f8_Fn33528();
+            Actor01500_Fn01708(arg0);
             break;
         case 9:
-            ActorsShared801344f8_Fn33EF8();
+            Actor01500_Fn020D8(arg0);
             break;
     }
 }

@@ -7,7 +7,7 @@
 
 /// Turns the actor toward `field_372` by at most `field_376` per call, taking
 /// the short way round the 0x1000 circle, then rebuilds its rotation matrix.
-void ActorsShared80133658(Actor101500* arg0)
+void Actor01500_Fn01838(Actor101500* arg0)
 {
     Actor101500Work*       work;
     GsCOORDINATE2*         coord;

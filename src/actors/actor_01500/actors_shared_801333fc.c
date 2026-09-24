@@ -7,7 +7,7 @@
 /// Faces the actor toward the player on the XZ plane and raises `field_378`
 /// once the player leaves the vertical band (500 above, 1800 below) or
 /// `field_362` counts past 1800 frames.
-void ActorsShared801333fc(Actor101500* actor)
+void Actor01500_Fn015DC(Actor101500* actor)
 {
     Actor101500Work* work;
     GsCOORDINATE2*   coord;

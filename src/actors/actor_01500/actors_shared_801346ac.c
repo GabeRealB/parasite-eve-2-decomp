@@ -1,13 +1,16 @@
 #include "common.h"
 
-#include "actors/actors_shared_801346ac.h"
+#include "actors/actor_101500.h"
 
-void ActorsShared801346ac(ActorShared801346ac* arg0)
+/// Stagger state, entered from a hit reaction or at low hit points: a slow
+/// forward drift (`field_360`) with a climb of 0x80 a frame (`field_366`),
+/// the second collision object's centre moved to (0, -300, 0).
+void Actor01500_Fn0288C(Actor101500* arg0)
 {
-    ActorShared801346acWork* work = arg0->field_1C;
+    Actor101500Work* work = arg0->field_1C;
 
-    work->field_360 = 0x14;
-    work->field_366 = 0x80;
-    work->field_256 = -300;
-    work->field_258 = 0;
+    work->field_360        = 0x14;
+    work->field_366        = 0x80;
+    work->field_244.pos.vy = -300;
+    work->field_244.pos.vz = 0;
 }

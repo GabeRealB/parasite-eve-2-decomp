@@ -9,7 +9,7 @@
 /// The actor's animation work area. `field_352` is the pose the actor asks
 /// for, `field_354` the pose its slots were last re-queued for and
 /// `field_356` the frame count accumulated while the two agree:
-/// `ActorsShared801342a4_Fn34778` re-seeds the slots from the per-state id table
+/// `Actor01500_Fn02958` re-seeds the slots from the per-state id table
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
     /* 0x000 */ byte     pad_0[0x14];
@@ -57,7 +57,7 @@ typedef struct Actor101500Work {
 } Actor101500Work;
 
 /// 0x58-byte frame allocated on the scratchpad stack by
-/// `ActorsShared801342a4_Fn3230C`.
+/// `Actor01500_Fn004EC`.
 typedef struct Actor101500ContactFrame {
     /* 0x00 */ byte           pad_0[0x20];
     /* 0x20 */ GpDeltaScratch delta;
@@ -85,12 +85,16 @@ extern s16 Actor01500_D0A050[];
 /// Fifteen vertical bob offsets cycled by `field_37C` while `field_352` is 5.
 extern s16 Actor01500_D0A070[];
 
-/// Sixteen frame counts `ActorsShared801344f8_Fn33528`, `ActorsShared801344f8_Fn345D0` and `ActorsShared801344f8_Fn346D0` reload `field_362` from,
-/// picked by a `Gp_LcgState` draw.
-extern u16 ActorsShared80132ac4Durations[];
+/// Sixteen frame counts the hovering states reload `field_362` from, picked
+/// by a `Gp_LcgState` draw.
+extern u16 Actor01500_D09FC8[];
+
+/// Sixteen distances `field_35E` is reloaded from when the actor starts to
+/// advance, picked by a `Gp_LcgState` draw.
+extern u16 Actor01500_D09FE8[];
 
 /// 0x18-byte frame allocated on the scratchpad stack; only the `SVECTOR` at
-/// +0x10 is used, as the rotation `ActorsShared80133658` hands `RotMatrix`.
+/// +0x10 is used, as the rotation `Actor01500_Fn01838` hands `RotMatrix`.
 typedef struct Actor101500RotScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR rot;
@@ -109,14 +113,26 @@ extern GpPairSrcE Actor01500_D09FB8;
 /// Animation bank handed to `func_800B3F84`.
 extern u8 Actor01500_D0A014[];
 
+void Actor01500_Fn004EC(Actor101500* actor);
 void Actor01500_Fn00AFC(Actor101500* actor, s32 damage);
-
-/// Maximum hit points; `Actor01500_Fn00AFC` staggers below 60%.
-extern u16 ActorsShared80132ac4MaxHp;
-
-extern u16 ActorsShared80132ac4Durations[];
-extern u16 ActorsShared80132ac4MaxHp;
-
-void ActorsShared80132ac4(Actor101500* actor);
+void Actor01500_Fn00CA4(Actor101500* actor);
+void Actor01500_Fn00FC4(Actor101500* actor);
+void Actor01500_Fn011B0(Actor101500* actor);
+void Actor01500_Fn015DC(Actor101500* actor);
+void Actor01500_Fn01708(Actor101500* actor);
+void Actor01500_Fn01838(Actor101500* actor);
+void Actor01500_Fn01988(Actor101500* actor);
+void Actor01500_Fn020D8(Actor101500* actor);
+void Actor01500_Fn02484(GpEnemy* enemy, Actor101500* actor);
+void Actor01500_Fn025C8(Actor101500* actor);
+void Actor01500_Fn026D8(Actor101500* actor);
+void Actor01500_Fn027B0(Actor101500* actor);
+void Actor01500_Fn0288C(Actor101500* actor);
+void Actor01500_Fn028B0(Actor101500* actor);
+void Actor01500_Fn02958(Actor101500* actor);
+void Actor01500_Fn02A1C(Actor101500* actor);
+void Actor01500_Fn02B14(Actor101500* actor);
+void Actor01500_Fn02B70(Actor101500* actor);
+void Actor01500_Fn02C34(Actor101500* actor);
 
 #endif
