@@ -93,5 +93,3 @@ s32 func_shelter_b2_elevator_hall_8017DC88(s32 arg0, s32 arg1, s32 arg2)
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", jtbl_shelter_b2_elevator_hall_8017D5FC);
