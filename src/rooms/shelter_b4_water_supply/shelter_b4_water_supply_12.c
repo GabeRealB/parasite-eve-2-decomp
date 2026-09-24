@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,13 +9,16 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-void Room_Draw11(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a flickering grey light beam from `arg0[0]` to `arg0[1]`. Both points
+/// are projected through the view matrix; unless the far end is nearer than
+/// OTZ 0x11, gouraud `POLY_G4` wedges around each end (radius
+/// `(s16)arg1 * 64 / otz` at that end) are joined by quads between the two,
+/// each fading from grey on the axis to black at the rim. `arg2` turns the
+/// wedges about the axis. The grey alternates between 0x20 and 0x28 with the
+/// display frame counter.
+void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;

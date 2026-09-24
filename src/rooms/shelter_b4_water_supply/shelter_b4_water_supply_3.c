@@ -9,6 +9,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b4_water_supply.h"
 
 #include <psyq/abs.h>
 
@@ -59,7 +60,8 @@ void func_shelter_b4_water_supply_8017EDD0(s32 arg0)
 /// and advances. Later states, while no event is running and `waterY` is below
 /// that model's root, spawn each of two effects at water level under each part
 /// with odds that grow with how far the part moved since last frame. Every
-/// frame it then draws the `Room_Draw11` segments the current view selects.
+/// frame it then draws the light beams the current view selects, through
+/// `func_shelter_b4_water_supply_80180260`.
 void func_shelter_b4_water_supply_8017EE54(Task* arg0)
 {
     Task*                        ctl;
@@ -119,29 +121,29 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     }
     switch ((u8)Gp_GetViewIndex()) {
         case 4:
-            Room_Draw11(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            Room_Draw11(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
+            func_shelter_b4_water_supply_80180260(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
         case 2:
         case 3:
-            Room_Draw11(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
             break;
         case 6:
-            Room_Draw11(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_801826A0, 0x200, 0);
         case 5:
-            Room_Draw11(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
             break;
         case 7:
-            Room_Draw11(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_801826A0, 0x200, 0);
             break;
         case 8:
-            Room_Draw11(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            Room_Draw11(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
+            func_shelter_b4_water_supply_80180260(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
             break;
         case 9:
-            Room_Draw11(D_shelter_b4_water_supply_801826D0, 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_801826D0, 0x200, 0x800);
         case 10:
         case 11:
-            Room_Draw11(D_shelter_b4_water_supply_801826C0, 0x200, 0x800);
+            func_shelter_b4_water_supply_80180260(D_shelter_b4_water_supply_801826C0, 0x200, 0x800);
             break;
     }
 }

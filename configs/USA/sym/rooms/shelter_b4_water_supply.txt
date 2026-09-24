@@ -1,14 +1,1 @@
 // Overlay-local symbols for shelter_b4_water_supply.
-Room_Draw06 = 0x8018226C; // shared body, see src/lib/
-Room_Draw07 = 0x801813DC; // shared body, see src/lib/
-Room_Draw10 = 0x80181800; // shared body, see src/lib/
-Room_Draw11 = 0x80180260; // shared body, see src/lib/
-Room_Draw14 = 0x80181158; // shared body, see src/lib/
-Room_Draw16 = 0x8017F3A0; // shared body, see src/lib/
-Room_Draw27 = 0x8017FB90; // shared body, see src/lib/
-Room_Draw28 = 0x8017FF7C; // shared body, see src/lib/
-RoomsShared8017e690 = 0x8017ED90; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DDA4; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5D8; // shared body data, see src/lib/
-RoomsShared801807c4 = 0x80180F34; // shared body, see src/lib/
-RoomsShared8017f4a0 = 0x8017F24C; // shared body, see src/lib/

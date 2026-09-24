@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -71,5 +75,9 @@ extern u8* D_shelter_b4_water_supply_80184E50;
 
 void func_shelter_b4_water_supply_8017DE74(s32 arg0);
 void func_shelter_b4_water_supply_8017E5D8(s32 arg0);
+
+void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // ROOMS_SHELTER_B4_WATER_SUPPLY_H

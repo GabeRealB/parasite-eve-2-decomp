@@ -27,7 +27,7 @@ extern GpSaveLoc D_shelter_b4_water_supply_80184E3C;
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5D8);
 
 /// Spawn argument for the task `func_shelter_b4_water_supply_8017D7C0` starts
 /// with `Task_Spawn(1, 0x31, ...)`.
