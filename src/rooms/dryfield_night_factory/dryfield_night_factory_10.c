@@ -5,8 +5,6 @@
 #include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
 
-extern void func_dryfield_night_factory_80180DE8(Task*, s16);
-
 /// Runs the prompt state of the night factory script: drops the highlight the
 /// previous state left in `D_80114D28` and, while `func_800D4EC0` still reports
 /// a prompt on screen, hands the task to the cap step `field_C` names. Once the

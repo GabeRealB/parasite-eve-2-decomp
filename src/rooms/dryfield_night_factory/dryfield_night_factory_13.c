@@ -6,8 +6,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
 
 extern TaskDesc* D_dryfield_night_factory_8018A7E0;
 extern TaskDesc* D_dryfield_night_factory_8018A7E4;
@@ -18,8 +18,6 @@ extern TaskDesc   D_dryfield_night_factory_80186E28[];
 extern GpMsgEntry D_dryfield_night_factory_80186E64[];
 extern TaskDesc   D_dryfield_night_factory_80186E94[];
 extern TaskDesc   D_dryfield_night_factory_80186EA0[];
-
-extern void Room_Util16(s32);
 
 void func_dryfield_night_factory_8018076C(Task* task)
 {
@@ -38,4 +36,4 @@ void func_dryfield_night_factory_8018076C(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_13", RoomsShared8017fc38Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_13", D_dryfield_night_factory_8017D678);

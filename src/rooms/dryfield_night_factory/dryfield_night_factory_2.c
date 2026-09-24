@@ -11,20 +11,12 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void Room_Util16(s32);
-extern void Room_Util17(s32);
-extern u8   D_8007216D;
+extern u8 D_8007216D;
 
 /// Cutscene driver for the night factory room: silences both weapons, runs the
 /// cap (cutscene) command in `Task::spawnArg1`, then waits for the cap to
 /// report event key 3 before setting the two progress flags and starting the
 /// follow-up cap slot. Any state past 4 restores the weapons and kills the task.
-
-/// Cutscene driver for the night factory room: silences both weapons, runs the
-/// cap (cutscene) command in `Task::spawnArg1`, then waits for the cap to
-/// report event key 3 before setting the two progress flags and starting the
-/// follow-up cap slot. Any state past 4 restores the weapons and kills the task.
-
 void func_dryfield_night_factory_8017F330(Task* task)
 {
     switch (task->state) {
@@ -36,10 +28,10 @@ void func_dryfield_night_factory_8017F330(Task* task)
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
                 if (gGameSession->at4.loc.stage == 2) {
-                    Room_Util17(0);
+                    func_dryfield_night_factory_80181B38(0);
                     SOFT_BARRIER();
                 } else {
-                    Room_Util17(0);
+                    func_dryfield_night_factory_80181B38(0);
                 }
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
             }
@@ -55,12 +47,12 @@ void func_dryfield_night_factory_8017F330(Task* task)
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
                 if (gGameSession->at4.loc.stage == 2) {
-                    Room_Util17(1);
-                    Room_Util16(1);
+                    func_dryfield_night_factory_80181B38(1);
+                    func_dryfield_night_factory_80181620(1);
                     SOFT_BARRIER();
                 } else {
-                    Room_Util17(1);
-                    Room_Util16(1);
+                    func_dryfield_night_factory_80181B38(1);
+                    func_dryfield_night_factory_80181620(1);
                 }
                 Gp_StartCapSlot(task->spawnArg1, 1, 2);
             }

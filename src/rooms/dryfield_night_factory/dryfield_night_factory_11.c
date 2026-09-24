@@ -5,6 +5,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_night_factory_80186F04;
@@ -23,13 +24,13 @@ void func_dryfield_night_factory_801825F0(Task* task)
     state = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
-        Room_Draw15(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
+        func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
     }
     if (state & 0xF26C4) {
         if (GameFlag_GetNibble(0x4A) == 1) {
-            Room_Draw15(&D_dryfield_night_factory_80186F0C, 0x80, 0x5A00);
+            func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F0C, 0x80, 0x5A00);
         } else if (GameFlag_GetNibble(0x4A) == 2) {
-            Room_Draw15(&D_dryfield_night_factory_80186F14, 0x80, 0x50A0);
+            func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F14, 0x80, 0x50A0);
         }
     }
 }

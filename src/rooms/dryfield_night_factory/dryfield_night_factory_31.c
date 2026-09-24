@@ -2,11 +2,9 @@
 
 #include "gameplay/D4.h"
 #include "main/session.h"
+#include "rooms/dryfield_night_factory.h"
 
-/// Sets the skip-link byte on the second sprite command of view 9 for the
-/// current room. `arg0` zero skips OT-linking (`field_4` = 1); non-zero draws
-/// it. No-op unless `GameSession.loc.stage` is 2.
-void Room_Util16(s32 arg0)
+void func_dryfield_night_factory_80181620(s32 show)
 {
     GameSession* g;
     GpAreaKey*   sess;
@@ -16,7 +14,7 @@ void Room_Util16(s32 arg0)
     sess = &g->at4.loc;
     if (sess->stage == 2) {
         cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
-        if (!(arg0 & 0xFF)) {
+        if (!(show & 0xFF)) {
             cmd[1].field_4 = 1;
             return;
         }

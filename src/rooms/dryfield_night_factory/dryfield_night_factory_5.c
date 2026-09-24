@@ -6,8 +6,8 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
 
 extern TaskDesc* D_dryfield_night_factory_8018A7E0;
 extern TaskDesc* D_dryfield_night_factory_8018A7E4;
@@ -18,8 +18,6 @@ extern TaskDesc   D_dryfield_night_factory_80186E28[];
 extern GpMsgEntry D_dryfield_night_factory_80186E64[];
 extern TaskDesc   D_dryfield_night_factory_80186E94[];
 extern TaskDesc   D_dryfield_night_factory_80186EA0[];
-
-extern void Room_Util16(s32);
 
 /// `D_..._A7E0` / `D_..._A7E4` hold the address of whichever spawn table
 /// `func_dryfield_night_factory_80180438` selected for the current session
@@ -66,10 +64,10 @@ void func_dryfield_night_factory_80180438(Task* arg0)
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 4, 0, (s32)D_dryfield_night_factory_8018A7E8);
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 5, 0, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
+        func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
         SOFT_BARRIER();
     } else {
-        Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
+        func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     }
     arg0->state++;
 }

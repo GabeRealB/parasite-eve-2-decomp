@@ -5,7 +5,7 @@
 #include "gameplay/1A8.h"
 #include "main/sound.h"
 
-s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 func_dryfield_night_factory_80180914(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 7:
@@ -19,7 +19,7 @@ s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 Room_Script15(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);

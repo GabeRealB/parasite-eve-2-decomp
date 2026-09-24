@@ -8,9 +8,7 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void Room_Util29(Task* task);
-
-s32 RoomsShared8017ea24(Task* task)
+s32 func_dryfield_night_factory_8017E480(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
     GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
@@ -30,23 +28,23 @@ s32 RoomsShared8017ea24(Task* task)
             work->field_17++;
             break;
         case 2:
-            work->field_4 += -0xC000;
-            if (work->field_4 < -0x30000) {
-                work->field_4 = -0x30000;
+            work->field_4 += 0xC000;
+            if (work->field_4 > 0x30000) {
+                work->field_4 = 0x30000;
             }
             work->field_C.value += work->field_4;
-            if (work->field_C.value < -0x23A0000) {
+            if (work->field_C.value > 0) {
                 work->field_17++;
             }
             break;
         case 3:
-            work->field_4 += 0xC000;
-            if (work->field_4 > 0xC000) {
-                work->field_4 = 0xC000;
+            work->field_4 += -0xC000;
+            if (work->field_4 < -0xC000) {
+                work->field_4 = -0xC000;
             }
             work->field_C.value += work->field_4;
-            if (work->field_C.value >= -0x23A0000) {
-                Room_Util29(*(Task**)task->spawnArg2);
+            if (work->field_C.value <= 0) {
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -63,7 +61,7 @@ s32 RoomsShared8017ea24(Task* task)
     }
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        Room_Util29(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -72,7 +70,7 @@ s32 RoomsShared8017ea24(Task* task)
             Gp_EnqueueStageSnd6(0x53170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         }
         done                = 1;
-        work->field_C.value = -0x23A0000;
+        work->field_C.value = 0;
         work->field_17      = 4;
     }
     coord->coord.t[1] = work->field_C.part.whole;

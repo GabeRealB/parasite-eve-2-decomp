@@ -7,21 +7,21 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Cutscene work block the room's factory task allocates as 0xC zeroed bytes in
-/// its state 0 and parks at `Task::work` (0x1C) -- that slot is *not* a
-/// `TaskIdMap` here.
+/// Cutscene work block the room's cutscene task allocates as 0xC zeroed bytes
+/// in its state 0 and parks at `Task::work` -- that slot is *not* a `TaskIdMap`
+/// here.
 ///
-/// `state` selects the handler out of `D_dryfield_night_factory_8017D5DC`,
-/// `step` is the counter the room's own handlers advance, and `prevFlag` is the
-/// nibble of game flag 0x4E the shared state-0 handler `RoomsShared8017fdc8`
-/// last saw. That handler reads the same three bytes.
+/// `state` selects the handler out of the room's cutscene handler table, `step`
+/// is the counter the movement handlers advance, and `prevFlag` is the nibble of
+/// game flag 0x4E the state-0 handler last saw. The set-up state parks `state`
+/// at 0xFF when the scene is already on.
 ///
-/// `field_0` is the angular velocity the two handlers accelerate towards their
-/// own limit and `field_4` is the 16.16 angle it drives: each handler adds the
-/// first to the second, clamps it at its limit, and rotates the model by the
-/// integer part. Both views of `field_4` live in one union, the way
-/// `NightFactoryWork::field_C` does -- the whole 32 bits go in and the high half
-/// alone comes back out.
+/// `field_0` is the angular velocity the two movement handlers accelerate
+/// towards their own limit and `field_4` is the 16.16 angle it drives: each
+/// handler adds the first to the second, clamps it at its limit, and rotates
+/// the model by the integer part. Both views of `field_4` live in one union,
+/// the way `NightFactoryWork::field_C` does -- the whole 32 bits go in and the
+/// high half alone comes back out.
 typedef struct NightFactoryCutsceneWork {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ union {
@@ -40,21 +40,18 @@ STATIC_ASSERT_SIZEOF(NightFactoryCutsceneWork, 0xC);
 
 /// A handler of the cutscene sequence. Unlike `TaskFunc` these report back: a
 /// non-zero return means the handler has finished its part of the scene, and
-/// the sequence drops back to the shared state 0.
+/// the sequence drops back to state 0.
 typedef s32 (*NightFactoryCutsceneFunc)(Task*);
 
-/// The room's three handler slots, as the dispatcher's local copy sees them.
-/// The `.rodata` table they are copied out of ends with a NULL slot.
+/// The cutscene sequence's three handler slots, which the dispatcher copies
+/// onto the stack before calling through them.
 typedef struct NightFactoryCutsceneTable3 {
     /* 0x0 */ NightFactoryCutsceneFunc funcs[3];
 } NightFactoryCutsceneTable3;
 STATIC_ASSERT_SIZEOF(NightFactoryCutsceneTable3, 0xC);
 
-/// The night factory cutscene sequence's handler table: the shared state-0
-/// handler, the room's own two states, and the NULL the original `.rodata`
-/// table ends with. Only the three handlers are copied by the dispatcher
-/// `func_dryfield_night_factory_8017FD5C`, which is why the terminator is not
-/// part of `NightFactoryCutsceneTable3`.
+/// The cutscene sequence's handler table: the flag watcher of state 0 and the
+/// two movements it arms.
 extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
 /// A `MATRIX` plus a word-wise view of its first 0x12 bytes, used to reset a
@@ -73,26 +70,26 @@ typedef union NightFactoryMatWords {
 STATIC_ASSERT_SIZEOF(NightFactoryMatWords, 0x20);
 
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
-/// state 0 and parks at `Task::work`. It is the same block the shared
-/// `Room_Util20` body (src/lib/room_util20.c) reads its model light and
-/// color matrices out of at 0x18 / 0x38, so the tail is left unreferenced here.
+/// state 0 and parks at `Task::work`.
 ///
 /// `field_0` is the nibble of game flag 0x49 the task last saw, `field_14`
 /// counts the frames since that nibble changed, and `field_16` / `field_17` are
 /// the step counters of the handlers driven by its bit 0 and bit 1: each drops
-/// back to 0 when its bit changes, and `func_dryfield_night_factory_8017D6F8`
-/// seeds both to -1 when it allocates the block.
+/// back to 0 when its bit changes, and the set-up state seeds both to -1 when
+/// it allocates the block.
 ///
-/// `field_C` is a 16.16 accumulator: the handler `func_dryfield_night_factory_8017E13C`
-/// adds `field_4` to it and clamps the result, and the two seeders read its
-/// integer part (`field_C.whole`) straight out into the model's Y translation.
-/// That integer part is the same two bytes, so both views live in one union --
-/// the target stores the whole 32 bits and loads the high half.
+/// `field_C` is a 16.16 accumulator: the lift handlers add `field_4` to it and
+/// clamp the result, and the model's Y translation is read straight out of its
+/// integer part. Both views live in one union -- the target stores the whole 32
+/// bits and loads the high half.
 ///
-/// `field_10` is the model's 16.16 yaw, laid out the same way: the handler
-/// `RoomsShared8017e6bc` steps `field_16` through its sequence, accelerates
-/// `field_8` towards a limit, adds it to `field_10`, and rebuilds the model's
-/// rotation from the integer part alone.
+/// `field_10` is the model's 16.16 yaw, laid out the same way: the turn
+/// handlers accelerate `field_8` towards a limit, add it to `field_10`, and
+/// rebuild the model's rotation from the integer part alone.
+///
+/// `light` and `color` are the model's own light and colour matrices, which the
+/// lighting helper publishes onto the model's `TmdObject::lightMtx` /
+/// `colorMtx`.
 typedef struct NightFactoryWork {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -111,41 +108,46 @@ typedef struct NightFactoryWork {
             /* 0x12 */ s16 whole;
         } part;
     } field_10;
-    /* 0x14 */ u16  field_14;
-    /* 0x16 */ s8   field_16;
-    /* 0x17 */ s8   field_17;
-    /* 0x18 */ byte pad_18[0x40];
+    /* 0x14 */ u16    field_14;
+    /* 0x16 */ s8     field_16;
+    /* 0x17 */ s8     field_17;
+    /* 0x18 */ MATRIX light;
+    /* 0x38 */ MATRIX color;
 } NightFactoryWork;
 STATIC_ASSERT_SIZEOF(NightFactoryWork, 0x58);
 
-/// Work block `func_dryfield_night_factory_8018182C` allocates (memCalloc(0x10))
-/// and hangs off the `Task::work` slot (0x1C) -- that slot is *not* a
-/// `TaskIdMap` here, it is the block the task's init state allocated. Reach it
-/// with `(NightFactoryScriptWork*)task->work`.
+/// Work block the room's script task allocates (memCalloc(0x10)) and hangs off
+/// `Task::work` -- that slot is *not* a `TaskIdMap` here. Reach it with
+/// `(NightFactoryScriptWork*)task->work`.
 ///
-/// `field_C` is the cap step `func_dryfield_night_factory_80180DE8` switches on
-/// (0..4) to pick the sound, the game flag and the cap slot for the step, and
-/// `field_8` is the short the prompt state arms with 0xA and the idle state
-/// counts down before it will scan the hotspots. `field_C` and `field_E` are
-/// the hotspot `id` and `promptKind` the idle state copies in when the cursor
-/// confirms one.
+/// `field_8` is the countdown the prompt states arm with 0xA and the idle state
+/// runs down before it will scan the hotspots again. `field_A` is the one-shot
+/// trigger a script message raises and the cursor state consumes. `field_C` and
+/// `field_E` are the hotspot `id` and `promptKind` the idle state copies in
+/// when the cursor confirms one: `field_C` is the cap step the script then
+/// runs, and `field_E` the display mode the prompt is spawned with, read
+/// signed.
 typedef struct NightFactoryScriptWork {
     /* 0x0 */ byte pad_0[0x8];
     /* 0x8 */ u16  field_8;
     /* 0xA */ s16  field_A;
     /* 0xC */ s16  field_C;
-    /* 0xE */ u8   field_E;
+    /* 0xE */ s8   field_E;
     /* 0xF */ byte pad_F[0x1];
 } NightFactoryScriptWork;
 STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
 
 /// The single-entry `TaskDesc` table the room's script task spawns its child
-/// task from: the shared state machine `RoomsShared8017f280`.
+/// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
 extern TaskDesc D_dryfield_night_factory_80186E94[];
 /// The script's message table, parked in `Task::msgTable`.
 extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
 /// The room's 0xFFFF-terminated hotspot table.
 extern RoomHotspot D_dryfield_night_factory_80186EBC[];
+
+/// The state handlers of the room's script task, run through
+/// `func_dryfield_night_factory_8018169C`.
+extern const TaskFuncTable7 D_dryfield_night_factory_8017D678;
 
 /// Task callback of the descriptor at `D_dryfield_night_factory_80186E94`:
 /// allocates the script work block, spawns the room's child task, picks the
@@ -181,5 +183,46 @@ s32 func_dryfield_night_factory_8017E7A4(Task* task);
 /// The handler that follows `func_dryfield_night_factory_8017E480` when bit 0 of
 /// game flag 0x49 is clear.
 s32 func_dryfield_night_factory_8017EBD4(Task* task);
+
+/// Kills the task; the factory model's exit callback.
+void func_dryfield_night_factory_8017FB48(Task* task);
+
+/// Binds the model to the light and colour matrices in the task's work block
+/// and rebuilds its lighting.
+void func_dryfield_night_factory_8017FB68(Task* task);
+
+/// Sends message 0x13F3 to `task`, if there is one.
+void func_dryfield_night_factory_8017FBC8(Task* task);
+
+/// The room's event gate: answers 1 when the request's flag says the event
+/// already happened, 0 (after running the request's cap command) when its
+/// item prerequisite is missing, and otherwise latches the request, writes
+/// the flag and spawns the room's event task, for 2. A non-zero `field_5` on
+/// the message only asks for the answer.
+s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
+
+/// Runs cap step `step` of the room's script, picking the sound, the progress
+/// flags and the cap slot for the step.
+void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
+
+/// Moves both action-prompt cursors from the pads and draws them.
+void func_dryfield_night_factory_801810D8(Task* task);
+
+/// Shows (non-zero) or hides (zero) the second sprite command of view 9 of the
+/// current room, in stage 2 only.
+void func_dryfield_night_factory_80181620(s32 show);
+
+/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
+/// was.
+s32 func_dryfield_night_factory_80181778(RoomHotspot* table, s16 x, s16 y);
+
+/// As `func_dryfield_night_factory_80181620`, for view 11.
+void func_dryfield_night_factory_80181B38(s32 show);
+
+/// Resets both action-prompt slots and steps the caller on one state.
+void func_dryfield_night_factory_80181BB4(Task* task);
+
+/// Draws a tinted, flickering glow disc at the world-space point `pos`.
+void func_dryfield_night_factory_80181C14(SVECTOR* pos, s32 size, s32 tint);
 
 #endif // ROOMS_DRYFIELD_NIGHT_FACTORY_H

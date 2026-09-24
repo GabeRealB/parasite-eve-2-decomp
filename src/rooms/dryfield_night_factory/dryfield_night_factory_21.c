@@ -9,7 +9,7 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
-s32 RoomsShared8017fac4(Task* task)
+s32 func_dryfield_night_factory_8017F00C(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
     GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
@@ -19,22 +19,33 @@ s32 RoomsShared8017fac4(Task* task)
     switch (work->step) {
         case 0:
             work->field_0 = 0;
+            if (gGameSession->at4.loc.stage == 2) {
+                Gp_EnqueueStageSnd6(0x5217000D, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+            } else {
+                Gp_EnqueueStageSnd6(0x5317000D, (s8)Gp_GetObjPan(coord),
+                                    (s8)gpGetObjDepth(coord));
+            }
             work->step++;
             break;
         case 1:
-            work->field_0 += 0x20000;
-            if (work->field_0 > 0x700000) {
-                work->field_0 = 0x700000;
+            work->field_0 += -0x28000;
+            if (work->field_0 < -0x300000) {
+                work->field_0 = -0x300000;
             }
             work->field_4.value += work->field_0;
-            if (work->field_4.value > 0) {
-                if (gGameSession->at4.loc.stage == 2) {
-                    Gp_EnqueueStageSnd6(0x5217000E, (s8)Gp_GetObjPan(coord),
-                                        (s8)gpGetObjDepth(coord));
-                } else {
-                    Gp_EnqueueStageSnd6(0x5317000E, (s8)Gp_GetObjPan(coord),
-                                        (s8)gpGetObjDepth(coord));
-                }
+            if (work->field_4.value < -0x3000000) {
+                work->step++;
+            }
+            break;
+        case 2:
+            work->field_0 += 0x40000;
+            if (work->field_0 > 0x100000) {
+                work->field_0 = 0x100000;
+            }
+            work->field_4.value += work->field_0;
+            if (work->field_4.value >= -0x3000000) {
+                work->field_4.value = -0x3000000;
                 work->step++;
             }
             break;

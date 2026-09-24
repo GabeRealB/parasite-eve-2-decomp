@@ -8,10 +8,9 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void Room_Util29(Task* task);
-void        func_8004BFF8(s16 angle, MATRIX* matrix);
+void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-s32 RoomsShared8017e6bc(Task* task)
+s32 func_dryfield_night_factory_8017DDD4(Task* task)
 {
     NightFactoryWork*     work  = (NightFactoryWork*)task->work;
     GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
@@ -48,7 +47,7 @@ s32 RoomsShared8017e6bc(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value >= 0) {
-                Room_Util29(*(Task**)task->spawnArg2);
+                func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -66,7 +65,7 @@ s32 RoomsShared8017e6bc(Task* task)
     }
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
-        Room_Util29(*(Task**)task->spawnArg2);
+        func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));

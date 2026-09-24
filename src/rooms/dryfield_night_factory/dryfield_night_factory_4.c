@@ -5,9 +5,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
-
-extern void Room_Util16(s32);
-extern void Room_Util17(s32);
+#include "rooms/dryfield_night_factory.h"
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_8017FE44);
 

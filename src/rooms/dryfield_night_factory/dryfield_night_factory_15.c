@@ -5,10 +5,11 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_factory.h"
 
 extern s8 D_8007216C;
 
-void RoomsShared80180de8(Task* task, s16 step)
+void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
 {
     s32 id;
     s32 state;
@@ -118,8 +119,5 @@ void RoomsShared80180de8(Task* task, s16 step)
     }
 }
 
-/// The zero word the original `.rodata` carried after the unit's two jump
-/// tables: the block ahead of the tables runs to a 8-byte boundary and the
-/// extracted table symbol spans that last word. Emitting it here keeps every
-/// later rodata symbol at its recorded address.
+/// A zero word in `.rodata` after this unit's two jump tables.
 const u32 D_dryfield_night_factory_8017D6C8 = 0;

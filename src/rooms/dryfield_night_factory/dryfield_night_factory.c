@@ -9,9 +9,7 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void     Room_Util20(Task* task);
 extern void     func_8004BFF8(s32 angle, MATRIX* matrix);
-extern void     Room_Script16(Task* task);
 extern TaskDesc D_dryfield_night_factory_80186DE0[];
 extern TaskDesc D_dryfield_night_factory_80186E28[];
 
@@ -60,14 +58,14 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     coord->coord.t[0] = 0xE4C;
     coord->coord.t[1] = work->field_C.part.whole;
     coord->coord.t[2] = 0x1AAE;
-    Room_Util20(task);
+    func_dryfield_night_factory_8017FB68(task);
     func_dryfield_night_factory_8017D858(task, 1, 0);
     if (gGameSession->at4.loc.stage == 2) {
         Task_SpawnFromTable(D_dryfield_night_factory_80186E28, 7, 0, (s32)task);
     } else {
         Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, (s32)task);
     }
-    task->exitCallback  = Room_Script16;
+    task->exitCallback  = func_dryfield_night_factory_8017FB48;
     task->killCountdown = 0;
     task->state++;
 }

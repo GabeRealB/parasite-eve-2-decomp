@@ -6,10 +6,10 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
 
-s32 RoomsShared8017db08(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_night_factory_80180574(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u8           variant;
@@ -65,7 +65,7 @@ s32 RoomsShared8017db08(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         req.field_C = 0x52170003;
         req.flagId  = -0x30;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, in);
+        return func_dryfield_night_factory_80180164(&req, in);
     }
     return 1;
 }
