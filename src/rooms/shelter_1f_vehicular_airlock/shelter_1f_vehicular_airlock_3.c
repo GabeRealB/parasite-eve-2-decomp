@@ -1,11 +1,14 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_1f_vehicular_airlock.h"
 
 extern s32     D_8011572C;
 extern s32     D_80115750;
@@ -32,27 +35,27 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
         case 2:
             p = D_shelter_1f_vehicular_airlock_8018206C;
             SOFT_TOUCH_REG(p);
-            Room_Draw33(&p[0], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[2], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[6], 0x200, 0, 0x210);
-            Room_Draw33(&p[8], 0x200, 0, 0x210);
-            Room_Draw29(&p[12], 0x200, 0x200);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[0], 0x200, 0x800, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[2], 0x200, 0x800, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[6], 0x200, 0, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[8], 0x200, 0, 0x210);
+            func_shelter_1f_vehicular_airlock_8017E468(&p[12], 0x200, 0x200);
             break;
         case 3:
             p = D_shelter_1f_vehicular_airlock_8018205C;
-            Room_Draw33(&p[0], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[2], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[6], 0x200, 0, 0x210);
-            Room_Draw33(&p[8], 0x200, 0, 0x210);
-            Room_Draw33(&p[12], 0x200, 0, 0x111);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[0], 0x200, 0x800, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[2], 0x200, 0x800, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[6], 0x200, 0, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[8], 0x200, 0, 0x210);
+            func_shelter_1f_vehicular_airlock_8017DC80(&p[12], 0x200, 0, 0x111);
             if (GameFlag_GetNibble(0xB2) == 1) {
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[15], 0x804, 0x140, 0x21);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[16], 0xC0, 0x120, 0x210);
                 func_shelter_1f_vehicular_airlock_8017E80C(&p[17], -0xC0, 0x120, 0x210);
             } else {
-                Room_Draw29(&p[15], 0x180, 0x21);
-                Room_Draw29(&p[16], 0x140, 0x210);
-                Room_Draw29(&p[17], 0x140, 0x210);
+                func_shelter_1f_vehicular_airlock_8017E468(&p[15], 0x180, 0x21);
+                func_shelter_1f_vehicular_airlock_8017E468(&p[16], 0x140, 0x210);
+                func_shelter_1f_vehicular_airlock_8017E468(&p[17], 0x140, 0x210);
             }
             break;
     }

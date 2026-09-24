@@ -1,18 +1,1 @@
 // Overlay-local symbols for shelter_1f_vehicular_airlock.
-Room_DrawBillboard = 0x80180290; // shared body, see src/lib/
-Room_Draw02 = 0x8017EF60; // shared body, see src/lib/
-Room_Draw03 = 0x8017FC10; // shared body, see src/lib/
-Room_Draw04 = 0x8017F38C; // shared body, see src/lib/
-Room_Draw29 = 0x8017E468; // shared body, see src/lib/
-Room_Draw33 = 0x8017DC80; // shared body, see src/lib/
-RoomsShared8017f9e4 = 0x8017F720; // shared body, see src/lib/
-RoomsShared8017f9e4Pos = 0x801820EC; // shared body data, see src/lib/
-RoomsShared8017f9e4Pos2 = 0x801820F4; // shared body data, see src/lib/
-RoomsShared801802cc = 0x80180008; // shared body, see src/lib/
-RoomsShared8017ef80 = 0x8017ECBC; // shared body, see src/lib/
-RoomsShared8017db84Msgs = 0x80182034; // shared body data, see src/lib/
-RoomsShared8017db84 = 0x8017D9FC; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DA48; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5D8; // shared body data, see src/lib/
-RoomsShared8017d5e4 = 0x8017D5E4; // shared body, see src/lib/
-func_shelter_1f_vehicular_airlock_8017D5E4 = 0x8017D5E4; // type:func absolute:True
