@@ -87,25 +87,36 @@ typedef struct Actor401000Work {
     /// `func_actor_401000_80133274`'s normalised heading.
     /* 0x00C */ Actor401000Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
-    /* 0x016 */ byte                pad_16[0x44];
-    /* 0x05A */ u16                 field_5A;
-    /* 0x05C */ byte                pad_5C[0xC];
-    /* 0x068 */ Actor401000Flags68  flags_68;
-    /* 0x06C */ byte                pad_6C[0x828];
-    /* 0x894 */ s32                 field_894;
-    /* 0x898 */ s16                 field_898;
-    /* 0x89A */ s16                 field_89A;
-    /* 0x89C */ byte                pad_89C[2];
-    /* 0x89E */ s16                 field_89E;
-    /* 0x8A0 */ byte                pad_8A0[2];
-    /* 0x8A2 */ s16                 field_8A2;
-    /* 0x8A4 */ s16                 field_8A4;
-    /* 0x8A6 */ s16                 field_8A6;
-    /* 0x8A8 */ s16                 field_8A8;
-    /* 0x8AA */ byte                pad_8AA[4];
-    /* 0x8AE */ s16                 field_8AE;
-    /* 0x8B0 */ s16                 field_8B0;
-    /* 0x8B2 */ byte                pad_8B2[2];
+    /// Heading `func_actor_401000_8013D814` takes from the root coordinate's
+    /// Z axis once a placement record has been applied to it.
+    /* 0x016 */ s16                yaw;
+    /* 0x018 */ byte               pad_18[0x42];
+    /* 0x05A */ u16                field_5A;
+    /* 0x05C */ byte               pad_5C[0xC];
+    /* 0x068 */ Actor401000Flags68 flags_68;
+    /* 0x06C */ byte               pad_6C[0x828];
+    /* 0x894 */ s32                field_894;
+    /* 0x898 */ s16                field_898;
+    /* 0x89A */ s16                field_89A;
+    /// Clip the body slots are playing; `func_actor_401000_80132EF0` moves it
+    /// to the requested `field_89E` when it applies a clip change.
+    /* 0x89C */ s16 field_89C;
+    /* 0x89E */ s16 field_89E;
+    /// Frames since the last clip change: counted up every
+    /// `func_actor_401000_80132EF0` tick and cleared when a change is applied.
+    /* 0x8A0 */ u16 field_8A0;
+    /* 0x8A2 */ s16 field_8A2;
+    /* 0x8A4 */ s16 field_8A4;
+    /* 0x8A6 */ s16 field_8A6;
+    /* 0x8A8 */ s16 field_8A8;
+    /// Playback rate of the blend slots, and the weight (out of 0x1000) the
+    /// blend pose gets when `func_actor_401000_80132A84` mixes it into the
+    /// body pose; both are seeded (0x30, 0x800) when a blend clip starts.
+    /* 0x8AA */ u16  field_8AA;
+    /* 0x8AC */ s16  field_8AC;
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
+    /* 0x8B2 */ byte pad_8B2[2];
     /// Last animation state `func_actor_401000_8013922C` acted on; the same
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
     /* 0x8B4 */ s32      field_8B4;
@@ -522,6 +533,13 @@ extern char D_actor_401000_80146190;
 /// and `Actor00100_MoveForward` test.
 extern u8 D_80072729;
 
+/// Turns joint `coord` by `yaw` about the world Y axis.
+void func_actor_401000_801320E0(GsCOORDINATE2* coord, s16 yaw);
+
+/// Advances the body slots mixed with the blend clip's pose.
+void func_actor_401000_80132A84(Actor401000* arg0);
+
+/// The actor's per-frame animation driver.
 void func_actor_401000_80132EF0(Actor401000* arg0);
 
 /// Runs the actor's `field_BE8` idle countdown out into its movement chase.

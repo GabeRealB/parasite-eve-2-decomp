@@ -1,14 +1,1 @@
 // Overlay-local symbols for actor_401000.
-ActorsShared80169f74 = 0x8013D814; // shared body, see src/lib/
-ActorsShared80135df4Table = 0x8013207C; // shared body data, see src/lib/
-ActorsShared80135df4 = 0x8013E038; // shared body, see src/lib/
-ActorsShared8016a074 = 0x8013D914; // shared body, see src/lib/
-ActorsShared80164904 = 0x8013D7C4; // shared body, see src/lib/
-ActorsShared80169e64 = 0x8013D704; // shared body, see src/lib/
-ActorsShared80132808 = 0x801320E0; // shared body, see src/lib/
-ActorsShared80133eb8 = 0x80132EF0; // shared animation driver, see src/lib/
-func_actor_401000_80132EF0 = 0x80132EF0; // type:func absolute:True
-ActorsShared80133eb8_Sound = 0x80132BB0; // type:func absolute:True
-ActorsShared80133eb8_Transitions = 0x8015465C; // absolute:True
-ActorsShared80132a84 = 0x80132A84; // shared body, see src/lib/
-ActorsShared80133eb8_BlendTick = 0x80132A84; // type:func absolute:True

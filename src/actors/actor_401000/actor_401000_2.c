@@ -5,7 +5,6 @@
 #include <psyq/abs.h>
 
 #include "actors/actor_401000.h"
-#include "actors/actors_shared_80133eb8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -1219,7 +1218,7 @@ void func_actor_401000_80135AA4(Actor401000* arg0)
         work->field_89A        = 0;
         work->field_8A2        = speed;
         work->field_A10.flags |= 0x4000;
-        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        func_actor_401000_80132EF0(arg0);
         work->field_C24 = 0;
         work->field_6   = 0;
         work->field_8   = 0;
@@ -1231,7 +1230,7 @@ void func_actor_401000_80135AA4(Actor401000* arg0)
     chase         = (*(Actor401000ChaseScratch**)G_SCRATCH_HEAD = head - 1);
     Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &head[-1].delta);
     arg0->field_2C->coords->flg = 0;
-    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    func_actor_401000_80132EF0(arg0);
     chase->pad_8 = ratan2(-((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
                           ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     Actor401000_ConfigPositionDelta(&Player_Status, arg0->field_2C->coords, &chase->delta);
@@ -1701,7 +1700,7 @@ void func_actor_401000_801378DC(Actor401000* arg0)
         work->field_898        = 1;
         work->field_8A2        = 0x10;
         work->field_89E        = 4;
-        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        func_actor_401000_80132EF0(arg0);
         work->field_8AE             = 0;
         work->field_8B0             = 0;
         arg0->field_2C->coords->flg = 0;
@@ -1732,7 +1731,7 @@ void func_actor_401000_801378DC(Actor401000* arg0)
         work->field_C28             = 0;
         work->field_C1B             = 0xA;
     }
-    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    func_actor_401000_80132EF0(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = Actor401000_MatrixPositionYaw(arg0, &delta, D_80073B8C);
         if (abs(angle) < 0x10 && !Actor401000_OutOfRange(&delta, 0x44C)) {
@@ -3366,7 +3365,7 @@ void func_actor_401000_8013D68C(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_401000/actor_401000_2", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_401000/actor_401000_2", D_actor_401000_8013207C);
 
 s32 func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2)
 {
