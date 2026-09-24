@@ -7,7 +7,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+
+#include "rooms/shelter_b3_elevator_hall.h"
 
 extern s16      D_80071076;
 extern u8       D_801153F4;
@@ -18,7 +19,7 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", func_shelter_b3_elevator_hall_8017D900);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall", D_shelter_b3_elevator_hall_8017D5F0);
 
 void func_shelter_b3_elevator_hall_8017DAF0(Task* arg0)
 {
@@ -116,7 +117,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = 0x542A0003;
         req.flagId  = 0xA7;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b3_elevator_hall_8017D62C(&req, out);
     }
     if (in->msgId != 0x1A) {
         return 1;

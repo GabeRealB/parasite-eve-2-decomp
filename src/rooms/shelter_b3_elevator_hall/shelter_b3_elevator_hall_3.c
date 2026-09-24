@@ -6,6 +6,8 @@
 
 #include "main/task.h"
 
+#include "rooms/shelter_b3_elevator_hall.h"
+
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_80115730;
@@ -33,24 +35,24 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
     switch ((u8)Gp_GetViewIndex()) {
         case 3: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182A74;
-            Room_Draw01(&p[0], 0x180, 0x222);
-            Room_Draw01(&p[2], 0x180, 0x222);
-            Room_Draw01(&p[4], 0x180, 0x222);
-            Room_Draw01(&p[6], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[0], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[2], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[4], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[6], 0x180, 0x222);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182AB4;
-            Room_Draw01(&p[0], 0x180, 0x222);
-            Room_Draw01(&p[2], 0x180, 0x222);
-            Room_Draw01(&p[4], 0x180, 0x222);
-            Room_Draw01(&p[6], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[0], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[2], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[4], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[6], 0x180, 0x222);
         } break;
         case 6: {
             SVECTOR* p = D_shelter_b3_elevator_hall_80182AF4;
-            Room_Draw01(&p[0], 0x180, 0x222);
-            Room_Draw01(&p[2], 0x180, 0x222);
-            Room_Draw01(&p[4], 0x180, 0x222);
-            Room_Draw01(&p[6], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[0], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[2], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[4], 0x180, 0x222);
+            func_shelter_b3_elevator_hall_8017DFB0(&p[6], 0x180, 0x222);
         } break;
     }
 }
