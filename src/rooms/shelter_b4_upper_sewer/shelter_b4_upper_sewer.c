@@ -115,5 +115,3 @@ void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
 void func_shelter_b4_upper_sewer_8017DC28(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", jtbl_shelter_b4_upper_sewer_8017D604);
