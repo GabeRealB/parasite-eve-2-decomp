@@ -8,7 +8,14 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-void Room_Script25(Task* arg0)
+/// Streamed-scene task. It blanks the display and queues CD command 0x61 on
+/// the stream slot of the current location with its view replaced by 0x64,
+/// then shows the display once the command queue signals it. The scene runs
+/// until the CD is idle or the pad check aborts it, which is recorded in
+/// `spawnArg1`. After the stream state is restored an aborted scene kills the
+/// task at once, and a finished one after 0x3D more ticks; either way the
+/// display heap is reset.
+void func_shelter_b1_control_room_8017EF24(Task* arg0)
 {
     u8          slotParam[4];
     s32         state;
