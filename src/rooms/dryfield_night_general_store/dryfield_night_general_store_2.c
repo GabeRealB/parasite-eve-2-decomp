@@ -1,31 +1,187 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
-#include "main/task.h"
+#include "rooms/room_common.h"
 
-extern TaskDesc D_dryfield_night_general_store_8017E798[];
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Message handler for actions 0x18 and 9. Action 0x18 hands
-/// `Gp_SpawnIfCapIdle` 0x18 when pointer slot 0xA holds a task and 0x19
-/// otherwise; action 9 spawns the room's CAP-command task to run CAP command 9
-/// and toggle flag nibble 0x53. Always returns 0.
-s32 func_dryfield_night_general_store_8017DD88(s32 arg0, s32 arg1, s32 arg2)
+extern SVECTOR D_dryfield_night_general_store_8017E7EC[];
+extern SVECTOR D_dryfield_night_general_store_8017E7FC;
+extern SVECTOR D_dryfield_night_general_store_8017E80C;
+extern SVECTOR D_dryfield_night_general_store_8017E81C;
+
+/// Draws a glowing beam between the two points `arg0[0]` and `arg0[1]`,
+/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when either
+/// projection flags an error. Each end is a gouraud half-disc of radius
+/// `(s16)arg1 * 64` over its depth, lit at the centre and dark at the rim,
+/// turned to face the other end by the screen-space angle between the two
+/// projected points; quads join the two discs. The lit vertices flicker
+/// between 0x20 and 0x30 with the display frame counter. The work block lives
+/// on the scratchpad stack.
+void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
 {
-    s32   arg;
-    void* slot;
+    void**             scratch;
+    u8*                head;
+    SVECTOR*           p1;
+    RoomDraw08Scratch* block;
+    POLY_G4*           prim;
+    DisplayState*      ds;
+    s32                raw;
+    s32                ang;
+    s32                angEnd;
+    s32                limit;
+    s32                angStart;
+    s32                t;
+    s32                t2;
+    s32                t3;
+    s32                conn;
+    s32                scaled;
+    s32                blend;
 
-    if (arg2 == 0x18) {
-        slot = gameGetPtrSlot(0xA);
-        arg  = 0x19;
-        if (slot != 0) {
-            arg = 0x18;
+    p1      = arg0 + 1;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* tmp asm("v0");
+        tmp      = head - 0x1C;
+        block    = (RoomDraw08Scratch*)tmp;
+        *scratch = tmp;
+    }
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(p1);
+        gte_rtps_real();
+        gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
+        gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&((RoomDraw08Scratch*)(head - 0x1C))->otz1);
+            scaled    = (s16)arg1 * 64;
+            block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+            block->r1 = scaled / block->otz1;
+            raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+            ds        = &gDisplayState;
+            ang       = (s16)raw;
+            blend     = ((*(u8*)&ds->animFrame & 1) * 0x10) | 0x20;
+            SOFT_BARRIER();
+            angEnd = ang + 0x800;
+            if (ang < angEnd) {
+                angStart = ang;
+                limit    = angEnd;
+                do {
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                    t        = ang + 0x200;
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
+                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
+                    t2       = ang + 0x400;
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
+                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+                    conn           = angStart + ((ang - angStart) * 2);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, blend, blend, blend);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx1;
+                    prim->y3 = block->sy1;
+                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                                      (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
+                    SCHED_BARRIER();
+
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    t3             = ang + 0x800;
+                    t              = t3;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    t        = ang + 0xA00;
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    t        = ang + 0xC00;
+                    prim->x2 = block->sx1;
+                    prim->y2 = block->sy1;
+                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    ang = t2;
+                } while (ang < limit);
+            }
         }
-        Gp_SpawnIfCapIdle(arg, 0);
     }
-    if (arg2 == 9) {
-        Task_SpawnFromTable(D_dryfield_night_general_store_8017E798, 0, 0x53, 9);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
+
+/// Draws the store's light beams for the current camera view
+/// `gGameSession->at4.loc.view`. Each beam is a pair of world points handed to
+/// `func_dryfield_night_general_store_8017DEE0` with a radius of 0x100: views
+/// 2, 3, 12 and 13 draw one beam each, and views 4 and 8 draw the beams of
+/// views 2 and 3 together.
+void func_dryfield_night_general_store_8017E6C8(void)
+{
+    switch (gGameSession->at4.loc.view) {
+        case 2:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            break;
+        case 3:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7FC, 0x100);
+            break;
+        case 4:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            break;
+        case 8:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            break;
+        case 12:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E80C, 0x100);
+            break;
+        case 13:
+            func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E81C, 0x100);
+            break;
     }
-    return 0;
 }
