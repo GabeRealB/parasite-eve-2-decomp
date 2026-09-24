@@ -3,9 +3,11 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "main/task.h"
 
 /// 0x14 work block the forked road's streamed-scene task
 /// (`func_acropolis_forked_road_8017DA24`) keeps at `Task::work`
@@ -45,5 +47,10 @@ typedef struct AfrLampWork {
     /* 0x26 */ s16  frame;
     /* 0x28 */ s16  color;
 } AfrLampWork;
+
+void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
+void func_acropolis_forked_road_8017F224(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_acropolis_forked_road_8017F650(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif

@@ -1,0 +1,95 @@
+#include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
+#include "gameplay/3FB8.h"
+#include "main/display.h"
+#include "main/mem.h"
+#include "rooms/room_common.h"
+#include "rooms/acropolis_forked_road.h"
+
+extern GpQuadCorner D_80111E38[];
+
+/// `rtps` / `rtpt` / `mvmva`. The `inline_c.h` macros of those names assemble
+/// to different words, so spell the instructions out.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
+/// Draws one mote: the unit quad `D_80111E38` scaled by `arg1`, rotated and
+/// placed by the mote's coordinate frame, then projected through
+/// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
+/// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
+/// else modulates it to that grey and draws it semi-transparent.
+void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+{
+    register GsCOORDINATE2* coord asm("t7");
+    register void**         scratch asm("a0");
+    u8*                     head;
+    RoomQuadScratch*        blk;
+    POLY_FT4*               prim;
+    GpQuadCorner*           tbl;
+    SVECTOR*                sv;
+    MATRIX*                 wm;
+    s32                     i;
+
+    coord   = arg0;
+    scratch = (void**)G_SCRATCH_HEAD;
+    i       = 0;
+    wm      = &coord->workm;
+    tbl     = D_80111E38;
+    head    = (u8*)*scratch - sizeof(RoomQuadScratch);
+    /* `head` and `blk` have to stay separate registers: the ROM computes the
+       block address into a scratch register and copies it into the one the
+       rest of the function uses. */
+    SOFT_TOUCH_REG(head);
+    blk      = (RoomQuadScratch*)head;
+    *scratch = blk;
+    do {
+        blk->v[i].vx = tbl[i].x * arg1;
+        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
+        // pointer from the one the GTE macros below take; writing both the same
+        // way lets CSE fold them into one register and the loop stops matching.
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(RoomQuadScratch, v));
+        sv->vy = 0;
+        sv->vz = tbl[i].y * arg1;
+        gte_SetRotMatrix(wm);
+        gte_ldv0(&blk->v[i]);
+        gte_rtv0_real();
+        gte_stsv(&blk->v[i]);
+        *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
+        *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
+        i++;
+        *(u16*)&sv->vz = *(u16*)&sv->vz + *(u16*)&coord->workm.t[2];
+    } while (i < 4);
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&blk->v[0]);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&prim->x0);
+    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_rtpt_real();
+    setUV4(prim, 0, 0xE8, 7, 0xE8, 0, 0xEF, 7, 0xEF);
+    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stszotz(&blk->otz);
+    if (blk->otz >= 0x11) {
+        if (arg2 != 0) {
+            setRGB0(prim, arg2, arg2, arg2);
+            setSemiTrans(prim, 1);
+        } else {
+            setShadeTex(prim, 1);
+        }
+        prim->tpage = 0x2B;
+        prim->clut  = 0x4390;
+        addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadScratch);
+}
