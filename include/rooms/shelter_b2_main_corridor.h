@@ -111,6 +111,9 @@ extern u8* D_shelter_b2_main_corridor_80189660;
 
 void func_shelter_b2_main_corridor_8017E390(void);
 
+/// First state of the water task.
+void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
+
 /// The three-state table the room task driver
 /// `func_shelter_b2_main_corridor_8017E338` dispatches through.
 extern const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0;

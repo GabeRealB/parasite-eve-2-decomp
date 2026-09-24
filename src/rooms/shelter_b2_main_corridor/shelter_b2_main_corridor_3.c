@@ -169,4 +169,13 @@ void func_shelter_b2_main_corridor_8017E390(void)
     *(u8**)0x1F8003FC += 0xC;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor_3", func_shelter_b2_main_corridor_8017EB8C);
+/// The water task: runs its state, first
+/// `func_shelter_b2_main_corridor_8017EBF4` and then the surface drawer above,
+/// and each tick publishes the room's water height to the session.
+void func_shelter_b2_main_corridor_8017EB8C(Task* task)
+{
+    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, func_shelter_b2_main_corridor_8017E390 };
+
+    states[task->state](task);
+    gGameSession->waterY = D_shelter_b2_main_corridor_80182E28;
+}

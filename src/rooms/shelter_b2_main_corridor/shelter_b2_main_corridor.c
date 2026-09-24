@@ -2,7 +2,11 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/shelter_b2_main_corridor.h"
@@ -10,14 +14,124 @@
 /// `Gp_StateF0.field_4` (0x801153F4). Declared as a one-element array so the
 /// store keeps the in-struct memory attribute a struct-member store has, which
 /// makes it alias the task's argument load and keeps the two in source order.
-extern u8 D_801153F4[1];
-extern u8 D_80115690;
+extern u8  D_801153F4[1];
+extern u8  D_80115690;
+extern s16 D_80071076;
+
+/// Spawn argument of the helper task 0x31 the room's exit task starts.
+extern GpStateBD8 D_shelter_b2_main_corridor_8018964C;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017D6BC);
+/// Carries out a staged event once the message handler has passed it through
+/// `func_shelter_b2_main_corridor_8017E0FC`, from the copy in
+/// `D_shelter_b2_main_corridor_80189664`. State 0 sends the event's `field_4`
+/// to the slot-3 game pointer as message 0x3EE, unless it is -1, in which case
+/// it skips to state 2; state 1 polls that pointer with message 0x3F0 until it
+/// answers 0. States 2 and 3 queue the event's sound `field_8`, if any, and
+/// wait for its voice to end. State 4 copies the event's stage, area, warp and
+/// room into the save location and spawns the room-load task 0x11.
+void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
+{
+    GpMsg3EE msg;
+    void*    slot;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017D82C);
+    slot = gameGetPtrSlot(3);
+    switch (arg0->state) {
+        case 0:
+            msg.field_12 = D_shelter_b2_main_corridor_80189664.field_4;
+            if (msg.field_12 == -1) {
+                arg0->state = 2;
+                break;
+            }
+            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 1:
+            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 2:
+            if (D_shelter_b2_main_corridor_80189664.field_8 == 0) {
+                arg0->state = 4;
+                break;
+            }
+            SndEvt_EnqueueType6(D_shelter_b2_main_corridor_80189664.field_8, 0, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(D_shelter_b2_main_corridor_80189664.field_8) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7((s32)0x80000000, 0);
+            D_80071076                = 1;
+            Mc_SaveData.at4.loc.stage = D_shelter_b2_main_corridor_80189664.field_0;
+            Mc_SaveData.at4.loc.area  = D_shelter_b2_main_corridor_80189664.field_1;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b2_main_corridor_80189664.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_b2_main_corridor_80189664.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+        default:
+            break;
+    }
+}
+
+/// Carries out a room exit staged by the message handler in
+/// `D_shelter_b2_main_corridor_80189674`. State 0 runs the exit's capture
+/// command; state 1 waits for it to finish and, when the exit's `field_A` asks
+/// for it, spawns helper task 0x31; states 2 and 3 queue the exit's stage
+/// sound, if any, and wait for its voice to end. State 4 copies the destination
+/// of the outgoing message `D_shelter_b2_main_corridor_80189654` into the save
+/// location and spawns the room-load task 0x11.
+void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4[0] = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_shelter_b2_main_corridor_80189674.capCmd, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_shelter_b2_main_corridor_80189674.field_A != 0) {
+                    D_shelter_b2_main_corridor_8018964C.field_0 = 0;
+                    D_shelter_b2_main_corridor_8018964C.field_1 = 0;
+                    D_shelter_b2_main_corridor_8018964C.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b2_main_corridor_8018964C);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_shelter_b2_main_corridor_80189674.sndId != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_main_corridor_80189674.sndId, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_main_corridor_80189674.sndId)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_b2_main_corridor_80189654.msgId;
+            Mc_SaveData.at4.loc.warp = D_shelter_b2_main_corridor_80189654.field_2;
+            Mc_SaveData.at4.loc.room = D_shelter_b2_main_corridor_80189654.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_shelter_b2_main_corridor_8017D9C4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
