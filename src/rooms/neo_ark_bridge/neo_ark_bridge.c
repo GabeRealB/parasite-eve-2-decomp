@@ -5,12 +5,15 @@
 #include <psyq/inline_c.h>
 #include <psyq/rand.h>
 
+#include "gameplay/1A8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -35,9 +38,14 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
 extern s32 D_8007107C;
 extern u8  D_80071090;
 extern u8  D_801153F4;
+
+/// The room's message table.
+extern GpMsgEntry D_neo_ark_bridge_80181F30[];
 
 /// Rotates `v` in place by `m` through the GTE, working from a stack copy so
 /// the load and the store can name the same vector.
@@ -765,4 +773,54 @@ s32 func_neo_ark_bridge_8017E82C(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", D_neo_ark_bridge_8017D614);
+/// Room message handler for the bridge's save location: copies the incoming
+/// record onto the outgoing one and forwards both to `func_80179B14`. Always
+/// answers 1.
+s32 func_neo_ark_bridge_8017E834(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    return 1;
+}
+
+s32 func_neo_ark_bridge_8017E878(void)
+{
+    return 0;
+}
+
+s32 func_neo_ark_bridge_8017E880(void)
+{
+    return 0;
+}
+
+/// Room entry task tick: installs the room's message table (ids `0x13EE`-`0x13F1`),
+/// hands the task to pointer slot 7, queues sound events `0x551B0003` and
+/// `0x551B0004`, then advances state.
+void func_neo_ark_bridge_8017E888(Task* arg0)
+{
+    arg0->msgTable = D_neo_ark_bridge_80181F30;
+    Game_SetPtrSlot(arg0, 7);
+    SndEvt_EnqueueType6(0x551B0003, 0, 0);
+    SndEvt_EnqueueType6(0x551B0004, 0, 0);
+    arg0->state = (s32)(arg0->state + 1);
+}
+
+void func_neo_ark_bridge_8017E8F4(Task* task)
+{
+}
+
+/// State handlers of the room's entry task, indexed by its state through
+/// `func_neo_ark_bridge_8017E8FC`: set-up, idle, then kill.
+const TaskFuncTable3 D_neo_ark_bridge_8017D614 = {
+    { func_neo_ark_bridge_8017E888, func_neo_ark_bridge_8017E8F4, taskKill }
+};
+
+/// Task tick that dispatches on the task's state through the three-entry
+/// handler table `D_neo_ark_bridge_8017D614`, copied to the stack first.
+void func_neo_ark_bridge_8017E8FC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_bridge_8017D614;
+    sp.funcs[task->state](task);
+}
