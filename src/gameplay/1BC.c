@@ -2,6 +2,8 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/gtemac.h>
 #include <psyq/libcd.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
@@ -26,29 +28,6 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_op12_real()   __asm__ volatile("nop; nop; .word 0x4B78000C")
-#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
-
-/// `gte_MulMatrix0` from `psyq/gtemac.h`, but with the real `rtir` encoding.
-#define Gp_MulMatrix0(r1, r2, r3)    \
-    {                                \
-        gte_SetRotMatrix(r1);        \
-        gte_ldclmv(r2);              \
-        gte_rtir_real();             \
-        gte_stclmv(r3);              \
-        gte_ldclmv((char*)(r2) + 2); \
-        gte_rtir_real();             \
-        gte_stclmv((char*)(r3) + 2); \
-        gte_ldclmv((char*)(r2) + 4); \
-        gte_rtir_real();             \
-        gte_stclmv((char*)(r3) + 4); \
-    }
 
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -664,7 +643,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         gte_SetRotMatrix(&arg1->coord);
         gte_SetTransMatrix(&arg1->coord);
         gte_ldv0(arg2);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(dest->coord.t);
     } else {
         Gp_UpdateCoord(arg1);
@@ -672,7 +651,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         gte_SetRotMatrix(&arg1->workm);
         gte_SetTransMatrix(&arg1->workm);
         gte_ldv0(arg2);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(dest->workm.t);
         Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
     }
@@ -1184,7 +1163,7 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
     gte_ldopv1(&vec[0]);
     gte_ldopv2(&vec[1]);
-    gte_op12_real();
+    gte_op12();
     gte_stlvnl(&tmp);
     ret = VectorNormal(&tmp, &nrm);
     if (len < ret) {
@@ -1194,7 +1173,7 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
     gte_ldopv1(&vec[1]);
     gte_ldopv2(&vec[2]);
-    gte_op12_real();
+    gte_op12();
     gte_stlvnl(&tmp);
     ret = VectorNormal(&tmp, &nrm);
     if (len < ret) {
@@ -1204,7 +1183,7 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
     gte_ldopv1(&vec[0]);
     gte_ldopv2(&vec[2]);
-    gte_op12_real();
+    gte_op12();
     gte_stlvnl(&tmp);
     if (len < VectorNormal(&tmp, &nrm)) {
         best = 1;
@@ -1412,19 +1391,19 @@ void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
     tmp.vz = *(u16*)&arg0->coord.t[2];
     gte_SetRotMatrix(arg1);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&tmp);
     arg2->vx += tmp.vx;
     arg2->vy += tmp.vy;
     arg2->vz += tmp.vz;
     gte_ldclmv(&arg0->coord);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(arg1);
     gte_ldclmv(&arg0->coord.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&arg1->m[0][1]);
     gte_ldclmv(&arg0->coord.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&arg1->m[0][2]);
 }
 
@@ -1516,10 +1495,10 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 
     gte_lddp(arg2);
     gte_ldsv(c0);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_lddp(0x1000 - arg2);
     gte_ldsv(c1);
-    gte_gpl12_real();
+    gte_gpl12();
     out = (GpRgbScratch*)(head - 8);
     gte_stsv(out);
 
@@ -1733,32 +1712,32 @@ void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg2
         if (arg0->field_10 == 1) {
             RotMatrix_gte(&s->vec1, &s->mtx1);
             TransposeMatrix(&s->mtx0, &s->mtx2);
-            Gp_MulMatrix0(&s->mtx1, &s->mtx2, &s->mtx2);
+            gte_MulMatrix0(&s->mtx1, &s->mtx2, &s->mtx2);
             Gfx_MatrixToEuler(&s->mtx2, &arg2->bufRotDelta);
         }
         gte_lddp(s->invBlend);
         gte_ldsv(&arg2->bufRotDelta);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&s->vec1);
         RotMatrix_gte(&s->vec1, &s->mtx2);
         if (arg0->field_C == NULL) {
-            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &arg1->coord);
+            gte_MulMatrix0(&s->mtx2, &s->mtx0, &arg1->coord);
             if (arg0->field_8 != NULL) {
                 Gfx_MatrixToEuler(&arg1->coord, &s->vec1);
             }
             arg1->flg = 0;
         } else {
-            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &s->mtx2);
+            gte_MulMatrix0(&s->mtx2, &s->mtx0, &s->mtx2);
             Gfx_MatrixToEuler(&s->mtx2, &s->vec1);
             arg0->field_C->rot = s->vec1;
         }
     } else {
         gte_lddp(s->blend);
         gte_ldsv(&s->vec0);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_lddp(s->invBlend);
         gte_ldsv(&s->vec1);
-        gte_gpl12_real();
+        gte_gpl12();
         gte_stsv(&s->vec1);
         if (arg0->field_C == NULL) {
             RotMatrix_gte(&s->vec1, &arg1->coord);
@@ -1801,10 +1780,10 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GsCOORDINATE2* arg1, GpAnimSlot* arg
         COMPILER_BARRIER();
         gte_lddp(s->blend);
         gte_ldsv(arg0->field_0);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_lddp(s->invBlend);
         gte_ldsv(arg0->field_4);
-        gte_gpl12_real();
+        gte_gpl12();
         gte_stsv(&s->trans);
         if (arg0->field_C == NULL) {
             arg1->coord.t[0] = s->trans.vx;
@@ -2430,10 +2409,10 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
         st = trans;
         gte_lddp(arg4);
         gte_ldsv(&arg2->trans);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_lddp(arg5);
         gte_ldsv(&arg3->trans);
-        gte_gpl12_real();
+        gte_gpl12();
         gte_stsv(st);
         dest->coord.t[0] = trans->vx;
         COPY_REG(trans, trans);
@@ -2442,10 +2421,10 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     }
     gte_lddp(arg4);
     gte_ldsv(&arg2->rot);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_lddp(arg5);
     gte_ldsv(&arg3->rot);
-    gte_gpl12_real();
+    gte_gpl12();
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
@@ -2476,10 +2455,10 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     }
     gte_lddp(arg4);
     gte_ldsv(&arg2->rot);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_lddp(arg5);
     gte_ldsv(&arg3->rot);
-    gte_gpl12_real();
+    gte_gpl12();
     rot = (SVECTOR*)((u8*)head - 8);
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
@@ -2884,7 +2863,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     block->maxotz = 0;
 
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);
@@ -2894,7 +2873,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     }
 
     gte_ldv0(&block->vec[1]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy1);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);
@@ -2904,7 +2883,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     }
 
     gte_ldv0(&block->vec[2]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy2);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);
@@ -2914,7 +2893,7 @@ void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     }
 
     gte_ldv0(&block->vec[3]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy3);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);
@@ -3565,11 +3544,11 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     mtx = (MATRIX*)(head - 0x20);
     TransposeMatrix(&coord->workm, mtx);
     Gp_LoadRotSV(mtx, (SVECTOR*)(head - 0x28));
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(vec);
     gte_lddp(scale);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(arg2);
     *scratch = (u8*)*scratch + 0x28;
 }

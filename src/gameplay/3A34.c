@@ -22,29 +22,9 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/gtemac.h>
 #include <psyq/libgte.h>
-
-#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
-#define gte_op12_real()   __asm__ volatile("nop; nop; .word 0x4B78000C")
-#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
-
-#define gte_MulMatrix0_real(r1, r2, r3) \
-    {                                   \
-        gte_SetRotMatrix(r1);           \
-        gte_ldclmv(r2);                 \
-        gte_rtir_real();                \
-        gte_stclmv(r3);                 \
-        gte_ldclmv((char*)(r2) + 2);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 2);    \
-        gte_ldclmv((char*)(r2) + 4);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 4);    \
-    }
 
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan`,
 /// `Gp_DebugPanTask` and `Gp_DrawTargetCursor`: one world point projected to
@@ -1229,10 +1209,10 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 
     Gp_UpdateCoord(arg1->field_4C);
     TransposeMatrix(&Gfx_ViewWorldMtx, mtx);
-    gte_MulMatrix0_real(mtx, &arg1->field_4C->workm, mtx);
+    gte_MulMatrix0(mtx, &arg1->field_4C->workm, mtx);
 
     solve_loadrot(mtx, (SVECTOR*)(head - 0x2C));
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
@@ -1244,7 +1224,7 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block->scale = val;
     gte_lddp(scale);
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -1336,7 +1316,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -1376,7 +1356,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     {
@@ -1423,7 +1403,7 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -1596,7 +1576,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     solve_loadrot(&block->mtx, &block->local);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&block->local);
 
     {
@@ -1782,7 +1762,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
             block->local.vz = row[j].vz;
             gte_lddp(*ov);
             gte_ldsv(&block->local);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&block->local);
             row[j].vx = block->local.vx;
             row[j].vy = block->local.vy;
@@ -1860,7 +1840,7 @@ void Gp_DebugPanTask(Task* arg0)
         block->vec.vy                           = vec.vy;
         block->vec.vz                           = vec.vz;
         gte_ldv0(vecp);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
         gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
         gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
@@ -2126,10 +2106,10 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 block->col1.vz = dst->z;
                 gte_lddp(w1);
                 gte_ldsv(col0);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_lddp(w0);
                 gte_ldsv(col1);
-                gte_gpl12_real();
+                gte_gpl12();
                 gte_stsv(col0);
                 src->x = block->col0.vx;
                 dst    = (GpMtxCol*)&dst->_0;
@@ -2261,7 +2241,7 @@ s32 Gp_GetObjPan(GsCOORDINATE2* coord)
     block->vec.vy = 0;
     block->vec.vx = 0;
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
     gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
     gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
@@ -2426,7 +2406,7 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block->scale = val;
     gte_lddp(scale);
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -2468,7 +2448,7 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block->scale = val;
     gte_lddp(scale);
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -2510,7 +2490,7 @@ void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block->scale = val;
     gte_lddp(scale);
     gte_ldsv(&arg1->field_50);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     colorMtx->m[0][arg0] = block->dir.vx;
@@ -2692,7 +2672,7 @@ void Gp_DrawTargetCursor(void)
             gte_SetRotMatrix(&node->coord->workm);
             gte_SetTransMatrix(&node->coord->workm);
             gte_ldv0(&block->vec);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&((_GpPanScratch*)(head - 0x18))->sx);
             gte_stdp(&((_GpPanScratch*)(head - 0x18))->dp);
             gte_stflg(&((_GpPanScratch*)(head - 0x18))->flag);
@@ -2832,7 +2812,7 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
     srcp = &((GpLockScanScratch*)(head - 0x38))->src;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(srcp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&block->self);
     *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&gGfxViewCoord.workm.t[0];
     *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&gGfxViewCoord.workm.t[1];
@@ -2900,7 +2880,7 @@ void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
         tmp            = block->node;
         gte_SetRotMatrix(&nodeCoord->workm);
         gte_ldv0(&tmp);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->node);
         block->node.vx += *(u16*)&node->coord->workm.t[0];
         block->node.vy += *(u16*)&node->coord->workm.t[1];
@@ -2991,7 +2971,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     gte_SetRotMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
     gte_SetTransMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(sxy);
     gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
     gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
@@ -3381,7 +3361,7 @@ void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
     gte_SetRotMatrix(mat);
     gte_SetTransMatrix(mat);
     gte_ldlvl(&arg0->pos);
-    gte_rtirtr_real();
+    gte_rtirtr();
     gte_stlvl(out);
     *scratch = (u8*)*scratch + 0x28;
 }
@@ -3428,7 +3408,7 @@ s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
     gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     gte_SetTransMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(sxy);
     gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
     gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
@@ -4083,7 +4063,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1)
         block->scaled.vy = (u16)rec->end0.vy + (u16)arg1->pos.vy;
         block->scaled.vz = (u16)rec->end0.vz + (u16)arg1->pos.vz;
         gte_ldv0((SVECTOR*)(head - 8));
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(ends);
         block->end0.vx += ((GsCOORDINATE2*)arg1->coord)->workm.t[0];
         block->end0.vy += ((GsCOORDINATE2*)arg1->coord)->workm.t[1];
@@ -4201,14 +4181,14 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 COMPILER_BARRIER();
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
                 gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
                 block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
                 block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
                 block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
                 gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stlvnl(&block->normal);
 
                 faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
@@ -4241,7 +4221,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 n = (face->verts[3] != 0xFFFF) ? 4 : 3;
                 for (i = 1; i < n; i++) {
                     gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
                     block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
                     block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
@@ -4259,7 +4239,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
-                    gte_op12_real();
+                    gte_op12();
                     gte_stlvnl(&block->delta);
 
                     edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
@@ -4348,14 +4328,14 @@ void Gp_CollideObjGridDir(GpObj* arg0)
 
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
                 gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
                 block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
                 block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
                 block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
                 gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stlvnl(&block->normal);
 
                 if (rec->dir.vx * block->normal.vx + rec->dir.vy * block->normal.vy +
@@ -4390,7 +4370,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 n = (face->verts[3] != 0xFFFF) ? 4 : 3;
                 for (i = 1; i < n; i++) {
                     gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
                     block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
                     block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
@@ -4409,7 +4389,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
-                    gte_op12_real();
+                    gte_op12();
                     gte_stlvnl(&block->delta);
 
                     edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
@@ -4499,14 +4479,14 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
 
     gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
     gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&block->verts[0]);
     block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
     block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
     block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
     gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&block->normal);
 
     faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
@@ -4541,7 +4521,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
     gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
     for (i = 1; i < n; i++) {
         gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&block->verts[i]);
         block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
         block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
@@ -4555,7 +4535,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
         VectorNormal(&block->delta, &block->unit);
         gte_ldopv1(&block->normal);
         gte_ldopv2(&block->unit);
-        gte_op12_real();
+        gte_op12();
         gte_stlvnl(&block->delta);
 
         edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
@@ -4680,7 +4660,7 @@ void func_800DDC2C(GpObj* arg0)
         off = 0x20;
         do {
             gte_ldv0((SVECTOR*)((u8*)block + off));
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stlvnl(out);
             off += 8;
             i++;
@@ -4816,7 +4796,7 @@ void func_800DE150(GpObj* arg0)
         block->src[i].vy = 0;
         block->src[i].vz = (u16)src[i].vz + (u16)arg0->pos.vz;
         gte_ldv0(&block->src[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&block->pos[i]);
         block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
         block->pos[i].vy = 0;
@@ -5117,7 +5097,7 @@ done_search:
             block->local.vy = (u16)src->vy + (u16)obj->pos.vy;
             block->local.vz = (u16)src->vz + (u16)obj->pos.vz;
             gte_ldv0(local);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stlvnl(&block->vec);
             pos->vx = block->vec.vx + ((GsCOORDINATE2*)obj->coord)->workm.t[0];
             pos->vy = block->vec.vy + ((GsCOORDINATE2*)obj->coord)->workm.t[1];
@@ -5145,7 +5125,7 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     *(void**)G_SCRATCH_HEAD = vec;
     gte_SetRotMatrix(&obj->coord->workm);
     gte_ldv0(&obj->pos);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(vec);
     pos->vx                 = ((GsCOORDINATE2*)obj->coord)->workm.t[0] + ((VECTOR*)(h - 0x30))->vx;
     pos->vy                 = ((GsCOORDINATE2*)obj->coord)->workm.t[1] + vec->vy;
@@ -5188,7 +5168,7 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     Gp_ObjWorldPosInline(node, (VECTOR*)(head - 0x18));
     gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
     gte_ldv0(&other->field_C);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x58));
     block->world.vx += ((GsCOORDINATE2*)other->field_8)->workm.t[0];
     block->world.vy += ((GsCOORDINATE2*)other->field_8)->workm.t[1];
@@ -5249,7 +5229,7 @@ case4_far:
     block->local.vz = *(u16*)&other->field_C.vz;
     gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
     gte_ldv0((SVECTOR*)(head - 8));
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x38));
     block->delta.vx =
         block->nodePos.vx - (block->delta.vx + ((GsCOORDINATE2*)other->field_8)->workm.t[0]);
@@ -5278,14 +5258,14 @@ case4_far:
 
 collide:
     gte_ldv0(&other->field_14[0]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&block->verts[0]);
     block->verts[0].vx += block->world.vx;
     block->verts[0].vy += block->world.vy;
     block->verts[0].vz += block->world.vz;
 
     gte_ldv0(&other->field_34);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&block->normal);
 
     faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
@@ -5318,7 +5298,7 @@ do_edges:
     off  = 0x1C;
     do {
         gte_ldv0((SVECTOR*)((u8*)other + off));
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(vec4);
         vec4->vx += block->world.vx;
         TOUCH_REG(vec4);
@@ -5347,7 +5327,7 @@ do_edges:
         block->delta.vz = va->vz - vb->vz;
         gte_ldopv1(&block->normal);
         gte_ldopv2(&block->delta);
-        gte_op12_real();
+        gte_op12();
         gte_stlvnl(&block->cross);
         tmp2   = (block->cross.vx * block->nodePos.vx) + (block->cross.vy * block->nodePos.vy);
         tmp2  += block->cross.vz * block->nodePos.vz;
@@ -5409,7 +5389,7 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
     Gp_ObjWorldPosInline(obj, (VECTOR*)(head - 0x30));
     gte_SetRotMatrix(&((GsCOORDINATE2*)arg1->field_8)->workm);
     gte_ldv0(&arg1->field_C);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x70));
     block[4].vx += ((GsCOORDINATE2*)arg1->field_8)->workm.t[0];
     block[4].vy += ((GsCOORDINATE2*)arg1->field_8)->workm.t[1];
@@ -5425,14 +5405,14 @@ void func_800DF6AC(GpObj* arg0, GpObj4C* arg1, VECTOR3* arg2)
     }
 
     gte_ldv0(&arg1->field_14[0]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(block);
     ((VECTOR*)(head - 0xB0))->vx += block[4].vx;
     block[0].vy                  += block[4].vy;
     block[0].vz                  += block[4].vz;
 
     gte_ldv0(&arg1->field_34);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x60));
 
     rawDot   = (block[5].vx * ((VECTOR*)(head - 0xB0))->vx) + (block[5].vy * block[0].vy) + (block[5].vz * block[0].vz);
@@ -5463,7 +5443,7 @@ body:
     off  = 0x1C;
     do {
         gte_ldv0((SVECTOR*)((u8*)arg1 + off));
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(vec4);
         vec4->vx += block[4].vx;
         TOUCH_REG(vec4);
@@ -5492,7 +5472,7 @@ body:
         block[6].vz = va->vz - vb->vz;
         gte_ldopv1(&block[5]);
         gte_ldopv2(&block[6]);
-        gte_op12_real();
+        gte_op12();
         gte_stlvnl(&block[7]);
         tmp2   = (block[7].vx * block[8].vx) + (block[7].vy * block[8].vy);
         tmp2  += block[7].vz * block[8].vz;
@@ -5552,7 +5532,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&arg0->origin);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x40));
     block->origin.vx += gGfxViewCoord.workm.t[0];
     block->origin.vy += gGfxViewCoord.workm.t[1];
@@ -5560,7 +5540,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&arg0->verts[0]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(block);
     ((VECTOR*)(head - 0x80))->vx += block->origin.vx;
     block->verts[0].vy           += block->origin.vy;
@@ -5568,7 +5548,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&arg0->normal);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x30));
 
     nx          = block->normal.vx;
@@ -5598,7 +5578,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     off = 0x18;
     do {
         gte_ldv0((SVECTOR*)((u8*)arg0 + off));
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(out);
         out->vx += block->origin.vx;
         TOUCH_REG(out);
@@ -5644,7 +5624,7 @@ do_poly:
         block->edge.vz = va->vz - vb->vz;
         gte_ldopv1(&block->normal);
         gte_ldopv2(&block->edge);
-        gte_op12_real();
+        gte_op12();
         gte_stlvnl(&block->cross);
         va_dot  = block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz;
         hit_dot = block->cross.vx * block->origin.vx + block->cross.vy * block->origin.vy + block->cross.vz * block->origin.vz;
@@ -5868,7 +5848,7 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     COMPILER_BARRIER();
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&arg0->pos.vx);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(vec);
     arg1->vx = ((GsCOORDINATE2*)arg0->coord)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
     arg1->vy = ((GsCOORDINATE2*)arg0->coord)->workm.t[1] + vec->vy;
@@ -5900,7 +5880,7 @@ void func_800E0994(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2)
     gte_SetRotMatrix(&arg0->coord->workm);
     for (i = 0; i < 2; i++) {
         gte_ldv0(&block->local[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&block->vec);
         arg1[i].vx = block->vec.vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
         arg1[i].vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
@@ -6154,7 +6134,7 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;
     block->local.vz = (u16)rec->end1.vz + (u16)arg0->pos.vz;
     gte_ldv0((SVECTOR*)(head - 8));
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(block);
     block->world.vx = ((VECTOR3*)(head - 0x28))->vx + ((GsCOORDINATE2*)arg0->coord)->workm.t[0];
     block->world.vy = block->vec.vy + ((GsCOORDINATE2*)arg0->coord)->workm.t[1];
@@ -6604,13 +6584,13 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
 
     gte_SetRotMatrix(mat1);
     gte_ldclmv(mat2);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(mat1);
     gte_ldclmv(&mat2->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&mat1->m[0][1]);
     gte_ldclmv(&mat2->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&mat1->m[0][2]);
 
     ((SVECTOR*)(head - 0x4C))->vx = 0;
@@ -6620,13 +6600,13 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
 
     gte_SetRotMatrix(mat1);
     gte_ldclmv(mat2);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(arg1);
     gte_ldclmv(&mat2->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&arg1->m[0][1]);
     gte_ldclmv(&mat2->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&arg1->m[0][2]);
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
@@ -6872,7 +6852,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
 
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&blk->local);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(head - 0x10);
 
     blk->world.vx = arg0->coord->workm.t[0] + blk->world.vx;
