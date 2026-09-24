@@ -120,10 +120,6 @@ typedef struct Actor100400SparkScratch {
 } Actor100400SparkScratch;
 STATIC_ASSERT_SIZEOF(Actor100400SparkScratch, 0x1C);
 
-/// Projects the four `corner` vertices through the view matrix and queues one
-/// semi-transparent textured quad shaded grey `shade` (half intensity on red).
-void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade);
-
 /// 8-byte waypoint record in the `Actor100400Work.field_608` array, walked
 /// until `field_6` is -1. `field_0` / `field_4` are the X and Z the actor
 /// steers toward; `field_6` selects the kind, where 1 is only eligible for
@@ -353,25 +349,5 @@ typedef struct Actor100400CoordPos {
     /* 0x22 */ byte pad_22[2];
 } Actor100400CoordPos;
 STATIC_ASSERT_SIZEOF(Actor100400CoordPos, 0x24);
-
-void Actor00400_Fn00C84(Actor100400*);
-void Actor00400_Fn07400(Actor100400*);
-void Actor00400_Fn07518(Actor100400*);
-void Actor00400_Fn0A034(Actor100400*);
-s32  Actor00400_Fn0A08C(GsCOORDINATE2* coord, SVECTOR* pos);
-void Actor00400_Fn0A510(Actor100400*);
-void Actor00400_Fn0A57C(Actor100400*);
-
-/// Steps the actor's root coordinate `arg0->field_2C->field_8` along the
-/// heading `arg2` in the XZ plane and marks it dirty, by `arg1` units.
-///
-/// `coord.t[0]` gains `rsin(arg2) * arg1` and `coord.t[2]` `rcos(arg2) * arg1`;
-/// the `<< 4` on the trig result and the `>> 16` after the multiply are one
-/// `>> 12` split in two, the unit circle the family's rotation code uses.
-/// Clearing `flg` is what makes `GsGetLw` rebuild the matrix from `coord`.
-///
-/// Call sites pass `arg1` as a step distance (a constant such as 0x60) and
-/// `arg2` from the actor's heading (`Actor100400Work::field_556`).
-void Actor00400_Fn0762C(Actor100400* arg0, s16 arg1, s16 arg2);
 
 #endif
