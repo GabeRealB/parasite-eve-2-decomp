@@ -14,7 +14,23 @@ extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
 extern s32        D_dryfield_trailer_coach_801853F4;
 extern s32        D_dryfield_trailer_coach_80185964;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_4", func_dryfield_trailer_coach_801827F8);
+/// State table of the room's cutscene task: `func_dryfield_trailer_coach_80182888`,
+/// then `func_dryfield_trailer_coach_8018291C`, then `taskKill`.
+extern TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC;
+
+/// State table of the room's two-line text-block task: open the block, wait
+/// for its result, then kill the task and call `Stage_SetEndingFlag`.
+extern TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8;
+
+/// Runs the text-block task's current state through a stack copy of its state
+/// table.
+void func_dryfield_trailer_coach_801827F8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_trailer_coach_8017D7E8;
+    sp.funcs[task->state](task);
+}
 
 void func_dryfield_trailer_coach_80182850(void)
 {
@@ -53,4 +69,12 @@ void func_dryfield_trailer_coach_8018291C(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_trailer_coach/dryfield_trailer_coach_4", func_dryfield_trailer_coach_80182950);
+/// Runs the cutscene task's current state through a stack copy of its state
+/// table.
+void func_dryfield_trailer_coach_80182950(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_trailer_coach_8017D7DC;
+    sp.funcs[task->state](task);
+}
