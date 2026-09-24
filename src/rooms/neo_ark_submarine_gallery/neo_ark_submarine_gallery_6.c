@@ -1,14 +1,13 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -18,9 +17,8 @@
 /// (no GTE translation) and adds `workm.t`, then projects the four corners
 /// through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x43D1, UV 0,0x38..0x37,0x6F)
-/// coloured `(arg2, arg2, arg2)`. Same 0x38 scratch layout as `GpQuadScratch`.
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw16(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+/// coloured `(arg2, arg2, arg2)`.
+void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

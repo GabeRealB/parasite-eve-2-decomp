@@ -2444,9 +2444,9 @@ objects = [
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery", rodata = "0x64", text = "0xB8" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_2", rodata = "0x88", text = "0x1A2C" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_3", rodata = "0xA0", text = "0x2150" },
-  { lib = true, unit = "rooms_shared_8017f4a0", text = "0x1CC8" },
-  { lib = true, unit = "room_draw16", text = "0x1E1C" },
-  { lib = true, unit = "room_draw19", text = "0x260C" },
+  { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_5", text = "0x1CC8" },
+  { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_6", text = "0x1E1C" },
+  { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_7", text = "0x260C" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_4", text = "0x2C94" },
   { kind = "data", at = "0x42AC" },
 ]

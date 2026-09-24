@@ -1,23 +1,23 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// the GTE flag is non-negative, queues one semi-transparent shade-tex
-/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) rotated about the projected centre.
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) spun about the projected centre.
 /// `arg1` selects the 32-texel UV column `(arg1 & 0xFFFF) << 5` at v=0xE0..0xFF.
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`. Shared body, linked into every room
-/// overlay that uses it.
-void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// `arg3 + 0x400` through `rsin`/`rcos`.
+void func_neo_ark_submarine_gallery_8017FBCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -83,9 +83,8 @@ void Room_Draw19(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// then the quad is biased to v+0x70..v-0x59. `arg2` is a signed half-extent;
 /// the on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned
 /// and 2*radius on a side, shifted up so the projected point sits at
-/// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`). Shared body,
-/// linked into every room overlay that uses it.
-void Room_Draw23(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+/// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
+void func_neo_ark_submarine_gallery_8017FFB8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -9,21 +12,18 @@
 #include "main/tmd.h"
 
 #include "rooms/room_common.h"
-
-#include <psyq/libgs.h>
+#include "rooms/neo_ark_submarine_gallery.h"
 
 extern s32 Gp_LcgState;
 
-/// Per-frame driver for one of a room's `Gp_State1C` effect tasks, carried by
-/// eleven rooms. While the room is still fading in (`Gp_State1C->eventState == 0`)
-/// it advances the task's own coordinate frame, ticks the lifetime counter and
-/// walks the size ramp (`field_24`, dropped by 2 a frame), drawing the effect at
-/// the ramp's current size each frame; on the first frame it seeds the size from
-/// the LCG and the angle from the spawn parameter, and once the ramp falls under
-/// 2 it releases the effect. After the fade (`field_4 >= 4`) it only draws and
-/// releases, so the effect lingers through the rest of the fade without
-/// advancing.
-void RoomsShared8017f4a0(Task* task)
+/// `Gp_State1C` effect task drawing a growing, fading quad through
+/// `func_neo_ark_submarine_gallery_8017F3DC`. The first frame sets the brightness
+/// to 0x40, takes the size from the spawn parameter's low 12 bits and turns
+/// the coordinate to a random Y rotation. Every frame then rebuilds the
+/// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
+/// effect once the brightness falls under 2. Once the room's event state
+/// leaves zero it only draws, and releases at state 4.
+void func_neo_ark_submarine_gallery_8017F288(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
@@ -31,7 +31,7 @@ void RoomsShared8017f4a0(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        Room_Draw16(coord, (s16)work->field_26, (s16)work->field_24);
+        func_neo_ark_submarine_gallery_8017F3DC(coord, (s16)work->field_26, (s16)work->field_24);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
@@ -47,7 +47,7 @@ void RoomsShared8017f4a0(Task* task)
             task->state = 1;
         }
         work->field_26 += 0x20;
-        Room_Draw16(coord, (s16)work->field_26, (s16)work->field_24);
+        func_neo_ark_submarine_gallery_8017F3DC(coord, (s16)work->field_26, (s16)work->field_24);
         work->field_24 -= 2;
         if ((s16)work->field_24 < 2) {
             Gp_ReleaseState1CMem(work, task);

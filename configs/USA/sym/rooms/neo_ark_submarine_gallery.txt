@@ -1,5 +1,1 @@
 // Overlay-local symbols for neo_ark_submarine_gallery.
-Room_Draw16 = 0x8017F3DC; // shared body, see src/lib/
-Room_Draw19 = 0x8017FBCC; // shared body, see src/lib/
-Room_Draw23 = 0x8017FFB8; // shared body, see src/lib/
-RoomsShared8017f4a0 = 0x8017F288; // shared body, see src/lib/

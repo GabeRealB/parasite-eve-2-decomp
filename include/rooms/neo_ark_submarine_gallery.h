@@ -4,6 +4,12 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_submarine_gallery_8017FBCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_submarine_gallery_8017FFB8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 /// Scratch block `func_neo_ark_submarine_gallery_80180E80` takes from
 /// `G_SCRATCH_HEAD` for one quad of a prism. `v` holds the four corners after
