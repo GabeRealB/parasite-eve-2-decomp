@@ -8,15 +8,6 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
-extern s32 Gp_LcgState;
-
-/// Steam / spark emitter positions the power plant's view-specific ambient
-/// effects are played at, indexed by `func_neo_ark_power_plant_1_8017DA18`.
-extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
-extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
-
-void Room_Draw13(SVECTOR* pos, s32 arg1, s32 arg2);
-
 s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     s32 cmd;
