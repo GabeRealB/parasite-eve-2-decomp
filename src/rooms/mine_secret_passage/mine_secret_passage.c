@@ -92,8 +92,8 @@ s32 func_mine_secret_passage_8017D7C4(void)
     return 0;
 }
 
-/// Handler id 0x13EE of this room's copy of the `GpMsgEntry` table
-/// `RoomsShared8017d8c8Msgs` (`D_mine_secret_passage_80180E8C`): copies the
+/// Handler id 0x13EE of the room's `GpMsgEntry` table
+/// `D_mine_secret_passage_80180E8C`: copies the
 /// requested `GpSaveLoc` to `dst` and forwards both to `func_80179A04`. A
 /// stage-9 request latches the outgoing location's three bytes into the room's
 /// staging save location and starts the cutscene task; `field_5` set only

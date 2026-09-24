@@ -1,18 +1,30 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/mine_secret_passage.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017ff88.h"
 
-extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+/// Shift per colour channel for each of the halo's tints, indexed by the tint
+/// selector the spawn argument carries.
+extern RoomsShared8017ff88Shade D_mine_secret_passage_80180F88[];
 
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
-void RoomsShared8017ff88(Task* arg0)
+/// Frame callback of an expanding halo. State 0 parks the coordinate on its
+/// parent at the spawn position and derives the ramp step from the spawn
+/// argument; state 1 grows the halo's brightness and size, drawing the
+/// `func_mine_secret_passage_8017F21C` wedge disc (with a half-bright echo on
+/// odd ticks) and a `func_mine_secret_passage_8017EDF8` ring; state 2 fades it
+/// out through `func_mine_secret_passage_80180398` and then releases the work
+/// block. The shade row `D_mine_secret_passage_80180F88[index]` tints each
+/// channel. The block is also released as soon as the room's event state
+/// reaches 4.
+void func_mine_secret_passage_8017F5B0(Task* arg0)
 {
     u8             rgb[3];
     GpEffWork*     mem;
@@ -56,17 +68,17 @@ void RoomsShared8017ff88(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].r;
-                rgb[1]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].g;
-                rgb[2]           = mem->scale >> RoomsShared8017ff88Shades[mem->index].b;
-                Room_Draw04(coord, mem->angle, rgb);
+                rgb[0]           = mem->scale >> D_mine_secret_passage_80180F88[mem->index].r;
+                rgb[1]           = mem->scale >> D_mine_secret_passage_80180F88[mem->index].g;
+                rgb[2]           = mem->scale >> D_mine_secret_passage_80180F88[mem->index].b;
+                func_mine_secret_passage_8017F21C(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
                 if (mem->age & 1) {
-                    Room_Draw04(coord, (s16)((u16)mem->angle + 0x100), rgb);
+                    func_mine_secret_passage_8017F21C(coord, (s16)((u16)mem->angle + 0x100), rgb);
                 }
-                Room_Draw09(coord, 0x300 - (u16)mem->angle * 2, 0x80, rgb);
+                func_mine_secret_passage_8017EDF8(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
@@ -76,10 +88,10 @@ void RoomsShared8017ff88(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> RoomsShared8017ff88Shades[mem->index].r;
-                    rgb[1] = mem->scale >> RoomsShared8017ff88Shades[mem->index].g;
-                    rgb[2] = mem->scale >> RoomsShared8017ff88Shades[mem->index].b;
-                    Room_DrawBillboard(coord, (u16)mem->angle * 4, rgb);
+                    rgb[0] = mem->scale >> D_mine_secret_passage_80180F88[mem->index].r;
+                    rgb[1] = mem->scale >> D_mine_secret_passage_80180F88[mem->index].g;
+                    rgb[2] = mem->scale >> D_mine_secret_passage_80180F88[mem->index].b;
+                    func_mine_secret_passage_80180398(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
                     return;

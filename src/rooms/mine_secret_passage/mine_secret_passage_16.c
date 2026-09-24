@@ -1,17 +1,20 @@
 #include "common.h"
+#include <psyq/libgte.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "rooms/rooms_shared_80181f58.h"
-
-#include <psyq/libgte.h>
 
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
 
-void RoomsShared80181f58(Task* arg0)
+/// Frame callback of a rising spark: each tick walks its angle on by a random
+/// 0x200..0x3FF, sets its velocity to a 3/16-scaled unit circle in X and Z and
+/// a Y of `-age * 0x80`, and spawns the `D_80115728` effect at the task's
+/// coordinate. Releases the work block after 0x15 ticks, or as soon as the
+/// room's event state reaches 4.
+void func_mine_secret_passage_80180D58(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;

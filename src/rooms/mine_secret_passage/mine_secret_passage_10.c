@@ -1,16 +1,26 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/mine_secret_passage.h"
 #include "rooms/room_common.h"
-
 #include "rooms/rooms_shared_8017dcb8.h"
 
 extern s32 Gp_LcgState;
-void       RoomsShared8017dcb8Draw(GsCOORDINATE2*, s32, s32, s32);
 
-void RoomsShared8017dcb8(Task* task)
+/// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
+/// flags out of `Task::spawnArg1`; the mote then rises or falls one step a
+/// frame and is drawn with `func_mine_secret_passage_8017EB34` every other
+/// tick. State 1 brightens while young, state 2 holds its brightness; both fade
+/// over their last eight ticks of lifetime and release the work block once
+/// dark, or as soon as the room's event state reaches 4.
+void func_mine_secret_passage_8017E868(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
@@ -57,7 +67,7 @@ void RoomsShared8017dcb8(Task* task)
                 Gp_UpdateCoord(coord);
                 if (work->field_22 & 1) {
                     work->field_20++;
-                    RoomsShared8017dcb8Draw(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
+                    func_mine_secret_passage_8017EB34(coord, work->field_20, work->field_26 | 0x1000, work->field_24 | work->field_28);
                 }
                 if ((s16)work->field_24 > 0) {
                     if ((s16)work->field_2A - 8 < (s16)work->field_22) {
@@ -75,7 +85,7 @@ void RoomsShared8017dcb8(Task* task)
                 Gp_UpdateCoord(coord);
                 if (work->field_22 & 1) {
                     work->field_20++;
-                    RoomsShared8017dcb8Draw(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
+                    func_mine_secret_passage_8017EB34(coord, work->field_20, work->field_26, work->field_24 | work->field_28);
                 }
                 if ((s16)work->field_24 > 0) {
                     if ((s16)work->field_2A - 8 < (s16)work->field_22) {

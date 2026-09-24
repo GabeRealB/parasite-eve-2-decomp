@@ -1,14 +1,13 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -16,10 +15,9 @@
 /// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
 /// form a ring. `arg1` is the inner half-extent and `arg2` the extra outer
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
-/// so each wedge fades to a black outer rim. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw09(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
+/// second radius, and each wedge fades to black at the first.
+void func_mine_secret_passage_8017EDF8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw09Scratch* block;
     POLY_G4*           prim;

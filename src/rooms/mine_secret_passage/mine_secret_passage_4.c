@@ -1,3 +1,3 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage_4", RoomsShared8017dcb8Draw);
+INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage_4", func_mine_secret_passage_8017EB34);

@@ -1,9 +1,12 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/D4.h"
 #include "main/task.h"
+#include "rooms/mine_secret_passage.h"
 #include "rooms/room_common.h"
 
 extern s32 D_80115720;
@@ -24,12 +27,10 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 /// `D_8011573C` / `D_80115744` / `D_80115728` / `D_80115720` slots take
 /// 0x60240-0x60243 in that order, the same slot order every other room uses -
 /// then draws the emitters the current camera view shows: a run of placements
-/// out of one of the passage's arrays, each drawn as a `Room_Draw01` wedge pair
-/// (half-extent 0x200-0x280, colour 0x444 except view 6's 0x44) or a
-/// `Room_Draw13` disc (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
-/// Views 3 and 7 both end on `ED8[20]`, so the compiler merges their last two
-/// calls into one shared tail, which in turn ends on the single `Room_Draw13`
-/// every other view finishes with.
+/// out of one of the passage's arrays, each drawn as a
+/// `func_mine_secret_passage_8017DC84` glow (half-extent 0x200-0x280, colour
+/// 0x444 except view 6's 0x44) or a `func_mine_secret_passage_8017E4C8` disc
+/// (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
 void func_mine_secret_passage_8017D9D4(Task* arg0)
 {
     if (arg0->state == 0) {
@@ -43,62 +44,62 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_secret_passage_80180EC8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw13(&p[16], 0x200, 0x421);
-            Room_Draw13(&p[17], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[17], 0x200, 0x421);
             break;
         }
         case 3: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw13(&p[14], 0x200, 0x421);
-            Room_Draw13(&p[15], 0x200, 0x421);
-            Room_Draw13(&p[16], 0x200, 0x421);
-            Room_Draw13(&p[17], 0x200, 0x421);
-            Room_Draw13(&p[20], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[14], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[15], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[17], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw13(&p[16], 0x200, 0x421);
-            Room_Draw13(&p[18], 0x200, 0x421);
-            Room_Draw13(&p[19], 0x200, 0x421);
-            Room_Draw13(&p[20], 0x200, 0x421);
-            Room_Draw13(&p[21], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[18], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[19], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[21], 0x200, 0x421);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw13(&p[6], 0x400, 0x444);
-            Room_Draw13(&p[7], 0x400, 0x444);
-            Room_Draw13(&p[8], 0x400, 0x444);
-            Room_Draw13(&p[9], 0x400, 0x444);
-            Room_Draw13(&p[10], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[6], 0x400, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[7], 0x400, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[8], 0x400, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[9], 0x400, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[10], 0x200, 0x421);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_secret_passage_80180EE8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw01(&p[2], 0x200, 0x444);
-            Room_Draw01(&p[4], 0x280, 0x44);
-            Room_Draw13(&p[9], 0x400, 0x444);
-            Room_Draw13(&p[10], 0x200, 0x421);
-            Room_Draw13(&p[11], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017DC84(&p[2], 0x200, 0x444);
+            func_mine_secret_passage_8017DC84(&p[4], 0x280, 0x44);
+            func_mine_secret_passage_8017E4C8(&p[9], 0x400, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[10], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[11], 0x200, 0x421);
             break;
         }
         case 7: {
             SVECTOR* p = D_mine_secret_passage_80180ED8;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw13(&p[16], 0x200, 0x421);
-            Room_Draw13(&p[18], 0x200, 0x421);
-            Room_Draw13(&p[20], 0x200, 0x421);
+            func_mine_secret_passage_8017DC84(&p[0], 0x200, 0x444);
+            func_mine_secret_passage_8017E4C8(&p[16], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[18], 0x200, 0x421);
+            func_mine_secret_passage_8017E4C8(&p[20], 0x200, 0x421);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_secret_passage_80180F08;
-            Room_Draw01(&p[0], 0x280, 0x44);
+            func_mine_secret_passage_8017DC84(&p[0], 0x280, 0x44);
             break;
         }
     }
