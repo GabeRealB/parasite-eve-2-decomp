@@ -5,7 +5,7 @@
 #include "main/task.h"
 
 extern GpMsgEntry D_shelter_r36_8017E97C[];
-extern TaskDesc   D_shelter_r36_8017DF14;
+extern TaskDesc   D_shelter_r36_8017DF14[];
 
 s32 func_shelter_r36_8017D914(void)
 {
@@ -22,10 +22,10 @@ void func_shelter_r36_8017D924(Task* task)
     task->msgTable = D_shelter_r36_8017E97C;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.warp == 1) {
-        Task_SpawnFromTable(&D_shelter_r36_8017DF14, 0, 0, 0);
+        Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
     }
     if (gGameSession->at4.loc.warp == 2) {
-        Task_SpawnFromTable(&D_shelter_r36_8017DF14, 1, 0, 0);
+        Task_SpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
     }
     task->state++;
 }

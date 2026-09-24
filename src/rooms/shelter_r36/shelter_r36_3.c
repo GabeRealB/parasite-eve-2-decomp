@@ -8,7 +8,13 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-void RoomsShared8017da34(Task* arg0)
+/// Entry 1 of `D_shelter_r36_8017E9A4`: plays the location's stream. It blanks
+/// the display and allocates the auxiliary heap, queues CD command 0x61 for the
+/// stream slot of the current location with view 0x64, shows the display once
+/// the queue's `field_1FA` is set, and waits for the queue to go idle - or cuts
+/// it short when `Pad_CheckFlag800` fires. It then resets and restores the
+/// stream state, ends and resets the display heap.
+void func_shelter_r36_8017DA34(Task* arg0)
 {
     u8          slotParam[4];
     GameLoc     key;

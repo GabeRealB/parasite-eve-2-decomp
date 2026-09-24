@@ -13,7 +13,7 @@ extern s32 D_shelter_r36_8017E664;
 extern s32 D_shelter_r36_8017E8BC;
 
 extern s16      D_80071076;
-extern TaskDesc RoomsShared8018397cDesc;
+extern TaskDesc D_shelter_r36_8017E9A4[];
 
 void func_shelter_r36_8017D5E8(Task* task)
 {
@@ -72,7 +72,7 @@ void func_shelter_r36_8017D7B4(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 0, 0);
+            Task_SpawnFromTable(D_shelter_r36_8017E9A4, 0, 0, 0);
             task->state++;
             break;
         case 1:
@@ -108,4 +108,4 @@ s32 func_shelter_r36_8017D8C8(void)
 {
     return 0;
 }
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r36/shelter_r36", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r36/shelter_r36", D_shelter_r36_8017D5C4);
