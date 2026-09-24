@@ -1334,13 +1334,16 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_warehouse]
+label = "code starts at 0x10: the four handlers the room's message table at 0x1270 names at 0x10, 0x18, 0x40 and 0x48 are frameless leaves, so the span detector, which keys on a stack prologue, left them as rodata words after the task-state table at 0x4"
 id = 344
+text = ["0x10", "0x1270"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_warehouse/dryfield_night_warehouse", rodata = "0x4", text = "0x94" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x50" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x9C" },
   { unit = "dryfield_night_warehouse/dryfield_night_warehouse_2", text = "0xF4" },
+  { unit = "dryfield_night_warehouse/dryfield_night_warehouse_3", text = "0x10" },
   { kind = "data", at = "0x1270" },
 ]
 
