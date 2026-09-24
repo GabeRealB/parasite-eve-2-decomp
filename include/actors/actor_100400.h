@@ -78,6 +78,29 @@ typedef struct Actor100400TextQuadScratch {
 } Actor100400TextQuadScratch;
 STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
 
+/// 0x8C-byte scratch `Actor00400_Fn00E3C` carves off `G_SCRATCH_HEAD` for one
+/// beam segment: the two parts' `workm` taken into view space, the segment's
+/// ends, the four corners of the quad widened around it, and the
+/// `RotTransPers4` outputs for those corners.
+typedef struct Actor100400BeamScratch {
+    /* 0x00 */ MATRIX  firstMatrix;
+    /* 0x20 */ MATRIX  secondMatrix;
+    /* 0x40 */ SVECTOR first;
+    /* 0x48 */ SVECTOR second;
+    /* 0x50 */ SVECTOR corner0;
+    /* 0x58 */ SVECTOR corner1;
+    /* 0x60 */ SVECTOR corner2;
+    /* 0x68 */ SVECTOR corner3;
+    /* 0x70 */ s32     screen0;
+    /* 0x74 */ s32     screen1;
+    /* 0x78 */ s32     screen2;
+    /* 0x7C */ s32     screen3;
+    /* 0x80 */ s32     perspective;
+    /* 0x84 */ s32     flags;
+    /* 0x88 */ s32     depth;
+} Actor100400BeamScratch;
+STATIC_ASSERT_SIZEOF(Actor100400BeamScratch, 0x8C);
+
 /// 0x1C-byte scratch `Actor00400_Fn005DC` carves off `G_SCRATCH_HEAD` for the
 /// impact-spark billboard. `vec` is the coordinate's `workm.t[]` truncated to
 /// s16 and projected through `GsWSMATRIX` by a single `RTPS`: `flag` is that

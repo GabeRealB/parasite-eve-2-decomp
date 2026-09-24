@@ -69,7 +69,6 @@ void       Actor00400_Fn0A7F0(Actor100400* arg0);
 void       Actor00400_Fn0A82C(Actor100400* arg0);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
 extern MATRIX               Gfx_ViewWorldMtx;
 extern const TaskFuncTable3 Actor00400_D0002C;

@@ -102,7 +102,6 @@ s16        Actor00400_Fn02154(Actor100400* arg0);
 void       Actor00400_Fn0A5B8(Actor100400* arg0);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-void       Actor00400_Fn00E3C(Actor100400* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       Actor00400_Fn019B4(Actor100400* arg0);
 void       Gp_LinkNode(byte* node, s32 slot);
 void       func_800B3F84(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4);
@@ -395,7 +394,86 @@ void Actor00400_Fn00C84(Actor100400* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_00400/actor_100400_text", Actor00400_Fn00E3C);
+/// Draws one textured, semi-transparent quad for the segment between model
+/// parts `firstJoint` and `secondJoint`, laid flat at the view-space height
+/// `height`. The quad is `width` wide on each side of the segment and
+/// stretches half the segment's length past each end; it is tinted grey by
+/// `shade` and skipped when the projection clips it. Equal parts draw nothing.
+void Actor00400_Fn00E3C(Actor100400* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+{
+    Actor100400BeamScratch* s;
+    s16                     angle;
+    GsCOORDINATE2*          secondCoord;
+    GsCOORDINATE2*          firstCoord;
+    s32                     offset0;
+    s32                     offset1;
+    s32                     offset2;
+    s32                     offset3;
+    s32                     halfX;
+    s32                     halfZ;
+    GsCOORDINATE2*          coords;
+    GsCOORDINATE2*          view;
+    POLY_FT4*               poly;
+
+    coords      = actor->field_2C->field_8;
+    firstCoord  = coords + firstJoint;
+    secondCoord = coords + secondJoint;
+    if (firstJoint != secondJoint) {
+        s = (Actor100400BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor100400BeamScratch));
+        Gp_UpdateCoord(firstCoord);
+        Gp_UpdateCoord(secondCoord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &s->secondMatrix);
+        s->first.vy   = height;
+        s->second.vy  = height;
+        s->first.vx   = s->firstMatrix.t[0];
+        s->first.vz   = s->firstMatrix.t[2];
+        s->second.vx  = s->secondMatrix.t[0];
+        s->second.vz  = s->secondMatrix.t[2];
+        angle         = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
+        halfX         = (s->first.vx - s->second.vx) / 2;
+        halfZ         = (s->first.vz - s->second.vz) / 2;
+        offset0       = rcos(angle) * width;
+        s->corner0.vy = height;
+        s->corner0.vx = halfX + (s->first.vx - (offset0 >> 0xC));
+        s->corner0.vz = halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1       = rcos(angle) * width;
+        s->corner1.vy = height;
+        s->corner1.vx = halfX + (s->first.vx + (offset1 >> 0xC));
+        s->corner1.vz = halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2       = rcos(angle) * width;
+        s->corner2.vy = height;
+        s->corner2.vx = (s->second.vx - (offset2 >> 0xC)) - halfX;
+        s->corner2.vz = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        offset3       = rcos(angle) * width;
+        s->corner3.vy = height;
+        s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
+        s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        view          = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        view->flg     = 0;
+        Gp_UpdateCoord(view);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
+                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
+        if (s->flags >= 0) {
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)poly + 0x28;
+            setlen(poly, 9);
+            poly->code       = 0x2E;
+            *(s32*)&poly->x0 = s->screen0;
+            *(s32*)&poly->x1 = s->screen1;
+            *(s32*)&poly->x2 = s->screen2;
+            *(s32*)&poly->x3 = s->screen3;
+            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+            poly->tpage = 0x48;
+            poly->clut  = 0x4283;
+            setRGB0(poly, shade, shade, shade);
+            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+        }
+        *(u8**)G_SCRATCH_HEAD += sizeof(Actor100400BeamScratch);
+    }
+}
 
 void Actor00400_Fn012B0(Actor100400* arg0, s16 arg1, s32 arg2)
 {
