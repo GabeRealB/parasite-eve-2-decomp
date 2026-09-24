@@ -5,6 +5,7 @@
 #include "rooms/room_common.h"
 
 #include "main/task.h"
+#include "rooms/shelter_b1_transfer_tunnel.h"
 
 extern s32 D_80115720;
 extern s32 D_80115728;
@@ -35,19 +36,19 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw25(&p[8], 0x200);
+            func_shelter_b1_transfer_tunnel_8017D830(&p[0], 0x200, 0);
+            func_shelter_b1_transfer_tunnel_8017DFAC(&p[8], 0x200);
         } break;
         case 3: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[4], 0x200, 0x800);
-            Room_Draw25(&p[8], 0x200);
+            func_shelter_b1_transfer_tunnel_8017D830(&p[0], 0x200, 0);
+            func_shelter_b1_transfer_tunnel_8017D830(&p[4], 0x200, 0x800);
+            func_shelter_b1_transfer_tunnel_8017DFAC(&p[8], 0x200);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b1_transfer_tunnel_801828F8;
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[4], 0x200, 0x800);
+            func_shelter_b1_transfer_tunnel_8017D830(&p[0], 0x200, 0);
+            func_shelter_b1_transfer_tunnel_8017D830(&p[4], 0x200, 0x800);
         } break;
     }
 }
