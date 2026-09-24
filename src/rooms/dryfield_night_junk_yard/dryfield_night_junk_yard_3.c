@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_junk_yard.h"
 #include "rooms/room_common.h"
 
 extern s32     D_8011572C;
@@ -35,7 +36,7 @@ void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 /// to 2, and the props of the phase `gGameSession->at4.loc.view` selects are queued -
 /// phases 2/8 five points off the room's first prop table, 4/9 three off the
 /// second, 5/10 and 7 four off the first. Every phase ends with the same
-/// semi-transparent `Room_Draw20`, which `jump.c` cross-jumps into one tail
+/// semi-transparent sprite call, which `jump.c` cross-jumps into one tail
 /// block after the last case.
 void func_dryfield_night_junk_yard_8017DA14(Task* task)
 {
@@ -49,35 +50,35 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         case 2:
         case 8: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            Room_Draw34(&p[0], 0x180, 0x400);
-            Room_Draw20(&p[3], 0, 0x300);
-            Room_Draw20(&p[4], 0, 0x300);
-            Room_Draw20(&p[5], 2, 0x300);
-            Room_Draw20(&p[6], 1, 0x200);
+            func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0x400);
+            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[4], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[5], 2, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[6], 1, 0x200);
             break;
         }
         case 4:
         case 9: {
             SVECTOR* p = D_dryfield_night_junk_yard_80180754;
-            Room_Draw20(&p[0], 0, 0x300);
-            Room_Draw20(&p[1], 0, 0x300);
-            Room_Draw20(&p[3], 1, 0x200);
+            func_dryfield_night_junk_yard_8017E34C(&p[0], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[1], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[3], 1, 0x200);
             break;
         }
         case 5:
         case 10: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            Room_Draw34(&p[0], 0x180, 0);
-            Room_Draw20(&p[2], 0, 0x300);
-            Room_Draw20(&p[3], 0, 0x300);
-            Room_Draw20(&p[6], 1, 0x200);
+            func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0);
+            func_dryfield_night_junk_yard_8017E34C(&p[2], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[6], 1, 0x200);
             break;
         }
         case 7: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            Room_Draw34(&p[0], 0x180, 0);
-            Room_Draw20(&p[2], 0, 0x300);
-            Room_Draw20(&p[3], 0, 0x300);
+            func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0);
+            func_dryfield_night_junk_yard_8017E34C(&p[2], 0, 0x300);
+            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
             break;
         }
     }

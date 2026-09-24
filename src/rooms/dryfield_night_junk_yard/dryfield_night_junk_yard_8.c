@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,16 +9,17 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex's RGB
-/// is `((field_8 & 1) * 16) | 0x20` rather than `* 8`. Shared body, linked
-/// into every room overlay that uses it.
-void Room_Draw34(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a two-ended gouraud glow between the world points `arg0[0]` and
+/// `arg0[1]`, both projected through `Gfx_ViewWorldMtx`, when the second
+/// point's OTZ is above 0x10. Each end's on-screen radius is `(s16)arg1 * 64`
+/// over its OTZ (the first clamped to at least 0x10). Two passes a quarter-turn
+/// apart, starting at angle `(s16)arg2`, each queue a `POLY_G4` wedge around the
+/// first point, a band joining the two points and a wedge around the second.
+/// The centres take the flickering grey `((animFrame & 1) * 16) | 0x20` and the
+/// rims are black.
+void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw11Scratch* block;
