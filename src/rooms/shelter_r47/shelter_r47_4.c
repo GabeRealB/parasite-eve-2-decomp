@@ -335,9 +335,41 @@ void func_shelter_r47_80183210(void)
     D_shelter_r47_8018A697 = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183234);
+void func_shelter_r47_80182470(Task* task);
+void func_shelter_r47_80183284(Task* task);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_4", func_shelter_r47_80183284);
+/// Two-state dispatcher of the action prompt, with its handler table built on
+/// the stack: state 0 runs `func_shelter_r47_80183284` and state 1 runs
+/// `func_shelter_r47_80182470`.
+void func_shelter_r47_80183234(Task* task)
+{
+    TaskFunc funcs[2] = {
+        func_shelter_r47_80183284,
+        func_shelter_r47_80182470,
+    };
+
+    funcs[task->state](task);
+}
+
+/// State 0 of the action prompt's dispatcher: resets both prompt slots before
+/// the first cursor scan (position and hold counters cleared, cursor speed
+/// 0x100, double-press window 0xF, `mode` 1) and advances the task's state.
+void func_shelter_r47_80183284(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               i;
+
+    for (i = 0; i < 2; i++, prompt++) {
+        prompt->field_0               = 0;
+        prompt->field_4               = 0;
+        prompt->targetId              = 0x100;
+        prompt->field_E               = 0xF;
+        prompt->buttons[0].heldFrames = 0;
+        prompt->buttons[1].heldFrames = 0;
+        prompt->mode                  = 1;
+    }
+    task->state = task->state + 1;
+}
 
 void func_shelter_r47_801832E4(s16 step)
 {
