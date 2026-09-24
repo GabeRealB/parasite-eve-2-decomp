@@ -1,11 +1,141 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/room_common.h"
+
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+
+#define gte_MulMatrix0_real(r1, r2, r3) \
+    {                                   \
+        gte_SetRotMatrix(r1);           \
+        gte_ldclmv(r2);                 \
+        gte_rtir_real();                \
+        gte_stclmv(r3);                 \
+        gte_ldclmv((char*)(r2) + 2);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 2);    \
+        gte_ldclmv((char*)(r2) + 4);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 4);    \
+    }
+
+#define gte_RotTransPers_real(r1, r2, r3, r4, r5) \
+    {                                             \
+        gte_ldv0(r1);                             \
+        gte_rtps_real();                          \
+        gte_stsxy(r2);                            \
+        gte_stdp(r3);                             \
+        gte_stflg(r4);                            \
+        gte_stszotz(r5);                          \
+    }
+
+#define gte_TransposeMatrix(src, dst)     \
+    __asm__ volatile("lhu $12,0(%0);"     \
+                     "lhu $13,6(%0);"     \
+                     "lhu $14,12(%0);"    \
+                     "sh $12,0(%1);"      \
+                     "sh $13,2(%1);"      \
+                     "sh $14,4(%1);"      \
+                     "lhu $12,2(%0);"     \
+                     "lhu $13,8(%0);"     \
+                     "lhu $14,14(%0);"    \
+                     "sh $12,6(%1);"      \
+                     "sh $13,8(%1);"      \
+                     "sh $14,10(%1);"     \
+                     "lhu $12,4(%0);"     \
+                     "lhu $13,10(%0);"    \
+                     "lhu $14,16(%0);"    \
+                     "sh $12,12(%1);"     \
+                     "sh $13,14(%1);"     \
+                     "sh $14,16(%1);"     \
+                     :                    \
+                     : "r"(src), "r"(dst) \
+                     : "$12", "$13", "$14", "memory")
+
+/// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
+/// whenever the view moves. `active` other than 1 hides the reflection.
+/// `copyPending` set to 1 makes the next frame copy the frame buffer into the
+/// off-screen strip at x = `stripX`, after which it is cleared. `mode` 1 is a
+/// floor mirror, which reflects the view through its second row and raises it
+/// by `normal.vy`; any other mode reflects through the plane `normal` placed at
+/// `offset` from the view. `firstLayer` is the first of the three blend layers
+/// the reflection quads are drawn in, and a negative value skips drawing them.
+/// `subject` is the task whose body the mirror reflects, and a `field_18` of 1
+/// as the task starts makes it exit instead.
+typedef struct {
+    s32     active;
+    s32     copyPending;
+    s32     firstLayer;
+    s32     mode;
+    s32     field_10;
+    s32     stripX;
+    s32     field_18;
+    Task*   subject;
+    SVECTOR normal;
+    SVECTOR offset;
+} _MirrorCfg;
+
+/// The mirror task's `Task::work`. `viewFlg` caches
+/// `gGfxViewCoord.flg & 0x7FFFFFFF` so the frame is rebuilt only when the view
+/// moves. `coord` is the reflected frame the clone's root part hangs from,
+/// `light` and `color` the matrices the clone is drawn under, and `clip` the
+/// screen rectangle (left, right, top, bottom) the reflection may cover.
+typedef struct {
+    s32           viewFlg;
+    GsCOORDINATE2 coord;
+    MATRIX        light;
+    MATRIX        color;
+    s16           clip[4];
+    byte          unknown_9C[4];
+    _MirrorCfg    cfg;
+} _MirrorWork;
+
+/// Scratchpad block the mirror takes for one frame. `refAxis` is the
+/// coordinate axis least aligned with the plane normal (found through
+/// `leastAbs` / `axisAbs`, with the axis index in `flag`), `basis` the
+/// orthonormal frame built from the two and `reflect` the reflection matrix
+/// derived from it, and `offset` the plane offset rotated into that frame.
+/// The rest locates the reflection on screen: two points on the reflected body
+/// are projected through `pos` into `sxyHead` / `otzHead` and `sxyFoot` /
+/// `otzFoot`, `left` .. `bottom` is the rectangle the quads cover and `texX`
+/// the x of the texture page they sample the off-screen strip from.
+typedef struct {
+    SVECTOR pos;
+    SVECTOR refAxis;
+    MATRIX  basis;
+    MATRIX  reflect;
+    SVECTOR offset;
+    s16     leastAbs;
+    byte    unknown_5A[2];
+    s16     axisAbs;
+    byte    unknown_5E[2];
+    DVECTOR sxyFoot;
+    DVECTOR sxyHead;
+    u16     texX;
+    s32     dp;
+    s32     flag;
+    s32     otzFoot;
+    s32     otzHead;
+    s32     left;
+    s32     right;
+    s32     top;
+    s32     bottom;
+} _MirrorScratch;
 
 extern s32        func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void       func_80131FB8(void);
@@ -14,9 +144,375 @@ extern s8         D_8007218B;
 extern s32        D_80132D70;
 extern s32        D_80133088;
 
+void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
+
+/// Applies `m` to `v` through the GTE and stores the result in `out`.
+static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
+{
+    gte_SetRotMatrix(m);
+    gte_ldv0(v);
+    gte_rtv0_real();
+    gte_stsv(out);
+}
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017D600);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017D7B8);
+/// Per-frame update of the room's mirror task.
+///
+/// On the first frame it attaches the subject's TMD source to this task so the
+/// clone draws the same model, hangs the clone's root part from the reflected
+/// frame and adopts the subject task. When the view moves it rebuilds the
+/// reflected frame, and on request it copies the frame buffer into the
+/// off-screen strip. While active it copies the subject's pose and matrices
+/// onto the clone, projects the clone to find its screen rectangle and, where
+/// that overlaps the clip rectangle, draws quads sampling the strip.
+void func_shelter_b1_control_room_8017D7B8(Task* task)
+{
+    _MirrorWork*    work;
+    _MirrorCfg*     cfg;
+    _MirrorScratch* scratch;
+    TmdObject*      model;
+    TmdObject*      src;
+    TmdObject*      body;
+    GsCOORDINATE2*  parts;
+    GsCOORDINATE2*  refPart;
+    GsCOORDINATE2*  from;
+    GsCOORDINATE2*  to;
+    DR_AREA*        drArea;
+    DR_STP*         drStp;
+    DR_OFFSET*      drOffset;
+    SPRT*           sprt;
+    DR_TPAGE*       tpage;
+    TILE*           tile;
+    POLY_FT4*       poly;
+    s32             copyPending;
+    s32             halfWidth;
+    s32             texX;
+    s32             texBase;
+    GsCOORDINATE2*  sub;
+    s32             layer;
+    u16             ofs[2];
+    RECT            rect;
+
+    if (task->state == 0) {
+        work = memCalloc(0xD0, 0);
+        cfg  = &work->cfg;
+        if (work == NULL) {
+            goto exit;
+        }
+        task->work = work;
+        func_shelter_b1_control_room_8017D600(task, cfg);
+        if (cfg->field_18 == 1) {
+            goto exit;
+        }
+        body = cfg->subject->extra;
+        if (Gp_AttachTmd(task, body->source) == NULL) {
+        exit:
+            Task_CallExit(task);
+            return;
+        }
+        model        = task->extra;
+        parts        = model->coords;
+        model->clut  = body->clut;
+        model->tpage = body->tpage;
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+        model->otOffset        = 0x16;
+        model->flags           = 0x10;
+        gGameSession->field_4E = 1;
+        parts->sub             = &work->coord;
+        model->lightMtx        = &work->light;
+        model->colorMtx        = &work->color;
+        Task_Reparent(cfg->subject, task);
+        work->viewFlg = -1;
+        task->state++;
+    }
+
+    scratch = (_MirrorScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x8C);
+    model   = task->extra;
+    work    = task->work;
+    parts   = model->coords;
+    cfg     = &work->cfg;
+    if (work->viewFlg != (gGfxViewCoord.flg & 0x7FFFFFFF)) {
+        work->viewFlg = gGfxViewCoord.flg & 0x7FFFFFFF;
+        func_shelter_b1_control_room_8017D600(task, cfg);
+        if (work->cfg.active == 1) {
+            sub             = gGfxViewCoord.sub;
+            work->clip[0]   = -0xA0;
+            work->clip[1]   = 0xA0;
+            work->clip[2]   = -0x78;
+            work->coord.flg = 0;
+            work->clip[3]   = 0x78;
+            work->coord.sub = sub;
+            if (cfg->mode == 1) {
+                work->coord.coord          = gGfxViewCoord.coord;
+                work->coord.coord.m[1][0] *= -1;
+                work->coord.coord.m[1][1] *= -1;
+                work->coord.coord.m[1][2] *= -1;
+                work->coord.coord.t[1]    += cfg->normal.vy;
+            } else {
+                scratch->leastAbs = cfg->normal.vx;
+                if (scratch->leastAbs < 0) {
+                    scratch->leastAbs = -scratch->leastAbs;
+                }
+                scratch->flag    = 0;
+                scratch->axisAbs = cfg->normal.vy;
+                if (scratch->axisAbs < 0) {
+                    scratch->axisAbs = -scratch->axisAbs;
+                }
+                if (scratch->leastAbs > scratch->axisAbs) {
+                    scratch->leastAbs = scratch->axisAbs;
+                    scratch->flag     = 1;
+                }
+                scratch->axisAbs = cfg->normal.vz;
+                if (scratch->axisAbs < 0) {
+                    scratch->axisAbs = -scratch->axisAbs;
+                }
+                if (scratch->leastAbs > scratch->axisAbs) {
+                    scratch->leastAbs = scratch->axisAbs;
+                    scratch->flag     = 2;
+                }
+                scratch->refAxis.vx = 0;
+                if (scratch->flag == 0) {
+                    scratch->refAxis.vx = 0x1000;
+                }
+                scratch->refAxis.vy = 0;
+                if (scratch->flag == 1) {
+                    scratch->refAxis.vy = 0x1000;
+                }
+                scratch->refAxis.vz = 0;
+                if (scratch->flag == 2) {
+                    scratch->refAxis.vz = 0x1000;
+                }
+                Gfx_OrthonormalBasis(&scratch->basis, &cfg->normal, &scratch->refAxis);
+                gte_TransposeMatrix(&scratch->basis, &scratch->reflect);
+                scratch->reflect.m[2][0] = -scratch->reflect.m[2][0];
+                scratch->reflect.m[2][1] = -scratch->reflect.m[2][1];
+                scratch->reflect.m[2][2] = -scratch->reflect.m[2][2];
+                gte_MulMatrix0_real(&scratch->basis, &scratch->reflect, &scratch->reflect);
+                work->coord.coord      = scratch->reflect;
+                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + cfg->offset.vx;
+                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + cfg->offset.vy;
+                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + cfg->offset.vz;
+                _applyMatrixSV(&scratch->reflect, &cfg->offset, &scratch->offset);
+                work->coord.coord.t[0] -= scratch->offset.vx;
+                work->coord.coord.t[1] -= scratch->offset.vy;
+                work->coord.coord.t[2] -= scratch->offset.vz;
+            }
+        }
+    }
+
+    copyPending = cfg->copyPending;
+    if (copyPending == 1 && gDisplayState.pendingMode == 0) {
+        drArea          = (DR_AREA*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_AREA);
+        rect.x          = 0;
+        rect.y          = gDisplayState.drawBuffer * 0x110;
+        rect.w          = 0x140;
+        rect.h          = 0xF0;
+        SetDrawArea(drArea, &rect);
+        addPrim(&gGpuCurrentOt[0x3FF], drArea);
+
+        drStp           = (DR_STP*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_STP);
+        SetDrawStp(drStp, 0);
+        addPrim(&gGpuCurrentOt[0x3FF], drStp);
+
+        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_OFFSET);
+        ofs[0]          = 0xA0;
+        ofs[1]          = gDisplayState.drawBuffer * 0x110 + 0x78;
+        SetDrawOffset(drOffset, ofs);
+        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
+
+        sprt            = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(SPRT);
+        sprt->x0        = -0xA0;
+        sprt->y0        = -0x78;
+        sprt->w         = 0xA0;
+        sprt->h         = 0xF0;
+        sprt->u0        = 0;
+        sprt->v0        = gDisplayState.drawBuffer << 4;
+        setlen(sprt, 4);
+        setcode(sprt, 0x65);
+        addPrim(&gGpuCurrentOt[0x3FF], sprt);
+
+        tpage           = (DR_TPAGE*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_TPAGE);
+        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
+        addPrim(&gGpuCurrentOt[0x3FF], tpage);
+
+        sprt            = (SPRT*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(SPRT);
+        sprt->x0        = 0;
+        sprt->y0        = -0x78;
+        sprt->w         = 0xA0;
+        sprt->h         = 0xF0;
+        sprt->u0        = 0x20;
+        sprt->v0        = gDisplayState.drawBuffer << 4;
+        setlen(sprt, 4);
+        setcode(sprt, 0x65);
+        addPrim(&gGpuCurrentOt[0x3FF], sprt);
+
+        tpage           = (DR_TPAGE*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_TPAGE);
+        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
+        addPrim(&gGpuCurrentOt[0x3FF], tpage);
+
+        tile            = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(TILE);
+        setlen(tile, 3);
+        setcode(tile, 0x60);
+        tile->x0 = -0xA0;
+        tile->y0 = -0x78;
+        tile->r0 = tile->g0 = 2;
+        tile->b0            = 2;
+        tile->w             = 0x140;
+        tile->h             = 0xF0;
+        addPrim(&gGpuCurrentOt[0x3FF], tile);
+
+        drStp           = (DR_STP*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_STP);
+        SetDrawStp(drStp, 1);
+        addPrim(&gGpuCurrentOt[0x3FF], drStp);
+
+        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_OFFSET);
+        ofs[0]          = cfg->stripX + 0xA0;
+        ofs[1]          = 0x178;
+        SetDrawOffset(drOffset, ofs);
+        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
+
+        drArea          = (DR_AREA*)gGpuPrimCursor;
+        gGpuPrimCursor += sizeof(DR_AREA);
+        rect.x          = cfg->stripX;
+        rect.y          = 0x100;
+        rect.w          = 0x140;
+        rect.h          = 0xF0;
+        SetDrawArea(drArea, &rect);
+        addPrim(&gGpuCurrentOt[0x3FF], drArea);
+
+        cfg->copyPending = 0;
+    }
+
+    if (cfg->active == 1) {
+        src           = cfg->subject->extra;
+        refPart       = &((TmdObject*)task->extra)->coords[1];
+        from          = src->coords;
+        model->flags &= ~0x80;
+        work->light   = *src->lightMtx;
+        work->color   = *src->colorMtx;
+        Gp_UpdateCoord(parts);
+        gte_TransposeMatrix(&parts->workm, &scratch->basis);
+        gte_MulMatrix0_real(&from->workm, &scratch->basis, &scratch->basis);
+        gte_MulMatrix0_real(&work->light, &scratch->basis, &work->light);
+        parts->flg = 0;
+        to         = parts;
+        for (layer = 0; layer < (u32)src->partCount; layer++) {
+            to->coord = from->coord;
+            to++;
+            from++;
+        }
+        if (cfg->firstLayer >= 0) {
+            if (gGameSession->eventState != 0) {
+                Gp_UpdateCoord(refPart);
+                gte_SetTransMatrix(&refPart->workm);
+                gte_SetRotMatrix(&refPart->workm);
+                scratch->pos.vx = 0;
+                scratch->pos.vy = -0x3E8;
+                scratch->pos.vz = 0;
+                gte_RotTransPers_real(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
+                scratch->pos.vx = 0;
+                scratch->pos.vy = 0x3E8;
+                scratch->pos.vz = 0;
+                gte_RotTransPers_real(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+            } else {
+                Gp_UpdateCoord(parts);
+                gte_SetTransMatrix(&parts->workm);
+                gte_SetRotMatrix(&parts->workm);
+                scratch->pos.vx = 0;
+                scratch->pos.vy = -0x7D0;
+                scratch->pos.vz = 0;
+                gte_RotTransPers_real(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
+                scratch->pos.vx = 0;
+                scratch->pos.vy = 0;
+                scratch->pos.vz = 0;
+                gte_RotTransPers_real(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+            }
+            if (scratch->sxyFoot.vy > scratch->sxyHead.vy) {
+                scratch->sxyHead.vx = scratch->sxyFoot.vy;
+                scratch->sxyFoot.vy = scratch->sxyHead.vy;
+                scratch->sxyHead.vy = scratch->sxyHead.vx;
+            }
+            scratch->sxyFoot.vy -= 0x10;
+            scratch->sxyHead.vy += 0x10;
+            halfWidth            = (scratch->sxyHead.vy - scratch->sxyFoot.vy) >> 1;
+            if (halfWidth >= 0x60) {
+                halfWidth = 0x5F;
+            }
+            scratch->left = scratch->sxyFoot.vx - halfWidth;
+            if (scratch->left < -0xA0) {
+                scratch->left = -0xA0;
+            }
+            scratch->right = scratch->sxyFoot.vx + halfWidth;
+            if (scratch->right > 0xA0) {
+                scratch->right = 0xA0;
+            }
+            scratch->top = scratch->sxyFoot.vy;
+            if (scratch->top < -0x78) {
+                scratch->top = -0x78;
+            }
+            scratch->bottom = scratch->sxyHead.vy;
+            if (scratch->bottom > 0x78) {
+                scratch->bottom = 0x78;
+            }
+            if (scratch->top < work->clip[3] && work->clip[2] < scratch->bottom && scratch->left < work->clip[1] &&
+                work->clip[0] < scratch->right) {
+                DR_TPAGE* mode;
+
+                mode            = (DR_TPAGE*)gGpuPrimCursor;
+                texBase         = cfg->stripX + 0xA0;
+                texX            = scratch->left + texBase;
+                scratch->texX   = texX & 0xFFC0;
+                gGpuPrimCursor += sizeof(DR_TPAGE);
+                setDrawTPage(mode, 0, 1, 0);
+                addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                        mode);
+                for (layer = cfg->firstLayer; layer < 3; layer++) {
+                    poly            = (POLY_FT4*)gGpuPrimCursor;
+                    gGpuPrimCursor += sizeof(POLY_FT4);
+                    setPolyFT4(poly);
+                    setSemiTrans(poly, 1);
+                    if (cfg->firstLayer == 1) {
+                        setShadeTex(poly, 0);
+                        poly->r0 = poly->g0 = poly->b0 = 0x80;
+                    } else {
+                        setShadeTex(poly, 1);
+                    }
+                    poly->x0 = poly->x2 = scratch->left;
+                    poly->x1 = poly->x3 = scratch->right;
+                    poly->y0 = poly->y1 = scratch->top;
+                    poly->y2 = poly->y3 = scratch->bottom;
+                    poly->tpage         = getTPage(2, layer, scratch->texX, 0x100);
+                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + cfg->stripX - scratch->texX;
+                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + cfg->stripX - scratch->texX;
+                    poly->v0 = poly->v1 = poly->y0 + 0x78;
+                    poly->v2 = poly->v3 = poly->y2 + 0x78;
+                    addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                            poly);
+                }
+                mode            = (DR_TPAGE*)gGpuPrimCursor;
+                gGpuPrimCursor += sizeof(DR_TPAGE);
+                setDrawTPage(mode, 0, 0, 0);
+                addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                        mode);
+            }
+        }
+    } else {
+        model->flags |= 0x80;
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x8C;
+}
 
 s32 func_shelter_b1_control_room_8017ECCC(void)
 {
