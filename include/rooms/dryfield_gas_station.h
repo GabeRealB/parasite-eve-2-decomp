@@ -3,110 +3,11 @@
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
 #include "main/task.h"
 
-/// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
-///
-/// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
-/// its messages to, and `playerEffActive` is the flag guarding
-/// `Gp_KillPlayerEffs` / `Gp_SpawnWeaponEff`. `field_4` is the script command
-/// `func_dryfield_gas_station_801803C0` carries out and clears once it is done,
-/// `field_6` the step within a multi-frame command (both written together by
-/// `func_dryfield_gas_station_80180B2C`), and `field_8` the frame counter of the
-/// command that walks the owner across the forecourt.
-typedef struct DgsWork {
-    /* 0x00 */ void* owner;
-    /* 0x04 */ u16   field_4;
-    /* 0x06 */ u16   field_6;
-    /* 0x08 */ u16   field_8;
-    /* 0x0A */ byte  pad_A[0x2];
-    /* 0x0C */ u16   playerEffActive;
-    /* 0x0E */ byte  pad_E[0x2];
-} DgsWork;
-STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
-
-/// Payload of message 0x3E9: the world position and rotation the owner is
-/// placed at.
-typedef struct DgsPlacement {
-    VECTOR  pos;
-    SVECTOR rot;
-} DgsPlacement;
-STATIC_ASSERT_SIZEOF(DgsPlacement, 0x18);
-
-/// Payload of message 0x3FE, a displacement the owner is asked to move by.
-/// Only `x`, `y`, `z` and `field_10` are written here; the role of `field_10`
-/// and `field_12` is not established by this room.
-typedef struct DgsMsg3FE {
-    s32  x;
-    s32  y;
-    s32  z;
-    byte pad_C[0x4];
-    s16  field_10;
-    s8   field_12;
-    byte pad_13[0x1];
-} DgsMsg3FE;
-STATIC_ASSERT_SIZEOF(DgsMsg3FE, 0x14);
-
-/// Work block the gas station's shaft sequencer (`func_dryfield_gas_station_801802C0`)
-/// allocates as 4 bytes in its state 0 and hangs off `Task::work` (0x1C) for
-/// the next run of the state machine to pick up. `child` is the task spawned
-/// from `D_dryfield_gas_station_8018312C` entry 0 in state 3 and polled with
-/// `Task_PollKill` in state 4.
-typedef struct DgsCutsceneSlot {
-    /* 0x0 */ Task* child;
-} DgsCutsceneSlot;
-STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
-
-/// Draws a pulsing cyan glow at `data` in `coord`'s space: the point is
-/// projected through `GsWSMATRIX`, and nothing is drawn when its `otz` is 16 or
-/// less. Around the projected centre it lays a fan of gouraud `POLY_G4`
-/// wedges of radius `rOuter`, each paired with a brighter one of half that
-/// radius, then four quads reaching out from `rInner` towards `rOuter`.
-/// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
-/// halved on the outer wedges and on the four quads.
-void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32 arg2, s32 arg3);
-
-/// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
-/// `field_0` is the area id forced for the duration of the scene (negative =
-/// keep the current one); `field_1` selects the cap slot / command;
-/// `field_2` skips straight to the abort state; `field_3` is the cap file to
-/// load. The four s32s are sound-event ids. `func_dryfield_gas_station_8017FD54`
-/// writes `field_0` .. `field_10`; the trailing `field_14` / `field_16` pair is
-/// inferred from the identically laid out `Shelter1fTentCapScript` and the
-/// object's 0x18-byte extent, not from a matched body here.
-typedef struct {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} DryfieldGasStationCapScript;
-
-STATIC_ASSERT_SIZEOF(DryfieldGasStationCapScript, 0x18);
-
-extern DryfieldGasStationCapScript D_dryfield_gas_station_80184BD8;
-
-/// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
-/// `DgsWork` block is set up, so the room's script helpers can reach it.
-extern Task* D_dryfield_gas_station_80184BD4;
-
-/// Exit callback of the help-line box task: releases `Wip_UiHolder` if the
-/// task owns it, then frees the task's UI object and kills it.
-void func_dryfield_gas_station_8017F478(Task* task);
-
-/// Draws a pulsing glow at `arg1` in `arg0`'s space, crossed by two diagonal
-/// lines; `arg3` is a signed half-extent scaled by depth and `arg2` the pulse
-/// rate.
-void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+/// Descriptors of the tasks the gas station's sequencer spawns: entry 0 is the
+/// cutscene task the sequencer waits on, entry 1 the fade the cutscene's last
+/// script command starts.
+extern TaskDesc D_dryfield_gas_station_8018312C[];
 
 #endif // ROOMS_DRYFIELD_GAS_STATION_H
