@@ -239,4 +239,4 @@ void func_mine_refuge_8017F49C(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge", D_mine_refuge_8017D6A4);

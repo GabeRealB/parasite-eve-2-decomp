@@ -21,8 +21,8 @@
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. The drawing matches `Room_Draw18`;
-/// only the scratch block differs, 0x18 bytes in the `RoomDraw14Scratch` layout.
+/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
+/// `RoomDraw14Scratch` layout is taken from `G_SCRATCH_HEAD` and returned.
 void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
@@ -351,7 +351,7 @@ void func_mine_refuge_80181454(void)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            Room_Draw17(&D_mine_refuge_801818D8[0], 1, 0x300);
+            func_mine_refuge_80180014(&D_mine_refuge_801818D8[0], 1, 0x300);
             func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
             break;
         case 3:

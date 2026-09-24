@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
@@ -43,5 +45,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(MineRefugeGlowScratch, 0x1C);
 
 extern MineRefugeCapScript D_mine_refuge_80182AE0;
+
+void func_mine_refuge_8017F460(Task* task);
+void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_MINE_REFUGE_H

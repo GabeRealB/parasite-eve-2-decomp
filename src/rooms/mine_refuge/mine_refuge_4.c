@@ -19,11 +19,11 @@ extern GpMsgEntry D_mine_refuge_80181884[];
 extern TaskDesc   D_mine_refuge_80181860;
 extern TaskDesc   D_mine_refuge_801818B4;
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", D_mine_refuge_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", D_mine_refuge_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", D_mine_refuge_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", D_mine_refuge_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/mine_refuge/mine_refuge_4", D_mine_refuge_8017D638);
 
 void func_mine_refuge_8017FE78(s32 arg0);
 
