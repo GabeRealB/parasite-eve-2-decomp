@@ -3,6 +3,7 @@
 #include "gameplay/D4.h"
 
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_control_room_access_tunnel.h"
 
 #include "main/task.h"
 
@@ -33,14 +34,14 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181E9C;
-            Room_Draw11(&p[0], 0x200, 0x400);
-            Room_Draw11(&p[4], 0x200, 0x400);
-            Room_Draw25(&p[8], 0x200);
+            func_shelter_b1_control_room_access_tunnel_8017D6E4(&p[0], 0x200, 0x400);
+            func_shelter_b1_control_room_access_tunnel_8017D6E4(&p[4], 0x200, 0x400);
+            func_shelter_b1_control_room_access_tunnel_8017DE60(&p[8], 0x200);
         } break;
         case 3: {
             SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181EAC;
-            Room_Draw11(&p[0], 0x200, -0x400);
-            Room_Draw11(&p[4], 0x200, -0x400);
+            func_shelter_b1_control_room_access_tunnel_8017D6E4(&p[0], 0x200, -0x400);
+            func_shelter_b1_control_room_access_tunnel_8017D6E4(&p[4], 0x200, -0x400);
         } break;
     }
 }
