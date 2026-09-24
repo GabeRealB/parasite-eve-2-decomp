@@ -7,9 +7,25 @@
 #include "main/task.h"
 #include "rooms/dryfield_night_factory.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_8017FE44);
+/// Runs the factory model task's current state, through a copy of its handler
+/// table on the stack.
+void func_dryfield_night_factory_8017FE44(Task* task)
+{
+    TaskFuncTable3 sp;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_4", func_dryfield_night_factory_8017FE9C);
+    sp = D_dryfield_night_factory_8017D5C4;
+    sp.funcs[task->state](task);
+}
+
+/// Runs the cutscene task's current state, through a copy of its handler table
+/// on the stack.
+void func_dryfield_night_factory_8017FE9C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_night_factory_8017D5D0;
+    sp.funcs[task->state](task);
+}
 
 /// Second cutscene driver for the night factory: silences both weapons, runs
 /// the cap command in `Task::spawnArg1`, and once the cap reports event key 3

@@ -9,9 +9,19 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_factory.h"
 
+#include <psyq/inline_c.h>
+#include <psyq/libgte.h>
+
+#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 extern void     func_8004BFF8(s32 angle, MATRIX* matrix);
 extern TaskDesc D_dryfield_night_factory_80186DE0[];
 extern TaskDesc D_dryfield_night_factory_80186E28[];
+
+/// The two collision-grid templates the factory model's faces are rebuilt
+/// from.
+extern GpGridParams D_dryfield_night_factory_80186CF0;
+extern GpGridParams D_dryfield_night_factory_80186DBC;
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", D_dryfield_night_factory_8017D5C4);
 
@@ -70,4 +80,68 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory", func_dryfield_night_factory_8017D858);
+void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAltTemplate)
+{
+    long           flag;
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+    GpGridParams*  geom;
+    GpGridParams*  src;
+    SVECTOR*       s;
+    SVECTOR*       d;
+    GpGridFace*    sf;
+    GpGridFace*    df;
+    u16*           sv;
+    u16*           dv;
+    s32            i;
+    s32            j;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    if (gGameSession->at4.loc.stage == 2) {
+        geom = &D_dryfield_night_factory_80187BF8;
+    } else {
+        geom = &D_dryfield_night_factory_80187BF0;
+    }
+    if (useAltTemplate != 0) {
+        src = &D_dryfield_night_factory_80186DBC;
+    } else {
+        src = &D_dryfield_night_factory_80186CF0;
+    }
+
+    m = &coord->coord;
+    s = src->field_4;
+    d = geom->field_4 + 2;
+    for (i = 0; i < 4; i++) {
+        gte_SetRotMatrix(m);
+        gte_ldv0(s);
+        s++;
+        gte_mvmva_real();
+        gte_stsv(d);
+        d++;
+    }
+
+    gte_SetRotMatrix(m);
+    gte_SetTransMatrix(m);
+    s = src->field_8;
+    d = geom->field_8 + 8;
+    for (i = 0; i < 8; i++) {
+        RotTransSV(s++, d++, &flag);
+    }
+
+    if (remapFaces != 0) {
+        sf = src->field_C;
+        df = geom->field_C + 2;
+        for (i = 0; i < 4; i++) {
+            j  = 0;
+            dv = df->verts;
+            sv = sf->verts;
+            do {
+                *dv++ = *sv++ + 8;
+            } while (++j < 4);
+            df->field_8 = sf->field_8 + 2;
+            df->field_A = sf->field_A;
+            df++;
+            sf++;
+        }
+    }
+}

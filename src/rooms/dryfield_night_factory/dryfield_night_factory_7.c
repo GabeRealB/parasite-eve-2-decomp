@@ -10,7 +10,15 @@ void func_dryfield_night_factory_801809EC(void)
 {
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_7", func_dryfield_night_factory_801809F4);
+/// Runs the room entry task's current state, through a copy of its handler
+/// table on the stack.
+void func_dryfield_night_factory_801809F4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_night_factory_8017D638;
+    sp.funcs[task->state](task);
+}
 
 /// Idle state of the room's script, state 2 of
 /// `D_dryfield_night_factory_8017D678`. It holds the prompt idle for the

@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
@@ -145,6 +146,23 @@ extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
 /// The room's 0xFFFF-terminated hotspot table.
 extern RoomHotspot D_dryfield_night_factory_80186EBC[];
 
+/// The collision grids of the two stage variants, whose faces the factory
+/// model's handlers rewrite as it moves.
+extern GpGridParams D_dryfield_night_factory_80187BF0;
+extern GpGridParams D_dryfield_night_factory_80187BF8;
+
+/// State handlers of the factory model task: set-up, the per-frame state and
+/// `taskKill`.
+extern const TaskFuncTable3 D_dryfield_night_factory_8017D5C4;
+
+/// State handlers of the cutscene task: set-up, the cutscene sequence and
+/// `taskKill`.
+extern const TaskFuncTable3 D_dryfield_night_factory_8017D5D0;
+
+/// State handlers of the room entry task: set-up, an empty tick and
+/// `taskKill`.
+extern const TaskFuncTable3 D_dryfield_night_factory_8017D638;
+
 /// The state handlers of the room's script task, run through
 /// `func_dryfield_night_factory_8018169C`.
 extern const TaskFuncTable7 D_dryfield_night_factory_8017D678;
@@ -161,10 +179,14 @@ void func_dryfield_night_factory_8018182C(Task* task);
 /// is rebuilt and handed to `func_800D7A9C` together with its translation.
 void func_dryfield_night_factory_8017FA08(Task* task);
 
-/// Called by the model's state 0 with arg1 set and arg2 clear, and by the
-/// per-frame handler above with arg1 clear and the low bit of the nibble in
-/// arg2.
-void func_dryfield_night_factory_8017D858(Task* task, s32 arg1, s32 arg2);
+/// Rebuilds four faces of the stage variant's collision grid from a template
+/// moved into the frame of the task's model: the template normals are rotated
+/// into grid normals 2..5 and its corners rotated and translated into corners
+/// 8..15. `useAltTemplate` picks the second template, and `remapFaces` also
+/// copies the template's four face records into faces 2..5, rebased onto those
+/// slots. The model's set-up state remaps; the per-frame state passes bit 0 of
+/// game flag 0x49 as `useAltTemplate`.
+void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAltTemplate);
 
 /// The handler the model runs while bit 1 of game flag 0x49 is set, and -- when
 /// bit 0 is set with it -- the handler that follows.
