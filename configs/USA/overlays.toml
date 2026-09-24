@@ -1628,18 +1628,8 @@ objects = [
 id = 351
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot", rodata = "0x1C", text = "0x310" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_4", rodata = "0x28", text = "0x6C8" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_6", rodata = "0x4", text = "0x3C" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_7", text = "0x4F4" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_8", text = "0x544" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_9", text = "0x54C" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_2", text = "0x574" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_10", text = "0x5E4" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_3", text = "0x5F0" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_11", text = "0x670" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_12", text = "0x850" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_5", text = "0xACC" },
+  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot", rodata = "0x4", text = "0x3C" },
+  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_2", rodata = "0x28", text = "0x6C8" },
   { kind = "data", at = "0x1224" },
 ]
 
