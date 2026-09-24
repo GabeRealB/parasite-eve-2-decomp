@@ -8,19 +8,27 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Work block allocated by `func_actor_213100_8014A118` (`memCalloc(0x488)`)
-/// and parked in that task's `Task::work` slot -- that slot is not a
-/// `TaskIdMap` here. `func_actor_213100_8014A23C` republishes the two matrices
-/// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
+#include "gameplay/1BC.h"
+
+/// Work block the spawn handler `func_actor_213100_8014A118` allocates
+/// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
+/// `TaskIdMap` here.
 ///
-/// The size is the allocation, and every field below is anchored by an access
-/// in this overlay: the three `lb`/`sb` bytes at 0x43C..0x43E (the init sets
-/// 0x43D and 0x43E to -1), the matrix pair, and the child task the init spawns
-/// with `Task_SpawnFromTable` next to its -1 seed word.
+/// It opens with the animation context the 0x7D3 handler
+/// `func_actor_213100_8014A258` drives: the `GpAnimCtx` at the block's own
+/// address, the 0x13 slots above it and the table at 0x30C, the three
+/// arguments that handler hands `func_800B3F84`. `field_43C` latches once the
+/// slots have been started, and gates the per-frame tick; `field_43E` and
+/// `field_43D` hold the current bank index and animation id, seeded to -1 so
+/// the first preset always installs. `light` / `color` are the matrices
+/// `func_actor_213100_8014A23C` publishes on the model. `field_480` is the
+/// child task the spawn handler creates, whose model mirrors this one's
+/// visibility; `field_484` is the countdown after which the tick frees the
+/// model's buffers, -1 while idle.
 typedef struct Actor213100Work {
-    /* 0x000 */ byte         pad_0[0x43C];
+    /* 0x000 */ GpAnimCtx    anim;
+    /* 0x014 */ GpAnimSlot   slots[0x13];
+    /* 0x30C */ byte         field_30C[0x130];
     /* 0x43C */ s8           field_43C;
     /* 0x43D */ s8           field_43D;
     /* 0x43E */ s8           field_43E;
@@ -32,17 +40,14 @@ typedef struct Actor213100Work {
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
-/// 0x14-byte animation preset the init `func_actor_213100_8014A118` builds on
-/// its stack and hands to `func_actor_213100_8014A258`, the overlay's copy of
-/// the shared animation body that installs it on the task's model through
-/// `Gp_AnimResetSlot` / `Gp_AnimTickIndex` and `func_800B3F84` /
-/// `func_800B4114`. `field_0` indexes the anim-block table
-/// `D_actor_213100_801521A4` and is latched into `Actor213100Work::field_43E`;
-/// `field_4` plays the same role for `field_43D`, seeded to -1 so that it
-/// always differs; a nonzero `field_8` takes the `func_800B4114` path, which
-/// also passes `field_C`; `field_10` is unread here. The init passes
-/// `{ 0, 5, 0, 0, 0 }` -- the same five-word shape as `GpAnimArg` and
-/// `Actor503500AnimPreset`.
+/// Animation preset the 0x7D3 handler `func_actor_213100_8014A258` takes;
+/// the spawn handler builds one on its stack as `{ 0, 5, 0, 0, 0 }` and calls
+/// the handler with it directly. `field_0` is the bank index into
+/// `D_actor_213100_801521A4`, latched into `Actor213100Work::field_43E`;
+/// `field_4` is the animation id, latched into `field_43D`; a nonzero
+/// `field_8` installs the id through `func_800B4114`, which also takes
+/// `field_C`, once the slots have been started. Nothing here reads
+/// `field_10`; the size is the five words the spawn handler stores.
 typedef struct Actor213100AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;

@@ -42,7 +42,7 @@ void func_actor_213100_80149E3C(Task* task)
     extra = (TmdObject*)task->extra;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
     if (!(extra->flags & 0x80)) {
