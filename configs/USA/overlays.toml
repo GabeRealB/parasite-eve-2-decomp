@@ -1803,13 +1803,13 @@ objects = [
   { kind = "packageId" },
   { unit = "mine_gorge/mine_gorge", rodata = "0x4", text = "0x38" },
   { unit = "mine_gorge/mine_gorge_4", rodata = "0x10", text = "0x438" },
-  { lib = true, unit = "room_util06", text = "0x1BC" },
+  { unit = "mine_gorge/mine_gorge_5", text = "0x1BC" },
   { unit = "mine_gorge/mine_gorge_2", text = "0x1C4" },
-  { lib = true, unit = "room_util28", text = "0x2FC" },
-  { lib = true, unit = "room_util31", text = "0x308" },
+  { unit = "mine_gorge/mine_gorge_6", text = "0x2FC" },
+  { unit = "mine_gorge/mine_gorge_7", text = "0x308" },
   { unit = "mine_gorge/mine_gorge_3", text = "0x314" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x3E0" },
-  { lib = true, unit = "room_draw17", text = "0x5C8" },
+  { unit = "mine_gorge/mine_gorge_8", text = "0x3E0" },
+  { unit = "mine_gorge/mine_gorge_9", text = "0x5C8" },
   { kind = "data", at = "0x850" },
 ]
 
