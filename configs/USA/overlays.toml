@@ -1591,10 +1591,13 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_breezeway]
+label = "code starts at 0x10: the 0x13F1 and 0x13EE handlers the room's message table at 0x10BC names there (0x10, 0x18) are frameless leaves, so the span detector, which keys on a stack prologue, begins at 0x40 and left them as rodata words"
 id = 358
+text = ["0x10", "0x10BC"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_breezeway/dryfield_night_breezeway", rodata = "0x4", text = "0x40" },
+  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_4", text = "0x10" },
   { lib = true, unit = "room_util06", text = "0x6C" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x74" },
   { unit = "dryfield_night_breezeway/dryfield_night_breezeway_2", text = "0xB8" },
