@@ -1,6 +1,7 @@
 # This file has been adapted from the silent-hill-decomp project.
 
 import argparse
+import contextlib
 import functools
 import hashlib
 import json
@@ -1373,14 +1374,29 @@ def split_one(job: tuple) -> YamlInfo:
 
     splat.util.symbols.spim_context = spimdisasm.common.Context()
     splat.util.symbols.reset_symbols()
-    split.main(
-        [Path(f"{CONFIG_DIR}/{version_dir}/{yaml}")],
-        modes="all",
-        use_cache=False,
-        verbose=False,
-        disassemble_all=True,
-        make_full_disasm_for_code=objdiff_config_option,
-    )
+    # splat's own diagnostics are evidence about the layout - a jump table
+    # that is not 8-aligned from the start of its unit's rodata says a file
+    # boundary is missing there - so each unit's output is kept beside its
+    # split stamp instead of being lost in the interleaved build log.
+    name = overlay_basename.get(yaml, Path(yaml).stem)
+    log_path = Path(SPLIT_STAMP_DIR.format(version=version_dir)) / f"{name}.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(log_path, "w", encoding="utf-8") as log, \
+                contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+            split.main(
+                [Path(f"{CONFIG_DIR}/{version_dir}/{yaml}")],
+                modes="all",
+                use_cache=False,
+                verbose=False,
+                disassemble_all=True,
+                make_full_disasm_for_code=objdiff_config_option,
+            )
+    except BaseException:
+        # A failing split's explanation is in the log; show it where the
+        # failure is reported.
+        sys.stderr.write(log_path.read_text(encoding="utf-8", errors="replace")[-4000:])
+        raise
 
     if yaml == "title.yaml":
         fix_title_linker_rodata_order()
