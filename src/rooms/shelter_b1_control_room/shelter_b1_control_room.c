@@ -673,4 +673,26 @@ void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", D_shelter_b1_control_room_8017D5C4);
+/// Idle state of the room task: does nothing, and only reserves a 0x10-byte
+/// stack frame.
+void func_shelter_b1_control_room_8017EEBC(Task* task)
+{
+    char pad[0x10];
+}
+
+/// States of the room task `func_shelter_b1_control_room_8017EECC`: the setup
+/// state `func_shelter_b1_control_room_8017EE2C`, the idle state
+/// `func_shelter_b1_control_room_8017EEBC`, then `taskKill`.
+const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
+    { func_shelter_b1_control_room_8017EE2C, func_shelter_b1_control_room_8017EEBC, taskKill },
+};
+
+/// The room task: runs the handler for its state from a stack copy of
+/// `D_shelter_b1_control_room_8017D5C4`.
+void func_shelter_b1_control_room_8017EECC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b1_control_room_8017D5C4;
+    sp.funcs[task->state](task);
+}

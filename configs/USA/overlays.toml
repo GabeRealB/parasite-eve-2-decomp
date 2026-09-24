@@ -2055,16 +2055,8 @@ id = 388
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_control_room/shelter_b1_control_room", rodata = "0x4", text = "0x40" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_5", rodata = "0x10", text = "0x1964" },
+  { unit = "shelter_b1_control_room/shelter_b1_control_room_2", rodata = "0x10", text = "0x1964" },
   { unit = "shelter_b1_control_room/shelter_b1_control_room_3", rodata = "0x2C", text = "0x29C0" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_6", text = "0x18FC" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_7", text = "0x190C" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_2", text = "0x1B40" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_8", text = "0x1DDC" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_9", text = "0x2620" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_10", text = "0x2F18" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_4", text = "0x3B78" },
-  { unit = "shelter_b1_control_room/shelter_b1_control_room_11", text = "0x4250" },
   { kind = "data", at = "0x45C8" },
 ]
 
