@@ -1,21 +1,14 @@
 #include "common.h"
 
-#include "actors/actor_100700.h"
-#include "actors/actor_100700_spawn.h"
-#include "main/tmd.h"
-#include "actors/actors_shared_80135b58.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/wipsys.h"
-#include "main/display.h"
-#include "psyq/inline_c.h"
+#include "actors/actor_300700.h"
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
-void ActorsShared801651a0(Actor00700* arg0)
+/// Records the model's current root position in the work block, then displaces
+/// the root coordinate by the work's step along the rotation's third column
+/// (X and Z only) and by 0x80 on Y.
+void func_actor_300700_801651A0(Actor300700* arg0)
 {
-    Actor00700Work* work;
-    GsCOORDINATE2*  coord;
+    Actor300700Work* work;
+    GsCOORDINATE2*   coord;
 
     coord              = arg0->field_2C->field_8;
     work               = arg0->field_1C;
