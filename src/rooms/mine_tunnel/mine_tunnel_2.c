@@ -1,35 +1,151 @@
 #include "common.h"
 
-#include "gameplay/3A34.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
-
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-
-#include "rooms/mine_tunnel.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "rooms/room_common.h"
 
-/// The room's message table: 0x13EE is handled by `func_mine_tunnel_8017D5EC`,
-/// 0x13F1 by `func_mine_tunnel_8017D5E4`, 0x13EF by `func_mine_tunnel_8017D670`
-/// and 0x13F0 by `func_mine_tunnel_8017D630`.
-extern GpMsgEntry D_mine_tunnel_8017DFC4[];
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and - when the session is at place 1
-/// and flag 0xA1 is 1 - calls `func_mine_tunnel_8017D6E0` with 2. Then sets
-/// `D_80062735` and advances to state 1.
-void func_mine_tunnel_8017D6EC(Task* arg0)
+/// The tunnel's five light anchors, one `SVECTOR` each in one run; each view
+/// draws a subset of them.
+extern SVECTOR D_mine_tunnel_8017E12C[];
+
+void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+/// Room effect tick: sets `Gp_State1C->roomEffectMode` to 2 and draws the
+/// light anchors the current view index shows - anchor 2 in view 2, all five
+/// in view 3, anchors 2 and 3 in view 4, anchors 1 and 4 in view 5, none
+/// otherwise.
+void func_mine_tunnel_8017D7D4(void)
 {
-    arg0->msgTable = D_mine_tunnel_8017DFC4;
-    Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
-        func_mine_tunnel_8017D6E0(2);
+    s32 idx;
+
+    Gp_State1C->roomEffectMode = 2;
+    idx                        = Gp_GetViewIndex() & 0xFF;
+
+    switch (idx) {
+        case 2:
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            break;
+        case 3:
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[0], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            break;
+        case 4:
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            break;
+        case 5:
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            break;
+        case 6:
+            break;
     }
-    arg0->state = (s32)(arg0->state + 1);
-    D_80062735  = 1;
 }
 
-void func_mine_tunnel_8017D774(void)
+/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
+/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
+/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
+/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
+/// byte `((animFrame & 1) * 16) + 0x20` on all three channels. The room's
+/// effect tick draws its light anchors with it.
+void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
+    void**             scratch;
+    u8*                head;
+    u8*                tmp;
+    RoomDraw13Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    s32                tex;
+    s32                idx;
+    s32                u0;
+    s32                u1;
+    register s32       sarg asm("v1");
+    s32                t;
+    s32                field8;
+    s32                blend;
+    s32                v;
+    u8                 code;
+    s16                xy;
+
+    tex = arg1;
+    CLOBBER_REG(a1);
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    tmp     = head - 0x10;
+    block   = (RoomDraw13Scratch*)tmp;
+    SOFT_TOUCH_REG(block);
+    *scratch = tmp;
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
+    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
+        gte_stszotz(&block->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        ds             = &gDisplayState;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        idx         = (s16)tex;
+        field8      = (u8)ds->animFrame;
+        prim->tpage = 0x2B;
+        prim->clut  = (idx & 0x3F) | 0x4380;
+        u0          = idx * 40;
+        u1          = u0 + 0x27;
+        prim->u0    = u0;
+        prim->u2    = u0;
+        SOFT_USE_REG(u0);
+        v        = 0x27;
+        prim->u1 = u1;
+        prim->u3 = u1;
+        SOFT_USE_REG(u1);
+        sarg     = arg2 << 16;
+        prim->v2 = v;
+        prim->v3 = v;
+        SCHED_BARRIER();
+        code     = prim->code;
+        sarg     = sarg >> 16;
+        prim->v0 = 0;
+        prim->v1 = 0;
+        blend    = ((field8 & 1) * 16) + 0x20;
+        COMPILER_BARRIER();
+        prim->code = code | 2;
+        t          = sarg * 40;
+        setRGB0(prim, blend, blend, blend);
+        ((RoomDraw13Scratch*)tmp)->radius =
+            (t - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x2 = xy;
+        prim->x0 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x3 = xy;
+        prim->x1 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y1 = xy;
+        prim->y0 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y3 = xy;
+        prim->y2 = xy;
+        addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x10;
 }
