@@ -159,7 +159,69 @@ s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
     return s->blocked != 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_04000/actor_204000", Actor04000_Fn00798);
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Actor04000_Fn00798`: the
+/// `GpDeltaScratch` filled by `func_800E0C10` plus the returned flag.
+typedef struct Actor104000DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor104000DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor104000DeltaFlag, 0x14);
+
+/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
+extern SVECTOR Actor04000_D0C708;
+
+/// Steps `coord` by the movement the first `arg2` `GpRec18` records of
+/// `movement` resolve to, and keeps the whole-unit part of that step in
+/// `Actor04000_D0C708`. Returns 1 when the X or Z step is nonzero; a step with
+/// a fractional part moves the coordinate and the kept step one unit further
+/// from zero.
+s32 Actor04000_Fn00798(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor104000DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
+        coord->coord.t[0]    = coord->coord.t[0] + ((Actor104000DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
+        Actor04000_D0C708.vx = ((Actor104000DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor04000_D0C708.vy = s->delta.vy.w >> 16;
+        Actor04000_D0C708.vz = s->delta.vz.w >> 16;
+        val                  = ((Actor104000DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                Actor04000_D0C708.vx++;
+            } else {
+                coord->coord.t[0]--;
+                Actor04000_D0C708.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                Actor04000_D0C708.vz++;
+            } else {
+                coord->coord.t[2]--;
+                Actor04000_D0C708.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
 
 extern Actor104000* Actor04000_D0C718[6];
 

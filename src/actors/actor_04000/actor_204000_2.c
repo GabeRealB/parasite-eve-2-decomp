@@ -583,7 +583,7 @@ void Actor04000_Fn026FC(Actor104000Ctx* arg0, Actor104000* arg1)
 }
 
 s32 Actor04000_Fn0024C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* d);
-s32 Actor04000_Fn00798(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
+s32 Actor04000_Fn00798(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 
 /// Chasing state: restarts the actor when `field_4` is set; otherwise turns
 /// toward the camera target by at most 0x10 a frame and steps forward, counting
