@@ -2267,23 +2267,7 @@ id = 379
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall", rodata = "0x4", text = "0x60" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_9", text = "0x668" },
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", rodata = "0x40", text = "0x6C0" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_10", text = "0x8F0" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_11", text = "0x1134" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_3", text = "0x1400" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_12", text = "0x16C4" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_4", text = "0x1AE8" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_13", text = "0x1E7C" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_5", text = "0x23C0" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_14", text = "0x28EC" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_6", text = "0x2C64" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_15", text = "0x3624" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_16", text = "0x3758" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_17", text = "0x39FC" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_7", text = "0x3E28" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_18", text = "0x41BC" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_8", text = "0x4D2C" },
   { kind = "data", at = "0x56EC" },
 ]
 
