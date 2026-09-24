@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
@@ -18,11 +19,6 @@
 #include "main/tmd.h"
 
 #include "rooms/room_common.h"
-
-/// `rtps` / `mvmva` on v0. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern u8         D_8007216D;
 extern TaskDesc   D_dryfield_underpass_8017E818[];
@@ -299,7 +295,7 @@ void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 ar
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw35Scratch*)(head - 0x14))->vec);
     block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&arg0->workm.t[0];
     block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
@@ -308,7 +304,7 @@ void func_dryfield_underpass_8017DB20(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 ar
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw35Scratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
