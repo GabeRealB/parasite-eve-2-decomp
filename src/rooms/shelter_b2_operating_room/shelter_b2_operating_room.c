@@ -1,12 +1,16 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b2_operating_room.h"
 
 /// Parameters of an event the operating room's message handler starts, latched
 /// into the room's pending copy when it fires. `flagId` is the game-flag nibble
@@ -51,8 +55,8 @@ static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, _OperatingRoom
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179A04`. Message 0x1E goes through the rooms' event gate on flag
-/// 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
+/// `func_80179A04`. Message 0x1E goes through the exit gate
+/// `func_shelter_b2_operating_room_8017D628` on flag 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
 /// `in->field_5` asks for a dry run - passes `in->field_6` to `Gp_SetNibbleIf`
 /// and runs cap command 3; once the nibble is set it starts the room event on
 /// flag 0x13A instead. Message 0x1F starts the event on flag 0x13B; any other
@@ -71,7 +75,7 @@ s32 func_shelter_b2_operating_room_8017DA94(s32 arg0, s32 arg1, RoomEventMsg* in
         req.field_C = 0x541D0003;
         req.flagId  = 0xA8;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b2_operating_room_8017D628(&req, out);
     }
     if (in->msgId == 0x1C && GameFlag_GetNibble(0xAA) == 0) {
         if (in->field_5 == 0) {
@@ -120,4 +124,4 @@ s32 func_shelter_b2_operating_room_8017DD0C(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", D_shelter_b2_operating_room_8017D5F0);
