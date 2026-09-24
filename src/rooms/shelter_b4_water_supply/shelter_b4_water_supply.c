@@ -18,6 +18,11 @@ extern TaskDesc   D_shelter_b4_water_supply_80182620[];
 extern GpMsgEntry D_shelter_b4_water_supply_801825F0[];
 extern TaskDesc   D_shelter_b4_water_supply_8018263C[];
 void              func_shelter_b4_water_supply_8017DB18(void);
+/// Staging save location the spawned task reads: `field_2` / `field_4` /
+/// `field_1` receive the outgoing location's `field_0` / `field_2` / `field_3`.
+extern GpSaveLoc D_shelter_b4_water_supply_80184E3C;
+
+extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", RoomsShared8017d878Table);
@@ -29,7 +34,25 @@ s32 func_shelter_b4_water_supply_8017D970(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D978);
+/// Copies the location at `src` into `dst` and passes both to `func_80179A04`.
+/// When the leading halfword of `src` is 0x2C it returns 0, first staging three
+/// bytes of `dst` and spawning from the task table unless `src->field_5` is set;
+/// any other location returns 1.
+s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179A04(src, dst);
+    if (*(u16*)src == 0x2C) {
+        if (src->field_5 == 0) {
+            D_shelter_b4_water_supply_80184E3C.field_2 = dst->field_0;
+            D_shelter_b4_water_supply_80184E3C.field_4 = dst->field_2;
+            D_shelter_b4_water_supply_80184E3C.field_1 = dst->field_3;
+            Task_SpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
+        }
+        return 0;
+    }
+    return 1;
+}
 
 s32 func_shelter_b4_water_supply_8017DA28(void)
 {
