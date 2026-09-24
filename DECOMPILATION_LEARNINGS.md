@@ -139774,3 +139774,30 @@ Three more from the same function:
 * `case 4: call(...); break;` into the switch's shared `work->state = 0;` is
   not the same block as `call(...); work->state = 0; return;` - the inline
   store changes sched1's picture and the argument load moved from first to last.
+
+## A signed `/ 4096` whose `sra` sits *after* a following RNG draw is split rounding, and `c ? a - b : a` loses its else-arm when `c` has no side effects (func_shelter_b3_dumping_hole_8018005C, 2026-09-24)
+
+**Symptom.** `v = size * rsin(x) / 4096;` followed by an LCG draw
+`w = (RAND() & 1) ? v + d : v;` matched everything except the division's
+`sra`: the target keeps `mflo; bgez; addiu 0xfff` before the draw but places
+`sra` late (in the `beqz` delay slot), the candidate put it first in the join
+block.
+
+**Mechanism.** `expand_divmod` emits `copy; bge L; add 4095; L: sra` in one
+go, so the shift is the first insn after the label. Sched1 schedules it with
+priority 1 (no in-block producer) and it keeps the lowest luid, so it stays
+first. Writing the rounding explicitly and the shift inside the ternary arms,
+`if (v < 0) v += 0xFFF; w = (RAND() & 1) ? (v >> 12) + d : (v >> 12);`, emits
+the shift after the draw; reorg then fills the `beqz` delay slot with the arm's
+`sra` and deletes the target-thread copy as redundant. Exact for the
+non-negated case.
+
+**Second trap.** Hoisting the draw into `r` (`r = RAND() & 1; q = -(v >> 12);
+w = r ? q - d : q;`) triggers `expand_expr`'s COND_EXPR "singleton" rewrite
+(`X ? A op B : A` → `w = A; if (X) w op= B`), which only fires when the
+condition has no side effects. The else-arm `move` disappears, and with it the
+block boundary, so CSE keeps the LCG constant and `%hi` live across the next
+call in `s2`/`s3`. A statement `if (r) { w = q - d; } else { w = q; }` keeps
+the else arm. The negated form (`-(v >> 12)` shared by both arms after the
+draw) is still unmatched: sched1 fills the `lw` load delay with `sra`/`negu`,
+where the target has them after the draw's final `addu`.
