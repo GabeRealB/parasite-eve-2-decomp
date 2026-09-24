@@ -15,11 +15,6 @@
 
 #include "psyq/inline_c.h"
 
-/// `rtv0` / `rtps`: the `inline_c.h` macros of those names assemble to
-/// different words.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 /// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
 /// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
 /// for the 0x10 one.

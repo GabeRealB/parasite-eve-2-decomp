@@ -14,11 +14,6 @@
 
 #include "psyq/inline_c.h"
 
-/// `rtv0` / `rtps`: the `inline_c.h` macros of those names assemble to
-/// different words.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 /// The spawn's tables: the task's next handler record, the `GpU16Pair`
 /// `Gp_PackPair` packs into the third collision object, the `GpPairSrcE` whose
 /// `field_4` seeds the enemy's HP, the stage / room box-table index run, the

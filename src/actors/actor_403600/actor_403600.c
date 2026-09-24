@@ -15,20 +15,10 @@ INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_8
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #define ACTOR403600_RNG_VALUE(base) (*(u32*)((u8*)(base) + 0xF60))
 
-#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_nclip_real()  __asm__ volatile("nop; nop; .word 0x4B400006")
-#define gte_avsz3_real()  __asm__ volatile("nop; nop; .word 0x4B58002D")
-#define gte_avsz4_real()  __asm__ volatile("nop; nop; .word 0x4B68002E")
-#define gte_ncct_real()   __asm__ volatile("nop; nop; .word 0x4B18043F")
-#define gte_mvmva_10030() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_mvmva_10000() __asm__ volatile("nop; nop; .word 0x4A480012")
-#define gte_nccs_real()   __asm__ volatile("nop; nop; .word 0x4B08041B")
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \
@@ -674,7 +664,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             local = *(SVECTOR*)(scratch + 8);
             actor_403600_set_rot_matrix_dep(transposed0);
             actor_403600_ldv0_dep(&local, transposed0);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(firstOutput);
 
             *(s16*)(scratch + 0) = 0;
@@ -683,13 +673,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             local                = *(SVECTOR*)scratch;
             gte_SetRotMatrix(center + 0x24);
             gte_ldv0(&local);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(scratch);
 
             local = *(SVECTOR*)scratch;
             gte_SetRotMatrix(transposed0);
             gte_ldv0(&local);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(scratch);
 
             current0 = (u8*)arg2;
@@ -719,7 +709,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 local                 = *(SVECTOR*)(scratch + 8);
                 gte_SetRotMatrix(basis0);
                 gte_ldv0(local0);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(output0);
 
                 *(s16*)(scratch + 0) = 0;
@@ -728,13 +718,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 local                = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(center + 0x24);
                 gte_ldv0(local0);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
 
                 local = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(basis0);
                 gte_ldv0(local0);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 *(s16*)(current1 + 0x108) = *(u16*)(scratch + 8) + *(u16*)(scratch + 0);
                 *(s16*)(current1 + 0x10A) = *(u16*)(scratch + 10) + *(u16*)(scratch + 2);
@@ -758,7 +748,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             local = *(SVECTOR*)(scratch + 8);
             actor_403600_set_rot_matrix_dep(transposed1);
             actor_403600_ldv0_dep(&local, transposed1);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(stepOutput);
             *(SVECTOR*)((u8*)arg2 + 8) = *(SVECTOR*)(scratch + 8);
 
@@ -772,20 +762,20 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
             local = *(SVECTOR*)(scratch + 8);
             gte_SetRotMatrix(center + 0x24);
             gte_ldv0(&local);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(secondOutput);
             thirdOutput = stepOutput;
             SOFT_TOUCH_REG(thirdOutput);
             local = *(SVECTOR*)(scratch + 8);
             gte_SetRotMatrix(transposed1);
             gte_ldv0(&local);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(thirdOutput);
 
             if (*(s16*)((u8*)arg1 + 0x70A) != 0) {
                 gte_lddp(*(u16*)((u8*)arg1 + 0x70A));
                 gte_ldsv(stepOutput);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(scratch + 0x80);
             }
 
@@ -809,7 +799,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 *(SVECTOR*)(saved2 + 0x60) = *(SVECTOR*)scratch;
                 gte_lddp(0x485);
                 gte_ldsv(scratch);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(scratch);
                 *(s16*)(next2 + 8)  = *(u16*)(current2 + 8) + *(u16*)(scratch + 0);
                 *(s16*)(next2 + 10) = *(u16*)(current2 + 10) + *(u16*)(scratch + 2);
@@ -833,13 +823,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 coord3  = (u8*)actor->field_2C->coords + offset1;
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(saved3);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 TransposeMatrix(centerBasis3, matrix3);
                 local = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(matrix3);
                 gte_ldv0(&local);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 *(s16*)(scratch + 8)  = 0;
                 *(s16*)(scratch + 10) = 0x1000;
@@ -851,47 +841,47 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
 
                 gte_SetRotMatrix(matrix3);
                 gte_ldclmv(coord3 + 0x24);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(matrix3);
                 gte_ldclmv(coord3 + 0x26);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column1);
                 gte_ldclmv(coord3 + 0x28);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column2);
 
                 gte_SetRotMatrix(basis3);
                 gte_ldclmv(matrix3);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(matrix3);
                 gte_ldclmv(column1);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column1);
                 gte_ldclmv(column2);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column2);
 
                 gte_SetRotMatrix(centerBasis3);
                 gte_ldclmv(matrix3);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(matrix3);
                 gte_ldclmv(column1);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column1);
                 gte_ldclmv(column2);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(column2);
 
                 TransposeMatrix((MATRIX*)(*(u8**)(coord3 + 0x4C) + 0x24), basis3);
                 gte_SetRotMatrix(basis3);
                 gte_ldclmv(matrix3);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord3 + 4);
                 gte_ldclmv(column1);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord3 + 6);
                 gte_ldclmv(column2);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord3 + 8);
                 *(s32*)coord3 = 0;
                 Gp_UpdateCoord((GsCOORDINATE2*)coord3);
@@ -920,7 +910,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 local                 = *(SVECTOR*)(scratch + 8);
                 gte_SetRotMatrix(basis4);
                 gte_ldv0(local4);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(output4);
 
                 *(s16*)(scratch + 0) = 0;
@@ -929,12 +919,12 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 local                = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(coord4 + 0x24);
                 gte_ldv0(local4);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 local = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(basis4);
                 gte_ldv0(local4);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
 
                 *(s16*)(scratch + 0) += *(s16*)(current4 + 0x108) - *(s16*)(scratch + 8);
@@ -949,7 +939,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
                 *(SVECTOR*)(saved4 + 0x60) = *(SVECTOR*)scratch;
                 gte_lddp(0x898);
                 gte_ldsv(scratch);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(scratch);
                 *(s16*)(current4 + 0x108) = *(u16*)(scratch + 8) + *(u16*)(scratch + 0);
                 *(s16*)(current4 + 0x10A) = *(u16*)(scratch + 10) + *(u16*)(scratch + 2);
@@ -957,14 +947,14 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
 
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(saved4 + 0x60);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 matrix4 = (MATRIX*)(scratch + 0x30);
                 TransposeMatrix((MATRIX*)(coord4 + 0x24), matrix4);
                 local = *(SVECTOR*)scratch;
                 gte_SetRotMatrix(matrix4);
                 gte_ldv0(local4);
-                gte_mvmva_10030();
+                gte_rtv0();
                 gte_stsv(scratch);
                 *(s16*)(scratch + 8)  = 0;
                 *(s16*)(scratch + 10) = 0;
@@ -995,13 +985,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Wo
 
                 gte_SetRotMatrix(basis4);
                 gte_ldclmv(coord4 + 4);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord4 + 4);
                 gte_ldclmv(coord4 + 6);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord4 + 6);
                 gte_ldclmv(coord4 + 8);
-                gte_rtir_real();
+                gte_rtir();
                 gte_stclmv(coord4 + 8);
                 *(s32*)coord4 = 0;
                 Gp_UpdateCoord((GsCOORDINATE2*)coord4);
@@ -1203,7 +1193,7 @@ void func_actor_403600_80134398(Task* arg0)
             temp_s2                            += 0x4BC;
             gte_SetRotMatrix(temp_s2);
             gte_ldv0(firstVector);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(temp_s1);
             ACTOR_FIELD(temp_s6, s32*, 0x18)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x18) + ACTOR_FIELD(temp_v0_3, s16*, 0x100));
             ACTOR_FIELD(temp_s6, s32*, 0x1C)    = (s32)(ACTOR_FIELD(temp_a0, s32*, 0x1C) + ACTOR_FIELD(temp_v0_3, s16*, 0x102));
@@ -1214,7 +1204,7 @@ void func_actor_403600_80134398(Task* arg0)
             sp18                                = *(SVECTOR*)(temp_v0_3 + 0x100);
             gte_SetRotMatrix(temp_s2);
             gte_ldv0(firstVector);
-            gte_mvmva_10030();
+            gte_rtv0();
             gte_stsv(temp_s1);
             SOFT_USE_REG2(firstVector, temp_s1);
             SOFT_USE_REG2(firstVector, temp_s1);
@@ -1291,7 +1281,7 @@ block_22:
     gteValue1                          = temp_v0_2 + 0x34;
     gte_SetRotMatrix(gteValue1);
     gte_ldv0(cameraVector);
-    gte_mvmva_10030();
+    gte_rtv0();
     gte_stsv(temp_v1);
     ACTOR_FIELD(temp_v0_2, s32*, 0x0) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
     ACTOR_FIELD(temp_v0_2, s32*, 0x4) = (s32)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
@@ -1375,7 +1365,7 @@ block_22:
                         gte_lddp(100);
                         gteValue2 = temp_s5 + 0x100;
                         gte_ldsv(gteValue2);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(temp_s0_4);
                         ACTOR_FIELD(temp_s1_4, s16*, 0x8) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x10);
                         ACTOR_FIELD(temp_s1_4, s16*, 0xA) = (s16) - (s16)(u16)ACTOR_FIELD(temp_v0_2, s16*, 0x12);
@@ -1478,7 +1468,7 @@ block_22:
                 temp_s2                 = D_actor_403600_8016069C;
                 D_actor_403600_8016069C = temp_s2 + 0x28;
                 gte_ldv0(var_s1);
-                gte_rtps_real();
+                gte_rtps();
                 gteValue3 = temp_v0_2 + 0x18;
                 gte_stsxy(gteValue3);
                 gteValue4 = temp_v0_2 + 0x1C;
@@ -1548,7 +1538,7 @@ block_22:
                             gte_lddp(gteValue7);
                             temp_v0_4 = temp_v0_2 + 0x2C;
                             gte_ldsv(temp_v0_4);
-                            gte_gpf12_real();
+                            gte_gpf12();
                             gte_stsv(temp_v0_4);
                         }
                         ACTOR_FIELD(temp_s2, s16*, 0x8)  = (s16)(ACTOR_FIELD(temp_v0_2, u16*, 0x18) + ACTOR_FIELD(temp_v0_2, u16*, 0x2C));
@@ -1660,12 +1650,12 @@ void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg
     scratch->points[2].vy = 0;
     scratch->points[2].vz = 0;
     gte_ldv3(&scratch->points[0], &scratch->points[1], &scratch->points[2]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&scratch->sxy3[0], &scratch->sxy3[1], &scratch->sxy3[2]);
     gte_stdp(&scratch->dp);
     gte_stflg(&scratch->flag);
     gte_stszotz(&scratch->otz);
-    gte_nclip_real();
+    gte_nclip();
     gte_stopz(&scratch->nclip);
 
     i = 0;
@@ -1712,20 +1702,20 @@ void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg
             scratch->vec.vy          = rcos(rotation);
             scratch->vec.vz          = 0;
             gte_ldv0(vec);
-            gte_mvmva_10030();
+            gte_rtv0();
             scratch->projected.vx = scale;
             scratch->projected.vz = 0;
             scratch->projected.vy = *(s32*)((u8*)radii + radiusOffset);
             gte_stsv(vec);
             gte_ldv0(&scratch->projected);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&scratch->sxy);
             gte_stdp(&scratch->dp);
             gte_stflg(&scratch->flag);
             gte_stszotz(&scratch->otz);
             gte_lddp(*height);
             gte_ldsv(vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(vec);
 
             *(s32*)&poly->x0 = scratch->sxy;
@@ -2177,14 +2167,14 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
-            gte_rtpt_real();
+            gte_rtpt();
             gte_stflg(&arg0->gteFlag);
             if (arg0->gteFlag >= 0) {
-                gte_nclip_real();
+                gte_nclip();
                 gte_stopz(opz);
                 if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
-                    gte_avsz3_real();
+                    gte_avsz3();
                     upper_delta = 0;
                     if (light != 0) {
                         upper_y = poly->y0;
@@ -2206,7 +2196,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
-                        gte_ncct_real();
+                        gte_ncct();
                         gte_strgb3_gt3(poly);
                     }
                     if (light != 0) {
@@ -2279,7 +2269,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         do {
             rec = (u16*)arg2;
             actor_403600_ldsxy3_fifo_gt3((u8*)poly + 7);
-            gte_nclip_real();
+            gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
                 sz_table = (u8*)arg0->szTable;
@@ -2295,7 +2285,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         sz  = *(s32*)(idx + (s32)sz_table);
                         if (!(sz & clip_mask)) {
                             actor_403600_ldsz3(sz);
-                            gte_avsz3_real();
+                            gte_avsz3();
                             upper_delta = 0;
                             if (light != 0) {
                                 upper_y = poly->y0;
@@ -2388,25 +2378,25 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
-            gte_rtpt_real();
+            gte_rtpt();
             gte_stflg(flg);
             if (!(arg0->gteFlag & clip_mask)) {
-                gte_nclip_real();
+                gte_nclip();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(poly);
                 gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
-                gte_rtps_real();
+                gte_rtps();
                 gte_stflg(flg);
                 if (!(arg0->gteFlag & clip_mask)) {
                     if (arg0->gteResult > 0) {
                         goto draw;
                     }
-                    gte_nclip_real();
+                    gte_nclip();
                     gte_stopz(opz);
                     if (arg0->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
-                        gte_avsz4_real();
+                        gte_avsz4();
                         upper_delta = 0;
                         if (light != 0) {
                             upper_y = poly->y0;
@@ -2428,10 +2418,10 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
                                      norms + (rec[6] & 0xFFF8));
-                            gte_ncct_real();
+                            gte_ncct();
                             gte_strgb3_gt4(poly);
                             gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
-                            gte_nccs_real();
+                            gte_nccs();
                             gte_strgb(&poly->r3);
                         }
                         if (light != 0) {
@@ -2506,13 +2496,13 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         do {
             rec = (u16*)arg2;
             actor_403600_ldsxy3_fifo_gt4((u8*)poly + 7);
-            gte_nclip_real();
+            gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
                 goto draw;
             }
             actor_403600_ldsxy1_fifo_gt4((u8*)poly + 7);
-            gte_nclip_real();
+            gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult < 0) {
             draw:
@@ -2533,7 +2523,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             sz  = *(s32*)(idx + (s32)sz_table);
                             if (!(sz & clip_mask)) {
                                 actor_403600_ldsz3(sz);
-                                gte_avsz4_real();
+                                gte_avsz4();
                                 upper_delta = 0;
                                 if (light != 0) {
                                     upper_y = poly->y0;
@@ -2622,14 +2612,14 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
-            gte_rtpt_real();
+            gte_rtpt();
             gte_stflg(&arg0->gteFlag);
             if (arg0->gteFlag >= 0) {
-                gte_nclip_real();
+                gte_nclip();
                 gte_stopz(opz);
                 if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
-                    gte_avsz3_real();
+                    gte_avsz3();
                     upper_delta = 0;
                     if (light != 0) {
                         upper_y = poly->y0;
@@ -2651,7 +2641,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
-                        gte_ncct_real();
+                        gte_ncct();
                         gte_strgb3_gt3(poly);
                     }
                     setlen(poly, 9);
@@ -2723,14 +2713,14 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
-            gte_rtpt_real();
+            gte_rtpt();
             gte_stflg(&arg0->gteFlag);
             if (arg0->gteFlag >= 0) {
-                gte_nclip_real();
+                gte_nclip();
                 gte_stopz(opz);
                 if (arg0->gteResult > 0) {
                     gte_stsxy3_gt3(poly);
-                    gte_avsz3_real();
+                    gte_avsz3();
                     upper_delta = 0;
                     if (light != 0) {
                         upper_y = poly->y0;
@@ -2752,7 +2742,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8),
                                  norms + (rec[5] & 0xFFF8));
-                        gte_ncct_real();
+                        gte_ncct();
                         gte_strgb3_gt3(poly);
                     }
                     setlen(poly, 9);
@@ -2831,25 +2821,25 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             verts = (u8*)arg0->verts;
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8),
                      verts + (rec[2] & 0xFFF8));
-            gte_rtpt_real();
+            gte_rtpt();
             gte_stflg(flg);
             if (!(arg0->gteFlag & clip_mask)) {
-                gte_nclip_real();
+                gte_nclip();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(poly);
                 gte_ldv0((u8*)arg0->verts + (rec[3] & 0xFFF8));
-                gte_rtps_real();
+                gte_rtps();
                 gte_stflg(flg);
                 if (!(arg0->gteFlag & clip_mask)) {
                     if (arg0->gteResult > 0) {
                         goto draw;
                     }
-                    gte_nclip_real();
+                    gte_nclip();
                     gte_stopz(opz);
                     if (arg0->gteResult < 0) {
                     draw:
                         gte_stsxy2(&poly->x3);
-                        gte_avsz4_real();
+                        gte_avsz4();
                         upper_delta = 0;
                         if (light != 0) {
                             upper_y = poly->y0;
@@ -2871,10 +2861,10 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8),
                                      norms + (rec[6] & 0xFFF8));
-                            gte_ncct_real();
+                            gte_ncct();
                             gte_strgb3_gt4(poly);
                             gte_ldv0((u8*)arg0->normals + (rec[7] & 0xFFF8));
-                            gte_nccs_real();
+                            gte_nccs();
                             gte_strgb(&poly->r3);
                         }
                         setlen(poly, 12);
@@ -2969,18 +2959,18 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         local       = *(SVECTOR*)local_addr;
         gte_SetRotMatrix(transposed);
         gte_ldv0(local_stack);
-        gte_mvmva_10030();
+        gte_rtv0();
         gte_stsv(local_addr);
 
         gte_SetRotMatrix(transposed);
         gte_ldclmv(saved);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 2);
         gte_ldclmv(head - 0x3C);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 4);
 
         *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
@@ -3011,7 +3001,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 do {
                     verts = (u8*)arg0->verts;
                     gte_ldv0(verts + (*(s32*)(index + 0x30) << 3));
-                    gte_mvmva_10000();
+                    gte_rtv0tr();
                     gte_stsv(scratch + offset);
                     if (*(s16*)(clamp + 0x1A) > 0) {
                         *(s16*)(clamp + 0x1A) = 0;
@@ -3026,19 +3016,19 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                 gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                 gte_ldv3(projected, scratch + 0x20, scratch + 0x28);
-                gte_rtpt_real();
+                gte_rtpt();
                 gte_stflg(&arg0->gteFlag);
                 if (arg0->gteFlag >= 0) {
-                    gte_nclip_real();
+                    gte_nclip();
                     gte_stopz(opz);
                     if (arg0->gteResult > 0) {
                         gte_stsxy3_gt3(poly);
-                        gte_avsz3_real();
+                        gte_avsz3();
                         norms = (u8*)arg0->normals;
                         gte_ldv3(norms + (record[3] & 0xFFF8),
                                  norms + (record[4] & 0xFFF8),
                                  norms + (record[5] & 0xFFF8));
-                        gte_ncct_real();
+                        gte_ncct();
                         gte_strgb3_gt3(poly);
                         setlen(poly, 9);
                         setcode(poly, 0x34);
@@ -3121,18 +3111,18 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         local       = *(SVECTOR*)local_addr;
         gte_SetRotMatrix(transposed);
         gte_ldv0(local_stack);
-        gte_mvmva_10030();
+        gte_rtv0();
         gte_stsv(local_addr);
 
         gte_SetRotMatrix(transposed);
         gte_ldclmv(saved);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 2);
         gte_ldclmv(head - 0x3C);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 4);
 
         *(s32*)(scratch + 0x7C) = *(s16*)(scratch + 0x10);
@@ -3166,7 +3156,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 do {
                     verts = (u8*)arg0->verts;
                     gte_ldv0(verts + (*(s32*)(index + 0x38) << 3));
-                    gte_mvmva_10000();
+                    gte_rtv0tr();
                     gte_stsv(scratch + offset);
                     if (*(s16*)(clamp + 0x1A) > 0) {
                         *(s16*)(clamp + 0x1A) = 0;
@@ -3182,33 +3172,33 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                 index = scratch + 0x18;
                 gte_ldv3(index, scratch + 0x20, scratch + 0x28);
-                gte_rtpt_real();
+                gte_rtpt();
                 gte_stflg(flg);
                 if (!(arg0->gteFlag & clip_mask)) {
-                    gte_nclip_real();
+                    gte_nclip();
                     gte_stopz(opz);
                     gte_stsxy3_gt4(poly);
                     gte_ldv0(scratch + 0x30);
-                    gte_rtps_real();
+                    gte_rtps();
                     gte_stflg(flg);
                     if (!(arg0->gteFlag & clip_mask)) {
                         if (arg0->gteResult > 0) {
                             goto draw;
                         }
-                        gte_nclip_real();
+                        gte_nclip();
                         gte_stopz(opz);
                         if (arg0->gteResult < 0) {
                         draw:
                             gte_stsxy2(&poly->x3);
-                            gte_avsz4_real();
+                            gte_avsz4();
                             norms = (u8*)arg0->normals;
                             gte_ldv3(norms + (record[4] & 0xFFF8),
                                      norms + (record[5] & 0xFFF8),
                                      norms + (record[6] & 0xFFF8));
-                            gte_ncct_real();
+                            gte_ncct();
                             gte_strgb3_gt4(poly);
                             gte_ldv0((u8*)arg0->normals + (record[7] & 0xFFF8));
-                            gte_nccs_real();
+                            gte_nccs();
                             gte_strgb(&poly->r3);
                             setlen(poly, 12);
                             setcode(poly, 0x3C);
@@ -3291,18 +3281,18 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         local = *(SVECTOR*)(head - 0x6C);
         gte_SetRotMatrix(transposed);
         gte_ldv0(&local);
-        gte_mvmva_10030();
+        gte_rtv0();
         gte_stsv(scratch + 0x10);
 
         gte_SetRotMatrix(transposed);
         gte_ldclmv(saved);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 2);
         gte_ldclmv(head - 0x3C);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((u8*)transposed + 4);
 
         *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
@@ -3319,7 +3309,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_SetTransMatrix(active);
                     gte_SetRotMatrix(active);
                     gte_ldv0((u8*)arg0->verts + (*(u16*)(stream + 0) & 0xFFF8));
-                    gte_mvmva_10000();
+                    gte_rtv0tr();
                     gte_stsv(saved);
                     if (*(s16*)(scratch + 0x1A) > 0) {
                         *(s16*)(scratch + 0x1A) = 0;
@@ -3327,7 +3317,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                     gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
                     gte_ldv0(saved);
-                    gte_rtps_real();
+                    gte_rtps();
                     gte_stsz(&arg0->gteResult);
                     gte_stflg(&arg0->gteFlag);
                     if (arg0->gteFlag & 0x80000000) {
@@ -3337,7 +3327,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                 }
                 gte_stsxy(arg0->preXformWrite + *(u16*)(record + 4));
                 gte_ldv0((u8*)arg0->normals + (*(u16*)(record + 2) & 0xFFF8));
-                gte_nccs_real();
+                gte_nccs();
                 colorOffset = *(u16*)(record + 6);
                 stream     += arg0->elemStride * 4;
                 gte_strgb(arg0->preXformWrite + colorOffset);
@@ -3464,7 +3454,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
     gte_SetRotMatrix(&coord[1].workm);
     gte_SetTransMatrix(&coord[1].workm);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);
@@ -5636,7 +5626,7 @@ void func_actor_403600_8013C864(Actor403600* arg0)
         gte_SetRotMatrix(temp_s0);
         gte_ldv0(temp_s5);
         SOFT_USE_REG(temp_s1);
-        gte_mvmva_10030();
+        gte_rtv0();
         gte_stsv(temp_s5);
         actor_403600_d_x(temp_d_x, temp_s1);
         temp_s3->field_4B8.coord.t[0] = (s32)(temp_s5->vector.vx + temp_d_x);
@@ -5690,7 +5680,7 @@ void func_actor_403600_8013C864(Actor403600* arg0)
         func_8004BFF8((s32)temp_s3->field_780, (MATRIX*)temp_s0_3);
         gte_SetRotMatrix(temp_s0_3);
         gte_ldv0(temp_s5);
-        gte_mvmva_10030();
+        gte_rtv0();
         gte_stsv(temp_s5);
         temp_s3->field_4B8.coord.t[0] = (s32)((temp_s4 - 1)->vector.vx + D_actor_403600_801605D4.vx);
         SOFT_BARRIER();
@@ -7459,15 +7449,15 @@ default_body:
     temp_v0 = (u8*)temp_s0 + 0xA4;
     gte_SetRotMatrix(temp_v0);
     gte_ldclmv(gte_block);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(temp_v0);
     gte_ldclmv((u8*)matrix_head - 0x1E);
-    gte_rtir_real();
+    gte_rtir();
     temp_v0_2 = (u8*)temp_s0 + 0xA6;
     gte_stclmv(temp_v0_2);
     matrix_head = (MATRIX*)((u8*)matrix_head - 0x1C);
     gte_ldclmv(matrix_head);
-    gte_rtir_real();
+    gte_rtir();
     temp_s0_2 = (u8*)temp_s0 + 0xA8;
     gte_stclmv(temp_s0_2);
     temp_v0_3 = temp_s3->field_700;

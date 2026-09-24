@@ -17,13 +17,7 @@
 #include "main/wipsys.h"
 #include "psyq/abs.h"
 #include "psyq/inline_c.h"
-
-/// `gpf 12`. The `inline_c.h` macro of that name assembles to a different
-/// word, so spell the instruction out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
-/// `rtps`, spelled out for the same reason.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#include "gte.h"
 
 extern GpPairSrcE        D_actor_403000_8013DA00;
 extern GpPairSrcE        D_actor_403000_8013DA10;
@@ -178,7 +172,7 @@ void func_actor_403000_801327B0(GsCOORDINATE2* coord, SVECTOR* pos, s32 arg2)
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(pos);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sxy);
     gte_stflg(&flag);
     gte_stszotz(&otz);
@@ -281,7 +275,7 @@ void func_actor_403000_80132AE0(GsCOORDINATE2* parent)
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&D_actor_403000_80158DF0[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&scratch->sxy.w);
         gte_stdp(&scratch->p);
         gte_stflg(&scratch->flag);
@@ -296,7 +290,7 @@ void func_actor_403000_80132AE0(GsCOORDINATE2* parent)
             if (scratch->otz > 0) {
                 gte_lddp((gDisplayState.screenDistance * 50 / scratch->otz) >> 2);
                 gte_ldsv(n);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(n);
             }
             prim->x2 = scratch->sxy.v.vx + scratch->normal.vx;
@@ -1117,7 +1111,7 @@ void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     VectorNormalSS(dirp, dirp);
     gte_lddp(0x1388);
     gte_ldsv(dirp);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dirp);
     work->field_F90 = &D_actor_403000_80158C08;
     work->field_F94 = 1;
@@ -1846,7 +1840,7 @@ static __inline__ void Actor403000_ScaleVec(SVECTOR* v, u16 k)
 {
     gte_lddp(k);
     gte_ldsv(v);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(v);
 }
 
@@ -2200,7 +2194,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                         VectorNormalSS(dir, dir);
                         gte_lddp(-0x546);
                         gte_ldsv(dir);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(dir);
                         arg0->field_2C->coords->coord.t[0] = player->field_2C->coords->coord.t[0] + scratch->target.vx;
                         arg0->field_2C->coords->coord.t[1] = player->field_2C->coords->coord.t[1] + scratch->target.vy;
@@ -2225,7 +2219,7 @@ void func_actor_403000_801377C8(Actor403000* arg0)
                         VectorNormalSS(dir, dir);
                         gte_lddp(-0x546);
                         gte_ldsv(dir);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(dir);
                         arg0->field_2C->coords->coord.t[0] = player->field_2C->coords->coord.t[0] + scratch->target.vx;
                         arg0->field_2C->coords->coord.t[1] = player->field_2C->coords->coord.t[1] + scratch->target.vy;
@@ -2356,7 +2350,7 @@ void func_actor_403000_801384E8(Actor403000* arg0)
         VectorNormalSS(&scratch->dir, &scratch->dir);
         gte_lddp(0x55);
         gte_ldsv(&scratch->dir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&scratch->dir);
         D_actor_403000_80158DB0.x        = scratch->dir.vx;
         D_actor_403000_80158DB0.y        = 0;
@@ -3403,14 +3397,14 @@ void func_actor_403000_8013B238(Actor403000* arg0)
         VectorNormalSS(&scratch->vec, &scratch->vec);
         gte_lddp(0x1B);
         gte_ldsv(&scratch->vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&scratch->vec);
         work->field_FB0 = scratch->vec;
         Gfx_MatrixCol2(&arg0->field_2C->coords->coord, &scratch->vec);
         VectorNormalSS(&scratch->vec, &scratch->vec);
         gte_lddp(-0x29);
         gte_ldsv(&scratch->vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&scratch->vec);
         work->field_FC8     = scratch->angle / 36;
         work->field_FB0.vx += scratch->vec.vx;
@@ -3647,7 +3641,7 @@ void func_actor_403000_8013BDE0(Actor403000* arg0)
         VectorNormalSS(&scratch->dir, &scratch->dir);
         gte_lddp(-0x2A);
         gte_ldsv(&scratch->dir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&scratch->dir);
     }
     D_actor_403000_80158DB0.x        = scratch->dir.vx;

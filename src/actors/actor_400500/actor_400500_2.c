@@ -2,6 +2,7 @@
 
 #include "actors/actors_shared_80131fc8.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -196,8 +197,6 @@ void func_actor_400500_80135414(Task* arg0)
 }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500_2", ActorsShared801328ccTable);
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 void func_actor_400500_80132438(Task* arg0);
 void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
@@ -453,7 +452,7 @@ void func_actor_400500_80135770(Task* arg0)
             gte_SetRotMatrix(workm);
             gte_SetTransMatrix(workm);
             gte_ldv0(vecp);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&((Actor400500ProjScratch*)(head - 0x18))->sxy);
             gte_stdp(&((Actor400500ProjScratch*)(head - 0x18))->dp);
             gte_stflg(&((Actor400500ProjScratch*)(head - 0x18))->flag);

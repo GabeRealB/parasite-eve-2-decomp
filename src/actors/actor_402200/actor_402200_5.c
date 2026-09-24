@@ -14,11 +14,7 @@
 #include "actors/actors_shared_80136184.h"
 
 #include "psyq/inline_c.h"
-
-/// `rtv0` / `rtps`: the `inline_c.h` macros of those names assemble to
-/// different words.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#include "gte.h"
 
 /// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
 /// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
@@ -169,7 +165,7 @@ void func_actor_402200_80135D5C(Actor402200* arg0)
         sc->pts[1].vz = 0xDC;
         gte_SetRotMatrix(&sc->m);
         gte_ldv0(&sc->pts[1]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&sc->out);
         work->field_634  = sc->m.t[0] + sc->out.vx;
         work->field_636  = sc->m.t[1] + sc->out.vy;
@@ -184,7 +180,7 @@ void func_actor_402200_80135D5C(Actor402200* arg0)
         sc->pts[1].vz = 0xDC;
         gte_SetRotMatrix(&part->workm);
         gte_ldv0(&sc->pts[1]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&sc->out);
         sc->pts[1].vx = part->workm.t[0] + sc->out.vx;
         sc->pts[1].vy = part->workm.t[1] + sc->out.vy;
@@ -206,7 +202,7 @@ void func_actor_402200_80135D5C(Actor402200* arg0)
         }
         gte_SetRotMatrix(&coord->field_0.workm);
         gte_ldv0(&sc->pts[0]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&sc->out);
         sc->pts[0].vx = coord->field_0.workm.t[0] + sc->out.vx;
         sc->pts[0].vy = coord->field_0.workm.t[1] + sc->out.vy;
@@ -215,7 +211,7 @@ void func_actor_402200_80135D5C(Actor402200* arg0)
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_ldv0(&sc->pts[i]);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&sc->sxy);
             gte_stszotz(&sc->otz);
             work->field_6FC[i] = sc->sxy;

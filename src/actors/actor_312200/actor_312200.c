@@ -9,6 +9,7 @@
 #include "main/tmd.h"
 
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -151,7 +152,7 @@ s32 func_actor_312200_80162868(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_311900.h"
 #include "gameplay/1BC.h"
@@ -21,9 +22,6 @@ extern u8 D_actor_311900_8016EBF4[];
 
 /// Non-zero while the game is paused, which freezes the per-frame step below.
 extern u8 D_80072729;
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// The `ActorsShared80135df4Table` spawn handler -- the actor's second setup
 /// path, reached through the three-entry table whose tick is
@@ -112,7 +110,7 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
         VectorNormalSS(vec, vec);
         gte_lddp(arg1);
         gte_ldsv(gte);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(gte);
         arg0->coord.t[0] += head[-1].vx;
         arg0->coord.t[1] += vec->vy;

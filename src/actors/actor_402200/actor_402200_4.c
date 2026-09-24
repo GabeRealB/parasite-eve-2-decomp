@@ -13,10 +13,7 @@
 #include "actors/actors_shared_80137ca4.h"
 
 #include "psyq/inline_c.h"
-
-/// `rtv0`: rotate V0 through the loaded rotation matrix, no translation. The
-/// `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 /// Cue word `func_actor_402200_8013539C` and `func_actor_402200_801354B0`
 /// queue, a separate `D_` symbol in the overlay's data 0x48 past the cue-id
@@ -107,7 +104,7 @@ void func_actor_402200_8013314C(Actor402200* arg0)
                     sc->in.vz                 = 0x5AA;
                     gte_SetRotMatrix(&coord->field_0.coord);
                     gte_ldv0(&sc->in);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stlvnl(&sc->out);
                     sc->place.pos.vx = coord->field_0.coord.t[0] + sc->out.vx;
                     sc->place.pos.vy = coord->field_0.coord.t[1] + sc->out.vy;

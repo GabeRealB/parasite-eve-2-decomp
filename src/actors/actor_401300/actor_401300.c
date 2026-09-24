@@ -15,12 +15,10 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "gte.h"
 
 extern u8 D_801153F4;
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
@@ -116,7 +114,7 @@ s32 func_actor_401300_8013267C(GsCOORDINATE2* coord, s16 arg1, s16 arg2)
     VectorNormalSS(pv, pv);
     gte_lddp(arg2);
     gte_ldsv(pv);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(pv);
     v.vx += (u16)coord->coord.t[0];
     v.vy += (u16)coord->coord.t[1];
@@ -1775,7 +1773,7 @@ static __inline__ void Actor401300_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -1921,7 +1919,7 @@ static __inline__ void Actor401300_MoveForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -1947,7 +1945,7 @@ static __inline__ void Actor401300_MoveBy(GsCOORDINATE2* coord, s16 amount)
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(v);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(v);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -2269,12 +2267,12 @@ void func_actor_401300_80137D78(Actor401300* arg0)
     if (work->field_89E == 0) {
         gte_lddp(work->field_C9E);
         gte_ldsv(&work->field_C8C);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     } else {
         gte_lddp(work->field_C9E >> 1);
         gte_ldsv(&work->field_C8C);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     }
     if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
@@ -2376,7 +2374,7 @@ void func_actor_401300_80138160(Actor401300* arg0)
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(p);
             coord                       = arg0->field_2C->coords;
             coord->coord.t[0]          += pos.vx;
@@ -2416,7 +2414,7 @@ void func_actor_401300_80138800(Actor401300* arg0)
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(pdir);
         arg0->field_2C->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + dir.vx;
         arg0->field_2C->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + dir.vz;
@@ -3677,7 +3675,7 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GsCOORDINAT
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -3847,7 +3845,7 @@ void func_actor_401300_8013DADC(Actor401300* arg0)
                     VectorNormalSS(&aim->delta, &aim->delta);
                     gte_lddp(amount);
                     gte_ldsv(&aim->delta);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&aim->delta);
                     work->field_CC0[0] = aim->delta.vx;
                     work->field_CC0[1] = 0;
@@ -3913,7 +3911,7 @@ static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GsCO
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -4068,7 +4066,7 @@ void func_actor_401300_8013E930(Actor401300* arg0)
                     VectorNormalSS(vec, vec);
                     gte_lddp(amount);
                     gte_ldsv(vec);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(vec);
                     work->field_CC0[0] = blk->delta.vx;
                     work->field_CC0[1] = 0;
@@ -4123,7 +4121,7 @@ static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
     blk->trans.vz = m->t[2];
     gte_lddp(scale);
     gte_ldsv(&blk->trans);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&blk->trans);
     m->t[0]                                     = blk->trans.vx;
     m->t[1]                                     = blk->trans.vy;

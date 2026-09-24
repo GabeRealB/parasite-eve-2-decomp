@@ -16,10 +16,7 @@
 #include "actors/actor_342000.h"
 
 #include <psyq/inline_c.h>
-
-/// `gpf 12` -- general purpose interpolation. The `inline_c.h` macro of that
-/// name assembles to a different word, so spell the instruction out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 extern GpMsgEntry D_actor_342000_801648A8[];
 
@@ -303,7 +300,7 @@ void func_actor_342000_801625D8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vx);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;
@@ -321,7 +318,7 @@ void func_actor_342000_801625D8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vy);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;
@@ -339,7 +336,7 @@ void func_actor_342000_801625D8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vz);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;
@@ -427,7 +424,7 @@ void func_actor_342000_801628C8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vx);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;
@@ -445,7 +442,7 @@ void func_actor_342000_801628C8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vy);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;
@@ -463,7 +460,7 @@ void func_actor_342000_801628C8(Task* arg0)
             sv->vz = t6;
             gte_lddp(sc->vz);
             gte_ldsv(sv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(sv);
             t4               = sv->vx;
             t5               = sv->vy;

@@ -12,9 +12,6 @@
 #include "main/session.h"
 #include "main/wipsys.h"
 
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 s32 func_actor_401000_80132BB0(Actor401000Work* work)
 {
     s32 id;

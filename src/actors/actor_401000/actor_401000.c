@@ -11,9 +11,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/wipsys.h"
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// `Actor401300_MoveForward`: the plain forward-step helper, the shape the
 /// state-8 body `func_actor_401000_801388F4` inlines. The `Nonzero` variant
@@ -32,7 +30,7 @@ static __inline__ void Actor401000_MoveForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -62,7 +60,7 @@ static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;

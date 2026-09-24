@@ -12,9 +12,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/wipsys.h"
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// `Actor401300_MoveForward`: the plain forward-step helper, the shape the
 /// state-8 body `func_actor_401000_801388F4` inlines. The `Nonzero` variant
@@ -33,7 +31,7 @@ static __inline__ void Actor401000_MoveForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -63,7 +61,7 @@ static __inline__ void Actor401000_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -507,12 +505,12 @@ void func_actor_401000_80133D50(Actor401000* arg0)
                 if (work->field_BEC > 0) {
                     gte_lddp(-0x19);
                     gte_ldsv(dir);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(dir);
                 } else {
                     gte_lddp(-0x64);
                     gte_ldsv(dir);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(dir);
                 }
                 arg0->field_2C->coords->coord.t[0] += s->dir.vx;
@@ -1055,7 +1053,7 @@ s32 func_actor_401000_80135374(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
             VectorNormalSS(step, step);
             gte_lddp(0x96);
             gte_ldsv(step);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(step);
             coord->coord.t[0] += s->step.vx;
             coord->coord.t[2] += s->step.vz;
@@ -1152,7 +1150,7 @@ s32 func_actor_401000_80135704(Actor401000* arg0, GpRec18* recs, s16 count)
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0x6B);
                 gte_ldsv(&s->offset);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&s->offset);
                 arg0->field_2C->coords->coord.t[0] += s->offset.vx >> 2;
                 arg0->field_2C->coords->coord.t[2] += s->offset.vz >> 2;
@@ -1636,12 +1634,12 @@ void func_actor_401000_801374D4(Actor401000* arg0)
     if (work->field_89A == 0) {
         gte_lddp(work->field_C0A);
         gte_ldsv(&work->field_BF0);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     } else {
         gte_lddp(work->field_C0A >> 1);
         gte_ldsv(&work->field_BF0);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     }
     if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
@@ -1764,7 +1762,7 @@ void func_actor_401000_801378DC(Actor401000* arg0)
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(p);
             coord                       = arg0->field_2C->coords;
             coord->coord.t[0]          += delta.vx;
@@ -1811,7 +1809,7 @@ void func_actor_401000_801380B8(Actor401000* arg0)
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(pdir);
         arg0->field_2C->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + dir.vx;
         arg0->field_2C->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + dir.vz;

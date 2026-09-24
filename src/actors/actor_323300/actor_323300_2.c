@@ -11,9 +11,7 @@
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/tmd.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#include "gte.h"
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.
@@ -264,11 +262,11 @@ void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
             do {
                 gte_lddp(blend);
                 gte_ldsv(nrmA);
-                gte_gpf12_real();
+                gte_gpf12();
                 nrmDst = nrm + i;
                 gte_lddp(inv);
                 gte_ldsv(nrmB);
-                gte_gpl12_real();
+                gte_gpl12();
                 nrmB++;
                 i++;
                 nrmA++;

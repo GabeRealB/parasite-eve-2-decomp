@@ -10,9 +10,7 @@
 #include "main/task.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtir_real()  __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \
@@ -139,15 +137,15 @@ void func_actor_403600_80141338(Actor403600* arg0)
 
     gte_SetRotMatrix((u8*)coord + 0xA4);
     gte_ldclmv(block);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((u8*)coord + 0xA4);
 
     gte_ldclmv((u8*)block + 2);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((u8*)coord + 0xA6);
 
     gte_ldclmv((u8*)block + 4);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((u8*)coord + 0xA8);
 
     value = work->field_700;
@@ -610,21 +608,21 @@ void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
     gte_lddp(arg1);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
     gte_lddp(arg1);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
     gte_lddp(arg1);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
 
