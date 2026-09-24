@@ -5,13 +5,14 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_motel_room_6.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc D_8013843C;
 extern TaskDesc D_dryfield_motel_room_6_80182D78;
 extern Task*    D_dryfield_motel_room_6_80186828;
 
-void func_dryfield_motel_room_6_80181910(void)
+void func_dryfield_motel_room_6_80181910(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
 }
 
