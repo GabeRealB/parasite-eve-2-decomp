@@ -141,15 +141,14 @@ typedef struct AcropolisPlazaWork {
 } AcropolisPlazaWork;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
-/// Colour ramp the plaza's fade-out task (`func_acropolis_plaza_8017D8AC`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in `Task::work` -- that slot is
-/// not a `TaskIdMap` here. All three channels start at 0 and step by
-/// `Task::spawnArg1` every frame, but the semi-transparent full-screen `TILE`
-/// the task links into `gGpuCurrentOt[-16]` takes its blue from `r`, so `b` is
-/// only ever stepped and never read. The task kills itself (and blanks the
-/// display) once `r` reaches 0x100. The fade-in counterpart at 0x8017DA58 is
-/// the shared `RoomsShared8017da58` body under `src/lib/`, which repeats
-/// this layout privately because the Dryfield water tank uses it too.
+/// Colour ramp of the plaza's two white-fade tasks, the fade-out
+/// (`func_acropolis_plaza_8017D8AC`) and the fade-in
+/// (`func_acropolis_plaza_8017DA58`). Each allocates it with `Mem_Malloc(8, 0)`
+/// and parks it in `Task::work` -- that slot is not a `TaskIdMap` here. All
+/// three channels start together (at 0 for the fade-out, 0xFF for the fade-in)
+/// and step by `Task::spawnArg1` every frame, but the semi-transparent
+/// full-screen `TILE` both tasks link into `gGpuCurrentOt[-16]` takes its blue
+/// from `r`, so `b` is only ever stepped and never read.
 typedef struct AcropolisPlazaFadeWork {
     /* 0x0 */ byte pad_0[0x2];
     /* 0x2 */ s16  r;
