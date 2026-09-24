@@ -2,7 +2,6 @@
 
 #include "actors/actor_403000.h"
 #include "actors/actor_400100_motion.h"
-#include "actors/actors_shared_80132808.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -748,11 +747,11 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        ActorsShared80132808(&arg0->field_2C->coords[2], thirdAngle);
+        func_actor_403000_8013203C(&arg0->field_2C->coords[2], thirdAngle);
         arg0->field_2C->coords[2].flg = 0;
-        ActorsShared80132808(&arg0->field_2C->coords[3], thirdAngle);
+        func_actor_403000_8013203C(&arg0->field_2C->coords[3], thirdAngle);
         arg0->field_2C->coords[3].flg = 0;
-        ActorsShared80132808(&arg0->field_2C->coords[4], (s16)clampedAngle / 2);
+        func_actor_403000_8013203C(&arg0->field_2C->coords[4], (s16)clampedAngle / 2);
         arg0->field_2C->coords[4].flg = 0;
     }
     if (work->field_AE9 == 1) {
@@ -790,7 +789,7 @@ void func_actor_403000_80133AF8(Actor403000* arg0)
                 turnWork->field_ADE = (s16)targetTurn;
             }
         }
-        ActorsShared80132808(&arg0->field_2C->coords[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
+        func_actor_403000_8013203C(&arg0->field_2C->coords[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
         arg0->field_2C->coords[10].flg = 0;
     }
     if (work->field_AEB == 1) {
@@ -4070,7 +4069,7 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Actor403000* arg1)
     *(Actor403000UpdateScratch**)G_SCRATCH_HEAD += 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_403000/actor_403000", D_actor_403000_80132004);
 
 void func_actor_403000_8013D260(void)
 {

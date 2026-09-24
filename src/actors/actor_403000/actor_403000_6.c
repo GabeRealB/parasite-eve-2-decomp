@@ -4,7 +4,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-s32 ActorsShared8013d324(Task* task)
+/// Handler for message 0x7D6: returns 1 while the enemy still has hit points
+/// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.
+s32 func_actor_403000_8013D324(Task* task)
 {
     if (((GpEnemy*)task->spawnArg2)->hp > 0) {
         goto return_one;

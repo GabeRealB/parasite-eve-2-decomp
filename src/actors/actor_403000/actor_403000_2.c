@@ -6,10 +6,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Same placement opcode as `ActorsShared80164954` (Y then X then Z, re-fetch
-/// the coordinate for every field), except the heading is cached at
-/// `Actor403000Work::yaw` (0xC) rather than 0x16, and `ratan2` reads both
-/// matrix components from one saved `GsCOORDINATE2*`.
+/// Handler for message 0x7D4: place the model's root coordinate at
+/// `placement` - translation, then rotation about Y, X and Z - and cache the
+/// resulting heading in `Actor403000Work::yaw`.
 s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorShared80164954Placement* placement)
 {
     GsCOORDINATE2*   coord;

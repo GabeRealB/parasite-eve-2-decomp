@@ -510,6 +510,13 @@ extern SVECTOR D_actor_403000_80158D64[];
 /// with the caller taking the bits it wants out of the high half.
 extern u32 Gp_LcgState;
 
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+/// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
+/// its parent's frame.
+void func_actor_403000_8013203C(GsCOORDINATE2* coord, s16 yaw);
+
 /// Tick the work block's animation playback: state `field_AC0` 1 advances
 /// `field_AC2` until it catches up with the requested `field_AC6`, copying
 /// `field_ACA` into the four display nodes' clip slot as it goes.
