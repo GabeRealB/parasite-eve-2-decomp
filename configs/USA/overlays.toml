@@ -3404,12 +3404,12 @@ id = 413
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer", rodata = "0x4", text = "0x94" },
+  { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_3", rodata = "0x10", text = "0xDBC" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_4", rodata = "0x30", text = "0x1DAC" },
   { lib = true, unit = "room_util02", text = "0x50" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x114" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_2", text = "0x16C" },
   { lib = true, unit = "rooms_shared_8017e690", text = "0xD7C" },
-  { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_3", text = "0xDBC" },
   { lib = true, unit = "room_draw01", text = "0x10E0" },
   { lib = true, unit = "rooms_shared_8017f4a0", text = "0x1924" },
   { lib = true, unit = "room_draw16", text = "0x1A78" },
