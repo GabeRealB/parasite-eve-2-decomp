@@ -90,11 +90,13 @@ typedef struct Actor401300Work {
     /// coordinate (identity rotation, 0x15E up) for the `field_AB0` node.
     /* 0x920 */ GsCOORDINATE2 field_920;
     /* 0x970 */ GpObj         field_970;
-    /* 0x990 */ byte          field_990[0x120];
-    /* 0xAB0 */ GpObj         field_AB0;
-    /* 0xAD0 */ byte          field_AD0[0x120];
-    /* 0xBF0 */ GpObj         field_BF0;
-    /* 0xC10 */ byte          pad_C10[0x18];
+    /// Contact records, walked twelve at a time by the movement helpers.
+    /* 0x990 */ GpRec18 field_990[12];
+    /* 0xAB0 */ GpObj   field_AB0;
+    /// Contact records the `field_AB0` node's context points at.
+    /* 0xAD0 */ GpRec18 field_AD0[12];
+    /* 0xBF0 */ GpObj   field_BF0;
+    /* 0xC10 */ byte    pad_C10[0x18];
     /// Light matrix `func_actor_401300_80134454` binds to the model's
     /// `TmdObject::lightMtx` (the color matrix is `field_C48`).
     /* 0xC28 */ MATRIX field_C28;
@@ -249,6 +251,27 @@ typedef struct Actor401300Delta {
     /* 0x1C */ s32            moved;
 } Actor401300Delta;
 STATIC_ASSERT_SIZEOF(Actor401300Delta, 0x20);
+
+/// Scratch block `func_actor_401300_801323B0` takes from `G_SCRATCH_HEAD`: the
+/// `GpDeltaScratch` filled by `func_800E0C10`, and `moved`, the value it
+/// returns.
+typedef struct Actor401300DeltaFlag {
+    GpDeltaScratch delta;
+    s32            moved;
+} Actor401300DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor401300DeltaFlag, 0x14);
+
+/// Scratch block `func_actor_401300_80132FF4` takes from `G_SCRATCH_HEAD`:
+/// `local` holds a root translation raised by 1000, which is rotated into `out`
+/// for the player and into `from` for this actor; `hit` is the result of
+/// `func_800E0308` on the two.
+typedef struct Actor401300SightScratch {
+    SVECTOR out;
+    SVECTOR from;
+    SVECTOR local;
+    s32     hit;
+} Actor401300SightScratch;
+STATIC_ASSERT_SIZEOF(Actor401300SightScratch, 0x1C);
 
 /// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
 /// event writes into `GpEnemy::hp`. Declared as an array: a scalar lets
