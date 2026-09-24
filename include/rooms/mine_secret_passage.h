@@ -16,7 +16,9 @@ void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// channel.
 void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_mine_secret_passage_8017EB34(GsCOORDINATE2*, s32, s32, s32);
+/// Draws a camera-facing textured square at the projection of `arg0`; `arg1`
+/// and `arg2` pick the texture cell and size, `arg3` the grey level and CLUT.
+void func_mine_secret_passage_8017EB34(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 
 /// Draws a gouraud ring of sixteen wedges around the projection of `coord`,
 /// black at the half-extent `inner` and tinted by `rgb` at `inner + width`,
