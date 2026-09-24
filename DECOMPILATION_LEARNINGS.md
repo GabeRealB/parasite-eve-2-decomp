@@ -140026,3 +140026,17 @@ if (arg2 == 3) {
     Gp_SpawnIfCapIdle(arg2, 0);
 }
 ```
+
+### An unrelated constant store between LCG draws decides which draw's chain wins `$v1`
+
+`func_shelter_b6_nursery_80181314` seeds `field_10.vx`, `.vz` and `field_24`
+from three chained `Gp_LcgState` draws and also clears `field_10.vy`. With
+`vy = 0` written after the second draw, everything matched except the first two
+draws' registers swapped (`$v1`/`$a2`, 99.68%). In `.lreg` the two multiply
+chains (`sll`/`addu`/`addu` tied into one quantity each) had identical refs and
+spans, so the tie went to the earlier quantity. Moving `work->field_10.vy = 0;`
+to between the first and second draws shifted the sched1 order by one insn,
+broke the tie in favour of the second chain, and matched outright. Operand
+order, chained `x = (Gp_LcgState = ...)` forms and temps did nothing here; when
+two draw chains swap registers, try moving the block's constant stores between
+draws before anything else.
