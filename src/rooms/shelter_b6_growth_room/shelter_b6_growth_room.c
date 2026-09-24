@@ -1,11 +1,11 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
-
-#include "gameplay/3CD8.h"
-#include "gameplay/D4.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc       D_80135E78;
@@ -16,6 +16,22 @@ extern u8             D_80136308[];
 
 extern void func_801327A8(void);
 extern void func_80132834(void);
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+/// The room's handler for message 0x13F1: accepts it and does nothing.
+s32 func_shelter_b6_growth_room_8017D5E8(void)
+{
+    return 0;
+}
+
+/// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
+/// the outgoing one, passes both to `func_80179B14`, and returns 1.
+s32 func_shelter_b6_growth_room_8017D5F0(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    return 1;
+}
 
 s32 func_shelter_b6_growth_room_8017D634(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -57,7 +73,25 @@ void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-void func_shelter_b6_growth_room_8017D7CC(void)
+void func_shelter_b6_growth_room_8017D7CC(Task* task)
 {
 }
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", D_shelter_b6_growth_room_8017D5C4);
+
+/// State table of the room task: set-up, idle, kill.
+const TaskFuncTable3 D_shelter_b6_growth_room_8017D5C4 = {
+    {
+        func_shelter_b6_growth_room_8017D71C,
+        func_shelter_b6_growth_room_8017D7CC,
+        taskKill,
+    },
+};
+
+/// The room task: copies its state table onto the stack and calls the entry
+/// for the current state.
+void func_shelter_b6_growth_room_8017D7D4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b6_growth_room_8017D5C4;
+    sp.funcs[task->state](task);
+}

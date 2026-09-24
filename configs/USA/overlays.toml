@@ -2327,13 +2327,8 @@ id = 442
 text = ["0x28", "0x1BAC"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room", rodata = "0x4", text = "0x74" },
+  { unit = "shelter_b6_growth_room/shelter_b6_growth_room", rodata = "0x4", text = "0x28" },
   { unit = "shelter_b6_growth_room/shelter_b6_growth_room_2", rodata = "0x10", text = "0x26C" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_4", text = "0x28" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_5", text = "0x30" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_6", text = "0x214" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_7", text = "0xAE8" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_3", text = "0xE88" },
   { kind = "data", at = "0x1BAC" },
 ]
 
