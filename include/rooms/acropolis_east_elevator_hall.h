@@ -20,6 +20,10 @@ typedef struct _AeehMoteScratch {
 } AeehMoteScratch;
 STATIC_ASSERT_SIZEOF(AeehMoteScratch, 0xC);
 
+/// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
+/// one reflection of a held object.
+extern TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
+
 extern const VECTOR D_acropolis_east_elevator_hall_8017D5C4;
 
 void func_acropolis_east_elevator_hall_8017D5F0(Task* task);
