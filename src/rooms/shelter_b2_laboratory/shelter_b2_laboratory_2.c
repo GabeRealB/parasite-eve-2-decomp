@@ -77,7 +77,7 @@ s32 func_shelter_b2_laboratory_8017FD18(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", D_shelter_b2_laboratory_8017D6BC);
 
 void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
 {

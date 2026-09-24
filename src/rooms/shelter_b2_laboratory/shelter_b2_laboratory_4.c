@@ -8,6 +8,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/shelter_b2_laboratory.h"
 
 extern s16 D_80114D08;
 extern s8  D_801153F4;
@@ -57,11 +58,7 @@ extern SVECTOR D_shelter_b2_laboratory_80182C00[];
 /// Set to 0 when the overlay task starts; non-zero selects the brighter pass.
 extern u16 D_shelter_b2_laboratory_80186540;
 
-void Room_Draw01(SVECTOR* line, s32 arg1, s32 arg2);
-
 void func_shelter_b2_laboratory_801812F8(SVECTOR* pos, s32 arg1, s32 arg2);
-
-void Room_Draw05(SVECTOR* pos, s32 arg1, s32 arg2);
 
 void func_shelter_b2_laboratory_801820F4(s16 arg0);
 
@@ -86,40 +83,40 @@ void func_shelter_b2_laboratory_80180548(Task* task)
 
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
             break;
         case 3:
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
             break;
         case 4:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[0], 0x200, 0x444);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[4], 0x200, 0x241);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[0], 0x200, 0x444);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[4], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
             break;
         case 5:
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
             } else {
@@ -127,37 +124,37 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 6:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[4], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[6], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[8], 0x180, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[8], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
             break;
         case 7:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[0], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
             break;
         case 8:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
             break;
         case 9:
-            Room_Draw01(D_shelter_b2_laboratory_80182BF0, 0x180, 0x124);
+            func_shelter_b2_laboratory_80180AB4(D_shelter_b2_laboratory_80182BF0, 0x180, 0x124);
             break;
         case 10:
-            Room_Draw01(&D_shelter_b2_laboratory_80182AB0[0], 0x180, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AB0[2], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AB0[4], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AB0[26], 0x200, 0x241);
-            Room_Draw01(&D_shelter_b2_laboratory_80182AB0[40], 0x180, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[40], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AB0[42], 0x180, 0x80);
             } else {
@@ -165,12 +162,12 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             }
             break;
         case 12:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[0], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[2], 0x180, 0x333);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[18], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[20], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[22], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B00[30], 0x180, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[18], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[20], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[22], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[30], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182B00[32], 0x180, 0x80);
             } else {
@@ -179,17 +176,17 @@ void func_shelter_b2_laboratory_80180548(Task* task)
             break;
         case 13:
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                Room_Draw05(D_shelter_b2_laboratory_80182C00, 0x180, 0x80);
+                func_shelter_b2_laboratory_8018176C(D_shelter_b2_laboratory_80182C00, 0x180, 0x80);
             } else {
-                Room_Draw05(D_shelter_b2_laboratory_80182C00, 0x60, 0x80);
+                func_shelter_b2_laboratory_8018176C(D_shelter_b2_laboratory_80182C00, 0x60, 0x80);
             }
             break;
         case 15:
-            Room_Draw01(&D_shelter_b2_laboratory_80182B70[0], 0x200, 0x241);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B70[4], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B70[6], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B70[8], 0x200, 0x124);
-            Room_Draw01(&D_shelter_b2_laboratory_80182B70[16], 0x180, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[0], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[4], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[6], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[8], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[16], 0x180, 0x124);
             if (D_shelter_b2_laboratory_80186540 != 0) {
                 func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182B70[18], 0x180, 0x80);
             } else {

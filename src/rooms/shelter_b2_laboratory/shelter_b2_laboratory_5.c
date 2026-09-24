@@ -29,8 +29,7 @@ typedef struct {
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. The drawing matches `Room_Draw18`;
-/// only the scratch block differs.
+/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`.
 void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*           head;

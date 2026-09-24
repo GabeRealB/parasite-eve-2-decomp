@@ -7,7 +7,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b2_laboratory.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -15,11 +15,11 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 /// the laboratory console is used.
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", D_shelter_b2_laboratory_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", D_shelter_b2_laboratory_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", D_shelter_b2_laboratory_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", D_shelter_b2_laboratory_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", D_shelter_b2_laboratory_8017D638);
 
 s32 func_shelter_b2_laboratory_801800FC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -42,10 +42,10 @@ s32 func_shelter_b2_laboratory_801800FC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
     req.field_C = 0x541F0003;
     req.flagId  = 0xB1;
     req.itemId  = 0;
-    return RoomsShared8017d638(&req, out);
+    return func_shelter_b2_laboratory_8017FA44(&req, out);
 }
 
-/// Handler for slot-7 msg `0x13EF` in `RoomsShared8017db84Msgs`: the
+/// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
 /// directed action on the laboratory console (`field_2` 1). Runs the scripted
 /// scene once, then replays cap script `6` on later visits.
 s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)

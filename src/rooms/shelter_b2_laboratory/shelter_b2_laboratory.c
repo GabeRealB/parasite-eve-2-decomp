@@ -57,11 +57,7 @@ extern SVECTOR D_shelter_b2_laboratory_80182C00[];
 /// Set to 0 when the overlay task starts; non-zero selects the brighter pass.
 extern u16 D_shelter_b2_laboratory_80186540;
 
-void Room_Draw01(SVECTOR* line, s32 arg1, s32 arg2);
-
 void func_shelter_b2_laboratory_801812F8(SVECTOR* pos, s32 arg1, s32 arg2);
-
-void Room_Draw05(SVECTOR* pos, s32 arg1, s32 arg2);
 
 void func_shelter_b2_laboratory_8017F4D8(Task* task)
 {
