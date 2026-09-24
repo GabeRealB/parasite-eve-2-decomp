@@ -139929,3 +139929,22 @@ constant before the array base. The target hoists the array base first.
 Writing the step as an embedded assignment in the store,
 `arr[i] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;`, makes the
 array address the first invariant the loop body mentions and matched outright.
+
+### Prologue `move sN, aK` order wrong with registers right: narrow the parameter's prototype type (func_shelter_b1_pod_service_gantry_8017F160, 2026-09-24)
+
+**Symptom.** Everything matched except the prologue: the target emits
+`move s5,a2` *before* `move s4,a1` (after the scratch-pointer `lui/ori`), the
+build emitted them in parameter order. Local copies (`tex = arg1;`) coalesced
+back into the entry move and changed nothing.
+
+**Cause.** sched2 schedules backward and breaks equal-priority, same-class ties
+by LUID (`rank_for_schedule`, `sched.c:2458`), so the entry moves' positions in
+the insn chain decide their order. A `u16`/`s16` prototype parameter expands at
+entry as a wide copy (`r82 = a1`) *plus* a later `(subreg:HI r82)` copy, emitted
+after every wide copy; the surviving hard-register move then carries the later
+LUID and flips relative to the other arguments.
+
+**Fix.** The function took `(GsCOORDINATE2*, s32 arg1, s32 arg2)` with
+`(u16)arg1` inside; declaring `u16 arg1` matched outright (`s16 arg1` did too),
+and the body's `(u16)` cast became redundant. Try the narrow type the body
+casts to before reaching for locals or pins.
