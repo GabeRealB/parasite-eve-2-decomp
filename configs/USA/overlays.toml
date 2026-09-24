@@ -1465,9 +1465,12 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_water_hole]
+label = "code starts at 0x28, right after the id word, the room task's state table and the jump table: the first function is a frameless two-instruction `return 0` message handler named by the room's message table, so the span detector - which looks for the first stack-frame prologue - starts at 0x30 and left it as rodata words"
 id = 336
+text = ["0x28", "0x269C"]
 objects = [
   { kind = "packageId" },
+  { unit = "dryfield_water_hole/dryfield_water_hole_6", text = "0x28" },
   { unit = "dryfield_water_hole/dryfield_water_hole", rodata = "0x4", text = "0x17C" },
   { unit = "dryfield_water_hole/dryfield_water_hole_5", rodata = "0x10", text = "0x1B58" },
   { lib = true, unit = "rooms_shared_8017dadc", text = "0x30" },
