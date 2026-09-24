@@ -1957,11 +1957,13 @@ objects = [
 ]
 
 [rooms.overlays.shelter_1f_heliport_s4]
-label = "the same 1F heliport as shelter_1f_heliport (stage 5); this is the stage-4 file set's much smaller script for it"
+label = "the same 1F heliport as shelter_1f_heliport (stage 5); this is the stage-4 file set's much smaller script for it; code starts at 0x10: the 0x13F1 handler the room's message table at 0x110 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x18 and left it as rodata words"
 id = 408
+text = ["0x10", "0x110"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4", rodata = "0x4", text = "0x5C" },
+  { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_3", text = "0x10" },
   { lib = true, unit = "room_util02", text = "0x18" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x6C" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_2", text = "0xB0" },
