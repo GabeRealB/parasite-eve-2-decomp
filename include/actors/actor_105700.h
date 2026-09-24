@@ -10,8 +10,6 @@
 
 #include <psyq/libgs.h>
 
-extern u8 D_801153F2;
-
 /// 0x6E4-byte work block hung off `Actor105700.field_1C`, allocated by
 /// `Actor05700_Fn03CC4` in both actor_105700 and actor_205700. It opens with the animation context and its
 /// nineteen 0x28-byte slots, exactly like the `Actor02000Work` block of
@@ -142,16 +140,8 @@ typedef struct Actor105700Obj {
     /* 0x0C */ u16            field_C;
 } Actor105700Obj;
 
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05700_Fn000B0`.
-typedef struct Actor105700HitScratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ VECTOR         normal;
-    /* 0x20 */ VECTOR         push;
-    /* 0x30 */ SVECTOR        effOfs;
-    /* 0x38 */ SVECTOR        target;
-} Actor105700HitScratch;
-STATIC_ASSERT_SIZEOF(Actor105700HitScratch, 0x40);
-
+/// The actor's own task, viewed through the fields its handlers read: the
+/// work block, the spawn context, the model object and the handler state.
 typedef struct Actor105700 {
     /* 0x00 */ byte             pad_0[0x1C];
     /* 0x1C */ Actor105700Work* field_1C;
@@ -162,99 +152,5 @@ typedef struct Actor105700 {
     /// ends: 2 hands over to the next handler.
     /* 0x30 */ s32 field_30;
 } Actor105700;
-
-/// 0x14-byte placement descriptor in the overlay's `.data`, handed to
-/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
-/// `field_E` is the variant flag `Actor05700_Fn031BC` latches into its
-/// work block: it is 1 (the table's own value is 2) when the actor is placed
-/// normally, and anything else puts the body in the other pose.
-typedef struct Actor105700PlaceSrc {
-    /* 0x00 */ GpU16Pair pair;
-    /* 0x04 */ u16       field_4;
-    /* 0x06 */ u16       field_6;
-    /* 0x08 */ u16       field_8;
-    /* 0x0A */ u16       field_A;
-    /* 0x0C */ u16       field_C;
-    /* 0x0E */ u16       field_E;
-    /* 0x10 */ u16       field_10;
-    /* 0x12 */ u16       field_12;
-} Actor105700PlaceSrc;
-STATIC_ASSERT_SIZEOF(Actor105700PlaceSrc, 0x14);
-
-/// `G_SCRATCH_HEAD` viewed as a struct. The member access, not a plain `u32`
-/// dereference, is what `Actor05700_Fn016D0` needs to schedule its
-/// argument setup around `RotMatrix`.
-typedef struct Actor105700ScratchStack {
-    u32 sp;
-} Actor105700ScratchStack;
-
-/// 0x38-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `Actor05700_Fn031BC`. `rot` first holds the local offset the root
-/// coordinate is translated by (through `gte_rtv0` into `pos`), then the
-/// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
-/// transforms that overwrite the root coordinate's matrix.
-typedef struct Actor105700PlaceScratch {
-    /* 0x00 */ SVECTOR rot;
-    /* 0x08 */ VECTOR  pos;
-    /* 0x18 */ MATRIX  mtx;
-} Actor105700PlaceScratch;
-STATIC_ASSERT_SIZEOF(Actor105700PlaceScratch, 0x38);
-
-/// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `Actor05700_Fn02554`: the converted matrix, the `gte_rtv0` output
-/// and the two vectors fed through it (`rot` and `vec` are also the pair
-/// handed to `Actor05700_Fn0295C`).
-typedef struct Actor105700AimScratch {
-    /* 0x00 */ MATRIX  mtx;
-    /* 0x20 */ VECTOR  pos;
-    /* 0x30 */ SVECTOR rot;
-    /* 0x38 */ SVECTOR vec;
-} Actor105700AimScratch;
-STATIC_ASSERT_SIZEOF(Actor105700AimScratch, 0x40);
-
-/// 0x48-byte scratch carved off `G_SCRATCH_HEAD` by
-/// `Actor05700_Fn0295C`: the beam is walked in eight steps from `vec`
-/// to `rot`, each step projected into `cur` (packed screen xy) and `curZ`
-/// (OTZ). `xs`/`ys` hold the two projected ends followed by the four
-/// offset corners the ribbon polygons are cut from.
-typedef struct Actor105700BeamScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR pt;
-    /* 0x18 */ SVECTOR step;
-    /* 0x20 */ s32     prev;
-    /* 0x24 */ s32     cur;
-    /* 0x28 */ s32     prevZ;
-    /* 0x2C */ s32     curZ;
-    /* 0x30 */ s16     xs[6];
-    /* 0x3C */ s16     ys[6];
-} Actor105700BeamScratch;
-STATIC_ASSERT_SIZEOF(Actor105700BeamScratch, 0x48);
-
-/// 0xF0-byte body block `Actor05700_Fn031BC` parks at `Task::work`.
-/// The two leading matrices are the light/colour pair published on the model
-/// root's `TmdObject`; the three `GpObj` bodies collide against `rec60`
-/// (shared by the first two) and, through the `GpActorD4Rec` between them,
-/// `recD0`. `field_EE` mirrors the placement table's variant flag.
-typedef struct Actor105700FxWork {
-    /* 0x00 */ MATRIX       colorMtx;
-    /* 0x20 */ MATRIX       lightMtx;
-    /* 0x40 */ GpObj        obj40;
-    /* 0x60 */ GpRec18      rec60[1];
-    /* 0x78 */ GpObj        obj78;
-    /* 0x98 */ GpObj        obj98;
-    /* 0xB8 */ GpActorD4Rec d4rec;
-    /* 0xD0 */ GpRec18      recD0[1];
-    /// Frame counter: paces the effect puffs while ticking (wraps at 4), then
-    /// counts the teardown's wait before the child is destroyed.
-    /* 0xE8 */ s16 field_E8;
-    /* 0xEA */ s16 field_EA; ///< frame count; the burst ends the cycle at 0x5A
-                             /// Teardown step of `Actor05700_Fn051D8`: 0 unlinks the bodies, 1 waits.
-    /* 0xEC */ s16 field_EC;
-    /* 0xEE */ s16 field_EE;
-} Actor105700FxWork;
-STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
-
-void Actor05700_Fn018DC(Actor105700* arg0);
-void Actor05700_Fn0295C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2);
 
 #endif
