@@ -24,9 +24,10 @@ typedef struct Actor403900Coord {
     /* 0x140 */ GsCOORDINATE2 field_140;
 } Actor403900Coord;
 
-/// One 0x10-byte entry of the box table `Actor403900Work::field_6B4`, the same
-/// entry the shared scan `ActorsShared80132d78` walks as its own
-/// `ActorShared80132d78Region`.
+/// One 0x10-byte entry of the box table `Actor403900Work::field_6B4`: the
+/// entry's kind at `field_0` (0 a circle of radius `field_2` round
+/// `field_4`, `field_6`; 1 a box, x from `field_8` to `field_C` and z from
+/// `field_E` to `field_A`).
 typedef struct Actor403900Region {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
@@ -178,15 +179,22 @@ typedef struct Actor403900Work {
     /* 0x664 */ s32  field_664;
     /* 0x668 */ s32  field_668;
     /* 0x66C */ s32  field_66C;
-    /* 0x670 */ byte pad_670[0x34];
+    /* 0x670 */ byte pad_670[4];
+    /// Attach matrix `func_actor_403900_80137CA8` copies back into the root
+    /// coordinate before scaling it by `field_694`.
+    /* 0x674 */ MATRIX field_674;
+    /// Per-axis scale `func_actor_403900_80137CA8` applies to the root's
+    /// rotation.
+    /* 0x694 */ VECTOR field_694;
     /// World position the grab places the player at, written by
     /// `func_actor_403900_80132E34` and read back by the 0x3E9 message.
     /* 0x6A4 */ s32  field_6A4;
     /* 0x6A8 */ s32  field_6A8;
     /* 0x6AC */ s32  field_6AC;
     /* 0x6B0 */ byte pad_6B0[4];
-    /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
-    /// entries of 0x10 bytes each.
+    /// Box table the scans `func_actor_403900_80132D78` and
+    /// `func_actor_403900_80132688` walk, `field_6FA` entries of 0x10 bytes
+    /// each.
     /* 0x6B4 */ Actor403900Region* field_6B4;
     /* 0x6B8 */ s32                field_6B8;
     /// Sound event id the cue body queues: the overlay's cue word
@@ -227,10 +235,11 @@ typedef struct Actor403900Work {
     /// Fourth timer, cleared alongside the trio above when the countdown runs
     /// out.
     /* 0x6E0 */ s16 field_6E0;
-    /// Ground-shadow shade the shared ground-quad body hands to
-    /// `Gp_DrawEffGroundQuad`, which draws nothing for a negative value: the
-    /// spawn turns the calloc'd zero into -1 for the full variant, so an actor
-    /// that never raises the shade casts no shadow.
+    /// Ground-shadow shade the ground-quad body `func_actor_403900_80138070`
+    /// hands to `Gp_DrawEffGroundQuad`, which draws nothing for a negative
+    /// value: the spawn stores -1 in its first variant and 0x80 in the others,
+    /// and the body turns a zero into -1, so an actor that never raises the
+    /// shade casts no shadow.
     /* 0x6E2 */ s16 field_6E2;
     /// Latch that sends the wait state straight to state 2 with no countdown;
     /// cleared again on the frame it is taken.
@@ -346,6 +355,20 @@ typedef struct Actor403900 {
     /* 0x30 */ s32 field_30;
 } Actor403900;
 
+/// 0x18-byte block `func_actor_403900_8013820C` takes from `G_SCRATCH_HEAD`
+/// while projecting a coordinate's origin to find its ordering-table depth.
+/// `vec` is the zeroed origin the GTE reads; the rest are the projection's
+/// results in the order `rtps` writes them: screen xy, depth cue, `FLAG`, and
+/// the average screen z `otz`.
+typedef struct Actor403900ProjectScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     dp;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor403900ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor403900ProjectScratch, 0x18);
+
 /// The game's shared 32-bit LCG state: every draw is
 /// `Gp_LcgState = Gp_LcgState * 5 + 0x71357911`, read back from the global,
 /// with the caller taking the bits it wants out of the high half.
@@ -402,5 +425,19 @@ void func_actor_403900_80135D5C(Actor403900* arg0);
 
 /// Reacts to the damage just taken; see its definition.
 void func_actor_403900_801324E8(Actor403900* arg0, s32 arg1);
+
+/// Reports whether the player stands in one of the kind-1 boxes; see its
+/// definition.
+s32 func_actor_403900_80132D78(Actor403900* arg0);
+
+/// Draws the red trail between the two projected points; see its definition.
+void func_actor_403900_80136184(Actor403900* arg0);
+
+/// Rebuilds the root part's scaled rotation; see its definition.
+void func_actor_403900_80137CA8(Actor403900* arg0);
+
+/// Projects a coordinate and queues the frame-buffer pass at its depth; see
+/// its definition.
+void func_actor_403900_8013820C(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif /* ACTOR_403900_H */

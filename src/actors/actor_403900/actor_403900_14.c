@@ -1,13 +1,25 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
+
+#include "actors/actor_403900.h"
 #include "actors/actors_shared_80131fc8.h"
 
-void ActorsShared80131fc8(s32 otz)
+/// Queues at ordering-table depth `otz` a pass over the frame buffer: two
+/// 15-bit textured sprites sampling the current draw buffer, a 2/2/2 tile, the
+/// mask-bit and draw-offset changes they need, and two draw areas - one clipped
+/// to the view's sprite rectangle when that lies in front of `otz` (the whole
+/// current buffer otherwise), one on the 0x1C0/0x100 page. The primitives are
+/// prepended to one list, so they run in reverse order of queueing.
+void func_actor_403900_80136D9C(s32 otz)
 {
     u8*                head;
     u8*                allocated;

@@ -1,17 +1,27 @@
 #include "common.h"
-#include "actors/actors_shared_80137fb0.h"
-#include "actors/actors_shared_8013806c.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "gameplay/3A34.h"
+
+#include "actors/actor_403900.h"
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-void ActorsShared80137fb0(ActorShared80137fb0* arg0)
+/// Relights the actor from its root part's world position and consumes a
+/// pending `field_6EA` tint request: 1 hands the display object the translate
+/// (0, 0, 0x400), 2 the full (0xFFF, 0xFFF, 0xFFF), and either clears the
+/// request.
+void func_actor_403900_80137FB4(Actor403900* arg0)
 {
-    ActorShared80137fb0Work* work;
-    GsCOORDINATE2*           obj;
-    VECTOR                   vec;
-    s16                      r;
-    s16                      g;
-    s16                      b;
+    Actor403900Work* work;
+    GsCOORDINATE2*   obj;
+    VECTOR           vec;
+    s16              r;
+    s16              g;
+    s16              b;
 
     obj    = (GsCOORDINATE2*)arg0->field_2C->field_8;
     work   = arg0->field_1C;
@@ -40,12 +50,15 @@ void ActorsShared80137fb0(ActorShared80137fb0* arg0)
     }
 }
 
-void ActorsShared8013806c(ActorShared8013806c* arg0)
+/// Draws the ground shadow quad, 0x300 across, under the fourth part's
+/// horizontal position at the root's height, shaded by `field_6E2` - which a
+/// zero turns into -1 first, so a shadow nothing has raised is not drawn.
+void func_actor_403900_80138070(Actor403900* arg0)
 {
-    ActorShared8013806cWork* work;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           sub;
-    VECTOR3                  vec;
+    Actor403900Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   sub;
+    VECTOR3          vec;
 
     work  = arg0->field_1C;
     coord = &arg0->field_2C->field_8->field_0;

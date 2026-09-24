@@ -1,12 +1,17 @@
 #include "common.h"
 
-#include "actors/actors_shared_8013592c.h"
+#include "actors/actor_403900.h"
 
-void ActorsShared8013592c(ActorShared8013592c* arg0)
+/// Sequence 8, the low-HP turn: state 0 picks animation 0xE (and state 1) when
+/// `field_6F0` is 1, otherwise 0x12 and state 2; states 1 and 2 wait for the
+/// frame counter to reach 0x10 or 0x16, then switch to animation 0x10 or 0x14,
+/// enter sequence 7 at state 3 and arm the `field_6D4` countdown from the
+/// `Gp_LcgState` LCG (0..0x3F).
+void func_actor_403900_8013592C(Actor403900* arg0)
 {
-    ActorShared8013592cWork* work;
-    s16                      state;
-    s32                      next;
+    Actor403900Work* work;
+    s16              state;
+    s32              next;
 
     work  = arg0->field_1C;
     state = work->field_6CE;

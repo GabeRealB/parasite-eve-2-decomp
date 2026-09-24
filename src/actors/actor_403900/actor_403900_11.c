@@ -1,22 +1,27 @@
 #include "common.h"
-#include "main/wipsys.h"
-#include "actors/actors_shared_80132d78.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
-#include "actors/actor_402200.h"
-#include "actors/actors_shared_80137ca4.h"
-#include "psyq/inline_c.h"
+
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
 #include "gte.h"
 
-s32 ActorsShared80132d78(ActorShared80132d78* arg0)
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/wipsys.h"
+
+#include "gameplay/3A34.h"
+
+#include "actors/actor_403900.h"
+
+/// Reports whether the player stands inside one of the actor's kind-1 boxes:
+/// walks the `field_6FA` entries at `field_6B4` and, on the first kind-1 entry
+/// whose box holds the player's world position (x between `field_8` and
+/// `field_C`, z between `field_E` and `field_A`), parks its index in
+/// `field_708` and answers 1. Otherwise it answers 0.
+s32 func_actor_403900_80132D78(Actor403900* arg0)
 {
-    ActorShared80132d78Work* work;
-    s16                      count;
-    s32                      i;
+    Actor403900Work* work;
+    s16              count;
+    s32              i;
 
     work  = arg0->field_1C;
     count = work->field_6FA;
@@ -35,42 +40,28 @@ s32 ActorsShared80132d78(ActorShared80132d78* arg0)
     return 0;
 }
 
-/// Cue word `func_actor_402200_8013539C` and `func_actor_402200_801354B0`
-/// queue, a separate `D_` symbol in the overlay's data 0x48 past the cue-id
-/// table `D_actor_402200_80138420`.
-
-/// Cue word the fade-out in `func_actor_402200_80134968` queues.
-
-/// Cue-id table, indexed from `Actor402200Work::field_712`.
-
-/// Cue words `func_actor_402200_80134194` queues next to
-/// `D_actor_402200_80138468`.
-
-/// Remaining-enemy count; a grab only starts while it is positive.
-
-/// Difficulty index into `D_actor_402200_80153C0C`.
-
-/// Per-difficulty HP above which the player always breaks the grab.
-
-/// Animation block the grab's 0x3FF messages hand the player.
-
-/// `func_800FDB18` argument record for the grab's finishing spark.
-
-void ActorsShared80132e34(Actor402200* arg0)
+/// Parks the actor's target position off the player (`gameGetPtrSlot(3)`).
+/// In state 3 it takes `field_6E6` from the player's heading and places the
+/// target 0x5AA behind the player, raising bit 0x4000 of `field_5BA` and
+/// `field_5DA`; in state 4 it rolls an angle from `Gp_LcgState` (anywhere, or
+/// within a quarter turn either side while `field_6E8` is clear), derives
+/// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
+/// target 0x4B out along the result, raising bit 0x4000 of `field_5BA`.
+void func_actor_403900_80132E34(Actor403900* arg0)
 {
     u8*                       head;
-    Actor402200OffsetScratch* sc;
-    Actor402200Work*          work;
-    Actor402200Coord*         coord;
+    Actor403900OffsetScratch* sc;
+    Actor403900Work*          work;
+    Actor403900Coord*         coord;
     u32                       random;
     s32                       angle;
 
     head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor402200OffsetScratch);
-    sc                    = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
+    *(u8**)G_SCRATCH_HEAD = head - sizeof(Actor403900OffsetScratch);
+    sc                    = (Actor403900OffsetScratch*)(head - sizeof(Actor403900OffsetScratch));
     work                  = arg0->field_1C;
     if (work->field_6CE == 3) {
-        coord           = ((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8;
+        coord           = ((Actor403900*)gameGetPtrSlot(3))->field_2C->field_8;
         work->field_6E6 = ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF;
         sc->in.vz       = -0x5AA;
         sc->in.vx       = 0;
@@ -103,7 +94,7 @@ void ActorsShared80132e34(Actor402200* arg0)
         work->field_5DC  = (u32)(rsin(work->field_6E6) * 0x7D) >> 8;
         work->field_5DE  = -0x3E8;
         work->field_5E0  = (u32)(rcos(work->field_6E6) * 0x7D) >> 8;
-        coord            = ((Actor402200*)gameGetPtrSlot(3))->field_2C->field_8;
+        coord            = ((Actor403900*)gameGetPtrSlot(3))->field_2C->field_8;
         work->field_6E6  = (work->field_6E6 + (ratan2(coord->field_0.coord.m[0][2], coord->field_0.coord.m[2][2]) & 0xFFF)) & 0xFFF;
         sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
         sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
@@ -112,5 +103,5 @@ void ActorsShared80132e34(Actor402200* arg0)
         work->field_6AC  = Player_Status.coordMtx->t[2] + sc->in.vz;
         work->field_5BA |= 0x4000;
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(Actor402200OffsetScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900OffsetScratch);
 }

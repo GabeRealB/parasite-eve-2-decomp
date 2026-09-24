@@ -11,7 +11,6 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_403900.h"
-#include "actors/actors_shared_80136184.h"
 
 #include "psyq/inline_c.h"
 #include "gte.h"
@@ -28,7 +27,7 @@ extern Actor403900Region* D_actor_403900_80153F04[];
 extern s16*               D_actor_403900_8015409C[];
 extern u8                 D_actor_403900_801540EC[];
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_5", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_5", D_actor_403900_80131F18);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80135A24);
 
@@ -116,7 +115,7 @@ void func_actor_403900_80135D5C(Actor403900* arg0)
             work->field_700[i] = sc->sxy >> 16;
             work->field_704[i] = sc->otz;
         }
-        ActorsShared80136184((ActorShared80136184*)arg0);
+        func_actor_403900_80136184(arg0);
     }
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900AimScratch);
 }

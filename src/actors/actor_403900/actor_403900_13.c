@@ -1,13 +1,26 @@
 #include "common.h"
 
-#include "actors/actors_shared_80136184.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "main/display.h"
 #include "main/mem.h"
 
-void ActorsShared80136184(ActorShared80136184* arg0)
+#include "actors/actor_403900.h"
+#include "actors/actors_shared_80136184.h"
+
+/// The two four-vertex index rows the trail's shaded quads take their corners
+/// from, into the scratch block's six-entry x / y runs.
+extern s16 D_actor_403900_801540D0[2][4];
+
+/// Draws the red trail between the two points `func_actor_403900_80135D5C`
+/// projects into `field_6FC`..`field_704`: eight segments, each skipped while
+/// its interpolated depth is below 0x1E, and each drawn as two shaded quads
+/// offset along the screen normal, a centre line and a tpage.
+void func_actor_403900_80136184(Actor403900* arg0)
 {
     ActorShared80136184Scratch* sc;
-    ActorShared80136184Work*    work;
+    Actor403900Work*            work;
     POLY_G4*                    poly;
     LINE_F2*                    line;
     DR_TPAGE*                   tp;
@@ -60,14 +73,14 @@ void ActorsShared80136184(ActorShared80136184* arg0)
             gGpuPrimCursor = (u8*)(poly + 1);
             setlen(poly, 8);
             poly->code = 0x3A;
-            poly->x0   = sc->x[ActorsShared80136184Indices[j][0]];
-            poly->y0   = sc->y[ActorsShared80136184Indices[j][0]];
-            poly->x1   = sc->x[ActorsShared80136184Indices[j][1]];
-            poly->y1   = sc->y[ActorsShared80136184Indices[j][1]];
-            poly->x2   = sc->x[ActorsShared80136184Indices[j][2]];
-            poly->y2   = sc->y[ActorsShared80136184Indices[j][2]];
-            poly->x3   = sc->x[ActorsShared80136184Indices[j][3]];
-            poly->y3   = sc->y[ActorsShared80136184Indices[j][3]];
+            poly->x0   = sc->x[D_actor_403900_801540D0[j][0]];
+            poly->y0   = sc->y[D_actor_403900_801540D0[j][0]];
+            poly->x1   = sc->x[D_actor_403900_801540D0[j][1]];
+            poly->y1   = sc->y[D_actor_403900_801540D0[j][1]];
+            poly->x2   = sc->x[D_actor_403900_801540D0[j][2]];
+            poly->y2   = sc->y[D_actor_403900_801540D0[j][2]];
+            poly->x3   = sc->x[D_actor_403900_801540D0[j][3]];
+            poly->y3   = sc->y[D_actor_403900_801540D0[j][3]];
             setRGB0(poly, 0xFF, 0, 0);
             setRGB1(poly, 0xFF, 0, 0);
             setRGB2(poly, 0, 0, 0);

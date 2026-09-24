@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_403900.h"
-#include "actors/actors_shared_80132d78.h"
 
 /// Per-roll wait lengths the wait state scales by `16 - field_70C`, indexed
 /// by a 4-bit `Gp_LcgState` draw.
@@ -12,7 +11,7 @@ extern u16 D_actor_403900_80153C5C[];
 
 /// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
 /// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
-/// `field_710` (or 5 when `ActorsShared80132d78` reports a box hit), and 3-5
+/// `field_710` (or 5 when `func_actor_403900_80132D78` reports a box hit), and 3-5
 /// settle the result, walking `field_70C` up to 8.
 void func_actor_403900_801329A4(Actor403900* arg0)
 {
@@ -47,7 +46,7 @@ void func_actor_403900_801329A4(Actor403900* arg0)
             }
             break;
         case 2:
-            if (work->field_70E != 3 && ActorsShared80132d78((ActorShared80132d78*)arg0) != 0) {
+            if (work->field_70E != 3 && func_actor_403900_80132D78(arg0) != 0) {
                 work->field_6CE = 5;
                 work->field_710 = 0;
                 break;
