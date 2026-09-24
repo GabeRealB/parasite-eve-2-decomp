@@ -21,6 +21,9 @@ void func_acropolis_bridge_8017DD9C(Task* task);
 void func_acropolis_bridge_8017DDEC(Task* task);
 void func_acropolis_bridge_8017DE94(Task* task);
 
+void func_acropolis_bridge_8017DA64(Task* task);
+void func_acropolis_bridge_8017DB08(Task* task);
+
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
 /// response 2 in the outgoing copy.
@@ -80,7 +83,20 @@ s32 func_acropolis_bridge_8017D870(void)
 }
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D5C4);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D878);
+/// State handlers of the bridge model task.
+const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
+    { func_acropolis_bridge_8017DA64, func_acropolis_bridge_8017DB08, taskKill }
+};
+
+/// Three-state dispatcher of the bridge model task: setup, per-frame update,
+/// then `taskKill`. The table is copied onto the stack before the call.
+void func_acropolis_bridge_8017D878(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_bridge_8017D5D0;
+    sp.funcs[task->state](task);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D5DC);
 

@@ -6,4 +6,14 @@ extern s8 D_8007216C;
 
 extern s32 D_acropolis_bridge_801917A0;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge_3", func_acropolis_bridge_8017DA0C);
+extern TaskFuncTable3 D_acropolis_bridge_8017D5C4;
+
+/// Three-state dispatcher of the room's own task: setup, an empty idle state,
+/// then `taskKill`. The table is copied onto the stack before the call.
+void func_acropolis_bridge_8017DA0C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_bridge_8017D5C4;
+    sp.funcs[task->state](task);
+}
