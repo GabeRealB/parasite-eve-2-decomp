@@ -3,8 +3,9 @@
 
 #include "common.h"
 
-#include <psyq/libgs.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/session.h"
 #include "main/task.h"
@@ -148,6 +149,11 @@ typedef union DdhRotMatrix {
     DdhMatWords words;
 } DdhRotMatrix;
 
+/// The room's cutscene task, spawned from entry 0 of
+/// `D_dryfield_dilapidated_house_80183EB4` when `Gp_LookupSlot4(1)` is non-zero
+/// as the room starts, and NULL otherwise.
+extern Task* D_dryfield_dilapidated_house_80189B78;
+
 // Cross-unit prototypes. Each function lives in the unit its address falls in;
 // these are the ones a *different* unit calls.
 void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
@@ -156,6 +162,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task);
 void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
 void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
 void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2);
+void func_dryfield_dilapidated_house_80180FB8(Task* task);
 s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 void func_dryfield_dilapidated_house_80181028(Task* task);
 void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);

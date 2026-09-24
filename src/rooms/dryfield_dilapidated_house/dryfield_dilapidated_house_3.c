@@ -20,7 +20,6 @@
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern TaskDesc   D_dryfield_dilapidated_house_80183EB4;
-extern Task*      RoomsShared8017e8a8Task;
 extern Task*      D_dryfield_dilapidated_house_80189B7C;
 extern s16        D_dryfield_dilapidated_house_80189C98;
 extern s32        D_dryfield_dilapidated_house_80186804[16];
@@ -33,7 +32,6 @@ extern SVECTOR    D_dryfield_dilapidated_house_80186794[2];
 extern SVECTOR    D_dryfield_dilapidated_house_801867A4[6];
 extern SVECTOR    D_dryfield_dilapidated_house_801867D4[6];
 extern TaskDesc   D_dryfield_dilapidated_house_80186854;
-extern void       Room_Script16(Task* task);
 
 void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
 
@@ -42,7 +40,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(1) != 0) {
-        RoomsShared8017e8a8Task =
+        D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
     D_dryfield_dilapidated_house_80189C98 = 2;
@@ -748,7 +746,7 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
         childCoord->coord = work->mtx;
     }
 
-    task->exitCallback = Room_Script16;
+    task->exitCallback = func_dryfield_dilapidated_house_80180FB8;
     task->state       += 1;
 }
 
