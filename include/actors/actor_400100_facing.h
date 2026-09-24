@@ -3,10 +3,10 @@
 
 #include "actors/actor_400100_motion.h"
 #include "actors/actor_400100_update.h"
+#include "gameplay/D4.h"
 #include "main/wipsys.h"
 
 s32                          Actor00100_Fn01388(GsCOORDINATE2*, GpRec18*, s16, SVECTOR*);
-extern char                  Actor00100_D000D4;
 extern Actor00100AnimCommand Actor00100_D1B9AC;
 extern SVECTOR               Actor00100_D1BA90;
 

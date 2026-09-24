@@ -23,16 +23,10 @@ STATIC_ASSERT_SIZEOF(Actor00100StateTable, 0x9C);
 typedef struct Actor00100AnimWord {
     s32 value;
 } Actor00100AnimWord;
-typedef struct Actor00100StateC08 {
-    byte pad_0[6];
-    u8   field_6;
-} Actor00100StateC08;
 
-extern Actor00100StateTable  Actor00100_D000F0;
 extern Actor00100AnimCommand Actor00100_D1B9D0;
 extern Actor00100PlayerAnim* Gp_PlayerAnimBlkTbl[];
 extern u16                   Gp_WeaponIdBase[];
-extern Actor00100StateC08    Gp_StateC08;
 extern Actor00100AnimWord    Actor00100_D1B9BC, Actor00100_D1B9C0;
 extern s8                    D_8007218A;
 extern u8                    D_80073BA9, D_801153F4;

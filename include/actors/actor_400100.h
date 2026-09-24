@@ -357,8 +357,7 @@ typedef struct Actor00100PoseSrc {
 } Actor00100PoseSrc;
 STATIC_ASSERT_SIZEOF(Actor00100PoseSrc, 0x20);
 
-extern Actor00100PoseTable Actor00100_D00004;
-extern Actor00100PoseSrc   Actor00100_D0BDB4;
+extern Actor00100PoseSrc Actor00100_D0BDB4;
 
 extern s8         Actor00100_D1BA54;
 extern GpPairSrcE Actor00100_D0BDA4;
