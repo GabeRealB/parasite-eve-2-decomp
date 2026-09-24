@@ -63,7 +63,19 @@ void func_shelter_b2_laboratory_801812F8(SVECTOR* pos, s32 arg1, s32 arg2);
 
 void Room_Draw05(SVECTOR* pos, s32 arg1, s32 arg2);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_4", func_shelter_b2_laboratory_801804FC);
+void func_shelter_b2_laboratory_801820F4(s16 arg0);
+
+extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
+extern s32      D_shelter_b2_laboratory_801864B8;
+
+void func_shelter_b2_laboratory_801804FC(void)
+{
+    if (D_shelter_b2_laboratory_801864B8 == 0) {
+        D_shelter_b2_laboratory_801864B8 = 1;
+        func_shelter_b2_laboratory_801820F4(1);
+        Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 1, 0, 0);
+    }
+}
 
 void func_shelter_b2_laboratory_80180548(Task* task)
 {
