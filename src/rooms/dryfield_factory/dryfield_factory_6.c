@@ -9,9 +9,28 @@
 extern void Room_Util16(s32);
 extern void Room_Util17(s32);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_6", func_dryfield_factory_8018072C);
+extern TaskFuncTable3 D_dryfield_factory_8017D61C;
+extern TaskFuncTable3 D_dryfield_factory_8017D628;
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_6", func_dryfield_factory_80180784);
+/// Runs the task's current state out of a three-entry table copied onto the
+/// stack.
+void func_dryfield_factory_8018072C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_factory_8017D61C;
+    sp.funcs[task->state](task);
+}
+
+/// Runs the task's current state out of a three-entry table copied onto the
+/// stack.
+void func_dryfield_factory_80180784(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_factory_8017D628;
+    sp.funcs[task->state](task);
+}
 
 /// Shorter variant of the factory cutscene driver: silences both weapons, runs
 /// the cap command in `Task::spawnArg1`, waits for the cap to finish, then on

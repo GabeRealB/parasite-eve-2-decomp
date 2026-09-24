@@ -3,21 +3,30 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "rooms/dryfield_night_factory.h"
 
 extern void Room_Util16(s32);
 extern void Room_Util17(s32);
+extern u8   D_8007216D;
+
+extern s32 RoomsShared8017e33c(Task* task);
+extern s32 RoomsShared8017e6bc(Task* task);
+extern s32 RoomsShared8017ea24(Task* task);
+extern s32 RoomsShared8017ed68(Task* task);
+
+void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate);
+s32  func_dryfield_factory_8017F08C(Task* task);
+s32  func_dryfield_factory_8017F4BC(Task* task);
 
 extern GpGridParams D_dryfield_factory_80186C68;
 extern GpGridParams D_dryfield_factory_80187BF0;
 extern GpGridParams D_dryfield_factory_80187BF8;
-
-/// Cutscene driver for the factory room: silences both weapons, runs the cap
-/// (cutscene) command in `Task::spawnArg1`, then waits for the cap to report
-/// event key 3 before setting the two progress flags and starting the follow-up
-/// cap slot. Any state past 4 restores the weapons and kills the task.
 
 /// Cutscene driver for the factory room: silences both weapons, runs the cap
 /// (cutscene) command in `Task::spawnArg1`, then waits for the cap to report
@@ -80,7 +89,83 @@ void func_dryfield_factory_8017FC18(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", func_dryfield_factory_8017FDDC);
+/// The room's second cutscene: states 0..2 silence both weapons, run the cap in
+/// `Task::spawnArg1` and wait for it to report event key 1; states 3 and 6
+/// count `Task::killCountdown` up to and back down from 0x1E, tinting the
+/// screen with the count scaled to 0xFF; states 4 and 5 record the progress
+/// flags, switch the room and tint it white; anything past 6 restores the
+/// weapons and kills the task.
+///
+/// `fade` doubles as the stage read in state 4 on purpose: that cross-block use
+/// makes the tint a global pseudo, which is what gives the target's register
+/// allocation for the `(u8)` conversion.
+void func_dryfield_factory_8017FDDC(Task* task)
+{
+    u8 fade;
+
+    switch (task->state) {
+        case 0:
+            if (GameFlag_GetNibble(0x47) != 0) {
+                goto kill;
+            }
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            Gp_RunCapCmd1(task->spawnArg1);
+            goto advance;
+        case 2:
+            if (Gp_GetCapEventKey() == 1) {
+                task->killCountdown = 0;
+                if (gGameSession->at4.loc.stage == 2) {
+                    Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
+                }
+                goto advance;
+            }
+            task->state = -1;
+            return;
+        case 3:
+            task->killCountdown = task->killCountdown + 1;
+            if (task->killCountdown < 0x1E) {
+                goto draw;
+            }
+            goto bump;
+        case 4:
+            gGameSession->viewDirty = 1;
+            GameFlag_SetNibble(0x47, 1);
+            fade = gGameSession->at4.loc.stage;
+            if (fade == 2) {
+                Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+            }
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 5:
+            D_8007216D                  = 2;
+            gGameSession->at4.loc.room  = 2;
+            gGameSession->roomObjsDirty = 1;
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            goto advance;
+        case 1:
+        advance:
+            task->state = task->state + 1;
+            return;
+        case 6:
+            task->killCountdown = task->killCountdown - 1;
+            if (task->killCountdown > 0) {
+                goto draw;
+            }
+        bump:
+            task->state = task->state + 1;
+        draw:
+            fade = (task->killCountdown * 255) / 30;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            return;
+        default:
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+        kill:
+            taskKill(task);
+            return;
+    }
+}
 
 /// Restores two faces of the room's collision grid (their normals, corners and
 /// face records) from a template, then slides the eight corners 2000 units
@@ -140,6 +225,54 @@ void func_dryfield_factory_8018001C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", func_dryfield_factory_801802F0);
+/// Per-frame state of the factory model: when progress nibble 0x49 changes,
+/// restarts the handler whose bit changed. Bit 1 selects the first handler pair
+/// and bit 0 the member of the pair; the frame counter is bumped, the
+/// collision faces rebuilt and the model's coordinate refreshed.
+void func_dryfield_factory_801802F0(Task* task)
+{
+    GsCOORDINATE2*    coord;
+    NightFactoryWork* work;
+    TmdObject*        obj;
+    s32               flag;
+    s32               prev;
+
+    /* The model pointer is read twice on purpose: the second read is what
+       leaves the target's `move s4, v0` copy. */
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = (NightFactoryWork*)task->work;
+    obj   = (TmdObject*)task->extra;
+    flag  = GameFlag_GetNibble(0x49);
+    prev  = work->field_0;
+    if (flag != prev) {
+        if ((flag ^ prev) & 1) {
+            work->field_16 = 0;
+        }
+        if ((flag ^ work->field_0) & 2) {
+            work->field_17 = 0;
+        }
+        work->field_0  = flag;
+        work->field_14 = 0;
+    }
+    if (flag & 2) {
+        RoomsShared8017ea24(task);
+        if (flag & 1) {
+            RoomsShared8017e33c(task);
+        } else {
+            RoomsShared8017e6bc(task);
+        }
+    } else {
+        RoomsShared8017ed68(task);
+        if (flag & 1) {
+            func_dryfield_factory_8017F08C(task);
+        } else {
+            func_dryfield_factory_8017F4BC(task);
+        }
+    }
+    work->field_14++;
+    func_dryfield_factory_8017E140(task, 0, flag & 1);
+    Gp_UpdateCoord(coord);
+    func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", RoomsShared8017fc38Table);

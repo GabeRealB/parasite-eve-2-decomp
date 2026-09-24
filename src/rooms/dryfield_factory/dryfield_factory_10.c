@@ -1,3 +1,26 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_factory/dryfield_factory_10", func_dryfield_factory_801819BC);
+#include "gameplay/3688.h"
+#include "main/task.h"
+#include "rooms/dryfield_night_factory.h"
+#include "rooms/room_common.h"
+
+extern void RoomsShared80180de8(Task* task, s16 step);
+
+/// Prompt state of the room's script task: clears the cursor highlight and,
+/// while `func_800D4EC0` still reports a prompt on screen, runs the cap step
+/// the work block names; otherwise it returns to the idle state 2. Either way
+/// it re-arms the idle state's delay.
+void func_dryfield_factory_801819BC(Task* task)
+{
+    NightFactoryScriptWork* work = (NightFactoryScriptWork*)task->work;
+
+    D_80114D28.mode     = 0;
+    D_80114D28.targetId = 0;
+    if (func_800D4EC0() != 0) {
+        RoomsShared80180de8(task, work->field_C);
+    } else {
+        task->state = 2;
+    }
+    work->field_8 = 0xA;
+}
