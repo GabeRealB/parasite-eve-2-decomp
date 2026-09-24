@@ -1842,13 +1842,7 @@ objects = [
 id = 389
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x1C", text = "0x310" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_4", rodata = "0x4", text = "0x3C" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_5", text = "0x6FC" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_2", text = "0x740" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_6", text = "0x748" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_3", text = "0x7A0" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_7", text = "0x900" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x4", text = "0x3C" },
   { kind = "data", at = "0x1144" },
 ]
 
