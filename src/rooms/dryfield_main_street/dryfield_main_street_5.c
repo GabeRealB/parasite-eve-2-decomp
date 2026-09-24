@@ -5,8 +5,7 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
-
-extern Task* RoomsShared8017e320Task;
+#include "rooms/dryfield_main_street.h"
 
 extern u8 D_801156F9;
 
@@ -23,7 +22,7 @@ extern u32     Gp_LcgState;
 
 void func_dryfield_main_street_8017E354(s32 arg0)
 {
-    Task* t = RoomsShared8017e320Task;
+    Task* t = D_dryfield_main_street_80185630;
 
     if (t == NULL) {
         return;
@@ -37,8 +36,8 @@ void func_dryfield_main_street_8017E354(s32 arg0)
     t->spawnArg1 = arg0;
     return;
 kill:
-    taskKill(RoomsShared8017e320Task);
-    RoomsShared8017e320Task = NULL;
+    taskKill(D_dryfield_main_street_80185630);
+    D_dryfield_main_street_80185630 = NULL;
 }
 
 void func_dryfield_main_street_8017E3A8(Task* task)
@@ -71,7 +70,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
 
 void func_dryfield_main_street_8017E4A4(void)
 {
-    RoomsShared8017e320Task = 0;
+    D_dryfield_main_street_80185630 = 0;
 }
 
 /// Per-frame room task. On its first run it stores the ids 0x60293-0x60295 in

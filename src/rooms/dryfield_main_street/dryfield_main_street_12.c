@@ -1,13 +1,12 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -18,8 +17,8 @@
 /// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
 /// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
-/// `rsin`/`rcos`. Shared body, linked into every room overlay that uses it.
-void Room_Draw39(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// `rsin`/`rcos`.
+void func_dryfield_main_street_8017EA88(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;

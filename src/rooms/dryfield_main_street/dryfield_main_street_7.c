@@ -4,9 +4,9 @@
 #include "main/task.h"
 #include "main/gameflag.h"
 
-extern TaskDesc Room_Script14Desc;
+extern TaskDesc D_dryfield_main_street_80180E94;
 
-void Room_Script14(Task* task)
+void func_dryfield_main_street_8017DE78(Task* task)
 {
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() == 1) {
@@ -19,7 +19,7 @@ void Room_Script14(Task* task)
     }
 }
 
-s32 Room_Snd01(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 func_dryfield_main_street_8017DEF0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0x8:
@@ -45,7 +45,7 @@ s32 Room_Snd01(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 RoomsShared8017dfc8(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_main_street_8017DFC8(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x7B) >= 2) {
@@ -54,7 +54,7 @@ s32 RoomsShared8017dfc8(s32 arg0, s32 arg1, s32 arg2)
                 Gp_SetCurBit2Flag(0x1B, 1);
             }
             Gp_SpawnIfCapIdle(1, 1);
-            Task_SpawnFromTable(&Room_Script14Desc, 0, 0, 0);
+            Task_SpawnFromTable(&D_dryfield_main_street_80180E94, 0, 0, 0);
         } else {
             Gp_SpawnIfCapIdle(0x14, 1);
         }
