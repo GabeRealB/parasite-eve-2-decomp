@@ -23,7 +23,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_801800A0);
 
-void func_shelter_1f_heliport_801802AC(void)
+void func_shelter_1f_heliport_801802AC(s32 arg0)
 {
     Task* task;
     Task* slotA;
