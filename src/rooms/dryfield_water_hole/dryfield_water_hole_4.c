@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_water_hole.h"
 #include "rooms/room_common.h"
 
 #include <psyq/abs.h>
@@ -35,8 +36,9 @@ extern SVECTOR D_dryfield_water_hole_8017FD1C[];
 /// slot-3 task's model, and advances. State 1, while no event is running and
 /// `waterY` is below that model's root, spawns each effect at water level under
 /// each part with odds that grow with how far the part moved since last frame,
-/// then, once game-flag nibble 0x51 is 1, draws the `Room_Draw24` segment pairs
-/// the current view selects.
+/// then, once game-flag nibble 0x51 is 1, draws the glowing beams
+/// `func_dryfield_water_hole_8017E410` renders between the point pairs the
+/// current view selects.
 void func_dryfield_water_hole_8017E040(Task* arg0)
 {
     Task*                     ctl;
@@ -97,16 +99,16 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             }
             if (GameFlag_GetNibble(0x51) == 1) {
                 if (mask & 0x18) {
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);
                 }
                 if (mask & 0x50) {
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FCDC[0], &D_dryfield_water_hole_8017FCDC[1], 0x100);
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FCDC[2], &D_dryfield_water_hole_8017FCDC[3], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FCDC[0], &D_dryfield_water_hole_8017FCDC[1], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FCDC[2], &D_dryfield_water_hole_8017FCDC[3], 0x100);
                 }
                 if (mask & 0x80) {
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FD04[0], &D_dryfield_water_hole_8017FD04[-1], 0x100);
-                    Room_Draw24(coord, &D_dryfield_water_hole_8017FD04[2], &D_dryfield_water_hole_8017FD04[1], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FD04[0], &D_dryfield_water_hole_8017FD04[-1], 0x100);
+                    func_dryfield_water_hole_8017E410(coord, &D_dryfield_water_hole_8017FD04[2], &D_dryfield_water_hole_8017FD04[1], 0x100);
                 }
             }
             break;

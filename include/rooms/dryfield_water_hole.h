@@ -2,6 +2,11 @@
 #define ROOMS_DRYFIELD_WATER_HOLE_H
 
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "main/task.h"
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
@@ -26,7 +31,18 @@ extern u8* D_dryfield_water_hole_801828CC;
 /// Frame counter the water surface's wave is phased by.
 extern s16 D_dryfield_water_hole_801828D0;
 
+/// The room task's three states, run from a stack copy by
+/// `func_dryfield_water_hole_8017D840`: the entry tick, the idle state, then
+/// `taskKill`.
+extern const TaskFuncTable3 D_dryfield_water_hole_8017D5C4;
+
 /// Draws the room's water surfaces into the current ordering table.
 void func_dryfield_water_hole_8017D898(void);
+
+/// Draws a glowing beam between two points of a coordinate's local space.
+void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+
+/// Draws the flat textured flash quad of the room's flash effect.
+void func_dryfield_water_hole_8017EDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 #endif
