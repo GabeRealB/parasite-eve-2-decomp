@@ -1,11 +1,18 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/abs.h>
+#include <psyq/stdio.h>
+
 #include "actors/actor_110600.h"
 #include "actors/actors_shared_8013411c.h"
 #include "actors/actors_shared_80135a60.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -14,11 +21,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-
-#include <psyq/abs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
-#include <psyq/stdio.h>
 
 /// Global freeze flag the walker's turn step bails out on: 1 while the game is
 /// paused.
@@ -37,7 +39,67 @@ extern PlayerStatus D_80073B08[];
 /// re-plan reaches it by name, the way the original object does.
 const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801322CC);
+/// 0x14-byte block `func_actor_110600_801322CC` takes from `G_SCRATCH_HEAD`:
+/// the delta `func_800E0C10` fills and the "moved" flag returned.
+typedef struct Actor110600DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor110600DeltaFlag;
+
+/// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
+extern SVECTOR D_actor_110600_80148690;
+
+/// Moves `coord` in X/Z by the push the first `count` records of `movement`
+/// resolve to through `func_800E0C10`, rounding a fractional part away from
+/// zero, and stores the whole-unit step taken in `D_actor_110600_80148690`.
+/// Returns 1 when the X or Z delta is nonzero. Nothing in the actor calls it.
+s32 func_actor_110600_801322CC(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor110600DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(movement, &s->delta, (s32)count, NULL) != 0) {
+        coord->coord.t[0]          = coord->coord.t[0] + ((Actor110600DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
+        D_actor_110600_80148690.vx = ((Actor110600DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_110600_80148690.vy = s->delta.vy.w >> 16;
+        D_actor_110600_80148690.vz = s->delta.vz.w >> 16;
+        val                        = ((Actor110600DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                D_actor_110600_80148690.vx++;
+            } else {
+                coord->coord.t[0]--;
+                D_actor_110600_80148690.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                D_actor_110600_80148690.vz++;
+            } else {
+                coord->coord.t[2]--;
+                D_actor_110600_80148690.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
 
 s16 func_actor_110600_80132470(Actor110600Walker* walker)
 {
@@ -847,7 +909,64 @@ s32 func_actor_110600_80134040(Actor110600* arg0, s32 arg1, Actor110600Event* ar
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801341A4);
+/// Tests the player (task slot 3) against `coord`: when the player's bearing
+/// relative to the facing of `coord` is outside +/-0x400 for a non-negative
+/// `offset`, or inside it for a negative one, returns 1 outright. Otherwise
+/// returns whether the player stands at least `range + 0x96` from the point
+/// `offset` units ahead of `coord` along its facing.
+s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s16 range, s16 offset)
+{
+    SVECTOR  v;
+    SVECTOR  d;
+    VECTOR   e;
+    Task*    player;
+    s16      angle;
+    SVECTOR* pv;
+    s32      x;
+
+    player = gameGetPtrSlot(3);
+    d.vx   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_18 - ((GpCoordXZ*)coord)->field_18;
+    d.vy   = (u16)((TmdObject*)player->extra)->coords->coord.t[1] - (u16)coord->coord.t[1];
+    d.vz   = ((GpCoordXZ*)((TmdObject*)player->extra)->coords)->field_20 - ((GpCoordXZ*)coord)->field_20;
+    angle  = ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    if (angle < 0) {
+    loop_neg:
+        if (angle < -0x800) {
+            angle += 0x1000;
+            goto loop_neg;
+        }
+    } else {
+    loop_pos:
+        if (angle > 0x800) {
+            angle -= 0x1000;
+            goto loop_pos;
+        }
+    }
+    x = angle << 16;
+    if (offset >= 0) {
+        if (abs(x >> 16) > 0x400) {
+            return 1;
+        }
+    } else {
+        if (abs(x >> 16) < 0x400) {
+            return 1;
+        }
+    }
+    Gfx_MatrixCol2(&coord->coord, &v);
+    pv = &v;
+    VectorNormalSS(pv, pv);
+    gte_lddp(offset);
+    gte_ldsv(pv);
+    gte_gpf12();
+    gte_stsv(pv);
+    v.vx += (u16)coord->coord.t[0];
+    v.vy += (u16)coord->coord.t[1];
+    v.vz += (u16)coord->coord.t[2];
+    e.vx  = ((TmdObject*)player->extra)->coords->coord.t[0] - v.vx;
+    e.vy  = ((TmdObject*)player->extra)->coords->coord.t[1] - v.vy;
+    e.vz  = ((TmdObject*)player->extra)->coords->coord.t[2] - v.vz;
+    return SquareRoot0(e.vx * e.vx + e.vy * e.vy + e.vz * e.vz) >= range + 0x96;
+}
 
 /// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
 /// seed their slot's `rate` from the two work bytes and tick the primary and

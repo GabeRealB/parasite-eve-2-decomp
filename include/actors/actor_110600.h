@@ -775,7 +775,7 @@ extern u32 Gp_LcgState;
 extern s16 D_actor_110600_8014865C;
 s32        func_actor_110600_80138900(void);
 
-s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s32 radius, u32 step);
+s32 func_actor_110600_801341A4(GsCOORDINATE2* coord, s16 range, s16 offset);
 
 /// Recoil push stage `func_actor_110600_80137AF4` indexes for the speed it
 /// moves the actor by, and bumps once that push has landed. Reset to 0 first,
