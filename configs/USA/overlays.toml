@@ -1721,19 +1721,7 @@ objects = [
 id = 354
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", rodata = "0x1C", text = "0x5B4" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_6", rodata = "0x4", text = "0x2E0" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_7", text = "0x6E4" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_8", text = "0x7BC" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_2", text = "0x7C4" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_9", text = "0xA80" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_10", text = "0xA90" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_3", text = "0xAE8" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_11", text = "0xB00" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_12", text = "0xFA4" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_4", text = "0x10D8" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_13", text = "0x12F0" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r_5", text = "0x1578" },
+  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", rodata = "0x4", text = "0x2E0" },
   { kind = "data", at = "0x234C" },
 ]
 
