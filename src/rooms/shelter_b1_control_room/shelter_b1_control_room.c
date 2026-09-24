@@ -3,6 +3,8 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/gtemac.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -15,34 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-
-#define gte_MulMatrix0_real(r1, r2, r3) \
-    {                                   \
-        gte_SetRotMatrix(r1);           \
-        gte_ldclmv(r2);                 \
-        gte_rtir_real();                \
-        gte_stclmv(r3);                 \
-        gte_ldclmv((char*)(r2) + 2);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 2);    \
-        gte_ldclmv((char*)(r2) + 4);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 4);    \
-    }
-
-#define gte_RotTransPers_real(r1, r2, r3, r4, r5) \
-    {                                             \
-        gte_ldv0(r1);                             \
-        gte_rtps_real();                          \
-        gte_stsxy(r2);                            \
-        gte_stdp(r3);                             \
-        gte_stflg(r4);                            \
-        gte_stszotz(r5);                          \
-    }
 
 #define gte_TransposeMatrix(src, dst)     \
     __asm__ volatile("lhu $12,0(%0);"     \
@@ -152,7 +126,7 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 {
     gte_SetRotMatrix(m);
     gte_ldv0(v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(out);
 }
 
@@ -374,7 +348,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 scratch->reflect.m[2][0] = -scratch->reflect.m[2][0];
                 scratch->reflect.m[2][1] = -scratch->reflect.m[2][1];
                 scratch->reflect.m[2][2] = -scratch->reflect.m[2][2];
-                gte_MulMatrix0_real(&scratch->basis, &scratch->reflect, &scratch->reflect);
+                gte_MulMatrix0(&scratch->basis, &scratch->reflect, &scratch->reflect);
                 work->coord.coord      = scratch->reflect;
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + cfg->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + cfg->offset.vy;
@@ -489,8 +463,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         work->color   = *src->colorMtx;
         Gp_UpdateCoord(parts);
         gte_TransposeMatrix(&parts->workm, &scratch->basis);
-        gte_MulMatrix0_real(&from->workm, &scratch->basis, &scratch->basis);
-        gte_MulMatrix0_real(&work->light, &scratch->basis, &work->light);
+        gte_MulMatrix0(&from->workm, &scratch->basis, &scratch->basis);
+        gte_MulMatrix0(&work->light, &scratch->basis, &work->light);
         parts->flg = 0;
         to         = parts;
         for (layer = 0; layer < (u32)src->partCount; layer++) {
@@ -506,11 +480,11 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 scratch->pos.vx = 0;
                 scratch->pos.vy = -0x3E8;
                 scratch->pos.vz = 0;
-                gte_RotTransPers_real(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
+                gte_RotTransPers(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
                 scratch->pos.vx = 0;
                 scratch->pos.vy = 0x3E8;
                 scratch->pos.vz = 0;
-                gte_RotTransPers_real(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+                gte_RotTransPers(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
             } else {
                 Gp_UpdateCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
@@ -518,11 +492,11 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 scratch->pos.vx = 0;
                 scratch->pos.vy = -0x7D0;
                 scratch->pos.vz = 0;
-                gte_RotTransPers_real(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
+                gte_RotTransPers(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
                 scratch->pos.vx = 0;
                 scratch->pos.vy = 0;
                 scratch->pos.vz = 0;
-                gte_RotTransPers_real(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+                gte_RotTransPers(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
             }
             if (scratch->sxyFoot.vy > scratch->sxyHead.vy) {
                 scratch->sxyHead.vx = scratch->sxyFoot.vy;

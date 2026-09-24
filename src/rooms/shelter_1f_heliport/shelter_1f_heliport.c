@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -28,10 +29,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 #include "rooms/room_common.h"
-
-/// `mvmva` rotating V0 by the rotation matrix with no translation, spelled as
-/// a word since the `inline_c.h` macro of this name assembles to another one.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// One row of the shop's price ladder (`D_shelter_1f_heliport_80180EAC`,
 /// thirteen rows): the three item ids the row offers once
@@ -1779,7 +1776,7 @@ void func_shelter_1f_heliport_8018085C(GsCOORDINATE2* coord, SVECTOR* offset)
         gte_SetRotMatrix(&m);
         gte_ldv0(s);
         s++;
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(d);
         d++;
     }
