@@ -25,8 +25,6 @@ extern s16          D_80071076;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void func_shelter_b3_garbage_incinerator_8018108C(s32 arg0, s32 arg1, s32 arg2);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", D_shelter_b3_garbage_incinerator_8017D5C4);
 
 void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)

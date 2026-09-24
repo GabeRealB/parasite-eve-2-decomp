@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/strings.h>
+
+#include "actors/actor_215100.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -13,6 +16,8 @@
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/stage.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
 #include "main/text.h"
@@ -34,6 +39,14 @@ extern u16        D_shelter_b3_garbage_incinerator_8018FC5A;
 extern s16        D_shelter_b3_garbage_incinerator_80187180;
 extern s16        D_shelter_b3_garbage_incinerator_80187182;
 
+extern Actor215100Caption** D_shelter_b3_garbage_incinerator_8018FC40;
+extern Actor215100Caption*  D_shelter_b3_garbage_incinerator_8018FC48;
+extern s16                  D_shelter_b3_garbage_incinerator_8018FC52;
+extern s16                  D_shelter_b3_garbage_incinerator_8018FC56;
+extern u8                   D_shelter_b3_garbage_incinerator_8018FC5C;
+extern s32                  D_shelter_b3_garbage_incinerator_80187278;
+extern s32                  D_shelter_b3_garbage_incinerator_8018727C;
+
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0);
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
@@ -41,6 +54,9 @@ s32  func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, 
 s16  func_shelter_b3_garbage_incinerator_801808A8(u16* arg0);
 s16  func_shelter_b3_garbage_incinerator_80180B18(u16* arg0);
 s16  func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1);
+s16  func_shelter_b3_garbage_incinerator_80180D44(u16* arg0);
+s32  func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0);
+void func_shelter_b3_garbage_incinerator_80180994(void);
 s32  func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0);
 
 typedef struct {
@@ -512,11 +528,104 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FB80);
+/// Draws the caption line the running script is on, when a script is
+/// running, the line is not the terminator and the caption system is idle,
+/// followed by the "more text" caret unless the line holds itself on screen.
+void func_shelter_b3_garbage_incinerator_8017FB80(void)
+{
+    if ((D_shelter_b3_garbage_incinerator_8018FC48 != NULL) &&
+        (D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8 != -1) &&
+        (Gp_CapBusy() == 0)) {
+        func_shelter_b3_garbage_incinerator_8017FE74(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8, 0x80, 1,
+                                                     D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_0 |
+                                                         ((D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_1 & 0x10) * 0x10));
+        if (!(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_4 & 1)) {
+            func_shelter_b3_garbage_incinerator_80180994();
+        }
+    }
+}
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FC5C);
+/// Relocates a loaded caption file in place (its three table offsets, the
+/// script pointers of its event records and its pointer table) and keeps its
+/// glyph table and script table for the caption code. Returns 0 when the file
+/// does not start with "CAP".
+s32 func_shelter_b3_garbage_incinerator_8017FC5C(GpCapFile* file)
+{
+    s32            i;
+    s32            count;
+    s32            flag;
+    GpEvt12*       rec;
+    s32*           ptr;
+    GpCapEvtTable* evts;
+    GpCapPtrTable* ptrs;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FD64);
+    if (strncmp(file->magic, "CAP", 3) != 0) {
+        return 0;
+    }
+
+    i = 0;
+    if (file->field_8 > 0) {
+        file->field_8  += (s32)file;
+        file->field_C  += (s32)file;
+        file->field_10 += (s32)file;
+        evts            = (GpCapEvtTable*)file->field_C;
+        rec             = (GpEvt12*)(evts + 1);
+        count           = evts->count;
+        if (count > 0) {
+            flag = -1;
+            do {
+                if (rec->field_8 != flag) {
+                    rec->field_8 += (s32)file;
+                } else {
+                    rec++;
+                }
+                i++;
+                rec++;
+            } while (i < count);
+        }
+        ptrs  = (GpCapPtrTable*)file->field_10;
+        i     = 0;
+        count = ptrs->count;
+        ptr   = (s32*)(ptrs + 1);
+        if (count > 0) {
+            do {
+                if (*ptr != 0) {
+                    *ptr += (s32)file;
+                }
+                i++;
+                ptr++;
+            } while (i < count);
+        }
+    }
+
+    D_shelter_b3_garbage_incinerator_8018FC44 = (GlyphUvwh*)file->field_8;
+    D_shelter_b3_garbage_incinerator_8018FC40 = (Actor215100Caption**)((GpCapPtrTable*)file->field_10 + 1);
+    return 1;
+}
+
+/// Starts caption script `arg0` at the first line keyed `arg1` and caches that
+/// line's metrics; `arg2` is kept alongside them. Returns 1 when the script
+/// table has no such script, 0 once it is started.
+s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 arg2)
+{
+    Actor215100Caption* caption;
+    s16                 entry;
+
+    caption                                   = D_shelter_b3_garbage_incinerator_8018FC40[arg0];
+    D_shelter_b3_garbage_incinerator_8018FC48 = caption;
+    if (caption == NULL) {
+        return 1;
+    }
+    D_shelter_b3_garbage_incinerator_8018FC56 = arg1;
+    entry                                     = func_shelter_b3_garbage_incinerator_80180EC4(1);
+    D_shelter_b3_garbage_incinerator_8018FC52 = entry;
+    D_shelter_b3_garbage_incinerator_8018FC50 = arg2;
+    D_shelter_b3_garbage_incinerator_8018FC4C = func_shelter_b3_garbage_incinerator_80180B18((u16*)D_shelter_b3_garbage_incinerator_8018FC48[entry].field_8);
+    D_shelter_b3_garbage_incinerator_8018FC4E = func_shelter_b3_garbage_incinerator_801808A8((u16*)D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8);
+    D_shelter_b3_garbage_incinerator_8018FC54 = func_shelter_b3_garbage_incinerator_80180D44((u16*)D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8);
+    D_shelter_b3_garbage_incinerator_8018FC5C = 0x1E;
+    return 0;
+}
 
 s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -766,7 +875,46 @@ s16 func_shelter_b3_garbage_incinerator_801808A8(u16* arg0)
     return (s16)(D_shelter_b3_garbage_incinerator_8018FC50 - total);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_80180994);
+/// Draws the pulsing "more text" caret, a Gouraud triangle whose grey level
+/// swings between 9 and 15, once the caption's initial delay has run out.
+void func_shelter_b3_garbage_incinerator_80180994(void)
+{
+    POLY_G3* prim;
+    s32      c1;
+    s32      c2;
+
+    if (D_shelter_b3_garbage_incinerator_8018FC5C != 0) {
+        D_shelter_b3_garbage_incinerator_8018FC5C -= 1;
+        return;
+    }
+    prim           = (POLY_G3*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyG3(prim);
+    c1 = (D_shelter_b3_garbage_incinerator_80187278 << 7) / 15;
+    setRGB0(prim, c1, c1, c1);
+    c1 = (D_shelter_b3_garbage_incinerator_80187278 * 192) / 15;
+    c2 = c1;
+    setRGB1(prim, c2, c2, c2);
+    setRGB2(prim, c2, c2, c2);
+    prim->x0 = D_shelter_b3_garbage_incinerator_8018FC58 + 3;
+    prim->y0 = D_shelter_b3_garbage_incinerator_8018FC5A;
+    prim->x1 = D_shelter_b3_garbage_incinerator_8018FC58;
+    prim->x2 = D_shelter_b3_garbage_incinerator_8018FC58 + 7;
+    prim->y1 = D_shelter_b3_garbage_incinerator_8018FC5A - 7;
+    prim->y2 = D_shelter_b3_garbage_incinerator_8018FC5A - 7;
+    addPrim(&gGpuCurrentOt[2], prim);
+    if (D_shelter_b3_garbage_incinerator_8018727C == 0) {
+        D_shelter_b3_garbage_incinerator_80187278 += 1;
+        if (D_shelter_b3_garbage_incinerator_80187278 >= 0xF) {
+            D_shelter_b3_garbage_incinerator_8018727C = 1;
+        }
+    } else {
+        D_shelter_b3_garbage_incinerator_80187278 -= 1;
+        if (D_shelter_b3_garbage_incinerator_80187278 < 9) {
+            D_shelter_b3_garbage_incinerator_8018727C = 0;
+        }
+    }
+}
 
 /// Horizontal centring offset of the caption line the text stream `arg0`
 /// starts with: the widest line's pixel width subtracted from the 0x140 screen
@@ -928,7 +1076,57 @@ s16 func_shelter_b3_garbage_incinerator_80180C28(u16* arg0, s32 arg1)
     return (0x140 - width) / 2 - 5;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_80180D44);
+/// Total height of the caption text `arg0`: each `-2` line break adds the
+/// height of the line it closes (its tallest glyph plus 2, or 2 for an empty
+/// line), and `-1` ends the text.
+s16 func_shelter_b3_garbage_incinerator_80180D44(u16* arg0)
+{
+    s32                 lineH;
+    s32                 i;
+    s32                 total;
+    u16                 code;
+    s32                 shifted;
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+    GlyphUvwh*          table;
+    s32                 newline;
+    s32                 skip;
+
+    lineH   = 0;
+    total   = lineH;
+    code    = arg0[0];
+    shifted = code << 16;
+    i       = lineH;
+    v0tmp   = -1;
+    if (shifted >> 16 != v0tmp) {
+        newline = -2;
+        skip    = -3;
+        table   = D_shelter_b3_garbage_incinerator_8018FC44;
+        do {
+            if (shifted >> 16 == newline) {
+                if (lineH == 0) {
+                    lineH = 2;
+                }
+                total += lineH;
+                lineH  = 0;
+            } else if (shifted >> 16 != skip) {
+                if (shifted >> 16 >= 0) {
+                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                    if (lineH < glyph->h + 2) {
+                        v0tmp = glyph->h;
+                        TOUCH_REG(v0tmp);
+                        lineH = v0tmp + 2;
+                    }
+                }
+            }
+            v0tmp   = i + 1;
+            code    = arg0[(s16)v0tmp];
+            i       = v0tmp;
+            shifted = code << 16;
+        } while (shifted >> 16 != -1);
+    }
+    return total;
+}
 
 /// Height of the caption line the text stream `arg0` starts with, walking it
 /// the way gameplay's `func_800E6BB8` does — this overlay's caption system is
@@ -997,8 +1195,68 @@ s32 func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0)
     return height;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_80180EC4);
+/// Index of the first line at or after `arg0` in the running caption script
+/// whose key is the requested one, or of the script's terminator.
+s32 func_shelter_b3_garbage_incinerator_80180EC4(s32 arg0)
+{
+    s32                 flag;
+    s32                 id;
+    s32                 base;
+    Actor215100Caption* p;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_80180F18);
+    flag = -1;
+    id   = D_shelter_b3_garbage_incinerator_8018FC56;
+    base = (s32)D_shelter_b3_garbage_incinerator_8018FC48;
+    p    = (Actor215100Caption*)(arg0 * sizeof(Actor215100Caption) + base);
+loop:
+    if (p->field_8 == flag) {
+        goto done;
+    }
+    if (p->field_5 == id) {
+        goto done;
+    }
+    p++;
+    arg0++;
+    goto loop;
+done:
+    return arg0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_80180F54);
+/// Caption display task: draws the caption each frame for the number of
+/// frames given as its spawn argument, then kills itself.
+void func_shelter_b3_garbage_incinerator_80180F18(Task* task)
+{
+    s32 remaining;
+
+    remaining       = task->spawnArg1 - 1;
+    task->spawnArg1 = remaining;
+    if (remaining <= 0) {
+        taskKill(task);
+    }
+    func_shelter_b3_garbage_incinerator_8017FB80();
+}
+
+/// Caption display task: draws the caption each frame until the number of
+/// frames given as its spawn argument runs out or cancel is pressed, then
+/// kills itself and calls `Stage_SetEndingFlag`.
+void func_shelter_b3_garbage_incinerator_80180F54(Task* task)
+{
+    s32 remaining;
+    s32 state;
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            task->state = 1;
+            break;
+        case 1:
+            remaining       = task->spawnArg1 - 1;
+            task->spawnArg1 = remaining;
+            if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
+                taskKill(task);
+                Stage_SetEndingFlag();
+            }
+            break;
+    }
+    func_shelter_b3_garbage_incinerator_8017FB80();
+}
