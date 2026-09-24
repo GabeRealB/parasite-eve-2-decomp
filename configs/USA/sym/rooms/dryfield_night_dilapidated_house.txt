@@ -1,17 +1,1 @@
 // Overlay-local symbols for dryfield_night_dilapidated_house.
-Room_Util05 = 0x8017DA08; // shared body, see src/lib/
-Room_Util09 = 0x8017DA90; // shared body, see src/lib/
-Room_Util10 = 0x8017DAB0; // shared body, see src/lib/
-Room_Util12 = 0x8017DA70; // shared body, see src/lib/
-Room_Util13 = 0x8017DAD0; // shared body, see src/lib/
-RoomsShared8017daf0 = 0x8017DAF0; // shared body, see src/lib/
-RoomsShared8017daf0Desc = 0x801872B4; // shared body data, see src/lib/
-RoomsShared8017dce0 = 0x8017DCE0; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DA18; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5DC; // shared body data, see src/lib/
-RoomsShared8017d638 = 0x8017D600; // shared body, see src/lib/
-RoomsShared8017d638Flag = 0x8018A10C; // shared body data, see src/lib/
-RoomsShared8017d638Msg = 0x8018A104; // shared body data, see src/lib/
-RoomsShared8017d638Req = 0x8018A110; // shared body data, see src/lib/
-RoomsShared8017d638Desc = 0x8017E6F4; // shared body data, see src/lib/
-RoomsShared8017d74c = 0x8017D764; // shared body, see src/lib/

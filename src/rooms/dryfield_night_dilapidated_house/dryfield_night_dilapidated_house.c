@@ -7,7 +7,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/dryfield_night_dilapidated_house.h"
 
 /// Cutscene script blob arguments of `func_800E8634`.
 extern s32 D_dryfield_night_dilapidated_house_801868F4;
@@ -40,7 +40,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(s32 arg0, s32 arg1, RoomEvent
         req.field_C = 0x53090001;
         req.flagId  = 0x3F;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, in);
+        return func_dryfield_night_dilapidated_house_8017D600(&req, in);
     }
     return 1;
 }
@@ -71,4 +71,4 @@ void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", D_dryfield_night_dilapidated_house_8017D5DC);
