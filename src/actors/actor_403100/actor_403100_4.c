@@ -1,0 +1,48 @@
+#include "common.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
+#include "psyq/inline_c.h"
+#include "gte.h"
+
+#include "main/gfx.h"
+
+#include "actors/actor_403100.h"
+
+/// Carries `pos`, a point local to `coord`, up the `sub` chain by applying
+/// each level's matrix. If the chain reaches the view coordinate the
+/// transformed point is written back to `pos` and 1 is returned; if it ends
+/// first, `pos` is left untouched and 0 is returned.
+s32 func_actor_403100_8013D460(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    SVECTOR        local;
+    VECTOR         result;
+    s32            flag;
+    GsCOORDINATE2* current;
+
+    current  = coord;
+    local.vx = pos->vx;
+    local.vy = pos->vy;
+    local.vz = pos->vz;
+    while (1) {
+        if (current->sub == NULL) {
+            return 0;
+        }
+        if (current == &gGfxViewCoord) {
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            return 1;
+        }
+        gte_SetTransMatrix(&current->coord);
+        gte_SetRotMatrix(&current->coord);
+        gte_ldv0(&local);
+        gte_rtv0tr();
+        gte_stlvnl(&result);
+        gte_stflg(&flag);
+        local.vx = result.vx;
+        local.vy = result.vy;
+        local.vz = result.vz;
+        current  = current->sub;
+    }
+}

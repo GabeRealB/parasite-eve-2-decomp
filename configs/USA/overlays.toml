@@ -3348,7 +3348,7 @@ objects = [
   { kind = "rodata", at = "0x4" },
   { unit = "actor_403100/actor_403100", rodata = "0x14", text = "0x244" },
   { unit = "actor_403100/actor_403100_2", rodata = "0x14C", text = "0x5448" },
-  { lib = true, unit = "actor_coord_to_view", text = "0xB640" },
+  { unit = "actor_403100/actor_403100_4", text = "0xB640" },
   { unit = "actor_403100/actor_403100_3", text = "0xB744" },
   { kind = "model", at = "0xD9A4" },
   { kind = "data", at = "0x157F4" },

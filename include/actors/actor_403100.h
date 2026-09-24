@@ -13,6 +13,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
 void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403100_8013D06C(void);
+s32  func_actor_403100_8013D460(GsCOORDINATE2* coord, SVECTOR* pos);
 
 typedef struct Actor403100QuadEntry {
     /* 0x00 */ u16 tpage;

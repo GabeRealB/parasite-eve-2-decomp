@@ -1,5 +1,7 @@
-#include "actors/coord_to_view.h"
 #include "common.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 
@@ -96,9 +98,9 @@ void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 ar
             random                            = (Gp_LcgState * 5) + 0x71357911;
             Gp_LcgState                       = random;
             D_actor_403100_80155814[i].frame  = (s16)((random >> 0x10) & 0xF);
-            ActorCoordToView(joint, arg1);
+            func_actor_403100_8013D460(joint, arg1);
             identity = &matrix;
-            ActorCoordToView(joint, &end);
+            func_actor_403100_8013D460(joint, &end);
             D_actor_403100_80155814[i].delta.vx     = (s16)(end.vx - arg1->vx);
             D_actor_403100_80155814[i].delta.vy     = (s16)(end.vy - arg1->vy);
             D_actor_403100_80155814[i].delta.vz     = (s16)(end.vz - arg1->vz);
@@ -221,7 +223,7 @@ void func_actor_403100_80132528(Task* arg0)
     pos.vx = -0x290;
     pos.vy = 0x1E8;
     pos.vz = 0x220;
-    ActorCoordToView(joint, &pos);
+    func_actor_403100_8013D460(joint, &pos);
     func_actor_403100_8013D2F4(joint, &matrix);
     Gp_MtxToEuler(&matrix, &rotation);
     player->field_50 = rotation.vx;
@@ -447,7 +449,7 @@ void func_actor_403100_801331D4(Task* arg0)
         dz                                 = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
         pos.vz                             = dz;
         D_actor_403100_80155808->field_62E = SquareRoot0((dx * dx) + (dz * dz));
-        ActorCoordToView(joint, &pos);
+        func_actor_403100_8013D460(joint, &pos);
         dx2                                = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
         pos.vx                             = dx2;
         pos.vy                             = (u16)playerCoord->coord.t[1] - pos.vy;
@@ -937,12 +939,12 @@ void func_actor_403100_801342B4(Task* arg0)
     pos1.vy = offset1.vy = 0x148;
     i                    = 3;
     pos1.vz = offset1.vz = 0x2C0;
-    ActorCoordToView(coord1, &pos1);
+    func_actor_403100_8013D460(coord1, &pos1);
     coord2  = &coords[7];
     pos2.vx = offset2.vx = 0;
     pos2.vy = offset2.vy = 0;
     pos2.vz = offset2.vz = 0;
-    ActorCoordToView(coord2, &pos2);
+    func_actor_403100_8013D460(coord2, &pos2);
     for (; i < 9; i++) {
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {

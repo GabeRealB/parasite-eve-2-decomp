@@ -1,9 +1,14 @@
 #ifndef ACTOR_403100_ROTATION_H
 #define ACTOR_403100_ROTATION_H
 
-#include "actors/coord_to_view.h"
-#include "main/gfx.h"
+#include "common.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
+
+#include "main/gfx.h"
 
 /* Inline forms of this actor's rotation traversal helpers. */
 static __inline__ s32 Actor403100_AccumulateRotation(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
