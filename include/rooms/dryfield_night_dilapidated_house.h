@@ -5,12 +5,8 @@
 
 #include "main/task.h"
 
-#include "rooms/room_common.h"
-
-/// The room task's three states: setup, idle, and exit.
-extern const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC;
-
-/// The room's event gate.
-s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg);
+/// The room's two-entry task descriptor table: entry 0 starts the streamed
+/// sequence, entry 1 is the task that plays it.
+extern TaskDesc D_dryfield_night_dilapidated_house_801872B4;
 
 #endif // ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
