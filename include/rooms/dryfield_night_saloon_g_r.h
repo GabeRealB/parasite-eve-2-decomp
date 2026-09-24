@@ -2,6 +2,9 @@
 #define ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H
 
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/task.h"
 #include "rooms/room_common.h"
@@ -31,5 +34,15 @@ s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0);
 void func_dryfield_night_saloon_g_r_8017EB38(GsCOORDINATE2* coord);
 void func_dryfield_night_saloon_g_r_8017F0A4(GsCOORDINATE2* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+
+/// The room task's three-state table, run from a stack copy by
+/// `func_dryfield_night_saloon_g_r_8017E050`: the entry tick
+/// `func_dryfield_night_saloon_g_r_8017DF90`, the idle state
+/// `func_dryfield_night_saloon_g_r_8017E040`, then `taskKill`.
+extern const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC;
+
+s32 func_dryfield_night_saloon_g_r_8017D8A0(RoomEventReq* req, RoomEventMsg* msg);
+
+void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_DRYFIELD_NIGHT_SALOON_G_R_H

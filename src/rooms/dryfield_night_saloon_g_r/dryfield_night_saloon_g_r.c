@@ -14,7 +14,7 @@ extern u8  D_801153F4;
 /// Saved `Mc_SaveData.at4.loc.view` (area id), restored when the cutscene ends.
 extern u8 D_dryfield_night_saloon_g_r_80188FA4;
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D5DC);
 
 /// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData.at4.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
@@ -68,6 +68,6 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D600);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", RoomsShared8018055cCourses);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D870);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", RoomsShared8017e28cTitle);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", D_dryfield_night_saloon_g_r_8017D898);

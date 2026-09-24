@@ -39,12 +39,12 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            Room_Draw17(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            Room_Draw17(&D_dryfield_night_saloon_g_r_80185074[i], 1, 0x1C0);
+            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 1, 0x1C0);
         }
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
@@ -56,12 +56,12 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     }
     for (i = 20; i < 23; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            Room_Draw17(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
         }
     }
     for (i = 23; i < 28; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            Room_Draw17(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x300);
+            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x300);
         }
     }
 }
