@@ -2477,11 +2477,14 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b1_control_room_access_tunnel]
+label = "code starts at 0x24, right after the jump table: the first function is a frameless two-instruction `return 0` stub, so the span detector, which keys on a stack prologue, starts at 0x2C and left it as rodata words"
 id = 395
+text = ["0x24", "0x48B4"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", rodata = "0x4", text = "0x70" },
   { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_4", rodata = "0x10", text = "0x2CAC" },
+  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_6", text = "0x24" },
   { lib = true, unit = "room_util02", text = "0x2C" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x80" },
   { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_2", text = "0xC4" },

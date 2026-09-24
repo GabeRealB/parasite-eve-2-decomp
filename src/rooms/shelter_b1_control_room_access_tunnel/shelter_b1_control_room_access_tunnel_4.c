@@ -1,5 +1,3 @@
 #include "common.h"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_4", func_shelter_b1_control_room_access_tunnel_8018026C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_4", D_shelter_b1_control_room_access_tunnel_8017D5E4);
