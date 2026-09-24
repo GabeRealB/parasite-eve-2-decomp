@@ -8,6 +8,7 @@
 
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 
 /// 0x20 scratch block the shared coordinate walk takes from
@@ -59,13 +60,6 @@ STATIC_ASSERT_SIZEOF(RoomsShared80182078Scratch, 0xE4);
 /// push was applied. Six acropolis rooms carry this body.
 s32 RoomsShared80182078(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push);
 
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-/// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 /// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
 /// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
 static __inline__ void RoomsShared80182078ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
@@ -91,7 +85,7 @@ static __inline__ void RoomsShared80182078ToWorld(GsCOORDINATE2* coord, SVECTOR*
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
         blk->vec.vx = *(u16*)&blk->out[0];
@@ -120,7 +114,7 @@ static __inline__ void RoomsShared80182078ToWorld2(GsCOORDINATE2* coord, SVECTOR
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
         blk->vec.vx = *(u16*)&blk->out[0];
