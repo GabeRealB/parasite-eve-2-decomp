@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -8,6 +10,7 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_night_motel_loft.h"
 #include "rooms/room_common.h"
 
 extern s8 D_8007272D;
@@ -88,16 +91,16 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
         case 9:
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
             break;
         case 3:
         case 10: {
             SVECTOR* p = &D_dryfield_night_motel_loft_8017ED78[1];
 
-            Room_Draw20(&p[0], 0, 0x300);
-            Room_Draw20(&p[1], 0, 0x300);
-            Room_Draw20(&p[3], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&p[0], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&p[1], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&p[3], 0, 0x300);
             if (arg0->state == 1) {
                 SVECTOR* pos;
 
@@ -119,15 +122,15 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
             break;
         }
         case 4:
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[2], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[2], 0, 0x300);
             break;
         case 6:
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[3], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[3], 0, 0x300);
             break;
         case 7:
         case 11:
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[4], 0, 0x300);
-            Room_Draw20(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[4], 0, 0x300);
+            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
             break;
         case 8:
             if (arg0->state == 0) {

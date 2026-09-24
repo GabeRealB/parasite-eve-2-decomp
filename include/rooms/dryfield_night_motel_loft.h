@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// 4-byte payload of the 0x7DB message the loft's script task sends to the
@@ -23,5 +25,9 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMotelLoftMsg7DB, 0x4);
 /// ends by running the shared flag-0xA body `func_dryfield_night_motel_loft_8017D9BC`
 /// and advancing `Task::state`.
 void func_dryfield_night_motel_loft_8017D808(Task* arg0);
+
+/// Queues a flickering glow sprite of size `arg2` at the world point `arg0`,
+/// textured from cell `arg1`.
+void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOFT_H
