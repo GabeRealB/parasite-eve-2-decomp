@@ -7,14 +7,23 @@
 #include "main/display.h"
 #include "rooms/shelter_b1_pod_access_tunnel.h"
 
-extern u8 D_80071075;
-extern s8 D_8007218A;
-extern s8 D_8007272D;
-extern u8 D_80073BA9;
-extern s8 D_80114C12;
-extern u8 D_shelter_b1_pod_access_tunnel_80181120[];
+extern u8             D_80071075;
+extern s8             D_8007218A;
+extern s8             D_8007272D;
+extern u8             D_80073BA9;
+extern s8             D_80114C12;
+extern u8             D_shelter_b1_pod_access_tunnel_80181120[];
+extern TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D5D8;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", func_shelter_b1_pod_access_tunnel_8017DEE8);
+/// Runs the room task through its state table, copied onto the stack first and
+/// indexed by the task's state.
+void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b1_pod_access_tunnel_8017D5D8;
+    sp.funcs[task->state](task);
+}
 
 /// Two-state task: state 0, unless blocked by `D_80114C12` or `D_80071075`,
 /// sends the slot-3 task a `GpRec14` built from `D_80073BA9` (msg 0x3E8) and runs

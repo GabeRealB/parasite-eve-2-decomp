@@ -4,9 +4,11 @@
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/display.h"
+#include "main/stage.h"
 #include "rooms/shelter_b1_pod_access_tunnel.h"
-extern TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C;
-extern TaskDesc D_801348D8;
+extern TaskDesc       D_shelter_b1_pod_access_tunnel_80182D2C;
+extern TaskDesc       D_801348D8;
+extern TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D610;
 
 void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
 {
@@ -39,7 +41,15 @@ void func_shelter_b1_pod_access_tunnel_8017E52C(s32 arg0)
     Task_SpawnFromTable(&D_shelter_b1_pod_access_tunnel_80182D2C, 1, arg0, 0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E55C);
+/// Runs the image-scroll task through its state table, copied onto the stack
+/// first and indexed by the task's state.
+void func_shelter_b1_pod_access_tunnel_8017E55C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b1_pod_access_tunnel_8017D610;
+    sp.funcs[task->state](task);
+}
 
 void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
 {
@@ -83,4 +93,16 @@ void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)
     Display_InitModeObj(Task_GetDescAt(&D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, 0x100);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", func_shelter_b1_pod_access_tunnel_8017E778);
+/// Counts the spawn argument down one per frame; once it goes negative, kills
+/// the task and sets the stage's ending flag.
+void func_shelter_b1_pod_access_tunnel_8017E778(Task* arg0)
+{
+    s32 temp_v0;
+
+    temp_v0         = arg0->spawnArg1 - 1;
+    arg0->spawnArg1 = temp_v0;
+    if (temp_v0 < 0) {
+        taskKill(arg0);
+        Stage_SetEndingFlag();
+    }
+}
