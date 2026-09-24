@@ -132,7 +132,69 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
             break;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014AB3C);
+/// Links one frame of the rotating impact-spark billboard at `arg0`'s world
+/// position, projected through `GsWSMATRIX` by a single `RTPS`; a negative
+/// projection flag drops the quad.  `arg1` picks one of six 0x27-square frames
+/// along row 0x38 of tpage 0x2A, `arg2` sizes the quad and `arg3` spins it: the
+/// corners sit `arg2 * 0x27 / otz` from the projected centre along `arg3` and
+/// `arg3 + 0x400`, so the spark shrinks with depth.
+void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
+{
+    void**                   scratch;
+    u8*                      head;
+    Actor206100SparkScratch* blk;
+    Actor206100SparkScratch* copy;
+    POLY_FT4*                prim;
+    s32                      ang;
+    u16                      frame;
+    s32                      u;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    blk         = (Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch));
+    copy        = blk;
+    blk->vec.vx = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz = *(u16*)&arg0->workm.t[2];
+    *scratch    = blk;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->vec);
+    gte_rtps();
+    gte_stsxy(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->sx);
+    gte_stflg(&((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->flag);
+    if (blk->flag >= 0) {
+        gte_stszotz(copy);
+        ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz++;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        prim->code  = 0x2F;
+        prim->tpage = 0x2A;
+        prim->clut  = 0x4293;
+        frame       = arg1 % 6;
+        u           = frame * 0x28;
+        setUV4(prim, u, 0x38, u + 0x27, 0x38, u, 0x5F, u + 0x27, 0x5F);
+        ang      = (s16)arg3;
+        blk->dx  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rcos(ang)) >> 12;
+        prim->x0 = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x3 = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y0 = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y3 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        ang      = ang + 0x400;
+        blk->dx  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rsin(ang)) >> 12;
+        blk->dy  = (((arg2 * 0x27) / ((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz) * rcos(ang)) >> 12;
+        prim->x1 = *(u16*)&blk->sx + *(u16*)&blk->dx;
+        prim->x2 = *(u16*)&blk->sx - *(u16*)&blk->dx;
+        prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
+        prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        addPrim((u_long*)(((((u32)((Actor206100SparkScratch*)(head - sizeof(Actor206100SparkScratch)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + sizeof(Actor206100SparkScratch);
+}
 
 void func_actor_206100_8014AF74(Task* task)
 {
@@ -679,7 +741,124 @@ void func_actor_206100_8014BAA8(Task* task)
         work->field_504 = 0;
     }
 }
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100", func_actor_206100_8014BEC4);
+/// Accumulate `arg0`'s parent chain into `arg1`: seed it with the node's own
+/// rotation, then pre-multiply by each (renormalised) ancestor up to but not
+/// including `arg2`, renormalising after every step. Returns whether the walk
+/// stopped on `arg2` rather than running off the end of the chain.
+static __inline__ s32 Actor206100_AccumulateRotation(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         normal;
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    *arg1 = arg0->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            return 1;
+        }
+        matrix = coord->coord;
+        MatrixNormal(&matrix, &matrix);
+        gte_SetRotMatrix(&matrix);
+        MulRotMatrix(arg1);
+        MatrixNormal(arg1, &normal);
+        *arg1 = normal;
+        coord = coord->sub;
+    }
+}
+
+/// Undo the parent chain again, turning the world-space rotation in `arg1`
+/// back into one relative to `arg0`'s parent: accumulate the chain *above* the
+/// parent, transpose it (the 3x3 inverse of a rotation) and pre-multiply.
+/// Nothing to do when the parent is already the view coordinate.
+///
+/// Returns `arg0` so the caller stores through the returned pointer; the copy
+/// GCC emits where the exits merge is what gives the store base its own
+/// pseudo. Three details here are matching requirements rather than style:
+/// the early `return arg0;` on the end-of-chain exit (it is what lifts `arg0`
+/// past the scratch pointers in global-alloc's priority order, so it keeps
+/// `$s3`), and the `mp` / `lp` pointer variables, whose declarations must
+/// precede `view` so their pseudos out-rank it when the two tie.
+static __inline__ GsCOORDINATE2* Actor206100_LocalizeRotation(GsCOORDINATE2* arg0, MATRIX* arg1)
+{
+    MATRIX         matrix;
+    MATRIX         local;
+    MATRIX         normal;
+    MATRIX         transposed;
+    MATRIX*        mp;
+    MATRIX*        lp;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+
+    coord = arg0->sub;
+    if (coord != &gGfxViewCoord) {
+        mp     = &matrix;
+        view   = &gGfxViewCoord;
+        lp     = &local;
+        matrix = coord->coord;
+        while (1) {
+            coord = coord->sub;
+            if (coord == NULL) {
+                return arg0;
+            }
+            if (coord == view) {
+                __asm__ volatile(
+                    "lhu $12, 0(%0);"
+                    "lhu $13, 6(%0);"
+                    "lhu $14, 12(%0);"
+                    "sh $12, 0(%1);"
+                    "sh $13, 2(%1);"
+                    "sh $14, 4(%1);"
+                    "lhu $12, 2(%0);"
+                    "lhu $13, 8(%0);"
+                    "lhu $14, 14(%0);"
+                    "sh $12, 6(%1);"
+                    "sh $13, 8(%1);"
+                    "sh $14, 10(%1);"
+                    "lhu $12, 4(%0);"
+                    "lhu $13, 10(%0);"
+                    "lhu $14, 16(%0);"
+                    "sh $12, 12(%1);"
+                    "sh $13, 14(%1);"
+                    "sh $14, 16(%1);"
+                    : : "r"(mp), "r"(&transposed) : "$12", "$13", "$14", "memory");
+                gte_SetRotMatrix(&transposed);
+                MulRotMatrix(arg1);
+                break;
+            }
+            local = coord->coord;
+            MatrixNormal(&local, &local);
+            gte_SetRotMatrix(lp);
+            MulRotMatrix(&matrix);
+            MatrixNormal(&matrix, &normal);
+            matrix = normal;
+        }
+    }
+    return arg0;
+}
+
+/// Turns the joint `coord` by `yaw` about the world Y axis: accumulates its
+/// rotation up to the view coordinate, turns it, expresses the result back in
+/// the parent's frame and writes the 3x3 into the joint.  The working matrix
+/// is one `MATRIX` taken off the scratchpad head for the duration.
+void func_actor_206100_8014BEC4(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    Actor206100_AccumulateRotation(coord, rotation, &gGfxViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = Actor206100_LocalizeRotation(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
 /// `memCalloc(0x558, 0)` parked straight in `Task::work`, the actor destroyed

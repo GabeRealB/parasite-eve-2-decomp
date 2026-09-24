@@ -99,4 +99,12 @@ s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
     return ((arg1 << 8) / work->field_51A << 12) >> 16;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_206100/actor_206100_2", func_actor_206100_8014F428);
+/// The actor's task callback: runs its current top-level state out of
+/// `D_actor_206100_80149E5C`, copying the table onto the stack first.
+void func_actor_206100_8014F428(Task* task)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_actor_206100_80149E5C;
+    sp.funcs[task->state](task);
+}

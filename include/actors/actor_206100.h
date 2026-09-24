@@ -65,6 +65,13 @@ typedef union Actor206100Flags {
 } Actor206100Flags;
 STATIC_ASSERT_SIZEOF(Actor206100Flags, 0x4);
 
+/// The actor's five top-level states, dispatched on `Task::state` by its task
+/// callback `func_actor_206100_8014F428`: `func_actor_206100_8014C274` (which
+/// builds the work block), `func_actor_206100_8014DA28`,
+/// `func_actor_206100_8014C458`, `func_actor_206100_8014E7D4` and the exit
+/// `func_actor_206100_8014F490`.
+extern TaskFuncTable5 D_actor_206100_80149E5C;
+
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
 /// copies the table onto its stack and calls `funcs[(s16)field_522]`, the same
 /// local-jump-table shape `func_actor_341700_80168748` uses.  The entries are
@@ -181,6 +188,22 @@ STATIC_ASSERT_SIZEOF(Actor206100Slot, 0x8);
 /// The two companion slots, zeroed as an 8-byte-stride pair by the spawn state
 /// `func_actor_206100_8014C274`.
 extern Actor206100Slot D_actor_206100_80158CBC[2];
+
+/// Scratch the impact-spark billboard `func_actor_206100_8014AB3C` takes off
+/// `G_SCRATCH_HEAD`: `vec` is the coordinate's world translation truncated to
+/// 16 bits, and `flag`, `otz` and `sx` / `sy` are what its single `RTPS`
+/// stores.  `dx` / `dy` hold the current corner half-extents, of which only the
+/// low halves are read back.
+typedef struct Actor206100SparkScratch {
+    s32     otz;
+    s32     dx;
+    s32     dy;
+    s32     flag;
+    SVECTOR vec;
+    s16     sx;
+    s16     sy;
+} Actor206100SparkScratch;
+STATIC_ASSERT_SIZEOF(Actor206100SparkScratch, 0x1C);
 
 /// 0xC-byte scratch `func_actor_206100_8014ED3C` takes off `G_SCRATCH_HEAD` to
 /// hold the actor's position mirrored through the origin and its distance from
