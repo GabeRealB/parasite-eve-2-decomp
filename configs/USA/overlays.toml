@@ -3623,7 +3623,7 @@ objects = [
   { lib = true, unit = "rooms_shared_8017df68", text = "0x7E0" },
   { lib = true, unit = "rooms_shared_8017e90c", text = "0x1184" },
   { lib = true, unit = "rooms_shared_8017ff9c", text = "0x2814" },
-  { unit = "shelter_1f_heliport/shelter_1f_heliport_2", text = "0x2948" },
+  { unit = "shelter_1f_heliport/shelter_1f_heliport_2", rodata = "0x15C", text = "0x2948" },
   { lib = true, unit = "room_script23", text = "0x2FD4" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_3", text = "0x3098" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x31A8" },

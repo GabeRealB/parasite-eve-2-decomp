@@ -19,7 +19,3 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", Roo
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", jtbl_shelter_1f_heliport_8017D6FC);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", jtbl_shelter_1f_heliport_8017D71C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport", RoomsShared8017eb5cIdList);
