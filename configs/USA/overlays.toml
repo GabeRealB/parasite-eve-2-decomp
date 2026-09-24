@@ -925,16 +925,7 @@ objects = [
 id = 299
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_5", rodata = "0x4", text = "0x110" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_3", rodata = "0x50", text = "0x27D8" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x84", text = "0x1ECC" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_2", rodata = "0xF4", text = "0x2438" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_6", text = "0xCD8" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_7", text = "0x186C" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_8", text = "0x1960" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_9", text = "0x2748" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_10", text = "0x2964" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape_4", text = "0x29BC" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x4", text = "0x110" },
   { kind = "data", at = "0x4438" },
 ]
 
