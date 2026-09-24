@@ -11,7 +11,6 @@ s32  func_actor_405800_80136B94(Task* arg0);
 void func_actor_405800_8013A0F4(Task* arg0);
 void func_actor_405800_80138EF0(Task* arg0);
 void func_actor_405800_80138F54(Task* arg0);
-void ActorsShared8013a2c0(Task* arg0);
 void func_actor_405800_80132E3C(Task* arg0, s16 arg1, u8 arg2);
 
 extern u8 D_801153F4;
@@ -32,7 +31,7 @@ void func_actor_405800_80138698(Task* arg0)
         case 0:
             fns.funcs[(s16)work->field_846](arg0);
         case 1:
-            ActorsShared8013a2c0(arg0);
+            func_actor_405800_801387DC(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             break;
     }

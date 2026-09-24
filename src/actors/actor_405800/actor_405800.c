@@ -1,7 +1,7 @@
 #include "common.h"
 
-#include "actors/actors_shared_80131fc8.h"
-
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 #include "main/display.h"
@@ -20,8 +20,6 @@
 
 #include "actors/actor_405800.h"
 #include "actors/actor_405800_anim.h"
-#include "actors/actors_shared_80139dcc.h"
-#include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 
 extern s32                   Gp_LcgState;
@@ -484,7 +482,7 @@ void func_actor_405800_801334B8(Task* arg0)
 }
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E24);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", ActorsShared801328ccTable);
+INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E54);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_405800/actor_405800", D_actor_405800_80131E64);
 
@@ -518,7 +516,7 @@ static __inline__ void Actor405800_ProjectPart(GsCOORDINATE2* part)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    ActorsShared80131fc8(block->otz);
+    func_actor_405800_80131FC8(block->otz);
 }
 
 void func_actor_405800_80133800(Task* arg0)
@@ -622,7 +620,7 @@ void func_actor_405800_80133DB0(Task* arg0)
         work->obj_6D4.flags &= 0x7FFF;
         work->obj_694.flags &= 0x7FFF;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         func_actor_405800_80137994(arg0, 0);
         func_actor_405800_80137948(arg0);
         if (work->field_890 == 0 && work->field_852 < 0x578 && (u16)(work->field_856 - 0x200) > 0xC00 && (u16)(work->field_854 - 0x200) > 0xC00) {
@@ -664,7 +662,7 @@ void func_actor_405800_80133F48(Task* arg0)
         work->obj_6B4.flags &= 0x7FFF;
         work->obj_674.flags &= 0x7FFF;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         func_actor_405800_80137994(arg0, 0);
         func_actor_405800_80137948(arg0);
         if (work->field_890 == 0 && work->field_852 < 0x578 && (u16)(work->field_856 - 0x200) > 0xC00 && (u16)(work->field_854 - 0x200) > 0xC00) {
@@ -819,7 +817,7 @@ void func_actor_405800_80134314(Task* arg0)
             work->field_88C = 1;
         }
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         work->field_842 = 0;
         work->field_884++;
     }
@@ -964,7 +962,7 @@ void func_actor_405800_80134C00(Task* arg0)
 
     work  = (Actor405800Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         work->field_82   = (work->field_82 + 0x800) & 0xFFF;
         work2            = (Actor405800Work*)arg0->work;
         work2->field_850 = 0x10;
@@ -974,7 +972,7 @@ void func_actor_405800_80134C00(Task* arg0)
         Actor405800_TickAnim(arg0);
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 0xB, &work->field_88);
         work->field_891  = 0;
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 2;
@@ -1055,7 +1053,7 @@ void func_actor_405800_801351BC(Task* arg0)
     work->field_842++;
     if ((s16)work->field_842 < 8) {
         work->field_866 = (u16)work->field_866 + (-work->field_866 >> 1);
-        ActorsShared80139dcc(arg0, 3, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 3, &work->field_88);
         return;
     }
     work->field_866   = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
@@ -1110,7 +1108,7 @@ void func_actor_405800_80135558(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_842++;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         if (work->field_85A != 3) {
             work2            = (Actor405800Work*)arg0->work;
             work2->field_84A = 2;
@@ -1309,7 +1307,7 @@ void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         work->field_850 = arg1;
     }
     if (work->field_874 == start0) {
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 0xB, &work->field_88);
         id = 0x40050001;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -1326,7 +1324,7 @@ void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_874 == start1) {
-        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 8, &work->field_88);
         id = 0x40050002;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -1397,11 +1395,11 @@ void func_actor_405800_80135E28(Task* arg0)
         tmp2 = (u32)(0x1B00 / ((Actor405800Work*)arg0->work)->field_850) >> 4;
     }
     end1 = tmp2;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         work->field_874 = 0;
     }
     if (work->field_874 == start0) {
-        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 8, &work->field_88);
         id = 0x40050001;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -1416,7 +1414,7 @@ void func_actor_405800_80135E28(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_874 == start1) {
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_405800_80138478(arg0, 0xB, &work->field_88);
         id = 0x40050002;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0002;

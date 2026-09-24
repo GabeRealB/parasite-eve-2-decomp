@@ -7,11 +7,12 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
-#include "actors/actors_shared_80139dcc.h"
+#include "actors/actor_405800.h"
 
 /// Refreshes the view coordinate and coordinate `index` of the actor's model,
-/// then stores that coordinate's view-space X/Z translation to `out`.
-void ActorsShared80139dcc(Task* task, s16 index, ActorsShared80139dccPos* out)
+/// then stores that coordinate's view-space X and Z translation to `out`; `y`
+/// is left untouched. Every caller passes the work block's `field_88`.
+void func_actor_405800_80138478(Task* task, s16 index, Actor405800ViewPos* out)
 {
     MATRIX         local;
     GsCOORDINATE2* coord;

@@ -102,9 +102,9 @@ typedef struct Actor405800Work {
     /* 0x040 */ MATRIX              matrix_40; // light matrix for the child models
     /* 0x060 */ byte                pad_60[0x10];
     /* 0x070 */ VECTOR              field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                 field_80;  // pitch, see ActorsShared80139948
-    /* 0x082 */ u16                 field_82;  // yaw, see ActorsShared80139948
-    /* 0x084 */ u16                 field_84;  // roll, see ActorsShared80139948
+    /* 0x080 */ u16                 field_80;  // pitch, see func_actor_405800_80139FC4
+    /* 0x082 */ u16                 field_82;  // yaw, see func_actor_405800_80139FC4
+    /* 0x084 */ u16                 field_84;  // roll, see func_actor_405800_80139FC4
     /* 0x086 */ byte                pad_86[2];
     /* 0x088 */ Actor405800ViewPos  field_88;
     /* 0x08E */ byte                pad_8E[2];
@@ -116,7 +116,7 @@ typedef struct Actor405800Work {
     /* 0x09A */ s16                 field_9A;
     /* 0x09C */ u16                 field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte                pad_9E[0xA];
-    /* 0x0A8 */ SVECTOR             field_A8; // world point `ActorsShared80139c00` turns to face (it reads `vx` / `vz`)
+    /* 0x0A8 */ SVECTOR             field_A8; // world point `func_actor_405800_801383CC` turns to face (it reads `vx` / `vz`)
     /* 0x0B0 */ GpAnimCtx           anim;     // slots 1..0x11 reset by func_actor_405800_80138224
     /* 0x0C4 */ GpAnimSlot          slots[0x12];
     /* 0x394 */ byte                pad_394[0x120];
@@ -199,5 +199,20 @@ typedef struct Actor405800Work {
     /* 0x899 */ byte                pad_899[0x3];
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
+
+/// The task's four state handlers, run by `func_actor_405800_80138634`.
+extern TaskFuncTable4 D_actor_405800_80131E54;
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
+/// so a negated angle is passed without re-truncation to 16 bits.
+void func_8004BFF8(s32 angle, MATRIX* matrix);
+
+void func_actor_405800_80131FC8(s32 otz);
+void func_actor_405800_801383CC(Task* arg0, SVECTOR* target, s32 step);
+void func_actor_405800_80138478(Task* task, s16 index, Actor405800ViewPos* out);
+s32  func_actor_405800_801385F4(Task* arg0);
+void func_actor_405800_80138634(Task* task);
+void func_actor_405800_801387DC(Task* task);
+void func_actor_405800_80139FC4(Task* arg0);
 
 #endif // ACTOR_405800_H

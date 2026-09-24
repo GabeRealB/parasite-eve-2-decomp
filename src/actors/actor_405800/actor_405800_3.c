@@ -8,7 +8,6 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_405800.h"
-#include "actors/actors_shared_80139c00.h"
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
 void func_8009EA50(s16 arg0);
@@ -121,7 +120,7 @@ void func_actor_405800_80137E64(Task* task)
             work2->field_848 = 0;
             return;
         }
-        ActorsShared80139c00(task, &work->field_A8, 0x18);
+        func_actor_405800_801383CC(task, &work->field_A8, 0x18);
         func_actor_405800_80135E28(task);
     }
 }

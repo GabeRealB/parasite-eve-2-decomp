@@ -6,12 +6,13 @@
 
 #include "gameplay/3A34.h"
 
-/// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters. The task-bound form of `ActorsShared80134690`: the colour target
-/// is the task's own `spawnArg2` rather than a separate argument.
-void ActorsShared8013a2c0(Task* task)
+#include "actors/actor_405800.h"
+
+/// Colours the actor from its model's second coordinate: takes a 0x10-byte
+/// `VECTOR` off `G_SCRATCH_HEAD`, fills it with that coordinate's world
+/// position and hands it to `Gp_UpdateActorColor` for the task's `spawnArg2`,
+/// with no blend parameters.
+void func_actor_405800_801387DC(Task* task)
 {
     GsCOORDINATE2* coord;
     void**         scratch;

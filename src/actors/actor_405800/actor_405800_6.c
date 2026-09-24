@@ -8,9 +8,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_405800.h"
-#include "actors/actors_shared_80139948.h"
-#include "actors/actors_shared_80139c00.h"
-#include "actors/actors_shared_8013a0b0.h"
 
 extern u8  D_actor_405800_801514D8[];
 extern s32 Gp_LcgState;
@@ -102,7 +99,7 @@ void func_actor_405800_80138A18(Task* task)
 
     work = (Actor405800Work*)task->work;
     func_actor_405800_8013A0F4(task);
-    if ((s16)ActorsShared8013a0b0(task) != 0) {
+    if ((s16)func_actor_405800_801385F4(task) != 0) {
         work->field_846 = work->field_846 + 1;
     }
 }
@@ -227,7 +224,7 @@ void func_actor_405800_80138D54(Task* task)
         coord->coord.t[1] = (s16)work->field_92;
         func_actor_405800_8013A1E0(task, 0x13, 0x10);
         work->field_84 += 0x800;
-        ActorsShared80139948(task);
+        func_actor_405800_80139FC4(task);
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         work->field_842 = 0;
@@ -255,7 +252,7 @@ void func_actor_405800_80138E20(Task* task)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
         work->field_842++;
     }
-    if ((ActorsShared8013a0b0(task) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(task) << 0x10) != 0) {
         func_actor_405800_80139FB0(task, 1);
     }
     func_actor_405800_8013A0F4(task);
@@ -330,7 +327,7 @@ void func_actor_405800_8013902C(Task* task)
     if (work->field_87E < min) {
         work->field_87E = min;
     }
-    ActorsShared80139c00(task, &work->field_A8, work->field_880);
+    func_actor_405800_801383CC(task, &work->field_A8, work->field_880);
     func_actor_405800_80135A3C(task, work->field_87E);
 }
 
@@ -378,7 +375,7 @@ void func_actor_405800_80139188(Task* arg0)
         }
         return;
     }
-    if ((func_actor_405800_80136A1C(arg0) << 0x10) == 0 && (ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_80136A1C(arg0) << 0x10) == 0 && (func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         if (work->field_891 == 0) {
             work2            = (Actor405800Work*)arg0->work;
             work2->field_846 = 2;
@@ -423,7 +420,7 @@ void func_actor_405800_801392EC(Task* arg0)
     Actor405800Work* work3;
 
     work = (Actor405800Work*)arg0->work;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         if (work->field_891 == 0) {
             work2            = (Actor405800Work*)arg0->work;
             work2->field_846 = 2;
@@ -518,7 +515,7 @@ void func_actor_405800_801394E4(Task* arg0)
     Actor405800Work* work3;
 
     work = (Actor405800Work*)arg0->work;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         work->field_898 = 0;
         if (work->field_891 == 0) {
             work2            = (Actor405800Work*)arg0->work;
@@ -621,7 +618,7 @@ void func_actor_405800_801397F0(Task* task)
 {
     Actor405800Work* work;
 
-    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)ActorsShared8013a0b0(task) != 0)) {
+    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)func_actor_405800_801385F4(task) != 0)) {
         work            = (Actor405800Work*)task->work;
         work->field_846 = 2;
         work->field_848 = 0;
@@ -662,7 +659,7 @@ void func_actor_405800_801398C0(Task* task)
     Actor405800Work* work2;
 
     work = (Actor405800Work*)task->work;
-    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)ActorsShared8013a0b0(task) != 0)) {
+    if (((s16)func_actor_405800_80136B94(task) == 0) && ((s16)func_actor_405800_801385F4(task) != 0)) {
         work->field_85E  = 0x12C;
         work2            = (Actor405800Work*)task->work;
         work2->field_846 = 2;
@@ -716,7 +713,7 @@ void func_actor_405800_801399C4(Task* arg0)
         work->field_88F = 0;
         work->field_842++;
     }
-    if ((func_actor_405800_80136B94(arg0) << 0x10) == 0 && (ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_80136B94(arg0) << 0x10) == 0 && (func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         work->field_85E  = 0x12C;
         work2            = (Actor405800Work*)arg0->work;
         work2->field_846 = 2;
@@ -782,7 +779,7 @@ void func_actor_405800_80139BD8(Task* arg0)
         rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
         Gp_LcgState     = rnd;
         work->field_87C = ((rnd >> 0x10) & 0x7F) + 0x1E;
-    } else if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    } else if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
         Gp_LcgState      = rnd;
         work->field_87C  = ((rnd >> 0x10) & 0x7F) + 0x1E;
@@ -824,7 +821,7 @@ void func_actor_405800_80139D24(Task* arg0)
     Actor405800Work* work3;
 
     work = (Actor405800Work*)arg0->work;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         if (work->field_891 == 0) {
             work2            = (Actor405800Work*)arg0->work;
             work2->field_84A = 0x1E;
@@ -849,7 +846,7 @@ void func_actor_405800_80139DC0(Task* arg0)
     Actor405800Work* work3;
 
     work = (Actor405800Work*)arg0->work;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
         if (work->field_891 == 0) {
             work2            = (Actor405800Work*)arg0->work;
             work2->field_846 = 2;
