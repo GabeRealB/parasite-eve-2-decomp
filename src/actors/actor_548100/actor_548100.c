@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actor_548100.h"
+#include <psyq/libgte.h>
 
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
@@ -16,8 +16,202 @@
 #include "psyq/abs.h"
 #include "rooms/room_common.h"
 
+/// Per-instance work block of actor_548100, parked in `Task::work` -- that
+/// slot is not a `TaskIdMap` here, it is the `memCalloc(0x18, 0)` block
+/// `func_actor_548100_80132420` allocates at spawn and stores at
+/// `Task::work` (0x1C). Reach it with `(Actor548100Work*)task->work`.
+///
+/// `step` is the actor's 1-based progress step (0 while unset): the spawner
+/// `func_actor_548100_80132550` seeds it from the `field_8` of the first
+/// `D_actor_548100_801357E8` record whose `field_B` is set, and
+/// `func_actor_548100_80132684` switches on it with nine cases. The game-flag
+/// nibble recording whether a step is done is `step + 0xBE`, which is why the
+/// same `+ 0xBE` shows up at every `GameFlag_GetNibble` / `GameFlag_SetNibble`
+/// site in the overlay. `bit2Slot` is the 2-bit slot this instance occupies in
+/// the current `Gp_Bit2Banks` word (`Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag`,
+/// seeded with 5 or 4 by `func_actor_548100_80132684`) and `collectBitId` an id
+/// in the `Gp_ClearCollectedBit` space (0x120 for the instance that reaches
+/// `Gp_StartCapSlot` with kind 1). `promptKind` is the picked hotspot's prompt
+/// display mode, copied from it by `func_actor_548100_80132550` and handed to
+/// `func_800D4E78` when `func_actor_548100_80134DBC` re-spawns the prompt.
+///
+/// 0x8 and up is the ramp `func_actor_548100_80134FEC` drives: `field_8` is the
+/// period, `field_A` the elapsed counter it advances by 4 and clamps to
+/// `field_8`, `field_C` the value that period ramps to, `field_E` the
+/// interpolated result `field_C * field_A / field_8`, and `field_10` / `field_12`
+/// a second period/elapsed pair on the same shape. `func_actor_548100_80132808`
+/// seeds that ramp from a route record (`Actor548100Route`): `field_8` becomes
+/// the farther of the record's first two legs' distances and `field_C` the
+/// nearer one, so the pair is also what names 0x14-0x17 -- `farFrom` / `farTo`
+/// the node ids of the leg `field_8` measures, `nearFrom` / `nearTo` those of
+/// `field_C`. The block is 0x18 bytes in full.
+typedef struct Actor548100Work {
+    /* 0x00 */ byte pad_0[0x2];
+    /* 0x02 */ s16  step;
+    /* 0x04 */ s16  collectBitId;
+    /* 0x06 */ s8   promptKind;
+    /* 0x07 */ s8   bit2Slot;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ s16  field_E;
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ u8   farFrom;
+    /* 0x15 */ u8   farTo;
+    /* 0x16 */ u8   nearFrom;
+    /* 0x17 */ u8   nearTo;
+} Actor548100Work;
+STATIC_ASSERT_SIZEOF(Actor548100Work, 0x18);
+
+/// One leg of an `Actor548100Route`: the two node ids `func_actor_548100_80134CB8`
+/// measures a route distance between, in the same node space as
+/// `Actor548100Edge`'s `nodeA` / `nodeB`.
+typedef struct Actor548100Leg {
+    /* 0x0 */ u8 nodeA;
+    /* 0x1 */ u8 nodeB;
+} Actor548100Leg;
+STATIC_ASSERT_SIZEOF(Actor548100Leg, 0x2);
+
+/// One record of the route-progress tables `D_actor_548100_801356D8` and
+/// `D_actor_548100_80135750` -- 10-byte records, terminated by one whose `bitA`
+/// is 0xFF, in the table `func_actor_548100_801330EC` selects by
+/// `GameFlag_GetNibble(0xBE)` and whose chosen record it parks in
+/// `D_actor_548100_80135B4C`. A leg's node ids are read as `u8` -- the `lbu` is
+/// what the target shows, `Actor548100Edge`'s record is keyed the same way --
+/// and a `nodeA` of 0 means the leg is unused.
+///
+/// `bitA` / `bitB` are 1-based ids, or 0: `func_actor_548100_801330EC` turns
+/// each into `1 << (id - 1)` and compares the pair against the four nibbles
+/// 0xBF-0xC2 -- the per-step flags this actor sets -- stepping a record at a
+/// time until they agree, so a record describes one player state (the two
+/// tables are that state's two routes).
+///
+/// `func_actor_548100_80132808` measures `leg[0]` and `leg[1]` with
+/// `func_actor_548100_80134CB8` and keeps the farther and the nearer of the two
+/// in the work ramp, and `leg[2]`'s distance as the second period; the record's
+/// `nodeA`s must be set for `func_actor_548100_80132A14` to walk each leg with
+/// `func_actor_548100_80134AE0`. Its `flag_8` / `flag_9` gate that same body's
+/// two `func_actor_548100_80133BBC` calls.
+typedef struct Actor548100Route {
+    /* 0x0 */ s8             bitA;
+    /* 0x1 */ s8             bitB;
+    /* 0x2 */ Actor548100Leg leg[3];
+    /* 0x8 */ u8             flag_8;
+    /* 0x9 */ u8             flag_9;
+} Actor548100Route;
+STATIC_ASSERT_SIZEOF(Actor548100Route, 0xA);
+
+/// The route record `func_actor_548100_801330EC` last resolved: where the
+/// player is along the route the stage is on. Zero until the first
+/// `func_actor_548100_801330EC` call.
+extern Actor548100Route* D_actor_548100_80135B4C;
+
+/// One record of the edge table `D_actor_548100_801351D0`: a directed link of
+/// the stage graph this actor patrols and draws. `nodeA` / `nodeB` are node ids
+/// (0-99) indexing the 4-byte point table `D_actor_548100_801358E4`
+/// (`s16 x, y`); `func_actor_548100_80133684` reads both endpoints' points and
+/// draws the segment between them. A node pair also keys the edge-id matrix
+/// `D_actor_548100_80135B5C` as `prev * 100 + cur`, which is how the route walk
+/// in `func_actor_548100_80134AE0` and `func_actor_548100_80134CB8` gets from a
+/// step of the route string back to a record here: the bytes of
+/// `D_actor_548100_80135B24[id]` are successive node ids, 0xFF-terminated.
+///
+/// The record is 14 bytes -- the stride `func_actor_548100_80134AE0` computes
+/// as `id * 7 * 2` -- and only `nodeA`, `nodeB` and `field_2` are seeded in the
+/// ROM; the rest is runtime state. `state` is the 1-based progress step the
+/// drawing switch in `func_actor_548100_80133684` dispatches on (it subtracts 1
+/// and accepts 0-4 as a case index): `func_actor_548100_80134AE0` writes 2 or 3
+/// into it and `func_actor_548100_80134BF0` 0 or 1, the latter choosing between
+/// them by comparing `field_2` with 2 (records 0-3 carry 2, records 73-78
+/// carry 1). `flag_3` gates the direction branch of the drawing code, `dist` is
+/// a per-segment value summed along a route by `func_actor_548100_80134CB8`,
+/// and `field_C` a signed value that code scales by the segment's horizontal
+/// direction.
+///
+/// `func_actor_548100_80134BA8` walks the table from its head and stops at the
+/// first record whose `nodeA` is 0: an all-zero sentinel record, the 92nd, so 91
+/// real records. The table's extent is 0x508 bytes, ending exactly where
+/// `D_actor_548100_801356D8` begins -- only its leading 0x200 bytes are covered
+/// by this symbol, the splitter having put the stray `D_actor_548100_801353D0`
+/// label inside the array, mid-record.
+typedef struct Actor548100Edge {
+    /* 0x00 */ u8   nodeA;
+    /* 0x01 */ u8   nodeB;
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ u8   flag_3;
+    /* 0x04 */ s16  field_4;
+    /* 0x06 */ s16  field_6;
+    /* 0x08 */ u8   state;
+    /* 0x09 */ byte pad_9[0x1];
+    /* 0x0A */ s16  dist;
+    /* 0x0C */ s16  field_C;
+} Actor548100Edge;
+STATIC_ASSERT_SIZEOF(Actor548100Edge, 0xE);
+
+extern Actor548100Edge D_actor_548100_801351D0[];
+/// Node points `(x, y)`, indexed by node id.
+extern DVECTOR D_actor_548100_801358E4[];
+/// Route strings, indexed by route id: node ids, 0xFF-escaped, 0-terminated.
+extern u8* D_actor_548100_80135B24[];
+/// Edge-id matrix keyed `prev * 100 + cur`.
+extern u8 D_actor_548100_80135B5C[];
+
+/// One cell of the sprite table `D_actor_548100_801357C0` (four records, the
+/// actor's four frames, each drawn only while its `GameFlag_GetNibble(i + 0xBF)`
+/// is set) plus the fifth record `D_actor_548100_801357E0` -- `{0, 0, 75, 239}`,
+/// the 76-column full-height panel `func_actor_548100_8013461C` links when flag
+/// 0xC3 is set. A record is an 8-byte `s16` quadruple, the stride the loop in
+/// `func_actor_548100_80132A14` walks as `s1 += 8` and the one that makes
+/// `D_actor_548100_801357E0` element 4 of the same table.
+///
+/// The same four numbers are both the quad's texture window and its screen
+/// rectangle: `func_actor_548100_8013461C` writes them straight into `u`/`v`
+/// and writes `u - 160` / `v - 120` into `x`/`y`. That difference is the screen
+/// centre, so the table is authored in 320x240 screen space with the origin at
+/// the middle, and the texture page is laid over the screen 1:1 -- the four
+/// frames tile the strip at x 76-103, y 33-83 and the fifth covers everything
+/// to its left.
+typedef struct Actor548100TexRect {
+    /* 0x0 */ s16 u0;
+    /* 0x2 */ s16 v0;
+    /* 0x4 */ s16 u1;
+    /* 0x6 */ s16 v1;
+} Actor548100TexRect;
+STATIC_ASSERT_SIZEOF(Actor548100TexRect, 0x8);
+
+/// Entry of a 0xFFFF-terminated hit-test table, walked by
+/// `func_actor_548100_801348A4`: a screen rectangle (`x`, `y`, `w`, `h`) whose
+/// `hit` is raised when the point lies inside it. Same layout as the rooms'
+/// `RoomHotspot`.
+typedef struct Actor548100Hotspot {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 y;
+    /* 0x4 */ s16 w;
+    /* 0x6 */ s16 h;
+    /* 0x8 */ s16 id; // list terminator is -1
+    /* 0xA */ u8  promptKind;
+    /* 0xB */ s8  hit;
+} Actor548100Hotspot;
+STATIC_ASSERT_SIZEOF(Actor548100Hotspot, 0xC);
+
+void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
+void func_actor_548100_80132420(Task* task);
+void func_actor_548100_80132550(Task* task);
+void func_actor_548100_80132684(Task* task);
+void func_actor_548100_80132808(Task* arg0);
 void func_actor_548100_801330EC(void);
-s32  func_actor_548100_80134CB8(u8 nodeA, u8 nodeB);
+void func_actor_548100_80134400(Actor548100Hotspot* unused);
+s32  func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y);
+s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
+void func_actor_548100_80134D88(Task* task);
+void func_actor_548100_80134DBC(Task* task);
+void func_actor_548100_80134E0C(Task* arg0);
+void func_actor_548100_80134E94(Task* arg0);
+void func_actor_548100_80134F64(Task* arg0);
+void func_actor_548100_80134FEC(Task* arg0);
+void func_actor_548100_80135124(Task* arg0);
+void func_actor_548100_80135154(Task* task);
 void func_actor_548100_8013461C(Actor548100TexRect* rect);
 void func_actor_548100_80133BBC(s32 arg0);
 void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
@@ -49,8 +243,16 @@ extern s8                 D_actor_548100_80135B58;
 extern s8                 D_actor_548100_80135B59;
 extern s8                 D_actor_548100_80135B5A;
 extern s8                 D_actor_548100_80135B5B;
-
-void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
+extern u8                 D_actor_548100_80135884;
+extern u8                 D_actor_548100_80135885;
+extern u8                 D_actor_548100_80135886;
+extern u8                 D_actor_548100_80135887;
+extern u8                 D_actor_548100_80135888;
+extern u8                 D_actor_548100_80135889;
+extern u8                 D_actor_548100_8013588A;
+extern u8                 D_actor_548100_8013588B;
+extern u8                 D_actor_548100_8013588C;
+extern s16                D_80114D08;
 
 /// Per-frame cursor driver of the security-room action prompt, run as state 1
 /// of the prompt task. The Acropolis security room carries the same body, twice.
@@ -204,10 +406,28 @@ void func_actor_548100_80131ED8(Task* task)
     }
 }
 
-/* The unit's rodata opens with this function's jump table, so the two tables
-   after it follow here, in address order. */
-INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E54);
-INCLUDE_RODATA("actors/nonmatchings/actor_548100/actor_548100", D_actor_548100_80131E6C);
+/// Three prompt-mode labels nothing in the actor reads.
+const char D_actor_548100_80131E54[] = "Short";
+const char D_actor_548100_80131E5C[] = "Stop";
+const char D_actor_548100_80131E64[] = "Flow";
+
+/// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`,
+/// one handler per `Task::state`, which that body copies onto its stack before
+/// indexing. States 0 and 2 are the spawners, 1 and 3 arm and re-spawn the
+/// action prompt, 4 is the `step` switch and 9 the ramp driver.
+const TaskFuncTable11 D_actor_548100_80131E6C = { {
+    func_actor_548100_80132420,
+    func_actor_548100_80134D88,
+    func_actor_548100_80132550,
+    func_actor_548100_80134DBC,
+    func_actor_548100_80132684,
+    func_actor_548100_80134E0C,
+    func_actor_548100_80134E94,
+    func_actor_548100_80134F64,
+    func_actor_548100_80132808,
+    func_actor_548100_80134FEC,
+    func_actor_548100_80135124,
+} };
 
 /// Queues one 16x24 textured quad -- the action prompt icon -- at (`x`, `y`)
 /// into the head of the current OT. `variant` selects the palette, 0x3C87 when
@@ -253,6 +473,8 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant)
     addPrim(gGpuCurrentOt, prim);
 }
 
+/// State 0 of the actor's callback: allocates the work block, spawns the
+/// action-prompt task and initializes the map UI.
 void func_actor_548100_80132420(Task* task)
 {
     Actor548100Work*    work;
@@ -559,7 +781,9 @@ void func_actor_548100_80132A14(Task* task)
     }
 }
 
-void func_actor_548100_80132EA0(void)
+/// Per-frame hook the actor's callback runs after the state handler; empty in
+/// this actor.
+void func_actor_548100_80132EA0(Task* task)
 {
 }
 
@@ -1408,4 +1632,366 @@ void func_actor_548100_8013461C(Actor548100TexRect* rect)
     prim->tpage = 0x116;
     setShadeTex(prim, 1);
     addPrim(&gGpuCurrentOt[0x3FE], prim);
+}
+
+/// Callback of the action-prompt task: a two-state dispatcher whose handler
+/// table is built on the stack. State 0, `func_actor_548100_80135154`, resets
+/// both prompt slots; state 1, `func_actor_548100_80131ED8`, drives the cursor
+/// every frame from then on.
+void func_actor_548100_80134728(Task* task)
+{
+    TaskFunc funcs[2] = {
+        func_actor_548100_80135154,
+        func_actor_548100_80131ED8,
+    };
+
+    funcs[task->state](task);
+}
+
+s32 func_actor_548100_80134778(Task* arg0, s16 arg1, s32 arg2)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
+
+    if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->step - 1) < 4U) {
+        work->collectBitId = arg2;
+        if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(0xC3) != 0) {
+            return 2;
+        }
+        return 1;
+    }
+    work->collectBitId = 0;
+    return 0;
+}
+
+void func_actor_548100_801347F8(Task* arg0)
+{
+    TaskFuncTable11 fns;
+
+    fns = D_actor_548100_80131E6C;
+    fns.funcs[arg0->state](arg0);
+    func_actor_548100_801330EC();
+    func_actor_548100_80132EA0(arg0);
+    func_actor_548100_80132A14(arg0);
+}
+
+/// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
+/// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
+s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y)
+{
+    s32 hit;
+
+    hit = 0;
+    while (table->id != -1) {
+        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
+            table->hit = 1;
+            if (hit == 0) {
+                hit = table->id;
+            }
+        } else {
+            table->hit = 0;
+        }
+        table++;
+    }
+    return hit;
+}
+
+void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+{
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+
+    var_v0 = D_actor_548100_80135884 * arg0;
+    if (var_v0 < 0) {
+        var_v0 += 0x1F;
+    }
+    *arg1    = (s8)(var_v0 >> 5);
+    var_v0_2 = D_actor_548100_80135885 * arg0;
+    if (var_v0_2 < 0) {
+        var_v0_2 += 0x1F;
+    }
+    *arg2    = (s8)(var_v0_2 >> 5);
+    var_v0_3 = D_actor_548100_80135886 * arg0;
+    if (var_v0_3 < 0) {
+        var_v0_3 += 0x1F;
+    }
+    *arg3 = (s8)(var_v0_3 >> 5);
+}
+
+void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+{
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+
+    var_v0 = D_actor_548100_80135887 * arg0;
+    if (var_v0 < 0) {
+        var_v0 += 0x1F;
+    }
+    *arg1    = (s8)(var_v0 >> 5);
+    var_v0_2 = D_actor_548100_80135888 * arg0;
+    if (var_v0_2 < 0) {
+        var_v0_2 += 0x1F;
+    }
+    *arg2    = (s8)(var_v0_2 >> 5);
+    var_v0_3 = D_actor_548100_80135889 * arg0;
+    if (var_v0_3 < 0) {
+        var_v0_3 += 0x1F;
+    }
+    *arg3 = (s8)(var_v0_3 >> 5);
+}
+
+void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+{
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+
+    var_v0 = D_actor_548100_8013588A * arg0;
+    if (var_v0 < 0) {
+        var_v0 += 0x1F;
+    }
+    *arg1    = (s8)(var_v0 >> 5);
+    var_v0_2 = D_actor_548100_8013588B * arg0;
+    if (var_v0_2 < 0) {
+        var_v0_2 += 0x1F;
+    }
+    *arg2    = (s8)(var_v0_2 >> 5);
+    var_v0_3 = D_actor_548100_8013588C * arg0;
+    if (var_v0_3 < 0) {
+        var_v0_3 += 0x1F;
+    }
+    *arg3 = (s8)(var_v0_3 >> 5);
+}
+
+void func_actor_548100_80134AE0(s32 id, u8 stop)
+{
+    u8* route;
+    u8* head;
+    u8  prev;
+    u8  cur;
+    u8  edge;
+    u8  state;
+
+    state = 2;
+    if (stop != 0) {
+        state = 3;
+    }
+    head  = D_actor_548100_80135B24[id];
+    prev  = head[0];
+    route = head + 1;
+    while (*route != 0) {
+        cur = *route;
+        if (cur != 0xFF) {
+            edge                                = D_actor_548100_80135B5C[cur + prev * 100];
+            D_actor_548100_801351D0[edge].state = state;
+            prev                                = *route;
+        } else {
+            route++;
+            prev = *route;
+        }
+        if (*route++ == stop) {
+            break;
+        }
+    }
+}
+
+void func_actor_548100_80134BA8(void)
+{
+    Actor548100Edge* edge;
+
+    for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+        func_actor_548100_80133684(edge);
+    }
+}
+
+void func_actor_548100_80134BF0(void)
+{
+    Actor548100Edge* edge;
+
+    if (GameFlag_GetNibble(0xBE) == 2) {
+        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+            if (edge->field_2 == 2) {
+                edge->state = 0;
+            } else {
+                edge->state = 1;
+            }
+        }
+    } else {
+        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+            if (edge->field_2 == 1) {
+                edge->state = 0;
+            } else {
+                edge->state = 1;
+            }
+        }
+    }
+}
+
+s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
+{
+    u8* route;
+    u8* head;
+    u8  prev;
+    s32 dist;
+
+    if (nodeA == 0) {
+        return 1;
+    }
+    head  = D_actor_548100_80135B24[nodeA];
+    dist  = 0;
+    prev  = head[0];
+    route = head + 1;
+    while (*route != 0) {
+        if (*route != 0xFF) {
+            dist += D_actor_548100_801351D0[D_actor_548100_80135B5C[*route + prev * 100]].dist;
+            prev  = *route;
+        } else {
+            route++;
+            prev = *route;
+        }
+        if (*route++ == nodeB) {
+            break;
+        }
+    }
+    return dist;
+}
+
+/// State 1 of the actor's callback: arms the first action-prompt slot with
+/// target id 0x80, marks it highlighted (`mode` 1), clears its screen position
+/// and steps the task on to state 2.
+void func_actor_548100_80134D88(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    task->state         = task->state + 1;
+}
+
+/// State 3 of the actor's callback, entered once a hotspot is picked: clears
+/// the prompt's highlight and target, re-spawns the prompt at its current
+/// screen position with the picked hotspot's `promptKind`, and moves the task
+/// to the `step` switch in state 4.
+void func_actor_548100_80134DBC(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    Actor548100Work*  work   = (Actor548100Work*)task->work;
+
+    prompt->mode     = 0;
+    prompt->targetId = 0;
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    task->state = 4;
+}
+
+void func_actor_548100_80134E0C(Task* arg0)
+{
+    Gp_MsgPlayerWeapon(1);
+    Gp_MsgPlayer3F3(1);
+    D_80114D08 = 0xA;
+    Display_ReleaseRef();
+    gGameSession->eventState   = 0;
+    gGameSession->hideHud      = 0;
+    gGameSession->cutsceneHold = 0;
+    D_8007216C                 = 3;
+    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
+    SOFT_BARRIER();
+    taskKill((Task*)arg0->spawnArg2);
+    Task_RequestKill(arg0, 0);
+}
+
+void func_actor_548100_80134E94(Task* arg0)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
+    s32              value;
+
+    if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+        if (GameFlag_GetNibble(0xC3) != 0) {
+            Gp_StartCapSlot(6, 0, 1);
+        } else {
+            value = 2;
+            if (work->collectBitId == 0x120) {
+                value = 1;
+            }
+            SndEvt_EnqueueType6(0x5406000B, 0, 0);
+            GameFlag_SetNibble(work->step + 0xBE, value);
+            Gp_ClearCollectedBit(work->collectBitId);
+        }
+    } else {
+        Gp_StartCapSlot(6, 0, 4);
+    }
+    work->collectBitId = 0;
+    arg0->state        = 2;
+}
+
+void func_actor_548100_80134F64(Task* arg0)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
+
+    if (Gp_CapBusy() == 0) {
+        if (Gp_GetCurBit2Flag(work->bit2Slot) == 2) {
+            /* The nibble at 0xBE + step is this actor's per-step progress flag. */
+            GameFlag_SetNibble(work->step + 0xBE, 0);
+            GameFlag_SetNibble(0x110, 1);
+            SndEvt_EnqueueType6(0x5406000B, 0, 0);
+        }
+        arg0->state = 2;
+    }
+}
+
+void func_actor_548100_80134FEC(Task* arg0)
+{
+    Actor548100Work* work = (Actor548100Work*)arg0->work;
+
+    work->field_12 += 4;
+    work->field_A  += 4;
+    if (work->field_10 < work->field_12) {
+        work->field_12 = work->field_10;
+    }
+    if (work->field_A > work->field_8) {
+        work->field_A = work->field_8;
+        if (work->field_12 == work->field_10) {
+            SndEvt_EnqueueType7(0x5406000A, 1);
+            if (D_actor_548100_80135B4C->flag_8 != 0) {
+                SndEvt_EnqueueType6(0x5406000E, 0, 0);
+                Gp_RunCapCmd(0xC, 0);
+                arg0->state = 0xA;
+            } else {
+                arg0->state = 2;
+            }
+            return;
+        }
+    }
+    work->field_E = work->field_C * work->field_A / work->field_8;
+}
+
+void func_actor_548100_80135124(Task* arg0)
+{
+    if (Gp_CapBusy() == 0) {
+        arg0->state = 2;
+    }
+}
+
+/// State 0 of the action-prompt task: resets both prompt slots before the
+/// first cursor frame -- clears the position accumulators and the two
+/// buttons' held-frame counters, parks the target id (the cursor speed) at
+/// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
+/// highlighted -- and steps the task on one state.
+void func_actor_548100_80135154(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               i;
+
+    for (i = 0; i < 2; i++, prompt++) {
+        prompt->field_0               = 0;
+        prompt->field_4               = 0;
+        prompt->targetId              = 0x100;
+        prompt->field_E               = 0xF;
+        prompt->buttons[0].heldFrames = 0;
+        prompt->buttons[1].heldFrames = 0;
+        prompt->mode                  = 1;
+    }
+    task->state = task->state + 1;
 }
