@@ -1,9 +1,11 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/sound.h"
 #include "main/task.h"
 
-extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC;
+extern GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[];
+extern TaskDesc   D_shelter_b2_pod_access_tunnel_80183BFC;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017D62C);
 
@@ -40,7 +42,15 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB78(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DBA8);
+void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
+{
+    arg0->msgTable = D_shelter_b2_pod_access_tunnel_80183BCC;
+    Game_SetPtrSlot(arg0, 7);
+    if (gGameSession->at4.loc.place == 0x16) {
+        gGameSession->flowFlags = 3;
+    }
+    arg0->state = arg0->state + 1;
+}
 
 void func_shelter_b2_pod_access_tunnel_8017DC0C(void)
 {
