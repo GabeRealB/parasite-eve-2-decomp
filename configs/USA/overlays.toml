@@ -2670,7 +2670,7 @@ objects = [
   { lib = true, unit = "rooms_shared_8017d730", text = "0x180" },
   { unit = "shelter_b1_storeroom/shelter_b1_storeroom_2", text = "0x1CC" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x1D4" },
-  { unit = "shelter_b1_storeroom/shelter_b1_storeroom_3", text = "0x22C" },
+  { unit = "shelter_b1_storeroom/shelter_b1_storeroom_3", rodata = "0x10", text = "0x22C" },
   { lib = true, unit = "room_draw01", text = "0x604" },
   { lib = true, unit = "room_draw13", text = "0xE48" },
   { lib = true, unit = "rooms_shared_8017dcb8", text = "0x11E8" },
