@@ -1850,20 +1850,8 @@ objects = [
 id = 362
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard", rodata = "0x4", text = "0xEC" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_3", rodata = "0x10", text = "0x3F8" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_4", text = "0x34" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_5", text = "0xE4" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_6", text = "0x2D4" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_2", text = "0x2F0" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_7", text = "0x3A0" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_8", text = "0x610" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_9", text = "0xD8C" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_10", text = "0x1008" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_11", text = "0x12AC" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_12", text = "0x16D8" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_13", text = "0x1A6C" },
-  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_14", text = "0x25DC" },
+  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard", rodata = "0x4", text = "0x34" },
+  { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_2", rodata = "0x10", text = "0x454" },
   { kind = "data", at = "0x2F9C" },
 ]
 
