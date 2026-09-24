@@ -3,8 +3,10 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -35,7 +37,64 @@ extern TaskDesc              D_neo_ark_forest_zone_80181DBC;
 extern GpSaveLoc             D_neo_ark_forest_zone_80182E38;
 extern s8                    D_neo_ark_forest_zone_80182E40;
 extern NeoArkForestZoneEvent D_neo_ark_forest_zone_80182E48;
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017D644);
+
+extern s16 D_80071076;
+extern u8  D_801153F4;
+extern u8  D_80115690;
+
+/// Payload handed to the helper task 0x31 the event may start.
+extern GpStateBD8 D_neo_ark_forest_zone_80182E30;
+
+/// The room's event task, spawned when the room latches an event. State 0 runs
+/// the event's CAP command; state 1 waits for it to finish and, when the event
+/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
+/// sound, if any, and wait for it; state 4 writes the latched destination into
+/// the save data and hands over to task type 0x11.
+void func_neo_ark_forest_zone_8017D644(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_neo_ark_forest_zone_80182E48.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_neo_ark_forest_zone_80182E48.field_A != 0) {
+                    D_neo_ark_forest_zone_80182E30.field_0 = 0;
+                    D_neo_ark_forest_zone_80182E30.field_1 = 0;
+                    D_neo_ark_forest_zone_80182E30.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_neo_ark_forest_zone_80182E30);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_neo_ark_forest_zone_80182E48.field_4 != 0) {
+                Gp_EnqueueStageSnd6(D_neo_ark_forest_zone_80182E48.field_4, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_forest_zone_80182E48.field_4)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_neo_ark_forest_zone_80182E38.field_0;
+            Mc_SaveData.at4.loc.warp = D_neo_ark_forest_zone_80182E38.field_2;
+            Mc_SaveData.at4.loc.room = D_neo_ark_forest_zone_80182E38.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_neo_ark_forest_zone_8017D7DC(void)
 {
@@ -119,7 +178,19 @@ s32 func_neo_ark_forest_zone_8017D958(s32 arg0, s32 arg1, RoomEventMsg* in, Room
     return -1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_forest_zone/neo_ark_forest_zone", func_neo_ark_forest_zone_8017DA14);
+/// 0x13F4 handler of the room's message table: passes the message on to the
+/// room's own task, answering -1 while that task does not exist.
+s32 func_neo_ark_forest_zone_8017DA14(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    s32 ret;
+
+    if (D_neo_ark_forest_zone_80181E68 == NULL) {
+        ret = -1;
+    } else {
+        ret = Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, msgId, arg2, arg3);
+    }
+    return ret;
+}
 
 /// Once the room's own task exists, broadcast message 0x7DB to it, carrying
 /// the room's payload record as `arg2`.
