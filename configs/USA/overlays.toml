@@ -1030,13 +1030,6 @@ id = 310
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_back_street/dryfield_back_street", rodata = "0x4", text = "0x10" },
-  { unit = "dryfield_back_street/dryfield_back_street_3", text = "0x358" },
-  { unit = "dryfield_back_street/dryfield_back_street_2", text = "0x3B0" },
-  { unit = "dryfield_back_street/dryfield_back_street_4", text = "0x410" },
-  { unit = "dryfield_back_street/dryfield_back_street_5", text = "0x6B4" },
-  { unit = "dryfield_back_street/dryfield_back_street_6", text = "0xAE0" },
-  { unit = "dryfield_back_street/dryfield_back_street_7", text = "0xE74" },
-  { unit = "dryfield_back_street/dryfield_back_street_8", text = "0x19E4" },
   { kind = "data", at = "0x23A4" },
 ]
 
