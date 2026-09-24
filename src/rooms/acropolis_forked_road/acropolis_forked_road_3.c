@@ -20,6 +20,9 @@
 extern s32      D_acropolis_forked_road_80180F3C;
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
+/// State handlers of the room's own task.
+extern TaskFuncTable3 D_acropolis_forked_road_8017D5C4;
+
 /// The camera-target matrix the streamed scene walks along its path table.
 extern MATRIX* D_80073B8C;
 
@@ -51,7 +54,16 @@ void func_acropolis_forked_road_8017D970(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_forked_road/acropolis_forked_road_3", func_acropolis_forked_road_8017D9CC);
+/// Runs the room task's current state out of its three-entry handler table:
+/// the setup state, the per-frame arrival check, then `taskKill`. The table is
+/// copied onto the stack before the call.
+void func_acropolis_forked_road_8017D9CC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_forked_road_8017D5C4;
+    sp.funcs[task->state](task);
+}
 
 /// The forked road's streamed-scene task. State 0 allocates the
 /// `AfrStreamWork` block, restarts the stream frame counter, cues the stream
