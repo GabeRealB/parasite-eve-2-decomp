@@ -259,4 +259,4 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station", D_dryfield_gas_station_8017D6A4);

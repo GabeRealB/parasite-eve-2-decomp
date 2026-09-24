@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
 #include "main/task.h"
@@ -94,5 +95,18 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DryfieldGasStationCapScript, 0x18);
 
 extern DryfieldGasStationCapScript D_dryfield_gas_station_80184BD8;
+
+/// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
+/// `DgsWork` block is set up, so the room's script helpers can reach it.
+extern Task* D_dryfield_gas_station_80184BD4;
+
+/// Exit callback of the help-line box task: releases `Wip_UiHolder` if the
+/// task owns it, then frees the task's UI object and kills it.
+void func_dryfield_gas_station_8017F478(Task* task);
+
+/// Draws a pulsing glow at `arg1` in `arg0`'s space, crossed by two diagonal
+/// lines; `arg3` is a signed half-extent scaled by depth and `arg2` the pulse
+/// rate.
+void func_dryfield_gas_station_80180B4C(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 #endif // ROOMS_DRYFIELD_GAS_STATION_H

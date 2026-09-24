@@ -165,7 +165,7 @@ void func_dryfield_gas_station_80181058(GsCOORDINATE2* coord, SVECTOR* data, s32
 /// coordinate, then advances the room's `Gp_State1C`. `Task::extra` is the
 /// task's `TmdObject`, so `field_8` is the coordinate both draws share. The
 /// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: bits 4, 6,
-/// 11 and 12 (`0x1850`) select `Room_Draw37` with the wide half-extent 0x80,
+/// 11 and 12 (`0x1850`) select `func_dryfield_gas_station_80180B4C` with the wide half-extent 0x80,
 /// and any other non-zero bit selects `func_dryfield_gas_station_80181058`
 /// with 0x40.
 void func_dryfield_gas_station_80181A78(Task* arg0)
@@ -176,7 +176,7 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     mask  = 1 << gGameSession->at4.loc.view;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (mask & 0x1850) {
-        Room_Draw37(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
+        func_dryfield_gas_station_80180B4C(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
     } else if (mask != 0) {
         func_dryfield_gas_station_80181058(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
     }

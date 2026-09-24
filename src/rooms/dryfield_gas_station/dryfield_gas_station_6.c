@@ -12,7 +12,6 @@
 #include "gameplay/gameplay.h"
 
 #include "rooms/dryfield_gas_station.h"
-#include "rooms/rooms_shared_80180b2c.h"
 
 extern s32          D_dryfield_gas_station_80182E30;
 extern DgsPlacement D_dryfield_gas_station_80182E44[];
@@ -128,7 +127,7 @@ void func_dryfield_gas_station_801803C0(Task* task)
             }
             break;
         case 5:
-            shared = RoomsShared80180b2cTask;
+            shared = D_dryfield_gas_station_80184BD4;
             eff    = (DgsWork*)shared->work;
             if (eff->playerEffActive != 0) {
                 Gp_SpawnWeaponEff();
@@ -168,7 +167,7 @@ void func_dryfield_gas_station_801803C0(Task* task)
 /// `D_80114C12` of 1 and a live `D_80071075` both mean the cutscene is already
 /// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
 /// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
-/// `RoomsShared80180b2cTask` so the room's script helpers can reach that block.
+/// `D_dryfield_gas_station_80184BD4` so the room's script helpers can reach that block.
 /// Two kills: a failed `Mem_Malloc` kills the task outright, and state 1 kills
 /// it once the session has torn down (`gGameSession->eventState`). Between the two
 /// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
@@ -189,8 +188,8 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     taskKill(task);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner             = gameGetPtrSlot(3);
-                    RoomsShared80180b2cTask = task;
+                    work->owner                     = gameGetPtrSlot(3);
+                    D_dryfield_gas_station_80184BD4 = task;
                 }
                 work2 = (DgsWork*)task->work;
                 if (work2->owner != 0) {
@@ -223,7 +222,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 /// before the branch and stored in the `jal` delay slot.
 void func_dryfield_gas_station_80180944(void)
 {
-    DgsWork* work = (DgsWork*)RoomsShared80180b2cTask->work;
+    DgsWork* work = (DgsWork*)D_dryfield_gas_station_80184BD4->work;
     if (work->playerEffActive == 0) {
         work->playerEffActive = 1;
         Gp_KillPlayerEffs();
@@ -245,7 +244,7 @@ void func_dryfield_gas_station_80180A60(void)
     DgsWork* work2;
     GpRec14  script;
 
-    task = RoomsShared80180b2cTask;
+    task = D_dryfield_gas_station_80184BD4;
     work = (DgsWork*)task->work;
     if (work->playerEffActive != 0) {
         Gp_SpawnWeaponEff();

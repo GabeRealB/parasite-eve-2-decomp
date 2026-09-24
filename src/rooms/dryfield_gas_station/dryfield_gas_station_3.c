@@ -21,11 +21,11 @@ extern s32      D_dryfield_gas_station_80181E54;
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern Task*    D_dryfield_gas_station_80184BCC;
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_gas_station/dryfield_gas_station_3", D_dryfield_gas_station_8017D638);
 
 /// Cutscene trigger for the gas station. On request 1, if the `0x16B` flag is
 /// clear it raises it and asks the cap system to run command 0xB; otherwise it
