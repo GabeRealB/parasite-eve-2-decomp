@@ -1890,10 +1890,13 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b1_golem_freezer_1]
+label = "code starts at 0x10: the handler the room's message table at 0x10E8 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x18 and left it as rodata words"
 id = 391
+text = ["0x10", "0x10E8"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", rodata = "0x4", text = "0x64" },
+  { unit = "shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1_4", text = "0x10" },
   { lib = true, unit = "room_util02", text = "0x18" },
   { lib = true, unit = "room_util06", text = "0x5C" },
   { lib = true, unit = "room_util05", text = "0x11C" },
