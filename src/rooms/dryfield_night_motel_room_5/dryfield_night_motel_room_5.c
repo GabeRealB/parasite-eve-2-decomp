@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/D4.h"
 
@@ -86,10 +87,6 @@ void func_dryfield_night_motel_room_5_8017D6D0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// `rtps`: the `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 /// Queues a flickering sprite at the world point `arg0`: a semi-transparent
 /// `POLY_FT4` square centred on the point's projection, with half-width
 /// `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of tpage 0x2B and
@@ -127,7 +124,7 @@ void func_dryfield_night_motel_room_5_8017D728(SVECTOR* arg0, s32 arg1, s32 arg2
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);

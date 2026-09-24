@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "decomp/common.h"
 #include "gameplay/1A8.h"
@@ -2935,11 +2936,6 @@ void func_dryfield_trailer_coach_80182950(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// `rtps` / `mvmva` on v0. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 /// Draws a pulsing light shaft at a point in `arg0`'s space. `arg1` is rotated
 /// by the coordinate's `workm` and offset by its translation, then projected
 /// through `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block; nothing is
@@ -2968,7 +2964,7 @@ void func_dryfield_trailer_coach_801829A8(GsCOORDINATE2* arg0, SVECTOR* arg1, s3
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
     block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&arg0->workm.t[0];
     block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
@@ -2977,7 +2973,7 @@ void func_dryfield_trailer_coach_801829A8(GsCOORDINATE2* arg0, SVECTOR* arg1, s3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
@@ -3032,9 +3028,6 @@ void func_dryfield_trailer_coach_801829A8(GsCOORDINATE2* arg0, SVECTOR* arg1, s3
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
 /// Draws a pulsing glow at `data` in `coord`'s space: the point is projected
@@ -3077,7 +3070,7 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
@@ -3085,7 +3078,7 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&block->otz);
     if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {

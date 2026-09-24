@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -12,8 +13,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The room's message table, which the event task installs in state 0.
 extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];
@@ -138,7 +137,7 @@ void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
