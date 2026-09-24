@@ -79,7 +79,13 @@ void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_6", func_acropolis_helicopter_landing_pad_8017EE2C);
+/// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
+void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
+{
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+        arg0->state = (s32)(arg0->state + 1);
+    }
+}
 
 void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 {

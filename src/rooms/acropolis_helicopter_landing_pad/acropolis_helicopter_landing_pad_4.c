@@ -20,7 +20,10 @@ extern GpObj4A    D_acropolis_helicopter_landing_pad_80185FAC[];
 extern s32        D_acropolis_helicopter_landing_pad_80187F84;
 extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
 extern s32        D_801156A8;
-extern s32        Gp_LcgState;
+/// State handlers of `func_acropolis_helicopter_landing_pad_8017EB00`:
+/// set-up, the per-frame phase tick and `taskKill`.
+extern const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4;
+extern s32                  Gp_LcgState;
 
 void func_acropolis_helicopter_landing_pad_8017E75C(s32 arg0)
 {
@@ -133,4 +136,13 @@ void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80185FAC[0].field_4A &= 0xBF;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_4", func_acropolis_helicopter_landing_pad_8017EB00);
+/// The room's script task: runs the state handler
+/// `D_acropolis_helicopter_landing_pad_8017D5E4` names for `Task::state`,
+/// through a copy of the table taken onto the stack.
+void func_acropolis_helicopter_landing_pad_8017EB00(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_helicopter_landing_pad_8017D5E4;
+    sp.funcs[task->state](task);
+}

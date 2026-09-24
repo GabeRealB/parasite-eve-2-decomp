@@ -189,7 +189,27 @@ s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, RoomPl
     coord->flg = 0;
     return 0;
 }
-INCLUDE_ASM("rooms/nonmatchings/acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", func_acropolis_helicopter_landing_pad_8017D964);
+
+/// State handlers of the enemy task `func_acropolis_helicopter_landing_pad_8017D964`,
+/// indexed by `Task::state`: set-up, the per-frame model update and
+/// `Gp_EnemyTaskExit`.
+const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
+    { func_acropolis_helicopter_landing_pad_8017D658, func_acropolis_helicopter_landing_pad_8017D6E0, Gp_EnemyTaskExit },
+};
+
+/// A debug format string nothing in the room reads.
+const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
+
+/// The enemy task: runs the state handler
+/// `D_acropolis_helicopter_landing_pad_8017D5C4` names for `Task::state`,
+/// through a copy of the table taken onto the stack.
+void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_helicopter_landing_pad_8017D5C4;
+    sp.funcs[task->state](task);
+}
 
 /// Per-frame phase tick of the helipad script. In phase 1 it posts msg 0x7D6
 /// to slot 4; once that is refused and no cutscene/among-us mode
