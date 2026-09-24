@@ -3375,25 +3375,9 @@ id = 444
 text = ["0x78", "0x5534"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0xC4" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_10", rodata = "0x10", text = "0x5FC" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_6", rodata = "0x2C", text = "0x828" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_8", rodata = "0x4C", text = "0x22F8" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_9", text = "0x78" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_11", text = "0x80" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_12", text = "0x19C" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_2", text = "0x1A4" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_13", text = "0x328" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_3", text = "0x380" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_14", text = "0x3B4" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_4", text = "0x408" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_15", text = "0x508" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_5", text = "0x538" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_16", text = "0x7D8" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_17", text = "0xCCC" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_18", text = "0x1510" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_7", text = "0x18B0" },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room_19", text = "0x1F80" },
+  { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0x78" },
+  { unit = "shelter_b6_training_room/shelter_b6_training_room_2", rodata = "0x10", text = "0x5FC" },
+  { unit = "shelter_b6_training_room/shelter_b6_training_room_3", rodata = "0x2C", text = "0x828" },
   { kind = "data", at = "0x5534" },
 ]
 
