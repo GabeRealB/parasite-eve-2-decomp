@@ -19,7 +19,6 @@
 
 extern u8                      D_8007216C;
 extern s8                      D_80072310;
-extern TaskDesc                RoomsShared80181228Desc;
 extern s32                     D_acropolis_square_8018382C;
 extern AcropolisSquareCutscene D_acropolis_square_801888AC;
 extern s32                     D_acropolis_square_80183834;
@@ -29,7 +28,7 @@ extern s32                     D_acropolis_square_801888A0;
 extern s32                     D_acropolis_square_801888A4;
 extern GsCOORDINATE2           D_acropolis_square_801888CC;
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square_2", D_acropolis_square_8017D6B4);
 
 s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, RoomEventMsg* arg3)
 {
@@ -117,7 +116,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_acropolis_square_801888AC.sndC     = 0x5101000B;
         D_acropolis_square_801888AC.field_2  = D_acropolis_square_8018382C;
         D_acropolis_square_8018382C          = 0;
-        Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 2, (s32)&D_acropolis_square_801888AC);
+        Task_SpawnFromTable(&D_acropolis_square_801837A0, 0, 2, (s32)&D_acropolis_square_801888AC);
     }
     if ((arg2 == 0xE) && (GameFlag_GetNibble(0x124) == 0)) {
         GameFlag_SetNibble(0x124, 1);

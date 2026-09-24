@@ -9,13 +9,25 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/acropolis_square.h"
 #include "rooms/rooms_shared_80181228.h"
 
 extern u8  D_801153F4;
 extern s16 D_80114D08;
 extern u32 D_80115694;
 
-void RoomsShared80181228(Task* task)
+/// The scene sub-task while it runs, NULL otherwise.
+extern Task* D_acropolis_square_801888A8;
+
+/// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
+/// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
+extern GpAreaApplyRec D_acropolis_square_80188888;
+
+/// The room's cutscene runner: suppresses the player and ally HUD, loads and
+/// starts the scene's caption slot, lets confirm or cancel cut the scene
+/// sub-task short, applies the story-flag side effects when the scene ends,
+/// and restores everything before killing itself.
+void func_acropolis_square_80181228(Task* task)
 {
     RoomsShared80181228Rec* rec;
     s32                     killOut;
@@ -27,7 +39,7 @@ void RoomsShared80181228(Task* task)
     rec = (RoomsShared80181228Rec*)task->spawnArg2;
     switch (task->state) {
         case 0:
-            RoomsShared80181228Task = NULL;
+            D_acropolis_square_801888A8 = NULL;
             Gp_MsgPlayerWeapon(0);
             if (Mc_SaveData.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
@@ -72,16 +84,16 @@ void RoomsShared80181228(Task* task)
             }
             break;
         case 4:
-            RoomsShared80181228Task = Task_SpawnFromTable(&RoomsShared80181228Desc, 1, 0, rec->field_10);
+            D_acropolis_square_801888A8 = Task_SpawnFromTable(&D_acropolis_square_801837A0, 1, 0, rec->field_10);
             Gp_StartCapSlot(rec->field_1, 0, 0x63);
             task->state++;
             break;
         case 5:
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType7(rec->field_10, 1);
-                taskKill(RoomsShared80181228Task);
+                taskKill(D_acropolis_square_801888A8);
                 task->state++;
-            } else if (Task_PollKill(RoomsShared80181228Task, &killOut) != 0) {
+            } else if (Task_PollKill(D_acropolis_square_801888A8, &killOut) != 0) {
                 task->state++;
             }
             break;
@@ -117,7 +129,7 @@ void RoomsShared80181228(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
-                        Gp_ApplyAreaRecs(&RoomsShared80181228AreaRecs);
+                        Gp_ApplyAreaRecs(&D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }

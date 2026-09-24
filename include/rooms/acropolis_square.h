@@ -3,7 +3,32 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "main/task.h"
+#include "main/ui.h"
 #include "rooms/room_common.h"
+
+/// The "%" suffix the room's percentage formatters append.
+extern u8 D_acropolis_square_80183500[];
+
+/// UI descriptor the play-data panels spawn when they first open.
+extern UiObjectDesc D_acropolis_square_80183718;
+
+/// Task descriptor table of the room's cutscenes: entry 0 is the cutscene
+/// runner, spawned with a cutscene record as its argument, and entry 1 the
+/// sound task the runner spawns for the scene.
+extern TaskDesc D_acropolis_square_801837A0;
+
+/// First state of the mirror task: sets up the player's reflection.
+void func_acropolis_square_8017D714(Task* task);
+
+/// Second state of the mirror task, run every frame after the set-up.
+void func_acropolis_square_8017D8C8(Task* task);
+
+/// Exit callback of the room's save-prompt UI tasks: releases `Wip_UiHolder`
+/// if the task still owns it, then frees the UI object and kills the task.
+void func_acropolis_square_801811EC(Task* task);
 
 /// Work block the square's cutscene task (`func_acropolis_square_80181228`,
 /// entry 0 of `D_acropolis_square_801837A0`) reads through `Task::spawnArg2`.

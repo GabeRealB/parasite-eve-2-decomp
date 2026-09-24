@@ -18,7 +18,6 @@
 
 extern u8                      D_8007216C;
 extern s8                      D_80072310;
-extern TaskDesc                RoomsShared80181228Desc;
 extern s32                     D_acropolis_square_8018382C;
 extern AcropolisSquareCutscene D_acropolis_square_801888AC;
 extern s32                     D_acropolis_square_80183834;

@@ -1,9 +1,9 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D620);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D62C);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D634);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D640);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_square/acropolis_square", D_acropolis_square_8017D648);
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", RoomsShared8017d7a4);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_square/acropolis_square", func_acropolis_square_8017D8C8);
