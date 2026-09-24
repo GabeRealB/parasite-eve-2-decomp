@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
@@ -24,9 +25,72 @@ extern s16     D_shelter_1f_heliport_80181206; // D_shelter_1f_heliport_80181204
 
 void func_shelter_1f_heliport_8018085C(GsCOORDINATE2* coord, SVECTOR* offset);
 
+/// Event parameters latched into the room's pending event when a stage-3
+/// request starts it: a cap command, a stage sound, the game flag checked and
+/// set on start, and a trailing byte the event controller reads.
+typedef struct _Shelter1fHeliportEvent {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s16 field_8;
+    /* 0xA */ u8  field_A;
+} _Shelter1fHeliportEvent;
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+extern TaskDesc                D_shelter_1f_heliport_80181194;
+extern GpSaveLoc               D_shelter_1f_heliport_80182CA8;
+extern s8                      D_shelter_1f_heliport_80182CB0;
+extern _Shelter1fHeliportEvent D_shelter_1f_heliport_80182CB4;
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_8017FF08);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_801800A0);
+static __inline__ s32 _shelter1fHeliportStartEvent(GpSaveLoc* dst, _Shelter1fHeliportEvent* event)
+{
+    D_shelter_1f_heliport_80182CB0 = 0;
+    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+        if (dst->field_5 == 0) {
+            D_shelter_1f_heliport_80182CA8 = *dst;
+            D_shelter_1f_heliport_80182CB4 = *event;
+            if (event->field_8 != 0) {
+                GameFlag_SetNibble(event->field_8, 1);
+            }
+            Task_SpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
+            D_shelter_1f_heliport_80182CB0 = 1;
+        }
+        return 2;
+    }
+    return 1;
+}
+
+s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    _Shelter1fHeliportEvent event;
+
+    *dst = *src;
+    func_80179B14(src, dst);
+    if (*(u16*)src == 0x1C && src->field_5 == 0) {
+        SndEvt_EnqueueType7(0x55040006, 1);
+        SndEvt_EnqueueType7(0x55040007, 1);
+    }
+    if (*(u16*)src == 3) {
+        if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->at4.loc.place == 1) {
+            if (src->field_5 == 0) {
+                Gp_RunCapCmd1(0x2B);
+            }
+            return 2;
+        }
+        event.field_0 = 0x29;
+        event.field_4 = 0x55040001;
+        event.field_8 = 0;
+        event.field_A = 1;
+        if (src->field_5 == 0) {
+            SndEvt_EnqueueType7(0x55040006, 1);
+            SndEvt_EnqueueType7(0x55040007, 1);
+        }
+        return _shelter1fHeliportStartEvent(dst, &event);
+    }
+    return 1;
+}
 
 void func_shelter_1f_heliport_801802AC(s32 arg0)
 {
