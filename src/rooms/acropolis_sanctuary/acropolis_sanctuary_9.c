@@ -5,9 +5,11 @@
 #include "gameplay/D4.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "rooms/rooms_shared_80182574.h"
 
-void RoomsShared80182574(Task* task)
+/// Per-frame visibility hook for an item object: hides the model (`flags`
+/// 0x80) once the item's 2-bit pickup flag has reached 2, otherwise shows it
+/// with the default flags. The current view is queried but not used.
+void func_acropolis_sanctuary_801802E0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
