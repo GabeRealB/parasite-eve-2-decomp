@@ -2,8 +2,6 @@
 
 #include "actors/actor_444000.h"
 #include "actors/actor_444000_view.h"
-#include "actors/actors_shared_80133de4.h"
-#include "actors/actors_shared_80133f64.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"

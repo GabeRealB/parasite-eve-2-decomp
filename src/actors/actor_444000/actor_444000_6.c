@@ -5,8 +5,6 @@
 
 #include "actors/actor_444000.h"
 #include "actors/actor_444000_view.h"
-#include "actors/actors_shared_80132cb8.h"
-#include "actors/actors_shared_801433b8.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -690,7 +688,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     }
 
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    task->exitCallback = ActorsShared801433b8;
+    task->exitCallback = func_actor_444000_801433B8;
 
     enemy->field_4    = &((TmdObject*)task->extra)->coords->coord;
     enemy->field_48   = 0;
@@ -3940,8 +3938,8 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Actor444000* task)
 /// until the two are within 0x33 of each other. `field_E98` is the companion
 /// height the floor-marker helpers take.
 ///
-/// Most states hand that pair to `ActorsShared80132cb8`, which drops the marker
-/// under the boss. The exception is pattern 1 in state 9: it uses
+/// Most states hand that pair to `func_actor_444000_80132CB8`, which rebuilds
+/// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
 /// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
 /// and pushes the player back by the boss part's view-space depth less 0x7D0 --
 /// part 4 of the boss model carried up the coordinate chain by
@@ -4041,7 +4039,7 @@ void func_actor_444000_80142F28(Actor444000* arg0)
                             }
                         }
                     } else {
-                        ActorsShared80132cb8((Task*)arg0, work->field_E94, work->field_E98, 6);
+                        func_actor_444000_80132CB8((Task*)arg0, work->field_E94, work->field_E98, 6);
                     }
 
                     if (work->field_F08 == 0 || (work->field_F08 == 1 && (s16)work->field_0 != 9)) {
@@ -4092,7 +4090,7 @@ void func_actor_444000_80142F28(Actor444000* arg0)
     skipGrid:
         state = work->field_0;
         if (state == 5) {
-            ActorsShared80132cb8((Task*)arg0, work->field_E94, work->field_E98, 6);
+            func_actor_444000_80132CB8((Task*)arg0, work->field_E94, work->field_E98, 6);
         }
     }
 

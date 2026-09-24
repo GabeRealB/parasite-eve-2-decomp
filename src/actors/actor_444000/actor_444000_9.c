@@ -2,8 +2,6 @@
 
 #include "actors/actor_444000.h"
 #include "actors/actor_444000_view.h"
-#include "actors/actors_shared_80133de4.h"
-#include "actors/actors_shared_80133f64.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -104,7 +102,7 @@ void func_actor_444000_8013441C(Actor444000* arg0)
     }
 
     if (work->field_7BA == 2) {
-        ActorsShared80133f64((Task*)arg0);
+        func_actor_444000_80133F64(arg0);
         work->field_7BA = 3;
     }
 
@@ -132,7 +130,7 @@ void func_actor_444000_8013441C(Actor444000* arg0)
     }
 
     if (work->field_EF4 != 0) {
-        ActorsShared80133de4((Task*)arg0, work->field_EFE);
+        func_actor_444000_80133DE4(arg0, work->field_EFE);
     }
     if (work->field_EF6 != 0) {
         func_actor_444000_80133C58(arg0, work->field_7C4);
