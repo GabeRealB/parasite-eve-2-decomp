@@ -1,458 +1,466 @@
 #include "common.h"
 #include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stage.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/text.h"
+#include "main/tmd.h"
 #include "main/ui.h"
-#include "main/wipsys.h"
 #include "gameplay/268.h"
-#include "gameplay/3688.h"
-#include "gameplay/4CC.h"
+#include "gameplay/3CD8.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
-extern UiObjectDesc D_8010EFA0;
-extern u16          D_80072174;
-extern s8           D_80072176;
-extern u16          D_80072834;
-extern u16          D_80072836;
-extern u8           D_80072A93;
-extern s32          D_80072A94;
-extern s32          D_80072A98;
-extern u8           D_mist_parking_801866C0[];
-extern u8           D_mist_parking_801866F0[];
-extern u8           D_mist_parking_801866C8[];
-extern u8           D_mist_parking_801866CC[];
-extern u8           D_mist_parking_801866D4[];
-extern u8           D_mist_parking_801866E0[];
-extern u8           D_mist_parking_801866F8[];
-extern u8           D_mist_parking_80186700[];
-extern u8           D_mist_parking_80186708[];
-extern u8           D_mist_parking_80186710[];
-extern u8           D_mist_parking_8018671C[];
-extern u8           D_mist_parking_80186748[];
-extern u8           D_mist_parking_8018676C[];
-extern u8           D_mist_parking_8018679C[];
-extern u8           D_mist_parking_801867D0[];
-extern u8           D_mist_parking_80186804[];
-extern u8           D_mist_parking_8018683C[];
-extern u8           D_mist_parking_80186870[];
-extern u8           D_mist_parking_801868A8[];
+extern s16 D_80071076;
 
-void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
+extern s32 D_mist_parking_8018F374;
+extern s32 D_mist_parking_8018F4AC;
+extern s32 D_mist_parking_8018F5E4;
+extern s32 D_mist_parking_8018F824;
+extern s32 D_mist_parking_8018F9A4;
+extern s32 D_mist_parking_8018FA4C;
+extern s32 D_mist_parking_8018FB3C;
+extern s32 D_mist_parking_8018FBFC[];
+extern s32 D_mist_parking_8018FC10[];
+
+typedef struct {
+    /* 0x0 */ s16 timer;
+    /* 0x2 */ s16 index;
+} MistParkingScanState;
+
+extern MistParkingScanState D_mist_parking_80195328;
+
+void func_mist_parking_80182A44(Task* task)
 {
-    u8  buf[0x20];
-    u8* p;
+    s32                   i;
+    s32                   flag;
+    s16                   idx;
+    MistParkingScanState* st = &D_mist_parking_80195328;
 
-    p = buf;
-    if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
-            u8* tbl[9] = {
-                D_mist_parking_8018671C,
-                D_mist_parking_80186748,
-                D_mist_parking_8018676C,
-                D_mist_parking_8018679C,
-                D_mist_parking_801867D0,
-                D_mist_parking_80186804,
-                D_mist_parking_8018683C,
-                D_mist_parking_80186870,
-                D_mist_parking_801868A8,
-            };
-
-            Ui_SetHolderParam((s32)tbl[arg0->field_8], 0, 0);
-        }
-    }
-
-    switch (arg0->field_8) {
-        case 0: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866C0);
-            Text_FormatTime(p, D_80072174);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+    switch (task->state) {
+        case 0:
+            Mem_Set(st, 0, 4);
+            func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+            Gp_RunCapCmd(2, 0);
+            task->state++;
             break;
-        }
-        case 1: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866F0);
-            Text_ItoaUnsigned(p, D_80072A93);
-            Text_Strcat(p, D_mist_parking_80186710);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+        case 1:
+            if (gGameSession->eventState != 0) {
+                return;
+            }
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            for (i = 0; i < 5; i++) {
+                if (GameFlag_GetNibble(i + 0x125) == 2) {
+                    task->state = 2;
+                    return;
+                }
+            }
+            task->state = 6;
             break;
-        }
-        case 2: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866C8);
-            Text_ItoaUnsigned(p, D_80072834);
-            Text_Strcat(p, D_mist_parking_80186710);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+        case 2:
+            func_mist_parking_80183708(2);
+            func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+            Gp_RunCapCmd(6, 0);
+            task->state++;
             break;
-        }
-        case 3: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866CC);
-            Text_ItoaUnsigned(p, D_80072836);
-            Text_Strcat(p, D_mist_parking_80186710);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+        case 3:
+            if (gGameSession->eventState != 0) {
+                return;
+            }
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            switch (Gp_GetCapEventKey()) {
+                case 1:
+                    st->timer = 10;
+                    Gp_RunCapCmd(7, 0);
+                    task->state = 4;
+                    break;
+                case 4:
+                    for (i = 0; i < 5; i++) {
+                        flag = i + 0x125;
+                        if (GameFlag_GetNibble(flag) == 2) {
+                            GameFlag_SetNibble(flag, 3);
+                        }
+                    }
+                    func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                    Gp_RunCapCmd(8, 0);
+                    task->state = 6;
+                    break;
+                case 3:
+                    for (i = 0; i < 4; i++) {
+                        flag = i + 0x125;
+                        if (GameFlag_GetNibble(flag) == 2 && Gp_GiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
+                            GameFlag_SetNibble(flag, 3);
+                            Gp_SetCurBit2Flag(i + 0x20, 2);
+                        }
+                    }
+                    if (GameFlag_GetNibble(0x129) == 2 && func_800B7420(0x6C) == 0) {
+                        if (Gp_GiveItem(D_8010D55C, 0x6C, 1) != 0) {
+                            GameFlag_SetNibble(0x129, 3);
+                            Gp_SetCurBit2Flag(0x24, 2);
+                        }
+                    }
+                    func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                    Gp_RunCapCmd(4, 0);
+                    task->state = 6;
+                    break;
+            }
             break;
-        }
-        case 4: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866D4);
-            if (Mc_SaveData.field_6CC == 0) {
-                pct = 0;
+        case 4:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            st->timer--;
+            if (st->timer == 5) {
+                idx = st->index;
+                if (GameFlag_GetNibble(idx + 0x125) == 2) {
+                    Gp_StartCapSlot(5, 0, idx);
+                }
+                return;
+            }
+            if (st->timer != 0) {
+                return;
+            }
+            idx = st->index;
+            if (Gp_GetCurBit2Flag(idx + 0x20) != 1) {
+                GameFlag_SetNibble(idx + 0x125, 3);
+            }
+            st->timer = 10;
+            st->index++;
+            if (st->index >= 5) {
+                task->state++;
+            }
+            break;
+        case 5:
+            if (gGameSession->eventState != 0) {
+                return;
+            }
+            if (Gp_CapBusy() == 0) {
+                func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                Gp_RunCapCmd(2, 0);
+                task->state++;
+            }
+            /* fallthrough */
+        case 6:
+            if (gGameSession->eventState != 0) {
+                return;
+            }
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            task->state++;
+            break;
+        case 7:
+            task->killCountdown++;
+            if (task->killCountdown >= 0xB) {
+                func_mist_parking_80183708(0);
+                Gp_RunCapCmd(4, 0);
+                task->killCountdown = 0;
+                task->state++;
+            }
+            break;
+        case 8:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            if (Gp_GetCapEventKey() == 1) {
+                func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
             } else {
-                pct = (Mc_SaveData.field_6CC * 10000) / (Mc_SaveData.field_6CC + Mc_SaveData.field_6CE);
+                func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
             }
-            if (pct < 100) {
-                func_8002F44C(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_mist_parking_80186718);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            task->state++;
             break;
-        }
-        case 5: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         total;
-            s32         cnt;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            total          = D_80072834;
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866E0);
-            cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
-            if (total == 0) {
-                pct = 0;
-            } else {
-                pct = (total * 10000) / cnt;
+        case 9:
+            task->killCountdown++;
+            if (task->killCountdown == 0xA) {
+                Gp_RunCapCmd(3, 0);
             }
-            if (pct < 100) {
-                func_8002F44C(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
+            if (gGameSession->eventState != 0) {
+                return;
             }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_mist_parking_80186718);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar((UiPanel*)arg1, arg1->field_1C, (s16)arg1->field_1E, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
+            task->state++;
             break;
-        }
-        case 6: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_801866F8);
-            Text_ItoaUnsigned(p, D_80072176);
-            Text_Strcat(p, D_mist_parking_80186710);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+        case 10:
+            Gp_MsgPlayerWeapon(1);
+            taskKill(task);
             break;
-        }
-        case 7: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_80186700);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
-            break;
-        }
-        case 8: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->baseX + (u16)arg0->field_18;
-            y              = arg1->baseY - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = (s16)arg1->drawOrder + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            func_8002E53C(&req, D_mist_parking_80186708);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
-            break;
-        }
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D748);
-
-/// One row of the "Play Data" item-usage list: the item's name, its share of
-/// all recorded uses as `NN.NN%` (or a flat `100.0%` once it is the only item
-/// used), and a gauge whose width is the row's `barWidths` fraction of the
-/// panel. Confirming the row opens the item's detail panel.
-
-void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
+void func_mist_parking_80182F60(Task* task)
 {
-    u8             buf[0x20];
-    u8*            p;
-    u8*            q;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    s32            itemId;
-    s32            pct;
-    s32            scale;
-    s32            remaining;
-    s32            i;
-    s32            len;
-    s32            n;
-    s32            right;
-    s32            lo;
-    s32            barY;
-    s32            ry;
-    s32            color;
-    s32            barW;
-    s32            barX;
-    s32            x0;
-    s32            x1;
-    s32            y0;
-    s32            status;
-    s32            one;
-    s32            px;
-    s32            py;
-    TextDrawReq    req;
-    TextDrawReq*   r;
+    s32 key;
 
-    p = buf;
-    /* The request's address is live across Gp_GetItemText, so the last field is
-       written through it while the rest stay sp-relative. */
-    r      = &req;
-    work   = (RoomItemUsage*)obj->owner->work;
-    itemId = work->itemIds[prompt->field_8];
-    pct    = work->percents[prompt->field_8];
-    px     = prompt->field_18;
-    py     = prompt->field_1A;
-    color  = prompt->field_1C;
-
-    if (obj->mode != 5) {
-        req.x          = obj->baseX + 0x11 + px;
-        ry             = obj->baseY - 6;
-        req.y          = ry + py;
-        req.otIndex    = (s16)obj->drawOrder + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        r->field_E     = 1;
-        func_8002E53C(r, (u8*)Gp_GetItemText(itemId, 0, 0));
-        func_800CE5D0(obj, px, py, itemId);
+    switch (task->state) {
+        case 0:
+            func_800E8614((s32)&D_mist_parking_8018F374, 1);
+            task->state++;
+            break;
+        case 1:
+        case 3:
+            if (gGameSession->eventState != 0) {
+                return;
+            }
+            task->state++;
+            break;
+        case 2:
+            key             = Gp_GetCapEventKey();
+            task->spawnArg1 = key;
+            switch (key) {
+                case 4:
+                    func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
+                    break;
+                case 5:
+                    func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
+                    break;
+                case 6:
+                    func_800E8614((s32)&D_mist_parking_8018F824, 1);
+                    break;
+            }
+            task->state++;
+            break;
+        case 4:
+            if (task->spawnArg1 == 4) {
+                Gp_MsgPlayerWeapon(1);
+            }
+            taskKill(task);
+            break;
     }
+}
 
-    if (pct >= 0x2710) {
-        Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, "100.0%", prompt->field_1C, 3, 2);
+/// Attaches the task's model to the coordinate frame of part `spawnArg1` of
+/// the model of the task in `spawnArg2`, sharing its light and colour
+/// matrices, reparents the task under that one and steps it on.
+void func_mist_parking_8018307C(Task* task)
+{
+    Task*          parent;
+    s32            part;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dest;
+
+    parent          = (Task*)task->spawnArg2;
+    part            = task->spawnArg1;
+    extra           = (TmdObject*)task->extra;
+    parentExtra     = (TmdObject*)parent->extra;
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
+    coord->flg      = 0;
+    coord->sub      = dest;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    Task_Reparent(parent, task);
+    task->state += 1;
+}
+
+/// The empty per-frame state of `D_mist_parking_8017D7E8`.
+void func_mist_parking_801830F8(Task* task)
+{
+}
+
+void func_mist_parking_80183100(s32 arg0)
+{
+    Gp_StartCapSlot(arg0 >> 16, 0, arg0);
+}
+
+void func_mist_parking_8018312C(s32 arg0)
+{
+    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
+    gGameSession->freezeRoomObjs = 1;
+}
+
+void func_mist_parking_8018316C(s32 arg0)
+{
+    Mc_SaveData.at4.loc.stage = 1;
+    Mc_SaveData.at4.loc.warp  = 1;
+    Mc_SaveData.at4.loc.room  = 1;
+    Mc_SaveData.at4.loc.area  = arg0;
+    D_80071076                = 1;
+    SndEvt_EnqueueType7(0x80000000, 0);
+    Task_Spawn(0, 0x11, 0, 0);
+    if (arg0 == 5) {
+        Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 0);
+    }
+}
+
+void func_mist_parking_801831F0(s32 arg0)
+{
+    Task**     slot;
+    Task*      task;
+    TmdObject* obj;
+
+    if (arg0 == 0) {
+        slot = &D_mist_parking_80195320;
     } else {
-        scale     = 1;
-        remaining = 2;
-        do {
-            scale *= 10;
-            remaining--;
-        } while (remaining > 0);
-
-        if (pct < scale) {
-            func_8002F44C(p, pct, 3);
-        } else {
-            Text_ItoaUnsigned(p, pct);
-        }
-
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (i = 0; i < n; i++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = 0x2E;
-        Text_Strcat(p, D_mist_parking_80186718);
-        Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
+        slot = NULL;
     }
 
-    lo    = (s16)obj->field_1C + 0x80;
-    right = (s16)obj->field_1E - 0x4A;
-    barY  = (s16)prompt->field_1A - 0xC;
-    barW  = right - lo;
-    barW  = (barW * work->barWidths[prompt->field_8]) >> 12;
-    barW += 2;
-    barX  = right - barW;
-    if (barW >= 2) {
-        prim     = (POLY_G4*)gGpuPrimCursor;
-        x0       = obj->baseX + barX + 1;
-        prim->x2 = x0;
-        prim->x0 = x0;
-
-        gGpuPrimCursor   = prim + 1;
-        y0               = obj->baseY;
-        y0               = y0 + barY;
-        y0              += 1;
-        *(u32*)&prim->r3 = 0x10000;
-        *(u32*)&prim->r1 = 0x10000;
-        setlen(prim, 8);
-        *(u32*)&prim->r0 = 0x100B0;
-        setcode(prim, 0x38);
-        *(u32*)&prim->r2 = 0x100B0;
-
-        x1 = (u16)prim->x0 + barW;
-        x1--;
-        prim->y1 = y0;
-        prim->y0 = y0;
-        y0      += 8;
-        prim->y3 = y0;
-        prim->y2 = y0;
-        prim->x3 = x1;
-        prim->x1 = x1;
-        addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, prim);
-    }
-
-    one = 1;
-    func_80046B34(obj, barX, (s16)prompt->field_1A - 0xC, barW, 9, 0, one);
-
-    status = obj->status;
-    if (((status >> 16) == one) || (status == one)) {
-        if (prompt->field_10 == prompt->field_8) {
-            Gp_SetPreviewItem(itemId, 0);
-            Gp_SetHolderItemText(itemId);
+    if ((slot != NULL) && (*slot == NULL)) {
+        task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
+        *slot = task;
+        if (task != NULL) {
+            obj         = (TmdObject*)task->extra;
+            obj->flags &= ~0x80;
         }
-    }
-
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, 0x10) != 0) {
-        SndEvt_EnqueueType6(3, 0, 0);
-        Ui_SpawnFromDesc(&D_8010EFA0, itemId, 1, 1, obj);
-        obj->status = 0;
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D75C);
+void func_mist_parking_8018326C(s32 arg0)
+{
+    if (arg0 == 0) {
+        if (D_mist_parking_80195320 != NULL) {
+            taskKill(D_mist_parking_80195320);
+        }
+        D_mist_parking_80195320 = NULL;
+    }
+}
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D768);
+/// Runs the handler for the task's state from a stack copy of
+/// `D_mist_parking_8017D7F4`: the text block's setup, its wait and its exit.
+void func_mist_parking_801832AC(Task* task)
+{
+    TaskFuncTable3 sp;
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D770);
+    sp = D_mist_parking_8017D7F4;
+    sp.funcs[task->state](task);
+}
+
+/// The two text lines of the block `func_mist_parking_80183304` shows, and
+/// the alternative pair it uses when the task's `spawnArg1` is 1.
+extern u8* D_mist_parking_8018DF24[4];
+
+/// Allocates a two-line text block, parks it at `Task::work`, spawns it and
+/// steps the task on; `func_mist_parking_80183434` is set as the exit
+/// callback.
+void func_mist_parking_80183304(Task* task)
+{
+    RoomTextBlock* block;
+    TextLineNode*  node;
+    u8**           line;
+    s32            table;
+    s32            off;
+    s32            mode;
+    s32            i;
+
+    block = memCalloc(sizeof(RoomTextBlock), 0);
+    node  = block->lines;
+    if (block == NULL) {
+        taskKill(task);
+        return;
+    }
+
+    i                  = 0;
+    mode               = 1;
+    line               = D_mist_parking_8018DF24;
+    table              = (s32)D_mist_parking_8018DF24;
+    off                = 8;
+    task->work         = (TaskIdMap*)block;
+    task->exitCallback = func_mist_parking_80183434;
+
+    for (; i < 2; i++) {
+        if (task->spawnArg1 == mode) {
+            node->text = *(u8**)(off + table);
+        } else {
+            node->text = *line;
+        }
+        node->next = node + 1;
+        node++;
+        line++;
+        off += 4;
+    }
+    node[-1].next = NULL;
+
+    block->desc.count   = 2;
+    block->desc.lines   = block->lines;
+    block->desc.field_8 = 0;
+    block->field_C      = 0;
+    Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
+    task->state++;
+}
+
+/// Waits for the text block parked at `Task::work` to report a non-zero
+/// `TextBlockDesc::field_2`, stores it through `Task::spawnArg2` and steps
+/// the task on.
+void func_mist_parking_801833F8(Task* task)
+{
+    s16 result;
+
+    result = ((RoomTextBlock*)task->work)->desc.field_2;
+    if (result != 0) {
+        *(s32*)task->spawnArg2 = result;
+        task->state            = task->state + 1;
+    }
+}
+
+/// Exit callback of the text-block task: kills it and calls
+/// `Stage_SetEndingFlag`.
+void func_mist_parking_80183434(Task* arg0)
+{
+    taskKill(arg0);
+    Stage_SetEndingFlag();
+}
+
+extern s32 D_mist_parking_8019531C;
+
+void func_mist_parking_8018345C(Task* arg0)
+{
+    if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
+        if (D_mist_parking_8019531C == 2) {
+            func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
+        } else {
+            func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
+        }
+        taskKill(arg0);
+    }
+}
+
+void func_mist_parking_801834D4(Task* arg0)
+{
+    if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
+        if (D_mist_parking_8019531C == 2) {
+            func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
+        } else {
+            func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
+        }
+        taskKill(arg0);
+    }
+}
+
+/// Spawns entry 3 of `D_mist_parking_8018D75C`.
+void func_mist_parking_8018354C(void)
+{
+    Task_SpawnFromTable(&D_mist_parking_8018D75C, 3, 0, 0);
+}
+
+void func_mist_parking_8018357C(Task* arg0)
+{
+    func_800BC4E4();
+    Mc_SaveData.at4.loc.stage = 2;
+    Mc_SaveData.at4.loc.area  = 1;
+    Mc_SaveData.at4.loc.warp  = 1;
+    Mc_SaveData.at4.loc.room  = 1;
+    D_80071076                = 1;
+    Fs_BeginBootLoad(&Mc_SaveData.at4.loc.view, 1);
+    SndEvt_EnqueueType7(0x80000000, 0);
+    Task_Spawn(0, 0x11, 0, 0);
+    taskKill(arg0);
+}
+
+/// Spawns entry 4 of `D_mist_parking_8018D75C` and keeps its handle in
+/// `D_mist_parking_80195324`.
+void func_mist_parking_80183600(void)
+{
+    D_mist_parking_80195324 = Task_SpawnFromTable(&D_mist_parking_8018D75C, 4, 0, 0);
+}

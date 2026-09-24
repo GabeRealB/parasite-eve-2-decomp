@@ -1,67 +1,250 @@
 #include "common.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "gameplay/268.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
+#include "rooms/room_common.h"
+#include "rooms/mist_parking.h"
 
-#include <psyq/libgte.h>
+extern s8 D_8007106B;
+extern u8 D_801153F4;
 
-#include "main/text.h"
+extern RoomPlacement D_mist_parking_8018FC3C;
 
-extern u8 D_mist_parking_80186718[];
-
-/// Renders `value` into `buf` as a fixed-point number with `decimals` digits
-/// after the point, then appends the overlay's "%" suffix. The integer is
-/// printed first (zero-padded to `decimals + 1` digits when it is too small to
-/// fill them), then the last `decimals` characters are shifted one byte right
-/// to open a slot for the '.'.
-
-u8* func_mist_parking_8018182C(u8* buf, s32 value, s32 decimals)
+void func_mist_parking_80183634(s32 arg0)
 {
-    s32 remaining;
-    s32 len;
-    s32 shifted;
-    s32 count;
-    s32 scale;
-    u8* p;
+    Task* t = D_mist_parking_80195324;
 
-    scale     = 1;
-    remaining = decimals;
-    if (decimals > 0) {
-        do {
-            scale *= 10;
-            remaining--;
-        } while (remaining > 0);
+    if (t == NULL) {
+        return;
     }
+    if (arg0 >= 2) {
+        goto kill;
+    }
+    if (arg0 < 0) {
+        goto kill;
+    }
+    t->spawnArg1 = arg0;
+    return;
+kill:
+    taskKill(D_mist_parking_80195324);
+    D_mist_parking_80195324 = NULL;
+}
 
-    if (value < scale) {
-        func_8002F44C(buf, value, decimals + 1);
+void func_mist_parking_80183688(s32 arg0)
+{
+    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_8018D75C, 5U), arg0, 0, 0);
+}
+
+void func_mist_parking_801836CC(Task* arg0)
+{
+    s32 temp_v0;
+
+    temp_v0         = arg0->spawnArg1 - 1;
+    arg0->spawnArg1 = temp_v0;
+    if (temp_v0 < 0) {
+        taskKill(arg0);
+        Stage_SetEndingFlag();
+    }
+}
+
+void func_mist_parking_80183708(s32 arg0)
+{
+    Gp_ResetCap();
+    switch (arg0) {
+        case 1:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x140, 0x100);
+            break;
+        case 2:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(2);
+            func_800E6D4C(0x2C0, 0);
+            break;
+    }
+}
+
+void func_mist_parking_80183780(s32 arg0)
+{
+    GameFlag_SetNibble(0xF1, arg0);
+}
+
+/// Drops the handles in `D_mist_parking_80195320` and
+/// `D_mist_parking_80195324` without killing their tasks. Its caller passes
+/// an argument, which is unused.
+void func_mist_parking_801837A4(s32 arg0)
+{
+    D_mist_parking_80195320 = 0;
+    D_mist_parking_80195324 = 0;
+}
+
+void func_mist_parking_801837B8(Task* arg0)
+{
+    u8          slotParam[4];
+    GameLoc     key;
+    CdCmdQueue* queue;
+    s16         slot;
+    Task*       task;
+
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+    }
+    return;
+
+L_case0:
+    Stage_RequestMidiFromMap(0xA);
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
+
+L_case1:
+    key = gGameSession->at4;
+    if (task->spawnArg1 != 0) {
+        key.loc.view = 0x65;
     } else {
-        Text_ItoaUnsigned(buf, value);
+        key.loc.view = 0x64;
+    }
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
+    {
+        register s32 cmd asm("a0");
+        register s32 zero asm("a1");
+        register u8* p asm("a2");
+        cmd  = 0x61;
+        zero = 0;
+        p    = slotParam;
+        SOFT_TOUCH_REG4(cmd, zero, p, slot);
+        slotParam[0] = slot;
+        CdCmd_Enqueue(cmd, zero, p);
+    }
+    goto advance;
+
+L_case2:
+    if (queue->field_1FA == 0) {
+        return;
+    }
+    SetDispMask(1);
+    goto advance;
+
+L_case3:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        SetDispMask(0);
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    SetDispMask(0);
+    CdCmd_ActivatePhase1();
+    goto advance;
+
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Stream_ResetRestoreState();
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
+        return;
+    }
+    Mem_Set(Fs_ImgBuffers, 0, 0x25800);
+    SetDispMask(1);
+    taskKill(task);
+    Display_ResetHeapWrapper();
+}
+
+/// Spawns the display task `D_mist_parking_8018FC24` with the task's
+/// `spawnArg1`, sets `D_8007106B`, respawns the view tasks and kills itself.
+void func_mist_parking_8018397C(Task* arg0)
+{
+    Display_SpawnWithOt(&D_mist_parking_8018FC24, 1, arg0->spawnArg1, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    taskKill(arg0);
+}
+
+void func_mist_parking_801839CC(Task* task)
+{
+    TmdObject* obj = task->extra;
+
+    obj->flags         &= 0xFF7F;
+    task->killCountdown = -0x78;
+    func_mist_parking_80183AC4(task, 0, &D_mist_parking_8018FC3C, 0);
+    task->state = task->state + 1;
+}
+
+void func_mist_parking_80183A28(Task* task)
+{
+    RoomPlacement placement;
+
+    if (task->killCountdown > 0) {
+        placement                      = D_mist_parking_8018FC3C;
+        D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
+        func_mist_parking_80183AC4(task, 0, &placement, 0);
     }
 
-    count = decimals;
-    p     = buf;
-    len   = 0;
-    if (count > 0) {
-        if (*buf != 0) {
-            do {
-                p++;
-                len++;
-            } while (*p != 0);
-        }
-        if (len < count) {
-            count = len;
-        }
-        count++;
-
-        shifted = 0;
-        if (count > 0) {
-            do {
-                p[1] = p[0];
-                shifted++;
-                p--;
-            } while (shifted < count);
-        }
-        p[1] = '.';
+    if (task->killCountdown < 0x200) {
+        task->killCountdown = task->killCountdown + 0xF;
+    } else {
+        task->killCountdown = 0x200;
     }
+}
 
-    Text_Strcat(buf, D_mist_parking_80186718);
-    return buf;
+/// Places the task's model at `placement`: its position becomes the
+/// coordinate frame's translation, its angles the frame's rotation, from
+/// which `RotMatrixZYX` rebuilds the matrix; clearing `flg` makes the frame
+/// be recomputed.
+s32 func_mist_parking_80183AC4(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
+{
+    RoomCoord* coord;
+
+    coord             = (RoomCoord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    coord->coord.t[2] = placement->pos.vz;
+    coord->rot.vx     = placement->rot.vx;
+    coord->rot.vy     = placement->rot.vy;
+    coord->rot.vz     = placement->rot.vz;
+    RotMatrixZYX(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
+
+/// Runs the parking-lot cap cutscene's sub-state handler for `task`, unless the
+/// global suspend flag is set.
+void func_mist_parking_80183B40(Task* task)
+{
+    TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
+
+    if (D_801153F4 == 0) {
+        states[task->state](task);
+    }
 }

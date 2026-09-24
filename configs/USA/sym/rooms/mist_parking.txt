@@ -1,1 +1,3 @@
 // Overlay-local symbols for mist_parking.
+D_mist_parking_8017D6F4 = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
+D_mist_parking_8017D770 = 0x8017D770; // force_not_migration:True string with non-zero bytes after its terminator, read from C
