@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-
 /// One of the two per-view objects the room's sprite-table record points at.
 /// Its byte at 0xC is the skip-OT-link flag the sibling rooms' sprite views
 /// carry too (`DwtSprtView.field_C`, `DwtwSprtViewState.field_C`,
@@ -29,8 +27,5 @@ typedef struct NeoArkPowerPlant1SprtRec {
     /* 0x4C */ NeoArkPowerPlant1SprtView* field_4C;
 } NeoArkPowerPlant1SprtRec;
 STATIC_ASSERT_SIZEOF(NeoArkPowerPlant1SprtRec, 0x50);
-
-/// Draws a flickering disc glow at a world-space point; see its definition.
-void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif
