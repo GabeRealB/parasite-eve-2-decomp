@@ -1685,14 +1685,7 @@ id = 373
 text = ["0x28", "0x530"]
 objects = [
   { kind = "packageId" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance", rodata = "0x4", text = "0x74" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_3", rodata = "0x14", text = "0x160" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_4", text = "0x28" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_5", text = "0x30" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_6", text = "0x84" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_2", text = "0xD0" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_7", text = "0xFC" },
-  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_8", text = "0x2A8" },
+  { unit = "mine_tunnel_entrance/mine_tunnel_entrance", rodata = "0x4", text = "0x28" },
   { kind = "data", at = "0x530" },
 ]
 
