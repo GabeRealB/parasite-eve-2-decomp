@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -27,13 +28,6 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"
-
-/// `rtpt` / `mvmva 1,0,0,3,0` / `gpf 12` / `rtps`. The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Spawn argument of the room's cutscene task (`func_shelter_b6_nursery_8017F4E8`,
 /// entry 0 of `D_shelter_b6_nursery_80184FDC`), filled by the message handler
@@ -1747,7 +1741,7 @@ void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -1841,7 +1835,7 @@ void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
     gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
     if (block->flag >= 0) {
@@ -1993,7 +1987,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
             MatrixNormal(&coord->coord, &coord->coord);
             gte_lddp(work->field_24);
             gte_ldsv(&work->field_10);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&step);
             coord->coord.t[0] += step.vx;
             coord->coord.t[1] += step.vy;
@@ -2001,7 +1995,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
             coord->flg         = 0;
             gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(&step);
-            gte_mvmva_real();
+            gte_rtv0();
             gte_stsv(&pos);
             base.vx = coord->workm.t[0];
             base.vy = coord->workm.t[1];
@@ -2020,7 +2014,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 work->field_24 = (s16)work->field_24 * 2 / 3;
                 gte_lddp(work->field_24);
                 gte_ldsv(&work->field_10);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&step);
                 coord->coord.t[0] += step.vx;
                 coord->coord.t[1] += step.vy;
@@ -2122,7 +2116,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
                         work->field_10.vz = ((u32)Gp_LcgState >> 16) & 0xFF;
                         gte_SetRotMatrix(&work->field_8->coord);
                         gte_ldv0(&work->field_10);
-                        gte_mvmva_real();
+                        gte_rtv0();
                         gte_stsv(&work->field_10);
                         break;
                 }
@@ -2130,7 +2124,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -2206,7 +2200,7 @@ void func_shelter_b6_nursery_80181EDC(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = (u8*)(prim + 1);
     setlen(prim, 9);
@@ -2271,7 +2265,7 @@ void func_shelter_b6_nursery_80182330(GsCOORDINATE2* coord, u16 arg1, s16 arg2, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2350,7 +2344,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
         MatrixNormal(&coord->coord, &coord->coord);
         gte_lddp(work->field_24);
         gte_ldsv(&work->field_10);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&step);
         coord->coord.t[0] += step.vx;
         coord->coord.t[1] += step.vy;
@@ -2386,11 +2380,11 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
         p->vz = rcos(i * 0x555);
         gte_lddp(scale);
         gte_ldsv(p);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(p);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(p);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(p);
         p->vx = *(u16*)&p->vx + *(u16*)&coord->workm.t[0];
         p->vy = *(u16*)&p->vy + *(u16*)&coord->workm.t[1];
@@ -2398,7 +2392,7 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim           = (POLY_F3*)gGpuPrimCursor;
     gGpuPrimCursor = (u8*)(prim + 1);
     setPolyF3(prim);
@@ -2534,7 +2528,7 @@ void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2617,7 +2611,7 @@ void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2812,10 +2806,10 @@ void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -2975,7 +2969,7 @@ void func_shelter_b6_nursery_801842FC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

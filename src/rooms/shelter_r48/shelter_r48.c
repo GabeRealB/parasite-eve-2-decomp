@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -16,14 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-/// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Per-call work block carved from the scratchpad stack. Nothing in the body
 /// touches the last 0x10 bytes; the size is the amount the scratch head moves.
@@ -113,7 +106,7 @@ static inline void _shelterR48RotTrans(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 
@@ -252,7 +245,7 @@ void func_shelter_r48_8017D660(Task* arg0)
         yTop         = y - 0x78;
         block->in.vy = yTop;
         gte_ldv0(&block->in);
-        gte_rtv0_real();
+        gte_rtv0();
         x0     = xMin;
         x1     = xMax;
         nprims = 1;
@@ -982,7 +975,7 @@ void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
@@ -993,7 +986,7 @@ void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
@@ -1002,11 +995,11 @@ void func_shelter_r48_8017F124(GpEffWork* work, GsCOORDINATE2* coord, s32 part)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         idx = (D_shelter_r48_8018BE54[part][i] + work->age) % 6;
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
@@ -1135,7 +1128,7 @@ void func_shelter_r48_8017F6C0(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -1193,7 +1186,7 @@ void func_shelter_r48_8017FB7C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1261,7 +1254,7 @@ void func_shelter_r48_8017FF74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1407,7 +1400,7 @@ void func_shelter_r48_80180210(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -1473,7 +1466,7 @@ void func_shelter_r48_80180804(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1540,7 +1533,7 @@ void func_shelter_r48_80180C5C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1888,11 +1881,11 @@ void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 colo
     ang = color;
     gte_SetRotMatrix(&m);
     gte_ldv0(&block->tip);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&block->tip);
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&block->tip);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&block->tip);
     block->base.vx = coord->workm.t[0];
     block->base.vy = coord->workm.t[1];
@@ -1903,13 +1896,13 @@ void func_shelter_r48_80181C14(GsCOORDINATE2* coord, s16 size, s32 yaw, s32 colo
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->base);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(&block->tip);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         gte_stszotz(&block->otz1);
@@ -2042,7 +2035,7 @@ void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {

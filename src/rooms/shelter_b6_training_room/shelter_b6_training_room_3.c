@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -15,12 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// The GTE commands with the two leading nops this code has; the `inline_c.h`
-/// macros lack them, and its `rtv0` assembles to a different word.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// The gameplay-resident light slot the glow writes: `mode` becomes 2 and
 /// `data.light` takes the glow's world position and a randomised intensity.
@@ -261,13 +256,13 @@ void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -401,7 +396,7 @@ void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -553,7 +548,7 @@ void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
@@ -661,7 +656,7 @@ void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -673,10 +668,10 @@ void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -835,13 +830,13 @@ void func_shelter_b6_training_room_8017FC40(GsCOORDINATE2* coord, s16 size, u16 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->base);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(&block->tip);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         gte_stszotz(&block->otz1);
@@ -972,13 +967,13 @@ void func_shelter_b6_training_room_80180530(GsCOORDINATE2* from, GsCOORDINATE2* 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->base);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(&block->tip);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         gte_stszotz(&block->otz1);
@@ -1251,7 +1246,7 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
         block->top[i].vz = (rcos(ang) * rTop) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->top[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->top[i]);
         block->top[i].vx  = *(u16*)&block->top[i].vx + *(u16*)&coord->workm.t[0];
         block->top[i].vy  = *(u16*)&block->top[i].vy + *(u16*)&coord->workm.t[1];
@@ -1262,7 +1257,7 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
         bp->vz            = (rcos(ang) * rBase) >> 12;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&block->base[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->base[i]);
         block->base[i].vx = *(u16*)&block->base[i].vx + *(u16*)&coord->workm.t[0];
         bp->vy            = *(u16*)&bp->vy + *(u16*)&coord->workm.t[1];
@@ -1271,11 +1266,11 @@ void func_shelter_b6_training_room_80181368(GpEffWork* mem, GsCOORDINATE2* coord
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         gte_ldv0(&block->top[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->top[next % 6], &block->base[i], &block->base[next % 6]);
-        gte_rtpt_real();
+        gte_rtpt();
         frame = ((s8)D_shelter_b6_training_room_80185C60[band][i] + mem->age) % 6;
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
@@ -1399,7 +1394,7 @@ void func_shelter_b6_training_room_80181BAC(GsCOORDINATE2* coord, s16 arg1, s16 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((_ShelterB6TrainingRoomFlashScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1468,13 +1463,13 @@ void func_shelter_b6_training_room_80181FDC(GsCOORDINATE2* arg0, GsCOORDINATE2* 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->from);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->sxy0);
     gte_stflg(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->otz);
         gte_ldv0(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->to);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->sxy1);
         gte_stflg(&((_ShelterB6TrainingRoomRibbonScratch*)(head - 0x28))->flag);
         if (block->flag >= 0) {

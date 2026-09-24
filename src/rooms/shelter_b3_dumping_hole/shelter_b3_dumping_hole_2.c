@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_80132724.h"
@@ -29,9 +30,6 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
 
-/// `rtps` spelled as its raw word, with the two leading nops the original carries.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 #define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
 
 /// Spawns one debris task and gives it a work block seeded with `seed`.
@@ -47,12 +45,6 @@
             *w = seed;                                                                                \
         }                                                                                             \
     }
-
-/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
-/// `rtv0` spelled as its raw word, with the two leading nops the original carries.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 typedef struct {
     s32   field_0;
@@ -534,7 +526,7 @@ u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 w, s16 h, s1
     gte_SetRotMatrix(&coord->workm);
     origin.vx = origin.vy = origin.vz = 0;
     gte_ldv0(&origin);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sxy);
     gte_stszotz(&z);
     sy = sxy >> 16;
@@ -720,7 +712,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     gte_SetRotMatrix(&coord->workm);
     pos.vx = pos.vy = pos.vz = 0;
     gte_ldv0(&pos);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sxy);
     sx        = sxy.vx;
     y         = sxy.vy;
@@ -926,7 +918,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&p.pos);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&p.sx);
             gte_stszotz(&p.otz);
             sx = p.sx;
@@ -1664,7 +1656,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             origin.vy = 0;
             origin.vx = 0;
             gte_ldv0(&origin);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&sxy);
             gte_stszotz(&otz);
             sy = sxy >> 16;
@@ -1679,7 +1671,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             }
             for (i = 0; i < 3; i++) {
                 gte_ldv0(&work->verts[i]);
-                gte_rtps_real();
+                gte_rtps();
                 gte_stsxy(&sxy);
                 gte_stszotz(&otz);
                 x[i] = sxy;
@@ -1872,7 +1864,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             sv->vz = t6;
                             gte_lddp(sc->vx);
                             gte_ldsv(sv);
-                            gte_gpf12_real();
+                            gte_gpf12();
                             gte_stsv(sv);
                             t4               = sv->vx;
                             t5               = sv->vy;
@@ -1890,7 +1882,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             sv->vz = t6;
                             gte_lddp(sc->vy);
                             gte_ldsv(sv);
-                            gte_gpf12_real();
+                            gte_gpf12();
                             gte_stsv(sv);
                             t4               = sv->vx;
                             t5               = sv->vy;
@@ -1908,7 +1900,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             sv->vz = t6;
                             gte_lddp(sc->vz);
                             gte_ldsv(sv);
-                            gte_gpf12_real();
+                            gte_gpf12();
                             gte_stsv(sv);
                             t4               = sv->vx;
                             t5               = sv->vy;
@@ -3674,13 +3666,13 @@ void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -3814,7 +3806,7 @@ void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -3962,7 +3954,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
                         work->field_10.vz = ((u32)Gp_LcgState >> 16) & 0xFF;
                         gte_SetRotMatrix(&work->field_8->coord);
                         gte_ldv0(&work->field_10);
-                        gte_rtv0_real();
+                        gte_rtv0();
                         gte_stsv(&work->field_10);
                         break;
                 }
@@ -3970,7 +3962,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -4045,7 +4037,7 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -4118,7 +4110,7 @@ void func_shelter_b3_dumping_hole_80185DCC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -4251,7 +4243,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -4313,7 +4305,7 @@ void func_shelter_b3_dumping_hole_801866CC(GsCOORDINATE2* arg0, u16 arg1, s16 ar
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw40Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw40Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -4387,7 +4379,7 @@ void func_shelter_b3_dumping_hole_80186AB8(GsCOORDINATE2* arg0, s32 arg1, s32 ar
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw41Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw41Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
