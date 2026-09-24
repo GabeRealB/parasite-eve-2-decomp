@@ -29,7 +29,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
     if (arg2 == 2) {
         if (GameFlag_GetNibble(0xB8) != 0) {
             DnwhEventDesc* wp;
-            void           (*resolve)(DnwhUtilParam*, DnwhUtilParam*) = func_dryfield_night_water_hole_8017D6AC;
+            s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) = func_dryfield_night_water_hole_8017D6AC;
 
             work.field_0 = 4;
             work.field_1 = 0x2E;

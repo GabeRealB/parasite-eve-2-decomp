@@ -32,14 +32,11 @@ STATIC_ASSERT_SIZEOF(DnwhUtilParam, 0x6);
 /// `D_dryfield_night_water_hole_80183630` before spawning the room's event task
 /// from `D_dryfield_night_water_hole_801805EC`.
 ///
-/// The task that consumes it is still assembly
-/// (`func_dryfield_night_water_hole_8017D7E8`): it forwards `field_4` as message
-/// 0x3EE to the slot-3 game pointer - the halfword is staged on its own frame,
-/// and 0xFFFF makes it abort the event instead - while `field_8` is the
-/// sound-event id it plays through `SndEvt_EnqueueType6` and then polls with
-/// `SndVoice_HasActiveId`. Once that id goes quiet it copies the four bytes at
-/// 0x0 into `Mc_SaveData`'s 0x5..0x8, the save-location block, and re-spawns to
-/// task type 0x11.
+/// The task that consumes it, `func_dryfield_night_water_hole_8017D7E8`, sends
+/// `field_4` to the slot-3 game pointer as message 0x3EE (0xFFFF: nothing to
+/// send) and plays `field_8` as a sound event (0: none). Once that sound goes
+/// quiet it commits the save location in `field_0`..`field_3` (stage, area,
+/// warp, room) and re-spawns the player task as type 0x11.
 ///
 /// `field_6` is never read or written by either side, so it is padding.
 typedef struct DnwhEventDesc {
@@ -86,9 +83,9 @@ void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
 void func_dryfield_night_water_hole_8017D958(Task* arg0);
 
 /// Resolves the code in `in->field_0` and writes the resulting byte to
-/// `out->field_3`. `func_dryfield_night_water_hole_8017DC28` is its only caller
-/// and passes one block as both sides.
-void func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
+/// `out->field_3`; always returns 1. `func_dryfield_night_water_hole_8017DC28`
+/// is its only caller and passes one block as both sides.
+s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
 
 /// One rectangle of water surface drawn by
 /// `func_dryfield_night_water_hole_8017DF28`, in world coordinates: it spans
@@ -134,5 +131,12 @@ void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
 
 /// Draws a flat textured quad at `arg0`, sized `arg1` and of brightness `arg2`.
 void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+
+/// Draws a spinning sprite at `arg0`: texture column `arg1`, size `arg2`,
+/// angle `arg3`.
+void func_dryfield_night_water_hole_8017FB98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Draws an upright sprite at `arg0`: texture cell `arg1`, size `arg2`.
+void func_dryfield_night_water_hole_8017FF84(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_DRYFIELD_NIGHT_WATER_HOLE_H

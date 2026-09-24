@@ -5,6 +5,7 @@
 #include <psyq/inline_c.h>
 #include "main/display.h"
 #include "main/mem.h"
+#include "rooms/dryfield_night_water_hole.h"
 #include "rooms/room_common.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
