@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -62,4 +63,47 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_2", func_shelter_b6_nursery_8017FBC0);
+void func_shelter_b6_nursery_8017FBC0(Task* arg0)
+{
+    s32 pan;
+    s32 depth;
+    s32 viewDepth;
+
+    D_shelter_b6_nursery_801879A0.coord.t[0] = 0x1770;
+    D_shelter_b6_nursery_801879A0.coord.t[1] = 0;
+    D_shelter_b6_nursery_801879A0.coord.t[2] = -0x33E;
+    D_shelter_b6_nursery_801879A0.sub        = &gGfxViewCoord;
+    D_shelter_b6_nursery_801879A0.flg        = 0;
+    Gp_UpdateCoord(&D_shelter_b6_nursery_801879A0);
+    pan   = Gp_GetObjPan(&D_shelter_b6_nursery_801879A0);
+    depth = gpGetObjDepth(&D_shelter_b6_nursery_801879A0);
+    switch (arg0->state) {
+        case 0:
+            SndEvt_EnqueueType6(0x55160001, (s8)pan, (s8)depth);
+            arg0->state++;
+            break;
+        case 1:
+            if (D_shelter_b6_nursery_8018797C == 0) {
+                SndEvt_EnqueueType7(0x55160001, 1);
+                taskKill(arg0);
+                return;
+            }
+            if (D_8007216C != gGameSession->at4.loc.view) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+        case 3:
+        case 4:
+            arg0->state++;
+            break;
+        case 5:
+            viewDepth = D_shelter_b6_nursery_80185034[gGameSession->at4.loc.view];
+            if (viewDepth != -1) {
+                depth = viewDepth;
+            }
+            SndEvt_EnqueueTypeA(0x55160001, (s8)pan, (s8)depth);
+            arg0->state = 1;
+            break;
+    }
+}
