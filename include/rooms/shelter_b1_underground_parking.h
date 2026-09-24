@@ -88,15 +88,6 @@ void func_shelter_b1_underground_parking_8017F7D0(Task* task);
 /// Returns the 0xFFFF-terminated list of item ids the shop list starts from.
 u16* func_shelter_b1_underground_parking_8017F80C(s32 mode);
 
-/// Fills the shop list from the id list its task's mode selects.
-void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj);
-
-/// Adds `item` to the shop list, keeping one entry per item kind.
-void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item);
-
-/// Moves both action-prompt cursors from the pads and draws them.
-void func_shelter_b1_underground_parking_80183CEC(Task* task);
-
 /// Resets both action-prompt slots and steps the caller on one state.
 void func_shelter_b1_underground_parking_801848BC(Task* task);
 
@@ -116,8 +107,6 @@ void func_shelter_b1_underground_parking_80185F08(SVECTOR* pos, s32 speed, s32 s
 extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 void func_shelter_b1_underground_parking_8018390C(void);
-
-void func_shelter_b1_underground_parking_80183B9C(void);
 
 void func_shelter_b1_underground_parking_801848A4(void);
 

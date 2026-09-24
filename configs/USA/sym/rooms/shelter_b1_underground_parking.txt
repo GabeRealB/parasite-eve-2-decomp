@@ -1,1 +1,3 @@
 // Overlay-local symbols for shelter_b1_underground_parking.
+D_shelter_b1_underground_parking_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+D_shelter_b1_underground_parking_8017D774 = 0x8017D774; // force_not_migration:True string with a non-zero byte after its terminator, read from C
