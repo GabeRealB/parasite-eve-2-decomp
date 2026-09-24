@@ -33,6 +33,13 @@ Checks, in order:
    title and gameplay share theirs), in which case names only have to agree
    within each image.
 
+Two kinds of memory belong to no image of ours but are real targets: the
+kernel's area below the executable and a development unit's RAM past 2 MB,
+where debug tooling the game calls into lived. They are modelled as regions
+always resident with everything. The packages one manifest entry builds from a
+single source (its `slots`) count as one image, compared by file offset, since
+each slot may load them at a different address.
+
 Exit status is 1 with --strict when anything is reported.
 """
 from __future__ import annotations
@@ -40,6 +47,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import tomllib
 from collections import defaultdict
 from pathlib import Path
 
@@ -51,6 +59,10 @@ DECL = re.compile(r'^\s*([A-Za-z_.$][\w.$]*)\s*=\s*0x([0-9A-Fa-f]+)\s*;(.*)$')
 CORE = {'main': 'SLUS_010.42', 'gameplay': 'gameplay', 'title': 'title'}
 NEVER_TOGETHER = {frozenset(('title', 'gameplay'))}
 ALWAYS = 'SLUS_010.42'
+# Memory the game addresses that no image of ours occupies: the kernel's area
+# below the executable, and the RAM a development unit had past the retail
+# console's 2 MB, where debug tooling the game calls into was resident.
+EXTERNAL = {'kernel': (0x80000000, 0x80010000), 'devkit-ram': (0x80200000, 0x80800000)}
 
 
 class Decl:
@@ -91,6 +103,22 @@ def load_configs(root: Path) -> dict[str, dict]:
     return out
 
 
+def load_groups(root: Path) -> dict[str, str]:
+    """package -> manifest entry, for entries that build several packages.
+
+    Such an entry compiles one source into every package it lists (byte-identical
+    copies, or variants differing only in their defines), so a name it declares
+    in each of them is still one thing."""
+    with open(root / 'configs/USA/overlays.toml', 'rb') as f:
+        manifest = tomllib.load(f)
+    groups = {}
+    for family, body in manifest.items():
+        for key, entry in (body.get('overlays') or {}).items():
+            for slot in entry.get('slots') or []:
+                groups[slot['package']] = f'{family}/{key}'
+    return groups
+
+
 def parse_decls(root: Path, image: str, files: list[str]) -> list[Decl]:
     decls = []
     for f in files:
@@ -122,6 +150,13 @@ def main() -> None:
         if not elf.is_file():
             sys.exit(f'{elf} is missing; build first')
         ranges[image] = image_range(elf)
+    ranges.update(EXTERNAL)
+    groups = load_groups(root)
+    slot_members: dict[str, set[str]] = {}
+
+    def canon(owner):
+        """The thing an owner stands for: a multi-package entry for its packages."""
+        return groups.get(owner, owner)
 
     def covering(addr):
         return [i for i, (lo, hi) in ranges.items() if lo <= addr < hi]
@@ -129,7 +164,8 @@ def main() -> None:
     def overlaps(x, y):
         return ranges[x][0] < ranges[y][1] and ranges[y][0] < ranges[x][1]
 
-    resident = {i: {j for j in ranges if j != i and (j == ALWAYS or i == ALWAYS or not overlaps(i, j))
+    always = {ALWAYS, *EXTERNAL}
+    resident = {i: {j for j in ranges if j != i and (j in always or i in always or not overlaps(i, j))
                     and frozenset((i, j)) not in NEVER_TOGETHER} for i in ranges}
 
     def owner_of(image, addr):
@@ -143,7 +179,9 @@ def main() -> None:
             return None
         if len(cands) == 1:
             return cands[0]
-        return f'slot[{cands[0]}..{cands[-1]}]({len(cands)})'
+        slot = f'slot[{cands[0]}..{cands[-1]}]({len(cands)})'
+        slot_members[slot] = {canon(c) for c in cands}
+        return slot
 
     findings: dict[str, list[tuple[set, str]]] = defaultdict(list)
 
@@ -201,18 +239,25 @@ def main() -> None:
                 else:
                     report('declared', [image, owner], f'{image}: references {name} = 0x{addr:08X} in {owner}, where nothing is declared')
 
-    # 3. names: one name, one (image, address).
+    # 3. names: one name, one (image, address). The packages of one manifest
+    # entry count as one image, and an import into a shared slot means the
+    # same thing as a declaration by any of the slot's images at that address.
     meaning = defaultdict(set)
     where = defaultdict(list)
     for d in decls:
         if d.owner:
-            meaning[d.name].add((d.owner, d.addr))
+            # An entry's packages may load into different slots; its names
+            # are file offsets, the same in every copy.
+            where_in = d.addr - ranges[d.owner][0] if d.owner in groups else d.addr
+            meaning[d.name].add((canon(d.owner), where_in))
             where[d.name].append(d)
     for name, ms in sorted(meaning.items()):
+        ms = {(o, ad) for o, ad in ms
+              if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in ms))}
         if len(ms) > 1:
             owners = sorted({o for o, _ in ms})
-            desc = ', '.join(f'{o}@0x{ad:08X}' for o, ad in sorted(ms)[:4]) + (f', ... ({len(ms)} in all)' if len(ms) > 4 else '')
-            report('names', owners, f'{name} names {len(ms)} things: {desc}')
+            desc = ', '.join(f'{o}@{"+" if o in groups.values() else ""}0x{ad:08X}' for o, ad in sorted(ms)[:4]) + (f', ... ({len(ms)} in all)' if len(ms) > 4 else '')
+            report('names', set(owners) | {d.image for d in where[name]}, f'{name} names {len(ms)} things: {desc}')
 
     # 4. addresses: several names at one address.
     at = defaultdict(list)
@@ -224,16 +269,16 @@ def main() -> None:
         if len(names) < 2:
             continue
         cover = covering(addr)
-        if len(cover) == 1 and len({d.owner for d in ds}) == 1:
+        if len(cover) == 1 and len({canon(d.owner) for d in ds}) == 1:
             report('addresses', [cover[0]] + [d.image for d in ds],
                    f'0x{addr:08X} is unique to {cover[0]} but declared as {", ".join(sorted(names))}')
             continue
         per_owner = defaultdict(set)
         for d in ds:
-            per_owner[d.owner].add(d.name)
+            per_owner[canon(d.owner)].add(d.name)
         for owner, ns in sorted(per_owner.items()):
             if len(ns) > 1:
-                report('addresses', [owner], f'0x{addr:08X} is ambiguous ({len(cover)} images) and {owner} alone '
+                report('addresses', {owner} | {d.image for d in ds}, f'0x{addr:08X} is ambiguous ({len(cover)} images) and {owner} alone '
                        f'declares it as {", ".join(sorted(ns))}')
 
     wanted = set(a.image)
