@@ -1323,10 +1323,13 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_souvenir_shop]
+label = "code starts at 0x10: the four handlers the room's message table at 0xA7C names at 0x10, 0x18, 0x40 and 0x48 are frameless leaves (three `return 0` stubs and an eight-byte copy returning 1), so the span detector - which looks for the first stack-frame prologue - starts at 0x50 and left them as rodata words"
 id = 343
+text = ["0x10", "0xA7C"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_souvenir_shop/dryfield_night_souvenir_shop", rodata = "0x4", text = "0x94" },
+  { unit = "dryfield_night_souvenir_shop/dryfield_night_souvenir_shop_3", text = "0x10" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x50" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x9C" },
   { unit = "dryfield_night_souvenir_shop/dryfield_night_souvenir_shop_2", text = "0xF4" },
