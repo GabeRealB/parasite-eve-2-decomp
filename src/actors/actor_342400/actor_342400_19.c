@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main/task.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80165cc0.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_19", func_actor_342400_8016A664);
 
@@ -39,7 +38,7 @@ void func_actor_342400_8016A724(Task* arg0)
         work4->field_418 = next;
         work4->field_414 = 1;
     }
-    ActorsShared80165cc0(arg0);
+    func_actor_342400_80165CC0(arg0);
     work->field_420++;
 }
 

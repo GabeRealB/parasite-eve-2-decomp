@@ -5,8 +5,6 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_8016945c.h"
-#include "actors/actors_shared_8016b370.h"
 
 void func_actor_342400_8016B33C(Task* arg0);
 void func_actor_342400_801694A8(Task* arg0, s32 arg1);
@@ -152,7 +150,7 @@ void func_actor_342400_8016AE24(Task* arg0)
 
     work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FB4;
-    if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
+    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -166,7 +164,7 @@ void func_actor_342400_8016AEAC(Task* arg0)
 
     work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FC0;
-    if ((ActorsShared8016945c(arg0) << 0x10) == 0) {
+    if ((func_actor_342400_8016945C(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -176,10 +174,10 @@ void func_actor_342400_8016AF34(Task* arg0)
     Actor342400Work* work                = (Actor342400Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016B33C,
-        ActorsShared8016b370,
+        func_actor_342400_8016B370,
     };
 
-    if (ActorsShared8016945c(arg0) == 0) {
+    if (func_actor_342400_8016945C(arg0) == 0) {
         states[(s16)work->field_422](arg0);
     }
 }
@@ -193,7 +191,7 @@ void func_actor_342400_8016AFA8(Task* arg0)
 
     work = (Actor342400Work*)arg0->work;
     sp   = D_actor_342400_80161FCC;
-    if ((ActorsShared8016945c(arg0) << 0x10) != 0) {
+    if ((func_actor_342400_8016945C(arg0) << 0x10) != 0) {
         work->field_438 = 0;
         return;
     }

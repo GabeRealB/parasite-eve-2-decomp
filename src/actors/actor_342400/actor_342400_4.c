@@ -6,8 +6,6 @@
 #include "gameplay/gameplay.h"
 #include "gameplay/1BC.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_8016974c.h"
-#include "actors/actors_shared_801698d4.h"
 
 void func_actor_342400_801646B8(Task* arg0)
 {
@@ -44,13 +42,13 @@ void func_actor_342400_801646B8(Task* arg0)
         work->field_41C = limit;
         work->field_436 = step;
     }
-    ActorsShared801698d4(arg0, work->field_436);
+    func_actor_342400_801698D4(arg0, work->field_436);
     speed                                          = func_actor_342400_80169728(arg0, -0x10);
     angle                                          = work->field_7A;
     ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
     ((TmdObject*)arg0->extra)->coords->flg         = 0;
-    if (ActorsShared8016974c(arg0)) {
+    if (func_actor_342400_8016974C(arg0)) {
         soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0001;
         pan     = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));

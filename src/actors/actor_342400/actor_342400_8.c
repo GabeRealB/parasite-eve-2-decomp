@@ -3,10 +3,6 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_801639a8.h"
-#include "actors/actors_shared_80165cc0.h"
-#include "actors/actors_shared_801662ec.h"
 #include "actors/actors_shared_8016a538.h"
 
 void func_actor_342400_801694A8(Task* arg0, s32 arg1);
@@ -184,7 +180,7 @@ static __inline__ void update_rotation(Task* arg0)
 }
 
 /// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `func_actor_342400_801640B0`: in mode 0 it aims (`ActorsShared801662ec`),
+/// of `func_actor_342400_801640B0`: in mode 0 it aims (`func_actor_342400_801662EC`),
 /// lets a pending hit replace the state handler, rebuilds the root rotation,
 /// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
 /// state 3 after a consumed `field_448` request. Mode 1 only recolours; both
@@ -203,12 +199,12 @@ void func_actor_342400_8016666C(Task* arg0)
             return;
         case 0:
             work->field_442++;
-            ActorsShared801662ec(arg0);
+            func_actor_342400_801662EC(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            ActorsShared80165cc0(arg0);
-            ActorsShared801639a8(arg0);
+            func_actor_342400_80165CC0(arg0);
+            func_actor_342400_801639A8(arg0);
             update_rotation(arg0);
             func_actor_342400_801653DC(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
@@ -224,9 +220,9 @@ void func_actor_342400_8016666C(Task* arg0)
             coord->flg = 0;
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
-            ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             obj->flags &= ~0x80;
             return;
     }

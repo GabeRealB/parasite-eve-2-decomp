@@ -2,7 +2,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_8016974c.h"
 
 void func_actor_342400_8016A370(Task* arg0)
 {
@@ -17,7 +16,7 @@ void func_actor_342400_8016A370(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
         ((TmdObject*)arg0->extra)->coords->flg         = 0;
     }
-    if (ActorsShared8016974c(arg0)) {
+    if (func_actor_342400_8016974C(arg0)) {
         Actor342400Work* next;
 
         work->field_438 = 0;

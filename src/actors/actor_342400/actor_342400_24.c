@@ -10,7 +10,6 @@
 #include "gte.h"
 
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80165cc0.h"
 
 void func_actor_342400_8016B5B0(Task* arg0)
 {
@@ -133,7 +132,7 @@ void func_actor_342400_8016BA3C(Task* arg0)
         work->field_418 = next;
         work->field_414 = 1;
     }
-    ActorsShared80165cc0(arg0);
+    func_actor_342400_80165CC0(arg0);
     work->field_420++;
 }
 

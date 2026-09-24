@@ -6,7 +6,6 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80163354.h"
 
 /// Sub-state handler: slides the model's root toward `field_70` in x/z,
 /// accelerating with `field_42A`; after 90 frames it also eases y in and marks
@@ -155,9 +154,9 @@ void func_actor_342400_80168F14(Task* arg0)
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             obj->flags &= ~0x80;
             return;
@@ -188,9 +187,9 @@ void func_actor_342400_801690FC(Task* arg0)
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }

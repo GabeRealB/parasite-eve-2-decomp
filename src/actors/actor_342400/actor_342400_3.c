@@ -4,12 +4,6 @@
 #include "main/tmd.h"
 #include "main/gfx.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_801639a8.h"
-#include "actors/actors_shared_80165cc0.h"
-#include "actors/actors_shared_801662ec.h"
-#include "actors/actors_shared_80164b68.h"
-#include "actors/actors_shared_801692e8.h"
 #include "actors/actors_shared_8016a538.h"
 
 /// Eleven state handlers, indexed by `Actor342400Work::field_420`; copied to
@@ -47,7 +41,7 @@ void func_actor_342400_80163C58(Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    ActorsShared801692e8();
+    func_actor_342400_801692E8();
     obj                   = task->extra;
     w                     = (Actor342400Work*)task->work;
     e                     = task->spawnArg2;
@@ -66,9 +60,9 @@ void func_actor_342400_80163C58(Task* task)
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = 2;
-    ActorsShared80165cc0(task);
+    func_actor_342400_80165CC0(task);
     coord->sub = &gGfxViewCoord;
-    ActorsShared80164b68(task);
+    func_actor_342400_80165E4C(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = task->spawnArg2;
     Gp_LinkNode(&enemy->node);
@@ -132,7 +126,7 @@ void func_actor_342400_80163E70(Task* task)
     if (work == NULL) {
         goto destroy;
     }
-    ActorsShared801692e8();
+    func_actor_342400_801692E8();
     flags = task->spawnArg1;
     if ((flags >> 16) & 1) {
     destroy:
@@ -162,9 +156,9 @@ void func_actor_342400_80163E70(Task* task)
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = two;
-    ActorsShared80165cc0(task);
+    func_actor_342400_80165CC0(task);
     coord->sub = &gGfxViewCoord;
-    ActorsShared80164b68(task);
+    func_actor_342400_80165E4C(task);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     e2 = task->spawnArg2;
@@ -282,7 +276,7 @@ static __inline__ void update_rotation(Task* arg0)
 
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `func_actor_342400_801670C0`. In mode 0 it aims at the nearest actor
-/// (`ActorsShared801662ec`), lets a pending hit (`take_hit`) replace the state
+/// (`func_actor_342400_801662EC`), lets a pending hit (`take_hit`) replace the state
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
@@ -301,14 +295,14 @@ void func_actor_342400_801640B0(Task* arg0)
             return;
         case 0:
             work->field_442++;
-            ActorsShared801662ec(arg0);
+            func_actor_342400_801662EC(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            ActorsShared80165cc0(arg0);
-            cur             = work->field_424;
+            func_actor_342400_80165CC0(arg0);
+            cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            ActorsShared801639a8(arg0);
+            func_actor_342400_801639A8(arg0);
             if (work->field_432 == 1) {
                 func_actor_342400_80169654(arg0, 6, (u16*)&work->field_98);
             }
@@ -330,9 +324,9 @@ void func_actor_342400_801640B0(Task* arg0)
             coord->flg = 0;
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
-            ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+            func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }

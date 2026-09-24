@@ -2,9 +2,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_8016974c.h"
-#include "actors/actors_shared_801698d4.h"
-#include "actors/actors_shared_8016bef0.h"
 
 void func_actor_342400_801664C4(Task* arg0);
 void func_actor_342400_80169CF8(Task* arg0);

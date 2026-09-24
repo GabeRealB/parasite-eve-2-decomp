@@ -3,9 +3,6 @@
 #include "main/tmd.h"
 #include "main/mem.h"
 #include "actors/actor_342400.h"
-#include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_80166180.h"
-#include "actors/actors_shared_801695a0.h"
 
 /// Nine state handlers, indexed by `Actor342400Work::field_420`; copied to the
 /// stack before dispatch. splat migrates this table into
@@ -16,9 +13,9 @@ const TaskFuncTable9 D_actor_342400_80161F50 = { {
     func_actor_342400_8016A664,
     func_actor_342400_8016A724,
     func_actor_342400_8016A804,
-    ActorsShared801695a0,
+    func_actor_342400_8016A884,
     func_actor_342400_8016A950,
-    ActorsShared80166180,
+    func_actor_342400_80166180,
     func_actor_342400_8016A9AC,
     func_actor_342400_8016A9C4,
     func_actor_342400_8016AA08,
@@ -41,7 +38,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 
 /// Per-frame callback of the main enemy. `D_801153F4` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
-/// Unless `field_451` is set, it then runs `ActorsShared80163354` for
+/// Unless `field_451` is set, it then runs `func_actor_342400_80163354` for
 /// three part pairs.
 void func_actor_342400_80165FC0(Task* arg0)
 {
@@ -61,9 +58,9 @@ void func_actor_342400_80165FC0(Task* arg0)
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 1, 7, 0x80, 0, 0xFF);
+                func_actor_342400_80163354(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
