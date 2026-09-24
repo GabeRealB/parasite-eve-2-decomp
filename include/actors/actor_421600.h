@@ -82,7 +82,10 @@ typedef struct Actor421600Work {
     /* 0x00A */ byte                pad_A[2];
     /* 0x00C */ Actor421600Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
-    /* 0x016 */ byte                pad_16[0x44];
+    /// Yaw the placement handler `func_actor_421600_8013E52C` reads back off
+    /// the root coordinate after writing it.
+    /* 0x016 */ s16  field_16;
+    /* 0x018 */ byte pad_18[0x42];
     /// Animation step counter masked to 0x3FF by the state handlers; the
     /// model-shrink tails wait for it to read 0xC.
     /* 0x05A */ u16  field_5A;
@@ -313,6 +316,26 @@ typedef struct Actor421600AvoidScratch {
 } Actor421600AvoidScratch;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
 
+/// Scratchpad block of the obstacle push `func_actor_421600_80132310`: the
+/// same walk as `Actor421600AvoidScratch` without the per-record flag word,
+/// since every kind-0x10000 record blocks there.
+typedef struct Actor421600AvoidAllScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor421600AvoidAllScratch;
+STATIC_ASSERT_SIZEOF(Actor421600AvoidAllScratch, 0x54);
+
 typedef struct Actor421600AvoidDelta {
     /* 0x0 */ s32  vx;
     /* 0x4 */ s32  vy;
@@ -514,6 +537,13 @@ s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// displacement of whichever record applied. `func_actor_421600_801392A8`
 /// walks the 0x90C and 0xA4C tables with it and tests the return.
 s32 func_actor_421600_80132310(GsCOORDINATE2* arg0, GpRec18* arg1, s16 arg2, SVECTOR* arg3);
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+/// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
+/// its parent's frame.
+void func_actor_421600_80132004(GsCOORDINATE2* coord, s16 yaw);
 
 /// Camera-target matrix the actor measures its offset from; see
 /// `D_80073B8C[0]->t[]` in the other enemy overlays.

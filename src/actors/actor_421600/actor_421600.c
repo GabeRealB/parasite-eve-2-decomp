@@ -6,7 +6,6 @@
 
 #include "actors/actor_421600.h"
 #include "actors/actor_421600_update.h"
-#include "actors/actors_shared_80132808.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -910,11 +909,11 @@ void func_actor_421600_80134604(Actor421600* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        ActorsShared80132808(&arg0->field_2C->coords[2], thirdAngle);
+        func_actor_421600_80132004(&arg0->field_2C->coords[2], thirdAngle);
         arg0->field_2C->coords[2].flg = 0;
-        ActorsShared80132808(&arg0->field_2C->coords[3], thirdAngle);
+        func_actor_421600_80132004(&arg0->field_2C->coords[3], thirdAngle);
         arg0->field_2C->coords[3].flg = 0;
-        ActorsShared80132808(&arg0->field_2C->coords[4], (s16)clampedAngle / 2);
+        func_actor_421600_80132004(&arg0->field_2C->coords[4], (s16)clampedAngle / 2);
         arg0->field_2C->coords[4].flg = 0;
     }
     if (((s16)work->field_82E == 0) && (work->field_0 == 0x26)) {
@@ -953,7 +952,7 @@ void func_actor_421600_80134604(Actor421600* arg0)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    ActorsShared80132808(&arg0->field_2C->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    func_actor_421600_80132004(&arg0->field_2C->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     arg0->field_2C->coords[10].flg = 0;
     sound                          = func_actor_421600_80133CAC(arg0, (Actor421600Work*)work);
     if (sound != 0) {
@@ -5065,4 +5064,4 @@ void func_actor_421600_8013E424(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_421600/actor_421600", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_421600/actor_421600", D_actor_421600_80131FB0);
