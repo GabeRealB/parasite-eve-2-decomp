@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/task.h"
 
@@ -19,5 +21,17 @@ void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg
 /// Draws a flickering gouraud disc at the projected point `arg0`, of radius
 /// `arg1`, tinted by the channel bits of `arg2`.
 void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+/// Draws a gouraud ring around the projected world position of `arg0`, black
+/// at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`.
+void func_shelter_b1_sleeping_quarters_8017F0DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+
+/// Draws a gouraud disc around the projected world position of `arg0`, shaded
+/// `rgb` at the centre and black at radius `arg1`.
+void func_shelter_b1_sleeping_quarters_8017F500(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+
+/// Draws a flat textured quad of half-size `arg1` lying at the world position
+/// of `arg0`.
+void func_shelter_b1_sleeping_quarters_8017FF6C(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif // ROOMS_SHELTER_B1_SLEEPING_QUARTERS_H
