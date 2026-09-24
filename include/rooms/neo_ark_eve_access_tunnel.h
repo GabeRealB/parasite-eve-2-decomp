@@ -93,8 +93,8 @@ extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 /// The staged event descriptor, read by the task spawned above.
 extern NaetEventDesc D_neo_ark_eve_access_tunnel_801807A8;
 
-/// Resolves the code in `in->field_0` and writes the resulting byte to
-/// `out->field_3`.
-void func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* in, NaetUtilParam* out);
+/// Resolves the code in `arg0->field_0` into a state byte in `arg1->field_3`,
+/// unless `arg0->field_5` is set; always returns 1.
+s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1);
 
 #endif // ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_H
