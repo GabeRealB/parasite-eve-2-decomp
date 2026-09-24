@@ -16,7 +16,6 @@
 
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_80180b2c.h"
 
 extern TaskDesc D_dryfield_water_tank_80184DF4;
 
@@ -64,7 +63,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     s32     weaponId;
     s32     anim;
 
-    Gp_DispatchMsg(((RoomsShared80180b2cWork*)RoomsShared80180b2cTask->work)->owner, 0x3E9,
+    Gp_DispatchMsg(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                    (s32)&D_dryfield_water_tank_801804F4, 0);
     weaponId     = D_80073BA9;
     anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;

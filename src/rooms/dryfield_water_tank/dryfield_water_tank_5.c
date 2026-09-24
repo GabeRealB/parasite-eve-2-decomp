@@ -17,7 +17,6 @@
 
 #include "rooms/dryfield_water_tank.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_80180b2c.h"
 
 /// Spawn table for the task that takes over once the intro stream is done.
 extern TaskDesc D_dryfield_water_tank_80180764;
@@ -53,7 +52,7 @@ extern s8 D_8007106B;
 /// `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
 /// then steps all three channels by `Task::spawnArg1`. Once `r` saturates past
 /// 0xFF the screen is fully covered, so the task kills itself. The fade-up half
-/// of the same pair is the shared `RoomsShared8017da58`.
+/// of the same pair is `func_dryfield_water_tank_8017E220`.
 void func_dryfield_water_tank_8017E3C4(Task* arg0)
 {
     DwtFadeWork* fade;
@@ -282,8 +281,8 @@ void func_dryfield_water_tank_8017E78C(Task* task)
 /// Cutscene task state machine. State 0 refuses to run when the cutscene flag
 /// is already up or one is live, otherwise it parks the freshly zeroed
 /// `DwtWork` block in `Task::work`, republishes this task as
-/// `RoomsShared80180b2cTask` so the room's script helpers can reach that block,
-/// and hands slot 3 the 0x3E8 message carrying the animation set of the
+/// `D_dryfield_water_tank_80188D50` so the room's script commands can reach
+/// that block, and hands slot 3 the 0x3E8 message carrying the animation set of the
 /// equipped weapon: `D_80073BA9 + 1` for the alternate block and
 /// `D_80073BA9 + 0x22` for the base one. A failed `Mem_Malloc` kills the task
 /// outright instead of returning, so the message and the state step still run
@@ -321,8 +320,8 @@ L_case0:
             taskKill(task);
         } else {
             Mem_Set(work, 0, 0xC);
-            work->owner             = gameGetPtrSlot(3);
-            RoomsShared80180b2cTask = task;
+            work->owner                    = gameGetPtrSlot(3);
+            D_dryfield_water_tank_80188D50 = task;
         }
         weaponId        = D_80073BA9;
         anim            = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;

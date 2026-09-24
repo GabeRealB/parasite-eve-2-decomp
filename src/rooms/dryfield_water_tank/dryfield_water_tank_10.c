@@ -3,10 +3,11 @@
 #include "main/gfx.h"
 #include "rooms/room_common.h"
 
-/// Copies `placement` onto the task's `TmdObject` coordinate frame: the
-/// three longs become the translation, then yaw / pitch / roll are applied
-/// with `Gfx_RotMatrixY` / `X` / `Z` and the coordinate is marked dirty.
-void Room_Util08(Task* task, s32 arg1, RoomPlacement* placement)
+/// Message 0x7D4 handler of the model task: copies `placement` onto the task's
+/// `TmdObject` coordinate frame. The three longs become the translation, then
+/// yaw / pitch / roll are applied with `Gfx_RotMatrixY` / `X` / `Z` and the
+/// coordinate is marked dirty.
+void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, RoomPlacement* placement)
 {
     GsCOORDINATE2* coord;
     MATRIX*        mtx;

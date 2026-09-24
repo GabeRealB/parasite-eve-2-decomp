@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#include "main/task.h"
-
 #include <psyq/libgte.h>
+
+#include "main/task.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -13,8 +13,8 @@
 /// allocation. The layout is the one the same cutscene-task body has in
 /// `dryfield_gas_station` (`DgsWork`, which allocates the full 0x10):
 /// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
-/// its messages to, and the two shorts at 0x4 are script parameters written
-/// together by `RoomsShared80180b2c`.
+/// its messages to, and the two shorts at 0x4 are the script command and its
+/// step counter, written together by `func_dryfield_water_tank_8017EB80`.
 typedef struct DwtWork {
     /* 0x00 */ void* owner;
     /* 0x04 */ s16   field_4;
@@ -50,8 +50,8 @@ STATIC_ASSERT_SIZEOF(DwtMsg7DB, 0x4);
 /// clears, and `func_dryfield_water_tank_8017E194` is what sets it.
 /// `field_52` has no identified role yet.
 ///
-/// Distinct from `DwtWork`: that one belongs to the cutscene task named by
-/// `RoomsShared80180b2cTask`.
+/// Distinct from `DwtWork`: that one belongs to the cutscene task parked in
+/// `D_dryfield_water_tank_80188D50`.
 typedef struct DwtScriptWork {
     /* 0x00 */ byte  pad_0[0x40];
     /* 0x40 */ Task* owner;
@@ -118,12 +118,11 @@ typedef struct _DwtSprtRec {
 } DwtSprtRec;
 STATIC_ASSERT_SIZEOF(DwtSprtRec, 0x5C);
 
-/// Work block of the room's fade task `func_dryfield_water_tank_8017E3C4`, an
+/// Work block of the room's fade-out task `func_dryfield_water_tank_8017E3C4`, an
 /// 8-byte `Mem_Malloc(8, 0)` parked in `Task::work` (0x1C) -- that slot is not
-/// a `TaskIdMap` here. The same three-channel ramp the shared fade-up
-/// `RoomsShared8017da58` keeps at its own `work`: all three channels step
-/// together and the tile takes its blue from `r`, so `b` is only ever stepped.
-/// This is the fade-out half, which stays private to each room.
+/// a `TaskIdMap` here. The fade-up task `func_dryfield_water_tank_8017E220`
+/// keeps the same ramp: all three channels step together and the tile takes
+/// its blue from `r`, so `b` is only ever stepped.
 typedef struct DwtFadeWork {
     /* 0x0 */ byte pad_0[0x2];
     /* 0x2 */ s16  r;
@@ -145,5 +144,9 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0);
 /// state is 2; non-zero (the caller keeps only the low 16 bits) moves the task
 /// back to state 1.
 s32 func_dryfield_water_tank_8017DB98(Task* arg0);
+
+/// The room's cutscene task, parked by `func_dryfield_water_tank_8017E9F8` so
+/// the script commands can reach its `DwtWork` block.
+extern Task* D_dryfield_water_tank_80188D50;
 
 #endif // ROOMS_DRYFIELD_WATER_TANK_H
