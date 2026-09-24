@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
 #include "main/task.h"
@@ -57,7 +59,7 @@ extern const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC;
 
 /// A `MATRIX` plus a word-wise view of its first 0x12 bytes, used to reset a
 /// rotation to identity with five aligned stores rather than nine halfword ones
-/// before `func_8004BFF8` rotates it.
+/// before the model's rotation is rebuilt from an angle.
 typedef union NightFactoryMatWords {
     MATRIX mat;
     struct {
