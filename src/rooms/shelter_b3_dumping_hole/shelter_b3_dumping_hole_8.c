@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b3_dumping_hole.h"
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -94,9 +95,9 @@ void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 ar
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", func_shelter_b3_dumping_hole_80185DCC);
 
-/// Per-frame update of an effect task drawn with `Room_Draw40` (state 1) or
-/// `Room_Draw41` (state 2); the same body as `func_neo_ark_bridge_8017F3F8`
-/// without the per-frame coordinate update. State 0 seeds the work from
+/// Per-frame update of an effect task drawn with
+/// `func_shelter_b3_dumping_hole_801866CC` (state 1) or
+/// `func_shelter_b3_dumping_hole_80186AB8` (state 2). State 0 seeds the work from
 /// `spawnArg1` and, when `field_10` is zero, picks a random velocity scaled
 /// through the GTE. Later ticks draw, drift the coordinate by that velocity
 /// with `vy` growing by 6, and advance the frame every `field_28` ticks,
@@ -117,9 +118,9 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_shelter_b3_dumping_hole_801866CC(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             } else {
-                Room_Draw41(coord, work->field_20, (s16)work->field_24);
+                func_shelter_b3_dumping_hole_80186AB8(coord, work->field_20, (s16)work->field_24);
             }
             return;
         }
@@ -197,10 +198,10 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
             }
             return;
         case 1:
-            Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_shelter_b3_dumping_hole_801866CC(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw41(coord, work->field_20, (s16)work->field_24);
+            func_shelter_b3_dumping_hole_80186AB8(coord, work->field_20, (s16)work->field_24);
             break;
         default:
             return;

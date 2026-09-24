@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b3_dumping_hole.h"
 #include <psyq/libgs.h>
 
 typedef struct {
@@ -23,7 +24,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     mem   = (ClumpMem*)arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        Room_Draw41(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
+        func_shelter_b3_dumping_hole_80186AB8(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -51,7 +52,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
             arg0->spawnArg1 = 1;
             return;
         case 1:
-            Room_Draw41(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
+            func_shelter_b3_dumping_hole_80186AB8(coord, ((s16)mem->field_22 / 2) & 0xFFFF, 0x380);
             if (!(mem->field_22 & 1)) {
                 Gp_SpawnEff(0x6019A, coord, 0x1001400, NULL);
             }

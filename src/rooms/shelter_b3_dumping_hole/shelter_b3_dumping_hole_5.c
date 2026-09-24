@@ -9,6 +9,7 @@
 #include "main/display.h"
 #include "main/text.h"
 #include "psyq/libgpu.h"
+#include "rooms/shelter_b3_dumping_hole.h"
 
 typedef struct {
     u8  field_0;
@@ -177,7 +178,7 @@ s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0);
 s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0);
 s32 func_shelter_b3_dumping_hole_80182E50(s32 arg0);
 
-s32 RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2)
+s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
 {
     DumpingHoleSpawnElem* entry;
 

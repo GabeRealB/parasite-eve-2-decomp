@@ -8,6 +8,7 @@
 #include "main/fs.h"
 #include "main/display.h"
 #include "actors/actor_342400.h"
+#include "rooms/shelter_b3_dumping_hole.h"
 
 typedef struct {
     u8 _pad0[0x24];
@@ -92,15 +93,13 @@ extern TaskFuncTable5  D_shelter_b3_dumping_hole_8017D67C;
 extern u8              D_801153F4;
 extern u8              D_shelter_b3_dumping_hole_8018B7AC[];
 
-void RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
-
 void func_shelter_b3_dumping_hole_801833EC(DumpingHoleState* arg0);
 void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
 s32  func_shelter_b3_dumping_hole_80181D68(s32 arg0);
 
 void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
 {
-    RoomsShared801830f0Sub(arg0, arg1, 0xD0);
+    func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_shelter_b3_dumping_hole_8018B594, arg2, 0, 0);
 }
 
