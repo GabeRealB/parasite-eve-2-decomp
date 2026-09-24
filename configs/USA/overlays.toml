@@ -821,10 +821,7 @@ id = 292
 objects = [
   { kind = "packageId" },
   { unit = "acropolis_fountain/acropolis_fountain", rodata = "0x4", text = "0x44" },
-  { unit = "acropolis_fountain/acropolis_fountain_2", rodata = "0x10", text = "0x1BC" },
-  { unit = "acropolis_fountain/acropolis_fountain_4", text = "0x1B4" },
-  { unit = "acropolis_fountain/acropolis_fountain_5", text = "0x404" },
-  { unit = "acropolis_fountain/acropolis_fountain_3", text = "0x45C" },
+  { unit = "acropolis_fountain/acropolis_fountain_2", rodata = "0x10", text = "0x45C" },
   { kind = "data", at = "0x11A4" },
 ]
 
