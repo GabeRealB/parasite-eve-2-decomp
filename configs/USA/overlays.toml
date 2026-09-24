@@ -3370,13 +3370,16 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b6_training_room]
+label = "code starts at 0x78: the handler the room's message table at 0x5534 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x80 and left it as rodata words"
 id = 444
+text = ["0x78", "0x5534"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0xC4" },
   { lib = true, unit = "room_script25", rodata = "0x10", text = "0x5FC" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room_6", rodata = "0x2C", text = "0x828" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room_8", rodata = "0x4C", text = "0x22F8" },
+  { unit = "shelter_b6_training_room/shelter_b6_training_room_9", text = "0x78" },
   { lib = true, unit = "room_util03", text = "0x80" },
   { lib = true, unit = "room_util06", text = "0x19C" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room_2", text = "0x1A4" },

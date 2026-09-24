@@ -1080,5 +1080,3 @@ void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
         }
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_8", D_shelter_b6_training_room_8017D638);
