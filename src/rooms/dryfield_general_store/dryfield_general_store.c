@@ -9,7 +9,8 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+
+#include "rooms/dryfield_general_store.h"
 
 extern TaskDesc D_dryfield_general_store_8017E164;
 
@@ -96,7 +97,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
         req.field_C = Gp_PackStageSndId(0x52030003);
         req.flagId  = 0x3B;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, in);
+        return func_dryfield_general_store_8017D600(&req, in);
     }
     if (in->msgId != 0x26) {
         return 1;
@@ -187,4 +188,4 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
     taskKill(arg0);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", D_dryfield_general_store_8017D5F4);
