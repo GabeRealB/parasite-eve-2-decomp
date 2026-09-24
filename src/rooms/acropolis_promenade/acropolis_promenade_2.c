@@ -14,6 +14,9 @@ extern s32      D_acropolis_promenade_80180E74;
 extern TaskDesc D_acropolis_promenade_80180EA4;
 extern Task*    D_acropolis_promenade_801862D8;
 
+extern const TaskFuncTable3 D_acropolis_promenade_8017D5C4;
+extern const TaskFuncTable3 D_acropolis_promenade_8017D5D0;
+
 s32 func_acropolis_promenade_8017D8E0(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 5) {
@@ -43,7 +46,16 @@ s32 func_acropolis_promenade_8017D938(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017D988);
+/// Runs the prop task's current state (`func_acropolis_promenade_8017DAA4`,
+/// `func_acropolis_promenade_8017DB48`, then `taskKill`) through a copy of its
+/// handler table on the stack.
+void func_acropolis_promenade_8017D988(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_promenade_8017D5D0;
+    sp.funcs[task->state](task);
+}
 
 void func_acropolis_promenade_8017D9E0(Task* arg0)
 {
@@ -54,4 +66,13 @@ void func_acropolis_promenade_8017D9E0(Task* arg0)
     D_80115598                     = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade_2", func_acropolis_promenade_8017DA4C);
+/// Runs the room task's current state (`func_acropolis_promenade_8017D9E0`,
+/// `func_acropolis_promenade_8017D5E4`, then `taskKill`) through a copy of its
+/// handler table on the stack.
+void func_acropolis_promenade_8017DA4C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_promenade_8017D5C4;
+    sp.funcs[task->state](task);
+}
