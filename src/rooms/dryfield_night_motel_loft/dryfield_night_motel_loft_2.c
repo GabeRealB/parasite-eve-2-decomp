@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -18,13 +19,6 @@
 
 #include "rooms/dryfield_night_motel_loft.h"
 #include "rooms/room_common.h"
-
-/// `rtps` / `rtpt` / `mvmva 1,0,0,3,0` / `gpf 12`. The `inline_c.h` macros of
-/// those names assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.
@@ -220,7 +214,7 @@ void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -324,7 +318,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     MatrixNormal(&coord->coord, &coord->coord);
                     gte_lddp(w->gain);
                     gte_ldsv(&w->vel);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&step);
                     coord->coord.t[0] += step.vx;
                     coord->coord.t[1] += step.vy;
@@ -352,7 +346,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     MatrixNormal(&coord->coord, &coord->coord);
                     gte_lddp(w->gain);
                     gte_ldsv(&w->vel);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&step);
                     coord->coord.t[0] += step.vx;
                     coord->coord.t[1] += step.vy;
@@ -405,11 +399,11 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
         p[1].vz = rcos(ang);
         gte_lddp(scale);
         gte_ldsv((SVECTOR*)((u8*)blk + off));
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv((SVECTOR*)((u8*)blk + off));
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0((SVECTOR*)((u8*)blk + off));
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv((SVECTOR*)((u8*)blk + off));
         off    += 8;
         p[1].vx = *(u16*)&p[1].vx + *(u16*)&coord->workm.t[0];
@@ -421,7 +415,7 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim           = (POLY_F3*)gGpuPrimCursor;
     gGpuPrimCursor = (u8*)(prim + 1);
     setPolyF3(prim);

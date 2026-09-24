@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -16,11 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` RTPS and MVMVA macros assemble to different words from
-/// the ones this code has, so the instructions are spelled out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_cellar_8017DB8C[];
@@ -163,7 +159,7 @@ void func_dryfield_cellar_8017D7DC(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2,
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw35Scratch*)(head - 0x14))->vec);
     block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&arg0->workm.t[0];
     block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
@@ -172,7 +168,7 @@ void func_dryfield_cellar_8017D7DC(GsCOORDINATE2* arg0, SVECTOR* arg1, s32 arg2,
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw35Scratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;

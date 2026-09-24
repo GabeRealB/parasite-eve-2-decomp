@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
@@ -13,9 +14,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` RTPS lacks the two leading nops this code has.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_night_cellar_8017DAA8[];
@@ -155,7 +153,7 @@ void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
