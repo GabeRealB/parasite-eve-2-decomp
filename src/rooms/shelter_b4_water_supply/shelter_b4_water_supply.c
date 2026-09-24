@@ -6,6 +6,7 @@
 
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
@@ -57,7 +58,13 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, GpMsg13EF* arg2
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DAE4);
+s32 func_shelter_b4_water_supply_8017DAE4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    if (arg2 == 6) {
+        SndEvt_EnqueueType6(0x542E0000 | 6, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DB18);
 
