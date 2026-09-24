@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -19,9 +20,6 @@
 #include "main/task.h"
 #include "main/mc.h"
 #include "main/sound.h"
-
-/// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Scratchpad block the ripple of `func_neo_ark_submarine_gallery_8017D678`
 /// takes from `G_SCRATCH_HEAD` for one call: the transposed view rotation, the
@@ -74,7 +72,7 @@ static inline void _neoArkSubmarineGalleryRotTrans(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 
@@ -354,7 +352,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         y0              = y - 0x78;
         scratch->row.vy = y0;
         gte_ldv0(&scratch->row);
-        gte_rtv0_real();
+        gte_rtv0();
         xl     = xLeft0;
         xr     = xRight0;
         passes = 1;

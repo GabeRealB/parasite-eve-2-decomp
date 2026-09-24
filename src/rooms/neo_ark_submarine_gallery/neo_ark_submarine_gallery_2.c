@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -14,13 +15,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// `rtps` / `rtpt` / `rtv0` / `gpf 1`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Scratch block `func_neo_ark_submarine_gallery_80180E80` takes from
 /// `G_SCRATCH_HEAD` for one quad of a prism. `v` holds the four corners after
@@ -192,7 +186,7 @@ void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -204,10 +198,10 @@ void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -344,7 +338,7 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -406,7 +400,7 @@ void func_neo_ark_submarine_gallery_8017FBCC(GsCOORDINATE2* arg0, s32 arg1, s32 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -482,7 +476,7 @@ void func_neo_ark_submarine_gallery_8017FFB8(GsCOORDINATE2* arg0, s32 arg1, s32 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw23Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw23Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -576,7 +570,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -586,7 +580,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
             ((RoomDraw08Scratch*)(head - 0x1C))->otz0 = otz - 0x40;
         }
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -724,7 +718,7 @@ void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -799,7 +793,7 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
     for (i = 0; i < 4; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[0]);
         blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
         blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
@@ -807,7 +801,7 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         next = (i + 1) & 3;
         gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + next]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[1]);
         blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
         blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
@@ -815,7 +809,7 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         far = i + 4;
         gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + far]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[2]);
         blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
         blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
@@ -823,17 +817,17 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         farNext = next + 4;
         gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + farNext]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[3]);
         blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
         blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
         blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sxy[0]);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -860,38 +854,38 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
     }
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[0]);
     blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
     blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
     blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[1]);
     blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
     blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
     blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 3]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[2]);
     blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
     blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
     blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 2]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[3]);
     blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
     blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
     blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&blk->sxy[0]);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
     gte_stflg(&blk->flag);
     if (blk->flag >= 0) {

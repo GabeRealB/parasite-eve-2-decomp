@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -26,10 +27,6 @@ typedef struct {
     s32     depth;
     u8      _pad[0x10];
 } _NeoArkWoodlandPathRippleScratch;
-
-/// `rtv0`: rotate V0 by the rotation matrix. The `inline_c.h` macro assembles
-/// to a different word, so the instruction is spelled out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -59,7 +56,7 @@ static inline void _neoArkWoodlandPathRotTrans(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 
@@ -341,7 +338,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
         y0              = y - 0x78;
         scratch->row.vy = y0;
         gte_ldv0(&scratch->row);
-        gte_rtv0_real();
+        gte_rtv0();
         xl     = xLeft0;
         xr     = xRight0;
         passes = 1;
