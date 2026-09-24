@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include "actors/actor_215100.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"

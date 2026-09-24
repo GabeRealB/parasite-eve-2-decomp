@@ -8,10 +8,6 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-s32 func_actor_215100_8014B3C8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
-s32 func_actor_215100_8014C360(u16* arg0);
-
 /// One entry of the caption script the `actor_215100` overlay plays back.
 ///
 /// `func_actor_215100_8014B2B8` picks a script out of the table at
@@ -78,64 +74,5 @@ typedef struct Actor215100AnimArgs {
     /* 0x8 */ s32  withArg;
     /* 0xC */ u16  animArg;
 } Actor215100AnimArgs;
-
-/// Eight-byte character appearance record `func_actor_215100_8014AA54` parks in
-/// `D_actor_215100_8015E678` before it starts the actor's caption script.
-///
-/// That function copies its argument here whole and then only reads `field_5`:
-/// non-zero means the character has already been committed, so it returns 2 and
-/// leaves the record alone. The bytes are otherwise opaque to decompiled code
-/// except through `func_actor_215100_8014A5C0`, which copies `field_0`,
-/// `field_2` and `field_3` out one at a time into the task it spawns.
-typedef struct Actor215100CharRec {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-    /* 0x4 */ u8 field_4;
-    /* 0x5 */ u8 field_5; // non-zero: the character is already committed
-    /* 0x6 */ u8 field_6;
-    /* 0x7 */ u8 field_7;
-} Actor215100CharRec;
-STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
-
-/// One entry of the caption schedule `func_actor_215100_8014AFAC` scans while
-/// the actor waits to be talked to.
-///
-/// The entry whose window contains the session's caption clock
-/// (`GameSession::sceneClock`, which that function ticks down once the caption
-/// system goes idle) names the script to start and the line key to start it at:
-/// it is taken when `field_0 * 30 >= clock` and `field_4 * 30 < clock`, and the
-/// table is ordered by descending `field_0`, so the first match wins. A
-/// `field_0` of -1 terminates the scan. The table itself lives in the overlay's
-/// trailing data (`D_actor_215100_80154514`), not in this unit.
-typedef struct Actor215100CapWindow {
-    /* 0x0 */ s32 field_0; // window upper bound, x30; -1 terminates the table
-    /* 0x4 */ s32 field_4; // window lower bound, x30
-    /* 0x8 */ s32 field_8; // caption script index, the `func_actor_215100_8014B2B8` arg0
-    /* 0xC */ s32 field_C; // the line key to start that script at, its arg1
-} Actor215100CapWindow;
-STATIC_ASSERT_SIZEOF(Actor215100CapWindow, 0x10);
-
-/// `Task` as this overlay's caption actor reads it in
-/// `func_actor_215100_8014AFAC`: the dispatcher index, and the low half of
-/// `Task::spawnArg1` — the task's own line delay, handed to
-/// `func_actor_215100_8014B2B8` as its `arg2`. The rest of the overlay passes
-/// the whole `Task` around.
-typedef struct Actor215100 {
-    /* 0x00 */ byte pad_0[0x30];
-    /* 0x30 */ s32  state;
-    /* 0x34 */ s16  spawnArg1Lo;
-} Actor215100;
-
-void func_actor_215100_8014C660(GpEnemy* enemy, Task* task);
-void func_actor_215100_8014C874(Task* task);
-void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
-void func_actor_215100_8014CB04(Task* task);
-void func_actor_215100_8014CB2C(Task* task);
-void func_actor_215100_8014CBB8(Task* task);
-void func_actor_215100_8014CC04(Task* task);
-void func_actor_215100_8014CC7C(Task* task);
-s32  func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args);
 
 #endif
