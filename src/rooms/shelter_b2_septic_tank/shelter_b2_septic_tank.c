@@ -13,8 +13,11 @@
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
 extern TaskDesc   D_shelter_b2_septic_tank_801832C0[];
 extern s16        D_shelter_b2_septic_tank_80182FFE;
+extern u8         D_shelter_b2_septic_tank_80183004;
 extern u8         D_shelter_b2_septic_tank_8018310C;
 extern u8         D_shelter_b2_septic_tank_80187045;
+extern u8         D_80071075;
+extern s8         D_80114C12;
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D614);
 
 s32 func_shelter_b2_septic_tank_8017D7AC(void)
@@ -73,7 +76,20 @@ void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017DA74);
+void func_shelter_b2_septic_tank_8017DA74(void)
+{
+    s32 place;
+
+    if (gGameSession->at4.loc.view == 4) {
+        place = gGameSession->at4.loc.place;
+        if (place == 1 && D_80114C12 != place && D_80071075 == 0 && D_shelter_b2_septic_tank_80187045 == 0) {
+            if (GameFlag_GetNibble(0xEB) == 0) {
+                func_800E8614((s32)&D_shelter_b2_septic_tank_80183004, 0);
+            }
+            D_shelter_b2_septic_tank_80187045 = place;
+        }
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", RoomsShared8017d878Table);
 
