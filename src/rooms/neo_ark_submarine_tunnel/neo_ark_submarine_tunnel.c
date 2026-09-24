@@ -4,15 +4,21 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "actors/actors_shared_80149ed0.h"
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -37,9 +43,48 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+extern s16 D_800691CA;
 extern s32 D_8007107C;
 extern u8  D_80071090;
 extern u8  D_801153F4;
+
+/// The area-record id the event handler publishes, and the cutscene script
+/// blobs `func_800E8634` / `func_800E8614` are handed as `(s32)&blob`.
+extern s8  D_8007272D;
+extern s32 D_80135220;
+extern s32 D_80135FD0;
+extern s32 D_80136108;
+
+/// Spawn table of the screen-wave task, and the context it is spawned with.
+/// The context's mode word is written through its own symbol, which is how the
+/// original reached it.
+extern TaskDesc     D_neo_ark_submarine_tunnel_80181A34;
+extern ActorWaveCtx D_neo_ark_submarine_tunnel_80187A20;
+extern s16          D_neo_ark_submarine_tunnel_80187A24;
+
+/// Current displacement of the screen wave, recomputed every frame from the
+/// context's ramp.
+extern s32 D_neo_ark_submarine_tunnel_80181A4C;
+
+/// The ramp and tint the wave task was spawned with.
+extern ActorWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
+
+/// Phase records of the wave's 11 column edges and 30 row edges.
+extern ActorWaveRec6 D_neo_ark_submarine_tunnel_80187910[11];
+extern ActorWaveRec6 D_neo_ark_submarine_tunnel_80187960[30];
+
+/// Message handlers this room's task answers, installed into pointer slot 7.
+extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
+
+/// The tunnel's own script blob and the byte recording which of its scenes has
+/// already been staged.
+extern s32 D_neo_ark_submarine_tunnel_80181AF0;
+extern u8  D_neo_ark_submarine_tunnel_80181DF0;
+
+void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
+void func_neo_ark_submarine_tunnel_8017F414(Task* task);
 
 /// Rotates `v` in place by `m` through the GTE, working from a stack copy so
 /// the load and the store can name the same vector.
@@ -762,4 +807,286 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     *(s32*)0x1F8003FC += 0x40;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", D_neo_ark_submarine_tunnel_8017D614);
+/// State handlers of the room task `func_neo_ark_submarine_tunnel_8017F434`
+/// runs: `func_neo_ark_submarine_tunnel_8017F3BC` sets it up,
+/// `func_neo_ark_submarine_tunnel_8017F414` runs every later tick, and
+/// `taskKill` ends it.
+const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
+    { func_neo_ark_submarine_tunnel_8017F3BC, func_neo_ark_submarine_tunnel_8017F414, taskKill }
+};
+
+/// Task that ripples the whole screen: it redraws the frame just rendered as a
+/// 10 by 30 grid of textured quads whose corners are pushed around by sine
+/// waves. The first frame gives every column and row edge a random phase
+/// offset and speed, takes its context from `spawnArg2` and passes -8 to
+/// `Display_ClampField126`. Afterwards the context's mode ramps the strength
+/// up to its limit (mode 0), back down to zero and on to mode 2 (mode 1), or
+/// ends the task and passes 0 back (mode 2); the displacement is the ramp's
+/// share of the context's peak. A non-zero tint flag shades the quads with the
+/// context's colour instead of drawing them unlit. The grid is bracketed by
+/// draw-mode packets that switch mask-bit setting on at the back of the order
+/// table and off again at the front. The state is read through a plain word
+/// load at its offset, which keeps it ordered after the store to `D_800691CA`.
+void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
+{
+    ActorWaveCtx* ctx;
+    POLY_FT4*     p;
+    DR_STP*       stp;
+    s32           i, j, k;
+    s32           drawY;
+    s32           tpage0, tpage1;
+    s32           u0, u1, v0, v1;
+    s32           waveX0, waveY0, waveX1, waveY1;
+    s32           waveX2, waveY2, waveX3, waveY3;
+
+    D_800691CA = 2;
+    switch (*(s32*)((u8*)arg0 + 0x30)) {
+        case 0:
+            for (i = 0; i < 11; i++) {
+                D_neo_ark_submarine_tunnel_80187910[i].phase  = 0;
+                D_neo_ark_submarine_tunnel_80187910[i].offset = (u32)rand() >> 3;
+                D_neo_ark_submarine_tunnel_80187910[i].speed  = (rand() * 100 + 20) >> 15;
+            }
+            for (i = 0; i < 30; i++) {
+                D_neo_ark_submarine_tunnel_80187960[i].phase  = 0;
+                D_neo_ark_submarine_tunnel_80187960[i].offset = (u32)rand() >> 3;
+                D_neo_ark_submarine_tunnel_80187960[i].speed  = (rand() * 100 + 20) >> 15;
+            }
+            D_neo_ark_submarine_tunnel_80181A4C          = 0;
+            D_neo_ark_submarine_tunnel_8018790C          = arg0->spawnArg2;
+            D_neo_ark_submarine_tunnel_8018790C->field_6 = 0;
+            D_neo_ark_submarine_tunnel_8018790C->field_4 = 0;
+            Display_ClampField126(-8);
+            arg0->state++;
+            break;
+        case 1:
+            ctx = D_neo_ark_submarine_tunnel_8018790C;
+            switch (ctx->field_4) {
+                case 0:
+                    if (ctx->field_6 < ctx->field_0) {
+                        ctx->field_6++;
+                    }
+                    break;
+                case 1:
+                    if (ctx->field_6 > 0) {
+                        ctx->field_6--;
+                    } else {
+                        ctx->field_4 = 2;
+                    }
+                    break;
+                case 2:
+                    taskKill(arg0);
+                    Display_ClampField126(0);
+                    break;
+            }
+            D_neo_ark_submarine_tunnel_80181A4C = D_neo_ark_submarine_tunnel_8018790C->field_6 * D_neo_ark_submarine_tunnel_8018790C->field_2 / D_neo_ark_submarine_tunnel_8018790C->field_0;
+            for (i = 0; i < 11; i++) {
+                D_neo_ark_submarine_tunnel_80187910[i].phase += D_neo_ark_submarine_tunnel_80187910[i].speed;
+            }
+            for (i = 0; i < 30; i++) {
+                D_neo_ark_submarine_tunnel_80187960[i].phase += D_neo_ark_submarine_tunnel_80187960[i].speed;
+            }
+            tpage0 = getTPage(2, 0, 0, gDisplayState.drawBuffer << 8);
+            tpage1 = getTPage(2, 0, 128, gDisplayState.drawBuffer << 8);
+            for (j = -1; j < 29; j++) {
+                for (k = 0; k < 10; k++) {
+                    p              = (POLY_FT4*)gGpuPrimCursor;
+                    gGpuPrimCursor = (u8*)(p + 1);
+                    setPolyFT4(p);
+                    if (D_neo_ark_submarine_tunnel_8018790C->field_8 == 0) {
+                        setShadeTex(p, 1);
+                    } else {
+                        setShadeTex(p, 0);
+                        p->r0 = D_neo_ark_submarine_tunnel_8018790C->field_9;
+                        p->g0 = D_neo_ark_submarine_tunnel_8018790C->field_A;
+                        p->b0 = D_neo_ark_submarine_tunnel_8018790C->field_B;
+                    }
+                    u0 = k * 32;
+                    u1 = (k + 1) * 32;
+                    if (u1 == 320)
+                        u1 = 319;
+                    if (u0 < 128) {
+                        p->tpage = tpage0;
+                    } else {
+                        p->tpage = tpage1;
+                        u0      -= 128;
+                        u1      -= 128;
+                    }
+                    if (j != -1) {
+                        v1     = (j + 1) * 8 + gDisplayState.drawBuffer * 16;
+                        v0     = j * 8 + gDisplayState.drawBuffer * 16;
+                        waveX0 = D_neo_ark_submarine_tunnel_80181A4C * (rsin((j << 9) + D_neo_ark_submarine_tunnel_80187910[k].phase + D_neo_ark_submarine_tunnel_80187910[k].offset) << 3);
+                        p->x0  = k * 32 + (s16)((waveX0 >> 20) - 160);
+                        waveY0 = D_neo_ark_submarine_tunnel_80181A4C * (rsin((k << 10) + D_neo_ark_submarine_tunnel_80187960[j].phase + D_neo_ark_submarine_tunnel_80187960[j].offset) << 3);
+                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
+                        waveX1 = D_neo_ark_submarine_tunnel_80181A4C * (rsin((j << 9) + D_neo_ark_submarine_tunnel_80187910[k + 1].phase + D_neo_ark_submarine_tunnel_80187910[k + 1].offset) << 3);
+                        p->x1  = (k + 1) * 32 + (s16)((waveX1 >> 20) - 160);
+                        waveY1 = D_neo_ark_submarine_tunnel_80181A4C * (rsin(((k + 1) << 10) + D_neo_ark_submarine_tunnel_80187960[j].phase + D_neo_ark_submarine_tunnel_80187960[j].offset) << 3);
+                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
+                    } else {
+                        drawY = gDisplayState.drawBuffer * 16;
+                        p->x0 = k * 32 - 160;
+                        p->y0 = -112;
+                        p->x1 = (k + 1) * 32 - 160;
+                        p->y1 = -112;
+                        v0    = drawY + 8;
+                        v1    = drawY;
+                    }
+                    {
+
+                        waveX2 = D_neo_ark_submarine_tunnel_80181A4C * (rsin(((j + 1) << 9) + D_neo_ark_submarine_tunnel_80187910[k].phase + D_neo_ark_submarine_tunnel_80187910[k].offset) << 3);
+                        p->x2  = k * 32 + (s16)((waveX2 >> 20) - 160);
+                        waveY2 = D_neo_ark_submarine_tunnel_80181A4C * (rsin((k << 10) + D_neo_ark_submarine_tunnel_80187960[j + 1].phase + D_neo_ark_submarine_tunnel_80187960[j + 1].offset) << 3);
+                        p->y2  = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
+                        waveX3 = D_neo_ark_submarine_tunnel_80181A4C * (rsin(((j + 1) << 9) + D_neo_ark_submarine_tunnel_80187910[k + 1].phase + D_neo_ark_submarine_tunnel_80187910[k + 1].offset) << 3);
+                        p->x3  = (k + 1) * 32 + (s16)((waveX3 >> 20) - 160);
+                        waveY3 = D_neo_ark_submarine_tunnel_80181A4C * (rsin(((k + 1) << 10) + D_neo_ark_submarine_tunnel_80187960[j + 1].phase + D_neo_ark_submarine_tunnel_80187960[j + 1].offset) << 3);
+                        p->y3  = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
+                    }
+                    p->u0 = u0;
+                    p->v0 = v0;
+                    p->u1 = u1;
+                    p->v1 = v0;
+                    p->u2 = u0;
+                    p->v2 = v1;
+                    p->u3 = u1;
+                    p->v3 = v1;
+                    addPrim(&gGpuCurrentOt[3], p);
+                }
+            }
+            break;
+    }
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(stp + 1);
+    SetDrawStp(stp, 1);
+    addPrim(&gGpuCurrentOt[1023], stp);
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(stp + 1);
+    SetDrawStp(stp, 0);
+    addPrim(&gGpuCurrentOt[0], stp);
+}
+
+s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg2)
+{
+    u8 temp_s0;
+    u8 temp_s0_2;
+    u8 temp_s0_3;
+    u8 temp_s0_4;
+
+    temp_s0 = arg2->field_2;
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->at4.loc.place == 3)) {
+        func_800E3FAC(0xA2, 0x35);
+        GameFlag_SetNibble(0xFF, 2);
+        GameFlag_SetNibble(0x11F, 1);
+        D_8007272D = 0x1A;
+        func_800E8634((s32)&D_80135220, 0, (s32)&D_80135FD0);
+    }
+    if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
+        temp_s0_2 = gGameSession->at4.loc.place;
+        if (temp_s0_2 == 1) {
+            func_800E8614((s32)&D_neo_ark_submarine_tunnel_80181AF0, 0);
+            D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
+        }
+    }
+    temp_s0_3 = arg2->field_2;
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.place == temp_s0_3)) {
+        GameFlag_SetNibble(0xFF, 1);
+        func_800E8614((s32)&D_80136108, 0);
+        D_neo_ark_submarine_tunnel_80181DF0 = 1;
+    }
+    if ((arg2->field_2 == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
+        temp_s0_4 = gGameSession->at4.loc.warp;
+        if (temp_s0_4 == 1) {
+            Gp_MsgPlayerWeapon(1);
+            D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
+        }
+    }
+    if ((arg2->field_2 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2)) {
+        Gp_MsgPlayerWeapon(1);
+        D_neo_ark_submarine_tunnel_80181DF0 = 1;
+    }
+    return 0;
+}
+
+/// Answers 0 unconditionally.
+s32 func_neo_ark_submarine_tunnel_8017F27C(void)
+{
+    return 0;
+}
+
+/// Save-location message handler: copies the incoming `GpSaveLoc` onto the
+/// outgoing one, forwards both to `func_80179B14` and answers 1.
+s32 func_neo_ark_submarine_tunnel_8017F284(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    return 1;
+}
+
+/// Message 0x13F0 handler: for an `arg2` of 4 or 5, and only while the
+/// session's place is 1, passes it to `Gp_SpawnIfCapIdle`. Answers 0.
+s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    if (arg2 < 6) {
+        if (arg2 >= 4) {
+            if (gGameSession->at4.loc.place == 1) {
+                Gp_SpawnIfCapIdle(arg2, 0);
+            }
+        }
+    }
+    return 0;
+}
+
+/// Starts or steers the screen wave. A non-positive `arg0` sets the CD
+/// queue's `field_22A` to 2, fills the wave context (ramp length 1, peak 0x60,
+/// tinted 0x40/0x80/0x80) and spawns the wave task with it; a positive one is
+/// written to the context's mode, where 1 ramps the running wave back down.
+void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
+{
+    CdCmdQueue* queue = &CdCmd_Queue;
+
+    if (arg0 <= 0) {
+        queue->field_22A                            = 2;
+        D_neo_ark_submarine_tunnel_80187A20.field_0 = 1;
+        D_neo_ark_submarine_tunnel_80187A20.field_2 = 0x60;
+        D_neo_ark_submarine_tunnel_80187A20.field_9 = 0x40;
+        D_neo_ark_submarine_tunnel_80187A20.field_8 = 1;
+        D_neo_ark_submarine_tunnel_80187A20.field_A = 0x80;
+        D_neo_ark_submarine_tunnel_80187A20.field_B = 0x80;
+        Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_80181A34, 0, 0, (s32)&D_neo_ark_submarine_tunnel_80187A20);
+        return;
+    }
+    D_neo_ark_submarine_tunnel_80187A24 = arg0;
+}
+
+void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
+{
+    GameFlag_SetNibble(0xBC, arg0);
+}
+
+/// First state of the room task: installs the room's message table, publishes
+/// the task in pointer slot 7, plays sound event 0x550C0003 and advances.
+void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
+{
+    arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
+    Game_SetPtrSlot(arg0, 7);
+    SndEvt_EnqueueType6(0x550C0003, 0, 0);
+    arg0->state = arg0->state + 1;
+}
+
+/// Later states of the room task: reads pointer slot 3 and discards it.
+void func_neo_ark_submarine_tunnel_8017F414(Task* task)
+{
+    gameGetPtrSlot(3);
+}
+
+/// Room task tick: copies the three-entry state table
+/// `D_neo_ark_submarine_tunnel_8017D614` to the stack and calls the entry for
+/// the task's state.
+void func_neo_ark_submarine_tunnel_8017F434(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_submarine_tunnel_8017D614;
+    sp.funcs[task->state](task);
+}
