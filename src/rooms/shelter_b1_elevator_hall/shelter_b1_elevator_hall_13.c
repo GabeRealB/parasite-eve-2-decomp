@@ -1,17 +1,27 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-#include "rooms/rooms_shared_8017e890.h"
+#include "rooms/shelter_b1_elevator_hall.h"
 
-extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+/// Per-index shifts applied to the flash brightness, one per colour channel.
+extern RoomsShared8017e4f8Shade D_shelter_b1_elevator_hall_80182DD4[];
 
-void RoomsShared8017e4f8(Task* arg0)
+/// Coloured flash task. On its first tick it places its coordinate at the
+/// work block's position under the parent, takes the shade index and the
+/// duration from the spawn argument, and derives the per-frame step. It then
+/// brightens over that many frames, drawing two halos and a ring tinted by the
+/// shade entry, and afterwards fades out through
+/// `func_shelter_b1_elevator_hall_80180224` before releasing its work block.
+void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
 {
     u8             rgb[3];
     GpEffWork*     mem;
@@ -55,17 +65,17 @@ void RoomsShared8017e4f8(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1 -= 1;
-                rgb[0]           = mem->scale >> RoomsShared8017e4f8Shades[mem->index].r;
-                rgb[1]           = mem->scale >> RoomsShared8017e4f8Shades[mem->index].g;
-                rgb[2]           = mem->scale >> RoomsShared8017e4f8Shades[mem->index].b;
-                RoomsShared8017e4f8Halo(coord, mem->angle, rgb);
+                rgb[0]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].r;
+                rgb[1]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].g;
+                rgb[2]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].b;
+                func_shelter_b1_elevator_hall_8017F0A8(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
                 rgb[2] = rgb[2] >> 1;
                 if (mem->age & 1) {
-                    RoomsShared8017e4f8Halo(coord, mem->angle + 0x100, rgb);
+                    func_shelter_b1_elevator_hall_8017F0A8(coord, mem->angle + 0x100, rgb);
                 }
-                Room_Draw09(coord, 0x300 - (u16)mem->angle * 2, 0x80, rgb);
+                func_shelter_b1_elevator_hall_8017EC84(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
                 if (arg0->spawnArg1 == 0) {
                     mem->scale  = 0xFF;
                     arg0->state = 2;
@@ -75,10 +85,10 @@ void RoomsShared8017e4f8(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> RoomsShared8017e4f8Shades[mem->index].r;
-                    rgb[1] = mem->scale >> RoomsShared8017e4f8Shades[mem->index].g;
-                    rgb[2] = mem->scale >> RoomsShared8017e4f8Shades[mem->index].b;
-                    RoomsShared8017e4f8Fade(coord, (u16)mem->angle * 4, rgb);
+                    rgb[0] = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].r;
+                    rgb[1] = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].g;
+                    rgb[2] = mem->scale >> D_shelter_b1_elevator_hall_80182DD4[mem->index].b;
+                    func_shelter_b1_elevator_hall_80180224(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
                     return;
@@ -94,7 +104,12 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void RoomsShared8017e890(Task* arg0)
+/// Flash-and-burst effect task. Each frame it draws a halo and
+/// `func_shelter_b1_elevator_hall_8017F980` at a steadily turning angle in a
+/// warm tint. It first draws a ring that widens while its brightness drops by
+/// 0x18 a frame; once the ring has faded the halo dims at the same rate, and
+/// the task releases its work block when it is nearly dark.
+void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
 {
     u8             rgb[3];
     GpEffWork*     mem;
@@ -126,13 +141,13 @@ void RoomsShared8017e890(Task* arg0)
         rgb[2]     = (u16)mem->scale >> 2;
         step       = mem->angle + 0x10;
         mem->angle = step;
-        RoomsShared8017e4f8Halo(coord, step * 2, rgb);
-        RoomsShared8017e890Draw(coord, mem->angle);
+        func_shelter_b1_elevator_hall_8017F0A8(coord, step * 2, rgb);
+        func_shelter_b1_elevator_hall_8017F980(coord, mem->angle);
         if (mem->period >= 0x19) {
             rgb[0] = mem->period;
             rgb[1] = (u16)mem->period >> 1;
             rgb[2] = (u16)mem->period >> 2;
-            Room_Draw09(coord, mem->step * 3 / 2, 0x60, rgb);
+            func_shelter_b1_elevator_hall_8017EC84(coord, (s16)(mem->step * 3 / 2), 0x60, rgb);
             mem->period -= 0x18;
             mem->step   += 0x30;
             return;

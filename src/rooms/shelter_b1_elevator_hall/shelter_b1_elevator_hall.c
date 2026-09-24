@@ -123,7 +123,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src
     return 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", D_shelter_b1_elevator_hall_8017D5D8);
 
 void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
 {
