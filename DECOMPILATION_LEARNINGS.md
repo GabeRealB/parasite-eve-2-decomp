@@ -140287,3 +140287,36 @@ queue, and the constant, alone on the ready list, is placed just above the
 barrier. With the constant written before the pointer, its luid is lowest, and
 sched2 puts it ahead of `lui`. Any insn the notes land on must be one that the
 target places after the last prologue save.
+
+## Keeping a sign extension that combine proves redundant, without a second life for the variable (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
+
+**Symptom.** A random radius `s16 radius = ((state >> 16) & 0x1FF) + 0x100` is
+multiplied after a call, and the target keeps `sll 16; sra 16` on it while the
+whole chain (`sll/addu/addu/sw/srl/andi/addiu/sll/sra`) lives in one callee-saved
+register. Writing the chain in place (`rnd >>= 16; rnd &= 0x1FF; radius = rnd +
+0x100;`) gets the register right but loses the extension: combine's
+`nonzero_bits` sees the `& 0x1FF` and proves the `+0x100` result fits in 15 bits.
+Writing `rnd = (rnd >> 16) & 0x1FF;` keeps the extension, because the shift temp
+references `rnd` before `rnd` is set again (`reg_last_set_invalid`). But `rnd`
+then dies twice, goes to global-alloc, and takes `$v0` from the temps'
+preferences.
+
+**Fix.** Put a redundant zero-extension step in the in-place chain:
+
+```c
+rnd  = Gp_LcgState * 5;
+rnd += 0x71357911;
+Gp_LcgState = rnd;
+rnd  = (u16)(rnd >> 16);
+rnd &= 0x1FF;
+radius = rnd + 0x100;
+```
+
+Combine merges the `(u16)` insn (i2) into the `& 0x1FF` (i3). `try_combine` then
+re-records i2's destination from the insn that feeds i3. That value still
+mentions `rnd`, so `update_table_tick` marks it, and every later set of `rnd` in
+the block is recorded invalid. The `+0x100` value then validates to
+`(plus (clobber) 256)` with full nonzero bits, so the `sll/sra` survives, while
+`rnd` still has one death and local-alloc ties the chain into one register. The
+emitted code has no trace of the `(u16)`. `rnd >>= 16; rnd = (u16)rnd;` produces
+the same object.
