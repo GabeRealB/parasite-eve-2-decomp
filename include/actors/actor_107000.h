@@ -8,17 +8,10 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 
-/// Owning context of the actor, passed as the first argument of its per-frame
-/// handler next to the `Task` that carries the model in `Task::extra`.
-///
-/// `field_14` is the pose flag the `D_801153F4` mode switch writes together
-/// with the model part's flag word: mode 0 zeroes both, mode 2 pairs a 1 here
-/// with `TmdObject::flags = 0x80` for the hidden pose.
-///
-/// This is the same object the spawn handler takes as `GpEnemy*`, seen from the
-/// side that needs only that one flag: `field_14` is `GpEnemy::node.flags`,
-/// and the handlers that also tear the enemy down (`Actor07000_Fn04468`
-/// spends `recs` and unlinks `node`) spell it as the `GpEnemy` it is.
+/// A `GpEnemy` seen through its node's flag byte alone: `field_14` is
+/// `GpEnemy::node.flags`. The actor's own handlers take the `GpEnemy`; this
+/// view remains only for `actors_shared_80137220.h`, which declares a handler
+/// with it.
 typedef struct Actor107000Ctx {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ u8   field_14;
@@ -35,17 +28,6 @@ typedef struct Actor107000RotScratch {
     /* 0x10 */ SVECTOR rot;
 } Actor107000RotScratch;
 STATIC_ASSERT_SIZEOF(Actor107000RotScratch, 0x18);
-
-/// Collision-response scratch, followed by the normalized contact vector and
-/// the result word passed to func_800E0C10.
-typedef struct Actor107000ContactScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-    /* 0x38 */ VECTOR         normal;
-    /* 0x48 */ s32            result;
-} Actor107000ContactScratch;
-STATIC_ASSERT_SIZEOF(Actor107000ContactScratch, 0x4C);
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
@@ -175,131 +157,8 @@ typedef struct Actor107000SpawnWork {
 } Actor107000SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
-/// The 0x39C-byte work block the actor's *other* spawn handler
-/// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
-/// the same `GpAnimCtx`, seven animation slots instead of three, then three
-/// `GpObj` render nodes where that one has four.
-///
-/// Node 1's `ctx.d4rec` is not a record table but the `GpActorD4Rec` at 0x1FC -
-/// the shape `GpActorD4` keeps, where the record's own `recs` points at the
-/// `GpRec18` run beside it (here the single record at 0x214). Nodes 2 and 3
-/// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
-///
-/// The tail from 0x360 is the same run `Actor107000Work` names from 0x360:
-/// `field_370`/`field_372` are its animation id and the id the six helper slots
-/// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
-typedef struct Actor107000Spawn2Work {
-    /* 0x000 */ GpAnimCtx      context;
-    /* 0x014 */ GpAnimSlot     slots[7];        // six helper slots + slot 0
-    /* 0x12C */ byte           field_12C[0x70]; // pose buffer, func_800B3F84 arg3
-    /* 0x19C */ MATRIX         field_19C;       // colour matrix, TmdObject::colorMtx
-    /* 0x1BC */ MATRIX         field_1BC;       // light matrix, TmdObject::lightMtx
-    /* 0x1DC */ GpObj          obj1;
-    /* 0x1FC */ GpActorD4Rec   field_1FC;
-    /* 0x214 */ GpRec18        field_214[1]; // the table `field_1FC` names
-    /* 0x22C */ GpObj          obj2;
-    /* 0x24C */ GpRec18        field_24C[4];
-    /* 0x2AC */ GpObj          obj3;
-    /* 0x2CC */ GpRec18        field_2CC[1];
-    /* 0x2E4 */ SVECTOR        rotation;  // reaction rotation applied to model coordinates 3 and 5
-    /* 0x2EC */ byte           pad_2EC[0x50];
-    /* 0x33C */ VECTOR3        field_33C; // saved position restored by collision response 2
-    /* 0x348 */ byte           pad_348[0x14];
-    /* 0x35C */ GsCOORDINATE2* field_35C; // the model's second coordinate
-    /* 0x360 */ u16            field_360;
-    /* 0x362 */ u16            field_362;
-    /* 0x364 */ s16            field_364; // spawn arg's high half
-    /* 0x366 */ u16            field_366; // spawn arg's low half
-    /* 0x368 */ byte           pad_368[0x2];
-    /* 0x36A */ s16            field_36A; // reaction sub-state, as Actor107000Work::field_36A
-    /* 0x36C */ s16            field_36C;
-    /* 0x36E */ u16            field_36E;
-    /* 0x370 */ s16            field_370; // animation id the work is playing
-    /* 0x372 */ u16            field_372; // id the six helper slots last saw
-    /* 0x374 */ u16            field_374;
-    /* 0x376 */ byte           pad_376[2];
-    /* 0x378 */ s16            field_378; // seeded to 0xC8 by the reveal arm
-    /* 0x37A */ s16            field_37A;
-    /* 0x37C */ byte           pad_37C[2];
-    /* 0x37E */ s16            field_37E;
-    /* 0x380 */ s16            field_380;
-    /* 0x382 */ s16            field_382;
-    /* 0x384 */ s16            field_384;
-    /* 0x386 */ s16            field_386;
-    /* 0x388 */ s16            field_388;
-    /* 0x38A */ s16            field_38A;
-    /* 0x38C */ s16            field_38C;
-    /* 0x38E */ s16            field_38E;
-    /* 0x390 */ u16            field_390; // frames until the next 0x60080 spawn
-    /* 0x392 */ u16            field_392; // spawns so far; the cue fires at 5
-    /* 0x394 */ u16            field_394; // non-zero: this frame has spent its reaction
-    /* 0x396 */ u16            field_396; // armed to 1 by the reveal arm, cleared by the hide
-    /* 0x398 */ s16            field_398; // seeded to 0x64 by the reveal arm
-    /* 0x39A */ s16            field_39A; // cleared by the reveal arm
-} Actor107000Spawn2Work;
-STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
-
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
-/// same 4-byte record as `Actor143900Msg`. The second-form handler
-/// `Actor07000_Fn05AB8` reads the halfword at 0x2 as a command word: its
-/// low byte is the mode (1 reveals the specimen, 3 hides it) and bits 8..11
-/// pick the spawn point the reveal places the model at.
-typedef struct Actor107000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor107000Msg;
-
 /// Free-running linear congruential state every overlay draws its random numbers
 /// from: `state = state * 5 + 0x71357911`, read back through the high halfword.
 extern u32 Gp_LcgState;
-
-/// Picks the reaction branch the specimen takes on this hit and stores it in
-/// `field_382`, then hands back the collision record the caller armed. A
-/// countdown of 0xBB8 or more, or a record with no slot matching the 0x10000
-/// kind, clears the branch and `field_36E` instead. Otherwise the branch is 3
-/// when the first `Gp_LcgState` draw folds to under 11, 2 when the target is
-/// 2500 units or further. Closer than that, a second draw is taken: it lands on
-/// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
-/// not. Either way `field_374`/`field_372` are reset, and the record is released.
-void Actor07000_Fn046B8(Task* arg0, s32 arg1);
-
-extern GpEnemyTaskFuncTable3 Actor07000_D00004;
-extern GpEnemyTaskFuncTable5 Actor07000_D0004C;
-extern TaskFuncTable3        Actor07000_D000E0;
-extern GpU16Pair             Actor07000_D08078;
-extern GpPairSrcE            Actor07000_D08080;
-extern u8                    Actor07000_D0D77C[];
-
-void Actor07000_Fn00654(Task* arg0);
-void Actor07000_Fn0107C(Task* arg0);
-void Actor07000_Fn011B4(GpEnemy* enemy, Task* task);
-void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn01EB0(Task* arg0);
-void Actor07000_Fn02548(Task* task);
-void Actor07000_Fn027D0(Task* task);
-void Actor07000_Fn02860(Task* arg0);
-void Actor07000_Fn02914(void* arg0, Task* task);
-void Actor07000_Fn02984(Task* task);
-void Actor07000_Fn029F0(Task* arg0, GsCOORDINATE2* arg1);
-void Actor07000_Fn02BB8(Task* arg0);
-void Actor07000_Fn02CAC(Task* task);
-void Actor07000_Fn02D78(Task* task);
-void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1);
-void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1);
-s32  Actor07000_Fn047F4(GsCOORDINATE2* arg0, u32* arg1);
-void Actor07000_Fn04B18(Task* arg0);
-void Actor07000_Fn04E60(Task* arg0);
-void Actor07000_Fn05400(Actor107000Ctx* arg0, Task* arg1);
-void Actor07000_Fn0595C(Task* arg0);
-void Actor07000_Fn05ED4(Task* arg0);
-void Actor07000_Fn05F84(Task* task);
-void Actor07000_Fn060FC(Task* arg0);
-void Actor07000_Fn06338(Task* task);
-void Actor07000_Fn06390(Task* arg0);
-void Actor07000_Fn066FC(Task* dst, Task* src);
-void Actor07000_Fn06750(Task* task);
-void Actor07000_Fn067B4(Task* task);
-void Actor07000_Fn068B4(Task* arg0);
-void Actor07000_Fn068F0(Task* arg0);
 
 #endif
