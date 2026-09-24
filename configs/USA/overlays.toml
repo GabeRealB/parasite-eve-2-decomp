@@ -1082,7 +1082,9 @@ objects = [
 ]
 
 [rooms.overlays.mist_parking]
+label = "code starts at 0x338: the first function is a leaf (a switch returning item-id lists, jump tables at 0x4), so the span detector, which keys on a stack prologue, begins at 0x9A8 and left it as rodata words"
 id = 303
+text = ["0x338", "0x8A98"]
 objects = [
   { kind = "packageId" },
   { unit = "mist_parking/mist_parking", rodata = "0x4", text = "0xF80" },
@@ -1094,6 +1096,7 @@ objects = [
   { unit = "mist_parking/mist_parking_13", rodata = "0x29C", text = "0x6580" },
   { unit = "mist_parking/mist_parking_14", rodata = "0x2A8", text = "0x65EC" },
   { unit = "mist_parking/mist_parking_17", rodata = "0x2EC", text = "0x7168" },
+  { unit = "mist_parking/mist_parking_18", text = "0x338" },
   { lib = true, unit = "rooms_shared_8017df68", text = "0x9A8" },
   { lib = true, unit = "rooms_shared_8017e90c", text = "0x134C" },
   { lib = true, unit = "rooms_shared_8017ff9c", text = "0x29DC" },
