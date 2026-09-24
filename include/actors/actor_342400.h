@@ -137,15 +137,6 @@ typedef struct Actor342400Slot {
 } Actor342400Slot;
 STATIC_ASSERT_SIZEOF(Actor342400Slot, 0x8);
 
-/// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
-/// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
-/// an enemy's x against `limit` when `axis` is 0 and its z otherwise.
-typedef struct Actor342400Limit {
-    /* 0x0 */ s16 axis;
-    /* 0x2 */ s16 limit;
-} Actor342400Limit;
-STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
-
 /// Work block of the child task handled by `func_actor_342400_80163178`,
 /// stored in its `Task::work` slot; it is killed once `field_A` reaches 3.
 /// `func_actor_342400_80162084` allocates it (`memCalloc(0xC, 0)`) and
@@ -180,107 +171,6 @@ typedef struct Actor342400SpawnWork {
 } Actor342400SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor342400SpawnWork, 0x8);
 
-extern u8               D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern Actor342400Slot  D_actor_342400_8016BF58[];
-extern Actor342400Limit D_actor_342400_8016C010[];
-extern TaskDesc         D_actor_342400_80173A54;
-extern TaskDesc         D_actor_342400_8016BFE0;
-extern TaskDesc         D_801575F0;                   // absolute, spawned by func_actor_342400_80162DA0
-extern TaskDesc         D_80151E60;                   // absolute, spawned twice by func_actor_342400_80162084
-extern u16              D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
-extern u8               D_actor_342400_80173A84[];    // per animation id (1-based): value for `field_44F`
-extern u8               D_actor_342400_80173A98[];    // per animation id (1-based): the animation to follow it
-extern u8               D_801153F4;                   // absolute; nonzero skips the controller's state handler
-extern GpPairSrcE       D_actor_342400_80170588;      // the main enemy's `GpEnemy::param` record
-extern u8               D_actor_342400_801739E8[];    // animation bank handed to `func_800B3F84`
-extern u8               D_actor_342400_80173A3C[];    // stored into `Task::msgTable` by func_actor_342400_80163C58
-extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
-
-void func_actor_342400_80162084(Task* arg0);
-void func_actor_342400_801621D8(Task* arg0);
-void func_actor_342400_80162324(Task* arg0);
-s16  func_actor_342400_801624A4(void);
-s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
-void func_actor_342400_801628F0(Task* arg0);
-void func_actor_342400_8016299C(Task* arg0);
-void func_actor_342400_80162A34(Task* arg0);
-void func_actor_342400_80162AB0(Task* arg0);
-void func_actor_342400_80162FFC(Task* arg0);
-void func_actor_342400_80163010(Task* arg0);
-void func_actor_342400_801630A4(Task* arg0);
-void func_actor_342400_80163178(Task* arg0);
-void func_actor_342400_801637DC(Task* arg0);
-void func_actor_342400_801653DC(Task* arg0, s16 arg1);
-void func_actor_342400_801694A8(Task* arg0, s32 arg1);
-s32  func_actor_342400_80169518(Task* arg0);
-void func_actor_342400_80169654(Task* arg0, s16 arg1, SVECTOR3* arg2);
-s32  func_actor_342400_80169728(Task* arg0, s16 arg1);
-void func_actor_342400_8016A494(Task* arg0);
-void func_actor_342400_8016A664(Task* arg0);
-void func_actor_342400_8016A724(Task* arg0);
-void func_actor_342400_8016A804(Task* arg0);
-void func_actor_342400_8016A950(Task* arg0);
-void func_actor_342400_8016A9AC(Task* arg0);
-void func_actor_342400_8016A9C4(Task* arg0);
-void func_actor_342400_8016AA08(Task* arg0);
-void func_actor_342400_8016AE24(Task* arg0);
-void func_actor_342400_8016AEAC(Task* arg0);
-void func_actor_342400_8016AF34(Task* arg0);
-void func_actor_342400_8016AFA8(Task* arg0);
-void func_actor_342400_8016B038(Task* arg0);
-void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
-void func_actor_342400_801632D4(Task* arg0);
-
-void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
-void func_actor_342400_801639A8(Task* arg0);
-void func_actor_342400_8016454C(Task* arg0);
-void func_actor_342400_80164CA4(Task* arg0);
-void func_actor_342400_80164DD4(Task* arg0);
-void func_actor_342400_8016513C(Task* arg0);
-void func_actor_342400_801652A0(Task* arg0);
-void func_actor_342400_80165CC0(Task* arg0);
-void func_actor_342400_80165E4C(Task* task);
-void func_actor_342400_80166180(Task* arg0);
-void func_actor_342400_801662EC(Task* arg0);
-void func_actor_342400_80166B20(Task* arg0);
-void func_actor_342400_80166C68(Task* arg0);
-void func_actor_342400_80166DD4(Task* arg0);
-void func_actor_342400_80166F54(Task* arg0);
-void func_actor_342400_801673F8(Task* arg0);
-void func_actor_342400_801676D4(Task* arg0);
-void func_actor_342400_8016784C(Task* arg0);
-void func_actor_342400_80167B70(Task* arg0);
-void func_actor_342400_80167CDC(Task* arg0);
-void func_actor_342400_80167E78(Task* arg0);
-void func_actor_342400_80168010(Task* arg0);
-void func_actor_342400_80168174(Task* arg0);
-void func_actor_342400_80168A28(Task* arg0);
-void func_actor_342400_801692E8(void);
-s16  func_actor_342400_8016945C(Task* arg0);
-void func_actor_342400_80169620(Task* task, s16 part, VECTOR3* pos);
-s16  func_actor_342400_8016974C(Task* arg0);
-void func_actor_342400_801698D4(Task* arg0, s32 step);
-void func_actor_342400_80169D2C(Task* arg0);
-void func_actor_342400_80169E24(Task* arg0);
-void func_actor_342400_80169EC4(Task* arg0);
-void func_actor_342400_8016A020(Task* arg0);
-void func_actor_342400_8016A084(Task* arg0);
-void func_actor_342400_8016A184(Task* arg0);
-void func_actor_342400_8016A2FC(Task* arg0);
-void func_actor_342400_8016A538(Task* arg0);
-void func_actor_342400_8016A884(Task* task);
-void func_actor_342400_8016B0A0(Task* arg0);
-void func_actor_342400_8016B104(Task* arg0);
-void func_actor_342400_8016B1C8(Task* arg0);
-void func_actor_342400_8016B21C(Task* arg0);
-void func_actor_342400_8016B294(Task* arg0);
-void func_actor_342400_8016B370(Task* arg0);
-void func_actor_342400_8016B414(Task* arg0);
-void func_actor_342400_8016B48C(Task* arg0);
-void func_actor_342400_8016B500(Task* arg0);
-void func_actor_342400_8016BB74(Task* arg0);
-void func_actor_342400_8016BC70(Task* task);
-void func_actor_342400_8016BD98(Task* arg0);
-s32  func_actor_342400_8016BEF0(Task* arg0);
+extern TaskDesc D_80151E60; // absolute, spawned twice by func_actor_342400_80162084
 
 #endif

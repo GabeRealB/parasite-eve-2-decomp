@@ -2,11 +2,52 @@
 #include "main/task.h"
 #include "main/mem.h"
 #include "main/tmd.h"
+#include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "actors/actor_342400.h"
 
+/// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
+/// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
+/// an enemy's x against `limit` when `axis` is 0 and its z otherwise.
+typedef struct Actor342400Limit {
+    /* 0x0 */ s16 axis;
+    /* 0x2 */ s16 limit;
+} Actor342400Limit;
+STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
+
+extern u8               D_801153F4;                // absolute; nonzero skips the controller's state handler
+extern TaskDesc         D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
+extern u8               D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
+extern Actor342400Slot  D_actor_342400_8016BF58[];
+extern TaskDesc         D_actor_342400_8016BFE0;
+extern Actor342400Limit D_actor_342400_8016C010[];
+extern s16              D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
+extern TaskDesc         D_actor_342400_80173A54;
+extern u16              D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
+
 extern u32 Gp_LcgState;
+
+s16  func_actor_342400_801624A4(void);
+s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
+void func_actor_342400_801628F0(Task* arg0);
+void func_actor_342400_8016299C(Task* arg0);
+void func_actor_342400_80162A34(Task* arg0);
+void func_actor_342400_80162AB0(Task* arg0);
+void func_actor_342400_80162B60(Task* arg0);
+void func_actor_342400_80162C10(Task* arg0);
+void func_actor_342400_80162CA8(Task* arg0);
+void func_actor_342400_80162CBC(Task* arg0);
+void func_actor_342400_80162DA0(Task* arg0);
+void func_actor_342400_80162E6C(Task* arg0);
+void func_actor_342400_80162F08(Task* arg0);
+void func_actor_342400_80162F1C(Task* arg0);
+void func_actor_342400_80162FFC(Task* arg0);
+void func_actor_342400_80163010(Task* arg0);
+void func_actor_342400_801630A4(Task* arg0);
+void func_actor_342400_80163178(Task* arg0);
+void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
+void func_actor_342400_801632D4(Task* arg0);
 
 void func_actor_342400_80162084(Task* arg0)
 {
@@ -185,9 +226,9 @@ s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
     }
     return 0;
 }
+
 /// The controller task's four state handlers, dispatched by
-/// `func_actor_342400_80162748`. Like `D_actor_342400_80161E54` below, splat
-/// migrates it into the function's own `.s`, so it is defined here.
+/// `func_actor_342400_80162748` on `Task::state`.
 const TaskFuncTable4 D_actor_342400_80161E24 = { {
     func_actor_342400_801628F0,
     func_actor_342400_8016299C,
@@ -204,15 +245,6 @@ void func_actor_342400_80162748(Task* arg0)
         sp.funcs[arg0->state](arg0);
     }
 }
-
-void func_actor_342400_80162B60(Task* arg0);
-void func_actor_342400_80162C10(Task* arg0);
-void func_actor_342400_80162CA8(Task* arg0);
-void func_actor_342400_80162CBC(Task* arg0);
-void func_actor_342400_80162DA0(Task* arg0);
-void func_actor_342400_80162E6C(Task* arg0);
-void func_actor_342400_80162F08(Task* arg0);
-void func_actor_342400_80162F1C(Task* arg0);
 
 /// The first spawner task's four state handlers, dispatched by
 /// `func_actor_342400_801627C0`.
@@ -251,10 +283,7 @@ void func_actor_342400_80162824(Task* arg0)
 }
 
 /// The five state handlers `func_actor_342400_80162888` dispatches through by
-/// `Task::state`. splat migrates this table into that function's own `.s`, so
-/// there is no standalone rodata file to `INCLUDE_RODATA`; defining it here
-/// emits it where the function sits, before the `D_actor_342400_80161E68`
-/// include below.
+/// `Task::state`.
 const TaskFuncTable5 D_actor_342400_80161E54 = { {
     func_actor_342400_80162084,
     func_actor_342400_80162FFC,
@@ -605,19 +634,3 @@ void func_actor_342400_801632D4(Task* arg0)
         work->field_A |= 2;
     }
 }
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161E68);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161E80);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161EA8);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161ED4);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161EE0);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161EEC);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F00);
-
-INCLUDE_RODATA("actors/nonmatchings/actor_342400/actor_342400", D_actor_342400_80161F14);
