@@ -3,6 +3,12 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "main/task.h"
+
 /// Parameters for the periodic `Gp_SpawnEff` burst driven by unit 2 of the
 /// overlay. `func_shelter_b4_reservoir_80182B04` writes all three halves at
 /// once; `func_shelter_b4_reservoir_8017FB84` zeroes them on entry, skips the
@@ -28,6 +34,16 @@ typedef struct ShelterB4ReservoirWork {
     s16  field_26; // Scratch: the angle of that point, then the splash chance for the frame's movement
 } ShelterB4ReservoirWork;
 
+/// State handlers of the room task `func_shelter_b4_reservoir_8017E88C` runs,
+/// which copies the table to the stack and calls the entry for the task's
+/// state: the room's setup, the per-frame state, and `taskKill`.
+extern const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4;
+
+void func_shelter_b4_reservoir_8017FB44(Task* arg0);
+void func_shelter_b4_reservoir_80180530(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
+void func_shelter_b4_reservoir_80183298(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // ROOMS_SHELTER_B4_RESERVOIR_H

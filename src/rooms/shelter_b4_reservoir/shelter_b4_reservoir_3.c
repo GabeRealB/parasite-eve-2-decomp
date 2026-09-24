@@ -6,7 +6,7 @@
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
-#include "rooms/rooms_shared_8017e690.h"
+#include "rooms/shelter_b4_reservoir.h"
 
 extern void func_shelter_b4_reservoir_8017E068(void);
 void        func_shelter_b4_reservoir_8017E8E4(void);
@@ -379,7 +379,7 @@ void func_shelter_b4_reservoir_8017F674(Task* task)
 
 void func_shelter_b4_reservoir_8017FADC(Task* task)
 {
-    TaskFunc states[2] = { RoomsShared8017e690, func_shelter_b4_reservoir_8017E8EC };
+    TaskFunc states[2] = { func_shelter_b4_reservoir_8017FB44, func_shelter_b4_reservoir_8017E8EC };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_reservoir_80184F80;

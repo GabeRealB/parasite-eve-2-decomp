@@ -139,39 +139,39 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     }
     switch ((u8)Gp_GetViewIndex()) {
         case 2:
-            Room_Draw01(&D_shelter_b4_reservoir_80185074, 0x200, 0x444);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185074, 0x200, 0x444);
             break;
         case 4:
-            Room_Draw01(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
-            Room_Draw01(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
             if (GameFlag_GetNibble(0xB7) != 0) {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
             }
             break;
         case 5:
-            Room_Draw01(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
             if (GameFlag_GetNibble(0xB7) != 0) {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
             }
             break;
         case 6:
             if (GameFlag_GetNibble(0xB7) != 0) {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
             } else {
-                Room_Draw21(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                func_shelter_b4_reservoir_80182134(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
             }
             break;
         case 7:
-            Room_Draw01(&D_shelter_b4_reservoir_80185034, 0x200, 0x444);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185034, 0x200, 0x444);
             break;
         case 3:
         case 9:
-            Room_Draw01(&D_shelter_b4_reservoir_80185044, 0x200, 0x444);
+            func_shelter_b4_reservoir_801818F0(&D_shelter_b4_reservoir_80185044, 0x200, 0x444);
             break;
     }
 }

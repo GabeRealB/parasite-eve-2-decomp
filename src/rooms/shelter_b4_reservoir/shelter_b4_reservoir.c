@@ -34,7 +34,7 @@ extern GpStateBD8     D_shelter_b4_reservoir_80187500;
 extern s16            D_80071076;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", D_shelter_b4_reservoir_8017D5C4);
 
 void func_shelter_b4_reservoir_8017DE8C(Task* task)
 {
