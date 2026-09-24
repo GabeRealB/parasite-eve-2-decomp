@@ -37,6 +37,7 @@ extern MistShootingGalleryLayout D_mist_shooting_gallery_80185198;
 extern MistShootingGalleryLayout D_mist_shooting_gallery_801851F8;
 extern MistShootingGalleryLayout D_mist_shooting_gallery_80189968;
 extern TaskDesc                  D_mist_shooting_gallery_801850DC;
+extern TaskFuncTable3            D_mist_shooting_gallery_8017D860;
 
 s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
@@ -107,7 +108,17 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_2", func_mist_shooting_gallery_8018018C);
+/// The room task: copies the three-state table
+/// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
+/// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
+/// the per-frame state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
+void func_mist_shooting_gallery_8018018C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_shooting_gallery_8017D860;
+    sp.funcs[task->state](task);
+}
 
 void func_mist_shooting_gallery_801801E4(s32 arg0)
 {

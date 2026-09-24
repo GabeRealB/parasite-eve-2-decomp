@@ -29,6 +29,7 @@ extern TaskDesc                  D_80134F94;
 extern u8                        D_801153F4;
 extern u8                        D_80073BA9;
 extern MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C;
+extern TaskFuncTable3            D_mist_shooting_gallery_8017DB80;
 /// The wave script the round loop walks: a run of records sharing
 /// `field_00` is spawned together, `0xFFF1` waits for the current wave to
 /// clear and `0xFFFF` ends the course.
@@ -1386,7 +1387,18 @@ s32 func_mist_shooting_gallery_80184970(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery_5", func_mist_shooting_gallery_801849BC);
+/// The gallery controller task: copies the three-state table
+/// `D_mist_shooting_gallery_8017DB80` onto the stack and runs the entry for the
+/// task's current state - the setup tick `func_mist_shooting_gallery_80182B1C`,
+/// the round runner `func_mist_shooting_gallery_80184A14`, then
+/// `func_mist_shooting_gallery_801842D0`.
+void func_mist_shooting_gallery_801849BC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_shooting_gallery_8017DB80;
+    sp.funcs[task->state](task);
+}
 
 void func_mist_shooting_gallery_80184A14(Task* arg0)
 {
