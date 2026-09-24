@@ -3277,23 +3277,8 @@ label = "no map pool names this room"
 id = 447
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_5", rodata = "0x4", text = "0x108" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_2", rodata = "0x50", text = "0x2430" },
-  { unit = "shelter_1f_tent/shelter_1f_tent", rodata = "0x84", text = "0x1EC4" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_4", rodata = "0xF0", text = "0x2850" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_6", text = "0xCD0" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_7", text = "0x1864" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_8", text = "0x1958" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_9", text = "0x2604" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_10", text = "0x2694" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_11", text = "0x269C" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_3", text = "0x26E0" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_12", text = "0x27E8" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_13", text = "0x27F8" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_14", text = "0x29EC" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_15", text = "0x3230" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_16", text = "0x35D0" },
-  { unit = "shelter_1f_tent/shelter_1f_tent_17", text = "0x3A50" },
+  { unit = "shelter_1f_tent/shelter_1f_tent", rodata = "0x4", text = "0x108" },
+  { unit = "shelter_1f_tent/shelter_1f_tent_2", rodata = "0xF0", text = "0x2850" },
   { kind = "data", at = "0x43D8" },
 ]
 
