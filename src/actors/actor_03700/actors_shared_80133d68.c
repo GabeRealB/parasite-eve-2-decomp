@@ -1,37 +1,34 @@
 #include "common.h"
 
-#include "actors/actors_shared_80133d68.h"
+#include "actors/actor_103700.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Turns the attach coordinate towards the target position in the work block:
-/// `field_244` is the heading to the target, and `field_246` steps from the
-/// matrix's current heading towards it by at most `field_254`, taking the short
-/// way round. The result is written back as a Y rotation.
-///
-/// Carried by two actor slots - `actor_103700` and `actor_203700`; the shared
-/// span is in `configs/USA/overlays.toml`.
-void ActorsShared80133d68(ActorShared80133d68* arg0)
+/// Turns the root coordinate towards the target position `field_23C`:
+/// `field_244` becomes the heading to the target, and `field_246` steps from
+/// the matrix's current heading towards it by at most `field_254`, taking the
+/// short way round. The result is written back as a Y rotation.
+void Actor03700_Fn01F48(Task* task)
 {
-    ActorShared80133d68Work* work;
-    GsCOORDINATE2*           coord;
-    SVECTOR*                 rot;
-    u16                      want;
-    s16                      ang;
-    s16                      diff;
-    s32                      adiff;
-    s32                      step;
-    s32                      cur;
-    s32                      next;
-    s32                      wrapStep;
+    Actor103700Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR*         rot;
+    u16              want;
+    s16              ang;
+    s16              diff;
+    s32              adiff;
+    s32              step;
+    s32              cur;
+    s32              next;
+    s32              wrapStep;
 
-    coord           = arg0->field_2C->field_8;
-    work            = arg0->field_1C;
+    coord           = ((TmdObject*)task->extra)->coords;
+    work            = (Actor103700Work*)task->work;
     rot             = (SVECTOR*)(SCRATCH_SP -= 8);
-    rot->vx         = work->field_23C - coord->coord.t[0];
+    rot->vx         = work->field_23C.vx - coord->coord.t[0];
     rot->vy         = 0;
-    rot->vz         = work->field_240 - coord->coord.t[2];
+    rot->vz         = work->field_23C.vz - coord->coord.t[2];
     work->field_244 = ratan2(rot->vx, rot->vz) & 0xFFF;
     ang             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     want            = work->field_244;

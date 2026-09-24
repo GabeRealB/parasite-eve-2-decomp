@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_103700.h"
-#include "actors/actors_shared_80133c1c.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -55,7 +54,7 @@ void Actor03700_Fn00ABC(Task* task)
     }
     Actor03700_Fn032BC(task, 0, 14);
     Actor03700_Fn03320(task, 20);
-    if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
+    if (Actor03700_Fn01DFC(task) != 0) {
         work->field_24E      = 3;
         work->field_250      = 0;
         Gp_StateF0.field_19 |= 1;
@@ -75,7 +74,7 @@ void Actor03700_Fn00D5C(Task* task)
 
     switch (work->field_250) {
         case 0:
-            if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
+            if (Actor03700_Fn01DFC(task) != 0) {
                 Gp_StateF0.field_19 |= 1;
                 Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
                 work->field_250      = 1;
@@ -121,7 +120,7 @@ void Actor03700_Fn00F88(Task* task)
 
     switch (work->field_250) {
         case 0:
-            if (ActorsShared80133c1c((ActorShared80133c1c*)task) != 0) {
+            if (Actor03700_Fn01DFC(task) != 0) {
                 Gp_StateF0.field_19 |= 1;
                 Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
                 work->field_250      = 1;

@@ -1,49 +1,47 @@
 #include "common.h"
 
-#include "actors/actors_shared_801345fc.h"
+#include "actors/actor_103700.h"
+#include "gameplay/3A34.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Three-phase approach: counts `field_256` down, then moves the attach
-/// coordinate towards the target position by 75/2048 of the unit direction per
-/// call until it is within 150 on Y, then counts down again and arms
-/// `Gp_ArmStateF0` with the work block in mode 3.
-///
-/// Carried by two actor slots - `actor_103700` and `actor_203700`; the shared
-/// span is in `configs/USA/overlays.toml`.
-void ActorsShared801345fc(ActorShared801345fc* arg0)
+/// Modes 8 and 9, the approach after the drop-in: counts `field_256` down,
+/// then moves the root coordinate towards the target position `field_23C` by
+/// 75/2048 of the unit direction per frame until it is within 150 on Y, then
+/// counts 30 frames and hands over to mode 3, arming `Gp_StateF0`.
+void Actor03700_Fn027DC(Task* task)
 {
-    ActorShared801345fcScratch* s;
-    ActorShared801345fcWork*    work;
-    GsCOORDINATE2*              coord;
-    s32                         d;
+    Actor103700SteerScratch* s;
+    Actor103700Work*         work;
+    GsCOORDINATE2*           coord;
+    s32                      d;
 
-    s     = (ActorShared801345fcScratch*)(SCRATCH_SP -= sizeof(ActorShared801345fcScratch));
-    work  = arg0->field_1C;
-    coord = arg0->field_2C->field_8;
+    s     = (Actor103700SteerScratch*)(SCRATCH_SP -= sizeof(Actor103700SteerScratch));
+    work  = (Actor103700Work*)task->work;
+    coord = ((TmdObject*)task->extra)->coords;
     switch (work->field_250) {
         case 0:
-            if (--work->field_256 <= 0) {
+            if ((s16)--work->field_256 <= 0) {
                 work->field_250 = 1;
             }
             break;
         case 1:
-            s->dir.vx = work->field_23C - coord->coord.t[0];
-            s->dir.vy = work->field_23E - coord->coord.t[1];
-            s->dir.vz = work->field_240 - coord->coord.t[2];
-            VectorNormalS(&s->dir, &s->norm);
-            coord->coord.t[0] += (s->norm.vx * 75) >> 11;
-            coord->coord.t[1] += (s->norm.vy * 75) >> 11;
-            coord->coord.t[2] += (s->norm.vz * 75) >> 11;
-            d                  = (s32)work->field_23E - coord->coord.t[1];
+            s->delta.vx = work->field_23C.vx - coord->coord.t[0];
+            s->delta.vy = work->field_23C.vy - coord->coord.t[1];
+            s->delta.vz = work->field_23C.vz - coord->coord.t[2];
+            VectorNormalS(&s->delta, &s->normal);
+            coord->coord.t[0] += (s->normal.vx * 75) >> 11;
+            coord->coord.t[1] += (s->normal.vy * 75) >> 11;
+            coord->coord.t[2] += (s->normal.vz * 75) >> 11;
+            d                  = (s32)work->field_23C.vy - coord->coord.t[1];
             if ((d < 0 ? -d : d) < 150) {
                 work->field_250 = 2;
                 work->field_256 = 30;
             }
             break;
         case 2:
-            if (--work->field_256 <= 0) {
+            if ((s16)--work->field_256 <= 0) {
                 work->field_24E = 3;
                 work->field_250 = 0;
                 work->field_256 = 0;
@@ -51,5 +49,5 @@ void ActorsShared801345fc(ActorShared801345fc* arg0)
             }
             break;
     }
-    SCRATCH_SP += sizeof(ActorShared801345fcScratch);
+    SCRATCH_SP += sizeof(Actor103700SteerScratch);
 }

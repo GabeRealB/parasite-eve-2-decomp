@@ -4,12 +4,6 @@
 #include "main/mem.h"
 
 void      Gp_UpdateCoord(GsCOORDINATE2* arg0);
-s32       ActorsShared801326f0(Task* arg0);
-void      ActorsShared80134ff0(Task* arg0);
-void      ActorsShared80135210(Task* arg0);
-void      ActorsShared80133d68(Task* arg0);
-void      ActorsShared8013503c(Task* arg0);
-void      Actor03700_Fn0355C(Task* arg0);
 extern u8 D_801153F4;
 
 void Actor03700_Fn03004(Actor103700Ctx* arg0, Task* task)
@@ -52,23 +46,23 @@ default_body:
     if (work->field_24E < 7) {
         Actor03700_Fn0042C(task, obj, one);
     }
-    if (ActorsShared801326f0(task) != 0) {
+    if (Actor03700_Fn008D0(task) != 0) {
         return;
     }
     if (work->field_254 != 0) {
-        ActorsShared80133d68(task);
+        Actor03700_Fn01F48(task);
     }
     if (work->field_252 != 0) {
-        ActorsShared8013503c(task);
+        Actor03700_Fn0321C(task);
     }
     if (work->field_266 != 0) {
         Actor03700_Fn0355C(task);
     }
-    ActorsShared80135210(task);
+    Actor03700_Fn033F0(task);
     coord->flg = 0;
     Gp_UpdateCoord(coord);
 case1:
-    ActorsShared80134ff0(task);
+    Actor03700_Fn034A0(task);
 }
 
 /// Asks the player for the melee hold (message 0x3F8, range 8) and, once it is

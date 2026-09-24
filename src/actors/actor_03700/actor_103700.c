@@ -239,4 +239,4 @@ move_done:
     Gp_ClearRec18Occupied(work->records);
     *(u8**)G_SCRATCH_HEAD += 0x58;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_03700/actor_103700", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_03700/actor_103700", Actor03700_D00004);

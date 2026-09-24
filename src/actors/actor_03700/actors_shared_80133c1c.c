@@ -1,22 +1,17 @@
 #include "common.h"
 
-#include "actors/actors_shared_80133c1c.h"
-
+#include "actors/actor_103700.h"
+#include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-/// Sound the actor plays when it closes on the player. Stages the XZ offset to
-/// the player in an `SVECTOR` carved off the scratchpad stack, and takes the
-/// sound when that offset is under 0x708 units long, or while the player is
-/// mid-action (`Gp_StateF0.field_2` low nibble) or holding the aim button
-/// (`field_19` bit 0). The id is the enemy's work id packed above the 0x4025
-/// bank base, with the return flag as its low bit.
-///
-/// Carried by two actor slots - `actor_103700` and `actor_203700`, at different
-/// link addresses - which is why it lives here; the shared span is in
-/// `configs/USA/overlays.toml`.
-s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
+/// Tests whether the actor has noticed the player: true when the player is
+/// under 0x708 units away on the XZ plane (the offset is staged on the
+/// scratchpad stack), mid-action (`Gp_StateF0.field_2` low nibble) or holding
+/// the aim button (`field_19` bit 0). On noticing, it arms `Gp_StateF0` and
+/// plays the alert cue from the placement's sound bank. Returns 1 when noticed.
+s32 Actor03700_Fn01DFC(Task* task)
 {
     void**         scratch;
     u8*            head;
@@ -31,7 +26,7 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     vec      = (SVECTOR*)(head - 8);
-    coord    = arg0->field_2C->coords;
+    coord    = ((TmdObject*)task->extra)->coords;
     vec->vx  = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
     dz       = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
     *scratch = vec;
@@ -41,7 +36,7 @@ s32 ActorsShared80133c1c(ActorShared80133c1c* arg0)
     if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
         ret = 1;
         Gp_ArmStateF0(ret);
-        soundId   = arg0->field_20->placeKey;
+        soundId   = ((GpEnemy*)task->spawnArg2)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x40250000 | ret;

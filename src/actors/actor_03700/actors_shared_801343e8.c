@@ -1,48 +1,46 @@
 #include "common.h"
 
-#include "actors/actors_shared_801343e8.h"
+#include "actors/actor_103700.h"
+#include "main/tmd.h"
 
-extern s8  D_8011540A;
-extern u32 Gp_LcgState;
+extern s8 D_8011540A;
 
-/// Two-phase wait: phase 0 holds until `D_8011540A` reaches the kind's
-/// `field_2 - 9`, then phase 1 counts `field_256` down from 5 and rolls a new
-/// target position `field_23C` around the attach coordinate from `Gp_LcgState`
-/// (mode 8 below a threshold of 10, mode 9 above it, with a larger Y lift),
-/// rearms a random countdown and calls `Tmd_AllocBuffers`.
-///
-/// Carried by two actor slots - `actor_103700` and `actor_203700`; the shared
-/// span is in `configs/USA/overlays.toml`.
-void ActorsShared801343e8(Task* task)
+/// Mode 7, the drop-in: keeps the actor hidden, unlockable and out of the
+/// contact passes until `D_8011540A` reaches the placement's `mode - 9`, then
+/// counts `field_256` down from 5 and picks a target position `field_23C` above
+/// the root coordinate from `Gp_LcgState` - a lower one and mode 8 for
+/// placements below 10, a higher one and mode 9 above - before re-enabling the
+/// contacts, rearming a random countdown and allocating the model buffers.
+void Actor03700_Fn025C8(Task* task)
 {
-    TmdObject*                obj;
-    TmdObject*                ext;
-    ActorShared801343e8Work*  work;
-    ActorShared801343e8Spawn* spawn;
-    GsCOORDINATE2*            coord;
-    s32                       diff;
+    TmdObject*       obj;
+    TmdObject*       ext;
+    Actor103700Work* work;
+    GpEnemy*         spawn;
+    GsCOORDINATE2*   coord;
+    s32              diff;
 
-    ext              = (TmdObject*)task->extra;
-    work             = (ActorShared801343e8Work*)task->work;
-    coord            = ext->coords;
-    spawn            = (ActorShared801343e8Spawn*)task->spawnArg2;
-    obj              = ext;
-    work->field_1C2 &= 0x3FFF;
-    obj->flags      |= 0x84;
-    spawn->field_14  = 1;
+    ext               = (TmdObject*)task->extra;
+    work              = (Actor103700Work*)task->work;
+    coord             = ext->coords;
+    spawn             = (GpEnemy*)task->spawnArg2;
+    obj               = ext;
+    work->obj.flags  &= 0x3FFF;
+    obj->flags       |= 0x84;
+    spawn->node.flags = 1;
 
     switch (work->field_250) {
         case 0:
-            diff = spawn->field_3C->mode - 9;
+            diff = spawn->place->mode - 9;
             if (D_8011540A >= diff) {
                 work->field_250 = 1;
                 work->field_256 = 5;
             }
             break;
         case 1:
-            diff = spawn->field_3C->mode - 9;
-            if (--work->field_256 <= 0) {
-                work->field_1C2 |= 0xC000;
+            diff = spawn->place->mode - 9;
+            if ((s16)--work->field_256 <= 0) {
+                work->obj.flags |= 0xC000;
                 if (diff < 10) {
                     work->field_24E    = 8;
                     Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;

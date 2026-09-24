@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_103700.h"
-#include "actors/actors_shared_80133d68.h"
 #include "gameplay/3A34.h"
 #include "main/mem.h"
 #include "main/wipsys.h"
@@ -100,7 +99,7 @@ void Actor03700_Fn029C0(Task* task)
             coord->coord.t[1] += (scratch->normal.vy * 5) >> 9;
             coord->coord.t[2] += (scratch->normal.vz * 5) >> 9;
             work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
-            ActorsShared80133d68((ActorShared80133d68*)task);
+            Actor03700_Fn01F48(task);
 
             Actor103700_BobInline(task, 0, 21);
             Actor103700_SwayInline(task, 80);
@@ -117,7 +116,7 @@ void Actor03700_Fn029C0(Task* task)
             work->field_23C.vy = Player_Status.coordMtx->t[1] - (((Gp_LcgState >> 16) & 0x3FF) + 800);
             work->field_23C.vz = Player_Status.coordMtx->t[2];
             work->field_254    = Actor03700_D07F7C[((Actor103700Spawn*)task->spawnArg2)->field_3C->rowIndex];
-            ActorsShared80133d68((ActorShared80133d68*)task);
+            Actor03700_Fn01F48(task);
 
             Actor103700_BobInline(task, 0, 21);
             Actor103700_SwayInline(task, 80);

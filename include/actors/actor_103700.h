@@ -8,19 +8,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block, reached as `(Actor103700Work*)task->work`.
+/// Per-actor work block, reached as `(Actor103700Work*)task->work`; this actor
+/// keeps its own state in the `Task::work` slot rather than a `TaskIdMap`.
 ///
-/// Like actor 421600 this overlay keeps its own state in the `Task::work` slot
-/// instead of a `TaskIdMap`, so that pointer field is *not* a `TaskIdMap` here.
-/// The halfword `Actor03700_Fn032BC` cycles counts up and wraps to 0 once
-/// it passes the caller's period, and the wrapped value indexes the bob table
-/// below at `arg1 * 15 + field_25E`; the sibling `Actor03700_Fn029C0`
-/// drives the same counter with the same table.
-///
-/// The mode halfwords around it are what the shared `ActorsShared80135318`
-/// gates on: it does nothing until `field_24E` has run below 7 with the task in
-/// state 1, and then either flags `field_250` or steps `field_24E` to 5 with the
-/// state copied into `field_248`.
+/// `field_24E` is the behaviour mode `Actor03700_Fn008D0` dispatches on and
+/// `field_250` the phase within it. `field_248` is the animation requested and
+/// `field_24A` the one playing, with `field_24C` counting its frames. The
+/// movement helpers steer the root coordinate towards the target position
+/// `field_23C` at turn rate `field_254` and forward speed `field_252`,
+/// remembering the previous position in `field_22C`. `field_25E` and
+/// `field_25C` are the bob and sway phases, `field_260` the ambient cue timer,
+/// and `field_262` is set while the actor holds the player.
 typedef struct Actor103700Work {
     /* 0x000 */ GpAnimCtx  anim;
     /* 0x014 */ GpAnimSlot slots[6];
@@ -47,7 +45,7 @@ typedef struct Actor103700Work {
     /* 0x25A */ s16        field_25A;
     /* 0x25C */ u16        field_25C;
     /* 0x25E */ u16        field_25E;
-    /* 0x260 */ byte       pad_260[0x2];
+    /* 0x260 */ u16        field_260;
     /* 0x262 */ s16        field_262;
     /* 0x264 */ s16        field_264;
     /* 0x266 */ s16        field_266;
@@ -134,6 +132,22 @@ extern void* Actor03700_D08108;
 
 extern u32 Gp_LcgState;
 
+s32  Actor03700_Fn008D0(Task* task);
+void Actor03700_Fn00ABC(Task* task);
+void Actor03700_Fn00D5C(Task* task);
+void Actor03700_Fn00F88(Task* task);
+void Actor03700_Fn011B4(Task* task);
+void Actor03700_Fn01550(Task* task);
+void Actor03700_Fn018C8(Task* task);
+void Actor03700_Fn01C94(Task* task);
+s32  Actor03700_Fn01DFC(Task* task);
+void Actor03700_Fn01F48(Task* task);
+void Actor03700_Fn025C8(Task* task);
+void Actor03700_Fn027DC(Task* task);
+void Actor03700_Fn029C0(Task* task);
+void Actor03700_Fn0321C(Task* task);
+void Actor03700_Fn033F0(Task* task);
+void Actor03700_Fn034A0(Task* task);
 void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2);
 void Actor03700_Fn03320(Task* task, s32 arg1);
 void Actor03700_Fn0355C(Task* task);

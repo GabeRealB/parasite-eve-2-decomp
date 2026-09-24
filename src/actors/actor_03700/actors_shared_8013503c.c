@@ -1,27 +1,25 @@
 #include "common.h"
 
-#include "actors/actors_shared_8013503c.h"
+#include "actors/actor_103700.h"
 
-/// Remembers the attach coordinate's position in the work block, then steps it
-/// along the matrix's third column scaled by `field_252`, and moves its height
-/// 30 units toward `field_23E`.
-///
-/// Carried by two actor slots - `actor_103700` and `actor_203700`; the shared
-/// span is in `configs/USA/overlays.toml`.
-void ActorsShared8013503c(ActorShared8013503c* arg0)
+/// Moves the actor forward: remembers the root coordinate's position in
+/// `field_22C` (where a collision reset returns it), steps it along the
+/// matrix's third column scaled by `field_252`, and moves its height 30 units
+/// toward the target's `field_23C.vy`.
+void Actor03700_Fn0321C(Task* task)
 {
-    GsCOORDINATE2*           coord;
-    ActorShared8013503cWork* work;
-    s32                      y;
+    GsCOORDINATE2*   coord;
+    Actor103700Work* work;
+    s32              y;
 
-    coord = arg0->field_2C->field_8;
-    work  = arg0->field_1C;
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = (Actor103700Work*)task->work;
 
-    work->field_22C    = coord->coord.t[0];
-    work->field_22E    = coord->coord.t[1];
-    work->field_230    = coord->coord.t[2];
+    work->field_22C.vx = coord->coord.t[0];
+    work->field_22C.vy = coord->coord.t[1];
+    work->field_22C.vz = coord->coord.t[2];
     coord->coord.t[0] += (coord->coord.m[0][2] * work->field_252) >> 12;
     y                  = coord->coord.t[1];
-    coord->coord.t[1]  = (work->field_23E - y > 0) ? y + 30 : y - 30;
+    coord->coord.t[1]  = (work->field_23C.vy - y > 0) ? y + 30 : y - 30;
     coord->coord.t[2] += (coord->coord.m[2][2] * work->field_252) >> 12;
 }
