@@ -7,7 +7,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "gameplay/1BC.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -51,7 +50,7 @@ extern RoomHotspot D_acropolis_bridge_8018983C[];
 extern s32         D_acropolis_bridge_801917A8;
 
 /// Cursor into the packet buffer the bridge's screen-smear effects draw from.
-/// Every `DR_MOVE` task in `acropolis_bridge_8` takes the packet it points at
+/// Every `DR_MOVE` task of the room takes the packet it points at
 /// and bumps it by one, the same way `gGpuPrimCursor` works for the main
 /// primitive heap.
 extern DR_MOVE* D_acropolis_bridge_801917AC;
@@ -185,30 +184,5 @@ typedef struct AcropolisBridgeGlowScratch {
     /* 0x10 */ DVECTOR sxy;
 } AcropolisBridgeGlowScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeGlowScratch, 0x14);
-
-/// The fourteen state handlers of the room's cutscene task, run by
-/// `func_acropolis_bridge_8017D8D0`.
-extern TaskFuncTable14 D_acropolis_bridge_8017D5DC;
-
-/// The bridge enemy's three state handlers, run by
-/// `func_acropolis_bridge_80187D80`.
-extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
-
-/// State 1 of the prompt script task: moves and draws the action-prompt
-/// cursors.
-void func_acropolis_bridge_8017ED38(Task* task);
-
-/// State 0 of the prompt script task: resets both action-prompt slots - cursor
-/// cleared, speed 0x100, double-press window 0xF frames, mode 1 - and steps the
-/// task on one state.
-void func_acropolis_bridge_8017F808(Task* task);
-
-/// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by an
-/// `id` of -1: raises `hit` on every entry whose rectangle contains the point
-/// and clears it on the others, and answers whether any entry was hit.
-s32 func_acropolis_bridge_8017F6D4(RoomHotspot* table, s16 x, s16 y);
-
-/// Draws a flickering star-shaped glow at a world-space point.
-void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif
