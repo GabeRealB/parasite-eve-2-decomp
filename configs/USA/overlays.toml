@@ -1155,13 +1155,7 @@ objects = [
 id = 323
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen", rodata = "0x1C", text = "0x2FC" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_4", rodata = "0x4", text = "0x28" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_5", text = "0x398" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_2", text = "0x3DC" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_6", text = "0x3E4" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_7", text = "0x43C" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen_3", text = "0xCBC" },
+  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen", rodata = "0x4", text = "0x28" },
   { kind = "data", at = "0x15F4" },
 ]
 
