@@ -20,9 +20,12 @@ extern u8 D_8007216C;
 
 void func_neo_ark_pyramid_8017DAC0(s32 arg0);
 
-/// The `0x0..0x14` header (overlay id + `RoomsShared8017d878Table`) stays in assembly as
-/// `neo_ark_pyramid_hdr.rodata.s` (`rodata_head` in the manifest); the jump table below is
-/// compiler-generated and has to start this unit's `.rodata`, which is what the cut does.
+/// Event task that turns the room's rotating quad one step. It hides the HUD
+/// and runs capture command 1; unless that ends on event key 0xC it plays a
+/// sound and sweeps the quad's angle over 0x156 in steps of 4, then bumps
+/// game-flag nibble 0xEC. Below four turns it returns to the capture command;
+/// on the fourth it plays the closing sound and capture command 2. Either exit
+/// restores the HUD and the player's weapon before the task kills itself.
 void func_neo_ark_pyramid_8017D600(Task* task)
 {
     u16 count;
