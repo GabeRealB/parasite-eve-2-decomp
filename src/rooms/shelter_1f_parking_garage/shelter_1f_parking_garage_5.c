@@ -1,21 +1,26 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
+#include "rooms/shelter_1f_parking_garage.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Same two-point gouraud wedges as `Room_Draw12`, but the green/blue masks
-/// are `& 3` rather than `& 1`. Shared body, linked into every room overlay
-/// that uses it.
-void Room_Draw33(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Draws a capsule-shaped glow between the world point `arg0` and the one
+/// after it: a half-disc of gouraud wedges around each end and a band joining
+/// them, lit along the centre line and black at the rim. Nothing is drawn
+/// unless the second point's OTZ is at least 0x11. `arg1` is the half-extent
+/// (the on-screen radius is `(s16)arg1 * 64 / otz`), `arg2` the capsule's
+/// angle, and `arg3` the colour: a red byte at bits 8-15 and two-bit green
+/// and blue at bits 4 and 0, each scaled by a blend that flickers with the
+/// frame counter.
+void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;

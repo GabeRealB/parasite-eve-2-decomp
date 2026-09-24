@@ -198,4 +198,4 @@ void func_shelter_1f_parking_garage_8017DE9C(Task* task)
     task->state = task->state + 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_parking_garage/shelter_1f_parking_garage", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_parking_garage/shelter_1f_parking_garage", D_shelter_1f_parking_garage_8017D6A0);

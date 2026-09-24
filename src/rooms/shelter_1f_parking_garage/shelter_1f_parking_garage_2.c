@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_1f_parking_garage.h"
 
 extern s32     D_8011572C;
 extern s32     D_80115750;
@@ -27,17 +28,17 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_parking_garage_80180BFC;
-            Room_Draw33(&p[0], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[2], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[6], 0x200, 0, 0x210);
-            Room_Draw33(&p[8], 0x200, 0, 0x210);
+            func_shelter_1f_parking_garage_8017E080(&p[0], 0x200, 0x800, 0x210);
+            func_shelter_1f_parking_garage_8017E080(&p[2], 0x200, 0x800, 0x210);
+            func_shelter_1f_parking_garage_8017E080(&p[6], 0x200, 0, 0x210);
+            func_shelter_1f_parking_garage_8017E080(&p[8], 0x200, 0, 0x210);
             break;
         }
         case 4: {
             SVECTOR* p = D_shelter_1f_parking_garage_80180C4C;
-            Room_Draw29(&p[0], 0x300, 0x200);
-            Room_Draw33(&p[-12], 0x200, 0x800, 0x210);
-            Room_Draw33(&p[-6], 0x200, 0, 0x210);
+            func_shelter_1f_parking_garage_8017E868(&p[0], 0x300, 0x200);
+            func_shelter_1f_parking_garage_8017E080(&p[-12], 0x200, 0x800, 0x210);
+            func_shelter_1f_parking_garage_8017E080(&p[-6], 0x200, 0, 0x210);
             break;
         }
     }
