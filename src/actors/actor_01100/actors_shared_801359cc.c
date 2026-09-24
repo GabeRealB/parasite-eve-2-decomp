@@ -1,8 +1,8 @@
 #include "common.h"
 
-#include "actors/actors_shared_801345fc.h"
-#include "actors/actors_shared_801359cc.h"
+#include "actors/actor_101100.h"
 #include "actors/actors_shared_80138efc.h"
+#include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 
@@ -11,7 +11,7 @@
 
 extern u32 Gp_LcgState;
 
-void ActorsShared801359cc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     SVECTOR        local;
     GsCOORDINATE2* self0;

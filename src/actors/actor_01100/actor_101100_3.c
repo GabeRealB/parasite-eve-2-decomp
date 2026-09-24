@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_101100.h"
-#include "actors/actors_shared_80137fb8.h"
-#include "actors/actors_shared_801511c8.h"
 #include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -17,7 +15,7 @@ extern Actor101100StateFuncTable3 Actor01100_D00004;
 
 extern s32 D_8007216C;
 
-void ActorsShared8013845cSub0(Task* task)
+void Actor01100_Fn0638C(Task* task)
 {
     GpEffWork*       effect;
     s32              variant;
@@ -41,7 +39,7 @@ void ActorsShared8013845cSub0(Task* task)
     }
     task->work = work;
     soundBase  = (variant << 22) | 0x400B000C;
-    sound      = soundBase | (ActorsShared80137fb8ActorId << 8);
+    sound      = soundBase | (Actor01100_D15670 << 8);
     pan        = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
     effect = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
@@ -70,9 +68,9 @@ void ActorsShared8013845cSub0(Task* task)
     Gp_InitRec18Table(rec, 1, 0);
     Gp_LinkObj(3, obj);
     obj->flags        |= 0xC000;
-    task->exitCallback = ActorsShared801511c8;
+    task->exitCallback = Actor01100_Fn073A8;
     task->state++;
-    ActorsShared8013845cSub1(task);
+    Actor01100_Fn073DC(task);
 }
 
 /// Runs the actor's current state handler, copying the table onto the stack

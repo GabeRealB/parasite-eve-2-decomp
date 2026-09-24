@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_801390d8.h"
+#include "actors/actor_101100.h"
 
 /// Sub-state handler built around the halfword countdown at 0xB8C.
 ///
@@ -16,7 +16,7 @@
 /// shared local: a local's first definition would land before the branch on
 /// 0xBAE, and jump.c's arm collapse hoists one arm's constant in front of that
 /// branch, which then keeps the flag and the value in separate registers.
-void ActorsShared801390d8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     u16 count;
 

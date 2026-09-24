@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_80138774.h"
+#include "actors/actor_101100.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 
@@ -17,7 +17,7 @@
 /// stores rather than after all three: consecutive stores carry an output
 /// dependency, so their program order survives both schedulers, and moving it
 /// later lets it take the call's delay slot instead of the third store.
-s32 ActorsShared80138774(GsCOORDINATE2* arg0, s32 arg1)
+s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
 {
     SVECTOR        local;
     GpActorWork*   actor;

@@ -1,10 +1,10 @@
 #include "common.h"
 
-#include "actors/actors_shared_80138c6c.h"
+#include "actors/actor_101100.h"
 
 extern u32 Gp_LcgState;
 
-void ActorsShared80138c6c(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     s32 t;
     s32 t2;

@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_80138d58.h"
+#include "actors/actor_101100.h"
 #include "main/sound.h"
 
 /// First frame of the sub-state arms motion 5 and the 0x64-frame countdown at
@@ -11,7 +11,7 @@
 /// scratch byte at 0x64 then takes 0xC while bit 0 of `D_80070F70` is set and 8
 /// otherwise, and the trigger at 0xBA9 ends the sub-state by clearing both the
 /// state and the latch.
-void ActorsShared80138d58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
+void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
     if (work->field_BA8 == 0) {
         work->field_BA4 = 5;

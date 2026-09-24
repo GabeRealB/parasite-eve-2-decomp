@@ -34,7 +34,7 @@
 /// 301100, none of which references it: no carrier holds a `jal` to it, so the
 /// argument types are the ones the body itself needs and nothing here is
 /// confirmed by a call site.
-void ActorsShared8013898c(ActorsShared8013898cCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
+void Actor01100_Fn06B6C(ActorsShared8013898cCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
     if (D_80072729 == 0) {
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);

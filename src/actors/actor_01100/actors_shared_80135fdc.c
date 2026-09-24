@@ -1,15 +1,15 @@
 #include "common.h"
 
 #include "actors/actor_101100.h"
-#include "actors/actors_shared_801357f0.h"
-#include "actors/actors_shared_80135fdc.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/tmd.h"
 
 extern u32 Gp_LcgState;
 
-void ActorsShared80135fdc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+
+void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     GsCOORDINATE2* coord;
     GsCOORDINATE2* yaw;
@@ -41,7 +41,7 @@ void ActorsShared80135fdc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* 
         work->field_BA8     = (u8)work->field_BA8 + 1;
         task->killCountdown = wait;
     }
-    ActorsShared801357f0(enemy, task, work);
+    Actor01100_Fn039D0(enemy, task, work);
 
     delta = work->field_B90;
     lt    = delta < 0x11;

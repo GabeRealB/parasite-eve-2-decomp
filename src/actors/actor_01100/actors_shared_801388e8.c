@@ -6,12 +6,12 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include "actors/actors_shared_801388e8.h"
+#include "actors/actor_101100.h"
 
 /// Squared distance from `arg0` to the slot-3 (player) task's root part coord,
 /// or `0x7FFFFFFF` when that task is gone. The delta is staged in an `SVECTOR`
 /// carved off the scratchpad stack and squared with `Gfx_ApplyMatrixNoSf`.
-s32 ActorsShared801388e8(GsCOORDINATE2* arg0)
+s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 {
     void**         scratch;
     u8*            head;

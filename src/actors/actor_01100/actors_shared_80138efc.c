@@ -1,10 +1,10 @@
 #include "common.h"
 
-#include "actors/actors_shared_80138efc.h"
+#include "actors/actor_101100.h"
 
 /// Arms the motion pair for the current sub-state when `field_BA8` is still
 /// clear, and switches to state 0xF when `field_BA9` is set.
-void ActorsShared80138efc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     if (work->field_BA8 == 0) {
         if (work->field_BAE == 0) {

@@ -1,12 +1,12 @@
 #include "common.h"
 
-#include "actors/actors_shared_801357f0.h"
+#include "actors/actor_101100.h"
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-void ActorsShared801357f0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
+void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
     SVECTOR        local;
     GsCOORDINATE2* self;

@@ -1,11 +1,8 @@
 #include "common.h"
 
 #include "actors/actor_101100.h"
-#include "actors/actors_shared_801384ac.h"
-#include "actors/actors_shared_801388e8.h"
 #include "actors/actors_shared_80138efc.h"
 #include "actors/actors_shared_801385e0.h"
-#include "actors/actors_shared_801511c8.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -61,7 +58,7 @@ extern ActorsShared801385e0Scale Actor01100_D000CC;
 
 void Actor01100_Fn05678(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 s32  Actor01100_Fn00F58(GpEnemy*, Task*, Actor104900SpawnWork*, Actor104900ShotArg*);
-void ActorsShared801357f0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
+void Actor01100_Fn039D0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShared80138efcArg*);
 
 /// First-frame distance handler: while the latch at 0xBA8 is still clear it
 /// sets motion 6, zeroes the countdown at 0xB8C and steps the latch. If actor
@@ -70,7 +67,7 @@ void ActorsShared801357f0(GpEnemy*, Task*, ActorsShared80138efcWork*, ActorsShar
 /// `SquareRoot0(Gfx_ApplyMatrixNoSf)` into `field_B9E` — 0 inside 0x384, 0x2000
 /// past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
-/// Every later frame increments the countdown, asks `ActorsShared801357f0` for
+/// Every later frame increments the countdown, asks `Actor01100_Fn039D0` for
 /// the yaw at 0xB90 and turns the model's `field_46` toward it by at most 0x10,
 /// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into the first motion
 /// node and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the
@@ -146,7 +143,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         }
     }
     work->field_B8C = (u16)work->field_B8C + 1;
-    ActorsShared801357f0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
     pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
     if (yaw >= 0x11) {
@@ -245,7 +242,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// `SquareRoot0(Gfx_ApplyMatrixNoSf)` into `field_B9E` — 0 inside 0x384, 0x2000
 /// past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
-/// Every frame then asks `ActorsShared801357f0` for the yaw at 0xB90 and turns
+/// Every frame then asks `Actor01100_Fn039D0` for the yaw at 0xB90 and turns
 /// the model's `field_46` toward it by at most 0x10, rebuilds the Y rotation,
 /// increments the countdown and asks again. Frame 0x23 packs pair 4 into the
 /// second motion node and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
@@ -321,7 +318,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
         }
     }
-    ActorsShared801357f0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
     pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
     if (yaw >= 0x11) {
@@ -336,7 +333,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Gfx_RotMatrixY(&pose->coord, angle, 1);
     pose->flg       = 0;
     work->field_B8C = (u16)work->field_B8C + 1;
-    ActorsShared801357f0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, arg);
     if (work->field_B8C == 0x23) {
         obj         = &work->motion.objs[1];
         obj->key    = Gp_PackObjPair((GpObj50*)enemy, 4);
@@ -554,7 +551,7 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             } while (i < nOuter);
         }
     }
-    ActorsShared801357f0(enemy, task, work, (ActorsShared80138efcArg*)arg);
+    Actor01100_Fn039D0(enemy, task, work, (ActorsShared80138efcArg*)arg);
     if (work->field_BA9 != 0) {
         work->state     = 0xE;
         work->field_BA8 = 0;
@@ -636,7 +633,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* ar
 /// `li`.
 ///
 /// Later frames step 0xBAD while the motion id still matches and the clip has
-/// not finished, then `ActorsShared801357f0` supplies the yaw at 0xB90. While
+/// not finished, then `Actor01100_Fn039D0` supplies the yaw at 0xB90. While
 /// the frame sits in [1, 0x2E) the model's `field_46` turns toward that yaw by
 /// at most 0x10 and the Y rotation is rebuilt. The same window steps
 /// `((frame - 13) * 900) / 33` and, while `D_80072729` is clear, adds the
@@ -704,7 +701,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         }
     }
 
-    ActorsShared801357f0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, arg);
     if ((u32)((u8)work->field_BAD - 1) < 0x2EU) {
         turn = work->field_B90;
         pose = (GpCoordPose*)((TmdObject*)task->extra)->coords;
@@ -1066,7 +1063,7 @@ void Actor01100_Fn05CFC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
 /// `recs` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
 /// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
-/// actor takes `ActorsShared801511c8` as its exit callback and steps on to the
+/// actor takes `Actor01100_Fn073A8` as its exit callback and steps on to the
 /// next state, which it also runs immediately.
 ///
 /// The stack copy of the vector is what the first `lwc2` pair reads, and it is
@@ -1159,8 +1156,8 @@ void Actor01100_Fn05E68(Task* task)
     Gp_LinkObj(3, obj);
     obj->flags |= 0xC000;
 
-    task->exitCallback     = ActorsShared801511c8;
+    task->exitCallback     = Actor01100_Fn073A8;
     *(u8**)G_SCRATCH_HEAD += 8;
     task->state           += 1;
-    ActorsShared80137fb8(task);
+    Actor01100_Fn06198(task);
 }

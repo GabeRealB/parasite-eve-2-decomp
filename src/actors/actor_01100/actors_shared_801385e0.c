@@ -5,7 +5,7 @@
 
 #include "main/mem.h"
 
-#include "actors/actors_shared_801385e0.h"
+#include "actors/actor_101100.h"
 
 /// Reads the column `r0` holds at offsets `o0` / `o1` / `o2` into the `SVECTOR`
 /// at `r1`. The offsets are 6 bytes apart, so the caller passes one column of a
@@ -38,7 +38,7 @@
         : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
         : "$12", "$13", "$14", "memory")
 
-void ActorsShared801385e0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
+void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
 {
     void**   scratch;
     void*    head;

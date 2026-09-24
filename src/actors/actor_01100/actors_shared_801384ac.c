@@ -4,11 +4,12 @@
 
 #include "gameplay/1BC.h"
 
+#include "actors/actor_101100.h"
 #include "actors/actors_shared_801384ac.h"
 
 /// Exit callback: unlink the four display nodes, relink the second part coord
 /// under the model's root, then let gameplay tear the enemy down.
-void ActorsShared801384ac(Task* task)
+void Actor01100_Fn0668C(Task* task)
 {
     ActorShared801384acWork* work;
     GpEnemy*                 enemy;

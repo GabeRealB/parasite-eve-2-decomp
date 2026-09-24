@@ -14,7 +14,7 @@
 /// exchange, so the quantities are placed in birth order and the address would
 /// take `$v0` ahead of the value it feeds. With `$v0` live over the value the
 /// address lands in `$v1` instead, as the original does.
-s32 ActorsShared8013852c(Task* task, s32 arg1, s32 flags)
+s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 {
     ActorShared8013852cWork* work;
     GpEnemy*                 enemy;

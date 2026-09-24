@@ -2,7 +2,6 @@
 
 #include "actors/actor_101100.h"
 #include "actors/actors_shared_80138efc.h"
-#include "actors/actors_shared_801388e8.h"
 #include "gameplay/gameplay.h"
 #include "main/tmd.h"
 
@@ -39,7 +38,7 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if ((Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, scratch) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
-            if (ActorsShared801388e8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+            if (Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                 i   = 0;
                 off = 0x9C8;
                 do {

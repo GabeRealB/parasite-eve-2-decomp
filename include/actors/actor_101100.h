@@ -5,6 +5,7 @@
 
 #include "actors/actors_shared_80137fb8.h"
 #include "actors/actors_shared_801385e0.h"
+#include "actors/actors_shared_80138efc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
@@ -104,7 +105,15 @@ extern u8 D_80072729;
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
-/// Scale copied onto the stack and passed to `ActorsShared801385e0` when the
+/// Word whose low bits `Actor01100_Fn02960` (bits 0-3) and
+/// `Actor01100_Fn06F38` (bit 0) test; what sets it is outside this entry.
+extern s32 D_80070F70;
+
+/// Actor id the set-up `Actor01100_Fn0097C` stores for the secondary tasks,
+/// which shift it into bits 8-15 of their sound ids.
+extern u8 Actor01100_D15670;
+
+/// Scale copied onto the stack and passed to `Actor01100_Fn067C0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis. The trailing word is
 /// present in the object and unread.
 typedef struct Actor104900ScaleRodata {
@@ -135,11 +144,20 @@ typedef struct {
 } Actor104900ShotArg;
 STATIC_ASSERT_SIZEOF(Actor104900ShotArg, 0x66);
 
-/// Overlay-local spawn/setup state of `ActorsShared8013845c`: allocates the
-/// 0x58-byte work block, plays the spawn cue, seeds the display node and
-/// hands off to `ActorsShared8013845cSub1`.
-void ActorsShared8013845cSub0(Task* task);
-void ActorsShared8013845cSub1(Task* task);
+void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+void Actor01100_Fn06198(Task* task);
+void Actor01100_Fn0638C(Task* task);
+void Actor01100_Fn0668C(Task* task);
+void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
+s32  Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1);
+s32  Actor01100_Fn06AC8(GsCOORDINATE2* arg0);
+void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn070DC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
+void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
+void Actor01100_Fn073A8(Task* arg0);
+void Actor01100_Fn073DC(Task* task);
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown. Wider than the usual two-argument `GpEnemyTaskFunc` shape: the

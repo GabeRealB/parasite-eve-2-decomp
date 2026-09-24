@@ -14,7 +14,7 @@
 /// -- masked to the 0x10000 slot -- or the countdown reaching 0x14 clears the
 /// two 0xC000 bits the spawn state set in the object's flags. The countdown
 /// then ticks down and the task calls its exit callback once it reaches zero.
-void ActorsShared8013845cSub1(Task* task)
+void Actor01100_Fn073DC(Task* task)
 {
     Actor101100Work*  work;
     GsCOORDINATE2*    coord;

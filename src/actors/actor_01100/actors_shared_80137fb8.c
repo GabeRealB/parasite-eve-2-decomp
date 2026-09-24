@@ -1,14 +1,11 @@
 #include "common.h"
 
-#include "actors/actors_shared_80137fb8.h"
+#include "actors/actor_101100.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
 #include "main/tmd.h"
 
-extern u8 D_801153F4;
-extern u8 D_8007216C;
-
-void ActorsShared80137fb8(Task* task)
+void Actor01100_Fn06198(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             d4;
@@ -23,7 +20,7 @@ void ActorsShared80137fb8(Task* task)
     s16                       countdown;
 
     work = (ActorsShared80137fb8Work*)task->work;
-    map  = *(u32*)&D_8007216C;
+    map  = D_8007216C;
     mask = 0xFFFF0000;
     SOFT_TOUCH_REG(mask);
     map       &= mask;
@@ -58,7 +55,7 @@ void ActorsShared80137fb8(Task* task)
                 }
             }
         fire:
-            id = (flag << 22) | (0x400B000B | (ActorsShared80137fb8ActorId << 8));
+            id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
             SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(soundCoord), (s8)gpGetObjDepth(soundCoord));
             work->obj.flags    &= 0x3FFF;
             task->killCountdown = 0x1E;

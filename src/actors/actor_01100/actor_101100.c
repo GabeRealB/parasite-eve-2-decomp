@@ -1,17 +1,9 @@
 #include "common.h"
 
 #include "actors/actor_101100.h"
-#include "actors/actors_shared_801359cc.h"
-#include "actors/actors_shared_80135fdc.h"
 #include "actors/actors_shared_801384ac.h"
 #include "actors/actors_shared_801385e0.h"
-#include "actors/actors_shared_80138774.h"
-#include "actors/actors_shared_801388e8.h"
-#include "actors/actors_shared_80138c6c.h"
-#include "actors/actors_shared_80138d58.h"
 #include "actors/actors_shared_80138efc.h"
-#include "actors/actors_shared_801390d8.h"
-#include "actors/actors_shared_801511c8.h"
 #include "gameplay/gameplay.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -151,11 +143,11 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
         enemy->param = &Actor01100_D074E8;
     }
 
-    actorId                             = enemy->placeKey >> 12;
-    work->actorId                       = actorId;
-    *(s32*)&ActorsShared80137fb8ActorId = actorId;
-    extra->lightMtx                     = &work->lightMtx;
-    extra->colorMtx                     = &work->colorMtx;
+    actorId                   = enemy->placeKey >> 12;
+    work->actorId             = actorId;
+    *(s32*)&Actor01100_D15670 = actorId;
+    extra->lightMtx           = &work->lightMtx;
+    extra->colorMtx           = &work->colorMtx;
     func_800B3F84(&work->anim, Actor01100_D15604, extra, work->poses, work->slots);
     func_800B3F84(&work->anim2, Actor01100_D15604, extra, work->poses2, work->slots2);
     work->field_BA5 = 1;
@@ -169,7 +161,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     mtx->h4 = 0x1000;
     if ((s8)work->field_BBB == 0x31) {
         scale = Actor01100_D00010.scale;
-        ActorsShared801385e0(&work->coord.coord, &scale);
+        Actor01100_Fn067C0(&work->coord.coord, &scale);
     }
     work->coord.coord.t[0] = 0;
     work->coord.coord.t[1] = 0;
@@ -245,7 +237,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
 /// three-entry collision table each, and nodes 1 and 2 are linked as kind 3
 /// with a `Gp_PackObjPair` payload, the first of the two taking pose 0xC and
 /// the second pose 8 of the model's 0x50-byte coordinate records. The task then
-/// takes `ActorsShared801384ac` as its
+/// takes `Actor01100_Fn0668C` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
 void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* work)
@@ -319,7 +311,7 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* wor
         } while (i < 2);
 
         enemy->recs                      = &work->field_A28[3][0];
-        task->exitCallback               = ActorsShared801384ac;
+        task->exitCallback               = Actor01100_Fn0668C;
         ((TmdObject*)task->extra)->flags = (u16)(((TmdObject*)task->extra)->flags & 0xFF7F);
         task->msgTable                   = &Actor01100_D15660;
         task->state++;
@@ -474,7 +466,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
     }
     hitKey = _actor01100FindClass2Contact(&arg->offset, work->contacts[3]);
     if (hitKey != 0) {
-        dist = ActorsShared801388e8(((TmdObject*)task->extra)->coords);
+        dist = Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords);
         for (i = 0; i < 3; i++) {
             key = work->contacts[3][i].key;
             if (key != 0) {
@@ -483,7 +475,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
             }
         }
         dist = SquareRoot0(dist);
-        yaw  = ActorsShared80138774(((TmdObject*)task->extra)->coords, (sourceKey >> 7) & 1);
+        yaw  = Actor01100_Fn06954(((TmdObject*)task->extra)->coords, (sourceKey >> 7) & 1);
         if (yaw < 0) {
             yaw = -yaw;
         }
@@ -778,7 +770,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
 
 /// First of the 0xA pair the dispatcher at 0x80134780 runs while the latch at
 /// 0xBA6 is still clear: it re-arms the link transform and decides from the
-/// squared distance `ActorsShared801388e8` measures to the model's part-3
+/// squared distance `Actor01100_Fn06AC8` measures to the model's part-3
 /// coordinate whether the actor closes in this frame.
 ///
 /// The walk offset at 0xB8E steps back toward zero - 0x10 off either end of the
@@ -810,7 +802,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     s16          walk;
 
     flag = 0;
-    dist = ActorsShared801388e8(((TmdObject*)task->extra)->coords);
+    dist = Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords);
     walk = work->field_B8E;
     if (walk >= 0x11) {
         work->field_B8E = (s16)((u16)work->field_B8E - 0x10);
@@ -1038,30 +1030,30 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// Per-frame state handlers `Actor01100_Fn02960` copies to its stack and
 /// indexes by `ActorsShared80138efcWork::state`.
 const ActorsShared80138efcStateTable Actor01100_D00064 = { {
-    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
     Actor01100_Fn035E4,
     Actor01100_Fn03740,
     (ActorsShared80138efcState)Actor01100_Fn0389C,
-    ActorsShared80138d58,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared801359cc,
+    Actor01100_Fn06F38,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn03BAC,
     (ActorsShared80138efcState)Actor01100_Fn04DB4,
     Actor01100_Fn04410,
     Actor01100_Fn048C8,
     Actor01100_Fn0516C,
-    (ActorsShared80138efcState)ActorsShared80135fdc,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
-    (ActorsShared80138efcState)ActorsShared80138c6c,
+    (ActorsShared80138efcState)Actor01100_Fn041BC,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
+    (ActorsShared80138efcState)Actor01100_Fn06E4C,
     (ActorsShared80138efcState)Actor01100_Fn07014,
-    (ActorsShared80138efcState)ActorsShared80138efc,
+    (ActorsShared80138efcState)Actor01100_Fn070DC,
     Actor01100_Fn07148,
-    ActorsShared801390d8,
+    Actor01100_Fn072B8,
     (ActorsShared80138efcState)Actor01100_Fn05678,
     Actor01100_Fn05CFC,
 } };
@@ -1215,7 +1207,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 xform->src.vx     = 0;
                 xform->src.vz     = 0xC8;
                 xform->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, (Actor104900ShotArg*)arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && ActorsShared801388e8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+                if (Actor01100_Fn00F58(enemy, task, (Actor104900SpawnWork*)work, (Actor104900ShotArg*)arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
                     i   = 0;
                     off = 0x9C8;
                     do {
@@ -1529,4 +1521,4 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
 INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", Actor01100_D000CC);
 
-INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", ActorsShared80138404Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_01100/actor_101100", Actor01100_D000DC);
