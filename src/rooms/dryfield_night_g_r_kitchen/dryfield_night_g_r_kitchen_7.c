@@ -1,24 +1,24 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Same two-point gouraud wedges as `Room_Draw11`, but the sweep is anchored to
-/// the screen-space angle between the two projected centres (`ratan2` of their
-/// delta) instead of an `arg2` offset, both `gte_stflg` results are tested and
-/// neither OTZ is clamped. The lit vertex takes the frame-counter blend byte
-/// `((field_8 & 1) * 16) | 0x20`. Shared body, linked into every room overlay
-/// that uses it.
-void Room_Draw08(SVECTOR* arg0, s32 arg1)
+/// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
+/// a fan of gouraud wedges around each projected point, joined by wedges
+/// spanning the two, the sweep oriented along the screen-space line between
+/// them. Each radius is `(s16)arg1 * 64` over that point's OTZ. Nothing is
+/// drawn unless both points project. The lit vertices take a brightness that
+/// flickers with the frame counter.
+void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
 {
     void**             scratch;
     u8*                head;
