@@ -10,16 +10,20 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// `GpObj` list node with 0x18 bytes of trailing state; five of them live in
-/// `Actor207200Work` and are unlinked one by one when the actor tears down.
-/// `obj.flags` is the display flag word the transform handler clears the top
-/// bit of; `field_20` is the sub-object the context points its `field_54` at.
+/// A `GpObj` list node followed by one `GpRec18`-sized record. The large
+/// enemy keeps five and unlinks them one by one as it tears down; the record
+/// of the one at 0x214 becomes the enemy's `recs` once it starts dying.
 typedef struct Actor207200Obj {
     /* 0x00 */ GpObj obj;
     /* 0x20 */ byte  field_20[0x18];
 } Actor207200Obj;
 STATIC_ASSERT_SIZEOF(Actor207200Obj, 0x38);
 
+/// Work block of either enemy the package spawns, as its tick handlers read
+/// it. It describes two different allocations at once: the small enemy's
+/// 0x2B0-byte block (the objects at 0xFC, 0x14C and 0x184 and the fields
+/// from 0x264 to 0x2A6) and the large enemy's 0x4AC-byte block (the objects
+/// from 0x1DC on and the fields from 0x44C on).
 typedef struct Actor207200Work {
     /* 0x000 */ byte           pad_0[0xFC];
     /* 0x0FC */ Actor207200Obj field_FC;
@@ -79,141 +83,5 @@ typedef struct Actor207200Work {
     /* 0x4A8 */ s16            field_4A8;
     /* 0x4AA */ s16            field_4AA;
 } Actor207200Work;
-
-/// The 0x4AC-byte allocation `func_actor_207200_8014B278` makes with
-/// `memCalloc` and stores in `Task::work`: the animation context
-/// `func_800B3F84` fills in, five `GpObj` render nodes with their `GpRec18`
-/// tables (`Gp_LinkObj` shapes 3/2/2/3/3) and three `func_800FDB18` argument
-/// records. `Actor207200Work` is the tick handlers' view of the same block and
-/// does not yet agree with this layout over 0x234..0x2C4.
-typedef struct Actor207200SpawnWork {
-    /* 0x000 */ byte     pad_0[0x14];
-    /* 0x014 */ byte     field_14[0x118];
-    /* 0x12C */ byte     field_12C[0x70];
-    /* 0x19C */ MATRIX   field_19C;
-    /* 0x1BC */ MATRIX   field_1BC;
-    /* 0x1DC */ GpObj    obj1;
-    /* 0x1FC */ GpRec18  rec1[1];
-    /* 0x214 */ GpObj    obj2;
-    /* 0x234 */ GpRec18  rec2[6];
-    /* 0x2C4 */ GpObj    obj3;
-    /* 0x2E4 */ GpRec18  rec3[6];
-    /* 0x374 */ GpObj    obj4;
-    /* 0x394 */ GpRec18  rec4[1];
-    /* 0x3AC */ GpObj    obj5;
-    /* 0x3CC */ GpRec18  rec5[1];
-    /* 0x3E4 */ GpEffArg eff0;
-    /* 0x3EC */ GpEffArg eff1;
-    /* 0x3F4 */ GpEffArg eff2;
-    /* 0x3FC */ byte     pad_3FC[0x52];
-    /* 0x44E */ u16      field_44E;
-    /* 0x450 */ byte     pad_450[0x38];
-    /* 0x488 */ s16      field_488;
-    /* 0x48A */ byte     pad_48A[2];
-    /* 0x48C */ s16      field_48C;
-    /* 0x48E */ s16      field_48E;
-    /* 0x490 */ byte     pad_490[4];
-    /* 0x494 */ s16      field_494;
-    /* 0x496 */ byte     pad_496[8];
-    /* 0x49E */ s16      field_49E;
-    /* 0x4A0 */ byte     pad_4A0[4];
-    /* 0x4A4 */ s16      field_4A4;
-    /* 0x4A6 */ s16      field_4A6;
-    /* 0x4A8 */ s16      field_4A8;
-} Actor207200SpawnWork;
-STATIC_ASSERT_SIZEOF(Actor207200SpawnWork, 0x4AC);
-
-/// Owning context. The leading part holds the `Gp_UnlinkNode` list entry at
-/// +0x10, as for the gameplay `GpEnemy`, so `field_40` is its HP and
-/// `field_54` a model pointer. `field_18` is the model part the context is
-/// driven from, re-picked every frame by `func_actor_207200_8014D8DC`.
-typedef struct Actor207200Ctx {
-    /* 0x00 */ byte           pad_0[8];
-    /* 0x08 */ u16            field_8; // room/area id byte the sound id embeds
-    /* 0x0A */ byte           pad_A[6];
-    /* 0x10 */ GpLinkNode     node;
-    /* 0x18 */ GsCOORDINATE2* field_18;
-    /* 0x1C */ byte           pad_1C[0x24];
-    /* 0x40 */ s16            field_40;
-    /* 0x42 */ byte           pad_42[0x12];
-    /* 0x54 */ s32            field_54;
-} Actor207200Ctx;
-
-typedef struct Actor207200 {
-    /* 0x00 */ byte             pad_0[0x1C];
-    /* 0x1C */ Actor207200Work* field_1C;
-    /* 0x20 */ Actor207200Ctx*  field_20;
-    /* 0x24 */ byte             pad_24[6];
-    /* 0x2A */ s16              field_2A;
-    /* 0x2C */ void*            field_2C; // `Task::extra`: the actor's TmdObject
-} Actor207200;
-
-/// 0x38-byte block `func_actor_207200_8014A588` takes from `G_SCRATCH_HEAD`:
-/// `delta` receives the `func_800E0C10` push-back and is then reused for the
-/// offset to the player.
-typedef struct Actor207200HitScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-} Actor207200HitScratch;
-STATIC_ASSERT_SIZEOF(Actor207200HitScratch, 0x38);
-
-/// 0x48-byte block `func_actor_207200_8014BEF4` takes from `G_SCRATCH_HEAD`:
-/// `d` receives the `func_800E0C10` push-back, then the offset to the player
-/// or to a push record, which `norm` holds normalised.
-typedef struct Actor207200DmgScratch {
-    /* 0x00 */ byte pad_0[0x20];
-    /* 0x20 */ union {
-        GpDeltaScratch delta;
-        VECTOR         vec;
-    } d;
-    /* 0x30 */ byte   pad_30[8];
-    /* 0x38 */ VECTOR norm;
-} Actor207200DmgScratch;
-STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
-
-/// A `GpRec18` collision record read either whole (`rec.key` is the hit
-/// id) or split as a `GpHitRec` (`hit.kind` is the id's high half).
-typedef union Actor207200HitRec {
-    GpRec18  rec;
-    GpHitRec hit;
-} Actor207200HitRec;
-STATIC_ASSERT_SIZEOF(Actor207200HitRec, 0x18);
-
-/// `Actor207200Work` seen through the `Actor207200SpawnWork` layout over the
-/// two six-record tables, which `Actor207200Work` does not yet describe. The
-/// tables have to be struct members rather than casts of an address: the hit
-/// loops only strength-reduce to a walker over `work` itself that way.
-typedef struct Actor207200HitView {
-    /* 0x000 */ byte              pad_0[0x234];
-    /* 0x234 */ Actor207200HitRec rec2[6];
-    /* 0x2C4 */ GpObj             obj3;
-    /* 0x2E4 */ Actor207200HitRec rec3[6];
-} Actor207200HitView;
-STATIC_ASSERT_SIZEOF(Actor207200HitView, 0x374);
-
-/// Effect-setup records handed to the spawned task through `D_80062730`.
-extern u8      D_actor_207200_80150BCC[];
-extern u8      D_actor_207200_80151074[];
-extern u8      D_actor_207200_801517F8[];
-extern SVECTOR D_actor_207200_80153F18;
-extern u32     Gp_LcgState;
-/// Spawned task's setup argument (`D_800626EC[5].arg.model`).
-extern s32 D_80062730;
-
-void func_actor_207200_8014DB4C(Actor207200* arg0);
-void func_actor_207200_8014CFEC(Actor207200* arg0);
-void func_actor_207200_8014C870(Actor207200* arg0, s32 arg1);
-void func_actor_207200_8014D128(Actor207200* arg0);
-void func_actor_207200_8014A1C4(Task* arg0);
-void func_actor_207200_8014AE08(Task* arg0);
-void func_actor_207200_8014AE70(Task* task);
-void func_actor_207200_8014AF2C(Task* arg0);
-void func_actor_207200_8014B04C(Task* task);
-void func_actor_207200_8014B128(Task* arg0);
-void func_actor_207200_8014B21C(Task* task);
-s32  func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1);
-void func_actor_207200_8014D77C(Task* task);
-void func_actor_207200_8014DAF8(Task* dst, Task* src);
 
 #endif
