@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "main/session.h"
+#include "rooms/dryfield_night_garage.h"
 #include "rooms/room_common.h"
 
 /// The garage's two point-pair runs, 8-byte `SVECTOR`s laid back to back from
@@ -25,20 +26,20 @@ void func_dryfield_night_garage_80181518(void)
         case 3:
         case 15: {
             SVECTOR* p = D_dryfield_night_garage_801833A4;
-            Room_Draw34(&p[0], 0x200, 0);
-            Room_Draw34(&p[2], 0x200, 0);
-            Room_Draw34(&p[4], 0x200, 0);
-            Room_Draw34(&p[6], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[0], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[2], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[4], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[6], 0x200, 0);
             break;
         }
         case 7:
         case 14:
-            Room_Draw34(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
             break;
         case 11: {
             SVECTOR* p = &D_dryfield_night_garage_801833D4;
-            Room_Draw34(&p[0], 0x200, 0x800);
-            Room_Draw34(&p[2], 0x200, 0x800);
+            func_dryfield_night_garage_80180D9C(&p[0], 0x200, 0x800);
+            func_dryfield_night_garage_80180D9C(&p[2], 0x200, 0x800);
             break;
         }
     }
