@@ -3,9 +3,20 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 
-#include <psyq/libgte.h>
+/// State handlers of the room's entry task, indexed by its state through
+/// `func_neo_ark_woodland_path_8017E9B0`.
+extern const TaskFuncTable3 D_neo_ark_woodland_path_8017D614;
+
+void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
+void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_neo_ark_woodland_path_8017FDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_neo_ark_woodland_path_801801D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to

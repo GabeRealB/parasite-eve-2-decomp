@@ -1,4 +1,9 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -7,18 +12,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/neo_ark_woodland_path.h"
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32 Gp_LcgState;
 
-/// Per-frame update of an effect task drawn with `Room_Draw19` (state 1) or
-/// `Room_Draw23` (state 2) - the body `func_acropolis_bridge_80182AF8` has
-/// with different draw calls. State 0 seeds the work from `spawnArg1`: the two
+/// Per-frame update of an effect task drawn with
+/// `func_neo_ark_woodland_path_8017FDE4` (state 1) or
+/// `func_neo_ark_woodland_path_801801D0` (state 2). State 0 seeds the work from `spawnArg1`: the two
 /// draw parameters (the second one random), the frame period and, when the
 /// spawner left `field_10` zero, a velocity chosen by the top nibble and scaled
 /// to `field_2A` through the GTE. Later ticks draw, drift the coordinate by
@@ -41,9 +44,9 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_neo_ark_woodland_path_8017FDE4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             } else {
-                Room_Draw23(coord, work->field_20, (s16)work->field_24);
+                func_neo_ark_woodland_path_801801D0(coord, work->field_20, (s16)work->field_24);
             }
             return;
         }
@@ -122,10 +125,10 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
             }
             return;
         case 1:
-            Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_woodland_path_8017FDE4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw23(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_woodland_path_801801D0(coord, work->field_20, (s16)work->field_24);
             break;
         default:
             return;
