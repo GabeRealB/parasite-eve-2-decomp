@@ -19,8 +19,6 @@ extern s32 D_80136108;
 extern s32 D_neo_ark_submarine_tunnel_80181AF0;
 extern u8  D_neo_ark_submarine_tunnel_80181DF0;
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", jtbl_neo_ark_submarine_tunnel_8017D620);
-
 s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg2)
 {
     u8 temp_s0;
