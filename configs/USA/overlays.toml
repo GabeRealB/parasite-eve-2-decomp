@@ -2427,10 +2427,10 @@ objects = [
   { kind = "rodata", at = "0x4" },
   { unit = "neo_ark_substation/neo_ark_substation", rodata = "0x14", text = "0x48" },
   { unit = "neo_ark_substation/neo_ark_substation_3", rodata = "0x2C", text = "0x2B4" },
-  { lib = true, unit = "room_util03", text = "0x164" },
+  { unit = "neo_ark_substation/neo_ark_substation_4", text = "0x164" },
   { unit = "neo_ark_substation/neo_ark_substation_2", text = "0x1A8" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x25C" },
-  { lib = true, unit = "room_draw01", text = "0x490" },
+  { unit = "neo_ark_substation/neo_ark_substation_5", text = "0x25C" },
+  { unit = "neo_ark_substation/neo_ark_substation_6", text = "0x490" },
   { kind = "data", at = "0xCD4" },
 ]
 

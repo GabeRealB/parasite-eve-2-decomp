@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,19 +9,16 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Same two-point gouraud wedge sweep as `Room_Draw08` -- `arg0` and `arg0 + 1`
-/// projected through `Gfx_ViewWorldMtx`, three `POLY_G4`s per 0x400 step of the
-/// screen-space angle between the two centres -- but the lit vertex takes a
-/// colour unpacked from `arg2` (4 bits per channel, shifted into the high
-/// nibble) rather than a grey ramp, blended with the frame-counter bit.
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw01(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a glow between the two world points `arg0[0]` and `arg0[1]`: both are
+/// projected through `Gfx_ViewWorldMtx`, and unless the GTE flags either
+/// projection, gouraud `POLY_G4` wedges are queued around each end and a band
+/// joins them, each tinted at the centre and black at the rim. `arg1` is the
+/// radius in world units, scaled by each point's depth; `arg2` is the tint as
+/// three 4-bit channels (red at bit 8, green at bit 4, blue at bit 0), with 8
+/// added to each on odd display frames so the glow flickers.
+void func_neo_ark_substation_8017DA50(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
