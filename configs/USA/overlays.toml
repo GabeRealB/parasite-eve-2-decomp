@@ -2554,15 +2554,15 @@ id = 437
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone", rodata = "0x4", text = "0x24" },
-  { lib = true, unit = "rooms_shared_8017db84", text = "0x348" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_4", text = "0x348" },
   { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_2", text = "0x38C" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x394" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_5", text = "0x394" },
   { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_3", text = "0x3EC" },
-  { lib = true, unit = "rooms_shared_8017ef80", text = "0x44C" },
-  { lib = true, unit = "room_draw02", text = "0x6F0" },
-  { lib = true, unit = "room_draw04", text = "0xB1C" },
-  { lib = true, unit = "rooms_shared_8017f9e4", text = "0xEB0" },
-  { lib = true, unit = "room_draw_billboard", text = "0x1A20" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_6", text = "0x44C" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_7", text = "0x6F0" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_8", text = "0xB1C" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_9", text = "0xEB0" },
+  { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone_10", text = "0x1A20" },
   { kind = "data", at = "0x23E0" },
 ]
 

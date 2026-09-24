@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/1A8.h"
 #include "main/task.h"
 
@@ -22,5 +26,9 @@ extern TaskDesc               D_neo_ark_savanna_zone_8017F9A0;
 extern GpSaveLoc              D_neo_ark_savanna_zone_80180990;
 extern s8                     D_neo_ark_savanna_zone_80180998;
 extern NeoArkSavannaZoneEvent D_neo_ark_savanna_zone_8018099C;
+
+void func_neo_ark_savanna_zone_8017DCB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_savanna_zone_8017E0DC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_savanna_zone_8017EFE0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif // ROOMS_NEO_ARK_SAVANNA_ZONE_H
