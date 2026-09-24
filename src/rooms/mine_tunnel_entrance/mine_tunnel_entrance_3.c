@@ -59,5 +59,3 @@ void func_mine_tunnel_entrance_8017D720(void)
         }
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel_entrance/mine_tunnel_entrance_3", D_mine_tunnel_entrance_8017D5E8);
