@@ -5146,16 +5146,20 @@ command word (`gte_mvmva` = `.word 0x000013bf | fields`, `gte_gpf12` =
 COP2 opcode prefix. A "Handwritten function" (splat marks these; they carry raw
 `ctc2`/`lwc2`/`mvmva`/`mfc2`/`gpf`) uses the *full* instruction word, e.g.
 `mvmva 1,0,0,3,0` = `0x4A486012` and `gpf 1` = `0x4B98003D`. So the psyq macro
-gives the wrong bytes for those two ops. Emit the exact word instead, matching
-`src/pe/inferno`'s local `gte_gpf12_real()`:
+gives the wrong bytes for those two ops. Include `gte.h` right after
+`<psyq/inline_c.h>`: it redefines the SDK command macros with the full words,
+so `mvmva 1,0,0,3,0` is spelled `gte_rtv0()` and `gpf 1` is `gte_gpf12()`:
 
 ```c
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include <psyq/inline_c.h>
+#include "gte.h"
+/* ... */
+gte_rtv0();   /* 0x4A486012 */
+gte_gpf12();  /* 0x4B98003D */
 ```
 
-The two leading `nop`s reproduce the load-delay padding the real GTE macros
-carry (`gte_mvmva_core`/`gte_gpf12` both start `nop; nop`). The *data-movement*
+The two leading `nop`s gte.h keeps reproduce the load-delay padding the SDK
+macros carry (`gte_mvmva_core`/`gte_gpf12` both start `nop; nop`). The *data-movement*
 GTE macros are fine as-is — `gte_SetRotMatrix`, `gte_ldv0`, `gte_ldsv`,
 `gte_stsv`, `gte_lddp` are plain `lw`/`lwc2`/`mtc2`/`mfc2`/`sh` sequences with no
 COP2 command word, and they matched byte-for-byte. Only the command ops
@@ -8901,10 +8905,10 @@ there.
 
 **A GTE macro that becomes a `jal` means the candidate is missing the host
 `.c`'s `<psyq/inline_c.h>`.** No header an overlay's host `.c` includes pulls
-`psyq/inline_c.h` in transitively — the TU includes it itself, next to a local
-`gte_gpf12_real()` define (`inline_c.h`'s own macro of that name assembles to a
-different word). A candidate carrying only the m2c include block therefore
-compiles `gte_lddp` / `gte_ldsv` / `gte_gpf12_real` / `gte_stsv` as external
+`psyq/inline_c.h` in transitively — the TU includes it itself, followed by
+`gte.h` (which redefines the SDK command macros such as `gte_gpf12()` with the
+real COP2 words). A candidate carrying only the m2c include block therefore
+compiles `gte_lddp` / `gte_ldsv` / `gte_gpf12` / `gte_stsv` as external
 calls, and the GTE block comes out
 
 ```
@@ -8915,15 +8919,12 @@ move    a0,s3
 instead of the six `mtc2`/`lhu` pairs. The object is ~25 instructions short and
 scores ~89% with `delete=16` against a body that is otherwise structurally
 right and reports `blocks=27/27`. Copy the host file's include block —
-`#include <psyq/inline_c.h>` after `common.h`, plus the `gte_gpf12_real`
-define — and it goes to 100% unchanged. `gte_gpf12_real` is also defined in
-`include/rooms/rooms_shared_80182078.h`, but the per-TU define is the one the
-actor TUs use.
+`#include <psyq/inline_c.h>` then `#include "gte.h"` after `common.h` — and it
+goes to 100% unchanged.
 The same invisibility makes the object come out **long**, not short, when what
 is missing is the host `.c`'s prelude rather than its helpers. A body whose GTE
-draw goes through `<psyq/inline_c.h>` and the host's own
-`#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")`
-override (the psyq macro of that name assembles to a different word) has both
+draw goes through `<psyq/inline_c.h>` and `gte.h` (without which `gte_gpf12()`
+assembles to the SDK's placeholder word) has both
 out of scope in the scratch unit: `gte_lddp` / `gte_ldsv` / `gte_stsv` are
 undeclared, so each becomes an implicit-declaration `jal` with its operands
 loaded by the caller, and the block grows by a call frame's worth of
@@ -8931,8 +8932,8 @@ instructions (231 vs 214, `delete=34`, `insert=7`, `calls_match=False`, 84%).
 Copied verbatim from the host `.c`, the same body scores 100%. Symptom that
 points here rather than at the earlier paragraph: `calls_match=False` with an
 instruction count *above* the target, and a diff whose right-hand column is
-`jal gte_lddp` where the target has `mtc2`. Copy the include and the `#define`
-along with any helpers; the count also tells the two apart at a glance.
+`jal gte_lddp` where the target has `mtc2`. Copy both includes along with any
+helpers; the count also tells the two apart at a glance.
 
 **Piping `build.sh` into `head` records a failure and can disqualify the seed.**
 `build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |
@@ -11578,15 +11579,11 @@ For GTE *commands*, `#include "gte.h"` (`include/decomp/gte.h`) after
 (`gte_rtps()`, `gte_rtv0()`, `gte_gpf12()`, …) with the real COP2 word DMPSX
 would have produced, adds `gte_rtv0_sf0()`/`gte_rtv1_sf0()`/`gte_rtv2_sf0()`,
 and makes the `gtemac.h` compound macros emit real instructions too. Do not
-add new local `gte_*_real` defines; existing ones are equivalent and can go
-when their file is next worked on. The encodings, for reference:
+add local command defines. Two encodings, for reference:
 
 ```c
-/* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A406012 */
-#define gte_rtv0sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
-
-/* mvmva sf=1, mx=0 (rot), v=3 (IR), cv=3 (none), lm=0 → RTIR */
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+gte_rtv0_sf0(); /* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A406012 */
+gte_rtir();     /* mvmva sf=1, mx=0 (rot), v=3 (IR), cv=3 (none), lm=0 → 0x4A49E012 */
 ```
 
 `Gfx_ApplyMatrixNoSf` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
@@ -11602,18 +11599,15 @@ recover the parent as
 compiler emits `addiu s0, s0, -0x24`. A second `&gGfxViewCoord` symbol load
 does not match.
 
-`gte_MulMatrix0` from `gtemac.h` is fine if `gte_rtir` is swapped for
-`gte_rtir_real` — load/store helpers (`gte_SetRotMatrix`, `gte_ldclmv`,
-`gte_stclmv`) already emit real MIPS. `Gfx_MatrixToEuler` is the template.
+`gte_MulMatrix0` from `gtemac.h` matches as-is once `gte.h` is included (its
+`gte_rtir` now emits `0x4A49E012`; the load/store helpers `gte_SetRotMatrix`,
+`gte_ldclmv`, `gte_stclmv` already emit real MIPS). `Gfx_MatrixToEuler` is the
+template.
 
-TMD POLY_FT3 draw (`func_8009D388`) needs the same treatment for RTPT /
-NCLIP / AVSZ3 (splat still tags these as "Handwritten" because of COP2):
-
-```c
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
-#define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
-```
+TMD POLY_FT3 draw (`func_8009D388`) uses the same header for RTPT / NCLIP /
+AVSZ3 (splat still tags these as "Handwritten" because of COP2): call
+`gte_rtpt()` (`0x4A280030`), `gte_nclip()` (`0x4B400006`) and `gte_avsz3()`
+(`0x4B58002D`).
 
 Hoist `opz = &ws->gteResult` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
 `&ws->gteResult` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
@@ -19430,12 +19424,14 @@ not swap `$s2`/`$s3` with the saved `arg0`.
 `Gfx_OrthonormalBasis` builds a normal matrix from two SVECTORs via GTE outer product
 on the scratch arena, then transposes into the output. Matching pieces:
 
-**1. Real `op12` opcode.** `gte_op12()` from `inline_c.h` is a DMPSX placeholder.
-Use the real COP2 word (same pattern as `gte_rtv0sf0`):
+**1. Real `op12` opcode.** `gte_op12()` from bare `inline_c.h` is a DMPSX
+placeholder; with `gte.h` included after it, it emits the real word
+`0x4B78000C`:
 
 ```c
-#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")
-/* then: gte_ldopv1SV(v0); gte_ldopv2SV(v1); gte_op12_real(); gte_stsv(out); */
+#include "gte.h"
+/* ... */
+gte_ldopv1SV(v0); gte_ldopv2SV(v1); gte_op12(); gte_stsv(out);
 ```
 
 Load/store helpers `gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` match as-is.
@@ -20958,7 +20954,7 @@ vmat->m[2][2] = cos2;
 
 `volatile` on the destination matrix prevents the stores from being reordered
 around the move. `Gfx_MatrixToEuler` is the pure example (RotMatrixX-shaped block
-on the scratch arena, then `gte_MulMatrix0_real`).
+on the scratch arena, then `gte_MulMatrix0` with `gte.h` included).
 
 ## Reuse unused `arg1` as an early `$a1` address temp
 
@@ -21187,7 +21183,7 @@ p->sin_val = rsin(angle);
 cos        = rcos(angle);
 p->cos_val = cos;
 /* if-path / gte_ldclmv use p; else-path matrix build uses block */
-gte_MulMatrix0_real(arg0, p, arg0);
+gte_MulMatrix0(arg0, p, arg0);   /* gtemac.h, real words via gte.h */
 ```
 
 `Gfx_RotMatrixY` is the pure example (Y-axis rotate; siblings X/Z match the same
@@ -22119,8 +22115,8 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 (not `gte_SetBackColor` — no `<<4`). It then transpose-copies `Gfx_ViewWorldMtx` into
 scratch (same `t4/t5/t6` halfword pattern as `Gfx_TransposeRot`), `gte_SetRotMatrix`
 on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
-RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
-(same real-opcode rule as other GTE command macros).
+RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
+`gte_stclmv` three times.
 
 ## Local OT pointer for `gGpuCurrentOt` so `%hi` stays temporary
 
@@ -22584,7 +22580,7 @@ block->vec.vx = sy;
 ```
 
 Same family as the sin/cos `negu` barriers on `Gfx_MatrixToEuler`, but for a
-register-to-register copy rather than a negate. Needed between `gte_rtir_real`
+register-to-register copy rather than a negate. Needed between `gte_rtir()`
 and `gte_stclmv` when the original interleaves next-vector setup in the GTE
 pipeline gap.
 
@@ -22594,12 +22590,12 @@ pipeline gap.
 
 1. Writing RotX into a scratch `MATRIX`, with the next rotation's column packed
    as an `SVECTOR` at the end of the block (`gte_ldsv` offsets 0/2/4).
-2. `gte_SetRotMatrix` + `gte_ldsv` + `gte_rtir_real` + prep next column +
+2. `gte_SetRotMatrix` + `gte_ldsv` + `gte_rtir()` + prep next column +
    `gte_stclmv` (matrix column offsets 0/6/12) — twice for RotY (col0, col2;
    col1 of RotX is already `(0,1,0)`-compatible), then again for RotZ (col0,
    col1).
 3. `flag != 0`: word-copy the 5 halfword-pairs of the rotation into `out`.
-   `flag == 0`: `gte_MulMatrix0_real(out, block, out)`.
+   `flag == 0`: `gte_MulMatrix0(out, block, out)`.
 
 Do **not** feed those temp columns through `gte_ldclmv` — they are contiguous
 `SVECTOR`s, not matrix columns. `gte_ldsv` is the matching load helper.
@@ -22632,7 +22628,7 @@ Two codegen details that stall at ~98% without them:
    ```
 
 Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
-`gte_ldsv` / `gte_rtir_real` / `gte_stclmv` pipeline gap pattern as B960.
+`gte_ldsv` / `gte_rtir()` / `gte_stclmv` pipeline gap pattern as B960.
 
 ## SndScript script interpreter layout (SndScript_Exec)
 
@@ -29702,11 +29698,8 @@ with only those two registers swapped.
 `.word 0x0000007f`. maspsx does not expand that token, so the object
 gets `0x0000007f` instead of RTPS.
 
-Use the real encoding, same pattern as `gte_rtv0_real`:
-
-```c
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-```
+Include `gte.h` after `inline_c.h`; it redefines `gte_rtps()` to emit
+`0x4A180001`, so the SDK call matches as written.
 
 `Gp_ProjectToSxy` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
 `gte_SetTransMatrix` / `gte_ldv0` / RTPS / `gte_stsxy` / `gte_stdp` /
@@ -30840,8 +30833,8 @@ makes `&world->workm` `addiu a0, s5, 0x24` instead of a fresh
 `la Gfx_ViewWorldMtx`. `Gp_GetLockPos` is the example.
 
 A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
-`gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr_real`
-(`.word 0x4A498012`, MVMVA on IR with TR) + `gte_stlvl`.
+`gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr()`
+(`0x4A498012` via `gte.h`, MVMVA on IR with TR) + `gte_stlvl`.
 
 ## Assign `firstChild` onto the spawn-result pointer so it stays in `$a0`
 
@@ -31141,12 +31134,8 @@ str  = recurse(arg0 + val, ...);
 ## `gpf 1` is `0x4B98003D`; IR0 wants `$v0` then `$a2`
 
 aspsx `gpf 1` assembles to `0x4B98003D` (bit 24 set), not the commonly
-cited `0x4A98003D`. `gte_gpf12()` emits a DMPSX placeholder; use a
-handwritten command:
-
-```c
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-```
+cited `0x4A98003D`. Bare `inline_c.h`'s `gte_gpf12()` emits a DMPSX
+placeholder; include `gte.h` after it and `gte_gpf12()` emits `0x4B98003D`.
 
 `func_800D9794` then does `lh field_4A` / `move a2, v0` / `sw v0` /
 `mtc2 a2, $8` / `gte_ldsv` / `gpf 1` / `gte_stsv`. Loading the scale
@@ -31267,13 +31256,8 @@ is the example.
 ## `gpl 1` is `0x4BA8003E`; keep an `s32` index after `lbu`
 
 aspsx `gpl 1` assembles to `0x4BA8003E` (same bit-24 set as `gpf 1` /
-`0x4B98003D`). `gte_gpl12()` emits a DMPSX placeholder; use a
-handwritten command next to `gte_gpf12_real`:
-
-```c
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
-```
+`0x4B98003D`). Bare `inline_c.h`'s `gte_gpl12()` emits a DMPSX placeholder;
+with `gte.h` included, `gte_gpf12()` and `gte_gpl12()` emit the real words.
 
 `gte_LoadAverageShort12` is then `gte_lddp` / `gte_ldsv` / `gpf 1` /
 `gte_lddp` / `gte_ldsv` / `gpl 1` / `gte_stsv`. Load/store helpers
@@ -32150,7 +32134,7 @@ Gp_UpdateCoord(coord);
 
 ## Add a rotated scratch `SVECTOR` through the block, not the GTE pointer
 
-After `gte_ldv0` / `gte_rtv0_real` / `gte_stsv` on `dir = head - 8`, adding
+After `gte_ldv0` / `gte_rtv0()` / `gte_stsv` on `dir = head - 8`, adding
 the source position through that same `dir` pointer emits `lhu -8(head)` /
 `lhu 2(a0)` and delays `move a1, pos` until the last component. Adding
 through the 0x10-byte scratch block keeps `8(s1)` / `0xa(s1)` / `0xc(s1)`
@@ -32160,7 +32144,7 @@ and lets GCC schedule the `func_800DE7CC` args and preload `pos.vy` /
 ```c
 dir = (SVECTOR*)(head - 8);
 gte_ldv0(dir);
-gte_rtv0_real();
+gte_rtv0();
 gte_stsv(dir);
 block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
 block->dir.vy += block->pos.vy;
@@ -33980,7 +33964,7 @@ opz      = &ws->gteResult;
 ...
 gte_stflg(flg);
 if ((ws->gteFlag & clipMask) == 0) {
-    gte_nclip_real();
+    gte_nclip();
     gte_stopz(opz);
     if (ws->gteResult > 0) {
         gte_stsxy3_f3(poly);
@@ -33992,7 +33976,7 @@ if ((ws->gteFlag & clipMask) == 0) {
 example. Same prologue is used by `func_8009D518` / `func_8009D718` /
 `func_8009D900`.
 
-## Quad TMD: shared 4th-vertex draw, `gte_avsz4_real`, pin `mask` to `$t1`
+## Quad TMD: shared 4th-vertex draw, `gte_avsz4`, pin `mask` to `$t1`
 
 `func_8009D718` is the POLY_GT4 sibling of `func_8009DB00`. After the
 hoisted FLAG/clip/`opz` prologue it RTPT-clips the first three verts,
@@ -34000,12 +33984,12 @@ hoisted FLAG/clip/`opz` prologue it RTPT-clips the first three verts,
 then RTPS-clips vertex 3. The first `nclip` result is reused: if
 `gteResult > 0` draw, else `nclip` again on (v0,v1,v3) and draw only when
 that MAC0 is `< 0`. Both paths share one `gte_stsxy2(&poly->x3)` /
-`gte_avsz4_real` / OT block; a `goto` into the `< 0` body emits
+`gte_avsz4()` / OT block; a `goto` into the `< 0` body emits
 `bgtz` / delay-slot `addiu v0, t0, 0x2C` like the target. No
 `setlen`/`setcode` (another handler fills the packet).
 
-`gte_avsz4_real` is `nop; nop; .word 0x4B68002E` (cf. avsz3
-`0x4B58002D`). Poly stride 0x34.
+With `gte.h` included, `gte_avsz4()` is `nop; nop; .word 0x4B68002E` (cf.
+avsz3 `0x4B58002D`). Poly stride 0x34.
 
 Without the extra `t1 = poly+7` that the setcode siblings keep, GCC
 colors `opz` as `$t1` and `mask` as `$t2`. Pin the mask so `opz` falls
@@ -34017,12 +34001,12 @@ register u32 mask asm("t1");
 if (ws->gteResult > 0) {
     goto draw;
 }
-gte_nclip_real();
+gte_nclip();
 gte_stopz(opz);
 if (ws->gteResult < 0) {
 draw:
     gte_stsxy2(&poly->x3);
-    gte_avsz4_real();
+    gte_avsz4();
     gte_stotz(opz);
     /* OT link */
 }
@@ -34054,7 +34038,7 @@ and pin `mask` to `$t2`.
 
 `Gp_WorldToLocal` is `arg2 = inverse(arg0) * arg1` for rigid transforms:
 transpose the parent rotation into scratch (same `t4`/`t5`/`t6` halfword
-pattern as `Gfx_TransposeRot`), `gte_MulMatrix0_real` into `arg2`, then
+pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `arg2`, then
 `ApplyMatrixLV` of `child.t - parent.t`. Splat tags it "Handwritten"
 because of COP2; the C is still GCC 2.8.1.
 
@@ -35597,7 +35581,7 @@ if (ws->gteResult > 0) {
     goto draw;
 }
 gte_ldsxy_fifo_gt4_x3(xy);
-gte_nclip_real();
+gte_nclip();
 gte_stopz(opz);
 if (ws->gteResult < 0) {
 draw:
@@ -35940,7 +35924,7 @@ s->invBlend = inv;
 asm volatile("" ::: "memory");
 gte_lddp(s->blend);
 gte_ldsv(src0);
-gte_gpf12_real();
+gte_gpf12();
 gte_lddp(s->invBlend);
 ```
 
@@ -36511,13 +36495,12 @@ The last compare can still use the return in `$v0` directly
 
 `gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` are the `SVECTOR` form
 (`Gfx_OrthonormalBasis`). For `VECTOR` rows use the long-word helpers
-plus the real `op12` opcode:
+plus `gte_op12()` (the real `0x4B78000C` with `gte.h` included):
 
 ```c
-#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")
 gte_ldopv1(&vec[0]);
 gte_ldopv2(&vec[1]);
-gte_op12_real();
+gte_op12();
 gte_stlvnl(&tmp);
 ```
 
@@ -40628,10 +40611,10 @@ local anywhere shifted `$a0`/`$a1` across the whole function.
 ## `gte_op12` real encoding
 
 `psyq/inline_c.h` ships placeholder `.word`s for the type-2 GTE ops, the same
-way `gte_rtv0` does. The real outer-product encoding is
-`#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")`
-(`gte_ldopv1` / `gte_ldopv2` / `gte_op12_real` / `gte_stlvnl` is a cross
-product). `src/gameplay/1BC.c` already had it; `3A34.c` did not.
+way it does for `gte_rtv0`. With `gte.h` included after it, `gte_op12()` emits
+the real outer-product word `0x4B78000C` (`gte_ldopv1` / `gte_ldopv2` /
+`gte_op12()` / `gte_stlvnl` is a cross product). A TU that calls it without
+`gte.h` assembles the placeholder.
 
 ## A whole-function register shift traces back to one hoisted address multiply
 
@@ -47903,7 +47886,7 @@ shared span's end.
 splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
 back over them. Nothing else survives: a `static __inline__` helper
 (`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
-(`gte_rtps_real`), a `typedef` used only by that unit (`AwehElevatorState`) have no
+or `#include` (such as `gte.h`), a `typedef` used only by that unit (`AwehElevatorState`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
 take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_80184DA0`
@@ -50468,7 +50451,7 @@ for (i = 0; i < 2; i++) {
     block->src[i].vy = 0;
     block->src[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
     gte_ldv0(&block->src[i]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&block->pos[i]);
     block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
     block->pos[i].vy = 0;
@@ -57934,7 +57917,7 @@ v->vy            = 0;
 v->vz            = tbl[i].y * 0x300;
 gte_SetRotMatrix(m);
 gte_ldv0(&block->vec[i]);      /* separate giv: addu $v0, $t1, $a3 */
-gte_rtv0_real();
+gte_rtv0();
 gte_stsv(&block->vec[i]);
 ```
 
@@ -69380,10 +69363,10 @@ warning; only an undeclared *variable* (`Player_Status`) stops the build.
 `ctc2`/`lwc2`/`mfc2` sequences. The build has no error: without
 `<psyq/inline_c.h>` each `gte_*` macro is an implicitly declared function.
 **Cause.** The bootstrap prelude copies the host's `#include "..."` lines but not
-`#include <psyq/abs.h>`, `<psyq/inline_c.h>`, `<psyq/libgpu.h>`, or file-local
-macros such as `actor_503500_6.c`'s `gte_rtv0_real()`.
-**Fix.** Copy the host file's angle-bracket includes and its `#define` block into the
-scratch source. `func_actor_503500_8013C088` went from 91.5% to 100% on that change alone.
+`#include <psyq/abs.h>`, `<psyq/inline_c.h>`, `<psyq/libgpu.h>`, the `gte.h` that
+follows `inline_c.h`, or file-local macros.
+**Fix.** Copy the host file's angle-bracket includes, `#include "gte.h"` and its
+`#define` block into the scratch source. `func_actor_503500_8013C088` went from 91.5% to 100% on that change alone.
 
 ### `(rsin(a) << 4) * s`, not `rsin(a) * 0x10 * s`, keeps the `sll` on the call result
 **Symptom.** Target does `sll $v0,$v0,4` / `mult $v0,$s0` after each `rsin` /
@@ -107862,7 +107845,7 @@ structural divergence between the two. Since the offsets differ,
 and that one is itself), so a twin has to come from BRIEF's similarity classes;
 this one starred in all three (`shape` 0.96, `calls` 0.88, `cflow` 0.97). Read
 the twin's *source*, not a paraphrase: statement order, the
-`gte_lddp` / `gte_ldsv` / `gte_gpf12_real` / `gte_stsv` block and the two-node
+`gte_lddp` / `gte_ldsv` / `gte_gpf12` / `gte_stsv` block and the two-node
 facing tail (`[2].coord`, `[4].flg`, `[2]`, then `[3].coord`, `[5].flg`, `[3]`)
 all transferred unchanged.
 
@@ -109727,9 +109710,9 @@ differing lines, all of them `.L…` branch labels, 163 instructions each.
 `find` had said so already - `=` in that listing is byte equality, where `~` is
 the same body at a different link offset - so `=` against a `matched` sibling
 predicts a port that needs no code edits, only this overlay's names. Two things
-the port still owes beyond the body: the macro the sibling spells out and this
-overlay's header does not (`actor_800100.h` declared `gte_rtv0_real` for
-`func_actor_800100_801624F0` but not `gte_rtps_real`), and a scratch struct.
+the port still owes beyond the body: any include the sibling's file has and this
+overlay's does not (for GTE commands such as `gte_rtps()`, `#include "gte.h"`
+after `<psyq/inline_c.h>`), and a scratch struct.
 Look for the second in the shared headers before adding a type - the sibling's
 private `M4a1PykeBeamScratch` is exactly the `GpEffFt4Scratch` of
 `include/gameplay/3FB8.h`, and a reused type name costs nothing, because the
@@ -111298,7 +111281,7 @@ Taking the address into a pointer local closes it:
 
     gte_lddp(0x320);
     gte_ldsv(posp);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(posp);
 ```
 
@@ -128971,7 +128954,7 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
     VectorNormalSS(dir, dir);
     gte_lddp(0x3E8);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 }
 ```
@@ -138224,7 +138207,7 @@ static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
 {
     SVECTOR v;
     v = *out;
-    gte_SetRotMatrix(m); gte_ldv0(&v); gte_rtv0_real(); gte_stsv(out);
+    gte_SetRotMatrix(m); gte_ldv0(&v); gte_rtv0(); gte_stsv(out);
 }
 ```
 
@@ -138923,7 +138906,7 @@ With `sv = scratch->origin; gte_SetRotMatrix(m); gte_ldv0(&sv);` written inline,
 CSE pass replaces the asm operand's `(plus fp 16)` with the block-move destination pseudo.
 Its `addiu v0,sp,0x10` then sits before the copy, because volatile asm is a sched barrier.
 Retail computes it right before the `lwc2`. The same body written as
-`static inline void rotTrans(MATRIX* m, SVECTOR* v) { SVECTOR tmp; tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0_real(); gte_stsv(v); }`,
+`static inline void rotTrans(MATRIX* m, SVECTOR* v) { SVECTOR tmp; tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v); }`,
 the form `func_actor_361100_80161FF8` already used, matches. Look for an inline helper when a
 GTE address is materialised late. A pointer temporary assigned after the barrier does not
 help.
@@ -139258,17 +139241,16 @@ Last, `andi a0,a0,1` has to come before `andi v1,s0,0xFFFF`:
 `blend = frame & 1; packed = arg2; blend <<= packed >> 12;` with `u32 packed`
 did it. Input: `base_12.i` `c3c2e89c…` (100%).
 
-### `gte_*_real()` macros are per-TU defines; a scratch without them compiles a `jal` (func_shelter_b3_garbage_incinerator_80182368, 2026-09-23)
+### GTE macros missing from a scratch compile as a `jal` (func_shelter_b3_garbage_incinerator_80182368, 2026-09-23)
 
-`gte_rtv0_real()`, `gte_gpf12_real()` and `gte_rtps_real()` are not in
-`<psyq/inline_c.h>`; each host `.c` (or overlay header) `#define`s the ones it
-uses as `__asm__ volatile("nop; nop; .word 0x…")`. A scratch `base.c` only
-copies the host's `#include`s, so a body ported from a sibling TU that calls one
-the host does not define compiles without error as an implicit function call:
-the object shows `jal gte_rtv0_real` where the target has `nop; nop; c2 …`, and
-the lost call clobbers enough registers to look like an allocation problem
-(here 98.5% with `regs`/`branch` penalties). Copy the define from the sibling
-into the scratch and into the host file next to the existing ones.
+`gte_rtv0()`, `gte_gpf12()`, `gte_rtps()` and the other command macros emit
+real COP2 words only when the TU includes `<psyq/inline_c.h>` followed by
+`gte.h`. A body ported from a sibling TU into a scratch or host file lacking
+those includes compiles without error as an implicit function call: the object
+shows `jal gte_rtv0` where the target has `nop; nop; c2 …`, and the lost call
+clobbers enough registers to look like an allocation problem (here 98.5% with
+`regs`/`branch` penalties). Add both includes to the scratch and, if missing,
+to the host file.
 
 ### A local reused for an early load that combine folds away keeps its references, and that reorders global-alloc (func_dryfield_breezeway_8017EB8C, 2026-09-23)
 
