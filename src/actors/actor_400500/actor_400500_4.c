@@ -259,7 +259,7 @@ void func_actor_400500_8013BEC4(Task* arg0)
     rot.ident.m20_m21                 = 0;
     src->ident.m22                    = 0x1000;
     func_8004BFF8(angle, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
         work2            = (Actor400500Work*)arg0->work;
         work2->field_9F8 = 0x10;
@@ -317,7 +317,7 @@ void func_actor_400500_8013C018(Task* arg0)
     rot.ident.m20_m21                 = 0;
     src->ident.m22                    = 0x1000;
     func_8004BFF8(-angle, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 >= 0x200) {
         work2            = (Actor400500Work*)arg0->work;
         work2->field_9F8 = 0x10;

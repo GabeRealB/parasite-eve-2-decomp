@@ -1,6 +1,7 @@
 #include "common.h"
 
-#include "actors/actors_shared_80131fc8.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
 #include "psyq/inline_c.h"
 
 #include "main/display.h"
@@ -21,7 +22,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400500.h"
-#include "actors/coord_to_view.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
@@ -171,7 +171,7 @@ void func_actor_400500_8013226C(Task* arg0)
     src->ident.m20_m21 = 0;
     src->ident.m22     = 0x1000;
     func_8004BFF8(-0x180, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     parentTmd  = (TmdObject*)arg0->extra;
     tmd        = (TmdObject*)child->extra;
     tmd->tpage = parentTmd->tpage;
@@ -203,7 +203,7 @@ void func_actor_400500_8013226C(Task* arg0)
     src->ident.m20_m21 = 0;
     src->ident.m22     = 0x1000;
     func_8004BFF8(0x180, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
 }
 
 void func_actor_400500_80132438(Task* arg0)
@@ -468,7 +468,7 @@ void func_actor_400500_80132C54(Task* arg0)
     src->ident.m22     = tx;
     RotMatrixZ(work->field_94C, &src->mat);
     func_8004BFF8(work->field_94A, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     func_actor_400500_8013DBCC(arg0, 0xB, &work->field_9A0);
 }
 
@@ -1475,7 +1475,7 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         pos.vx = 0x160;
         pos.vy = 0x148;
         pos.vz = 0x2C0;
-        ActorCoordToView(joint, &pos);
+        func_actor_400500_8013B920(joint, &pos);
         if ((arg1 << 0x10) == 0) {
             player->coord.t[0] = pos.vx;
             player->coord.t[2] = pos.vz;

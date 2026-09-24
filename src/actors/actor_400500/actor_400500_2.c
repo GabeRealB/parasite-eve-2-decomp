@@ -1,6 +1,7 @@
 #include "common.h"
 
-#include "actors/actors_shared_80131fc8.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
 
@@ -22,7 +23,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400500.h"
-#include "actors/coord_to_view.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`.
@@ -196,7 +196,7 @@ void func_actor_400500_80135414(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500_2", ActorsShared801328ccTable);
+INCLUDE_RODATA("actors/nonmatchings/actor_400500/actor_400500_2", D_actor_400500_80131E4C);
 
 void func_actor_400500_80132438(Task* arg0);
 void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
@@ -403,7 +403,7 @@ void func_actor_400500_80135770(Task* arg0)
             RotMatrixZ(work_rot->field_94C, &src->mat);
             RotMatrixX(work_rot->field_948, &src->mat);
             func_8004BFF8(work_rot->field_94A, &src->mat);
-            ActorsShared80132c4c(&src->mat, &rot_root->coord);
+            func_actor_400500_8013DE2C(&src->mat, &rot_root->coord);
             func_actor_400500_80132E94(arg0);
             if (work->field_A32 > 0) {
                 work->field_A32 = (u16)work->field_A32 - 1;
@@ -461,7 +461,7 @@ void func_actor_400500_80135770(Task* arg0)
                 proj->otz = 0;
             }
             proj->otz = (proj->otz >> 4) + 0x1E;
-            ActorsShared80131fc8(proj->otz);
+            func_actor_400500_80134D6C(proj->otz);
             pop_scratch(0x18);
             return;
     }
@@ -2201,7 +2201,7 @@ void func_actor_400500_80138CE8(Task* arg0)
     rot.ident.m20_m21                 = 0;
     src->ident.m22                    = 0x1000;
     func_8004BFF8(-angle, &src->mat);
-    ActorsShared80132c4c(&src->mat, &coord->coord);
+    func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 <= 0) {
         ((TmdObject*)((Actor400500Work*)arg0->work)->field_9F0[0]->extra)->flags = 0x80;
         work->field_A08                                                          = work->field_A08 + 1;
@@ -2640,7 +2640,7 @@ void func_actor_400500_8013973C(Task* arg0)
         RotMatrixZ(workRot->field_94C, &src->mat);
         RotMatrixX(workRot->field_948, &src->mat);
         func_8004BFF8(workRot->field_94A, &src->mat);
-        ActorsShared80132c4c(&src->mat, &coordsRot->coord);
+        func_actor_400500_8013DE2C(&src->mat, &coordsRot->coord);
         work3            = (Actor400500Work*)arg0->work;
         work3->field_9F8 = 0x10;
         work3->field_9FE = 0x19;
@@ -2949,7 +2949,7 @@ void func_actor_400500_8013A0B8(Task* arg0)
             RotMatrixZ(ang->field_94C, &src->mat);
             RotMatrixX(ang->field_948, &src->mat);
             func_8004BFF8(ang->field_94A, &src->mat);
-            ActorsShared80132c4c(&src->mat, &coord->coord);
+            func_actor_400500_8013DE2C(&src->mat, &coord->coord);
             work3            = (Actor400500Work*)arg0->work;
             work3->field_9F8 = 0x10;
             work3->field_9FE = 1;
@@ -3017,7 +3017,7 @@ void func_actor_400500_8013A0B8(Task* arg0)
             RotMatrixZ(ang->field_94C, &src->mat);
             RotMatrixX(ang->field_948, &src->mat);
             func_8004BFF8(ang->field_94A, &src->mat);
-            ActorsShared80132c4c(&src->mat, &coord->coord);
+            func_actor_400500_8013DE2C(&src->mat, &coord->coord);
             coords->flg = 0;
             Gp_UpdateCoord(coords);
         }
