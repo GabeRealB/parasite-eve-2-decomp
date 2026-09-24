@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 extern u8       D_8007216D;
-extern TaskDesc D_dryfield_driveway_8017E2FC;
+extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 s32 func_dryfield_driveway_8017DCC0(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -27,7 +27,7 @@ s32 func_dryfield_driveway_8017DCC0(s32 arg0, s32 arg1, s32 arg2)
         check:
             if (found != 0) {
                 GameFlag_SetNibble(0x3A, 2);
-                Task_SpawnOnDefaultList(&D_dryfield_driveway_8017E2FC, 0, 0, 0);
+                Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
                 gGameSession->at4.loc.room = (D_8007216D = 2);
                 gGameSession->hideHud      = 1;
                 gGameSession->eventState   = 1;
