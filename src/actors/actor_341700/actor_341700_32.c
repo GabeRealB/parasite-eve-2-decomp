@@ -14,7 +14,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80132808.h"
 
 void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
 {
@@ -267,7 +266,7 @@ void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700_32", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_341700/actor_341700_32", D_actor_341700_80162064);
 
 s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2)
 {

@@ -14,12 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-/* Called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so it
- * stays unprototyped. */
-s32 ActorsShared8016974c();
-
 void func_actor_341700_8016908C(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
@@ -33,7 +27,7 @@ void func_actor_341700_8016908C(Task* arg0)
         ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
         ((TmdObject*)arg0->extra)->coords->flg         = 0;
     }
-    if ((ActorsShared8016974c(arg0) << 0x10) != 0) {
+    if ((func_actor_341700_80168468(arg0) << 0x10) != 0) {
         Actor341700Work* next;
 
         work->field_438 = 0;

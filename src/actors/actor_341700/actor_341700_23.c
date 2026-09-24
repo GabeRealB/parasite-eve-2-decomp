@@ -15,7 +15,6 @@
 #include "gte.h"
 
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80165cc0.h"
 
 void func_actor_341700_8016A2CC(Task* arg0)
 {
@@ -136,7 +135,7 @@ void func_actor_341700_8016A810(Task* arg0)
     s32              cond;
 
     work = (Actor341700Work*)arg0->work;
-    ActorsShared80165cc0(arg0);
+    func_actor_341700_801649DC(arg0);
     work2 = (Actor341700Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;

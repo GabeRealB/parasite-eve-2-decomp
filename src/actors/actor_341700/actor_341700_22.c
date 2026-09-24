@@ -14,6 +14,5 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80132808.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_22", func_actor_341700_8016B804);

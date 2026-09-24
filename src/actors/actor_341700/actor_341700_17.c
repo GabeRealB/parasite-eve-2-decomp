@@ -14,12 +14,6 @@
 
 #include "actors/actor_341700.h"
 
-/* Called with no argument: the caller's own `Task*` is already in
- * `$a0` at the `jal` and the callee reads it as its own `arg0`, so the target
- * has no register copy.  A real prototype would make GCC emit one, so it
- * stays unprototyped. */
-s32 ActorsShared8016974c();
-
 void func_actor_341700_80168F5C(Task* arg0)
 {
     u16              ticks;
@@ -39,7 +33,7 @@ void func_actor_341700_80168F9C(Task* arg0)
     Actor341700Work* work2;
 
     work = (Actor341700Work*)arg0->work;
-    if ((ActorsShared8016974c() << 0x10) != 0) {
+    if ((func_actor_341700_80168468(arg0) << 0x10) != 0) {
         func_actor_341700_801681C4(arg0, 0);
         work2            = (Actor341700Work*)arg0->work;
         work2->field_426 = 8;

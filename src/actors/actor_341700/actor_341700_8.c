@@ -14,8 +14,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_80165cc0.h"
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
 /// taken off `G_SCRATCH_HEAD`.
@@ -107,16 +105,16 @@ void func_actor_341700_80165DDC(Task* arg0)
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            ActorsShared80165cc0(arg0);
+            func_actor_341700_801649DC(arg0);
             update_rotation(arg0);
             func_actor_341700_801640F8(arg0, 0);
             coord->flg = 0;
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 2, 6, 0xC8, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }

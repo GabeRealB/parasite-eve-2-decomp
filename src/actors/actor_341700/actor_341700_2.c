@@ -10,10 +10,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80163354.h"
-#include "actors/actors_shared_801639a8.h"
-#include "actors/actors_shared_80165cc0.h"
-#include "actors/actors_shared_801662ec.h"
 
 INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_2", func_actor_341700_80162974);
 
@@ -111,7 +107,7 @@ static __inline__ void update_rotation(Task* arg0)
 
 /// Per-frame callback for the main enemy, the same body as
 /// `func_actor_342400_801640B0`. In mode 0 it aims at the nearest actor
-/// (`ActorsShared801662ec`), lets a pending hit (`take_hit`) replace the state
+/// (`func_actor_341700_80165008`), lets a pending hit (`take_hit`) replace the state
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
@@ -130,14 +126,14 @@ void func_actor_341700_80162DCC(Task* arg0)
             return;
         case 0:
             work->field_442++;
-            ActorsShared801662ec(arg0);
+            func_actor_341700_80165008(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            ActorsShared80165cc0(arg0);
-            cur             = work->field_424;
+            func_actor_341700_801649DC(arg0);
+            cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            ActorsShared801639a8(arg0);
+            func_actor_341700_801626C4(arg0);
             if (work->field_432 == 1) {
                 func_actor_341700_80168370(arg0, 6, (SVECTOR3*)&work->field_98);
             }
@@ -159,9 +155,9 @@ void func_actor_341700_80162DCC(Task* arg0)
             coord->flg = 0;
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
-            ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-            ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-            ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+            func_actor_341700_80162070(arg0, 2, 6, 0xC8, 0, 0xFF);
+            func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
+            func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }

@@ -14,7 +14,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_341700.h"
-#include "actors/actors_shared_80163354.h"
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
 /// taken off `G_SCRATCH_HEAD`. Inlined so each scratch-head access keeps its
@@ -34,7 +33,7 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
 /// Per-frame callback of the main enemy; the same body as
 /// `func_actor_342400_80165FC0`. `D_801153F4` 2 hides the model, 0 runs the
 /// current state handler (then colours it), 1 only colours it. Unless
-/// `field_451` is set, it then runs `ActorsShared80163354` for three part pairs.
+/// `field_451` is set, it then runs `func_actor_341700_80162070` for three part pairs.
 void func_actor_341700_80164CDC(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra;
@@ -53,9 +52,9 @@ void func_actor_341700_80164CDC(Task* arg0)
         case 1:
             update_color(arg0->spawnArg2, &((TmdObject*)arg0->extra)->coords[1]);
             if (work->field_451 == 0) {
-                ActorsShared80163354(arg0, 2, 6, 0xC8, 0, 0xFF);
-                ActorsShared80163354(arg0, 1, 7, 0x80, 0, 0xFF);
-                ActorsShared80163354(arg0, 7, 8, 0x80, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 2, 6, 0xC8, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
+                func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
