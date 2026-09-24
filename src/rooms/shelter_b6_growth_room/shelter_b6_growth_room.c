@@ -60,4 +60,4 @@ void func_shelter_b6_growth_room_8017D71C(Task* arg0)
 void func_shelter_b6_growth_room_8017D7CC(void)
 {
 }
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", D_shelter_b6_growth_room_8017D5C4);

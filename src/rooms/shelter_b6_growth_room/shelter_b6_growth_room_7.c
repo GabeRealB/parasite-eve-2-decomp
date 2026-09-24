@@ -1,24 +1,25 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
+/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
+/// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
-/// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the inner
-/// vertex, OR'd with `((u8)gDisplayState.animFrame & 1) * 8`. Shared body,
-/// linked into every room overlay that uses it.
-void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a glowing disc at the world point `arg0`: projected through
+/// `Gfx_ViewWorldMtx`, it becomes four `POLY_G4` wedges around the screen
+/// position. `arg1` is the radius, scaled by 64 over the depth; `arg2` packs
+/// the centre vertex's colour as three 4-bit channels, OR'd with the
+/// frame-counter bit.
+void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

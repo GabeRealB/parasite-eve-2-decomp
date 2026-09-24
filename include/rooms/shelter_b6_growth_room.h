@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 /// One entry of the room's vector lists: three coordinates plus padding, eight
 /// bytes apart. Only the three coordinates are ever read or written.
 typedef struct ShelterB6GrowthRoomVec {
@@ -28,6 +30,7 @@ typedef struct ShelterB6GrowthRoomLayout {
     ShelterB6GrowthRoomBlob* field_C;
 } ShelterB6GrowthRoomLayout;
 
+void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
 
 #endif
