@@ -1353,15 +1353,7 @@ objects = [
 id = 337
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_cellar/dryfield_cellar", rodata = "0x4", text = "0x6C" },
-  { unit = "dryfield_cellar/dryfield_cellar_5", text = "0x10" },
-  { unit = "dryfield_cellar/dryfield_cellar_6", text = "0x74" },
-  { unit = "dryfield_cellar/dryfield_cellar_2", text = "0x134" },
-  { unit = "dryfield_cellar/dryfield_cellar_7", text = "0x170" },
-  { unit = "dryfield_cellar/dryfield_cellar_3", text = "0x1BC" },
-  { unit = "dryfield_cellar/dryfield_cellar_8", text = "0x1C4" },
-  { unit = "dryfield_cellar/dryfield_cellar_9", text = "0x21C" },
-  { unit = "dryfield_cellar/dryfield_cellar_4", text = "0x52C" },
+  { unit = "dryfield_cellar/dryfield_cellar", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x5CC" },
 ]
 
