@@ -139969,3 +139969,29 @@ rsin(idx) / rcos(idx)`. Reusing `ang` for both (`ang = arg1 & 0xFFF ...
 ang = arg3`) fixed the prologue but routed `ang`'s sign extension through
 `$v0`; `ang += 0x400` broke allocation outright. When a callee-saved register
 in the target carries two unrelated values, try the reuse on each pairing.
+
+## Scrambled prim colour stores can be `setRGBn` per vertex, reordered by sched1 (func_shelter_b2_septic_tank_8017E2DC, 2026-09-24)
+
+**Symptom.** A `POLY_G4` fill whose colour `sb` stores come out as
+g0,g1,g2,g3,b0,b1,r0,r1,r2,b2,r3,b3. Writing the fields in exactly that order
+(as the matched siblings in other rooms do for their own order) scored 96.4%:
+the stores landed in place, but the constants took `$v0` instead of `$v1` and
+the `addPrim` tag load (`lw vN,0(poly)`) and the `sxy3` load were not hoisted
+into the store run.
+
+**Cause.** The emitted order is sched1's, not the source's. Feeding it the
+already-scrambled order gives sched1 different input, so the ready list and the
+local allocation of the constant pseudos differ even though the final store
+order agrees.
+
+**Fix.** Write the natural per-vertex form and let sched1 do the grouping:
+
+```c
+setRGB0(poly, 0, 0x40, 0x80);
+setRGB1(poly, 0, 0x40, 0x80);
+setRGB2(poly, 0, 0x10, 0x20);
+setRGB3(poly, 0, 0x10, 0x20);
+```
+
+This went straight to 100%. When a colour block's order looks grouped by value
+rather than by vertex, try the `setRGBn` macros before permuting field stores.
