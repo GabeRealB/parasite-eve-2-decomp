@@ -1,4 +1,5 @@
 #include "common.h"
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
@@ -7,20 +8,32 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/shelter_b2_pod_access_tunnel.h"
+
+/// The room's pending event, latched by its message handler when an event
+/// starts and read by the event task. `field_0` is the CAP command the task
+/// runs and `field_4` the stage sound it then plays (0: none); `field_8` is
+/// the game flag checked and set as the event starts (0: none), and a
+/// non-zero `field_A` makes the task spawn helper task 0x31.
+typedef struct {
+    s32 field_0;
+    s32 field_4;
+    s16 field_8;
+    u8  field_A;
+} _ShelterB2PodAccessTunnelEvent;
+STATIC_ASSERT_SIZEOF(_ShelterB2PodAccessTunnelEvent, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern TaskDesc                      D_shelter_b2_pod_access_tunnel_80183BC0;
-extern GpMsgEntry                    D_shelter_b2_pod_access_tunnel_80183BCC[];
-extern TaskDesc                      D_shelter_b2_pod_access_tunnel_80183BFC;
-extern GpStateBD8                    D_shelter_b2_pod_access_tunnel_801856F8;
-extern RoomEventMsg                  D_shelter_b2_pod_access_tunnel_80185700;
-extern u8                            D_shelter_b2_pod_access_tunnel_80185708;
-extern ShelterB2PodAccessTunnelEvent D_shelter_b2_pod_access_tunnel_8018570C;
-extern u8                            D_801153F4;
-extern u8                            D_80115690;
-extern s16                           D_80071076;
+extern TaskDesc                       D_shelter_b2_pod_access_tunnel_80183BC0;
+extern GpMsgEntry                     D_shelter_b2_pod_access_tunnel_80183BCC[];
+extern TaskDesc                       D_shelter_b2_pod_access_tunnel_80183BFC;
+extern GpStateBD8                     D_shelter_b2_pod_access_tunnel_801856F8;
+extern RoomEventMsg                   D_shelter_b2_pod_access_tunnel_80185700;
+extern u8                             D_shelter_b2_pod_access_tunnel_80185708;
+extern _ShelterB2PodAccessTunnelEvent D_shelter_b2_pod_access_tunnel_8018570C;
+extern u8                             D_801153F4;
+extern u8                             D_80115690;
+extern s16                            D_80071076;
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks
@@ -75,7 +88,7 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
     }
 }
 
-static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, ShelterB2PodAccessTunnelEvent* event)
+static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, _ShelterB2PodAccessTunnelEvent* event)
 {
     D_shelter_b2_pod_access_tunnel_80185708 = 0;
     if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
@@ -95,7 +108,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, She
 
 s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    ShelterB2PodAccessTunnelEvent event;
+    _ShelterB2PodAccessTunnelEvent event;
 
     *out = *in;
     func_80179A04(in, out);
@@ -124,7 +137,14 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", D_shelter_b2_pod_access_tunnel_8017D5D8);
+void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
+void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
+
+/// The three states `func_shelter_b2_pod_access_tunnel_8017DC14` dispatches
+/// the room task through: set-up, an idle tick, and removal.
+const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
+    { func_shelter_b2_pod_access_tunnel_8017DBA8, func_shelter_b2_pod_access_tunnel_8017DC0C, taskKill },
+};
 
 void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
 {
@@ -209,6 +229,17 @@ void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-void func_shelter_b2_pod_access_tunnel_8017DC0C(void)
+void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task)
 {
+}
+
+/// Runs one tick of a room task through the three-state table
+/// `D_shelter_b2_pod_access_tunnel_8017D5D8`, copying the table onto the stack
+/// and calling the entry for the task's current state.
+void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b2_pod_access_tunnel_8017D5D8;
+    sp.funcs[task->state](task);
 }
