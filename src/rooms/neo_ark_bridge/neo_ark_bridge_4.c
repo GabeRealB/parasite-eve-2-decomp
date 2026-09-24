@@ -1,4 +1,8 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -7,20 +11,17 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/neo_ark_bridge.h"
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32 Gp_LcgState;
 
-/// Per-frame update of an effect task drawn with `Room_Draw27` (state 1) or
-/// `Room_Draw28` (state 2); the same body as `func_neo_ark_woodland_path_8017F928`
-/// with different draw calls. State 0 seeds the work from `spawnArg1` and, when
-/// `field_10` is zero, picks a random velocity scaled through the GTE. Later
-/// ticks draw, drift the coordinate by that velocity with `vy` growing by 6,
+/// Per-frame update of an effect task drawn with `func_neo_ark_bridge_8017F8B4`
+/// (state 1) or `func_neo_ark_bridge_8017FCA0` (state 2). State 0 seeds the
+/// work from `spawnArg1` and, when `field_10` is zero, picks a random velocity
+/// scaled through the GTE. Later ticks draw, drift the coordinate by that velocity with `vy` growing by 6,
 /// and advance the frame every `field_28` ticks, releasing the task after
 /// frame 7. While an event is running the task only draws, and is released
 /// once the event state reaches 4.
@@ -39,9 +40,9 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                Room_Draw27(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_neo_ark_bridge_8017F8B4(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
             } else {
-                Room_Draw28(coord, (s16)work->field_20, (s16)work->field_24);
+                func_neo_ark_bridge_8017FCA0(coord, (s16)work->field_20, (s16)work->field_24);
             }
             return;
         }
@@ -120,10 +121,10 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
             }
             return;
         case 1:
-            Room_Draw27(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_bridge_8017F8B4(coord, (s16)work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw28(coord, (s16)work->field_20, (s16)work->field_24);
+            func_neo_ark_bridge_8017FCA0(coord, (s16)work->field_20, (s16)work->field_24);
             break;
         default:
             return;

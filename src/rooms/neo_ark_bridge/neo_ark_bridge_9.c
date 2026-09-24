@@ -1,11 +1,11 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -15,9 +15,8 @@
 /// `arg1` selects the 32-texel UV column `(s16)arg1 << 5` at v=0xE0..0xFF.
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`. Shared body, linked into every room
-/// overlay that uses it.
-void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// `arg3 + 0x400` through `rsin`/`rcos`.
+void func_neo_ark_bridge_8017F8B4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -75,15 +74,13 @@ void Room_Draw27(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-/// `Room_Draw23` with `s16` arguments: projects the coordinate's world position
-/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues one
-/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x43D2). `arg1`
-/// selects a 56-texel UV tile with signed `% 4` / `% 8` instead of the masks,
-/// then the quad is biased to v+0x70..v-0x59. The on-screen radius is
+/// Projects the coordinate's world position through `GsWSMATRIX` and, when
+/// the GTE flag is non-negative, queues one semi-transparent shade-tex
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D2). `arg1` picks one of eight 56-texel
+/// tiles, four across and two down from v=0x70. The on-screen radius is
 /// `arg2 * 55 / otz`; the quad is 2*radius on a side, shifted up so the
-/// projected point sits at three-quarters height. Shared body, linked into
-/// every room overlay that uses it.
-void Room_Draw28(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
+/// projected point sits at three-quarters height.
+void func_neo_ark_bridge_8017FCA0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
     void**             scratch;
     u8*                head;

@@ -1,17 +1,1 @@
 // Overlay-local symbols for neo_ark_bridge.
-Room_DrawBillboard = 0x80181558; // shared body, see src/lib/
-Room_Draw02 = 0x80180228; // shared body, see src/lib/
-Room_Draw03 = 0x80180ED8; // shared body, see src/lib/
-Room_Draw04 = 0x80180654; // shared body, see src/lib/
-Room_Draw16 = 0x8017F0C4; // shared body, see src/lib/
-Room_Draw27 = 0x8017F8B4; // shared body, see src/lib/
-Room_Draw28 = 0x8017FCA0; // shared body, see src/lib/
-Room_Util03 = 0x8017E834; // shared body, see src/lib/
-RoomsShared8017f9e4 = 0x801809E8; // shared body, see src/lib/
-RoomsShared8017f9e4Pos = 0x80181F70; // shared body data, see src/lib/
-RoomsShared8017f9e4Pos2 = 0x80181F78; // shared body data, see src/lib/
-RoomsShared801802cc = 0x801812D0; // shared body, see src/lib/
-RoomsShared8017ef80 = 0x8017FF84; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017E8FC; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D614; // shared body data, see src/lib/
-RoomsShared8017f4a0 = 0x8017EF70; // shared body, see src/lib/
