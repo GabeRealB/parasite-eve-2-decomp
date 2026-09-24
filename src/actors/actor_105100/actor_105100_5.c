@@ -5,8 +5,6 @@
 
 #include "actors/actor_100300.h"
 #include "actors/actor_105100.h"
-#include "actors/actors_shared_80134ff0.h"
-#include "actors/actors_shared_80136574.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -46,7 +44,6 @@ void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 
 void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1);
 
 extern u8 D_801153F4;
 

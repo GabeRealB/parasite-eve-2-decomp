@@ -5,8 +5,6 @@
 
 #include "actors/actor_100300.h"
 #include "actors/actor_105100.h"
-#include "actors/actors_shared_80134ff0.h"
-#include "actors/actors_shared_80136574.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -47,7 +45,6 @@ void func_actor_105100_80136408(Actor105100* arg0);
 void func_actor_105100_80136524(Actor105100* arg0);
 
 void func_800B4114(Actor105100Work* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-void func_actor_105100_80132414(GsCOORDINATE2* arg0, s32 arg1);
 
 extern u8 D_801153F4;
 
@@ -244,7 +241,7 @@ case0:
     }
     goto default_body;
 case1:
-    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
+    func_actor_105100_801364CC(arg1);
     func_actor_105100_80136524(arg1);
     goto join_12;
 case2:
@@ -268,13 +265,13 @@ default_body:
     }
     func_actor_105100_80136408(arg1);
     func_actor_105100_80134130(arg1);
-    ActorsShared80136574((ActorShared80136574*)arg1, &work->field_560, work->field_594, 1);
+    func_actor_105100_80136574(arg1, &work->field_560, work->field_594, 1);
     if (work->field_5A8 != 0) {
         func_8018294C(arg1);
     }
     coord->flg = 0;
     Gp_UpdateCoord(coord);
-    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
+    func_actor_105100_801364CC(arg1);
     func_actor_105100_80136524(arg1);
 }
 
@@ -1184,7 +1181,7 @@ void func_actor_105100_80134284(Actor105100Ctx* arg0, Actor105100* arg1)
             if (work->field_594 >= 0x201) {
                 work->field_594 = (u16)work->field_594 - 0x50;
             }
-            ActorsShared80136574((ActorShared80136574*)actor, &work->field_560, work->field_594, 0);
+            func_actor_105100_80136574(actor, &work->field_560, work->field_594, 0);
             if ((s16)++work->field_59A >= 0x3C) {
                 work->field_598 = 4;
             }
