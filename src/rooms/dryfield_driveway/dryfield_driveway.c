@@ -7,4 +7,4 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_driveway/dryfield_driveway", func_dryfi
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_driveway/dryfield_driveway", func_dryfield_driveway_8017DB68);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_driveway/dryfield_driveway", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_driveway/dryfield_driveway", D_dryfield_driveway_8017D5D8);

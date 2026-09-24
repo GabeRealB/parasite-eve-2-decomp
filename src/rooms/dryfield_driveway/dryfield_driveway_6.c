@@ -2,9 +2,9 @@
 
 #include "gameplay/3CD8.h"
 
-#include "rooms/rooms_shared_8017dc94.h"
-
-s32 RoomsShared8017dc94(s32 arg0, s32 arg1, s32 arg2)
+/// Script-event hook: queues stage sound 6 with a distinct cue for events 8 and
+/// 10, and reports every event as unhandled.
+s32 func_dryfield_driveway_8017DC70(s32 arg0, s32 arg1, s32 arg2)
 {
     switch (arg2) {
         case 8:
