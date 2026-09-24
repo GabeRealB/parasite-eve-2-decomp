@@ -1,16 +1,16 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_g_r_kitchen.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -26,8 +26,9 @@ extern SVECTOR D_dryfield_g_r_kitchen_8017EC08[];
 
 void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
-/// The same tapered light beam as `Room_Draw24`, between two points of
-/// `arg0`'s local space, with every angle turned back a quarter turn. The two
+/// The same tapered light beam as `func_dryfield_g_r_kitchen_8017D9FC`,
+/// between two points of `arg0`'s local space, with every angle turned back a
+/// quarter turn. The two
 /// `RTPS` projections, the drop when the far end's `otz` is below 0x11, the
 /// clamp of the near end's `otz` to 0x10 and the radii `(s16)arg3 * 64 / otz`
 /// are unchanged.
@@ -35,7 +36,8 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 /// The near cap's wedges cover -0x400..0x400, the far cap's the opposite half
 /// walked backwards from 0xC00 to 0x400, and the side quads join the two
 /// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
-/// parity of `gDisplayState.animFrame`, one step darker than `Room_Draw24`'s.
+/// parity of `gDisplayState.animFrame`, one step darker than
+/// `func_dryfield_g_r_kitchen_8017D9FC`'s.
 void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
@@ -163,18 +165,20 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
 }
 
-/// Draws whichever pair of beams the room's current stage (`gGameSession`
-/// byte 4) selects: 2 draws the two around the kitchen door through the shared
-/// `Room_Draw24`, 3 draws the other two through this room's own beam routine.
-/// Any other stage draws nothing.
+/// Draws two light beams under the coordinate of the model in `arg0->extra`,
+/// picked by the current view `gGameSession->at4.loc.view`: in view 2 the
+/// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
+/// `func_dryfield_g_r_kitchen_8017D9FC`, in view 3 those of
+/// `D_dryfield_g_r_kitchen_8017EC08` through
+/// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
     coord = ((TmdObject*)arg0->extra)->coords;
     if (gGameSession->at4.loc.view == 2) {
-        Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
-        Room_Draw24(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
+        func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
+        func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
     } else if (gGameSession->at4.loc.view == 3) {
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);

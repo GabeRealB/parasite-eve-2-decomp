@@ -1,34 +1,34 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "main/display.h"
 #include "main/mem.h"
+#include "rooms/dryfield_g_r_kitchen.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
+/// `rtps` / `rtv0`. The `inline_c.h` macros of those names assemble to
+/// different words, so spell the instructions out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Draws the tapered light beam between two points of `arg0`'s local space.
-/// `arg1` and `arg2` are rotated by the coordinate's `workm` and offset by its
-/// translation, then each is projected through `GsWSMATRIX` with one `RTPS`;
-/// the beam is dropped entirely when the far end's `otz` is below 0x11, and
-/// the near end's `otz` is clamped up to 0x10. `arg3` is a signed half-extent:
-/// the two ends get the screen radii `(s16)arg3 * 64 / otz0` and
-/// `(s16)arg3 * 64 / otz1`.
+/// Draws a flickering tapered beam between `arg1` and `arg2` in `arg0`'s
+/// local space. Both points are rotated by the coordinate's `workm`, offset by
+/// its translation and projected through `GsWSMATRIX`, using a 0x28-byte block
+/// taken from `G_SCRATCH_HEAD`. Nothing is drawn when the far end's `otz` is
+/// below 0x11; the near end's is raised to at least 0x10. The ends get the
+/// screen radii `(s16)arg3 * 64 / otz`.
 ///
-/// Three `POLY_G4`s are queued per quarter turn, two full turns of 0x400
-/// (that is, twice around each cap): a near-end wedge, a side quad joining the
-/// two circles, and a far-end wedge walked backwards from 0x1000. Every wedge
-/// is black at its rim and `rgb` at the centre, where `rgb` alternates between
-/// 0x20 and 0x30 on the parity of `gDisplayState.animFrame` so the beam
-/// flickers. Each primitive is linked into the OT bucket of its own end's
-/// `otz` and given a `Gp_AddTpageShift` tpage. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw24(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+/// Two passes, a quarter turn apart, each queue three `POLY_G4`s: a wedge of
+/// the near end's disc, a quad joining the two ends, and a wedge of the far
+/// end's disc walked backwards from a full turn, so the near end covers one
+/// half turn and the far end the other. Centre vertices take a grey of 0x20
+/// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
+/// Each primitive goes into the OT bucket of its own end's `otz` with a
+/// `Gp_AddTpageShift` tpage.
+void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;

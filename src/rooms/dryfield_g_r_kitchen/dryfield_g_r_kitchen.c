@@ -1,7 +1,7 @@
 #include "common.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/dryfield_g_r_kitchen.h"
 
 s32 func_dryfield_g_r_kitchen_8017D8BC(void)
 {
@@ -27,7 +27,7 @@ s32 func_dryfield_g_r_kitchen_8017D8C4(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         req.field_C = 0x52130004;
         req.flagId  = 0x34;
         req.itemId  = 0;
-        ret         = RoomsShared8017d638(&req, in);
+        ret         = func_dryfield_g_r_kitchen_8017D5E8(&req, in);
     } else {
         ret = 1;
     }
@@ -44,4 +44,4 @@ s32 func_dryfield_g_r_kitchen_8017D950(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_g_r_kitchen/dryfield_g_r_kitchen", D_dryfield_g_r_kitchen_8017D5DC);
