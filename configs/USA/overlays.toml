@@ -2135,10 +2135,6 @@ id = 425
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_guardroom/shelter_1f_guardroom", rodata = "0x4", text = "0x28" },
-  { unit = "shelter_1f_guardroom/shelter_1f_guardroom_4", text = "0x184" },
-  { unit = "shelter_1f_guardroom/shelter_1f_guardroom_2", text = "0x1C8" },
-  { unit = "shelter_1f_guardroom/shelter_1f_guardroom_5", text = "0x2C0" },
-  { unit = "shelter_1f_guardroom/shelter_1f_guardroom_3", text = "0x318" },
   { kind = "data", at = "0x470" },
 ]
 
