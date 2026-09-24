@@ -2460,19 +2460,8 @@ label = "no map pool names this room"
 id = 411
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_4", rodata = "0x4", text = "0x10C" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", rodata = "0x50", text = "0x24C4" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", rodata = "0x84", text = "0x1EC8" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_3", rodata = "0xF0", text = "0x2750" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_5", text = "0xCD4" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_6", text = "0x1868" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_7", text = "0x195C" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_8", text = "0x2434" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_9", text = "0x26E8" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_10", text = "0x26F8" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_11", text = "0x28F4" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_12", text = "0x3138" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_13", text = "0x35AC" },
+  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", rodata = "0x4", text = "0x10C" },
+  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", rodata = "0xF0", text = "0x2750" },
   { kind = "data", at = "0x3F34" },
 ]
 
