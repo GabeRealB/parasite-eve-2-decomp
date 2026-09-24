@@ -2157,10 +2157,13 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_eve_elevator]
+label = "code starts at 0x10: the handler the room's message table at 0x164 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x18 and left it as rodata words"
 id = 428
+text = ["0x10", "0x164"]
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_eve_elevator/neo_ark_eve_elevator", rodata = "0x4", text = "0x18" },
+  { unit = "neo_ark_eve_elevator/neo_ark_eve_elevator_4", text = "0x10" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0xB8" },
   { unit = "neo_ark_eve_elevator/neo_ark_eve_elevator_2", text = "0xFC" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x104" },
