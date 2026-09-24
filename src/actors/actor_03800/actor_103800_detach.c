@@ -40,7 +40,7 @@ extern GpPairSrcE Actor03800_D05F44;
 extern u8         Actor03800_D05F60[];
 
 #include <psyq/inline_c.h>
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 void Actor03800_Fn01150(Actor103800* arg0)
 {
@@ -425,13 +425,13 @@ void Actor03800_Fn01C50(Actor103800* arg0)
             RotMatrix(&rotation, &matrix);
             gte_SetRotMatrix(&work->field_2CC);
             gte_ldclmv(&matrix.m[0][0]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][0]);
             gte_ldclmv(&matrix.m[0][1]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][1]);
             gte_ldclmv(&matrix.m[0][2]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][2]);
             coord->sub        = &gGfxViewCoord;
             coord->coord      = work->field_2CC;

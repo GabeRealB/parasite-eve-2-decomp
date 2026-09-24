@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern u8         D_801153F2;
 extern s32        Gp_LcgState;
@@ -13,8 +14,6 @@ extern GpPairSrcE Actor03800_D05F44;
 
 void Gp_UpdateCoord(GsCOORDINATE2* coord);
 s32  SndEvt_EnqueueType6(s32 id, s32 pan, s32 depth);
-
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 /// Second copy of the idle "look around" tick; identical body to
 /// `Actor03800_Fn02068`, which the overlay carries twice.
@@ -183,13 +182,13 @@ void Actor03800_Fn021E4(Actor103800* arg0)
             RotMatrix(&scratch->rotation, &scratch->matrix);
             gte_SetRotMatrix(&work->field_2CC);
             gte_ldclmv(&scratch->matrix.m[0][0]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][0]);
             gte_ldclmv(&scratch->matrix.m[0][1]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][1]);
             gte_ldclmv(&scratch->matrix.m[0][2]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->field_2CC.m[0][2]);
             coord->coord      = work->field_2CC;
             coord->coord.t[0] = work->coord.coord.t[0];

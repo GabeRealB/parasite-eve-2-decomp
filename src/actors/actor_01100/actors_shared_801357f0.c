@@ -4,8 +4,7 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 void ActorsShared801357f0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
@@ -48,7 +47,7 @@ void ActorsShared801357f0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* 
         local = *(SVECTOR*)vec;
         gte_SetRotMatrix(matrix);
         __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(vec);
 
         angle = ratan2(*(s16*)deltaX, *(s16*)((s8*)vec + 4));

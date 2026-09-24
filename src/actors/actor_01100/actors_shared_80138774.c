@@ -2,8 +2,7 @@
 
 #include "actors/actors_shared_80138774.h"
 #include "psyq/inline_c.h"
-
-#define gte_mvmva_10030() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 /// Angle from `arg0`'s coordinate to the coordinate at
 /// `Gp_ActorSlots[arg1]->extra->field_8`, measured in `arg0`'s own frame. The
@@ -48,7 +47,7 @@ s32 ActorsShared80138774(GsCOORDINATE2* arg0, s32 arg1)
     local = *(SVECTOR*)vec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    gte_mvmva_10030();
+    gte_rtv0();
     gte_stsv(vec);
 
     angle  = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));

@@ -19,18 +19,12 @@
 #include "main/sound.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/rand.h>
 
 extern u32       Gp_LcgState;
 extern u8        Actor01100_D15660[];
 extern GpU16Pair Actor01100_D074D0[];
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
-/// vector added. The `inline_c.h` macro of that name assembles to a different
-/// word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-/// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -60,7 +54,7 @@ extern GpU16Pair Actor01100_D074D0[];
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, sv, o0, o1, o2); \
     gte_lddp(fac);                                     \
     gte_ldsv(sv);                                      \
-    gte_gpf12_real();                                  \
+    gte_gpf12();                                       \
     gte_stsv(sv);                                      \
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
 
@@ -1080,7 +1074,7 @@ static __inline__ void _actor01100RotSv(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 

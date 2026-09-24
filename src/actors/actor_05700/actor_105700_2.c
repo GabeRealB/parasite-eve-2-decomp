@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_105700.h"
 #include "gameplay/1BC.h"
@@ -13,12 +14,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-
-/* `gte_MulMatrix0` from `psyq/gtemac.h`, except with the real `rtv0` / `rtir`
- * encodings this toolchain assembles correctly. */
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -421,13 +416,13 @@ void Actor05700_Fn016D0(Actor105700* arg0)
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv((char*)matrix + 2);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 2);
     gte_ldclmv((char*)matrix + 4);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 4);
     angleX = work->field_688.vx;
     if (angleX != 0) {
@@ -864,7 +859,7 @@ void Actor05700_Fn02554(Actor105700* arg0)
     scratch->vec.vz = -100;
     gte_SetRotMatrix(&scratch->mtx);
     gte_ldv0(&scratch->vec);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     work->field_63C.end1.vx = scratch->mtx.t[0] + scratch->pos.vx;
     work->field_63C.end1.vy = scratch->mtx.t[1] + scratch->pos.vy;
@@ -878,7 +873,7 @@ void Actor05700_Fn02554(Actor105700* arg0)
     scratch->rot.vz = 10000;
     gte_SetRotMatrix(&scratch->mtx);
     gte_ldv0(&scratch->rot);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     work->field_63C.end0.vx = scratch->pos.vx;
     work->field_63C.end0.vy = scratch->pos.vy;
@@ -893,7 +888,7 @@ void Actor05700_Fn02554(Actor105700* arg0)
     scratch->vec.vy = work->field_63C.end1.vy;
     scratch->vec.vz = work->field_63C.end1.vz;
     gte_ldv0(&scratch->vec);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     scratch->vec.vx = scratch->pos.vx + self->workm.t[0];
     scratch->vec.vy = scratch->pos.vy + self->workm.t[1];
@@ -915,7 +910,7 @@ void Actor05700_Fn02554(Actor105700* arg0)
     Gp_ClearRec18Occupied(work->field_654);
     gte_SetRotMatrix(&scratch->mtx);
     gte_ldv0(&scratch->rot);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     scratch->rot.vx = scratch->pos.vx;
     scratch->rot.vy = scratch->pos.vy;
@@ -953,7 +948,7 @@ void Actor05700_Fn0295C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
     gte_SetRotMatrix(&self->workm);
     gte_SetTransMatrix(&self->workm);
     gte_ldv0(arg2);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&s->prev);
     gte_stszotz(&s->prevZ);
     for (i = 1; i < 8; i++) {
@@ -963,7 +958,7 @@ void Actor05700_Fn0295C(Actor105700* arg0, SVECTOR* arg1, SVECTOR* arg2)
         gte_SetRotMatrix(&self->workm);
         gte_SetTransMatrix(&self->workm);
         gte_ldv0(&s->pt);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&s->cur);
         gte_stszotz(&s->curZ);
         depth = (s->prevZ + s->curZ) / 2;
@@ -1085,7 +1080,7 @@ void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     scratch->rot.vz = 0x64;
     gte_SetRotMatrix(&coord->coord);
     gte_ldv0(&scratch->rot);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     coord->sub         = &gGfxViewCoord;
     coord->coord.t[0] += scratch->pos.vx;
@@ -1098,13 +1093,13 @@ void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     RotMatrix(&scratch->rot, &scratch->mtx);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&scratch->mtx);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord);
     gte_ldclmv(&scratch->mtx.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
     gte_ldclmv(&scratch->mtx.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
     work->field_EE = (Actor05700_D170F4.field_E != 1);

@@ -11,8 +11,7 @@
 #include "main/wipsys.h"
 #include "actors/actors_shared_8014adfc.h"
 #include <psyq/inline_c.h>
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
@@ -169,7 +168,7 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Actor104000* arg1)
     VectorNormalSS(q, q);
     gte_lddp(1000);
     gte_ldsv(q);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(q);
     work->patrol[0].vx = arg1->field_2C->field_8->coord.t[0] + sv.vx;
     work->patrol[0].vy = arg1->field_2C->field_8->coord.t[1];
@@ -346,12 +345,12 @@ void Actor04000_Fn0168C(Actor104000Ctx* arg0, Actor104000* arg1)
                     if (sc->angle < 0) {
                         gte_lddp(-0x3C);
                         gte_ldsv(&sc->d);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(&sc->d);
                     } else {
                         gte_lddp(0x3C);
                         gte_ldsv(&sc->d);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(&sc->d);
                     }
                     arg1->field_2C->field_8->coord.t[0] = player->extra->coords->coord.t[0] + sc->d.vx;
@@ -361,7 +360,7 @@ void Actor04000_Fn0168C(Actor104000Ctx* arg0, Actor104000* arg1)
                     VectorNormalSS(&sc->d, &sc->d);
                     gte_lddp(-0x258);
                     gte_ldsv(&sc->d);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&sc->d);
                     arg1->field_2C->field_8->coord.t[0] += sc->d.vx;
                     arg1->field_2C->field_8->coord.t[2] += sc->d.vz;
@@ -453,7 +452,7 @@ void Actor04000_Fn01E1C(Actor104000Ctx* arg0, Actor104000* arg1)
         VectorNormalSS(d, d);
         gte_lddp(0x15);
         gte_ldsv(d);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(d);
         arg1->field_2C->field_8->coord.t[0] += dir.vx;
         arg1->field_2C->field_8->coord.t[2] += dir.vz;
@@ -524,7 +523,7 @@ void Actor04000_Fn01E1C(Actor104000Ctx* arg0, Actor104000* arg1)
             ScaleMatrix(&work->colorMtx, &scale);
             gte_lddp(s);
             gte_ldlvl(work->colorMtx.t);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stlvl(work->colorMtx.t);
             s = ((s16)work->field_6 - 0x5A) * 0x400 + 0x1000;
             if (s > 0x2000) {
@@ -782,7 +781,7 @@ void Actor04000_Fn02F48(Actor104000Ctx* arg0, Actor104000* arg1)
             ScaleMatrix(&work->colorMtx, &scale);
             gte_lddp(s);
             gte_ldlvl(work->colorMtx.t);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stlvl(work->colorMtx.t);
             s = ((s16)work->field_6 - 0x28) * 0x400 + 0x1000;
             if (s > 0x2000) {
@@ -890,7 +889,7 @@ void Actor04000_Fn03798(Actor104000Ctx* arg0, Actor104000* arg1)
         ScaleMatrix(&work->colorMtx, &scale);
         gte_lddp(s);
         gte_ldlvl(work->colorMtx.t);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stlvl(work->colorMtx.t);
         s = (s16)work->field_6 * 0xB4 + 0x1000;
         if (s > 0x2000) {

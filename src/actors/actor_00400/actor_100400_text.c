@@ -12,9 +12,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#include "gte.h"
 
 extern u32 Gp_LcgState;
 extern u8  D_801153F2[2];
@@ -189,7 +187,7 @@ void Actor00400_Fn001AC(GsCOORDINATE2* coord, u16 phase, u16 kind, u32 arg3)
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x40);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
                 Gp_SpawnEff(0x600E0, coord, param, dir);
             }
@@ -214,7 +212,7 @@ void Actor00400_Fn001AC(GsCOORDINATE2* coord, u16 phase, u16 kind, u32 arg3)
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x40);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
                 Gp_SpawnEff(0x600E0, coord, param, dir);
             }
@@ -251,7 +249,7 @@ void Actor00400_Fn005DC(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((Actor100400SparkScratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((Actor100400SparkScratch*)(head - 0x1C))->sx);
     gte_stflg(&((Actor100400SparkScratch*)(head - 0x1C))->flag);
     if (blk->flag >= 0) {

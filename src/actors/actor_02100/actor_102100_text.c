@@ -11,9 +11,7 @@
 #include "main/task.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
 {
@@ -61,14 +59,14 @@ void Actor02100_Fn00048(GpEnemy* arg0, Actor02100* arg1)
     matrix = &coord->coord;
     gte_SetRotMatrix(matrix);
     gte_ldclmv(&head[-1].matrix);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(matrix);
     gte_ldclmv(&head[-1].matrix.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     column1 = &coord->coord.m[0][1];
     gte_stclmv(column1);
     gte_ldclmv(&head[-1].matrix.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     column2 = &coord->coord.m[0][2];
     gte_stclmv(column2);
     arg0->field_4  = matrix;
@@ -1634,7 +1632,7 @@ void Actor02100_Fn034E0(Actor02100* arg0)
         gte_SetRotMatrix(&coord->workm);
         gte_SetTransMatrix(&coord->workm);
         gte_ldv0(&work->field_128[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&scratch->sxy);
         gte_stszotz(&scratch->sz);
         work->field_18C[i] = scratch->sxy.vx;

@@ -11,6 +11,7 @@
 #include "main/wipsys.h"
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 void Actor03800_Fn00974(Actor103800* arg0);
 void Actor03800_Fn00A98(Actor103800* arg0);
@@ -30,8 +31,6 @@ void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
-
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 extern u8  D_801153F2;
 extern u8  D_801153F4;
@@ -227,13 +226,13 @@ void Actor03800_Fn003B8(Task* arg0)
 
             gte_SetRotMatrix(&work->coord.coord);
             gte_ldclmv(&mat.m[0][0]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][0]);
             gte_ldclmv(&mat.m[0][1]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][1]);
             gte_ldclmv(&mat.m[0][2]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][2]);
             break;
         case 2:
@@ -277,13 +276,13 @@ void Actor03800_Fn003B8(Task* arg0)
 
             gte_SetRotMatrix(&work->coord.coord);
             gte_ldclmv(&mat.m[0][0]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][0]);
             gte_ldclmv(&mat.m[0][1]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][1]);
             gte_ldclmv(&mat.m[0][2]);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&work->coord.coord.m[0][2]);
             break;
         case 3:

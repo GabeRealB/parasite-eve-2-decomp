@@ -1,11 +1,9 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actors_shared_8013898c.h"
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Reads the column `r0` holds at offsets `o0` / `o1` / `o2` into the `SVECTOR`
 /// at `r1`. The offsets are 6 bytes apart, so the caller passes one column of a
@@ -42,7 +40,7 @@ void ActorsShared8013898c(ActorsShared8013898cCoord* arg0, ActorsShared8013898cV
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&arg1->vec);
         arg0->coord.t[0] += arg1->vec.vx;
         arg0->coord.t[2] += arg1->vec.vz;

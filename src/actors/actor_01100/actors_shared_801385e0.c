@@ -1,13 +1,11 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "main/mem.h"
 
 #include "actors/actors_shared_801385e0.h"
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Reads the column `r0` holds at offsets `o0` / `o1` / `o2` into the `SVECTOR`
 /// at `r1`. The offsets are 6 bytes apart, so the caller passes one column of a
@@ -54,21 +52,21 @@ void ActorsShared801385e0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 0, 6, 12);
     gte_lddp(arg1->vx);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 0, 6, 12);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 2, 8, 14);
     gte_lddp(arg1->vy);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 2, 8, 14);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 4, 10, 16);
     gte_lddp(arg1->vz);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 4, 10, 16);
 

@@ -13,6 +13,7 @@
 #include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/rand.h>
 
 extern u32 Gp_LcgState;
@@ -22,13 +23,6 @@ extern u8        D_80072729;
 extern u8        Actor01100_D15660[];
 extern GpU16Pair Actor01100_D074D0[];
 extern TaskDesc  Actor01100_D155E0[];
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
-/// vector added. The `inline_c.h` macro of that name assembles to a different
-/// word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-/// `gpf 1`: scale IR1..3 by IR0. Same reason as above for spelling out the word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -136,7 +130,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             playerPart   = &playerCoords[1];
             gte_SetRotMatrix(&actorPart->workm);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
             arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
@@ -312,7 +306,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             playerPart   = &playerCoords[1];
             gte_SetRotMatrix(&actorPart->workm);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
             arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
@@ -505,7 +499,7 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             local = *(SVECTOR*)vec;
             gte_SetRotMatrix(matrix);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(vec);
 
             angle = ratan2(*(s16*)deltaX, *(s16*)((s8*)vec + 4));
@@ -628,7 +622,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* ar
     out->vz = t6;
     gte_lddp(scale);
     gte_ldsv((SVECTOR*)out);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv((SVECTOR*)out);
 }
 
@@ -953,7 +947,7 @@ void Actor01100_Fn05678(
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 0, 6, 12);
         gte_lddp(sc->vx);
         gte_ldsv(sv);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(sv);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 0, 6, 12);
 
@@ -961,7 +955,7 @@ void Actor01100_Fn05678(
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 2, 8, 14);
         gte_lddp(sc->vy);
         gte_ldsv(sv);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(sv);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 2, 8, 14);
 
@@ -969,7 +963,7 @@ void Actor01100_Fn05678(
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 4, 10, 16);
         gte_lddp(sc->vz);
         gte_ldsv(sv);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(sv);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 4, 10, 16);
 
@@ -1120,13 +1114,13 @@ void Actor01100_Fn05E68(Task* task)
     local = *(SVECTOR*)(head - 8);
     gte_SetRotMatrix(mtx);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(vec);
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x28);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&work->vel);
 
     *(s32*)&mtx->m[0][0] = 0x1000;

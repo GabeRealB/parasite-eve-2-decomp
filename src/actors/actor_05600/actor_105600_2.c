@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_105600.h"
 #include "gameplay/1BC.h"
@@ -15,11 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-
-/* `gte_MulMatrix0` from `psyq/gtemac.h`, except with the real `rtv0` / `rtir`
- * encodings this toolchain assembles correctly. */
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -265,7 +261,7 @@ void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
     scratch->rot.vz = 0x64;
     gte_SetRotMatrix(&coord->coord);
     gte_ldv0(&scratch->rot);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     coord->sub         = &gGfxViewCoord;
     coord->coord.t[0] += scratch->pos.vx;
@@ -278,13 +274,13 @@ void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
     RotMatrix(&scratch->rot, &scratch->mtx);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&scratch->mtx);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord);
     gte_ldclmv(&scratch->mtx.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
     gte_ldclmv(&scratch->mtx.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
     work->field_EE = (Actor05600_D161BC.field_E != 1);

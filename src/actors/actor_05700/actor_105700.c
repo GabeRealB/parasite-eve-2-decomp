@@ -14,11 +14,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/* `gte_MulMatrix0` from `psyq/gtemac.h`, except with the real `rtv0` / `rtir`
- * encodings this toolchain assembles correctly. */
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 Actor05700_D00080;

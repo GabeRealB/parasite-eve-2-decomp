@@ -7,13 +7,9 @@
 #include "main/gfx.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern u32 Gp_LcgState;
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
-/// vector added. The `inline_c.h` macro of that name assembles to a different
-/// word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 void ActorsShared801359cc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work)
 {
@@ -81,7 +77,7 @@ void ActorsShared801359cc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* 
             local = *(SVECTOR*)vec0;
             gte_SetRotMatrix(matrix0);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(vec0);
 
             wrapped = ratan2(*(s16*)deltaX0, *(s16*)((s8*)vec0 + 4));
@@ -160,7 +156,7 @@ void ActorsShared801359cc(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* 
             local = *(SVECTOR*)vec3;
             gte_SetRotMatrix(matrix3);
             __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(vec3);
 
             angle3 = ratan2(*(s16*)deltaX3, *(s16*)((s8*)vec3 + 4));
