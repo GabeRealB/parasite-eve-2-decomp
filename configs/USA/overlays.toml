@@ -2530,16 +2530,7 @@ id = 430
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_forest_zone/neo_ark_forest_zone", rodata = "0x4", text = "0x84" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_4", rodata = "0x60", text = "0x2DF4" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_5", text = "0x5EC" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_2", text = "0x5FC" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_6", text = "0x660" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_3", text = "0xAB4" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_7", text = "0xE60" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_8", text = "0x1104" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_9", text = "0x1530" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_10", text = "0x18C4" },
-  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_11", text = "0x2434" },
+  { unit = "neo_ark_forest_zone/neo_ark_forest_zone_2", rodata = "0x28", text = "0x2DF4" },
   { kind = "data", at = "0x3FC0" },
 ]
 
