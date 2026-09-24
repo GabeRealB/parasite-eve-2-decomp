@@ -1,1988 +1,1077 @@
 #include "common.h"
 
-#include "main/task.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/abs.h>
+
+#include "actors/actor_503500.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "main/session.h"
-#include "actors/actor_503500.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/tmd.h"
 #include "main/gfx.h"
-#include <psyq/abs.h>
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
+
+/// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
+/// the effect task it reparents itself under.
+typedef struct Actor503500Work44 {
+    /* 0x00 */ Actor503500ObjWork head;
+    /* 0x38 */ Task*              field_38;
+    /* 0x3C */ s16                field_3C; // frame counter within `field_40`'s phase
+    /* 0x3E */ byte               pad_3E[0x2];
+    /* 0x40 */ s8                 field_40; // phase, advanced by `func_actor_503500_80145754`
+    /* 0x41 */ byte               pad_41[0x3];
+} Actor503500Work44;
+STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
+
+/// Head of the work block used by the two enemies whose teardown clears a
+/// four-entry record table (`func_actor_503500_801454E0` and
+/// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
+/// `GpActorD4` convention: the display node's `ctx.d4rec` points at the
+/// `GpActorD4Rec` directly behind it, whose `recs` in turn points at the
+/// `GpRec18` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
+/// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
+/// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
+/// allocates 0xAC, both with `memCalloc(_, 0)`.
+typedef struct Actor503500WorkRec4 {
+    /* 0x00 */ GpObj        obj;
+    /* 0x20 */ GpActorD4Rec d4;
+    /* 0x38 */ GpRec18      rec[4];
+} Actor503500WorkRec4;
+STATIC_ASSERT_SIZEOF(Actor503500WorkRec4, 0x98);
+
+/// The 0xD0 block `func_actor_503500_80144E8C` allocates, which is
+/// `Actor503500WorkRec4` plus this task's own payload: the effect task it
+/// reparents itself under, a rotation it seeds to identity next to the one in
+/// its `GsCOORDINATE2`, and the pair of words plus the halfword that
+/// `func_actor_503500_801450A0` reads and writes every frame.
+typedef struct Actor503500WorkD0 {
+    /* 0x00 */ Actor503500WorkRec4 head;
+    /* 0x98 */ Task*               field_98;
+    /* 0x9C */ MATRIX              field_9C;
+    /* 0xBC */ GpFixed16           field_BC; // angle; the high half turns field_9C
+    /* 0xC0 */ s32                 field_C0; // per-frame angle step
+    /* 0xC4 */ s16                 field_C4;
+    /* 0xC6 */ s16                 field_C6; // sub-state frame counter
+    /* 0xC8 */ byte                pad_C8[0x4];
+    /* 0xCC */ s8                  field_CC; // sub-state index
+    /* 0xCD */ byte                pad_CD[0x3];
+} Actor503500WorkD0;
+STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
+
+/// The 0xAC block `func_actor_503500_80145A2C` allocates: `Actor503500WorkRec4`
+/// plus the effect task it reparents itself under.
+typedef struct Actor503500WorkAC {
+    /* 0x00 */ Actor503500WorkRec4 head;
+    /* 0x98 */ Task*               field_98;
+    /* 0x9C */ byte                pad_9C[0x8];
+    /* 0xA4 */ s16                 field_A4; // sub-state frame counter
+    /* 0xA6 */ byte                pad_A6[0x2];
+    /* 0xA8 */ s8                  field_A8; // sub-state index
+    /* 0xA9 */ byte                pad_A9[0x3];
+} Actor503500WorkAC;
+STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
+
+/// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
+/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
+/// slot is not a `TaskIdMap` here. Unlike the tasks covered by
+/// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
+/// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
+/// `func_actor_503500_80146508` republishes the two matrices onto
+/// `TmdObject::lightMtx` / `field_20`, the light/colour pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
+/// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
+///
+/// The size is the allocation, and the fields below are the ones the init
+/// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C8 are set to -1, and the
+/// three words at 0x4A0..0x4A8 are cleared. This is the same layout as
+/// `Actor317000Work` and its siblings in the other actor overlays, except that
+/// those write 0x4C8 as a halfword.
+typedef struct Actor503500Effect4CC {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ s8         field_43C;   // set once the slots have been started
+    /* 0x43D */ s8         field_43D;   // animation id the slots were seeded with
+    /* 0x43E */ s8         field_43E;   // bank index into `D_actor_503500_80176520`
+    /* 0x43F */ byte       pad_43F[0x1];
+    /* 0x440 */ MATRIX     light;
+    /* 0x460 */ MATRIX     color;
+    /* 0x480 */ s32        field_480[4]; // saved `coord.m` words 0..3
+    /* 0x490 */ s16        field_490;    // saved `coord.m[2][2]`
+    /* 0x492 */ byte       pad_492[0xE];
+    /* 0x4A0 */ s32        field_4A0;
+    /* 0x4A4 */ s32        field_4A4;
+    /* 0x4A8 */ s32        field_4A8;
+    /* 0x4AC */ byte       pad_4AC[0x4];
+    /* 0x4B0 */ s32        field_4B0;
+    /* 0x4B4 */ s32        field_4B4;
+    /* 0x4B8 */ s32        field_4B8;
+    /* 0x4BC */ byte       pad_4BC[0x4];
+    /* 0x4C0 */ s16        field_4C0;
+    /* 0x4C2 */ s16        field_4C2;
+    /* 0x4C4 */ s16        field_4C4;
+    /* 0x4C6 */ s16        field_4C6;
+    /* 0x4C8 */ s8         field_4C8;
+    /* 0x4C9 */ byte       pad_4C9[0x3];
+} Actor503500Effect4CC;
+STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
+
+void func_actor_503500_801464E8(Task* arg0);
+void func_actor_503500_80146508(Task* arg0);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
-extern GpMsgEntry D_actor_503500_80146888[];
-void              func_actor_503500_801324EC(Task* arg0);
-extern Task*      D_actor_503500_80176558;
-/// The boss work block, cleared by `func_actor_503500_80132F64`.
-extern Actor503500Work D_actor_503500_80176574;
-extern TaskDesc        D_actor_503500_8014B964;
-extern s8              D_actor_503500_80176D5A;
-extern s16             D_actor_503500_80176D2E;
-/// 18-entry table of per-slot u16 counters, indexed by slot in
-/// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
-extern u16 D_actor_503500_80176D64[];
-extern u16 D_actor_503500_80176D24;
-/// Opaque script/table blobs in the overlay's `.data`, handed to
-/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
-extern u8 D_actor_503500_8014CD98[];
-extern u8 D_actor_503500_8014D098[];
-/// whatever room overlay is resident owns the body.
-extern void              func_8017E27C(s32 arg0);
-extern Actor503500MsgPos D_actor_503500_8017655C;
-/// Player-facing flag byte in the main executable; no module header owns it yet.
-extern u8 D_80073BA9;
-/// Main-executable globals with no module header yet: `D_80071075` gates the
-/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
-/// `D_80114C12` the cutscene/among-us mode flag.
-extern u8  D_80071075;
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
-/// Main-executable flag byte cleared when the boss enters state 2; also written
-/// by `mist_r18`, which has no module header for it either. Declared as an
-/// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
-/// the preceding `field_79C` store ordered before it.
-extern s8 D_80071090[];
-s32       func_actor_503500_80133684(Actor503500* arg0);
-void      func_actor_503500_80137074(Actor503500* arg0, s8 arg1, s16 arg2);
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
-void func_actor_503500_801338E8(Actor503500* arg0);
-void func_actor_503500_80134408(Actor503500* arg0);
-void func_actor_503500_801345F4(Actor503500* arg0);
-void func_actor_503500_80134A24(Actor503500* arg0);
-void func_actor_503500_80134C68(Actor503500* arg0);
-void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
-void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
-s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
-s32  func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work);
-s32  func_actor_503500_80133FD8(Actor503500* arg0, Actor503500Work* work);
-s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
-void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
-/// Animation-preset table indexed by preset id; `func_actor_503500_80135FB4`
-/// and `func_actor_503500_80132F64` hand entry pointers to
-/// `func_actor_503500_80135950`.
-extern Actor503500AnimPreset D_actor_503500_8016EAC0[];
-/// Applies preset `arg2` to the boss block's animation slots; `arg1` and `arg3`
-/// are passed by every caller but the body ignores them. Always returns 0.
-s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
-                               Actor503500AnimPreset* arg2, s32 arg3);
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-/// Animation-bank table indexed by `Actor503500AnimPreset::field_0`.
-extern void* D_actor_503500_8016EAB8[];
-s32          func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
-void         func_actor_503500_8013611C(s32 arg0);
-void         func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
-void         func_actor_503500_801372AC(s32 arg0);
-void         func_actor_503500_80136450(Actor503500* arg0);
-void         func_actor_503500_801369E4(Actor503500* arg0);
-void         func_actor_503500_80136A80(Actor503500* arg0);
-/// Republishes the boss's four cached matrices (`arg1`) and/or re-seeds its
-/// display state (`arg2`); lives in `actor_503500_5`.
-void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2);
-void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
-void func_actor_503500_801374BC(Actor503500* arg0);
-void func_actor_503500_80137678(Actor503500* arg0);
-void func_actor_503500_80138454(Actor503500* arg0);
-void func_actor_503500_8013B460(Actor503500* arg0);
-void func_actor_503500_8013B8D0(Actor503500* arg0);
-void func_actor_503500_8013BE0C(Actor503500* arg0);
-void func_actor_503500_8013E384(Actor503500* arg0);
-void func_actor_503500_8013E740(Actor503500* arg0);
-void func_actor_503500_8013EBE4(Actor503500* arg0);
+/// `func_actor_503500_8014642C`; terminator id 0x7FFFFFFF.
+extern GpMsgEntry D_actor_503500_80176530[];
+/// Declared in `gameplay/gameplay.h`, which conflicts with this TU's headers.
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+/// Main-executable counter the actor paces periodic effects by (its value
+/// modulo 6 or 12, its low bits).
+extern s32     D_80070F70;
+extern MATRIX* D_80073B8C;
+/// Row of `Gp_PackPair` arguments, one slot per effect task
+/// (`func_actor_503500_801448E8` takes the slot before this one). Declared as
+/// an array because the read has to alias the struct stores around it: GCC
+/// 2.8.1's `fixed_scalar_and_varying_struct_p` lets a scalar global at a fixed
+/// address float above them, and hoists the load out of the call sequence.
+extern GpU16Pair* D_actor_503500_8016E7D4[];
+/// Local offset of the display node `func_actor_503500_80144E8C` links, and the
+/// offsets it seeds its `GpActorD4Rec` with.
+extern Actor503500UVec D_actor_503500_801715C4;
+extern Actor503500UVec D_actor_503500_801715CC;
+/// Local offset of the display node `func_actor_503500_801455A4` links.
+extern Actor503500UVec D_actor_503500_801715D4;
 /// Global "everything is frozen" mode byte in the main executable: 1 pauses the
 /// actor, 2 hides it, anything else runs the normal per-frame chain.
 extern u8 D_801153F4;
-void      func_actor_503500_801398D0(Actor503500* arg0);
-void      func_actor_503500_80139EFC(Actor503500* arg0);
-void      func_actor_503500_8013A0D0(Actor503500* arg0);
-void      func_actor_503500_8013A96C(Actor503500* arg0);
-void      func_actor_503500_8013AA44(Actor503500* arg0);
-void      func_actor_503500_8013AAC0(Actor503500* arg0);
-void      func_actor_503500_8013AB38(Actor503500* arg0);
-void      func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8013F328(Actor503500* arg0);
-void      func_actor_503500_8013F4A4(Actor503500* arg0);
-void      func_actor_503500_8013F948(Actor503500* arg0);
-void      func_actor_503500_8013F984(Actor503500* arg0);
-void      func_actor_503500_80140BE8(Actor503500* arg0);
-void      func_actor_503500_80141248(Actor503500* arg0);
-void      func_actor_503500_80141448(Actor503500* arg0);
-void      func_actor_503500_80141B94(Actor503500* arg0);
-void      func_actor_503500_80141D7C(Actor503500* arg0);
-void      func_actor_503500_801420C4(Actor503500* arg0);
-void      func_actor_503500_801421A8(Actor503500* arg0);
-void      func_actor_503500_80142310(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8014271C(Actor503500* arg0);
-void      func_actor_503500_80142980(Actor503500* arg0);
-void      func_actor_503500_8014418C(Actor503500* arg0);
-void      func_actor_503500_801441E8(Actor503500* arg0);
-void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_801334CC(Actor503500* arg0);
-void      func_actor_503500_80135178(Actor503500* arg0);
-void      func_actor_503500_801353F0(Actor503500* arg0);
-void      func_actor_503500_80135644(Actor503500* arg0);
-void      func_actor_503500_80136280(Actor503500* arg0);
-void      func_actor_503500_80136304(Actor503500* arg0);
-void      func_actor_503500_80136A88(Actor503500* arg0);
-void      func_actor_503500_80136AEC(Actor503500* arg0);
-void      func_actor_503500_80136D30(Actor503500* arg0);
-void      func_actor_503500_80136DDC(Actor503500* arg0);
-/// Player-facing mode byte in the main executable, also written by the
-/// acropolis helicopter landing pad room.
-extern s8 D_801153F1;
+void      func_actor_503500_80145480(Task* arg0);
+void      func_actor_503500_801450A0(Actor503500* arg0);
+void      func_actor_503500_801454E0(Actor503500* arg0);
+void      func_actor_503500_80145754(Actor503500* arg0);
+void      func_actor_503500_80145950(Task* arg0);
+void      func_actor_503500_801459B0(Task* arg0);
+void      func_actor_503500_80145C50(Actor503500* arg0);
+void      func_actor_503500_80145F18(Actor503500* arg0);
+/// libgte routine right after `RotMatrixX` in the main executable (likely
+/// `RotMatrixY`); rotates `m` in place by `angle`.
+void func_8004BFF8(s32 angle, MATRIX* m);
+/// `func_actor_503500_80145A2C`'s `Gp_PackPair` slot (the one after
+/// `D_actor_503500_8016E7D4[1]`), which the original reads by its own name, and
+/// its display-node and `GpActorD4Rec` offsets.
+extern GpU16Pair*      D_actor_503500_8016E7DC[];
+extern Actor503500UVec D_actor_503500_801715DC;
+extern Actor503500UVec D_actor_503500_801715E4;
+void                   func_actor_503500_80145E98(Task* arg0);
+void                   func_actor_503500_8014618C(Task* arg0);
+void                   func_actor_503500_80146524(Task* arg0);
+/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
+/// the note in `include/gameplay/1BC.h`.
+void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern void* D_actor_503500_80176520[];
+void         func_actor_503500_80144E8C(Task* arg0);
+void         func_actor_503500_80145428(Actor503500* arg0);
+void         func_actor_503500_801455A4(Task* arg0);
+void         func_actor_503500_801458F8(Actor503500* arg0);
+void         func_actor_503500_80145A2C(Task* arg0);
+void         func_actor_503500_80145E1C(Actor503500* arg0);
+void         func_actor_503500_8014642C(Actor503500* arg0);
+void         func_actor_503500_80145FDC(Actor503500* task);
+void         func_actor_503500_801464E8(Task* arg0);
 
-void func_actor_503500_80132D20(Task* arg0)
+/// `Task::state` handlers `func_actor_503500_8014554C` dispatches through.
+const TaskFuncTable3 D_actor_503500_801321F4 = {
+    {
+        func_actor_503500_80144E8C,
+        func_actor_503500_80145428,
+        func_actor_503500_80145480,
+    },
+};
+
+void func_actor_503500_80144E8C(Task* arg0)
 {
-    func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
-    taskKill(arg0);
-}
+    Actor503500WorkD0* work;
+    GsCOORDINATE2*     coord;
+    GpActorD4Rec*      d4;
+    GpRec18*           rec;
+    GpEffWork*         eff;
+    Task*              child;
+    GpMtxWords*        m1;
+    GpMtxWords*        m2;
+    s32                pan;
 
-void func_actor_503500_80132D60(void)
-{
-    Gp_StateC08.field_6 |= 1;
-}
-
-void func_actor_503500_80132D7C(void)
-{
-    gGameSession->viewDirty = 1;
-}
-
-void func_actor_503500_80132D90(s32 arg0)
-{
-    GameFlag_SetNibble(0x100, arg0);
-}
-
-void func_actor_503500_80132DB4(s32 arg0)
-{
-    func_8017E27C(arg0 & 0xFF);
-}
-
-void func_actor_503500_80132DD4(void)
-{
-    D_actor_503500_8017655C.x = 0;
-    D_actor_503500_8017655C.y = 0;
-    D_actor_503500_8017655C.z = 0;
-}
-
-void func_actor_503500_80132DEC(void)
-{
-    Task*          slot3;
-    GsCOORDINATE2* coord;
-    SVECTOR*       rot;
-
-    slot3 = gameGetPtrSlot(3);
-    coord = ((TmdObject*)slot3->extra)->coords;
-
-    D_actor_503500_8017655C.x = coord->coord.t[0];
-    D_actor_503500_8017655C.y = coord->coord.t[1];
-    D_actor_503500_8017655C.z = coord->coord.t[2];
-
-    /* Anchoring the rotation pointer *after* the three word stores is what
-     * makes cse keep the plain symbol as the base address; taking it first
-     * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
-    rot = &D_actor_503500_8017655C.rot;
-
-    rot->vx = ((GameActor*)slot3->work)->field_50;
-    rot->vy = ((GameActor*)slot3->work)->field_52;
-    rot->vz = ((GameActor*)slot3->work)->field_54;
-}
-void func_actor_503500_80132E7C(void)
-{
-    Task* slot3;
-
-    slot3 = gameGetPtrSlot(3);
-    if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
-        (D_actor_503500_8017655C.z != 0)) {
-        Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(arg0);
+        return;
     }
-}
+    arg0->work     = (TaskIdMap*)work;
+    work->field_C4 = 0x1000;
 
-void func_actor_503500_80132EE8(u8 arg0)
-{
-    D_80115768 = arg0;
-}
+    m1     = (GpMtxWords*)&coord->coord;
+    m1->w0 = 0x1000;
+    m1->w1 = 0;
+    m1->w2 = 0x1000;
+    m1->w3 = 0;
+    m1->h4 = 0x1000;
 
-void func_actor_503500_80132EF4(void)
-{
-    func_80106350((GpActorWork*)gameGetPtrSlot(3), D_80073BA9, 0);
-}
+    m2     = (GpMtxWords*)&work->field_9C;
+    m2->w0 = 0x1000;
+    m2->w1 = 0;
+    m2->w2 = 0x1000;
+    m2->w3 = 0;
+    m2->h4 = 0x1000;
 
-void func_actor_503500_80132F28(void)
-{
-    Gp_HaltPadScripts();
-    gGameSession->padScriptFlags = 0;
-}
+    d4  = &work->head.d4;
+    rec = work->head.rec;
 
-void func_actor_503500_80132F58(void)
-{
-    D_actor_503500_80176558 = NULL;
-}
+    work->head.obj.coord     = coord;
+    work->head.obj.ctx.d4rec = d4;
+    work->head.obj.pos.vx    = D_actor_503500_801715C4.vx;
+    work->head.obj.pos.vy    = D_actor_503500_801715C4.vy;
+    work->head.obj.pos.vz    = D_actor_503500_801715C4.vz;
+    work->head.obj.key       = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
+    work->head.obj.flags     = 3;
+    work->head.obj.radius    = 0;
 
-/// `TaskDesc` table `func_actor_503500_80132F64` and
-/// `func_actor_503500_80135D00` spawn slot enemies from.
-extern TaskDesc D_actor_503500_8016E924;
-/// Initial position of the boss's collision node, copied into both the
-/// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
-extern SVECTOR  D_actor_503500_8016EC50;
-extern SVECTOR  D_actor_503500_8016EF58[];
-extern TaskDesc D_actor_503500_8016E9F0;
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_80132F64`.
-extern GpMsgEntry D_actor_503500_8016EA2C[];
-extern GpPairSrcE D_actor_503500_8016E7EC[];
-void              func_actor_503500_80136228(Actor503500* arg0);
+    d4->recs       = rec;
+    d4->end1.vx    = 0;
+    d4->end1.vy    = 0;
+    d4->end1.vz    = 0;
+    d4->end0.vx    = D_actor_503500_801715CC.vx;
+    d4->end0.vy    = D_actor_503500_801715CC.vy;
+    d4->end0.vz    = D_actor_503500_801715CC.vz;
+    d4->end1Radius = 0x3E8;
+    d4->end0Radius = 0x7D0;
 
-/// State-0 init of the boss: clears and seeds its work block, links the
-/// second body part's display node, spawns slot enemies 1..11 from
-/// `D_actor_503500_8016E924` (tinting each from the current area record, as
-/// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
-void func_actor_503500_80132F64(Actor503500* arg0)
-{
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaRec*     rec;
-    GpAreaPlace*   entry;
-    GpEnemy*       child;
-    TmdObject*     model;
-    u32            raw;
-    s32            idx;
-    s32            i;
-    TmdObject*     tmd;
-    GpEnemy*       enemy;
-    GsCOORDINATE2* coord;
-    GsCOORDINATE2* part;
-    GpRec18*       recs;
-    /* Kept in a register across the spawn loop: the ROM stores enemies[0]
-       through the same base rather than rebuilding the address. */
-    Actor503500Work* work = &D_actor_503500_80176574;
+    Gp_LinkObj(3, &work->head.obj);
+    Gp_InitRec18Table(rec, 4, 0);
+    work->head.obj.flags &= 0x7FFF;
 
-    tmd   = arg0->extra;
-    enemy = arg0->field_20;
-    coord = tmd->coords;
-    Mem_Set(work, 0, 0x7E8);
-    arg0->field_1C     = work;
-    work->field_7D5    = -1;
-    work->field_7D6    = -1;
-    work->field_7D9    = -1;
-    work->field_7A4    = 0x80000;
-    work->field_6C4.vx = coord->coord.t[0] << 16;
-    work->field_6C4.vy = coord->coord.t[1] << 16;
-    work->field_6C4.vz = coord->coord.t[2] << 16;
-    work->field_7D8    = 1;
-    work->field_7CA    = 0x5A;
-    tmd->lightMtx      = &work->lightMtx;
-    tmd->colorMtx      = &work->colorMtx;
-    tmd->otOffset      = 0x14;
-    coord->flg         = 0;
-
-    enemy->field_4     = &coord->coord;
-    part               = &coord[3];
-    enemy->field_48    = 0;
-    enemy->coord       = part;
-    enemy->node.flags |= 9;
-    enemy->bodyPos.vx  = D_actor_503500_8016EC50.vx;
-    enemy->bodyPos.vy  = D_actor_503500_8016EC50.vy;
-    enemy->bodyPos.vz  = D_actor_503500_8016EC50.vz;
-    recs               = work->rec5F4;
-    enemy->param       = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-    enemy->recs        = recs;
-    enemy->hp          = enemy->param->hpMax;
-
-    work->field_5D4.coord    = part;
-    work->field_5D4.ctx.recs = recs;
-    work->field_5D4.key      = 0x30023;
-    work->field_5D4.radius   = 0x258;
-    work->field_5D4.flags    = 1;
-    work->field_5D4.pos.vx   = D_actor_503500_8016EC50.vx;
-    work->field_5D4.pos.vy   = D_actor_503500_8016EC50.vy;
-    work->field_5D4.pos.vz   = D_actor_503500_8016EC50.vz;
-    Gp_LinkObj(2, &work->field_5D4);
-    Gp_InitRec18Table(recs, 8, 0);
-    work->field_6E4.spawnArgLo = 0x600;
-    work->field_6E4.coord      = part;
-    work->field_6E4.spawnArgHi = 3;
-    work->field_5D4.flags     &= 0x7FFF;
-
-    for (i = 1; i < 12; i++) {
-        child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
-        if (child != NULL) {
-            sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-            raw        = arg0->field_20->placeKey;
-            model      = (TmdObject*)child->task->extra;
-            key.stage  = sessionKey->stage;
-            key.area   = sessionKey->area;
-            key.room   = sessionKey->room;
-            areaByte0  = sessionKey->view;
-            idx        = raw >> 12;
-            key.view   = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
-            rec          = Gp_GetNestedAreaRec(&key);
-            entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-            model->tpage = entry->tpage;
-            model->clut  = entry->clut;
-            if (model->buffer != NULL) {
-                tmdProcessStream(model);
-                tmdProcessStream(model);
-            }
-            work->enemies[i] = child;
+    if (arg0->spawnArg1 == 0) {
+        eff = Gp_SpawnEff(0x60195, coord, 0, NULL);
+        if (eff == NULL) {
+            func_actor_503500_80145480(arg0);
+            return;
         }
+        child          = eff->task;
+        work->field_98 = child;
+        Task_Reparent(arg0, child);
     }
-    work->enemies[0] = enemy;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0x23);
-    func_actor_503500_80136B64(arg0, 1, 0);
-    for (i = 17; i >= 0; i--) {
-        D_actor_503500_80176D64[i] = 0;
-    }
-    func_actor_503500_80135950(arg0, 0x7D3, D_actor_503500_8016EAC0, 0);
-    arg0->exitCallback = (TaskFunc)func_actor_503500_80136228;
-    arg0->field_24     = D_actor_503500_8016EA2C;
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x4023000A, pan, (s8)(gpGetObjDepth(coord) / 2));
+    func_actor_503500_80137290(6);
+    arg0->exitCallback = func_actor_503500_80145480;
     arg0->state       += 1;
 }
 
-/// Per-frame update. `D_801153F4` 1 pauses the boss (buffers kept, only
-/// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
-/// normal chain. `field_7D9` counts down to the frame the TMD buffers are freed.
-void func_actor_503500_80133270(Actor503500* arg0)
+void func_actor_503500_801450A0(Actor503500* arg0)
 {
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    TmdObject*       tmd;
-    s32              mode;
+    Actor503500WorkD0* work;
+    GpActorD4Rec*      d4;
+    GsCOORDINATE2*     coord;
+    s32                pan;
+    s32                step;
+    s32                ang;
 
-    enemy = arg0->field_20;
-    tmd   = arg0->extra;
-    mode  = D_801153F4;
-    work  = arg0->field_1C;
-
-    switch (mode) {
-        case 1:
-            if (work->field_7E4 == 0) {
-                SndEvt_EnqueueType8(0x40000000);
-                Tmd_AllocBuffers(tmd);
-                tmd->flags     &= 0xFF7B;
-                work->field_7E4 = mode;
-                work->field_7E5 = 0;
-            }
-            func_actor_503500_80136AEC(arg0);
-            return;
-        case 2:
-            if (work->field_7D9 >= 0) {
-                if (work->field_7D9 == 0) {
-                    Tmd_FreeBuffers(tmd);
-                }
-                work->field_7D9--;
-            }
-            if (work->field_7E5 == 0) {
-                SndEvt_EnqueueType8(0x40000000);
-                tmd->flags     |= 0x84;
-                work->field_7D9 = 1;
-                work->field_7E4 = 0;
-                work->field_7E5 = 1;
-            }
-            return;
-        default:
-            if (work->field_7E4 == 1 || work->field_7E5 == 1 || work->field_7E7 != 0) {
-                SndEvt_EnqueueType9(0x40000000);
-                work->field_7E4 = 0;
-                work->field_7E5 = 0;
-                work->field_7E7 = 0;
-            }
-            if ((D_80071075 & 0xF0) == 0x40) {
-                SndEvt_EnqueueType8(0x40000000);
-                work->field_7E7 = 1;
-            }
-            if (gGameSession->eventState == 0) {
-                tmd->flags &= 0xFF7F;
-            }
-            if (work->field_7D9 >= 0) {
-                if (work->field_7D9 == 0) {
-                    Tmd_FreeBuffers(tmd);
-                }
-                work->field_7D9--;
-            }
-            if (enemy->reactionFlags != 0) {
-                func_actor_503500_80136280(arg0);
-            }
-            func_actor_503500_80136A88(arg0);
-            func_actor_503500_80136AEC(arg0);
-            func_actor_503500_80136B64(arg0, 0, 0);
-            func_actor_503500_801334CC(arg0);
-            func_actor_503500_80136304(arg0);
-            func_actor_503500_80135178(arg0);
-            func_actor_503500_801353F0(arg0);
-            func_actor_503500_80136D30(arg0);
-            func_actor_503500_80135644(arg0);
-            func_actor_503500_80136DDC(arg0);
-            break;
-    }
-}
-
-/// Main-executable matrix the scene tracks (`acropolis_forked_road.h` calls it
-/// the camera target); no module header owns it yet.
-extern MATRIX* D_80073B8C;
-
-extern u32 Gp_LcgState;
-
-/// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
-/// boss is in state 0, rolls `field_7C8` from `Gp_LcgState`, stores the yaw to
-/// `D_80073B8C` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
-/// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
-/// node per `field_7E2`.
-void func_actor_503500_801334CC(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    GpEnemy*         enemy;
-    SVECTOR          vec;
-    s16              angle;
-    s16              count;
-    s16*             p;
-    s32              i;
-
-    work = arg0->field_1C;
-    p    = work->field_752;
-    if (work->field_7B0 == 0) {
-        for (i = 0; i < 0x11; i++, p++) {
-            if (--*p < 0) {
-                *p = 0;
-            }
-        }
-    }
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_7C8 = Gp_LcgState >> 16;
-    coord           = arg0->extra->coords;
-    vec.vx          = D_80073B8C->t[0] - coord->coord.t[0];
-    vec.vy          = 0;
-    vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
-    angle           = work->field_7D2 + ratan2(vec.vx, vec.vz);
-    while (angle >= 0x800) {
-        angle -= 0x1000;
-    }
-    while (angle < -0x800) {
-        angle += 0x1000;
-    }
-    work->field_7B8 = angle;
-    enemy           = arg0->field_20;
-    count           = --work->field_7CC;
-    if (count < 0) {
-        work->field_7CC = 0;
-    } else if (count == 0) {
-        if (work->field_7E2 != 0) {
-            work->field_5D4.flags |= 0x8000;
-            Gp_LinkNode(&enemy->node);
-        } else {
-            work->field_5D4.flags &= 0x7FFF;
-            Gp_UnlinkNode(&enemy->node);
-        }
-    }
-}
-
-s32 func_actor_503500_80133684(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GpEnemy**        slots;
-    GpEnemy*         slot1;
-    s32              ret;
-
-    ret   = 0;
-    work  = arg0->field_1C;
-    slots = work->enemies;
-
-    if (work->field_7B0 != 2) {
-        if (!(work->field_774 & 1) && (slots[4] == NULL)) {
-            slots[10]->task->killCountdown = 8;
-            ret                            = 1;
-            work->field_774               |= 1;
-        }
-        if (!((work->field_774 >> 1) & 1) && (slots[5] == NULL)) {
-            slots[11]->task->killCountdown = 8;
-            ret                            = 1;
-            work->field_774               |= 2;
-        }
-        if (!((work->field_774 >> 2) & 1) && (slots[1] == NULL)) {
-            if (slots[12] != NULL) {
-                slots[12]->task->killCountdown = 8;
-                ret                            = 1;
-                work->field_774               |= 4;
-            }
-        }
-    }
-
-    if (!((work->field_774 >> 3) & 1) &&
-        ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
-         (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
-         (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
-         ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
-        if ((((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2) &&
-            (D_80073BA0 > 0) && (D_80114C12 != 1)) {
-            ret = 1;
-            if (D_80071075 == 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
-                work->field_774 |= 8;
-                /* `ret` has to be dead across the call for GCC to keep it in
-                 * $a1: it is re-set on the way out of both arms. */
-                goto done;
-            }
-        } else {
-        done:
-            ret = 1;
-        }
-    }
-    return ret;
-}
-
-/// Attack lists for `func_actor_503500_801338E8`, indexed by the phase bit
-/// (`field_774` bit 3), the height band `field_7DC` and the yaw bucket
-/// `field_7DE`; each entry points at a NULL-terminated `Actor503500Step` run.
-extern Actor503500Step** D_actor_503500_8016EF10[2][3];
-/// Yaw-bucket thresholds, same `[phase][band]` indexing: ascending `|yaw|`
-/// limits scanned until one is not below the current yaw offset.
-extern s16* D_actor_503500_8016EF28[2][3];
-
-/// Boss attack picker. Every frame it stores the camera target's yaw
-/// relative to the boss (wrapped into [-0x800, 0x800)) in `field_7BA`. Step 0
-/// updates the height band `field_7DC` from the target's Y with hysteresis,
-/// buckets `|yaw|` into `field_7DE`, then walks that bucket's weighted list
-/// until the running weight reaches the random byte in `field_7C8`, stores
-/// the chosen step in `field_778` and runs it at once. Step 1 keeps running
-/// it. A non-zero result, an empty list (0x1E) or running off the end of the
-/// list (0xF) goes to `field_7CA` after `func_actor_503500_80136EFC(arg0, 0)`.
-void func_actor_503500_801338E8(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    Actor503500Step* step;
-    s32              bit;
-    s16*             thr;
-    s32              angle;
-    s32              absAngle;
-    u32              sum;
-    u32              r;
-    s32              ret;
-
-    work  = arg0->field_1C;
-    coord = arg0->extra->coords;
-    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
-    while (angle >= 0x800) {
-        angle -= 0x1000;
-    }
-    while (angle < -0x800) {
-        angle += 0x1000;
-    }
-    work->field_7BA = angle;
-    switch ((s8)work->field_7DA) {
+    work = (Actor503500WorkD0*)arg0->field_1C;
+    d4   = &work->head.d4;
+    switch (work->field_CC) {
         case 0:
-            work->field_7DD = work->field_7DC;
-            work->field_7DF = work->field_7DE;
-            switch (work->field_7DD) {
-                case 0:
-                    if (D_80073B8C->t[1] >= -0xAEF) {
-                        work->field_7DC = 1;
-                    }
-                    break;
-                case 1:
-                    if (D_80073B8C->t[1] >= -0x31F) {
-                        work->field_7DC = 2;
-                    } else if (D_80073B8C->t[1] < -0xC80) {
-                        work->field_7DC = 0;
-                    }
-                    break;
-                case 2:
-                    if (D_80073B8C->t[1] < -0x4B0) {
-                        work->field_7DC = 1;
-                    }
-                    break;
-            }
-            thr      = D_actor_503500_8016EF28[(work->field_774 >> 3) & 1][work->field_7DC];
-            absAngle = abs(angle);
-            for (work->field_7DE = 0; *thr++ < absAngle; work->field_7DE++) {
-            }
-            bit  = (work->field_774 >> 3) & 1;
-            step = D_actor_503500_8016EF10[bit][work->field_7DC][work->field_7DE];
-            r    = (u8)work->field_7C8;
-            if (step->fn != NULL) {
-                sum = step->weight;
-                while (sum < r) {
-                    if (step[1].fn == NULL) {
-                        func_actor_503500_80136EFC(arg0, 0);
-                        work->field_7CA = 0xF;
-                        return;
-                    }
-                    step++;
-                    sum += step->weight;
+            if (++work->field_C6 >= 0x1F) {
+                if (arg0->spawnArg1 == 0) {
+                    work->head.obj.flags |= 0x8000;
                 }
-                work->field_778 = step->fn;
-                work->field_7DA++;
-            } else {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = 0x1E;
-                return;
-            }
-        case 1:
-            ret = work->field_778(arg0, work);
-            if (ret != 0) {
-                func_actor_503500_80136EFC(arg0, 0);
-                work->field_7CA = ret;
-            }
-            break;
-        default:
-            func_actor_503500_80136EFC(arg0, 0);
-            break;
-    }
-}
-
-/// Script step that dismisses one of the boss's slot-10/11 helpers. State 0
-/// picks the slot: with `field_7DE` clear it tries the slot chosen by the low
-/// bit of `field_7C8` and then the other one, and always advances; otherwise
-/// the sign of `field_7BA` picks slot 10 or 11 and it only advances once that
-/// slot is ready. State 1 waits for the chosen slot (`field_7C2`) to finish
-/// dying. Returns 1 while no slot is ready, 0 the frame the request is issued
-/// or while waiting, and 1 once the slot has gone quiet. `arg0` is passed
-/// through the step table and ignored here.
-s32 func_actor_503500_80133BF4(Actor503500* arg0, Actor503500Work* work)
-{
-    s32 ret;
-    s32 odd;
-    s32 slot;
-
-    ret = 1;
-    switch ((s8)work->field_7DB) {
-        case 0:
-            if (work->field_7DE == 0) {
-                odd  = work->field_7C8 & 1;
-                slot = odd + 0xA;
-                if (func_actor_503500_80136FDC(work, slot) != 0 ||
-                    (slot = 0xB - odd, func_actor_503500_80136FDC(work, slot) != 0)) {
-                    func_actor_503500_80136F40(work, slot, 2, 0x78);
-                    work->field_7C2 = slot;
-                }
-                ret             = 0;
-                work->field_7D2 = 0;
-                work->field_7DB = 1;
-            } else if (work->field_7BA > 0) {
-                if (func_actor_503500_80136FDC(work, 0xA) != 0) {
-                    func_actor_503500_80136F40(work, 0xA, 2, 0x78);
-                    ret             = 0;
-                    work->field_7C2 = 0xA;
-                    work->field_7D2 = 0;
-                    work->field_7DB = 1;
-                }
-            } else if (func_actor_503500_80136FDC(work, 0xB) != 0) {
-                func_actor_503500_80136F40(work, 0xB, 2, 0x78);
-                ret             = 0;
-                work->field_7C2 = 0xB;
-                work->field_7D2 = 0;
-                work->field_7DB = 1;
-            }
-            break;
-        case 1:
-            if (func_actor_503500_80136FA8(work, work->field_7C2) == 0) {
-                ret = 0;
-            }
-            break;
-    }
-    return ret;
-}
-
-/// Slot table walked by `func_actor_503500_80133D40`: four slot ids, tried in
-/// order, and the per-entry value handed to `func_actor_503500_80136F40` as
-/// its last argument when that slot is picked.
-extern s16 D_actor_503500_8016EF40[];
-extern s16 D_actor_503500_8016EF48[];
-
-/// Script step that dismisses the first ready slot of four (slots 2, 7, 13,
-/// 14 are tested) whose `field_7BA` range test passes; 13 and 14 also depend on
-/// whether the other one's `enemies` entry is empty. State 0 returns 0 the
-/// frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the slot
-/// is 7, and once the slot is done or 0x1E frames have passed returns 0x3C for
-/// slot 7 or 0x1E for 2/13/14; until then 0. Any other state returns 1.
-s32 func_actor_503500_80133D40(Actor503500* arg0, Actor503500Work* work)
-{
-    s32  ret;
-    s32  i;
-    s16* slots;
-    s16  dir;
-    s16  slot;
-
-    switch ((s8)work->field_7DB) {
-        case 0:
-            ret   = 1;
-            i     = 0;
-            slots = D_actor_503500_8016EF48;
-            dir   = work->field_7BA;
-            for (; i < 4; i++) {
-                slot = *slots;
-                if (func_actor_503500_80136FDC(work, slot) != 0) {
-                    switch (slot) {
-                        case 2:
-                            if (!(dir >= -0x6A4 && dir <= 0x3E8)) {
-                                ret = 0;
-                            }
-                            break;
-                        case 13:
-                            if (func_actor_503500_80135E04((Task*)arg0, 0xE) != 0) {
-                                if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
-                                    ret = 0;
-                                }
-                            } else if (dir >= 0x3E9 && dir <= 0x6A3) {
-                                ret = 0;
-                            }
-                            break;
-                        case 14:
-                            if (func_actor_503500_80135E04((Task*)arg0, 0xD) != 0) {
-                                if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
-                                    ret = 0;
-                                }
-                            } else if (!(dir >= -0x7D0 && dir <= 0x6A3)) {
-                                ret = 0;
-                            }
-                            break;
-                        case 7:
-                            if (dir >= 0x5DD && dir <= 0x76B) {
-                                ret = 0;
-                            }
-                            break;
-                    }
-                    if (ret == 0) {
-                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
-                        work->field_7C2 = slot;
-                        work->field_7DB = 1;
-                        break;
-                    }
-                }
-                slots++;
-            }
-            break;
-        case 1:
-            ret = 0;
-            if (work->field_7C2 != 7) {
-                work->field_7BE++;
-            }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x1E) {
-                switch (work->field_7C2) {
-                    case 2:
-                        ret = 0x1E;
-                        break;
-                    case 13:
-                        ret = 0x1E;
-                        break;
-                    case 14:
-                        ret = 0x1E;
-                        break;
-                    case 7:
-                        ret = 0x3C;
-                        break;
-                }
-            }
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
-
-/// Second slot table for `func_actor_503500_80133FD8`; shares the per-entry
-/// values in `D_actor_503500_8016EF40`.
-extern s16 D_actor_503500_8016EF50[];
-
-/// Mirror of `func_actor_503500_80133D40` for the other side: tries slots 3,
-/// 15, 16 and 8 with the `field_7BA` range tests reflected. State 0 returns 0
-/// the frame a slot is issued, else 1. State 1 bumps `field_7BE` unless the
-/// slot is 8, and once the slot is done or 0x14 frames have passed returns 0x3C
-/// for slot 8 or 0x1E for 3/15/16; until then 0. Any other state returns 1.
-s32 func_actor_503500_80133FD8(Actor503500* arg0, Actor503500Work* work)
-{
-    s32  ret;
-    s32  i;
-    s16* slots;
-    s16  dir;
-    s16  slot;
-
-    switch ((s8)work->field_7DB) {
-        case 0:
-            ret   = 1;
-            i     = 0;
-            slots = D_actor_503500_8016EF50;
-            dir   = work->field_7BA;
-            for (; i < 4; i++) {
-                slot = *slots;
-                if (func_actor_503500_80136FDC(work, slot) != 0) {
-                    switch (slot) {
-                        case 3:
-                            if (!(dir >= -0x3E8 && dir <= 0x6A4)) {
-                                ret = 0;
-                            }
-                            break;
-                        case 15:
-                            if (func_actor_503500_80135E04((Task*)arg0, 0x10) != 0) {
-                                if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
-                                    ret = 0;
-                                }
-                            } else if (!(dir >= -0x6A3 && dir <= 0x7D0)) {
-                                ret = 0;
-                            }
-                            break;
-                        case 16:
-                            if (func_actor_503500_80135E04((Task*)arg0, 0xF) != 0) {
-                                if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
-                                    ret = 0;
-                                }
-                            } else if (dir < -0x3E8) {
-                                if (dir >= -0x6A3) {
-                                    ret = 0;
-                                }
-                            }
-                            break;
-                        case 8:
-                            if (dir < -0x5DC) {
-                                if (dir >= -0x76B) {
-                                    ret = 0;
-                                }
-                            }
-                            break;
-                    }
-                    if (ret == 0) {
-                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
-                        work->field_7C2 = slot;
-                        work->field_7DB = 1;
-                        break;
-                    }
-                }
-                slots++;
-            }
-            break;
-        case 1:
-            ret = 0;
-            if (work->field_7C2 != 8) {
-                work->field_7BE++;
-            }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x14) {
-                switch (work->field_7C2) {
-                    case 3:
-                        ret = 0x1E;
-                        break;
-                    case 15:
-                        ret = 0x1E;
-                        break;
-                    case 16:
-                        ret = 0x1E;
-                        break;
-                    case 8:
-                        ret = 0x3C;
-                        break;
-                }
-            }
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
-
-/// Script step pairing `func_actor_503500_80133D40` and `_80133FD8`. State 0
-/// runs the one the sign of `field_7BA` picks; the fallback to the other one
-/// needs `field_7BA` beyond +/-0x76C on the opposite side, which that sign
-/// rules out, so it never fires. `field_7D2` becomes 0x7D0 when the result
-/// is 0, else 0. State 1 bumps `field_7BE`
-/// unless `field_7C2` is slot 7 or 8, and once that slot is done or 0x5B
-/// frames have passed returns a per-slot delay (0xF, 0x3C, 0x5A or 0x1E);
-/// until then it returns 0. Any other state returns 1.
-s32 func_actor_503500_80134284(Actor503500* arg0, Actor503500Work* work)
-{
-    s32 ret;
-    s32 dir;
-
-    dir = work->field_7BA;
-    switch ((s8)work->field_7DB) {
-        case 0:
-            if (dir > 0) {
-                ret = func_actor_503500_80133D40(arg0, work);
-                if (ret == 1 && dir < -0x76C) {
-                    ret = func_actor_503500_80133FD8(arg0, work);
-                }
-            } else {
-                ret = func_actor_503500_80133FD8(arg0, work);
-                if (ret == 1 && dir > 0x76C) {
-                    ret = func_actor_503500_80133D40(arg0, work);
-                }
-            }
-            if (ret == 0) {
-                work->field_7D2 = 0x7D0;
-            } else {
-                work->field_7D2 = 0;
-            }
-            break;
-        case 1:
-            ret = 0;
-            if ((u16)work->field_7C2 - 7 >= 2U) {
-                work->field_7BE++;
-            }
-            if (func_actor_503500_80136FA8(work, work->field_7C2) != 0 || work->field_7BE > 0x5A) {
-                switch (work->field_7C2) {
-                    case 2:
-                    case 3:
-                        ret = 0xF;
-                        break;
-                    case 13:
-                    case 14:
-                    case 15:
-                    case 16:
-                        ret = 0x3C;
-                        break;
-                    case 7:
-                    case 8:
-                        ret = 0x5A;
-                        break;
-                    default:
-                        ret = 0x1E;
-                        break;
-                }
-            }
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
-
-/// Two-step state of the boss block. Step 0 hides the second body part,
-/// unlinks the enemy node, stores the summed `field_40` of occupied slots
-/// 1..16 in `gGameSession->bossPartsHpSum` and plays sound 0x40230010 at the
-/// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
-/// under the same gates as `func_actor_503500_80133684`.
-void func_actor_503500_80134408(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    s32              i;
-    s16              sum;
-    s32              pan;
-
-    work  = arg0->field_1C;
-    enemy = arg0->field_20;
-    switch ((s8)work->field_7DA) {
-        case 0:
-            work->field_5D4.flags &= 0x7FFF;
-            func_actor_503500_8013611C(arg0->spawnArg1);
-            Gp_UnlinkNode(&enemy->node);
-            enemy->recs     = 0;
-            work->field_7B4 = 0;
-            Gp_PulseState1C();
-            sum = 0;
-            for (i = 1; i < 0x11; i++) {
-                if (work->enemies[i] != NULL) {
-                    sum += work->enemies[i]->hp;
-                }
-            }
-            gGameSession->bossPartsHpSum = sum;
-            work->field_7E0              = 0;
-            func_actor_503500_80135FB4(arg0, 0xE, 0x20);
-            pan = (s8)Gp_GetObjPan(&arg0->extra->coords[3]);
-            SndEvt_EnqueueType6(0x40230010, pan,
-                                (s8)(gpGetObjDepth(&arg0->extra->coords[3]) / 2));
-            work->field_7DA = work->field_7DA + 1;
-            break;
-        case 1:
-            if (++work->field_7BC >= 0x1F &&
-                ((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2 &&
-                D_80073BA0 > 0 && D_80114C12 != 1 && D_80071075 == 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
-                SndEvt_EnqueueType7(0x40230010, 0x2D);
-                work->field_7DA = work->field_7DA + 1;
-            }
-            break;
-    }
-}
-
-/// Seven-step state of the boss block. Step 0 applies preset 0x13 and clears
-/// `field_79C`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
-/// frame count, one from `Gp_LcgState`), plays 0x40230012, and at frame 0x97
-/// spawns the attached effect task into `field_79C`. Step 2 waits for
-/// `field_7E3`, kills that task and spawns a fresh one; steps 3..6 walk
-/// presets 6, 7 and 8 and finally return the boss to state 0.
-void func_actor_503500_801345F4(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    Task*            task;
-    s32              pan;
-
-    work = arg0->field_1C;
-    switch ((s8)work->field_7DA) {
-        case 0:
-            func_actor_503500_80135FB4(arg0, 0x13, 0x10);
-            func_actor_503500_8013611C(arg0->spawnArg1);
-            work->field_79C = NULL;
-            work->field_7DA = work->field_7DA + 1;
-            break;
-        case 1:
-            if (work->field_7BC < 0x78) {
-                Gp_SpawnEff(0x60055, &arg0->extra->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(s16)(work->field_7BC % 7)]);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60055, &arg0->extra->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(u16)((Gp_LcgState >> 16) % 7)]);
-            }
-            if (work->field_7BC == 0x78) {
-                SndEvt_EnqueueType7(0x40230012, 0x3C);
-            }
-            if (work->field_7BC == 2) {
-                coord = &arg0->extra->coords[3];
+                coord = arg0->extra->coords;
                 pan   = (s8)Gp_GetObjPan(coord);
-                SndEvt_EnqueueType6(0x40230012, pan, (s8)(gpGetObjDepth(coord) / 2));
+                SndEvt_EnqueueType6(0x4023000B, pan, (s8)(gpGetObjDepth(coord) / 2));
+                work->field_C6 = 0;
+                work->field_CC++;
             }
-            if (++work->field_7BC >= 0x97) {
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x64, (s32)arg0);
-                if (task != NULL) {
-                    coord             = ((TmdObject*)task->extra)->coords;
-                    coord->sub        = &arg0->extra->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
+            break;
+        case 1:
+            if (++work->field_C6 >= 0x15) {
+                if (arg0->spawnArg1 != 0) {
+                    work->head.obj.flags |= 0x8000;
                 }
-                work->field_79C = task;
-                D_80071090[0]   = 1;
-                work->field_7DA = work->field_7DA + 1;
+                work->field_C6 = 0;
+                work->field_CC++;
             }
             break;
         case 2:
-            if (work->field_7E3 != 0) {
-                task = work->field_79C;
-                if (task != NULL) {
-                    task->exitCallback(task);
-                }
-                func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, (s32)arg0);
-                if (task != NULL) {
-                    coord             = ((TmdObject*)task->extra)->coords;
-                    coord->sub        = &arg0->extra->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
-                }
-                func_actor_503500_80137074(arg0, 1, 1);
-                work->field_7DA = work->field_7DA + 1;
+            step = -0x20000;
+            if (arg0->spawnArg1 != 0) {
+                step = 0x20000;
+            }
+            {
+                GpMtxWords* m;
+
+                m                 = (GpMtxWords*)&work->field_9C;
+                m->w0             = 0x1000;
+                work->field_C0   += step;
+                work->field_BC.w += work->field_C0;
+                m->w1             = 0;
+                m->w2             = 0x1000;
+                m->w3             = 0;
+                m->h4             = 0x1000;
+            }
+            func_8004BFF8(work->field_BC.h.hi, &work->field_9C);
+            ang = work->field_BC.h.hi;
+            if (ang < 0) {
+                ang = -ang;
+            }
+            if (ang > 0x100) {
+                work->field_CC++;
             }
             break;
         case 3:
-            if (func_actor_503500_80136014(arg0, 5) != 0) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7BC = 0;
-                work->field_7DA = work->field_7DA + 1;
+            if (arg0->spawnArg1 != 0) {
+                work->field_C0 -= 0x20000;
+                if (work->field_C0 < 0) {
+                    work->field_C0 = 0;
+                    work->field_CC++;
+                }
+            } else {
+                work->field_C0 += 0x20000;
+                if (work->field_C0 > 0) {
+                    work->field_C0 = 0;
+                    work->field_CC++;
+                }
             }
+            {
+                GpMtxWords* m;
+
+                m                 = (GpMtxWords*)&work->field_9C;
+                m->w0             = 0x1000;
+                work->field_BC.w += work->field_C0;
+                m->w1             = 0;
+                m->w2             = 0x1000;
+                m->w3             = 0;
+                m->h4             = 0x1000;
+            }
+            func_8004BFF8(work->field_BC.h.hi, &work->field_9C);
             break;
         case 4:
-            if (++work->field_7BC >= 0x33) {
-                func_actor_503500_80135FB4(arg0, 7, 0);
-                work->field_7DA = work->field_7DA + 1;
+            if (work->field_C4 <= 0x400) {
+                work->head.obj.flags &= 0x7FFF;
+                work->field_CC++;
             }
             break;
-        case 5:
-            if (func_actor_503500_80136014(arg0, 7) != 0) {
-                func_actor_503500_80135FB4(arg0, 8, 0);
-                func_actor_503500_80137074(arg0, 0, 0xE);
-                work->field_7DA = work->field_7DA + 1;
-            }
+        default:
+            arg0->state++;
             break;
-        case 6:
-            if (func_actor_503500_80136014(arg0, 8) != 0) {
-                D_80071090[0] = 0;
-                func_actor_503500_80135FB4(arg0, 0, 0);
-                work->field_7D2 = 0;
-                func_actor_503500_80136EFC(arg0, 0);
-            }
-            break;
+    }
+    if (work->field_CC >= 2) {
+        work->field_C4 -= 0x50;
+        if (work->field_C4 < 0x200) {
+            work->field_C4 = 0x200;
+        }
+        d4->end0Radius = work->field_C4 * 0x177 >> 9;
+        d4->end1Radius = work->field_C4 * 0x7D >> 9;
+        gte_SetRotMatrix(&work->field_9C);
+        gte_ldv0(&D_actor_503500_801715CC);
+        gte_rtv0();
+        gte_stsv(d4);
     }
 }
 
-/// Three-step state of the boss block. Step 0 saves the coordinate's rotation
-/// and seeds the Y scale to 0x1000; step 1 counts 0x1F frames, then applies
-/// animation preset 0xE; step 2 restores the rotation every frame, squashes it
-/// in Y down to 0x200 and fires the light / effect cues at frames 0x3C, 0x46
-/// and 0x64. From step 2 on, preset 0xE is reapplied whenever
-/// `func_actor_503500_80136014` reports it.
-void func_actor_503500_80134A24(Actor503500* arg0)
+void func_actor_503500_80145428(Actor503500* arg0)
 {
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    s32*             src;
-    s32*             dst;
-    s32              i;
-    VECTOR           scale;
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord      = arg0->extra->coords;
+    coord->flg = 0;
+    func_actor_503500_801454E0(arg0);
+    func_actor_503500_801450A0(arg0);
+}
+
+void func_actor_503500_80145480(Task* arg0)
+{
+    TmdObject* ext;
+
+    func_actor_503500_801372AC(6);
+    SndEvt_EnqueueType7(0x4023000B, 1);
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    taskKill(arg0);
+}
+
+void func_actor_503500_801454E0(Actor503500* arg0)
+{
+    Actor503500WorkRec4* work;
+    GpRec18*             rec;
+    s32                  i;
+
+    work = (Actor503500WorkRec4*)arg0->field_1C;
+    rec  = work->rec;
+    for (i = 0; i < 4; i++) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+            work->obj.flags &= 0x7FFF;
+        }
+    }
+    Gp_ClearRec18Occupied(rec);
+}
+
+void func_actor_503500_8014554C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_801321F4;
+    sp.funcs[task->state](task);
+}
+
+/// `Task::state` handlers `func_actor_503500_801459D4` dispatches through.
+const TaskFuncTable3 D_actor_503500_80132218 = {
+    {
+        func_actor_503500_801455A4,
+        func_actor_503500_801458F8,
+        func_actor_503500_80145950,
+    },
+};
+
+void func_actor_503500_801455A4(Task* arg0)
+{
+    Actor503500Work44* work;
+    GsCOORDINATE2*     coord;
+    GpMtxWords*        m;
+    GpEffWork*         eff;
+    Task*              child;
+    s32                pan;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(arg0);
+        return;
+    }
+    arg0->work = (TaskIdMap*)work;
+
+    m     = (GpMtxWords*)&coord->coord;
+    m->w0 = 0x1000;
+    m->w1 = 0;
+    m->w2 = 0x1000;
+    m->w3 = 0;
+    m->h4 = 0x1000;
+
+    work->head.obj.coord    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    work->head.obj.ctx.recs = &work->head.rec;
+    work->head.obj.pos.vx   = D_actor_503500_801715D4.vx;
+    work->head.obj.pos.vy   = D_actor_503500_801715D4.vy;
+    work->head.obj.pos.vz   = D_actor_503500_801715D4.vz;
+    work->head.obj.key      = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
+    work->head.obj.radius   = 0x12C;
+    work->head.obj.flags    = 1;
+    Gp_LinkObj(3, &work->head.obj);
+    Gp_InitRec18Table(&work->head.rec, 1, 0);
+    work->head.obj.flags &= 0x7FFF;
+
+    eff = Gp_SpawnEff(0x6018A, coord, 0, NULL);
+    if (eff == NULL) {
+        func_actor_503500_80145950(arg0);
+        return;
+    }
+    child          = eff->task;
+    work->field_38 = child;
+    Task_Reparent(arg0, child);
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x4023000C, pan, (s8)(gpGetObjDepth(coord) / 2));
+    func_actor_503500_80137290(6);
+    arg0->exitCallback = func_actor_503500_80145950;
+    arg0->state       += 1;
+}
+
+void func_actor_503500_80145754(Actor503500* arg0)
+{
+    Actor503500Work44* work;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     coord2;
+    s32                pan;
+    s32                pan2;
+
+    work = (Actor503500Work44*)arg0->field_1C;
+    if (func_actor_503500_8013608C(arg0) == 0) {
+        switch (work->field_40) {
+            case 0:
+                work->field_3C++;
+                if (work->field_3C >= 0x5F) {
+                    if (D_80073B8C->t[1] < -1000) {
+                        work->head.obj.flags |= 0x8000;
+                    }
+                    work->field_3C = 0;
+                    work->field_40++;
+                } else if (work->field_3C == 0x3E) {
+                    coord = arg0->extra->coords;
+                    pan   = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(0x40230014, pan, (s8)(gpGetObjDepth(coord) / 2));
+                } else if (work->field_3C == 0x5A) {
+                    coord2 = arg0->extra->coords;
+                    pan2   = (s8)Gp_GetObjPan(coord2);
+                    SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(gpGetObjDepth(coord2) / 2));
+                }
+                return;
+            case 1:
+                work->field_3C++;
+                if (work->field_3C >= 4) {
+                    work->field_3C        = 0;
+                    work->head.obj.flags &= 0x7FFF;
+                    work->field_40++;
+                }
+                return;
+        }
+    }
+    arg0->state += 1;
+}
+
+void func_actor_503500_801458F8(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
 
     coord = arg0->extra->coords;
-    obj   = arg0->extra;
-    work  = arg0->field_1C;
-    enemy = arg0->field_20;
-    switch ((s8)work->field_7DA) {
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord->flg = 0;
+    func_actor_503500_801459B0((Task*)arg0);
+    func_actor_503500_80145754(arg0);
+}
+
+void func_actor_503500_80145950(Task* arg0)
+{
+    TmdObject* ext;
+
+    SndEvt_EnqueueType7(0x4023000C, 1);
+    func_actor_503500_801372AC(6);
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    taskKill(arg0);
+}
+
+void func_actor_503500_801459B0(Task* arg0)
+{
+    Gp_ClearRec18Occupied(&((Actor503500ObjWork*)arg0->work)->rec);
+}
+
+void func_actor_503500_801459D4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132218;
+    sp.funcs[task->state](task);
+}
+
+/// `Task::state` handlers `func_actor_503500_80145F84` dispatches through.
+const TaskFuncTable3 D_actor_503500_80132224 = {
+    {
+        func_actor_503500_80145A2C,
+        func_actor_503500_80145E1C,
+        func_actor_503500_80145E98,
+    },
+};
+
+void func_actor_503500_80145A2C(Task* arg0)
+{
+    Actor503500WorkAC* work;
+    GsCOORDINATE2*     coord;
+    GpActorD4Rec*      d4;
+    GpRec18*           rec;
+    GpEffWork*         eff;
+    Task*              child;
+    GpMtxWords*        m;
+    s32                pan;
+    s32                pan2;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(arg0);
+        return;
+    }
+    arg0->work = (TaskIdMap*)work;
+
+    m     = (GpMtxWords*)&coord->coord;
+    m->w0 = 0x1000;
+    m->w1 = 0;
+    m->w2 = 0x1000;
+    m->w3 = 0;
+    m->h4 = 0x1000;
+
+    d4  = &work->head.d4;
+    rec = work->head.rec;
+
+    work->head.obj.coord     = coord;
+    work->head.obj.ctx.d4rec = d4;
+    work->head.obj.pos.vx    = D_actor_503500_801715DC.vx;
+    work->head.obj.pos.vy    = D_actor_503500_801715DC.vy;
+    work->head.obj.pos.vz    = D_actor_503500_801715DC.vz;
+    work->head.obj.key       = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
+    work->head.obj.flags     = 3;
+    work->head.obj.radius    = 0;
+
+    d4->recs       = rec;
+    d4->end1.vx    = 0;
+    d4->end1.vy    = 0;
+    d4->end1.vz    = 0;
+    d4->end0.vx    = D_actor_503500_801715E4.vx;
+    d4->end0.vy    = D_actor_503500_801715E4.vy;
+    d4->end0.vz    = D_actor_503500_801715E4.vz;
+    d4->end1Radius = 0x7D0;
+    d4->end0Radius = 0xBB8;
+
+    Gp_LinkObj(3, &work->head.obj);
+    Gp_InitRec18Table(rec, 4, 0);
+    work->head.obj.flags &= 0x7FFF;
+
+    eff = Gp_SpawnEff(0x60190, coord, arg0->spawnArg1, NULL);
+    if (eff == NULL) {
+        func_actor_503500_80145E98(arg0);
+        return;
+    }
+    child          = eff->task;
+    work->field_98 = child;
+    Task_Reparent(arg0, child);
+    if (gGameSession->eventState != 0) {
+        pan = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(0x40230013, pan, (s8)(gpGetObjDepth(coord) / 2));
+    } else {
+        pan2 = (s8)Gp_GetObjPan(coord);
+        SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(gpGetObjDepth(coord) / 2));
+    }
+    func_actor_503500_80137290(8);
+    arg0->exitCallback = func_actor_503500_80145E98;
+    arg0->state       += 1;
+}
+
+void func_actor_503500_80145C50(Actor503500* arg0)
+{
+    Actor503500WorkAC* work;
+    GsCOORDINATE2*     coord;
+    s32                pan;
+
+    work = (Actor503500WorkAC*)arg0->field_1C;
+    switch (work->field_A8) {
         case 0:
-            work->field_7BC = 0;
-            work->field_7CE = 0x1000;
-            dst             = work->field_77C;
+            if (D_80070F70 & 1) {
+                Gp_SpawnPadLerp(1, 0x96, 0x96);
+            }
+            if (++work->field_A4 < 0x5B) {
+                return;
+            }
+            if (gGameSession->eventState == 0) {
+                work->head.obj.flags |= 0x8000;
+                coord                 = arg0->extra->coords;
+                pan                   = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(0x4023000F, pan, (s8)(gpGetObjDepth(coord) / 2));
+            }
+            goto next;
+        case 1:
+            if (gGameSession->eventState == 0) {
+                Gp_SpawnPadLerp(1, 0xFF, 0xFF);
+            }
+            if (++work->field_A4 < 0x38) {
+                return;
+            }
+            work->head.obj.flags &= 0x7FFF;
+            SndEvt_EnqueueType7(0x4023000F, 1);
+        next:
+            work->field_A4 = 0;
+            work->field_A8++;
+            return;
+        case 2:
+            if (++work->field_A4 < 0x24) {
+                return;
+            }
+        default:
+            arg0->state += 1;
+            return;
+    }
+}
+
+void func_actor_503500_80145E1C(Actor503500* arg0)
+{
+    GsCOORDINATE2* coord;
+    s32            state;
+
+    coord = arg0->extra->coords;
+    state = D_801153F4;
+    if (state < 3) {
+        if (state != 0) {
+            return;
+        }
+    }
+    coord->flg = 0;
+    func_actor_503500_80145F18(arg0);
+    func_actor_503500_80145C50(arg0);
+    if (func_actor_503500_8013608C(arg0->field_20)) {
+        arg0->exitCallback((Task*)arg0);
+    }
+}
+
+void func_actor_503500_80145E98(Task* arg0)
+{
+    TmdObject* ext;
+
+    func_actor_503500_801372AC(8);
+    SndEvt_EnqueueType7(0x4023000E, 1);
+    SndEvt_EnqueueType7(0x40230013, 1);
+    SndEvt_EnqueueType7(0x4023000F, 1);
+    ext                                = arg0->extra;
+    ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
+    Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
+    taskKill(arg0);
+}
+
+void func_actor_503500_80145F18(Actor503500* arg0)
+{
+    Actor503500WorkRec4* work;
+    GpRec18*             rec;
+    s32                  i;
+
+    work = (Actor503500WorkRec4*)arg0->field_1C;
+    rec  = work->rec;
+    for (i = 0; i < 4; i++) {
+        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+            work->obj.flags &= 0x7FFF;
+        }
+    }
+    Gp_ClearRec18Occupied(rec);
+}
+
+void func_actor_503500_80145F84(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132224;
+    sp.funcs[task->state](task);
+}
+
+/// `Task::state` handlers `func_actor_503500_801463C0` dispatches through.
+const TaskFuncTable3 D_actor_503500_80132230 = {
+    {
+        func_actor_503500_8014642C,
+        func_actor_503500_80145FDC,
+        func_actor_503500_801464E8,
+    },
+};
+
+/// Per-frame tick of the `Actor503500Effect4CC` effect: runs the motion
+/// handler `field_4C0` selects, adds the 16.16 velocity `field_4B0` onto the
+/// accumulator `field_4A0`, moves the coordinate by the integer part and keeps
+/// only the fraction, then ticks the animation slots and the actor colour.
+void func_actor_503500_80145FDC(Actor503500* task)
+{
+    VECTOR                pos;
+    TmdObject*            ext      = task->extra;
+    Actor503500Effect4CC* work     = (Actor503500Effect4CC*)task->field_1C;
+    TaskFunc              funcs[2] = { func_actor_503500_80146524, func_actor_503500_8014618C };
+    GsCOORDINATE2*        coord;
+    s32                   i;
+
+    funcs[work->field_4C0]((Task*)task);
+    coord              = task->extra->coords;
+    work->field_4A0   += work->field_4B0;
+    work->field_4A4   += work->field_4B4;
+    work->field_4A8   += work->field_4B8;
+    coord->coord.t[0] += (s16)(work->field_4A0 >> 16);
+    coord->coord.t[1] += (s16)(work->field_4A4 >> 16);
+    coord->coord.t[2] += (s16)(work->field_4A8 >> 16);
+    coord->flg         = 0;
+    work->field_4A0    = (u16)work->field_4A0;
+    work->field_4A4    = (u16)work->field_4A4;
+    work->field_4A8    = (u16)work->field_4A8;
+    if (work->field_43C != 0) {
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+    if (!(ext->flags & 0x80)) {
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        pos.vx = coord->workm.t[0];
+        pos.vy = coord->workm.t[1];
+        pos.vz = coord->workm.t[2];
+        Gp_UpdateActorColor(task->field_20, &pos, 0, 0);
+    }
+    if (work->field_4C8 >= 0) {
+        if (work->field_4C8 == 0) {
+            Tmd_FreeBuffers(ext);
+        }
+        work->field_4C8--;
+    }
+}
+
+/// Motion handler 1 of `Actor503500Effect4CC` (`field_4C0`), stepped by
+/// `field_4C2`: state 0 saves the coordinate's rotation words into
+/// `field_480`/`field_490`, state 1 waits 31 frames, and state 2 restores that
+/// rotation every frame while squashing its Y scale `field_4C6` from 0x1000 down
+/// to 0x200, firing the light and spark cues on the way before advancing the
+/// task at frame 150.
+void func_actor_503500_8014618C(Task* arg0)
+{
+    VECTOR                scale;
+    GsCOORDINATE2*        coord;
+    Actor503500Effect4CC* work;
+    TmdObject*            ext;
+    void*                 enemy;
+    s32*                  src;
+    s32*                  dst;
+    s32                   i;
+
+    // `extra` is read twice on purpose: the second read is what leaves the
+    // target's `move s2, v0` copy.
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = (Actor503500Effect4CC*)arg0->work;
+    enemy = arg0->spawnArg2;
+    ext   = arg0->extra;
+    switch (work->field_4C2) {
+        case 0:
+            work->field_4C4 = 0;
+            work->field_4C6 = 0x1000;
+            dst             = work->field_480;
             src             = (s32*)coord->coord.m;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            work->field_78C = coord->coord.m[2][2];
-            work->field_7DA = work->field_7DA + 1;
+            work->field_490 = coord->coord.m[2][2];
+            work->field_4C2++;
             break;
         case 1:
-            if (++work->field_7BC >= 0x1F) {
-                func_actor_503500_80135FB4(arg0, 0xE, 0x20);
-                work->field_7BC = 0;
-                work->field_7DA = work->field_7DA + 1;
+            work->field_4C4++;
+            if (work->field_4C4 >= 0x1F) {
+                work->field_4C4 = 0;
+                work->field_4C2++;
             }
             break;
         case 2:
-            if (work->field_7CE > 0x200) {
-                work->field_7CE -= 0x10;
+            if (work->field_4C6 > 0x200) {
+                work->field_4C6 -= 0x10;
             }
             dst = (s32*)coord->coord.m;
-            src = work->field_77C;
+            src = work->field_480;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            coord->coord.m[2][2] = work->field_78C;
+            coord->coord.m[2][2] = work->field_490;
             scale.vx             = 0x1000;
-            scale.vy             = work->field_7CE;
+            scale.vy             = work->field_4C6;
             scale.vz             = 0x1000;
             ScaleMatrixL(&coord->coord, &scale);
             coord->flg = 0;
-            switch (++work->field_7BC) {
-                case 0x3C:
-                    obj->flags |= 2;
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+            work->field_4C4++;
+            switch (work->field_4C4) {
+                case 0x14:
+                    ext->flags |= 2;
+                    Gp_SetLightMode(enemy, 1);
                     break;
-                case 0x46:
-                    Gp_SpawnEff(0x600A5, coord, 1, NULL);
+                case 0x1E:
+                    Gp_SpawnEff(0x600A5, coord, 2, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
+                    break;
+                case 0x96:
+                    arg0->state++;
                     break;
             }
             break;
     }
-    if ((s8)work->field_7DA >= 2 && func_actor_503500_80136014(arg0, 0xE) != 0) {
-        func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+}
+
+void func_actor_503500_801463C0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80132230;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
     }
 }
 
-void func_actor_503500_80134C68(Actor503500* arg0)
+void func_actor_503500_8014642C(Actor503500* arg0)
 {
-    Actor503500Work* work;
-    Task*            task;
-    GsCOORDINATE2*   coord;
+    Actor503500Effect4CC* work;
+    GsCOORDINATE2*        coord;
+    GpEnemy*              enemy;
 
-    work = arg0->field_1C;
-    if ((u16)(work->field_7B0 - 2) < 3U) {
-        func_actor_503500_80136F40(work, 0, 0, 0);
+    enemy = arg0->field_20;
+    coord = arg0->extra->coords;
+
+    work = memCalloc(sizeof(Actor503500Effect4CC), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit((Task*)arg0);
         return;
     }
-    switch (work->field_7E1) {
+
+    arg0->field_1C  = (Actor503500Work*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4C8 = -1;
+    work->field_4A0 = 0;
+    work->field_4A4 = 0;
+    work->field_4A8 = 0;
+
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
+    enemy->recs     = 0;
+
+    func_actor_503500_80146508((Task*)arg0);
+    TOUCH_REG(enemy);
+
+    arg0->field_24     = D_actor_503500_80176530;
+    arg0->exitCallback = func_actor_503500_801464E8;
+    arg0->state++;
+}
+/// `Task::exitCallback` of the effect task `func_actor_503500_8014642C`
+/// initialises, and the third entry of its state table: hands the task to
+/// `Gp_EnemyTaskExit`.
+void func_actor_503500_801464E8(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
+
+void func_actor_503500_80146508(Task* arg0)
+{
+    TmdObject*            ext;
+    Actor503500Effect4CC* work;
+
+    work          = (Actor503500Effect4CC*)arg0->work;
+    ext           = arg0->extra;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
+}
+
+void func_actor_503500_80146524(Task* arg0)
+{
+}
+
+s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
+{
+    Actor503500Effect4CC* work;
+    TmdObject*            ext;
+    s32                   i;
+
+    work = (Actor503500Effect4CC*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->anim, D_actor_503500_80176520[work->field_43E], ext, work->field_30C,
+                      work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
+
+/// Message-0x7D4 handler of the effect task's table (the one
+/// `func_actor_503500_8014642C` installs): places the effect's model at `args`
+/// exactly as `func_actor_503500_80132508` places the actor. Returns 0.
+s32 func_actor_503500_80146664(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+{
+    Actor503500Coord* coord;
+
+    coord             = (Actor503500Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
+
+s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
+{
+    TmdObject* ext;
+    s32        ret;
+
+    ext = task->extra;
+    ret = 0;
+    switch (mode) {
         case 0:
-            func_actor_503500_80135FB4(arg0, 4, 0x10);
-            func_actor_503500_80137074(arg0, 1, 0x4B);
-            work->field_7E1++;
+            ext->flags = (ext->flags | 0x80) & ~4;
             break;
         case 1:
-            if (func_actor_503500_80136014(arg0, 4) != 0) {
-                func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, (s32)arg0);
-                if (task != NULL) {
-                    coord             = ((TmdObject*)task->extra)->coords;
-                    coord->sub        = &arg0->extra->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
-                }
-                D_80071090[0]   = 1;
-                work->field_7C0 = 0;
-                work->field_7E1++;
-            }
+            ext->flags &= ~0x80;
+            Tmd_AllocBuffers(ext);
+            ext->flags &= ~4;
             break;
         case 2:
-            if (++work->field_7C0 >= 0x5B) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
-                work->field_7C0 = 0;
-                work->field_7E1++;
-            }
+            ext->flags                                    |= 0x80;
+            ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
+            ext->flags                                    |= 4;
             break;
         case 3:
-            if (++work->field_7C0 >= 0x33) {
-                func_actor_503500_80135FB4(arg0, 7, 0);
-                work->field_7E1++;
-            }
-            break;
-        case 4:
-            if (func_actor_503500_80136014(arg0, 7) != 0) {
-                func_actor_503500_80135FB4(arg0, 8, 0);
-                func_actor_503500_80137074(arg0, 0, 0xE);
-                work->field_7E1++;
-            }
-            break;
-        case 5:
-            if (func_actor_503500_80136014(arg0, 8) != 0) {
-                work->field_7E0 = 0;
-                D_80071090[0]   = 0;
-                func_actor_503500_80135F9C((Task*)arg0, 0, 0);
-                func_actor_503500_80135FB4(arg0, 0, 0);
-            }
-            break;
-    }
-}
-
-/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the boss. Each attack id is taken once, and only type-2 ids land while the
-/// `field_7B4` countdown is clear: the damage scales with the attacker's
-/// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
-/// `field_40` starts the death state instead of the id's status effect. `arg1`
-/// is passed by the caller but unused.
-void func_actor_503500_80134EAC(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
-{
-    VECTOR           d;
-    SVECTOR          pos;
-    MATRIX           mtx;
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   src;
-    s16              stun;
-    u32              id;
-    s32              dmg;
-    s32              i;
-    s32              j;
-
-    enemy = arg0->field_20;
-    work  = arg0->field_1C;
-    coord = arg0->extra->coords;
-    for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
-        for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
-                goto next;
-            }
-        }
-        if ((id & 0xFFFF0000) == 0x10000) {
-            continue;
-        }
-        if ((id & 0xFFFF0000) != 0x20000) {
-            continue;
-        }
-        if (work->field_7B4 != 0) {
-            continue;
-        }
-        src = Gp_ActorSlots[(id >> 7) & 1]->extra->coords;
-        Gp_ComposeParentWorld(coord, &mtx, &pos);
-        d.vx = src->coord.t[0] - pos.vx;
-        d.vy = src->coord.t[1] - pos.vy;
-        d.vz = src->coord.t[2] - pos.vz;
-        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-        if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
-            dmg *= 4;
-            Gp_SpawnEff(0x6009C, coord, 0, NULL);
-        }
-        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
-        enemy->hp -= dmg;
-        func_800DA6E8(&enemy->node, dmg, 0);
-        if (enemy->hp <= 0) {
-            func_actor_503500_80136EFC(arg0, 4);
-            work->field_7E6 = 1;
-        } else {
-            switch (Gp_GetIdParam0(id) & 0xFFFF) {
-                case 0:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                    break;
-                case 1:
-                    Gp_SetObjFlag1((GpObj4C*)enemy);
-                    break;
-                case 2:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
-                    break;
-                case 3:
-                    Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
-                    break;
-            }
-        }
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->field_6E4);
-        stun = Gp_GetIdParam2(id);
-        if (work->field_7B4 < stun) {
-            work->field_7B4 = stun;
-        }
-    next:;
-    }
-}
-
-/// Per-sub-state speed class: 1 and 2 pick the slower yaw-tracking rates.
-extern s8 D_actor_503500_8016E8FC[];
-
-void func_actor_503500_80135178(Actor503500* arg0)
-{
-    SVECTOR          rot;
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    GpEnemy**        enemies;
-    s32              speed;
-    s32              turn;
-    s32              diff;
-    s32              absDiff;
-    s16              yaw;
-    s16              newYaw;
-
-    work    = arg0->field_1C;
-    coord   = arg0->extra->coords;
-    enemies = work->enemies;
-    if (work->field_7B0 < 2) {
-        if (work->field_7B0 >= 0) {
-            switch (D_actor_503500_8016E8FC[work->field_7D5]) {
-                case 1:
-                    speed = 0x60000;
-                    break;
-                case 2:
-                    speed = 0x10000;
-                    break;
-                default:
-                    speed = 0x70000;
-                    break;
-            }
-            turn = 0;
-            if (enemies[10] == NULL) {
-                turn = -(speed / 25);
-            }
-            if (enemies[11] == NULL) {
-                turn -= speed / 25;
-            }
-            if (work->enemies[6] == NULL) {
-                turn -= (speed * 12) / 100;
-            }
-            if (work->enemies[9] == NULL) {
-                turn -= speed / 4;
-            }
-            speed  += turn;
-            yaw     = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-            turn    = work->field_7A8;
-            diff    = work->field_7B8 - yaw;
-            absDiff = ABS(diff);
-            if ((speed * 8) >> 16 >= absDiff) {
-                if (turn < 0) {
-                    turn += speed / 16;
-                    if (turn > 0) {
-                        turn = 0;
-                    }
-                } else {
-                    turn -= speed / 16;
-                    if (turn < 0) {
-                        turn = 0;
-                    }
-                }
-            } else {
-                if (absDiff > 0x800) {
-                    if (diff < 0) {
-                        diff += 0x1000;
-                    } else {
-                        diff -= 0x1000;
-                    }
-                }
-                if (diff > 0) {
-                    turn += speed / 32;
-                    if (turn > speed) {
-                        turn = speed;
-                    }
-                } else {
-                    turn -= speed / 32;
-                    if (turn < -speed) {
-                        turn = -speed;
-                    }
-                }
-            }
-            newYaw          = yaw + (turn >> 16);
-            work->field_7A8 = turn;
-            rot.vx          = 0;
-            rot.vy          = newYaw;
-            rot.vz          = 0;
-            RotMatrix(&rot, &coord->coord);
-            coord->flg      = 0;
-            work->field_7B6 = newYaw;
-        }
-    }
-}
-
-/// Main-executable yaw rotation: rotates `m` about Y by `angle`.
-void func_8004BFF8(s32 angle, MATRIX* m);
-
-/// Steps the boss along its yaw: ramps the walk speed `field_7A0` by
-/// `field_7A4` / 32 (reversed at a quarter rate when `field_7B8` is more than
-/// 0x258 off `field_7B6`), moves `field_6C4` by it inside a fixed box and drops
-/// the integer part into the coordinate. States 4, 5 and 7 (and 6 before step
-/// 3) only record the previous translation in `field_6D4`.
-void func_actor_503500_801353F0(Actor503500* arg0)
-{
-    MATRIX           mat;
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    s32              step;
-    s32              speed;
-    s32              scale;
-    MATRIX*          m;
-    s32*             px;
-    s32*             pz;
-
-    work               = arg0->field_1C;
-    coord              = arg0->extra->coords;
-    work->field_6D4.vx = coord->coord.t[0];
-    work->field_6D4.vy = coord->coord.t[1];
-    work->field_6D4.vz = coord->coord.t[2];
-    switch (work->field_7B0) {
-        case 4:
-        case 5:
-        case 7:
-            return;
-        case 6:
-            if ((s8)work->field_7DA < 3) {
-                return;
-            }
-        case 0:
-            work->field_7D8 = 1;
+            ext->flags = (ext->flags & ~0x80) | 4;
             break;
         default:
-            work->field_7D8 = 0;
+            ret = 1;
             break;
     }
-    step = work->field_7A4;
-    if (ABS(work->field_7B8 - work->field_7B6) > 0x258) {
-        step = -step >> 2;
-    }
-    if (work->field_7D8 != 0) {
-        speed = work->field_7A0 + step / 32;
-        if (speed > 0) {
-            if (step < speed) {
-                speed = step;
-            }
-        } else if (speed < -step) {
-            speed = -step;
-        }
-    } else {
-        speed = work->field_7A0 - step / 32;
-        if (speed < 0) {
-            speed = 0;
-        }
-    }
-    work->field_7A0    = speed;
-    m                  = &mat;
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = 0x1000;
-    func_8004BFF8(work->field_7B6, m);
-    scale               = speed >> 12;
-    work->field_6B4     = mat.m[0][2] * scale;
-    work->field_6BC     = mat.m[2][2] * scale;
-    work->field_6C4.vx += work->field_6B4;
-    work->field_6C4.vz += work->field_6BC;
-    px                  = &work->field_6C4.vx;
-    pz                  = &work->field_6C4.vz;
-    if (*px > 0x23280000) {
-        *px = 0x23280000;
-    } else if (*px < 0x1B580000) {
-        *px = 0x1B580000;
-    }
-    if (*pz > 0x1F400000) {
-        *pz = 0x1F400000;
-    } else if (*pz < 0x17700000) {
-        *pz = 0x17700000;
-    }
-    coord->coord.t[0] = *px >> 16;
-    coord->coord.t[2] = *pz >> 16;
-    coord->flg        = 0;
+    return ret;
 }
 
-/// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
-/// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
-extern u8 D_actor_503500_8016E910[];
-
-/// Clears each slot enemy's `node.flags` bit 1 only when its
-/// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
-/// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
-/// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
-/// a yaw miss.
-void func_actor_503500_80135644(Actor503500* arg0)
+s32 func_actor_503500_801467C0(Task* task, s32 arg1, Actor503500ModeMsg* msg)
 {
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-    GpEnemy*         enemy;
-    s16              angle;
-    s32              y;
-    s16              dirMask;
-    s16              heightMask;
-    s32              i;
-    s16              bits;
+    Actor503500Effect4CC* work;
 
-    work  = arg0->field_1C;
-    coord = arg0->extra->coords;
-    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
-    while (angle >= 0x800) {
-        angle -= 0x1000;
-    }
-    while (angle < -0x800) {
-        angle += 0x1000;
-    }
-    dirMask = 0x10;
-    if (ABS(angle) < 0x400) {
-        dirMask = 8;
-    }
-    if (angle > 0x300 && angle < 0x480) {
-        dirMask = 0x20;
-    } else if (angle < -0x300 && angle > -0x480) {
-        dirMask = 0x40;
-    }
-    y          = D_80073B8C->t[1];
-    heightMask = 4;
-    if (y < -999) {
-        heightMask = 2;
-        if (y < -3000) {
-            heightMask = 1;
-        }
-    }
-    for (i = 0; i < 0x11; i++) {
-        enemy = work->enemies[i];
-        if (enemy != NULL) {
-            bits = D_actor_503500_8016E910[i];
-            if ((bits & dirMask) != dirMask || gGameSession->eventState != 0) {
-                enemy->node.flags            |= 1;
-                work->enemies[i]->node.flags &= ~4;
-            } else if ((bits & heightMask) != heightMask) {
-                enemy->node.flags            |= 1;
-                work->enemies[i]->node.flags |= 4;
-            } else {
-                enemy->node.flags &= ~1;
-            }
-        }
-    }
-}
-
-/// Copies bits 0x80, 2 and 4 of the parent task's model `field_C` onto
-/// `arg0`'s model, unless that model is attached to `gGfxViewCoord`.
-/// Clearing bit 4 reallocates the model's buffers; setting it writes 2 to
-/// `*arg1`.
-void func_actor_503500_80135828(Actor503500* arg0, s8* arg1)
-{
-    TmdObject* obj;
-    TmdObject* pobj;
-    u16        flags;
-    u16        flags2;
-
-    obj = arg0->extra;
-    if (obj->coords->sub != &gGfxViewCoord) {
-        flags = obj->flags;
-        pobj  = arg0->parent->extra;
-        if (flags & 0x80) {
-            if (!(pobj->flags & 0x80)) {
-                obj->flags = flags & ~0x80;
-            }
-        } else if (pobj->flags & 0x80) {
-            obj->flags = flags | 0x80;
-        }
-        flags2 = obj->flags;
-        if (flags2 & 2) {
-            if (!(pobj->flags & 2)) {
-                obj->flags = flags2 & ~2;
-            }
-        } else if (pobj->flags & 2) {
-            obj->flags = flags2 | 2;
-        }
-        flags2 = obj->flags;
-        if (flags2 & 4) {
-            if (!(pobj->flags & 4)) {
-                obj->flags = flags2 & ~4;
-                Tmd_AllocBuffers(obj);
-            }
-        } else if (pobj->flags & 4) {
-            obj->flags = flags2 | 4;
-            *arg1      = 2;
-        }
-    }
-}
-
-/// Applies preset `arg2`: re-seeds the slot array from bank `field_0` when it
-/// changes, then sets every slot 1..0x13 to clip `field_4` (blended over
-/// `field_C` frames by `func_800B4114` when `field_8` is set and the array was
-/// already seeded) and ticks it once, before re-applying the part scales.
-s32 func_actor_503500_80135950(Actor503500* arg0, s32 arg1, Actor503500AnimPreset* arg2, s32 arg3)
-{
-    Actor503500Work* work;
-    Actor503500Work* work2;
-    TmdObject*       ext;
-    s32              i;
-
-    work = arg0->field_1C;
-    ext  = arg0->extra;
-    if (arg2->field_0 != work->field_7D6) {
-        work->field_7D6 = arg2->field_0;
-        func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
-                      work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
-        work->field_7D4 = 0;
-    }
-    work->field_7D5 = arg2->field_4;
-    if (arg2->field_8 != 0 && work->field_7D4 != 0) {
-        for (i = 1; i < 0x14; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_7D5, 0, arg2->field_C);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_7D5);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
-    }
-    work->field_7D4 = 1;
-    work2           = arg0->field_1C;
-    if (work2->field_7AC & 0x20) {
-        work2->coord504 = arg0->extra->coords[4];
-        ScaleMatrix(&work2->coord504.coord, &work2->field_5A4);
-    }
-    if (work2->field_7AC & 0x800) {
-        work2->coord554 = arg0->extra->coords[10];
-        ScaleMatrix(&work2->coord554.coord, &work2->field_5B4);
-    }
-    if (work2->field_7AC & 0x10000) {
-        ScaleMatrix(&arg0->extra->coords[16].coord, &work2->field_5C4);
-    }
-    return 0;
-}
-
-/// Enters boss state `state` the way `func_actor_503500_80136048` enters
-/// state 2: clears the per-state counters, asks for sub-state 3 and drops the
-/// main-executable flag.
-static inline void func_actor_503500_SetBossState(Actor503500* arg0, s16 state)
-{
-    Actor503500Work* work;
-
-    work            = arg0->field_1C;
-    work->field_7B0 = state;
-    work->field_7DA = 0;
-    work->field_7DB = 0;
-    work->field_7BC = 0;
-    work->field_7BE = 0;
-    func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090[0] = 0;
-}
-
-/// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
-/// task state, mode 4 saves model part 0's coordinate and `field_7B6` before
-/// entering state 6, and mode 5 restores both.
-s32 func_actor_503500_80135B74(Actor503500* arg0, s32 arg1, Actor503500ModeMsg* msg)
-{
-    Actor503500Work* work;
-    GsCOORDINATE2*   coord;
-
+    work = (Actor503500Effect4CC*)task->work;
     switch (msg->mode) {
         case 0:
-            func_actor_503500_SetBossState(arg0, 0);
+            work->field_4B0 = 0;
+            work->field_4B4 = 0;
+            work->field_4B8 = 0;
             break;
         case 1:
-            func_actor_503500_SetBossState(arg0, 5);
+            work->field_4B0 = 0x0100F4DE;
+            work->field_4B4 = 0xFF6DE9BE;
+            work->field_4B8 = 0x68590;
             break;
         case 2:
-            func_actor_503500_SetBossState(arg0, 7);
+            work->field_4B0 = 0x1371C7;
+            work->field_4B4 = 0xBAAAA;
+            work->field_4B8 = 0;
+            work->field_4C0 = 1;
             break;
         case 3:
-            arg0->state++;
-            break;
-        case 4:
-            work            = arg0->field_1C;
-            coord           = arg0->extra->coords;
-            work->field_7D0 = work->field_7B6;
-            work->coord4B4  = *coord;
-            coord->flg      = 0;
-            func_actor_503500_SetBossState(arg0, 6);
-            break;
-        case 5:
-            work            = arg0->field_1C;
-            coord           = arg0->extra->coords;
-            work->field_7B6 = work->field_7D0;
-            *coord          = work->coord4B4;
-            coord->flg      = 0;
-            work->field_7E3 = 1;
+            task->exitCallback(task);
             break;
     }
     return 0;
-}
-
-/// Clears slot `arg1` of the boss work block's `enemies` array. `arg0` is
-/// loaded by every caller but the body ignores it, the same way
-/// `func_actor_503500_80135E04` does.
-void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
-{
-    D_actor_503500_80176574.enemies[arg1] = NULL;
-}
-
-/// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
-/// from the current area's record and parks it in slot `arg1` of the boss
-/// work block's `enemies` array. Returns the new enemy, or NULL.
-GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1)
-{
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    GpEnemy*     enemy;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
-    /* Taken before the spawn call: the ROM keeps the address in s4 across
-       every call rather than rebuilding it at the store. */
-    Actor503500Work* work = &D_actor_503500_80176574;
-
-    enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->field_20);
-    if (enemy != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = arg0->field_20->placeKey;
-        model      = (TmdObject*)enemy->task->extra;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        areaByte0  = sessionKey->view;
-        idx        = raw >> 12;
-        key.view   = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->tpage;
-        model->clut  = entry->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
-        work->enemies[arg1] = enemy;
-    }
-    return enemy;
-}
-
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
-{
-    return D_actor_503500_80176574.enemies[arg1] == NULL;
-}
-
-/// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
-/// in `field_7AC` for `func_actor_503500_80136DDC`. Parts 5 and 11 also seed
-/// the private copy of model part 4 / 10 and link it from the next part's
-/// `sub`; any other `arg1` only sets its bit.
-void func_actor_503500_80135E20(Actor503500* arg0, s32 arg1, SVECTOR* arg2)
-{
-    Actor503500Work* work = &D_actor_503500_80176574;
-
-    switch (arg1) {
-        case 5:
-            work->field_5A4.vx         = arg2->vx;
-            work->field_5A4.vy         = arg2->vy;
-            work->field_5A4.vz         = arg2->vz;
-            work->coord504             = arg0->extra->coords[4];
-            arg0->extra->coords[5].sub = &work->coord504;
-            break;
-        case 11:
-            work->field_5B4.vx          = arg2->vx;
-            work->field_5B4.vy          = arg2->vy;
-            work->field_5B4.vz          = arg2->vz;
-            work->coord554              = arg0->extra->coords[10];
-            arg0->extra->coords[11].sub = &work->coord554;
-            break;
-        case 16:
-            work->field_5C4.vx = arg2->vx;
-            work->field_5C4.vy = arg2->vy;
-            work->field_5C4.vz = arg2->vz;
-            break;
-    }
-    work->field_7AC |= 1 << arg1;
-}
-
-/// Records the per-slot halfword for slot `arg1` of the boss work block.
-/// `arg0` is loaded by every caller but the body ignores it, the same way
-/// `func_actor_503500_80135E04` does.
-void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
-{
-    D_actor_503500_80176574.field_730[arg1] = arg2;
-}
-
-/// Sets the per-slot playback rate `GpAnimSlot.rate` on animation slots 1..16 of the
-/// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
-/// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
-void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 rate)
-{
-    Actor503500WorkBoss* work;
-    GpAnimSlot*          slot;
-    s32                  i;
-
-    work = (Actor503500WorkBoss*)arg0->field_1C;
-    slot = &work->slots[1];
-    if (rate == 0) {
-        rate = 0x10;
-    }
-    for (i = 0xF; i >= 0; i--) {
-        slot->rate = rate;
-        slot++;
-    }
-    func_actor_503500_80135950(arg0, 0x7D3, &D_actor_503500_8016EAC0[arg1], 0);
-}
-/// Reports whether the boss is in sub-state `arg1` and, if so, whether either
-/// of the 0x102 bits of its state flag halfword is set. Returns -1 for any
-/// other sub-state. `arg0` is loaded by every caller but the body ignores it,
-/// the same way `func_actor_503500_80135E04` does.
-s32 func_actor_503500_80136014(Actor503500* arg0, s32 arg1)
-{
-    if (arg1 != D_actor_503500_80176574.field_7D5) {
-        return -1;
-    }
-    return (D_actor_503500_80176574.slot40.boss.flags_4C & 0x102) != 0;
-}
-/// Puts the boss into state 2: clears the state's step counters and the two
-/// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
-/// drops the main-executable flag.
-void func_actor_503500_80136048(Actor503500* arg0)
-{
-    Actor503500Work* work;
-
-    work            = arg0->field_1C;
-    work->field_7B0 = 2;
-    work->field_7DA = 0;
-    work->field_7DB = 0;
-    work->field_7BC = 0;
-    work->field_7BE = 0;
-    func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090[0] = 0;
-}
-/// Reports whether the boss-wide gate is open; the body ignores its
-/// argument, and callers pass unrelated pointers they already hold.
-s32 func_actor_503500_8013608C(void* arg0)
-{
-    return (u32)(D_actor_503500_80176D24 - 2) < 3U;
-}
-
-void func_actor_503500_801360A4(s32 arg0, s16 arg1)
-{
-    D_actor_503500_80176D64[arg0] = arg1;
-}
-
-/// Tries to claim `arg1` counts for slot `arg0`: sums every *other* slot's
-/// counter plus the requested amount and, if the total stays under 9, writes
-/// the request into the slot. Returns whether it was granted.
-s32 func_actor_503500_801360BC(s32 arg0, s32 arg1)
-{
-    s32  accepted;
-    s32  total;
-    s32  i;
-    u16* slot;
-
-    accepted = 0;
-    total    = arg1;
-    i        = 0;
-    slot     = D_actor_503500_80176D64;
-    do {
-        if (i != arg0) {
-            total += (s16)*slot;
-        }
-        i++;
-        slot++;
-    } while (i < 0x12);
-
-    if (total < 9) {
-        D_actor_503500_80176D64[arg0] = (u16)arg1;
-        accepted                      = 1;
-    }
-    return accepted;
-}
-void func_actor_503500_8013611C(s32 arg0)
-{
-    D_actor_503500_80176D64[arg0] = 0;
-}
-
-/// Yaw from the actor's first part to `D_80073B8C`'s translation, relative to
-/// the part's own heading, wrapped into [-0x800, 0x800).
-s16 func_actor_503500_80136134(Actor503500* arg0)
-{
-    GsCOORDINATE2* coord;
-    SVECTOR        vec;
-    s16            angle;
-
-    coord  = arg0->extra->coords;
-    vec.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    vec.vy = 0;
-    vec.vz = D_80073B8C->t[2] - coord->coord.t[2];
-    angle  = ratan2(vec.vx, vec.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    while (angle >= 0x800) {
-        angle -= 0x1000;
-    }
-    while (angle < -0x800) {
-        angle += 0x1000;
-    }
-    return angle;
-}
-
-s8 func_actor_503500_80136208(void)
-{
-    return D_actor_503500_80176D5A;
-}
-
-s16 func_actor_503500_80136218(void)
-{
-    return D_actor_503500_80176D2E;
-}
-
-/// Exit callback of the boss task: tears down the second body part's display
-/// node, clears the enemy's `recs` back-pointer slot and destroys it.
-void func_actor_503500_80136228(Actor503500* arg0)
-{
-    GpEnemy* enemy;
-
-    enemy = arg0->field_20;
-    func_actor_503500_80136B64(arg0, 0, 1);
-    Gp_UnlinkObj(&arg0->field_1C->field_5D4);
-    enemy->recs    = 0;
-    arg0->field_1C = NULL;
-    Gp_DestroyEnemy(enemy, (Task*)arg0);
-}
-
-void func_actor_503500_80136280(Actor503500* arg0)
-{
-    Actor503500Work* work;
-    GpEnemy*         enemy;
-    u8               flags;
-
-    enemy = arg0->field_20;
-    flags = enemy->reactionFlags;
-    work  = arg0->field_1C;
-    if (flags & 1) {
-        enemy->reactionFlags = flags & 0xFE;
-    }
-    if (enemy->reactionFlags & 2) {
-        enemy->reactionFlags &= 0xFD;
-        func_actor_503500_80136EFC(arg0, 3);
-        work->field_7B2 = 3;
-    }
-    flags = enemy->reactionFlags;
-    if (flags & 0xC) {
-        enemy->reactionFlags = flags & 0xF3;
-    }
 }

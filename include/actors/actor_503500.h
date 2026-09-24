@@ -15,25 +15,6 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 
-/// Work block allocated by `func_actor_503500_80132430`
-/// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
-/// `func_actor_503500_801324EC` republishes the two matrices onto
-/// `TmdObject::lightMtx` / `field_20` -- the colour/light matrix pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
-/// -- so the allocation is exactly two `MATRIX`es plus a small tail.
-/// `func_actor_503500_80132664` sets `field_45` / `field_40` from the message
-/// mode (0..3).
-typedef struct Actor503500ColorMtx {
-    /* 0x00 */ MATRIX light;
-    /* 0x20 */ MATRIX color;
-    /* 0x40 */ s16    field_40;
-    /* 0x42 */ byte   pad_42[0x2];
-    /* 0x44 */ s8     field_44;
-    /* 0x45 */ s8     field_45;
-    /* 0x46 */ byte   pad_46[0x2];
-} Actor503500ColorMtx;
-STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
-
 /// Payload `func_actor_503500_80132664` takes as `Gp_DispatchMsg`'s `arg2`;
 /// `mode` selects one of four colour-matrix settings.
 typedef struct Actor503500ModeMsg {
@@ -61,44 +42,6 @@ typedef struct Actor503500PlaceArgs {
     /* 0x10 */ SVECTOR rot;
 } Actor503500PlaceArgs;
 STATIC_ASSERT_SIZEOF(Actor503500PlaceArgs, 0x18);
-
-/// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
-/// fills it from the player actor: the three words are the translation of the
-/// `GsCOORDINATE2` at `TmdObject::coords` (`MATRIX.t`), the three
-/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `work`
-/// block. `func_actor_503500_80132DD4` clears the position;
-/// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
-/// message 0x3E9 while any position word is non-zero.
-///
-/// Size is bounded by the next `.bss` symbol in the overlay
-/// (`D_actor_503500_80176574`, 0x18 bytes later).
-typedef struct Actor503500MsgPos {
-    /* 0x00 */ s32     x;
-    /* 0x04 */ s32     y;
-    /* 0x08 */ s32     z;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR rot;
-} Actor503500MsgPos;
-STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
-
-/// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
-/// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
-/// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
-/// period whose integer half is the `Task::killCountdown` limit between
-/// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
-/// period until it passes 0x10 and the task dies.
-typedef struct Actor503500EffWork {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    union {
-        /* 0x8 */ s32 w;
-        struct {
-            /* 0x8 */ s16 lo;
-            /* 0xA */ s16 hi;
-        } h;
-    } field_8;
-} Actor503500EffWork;
-STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
 
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node
@@ -396,79 +339,6 @@ typedef struct Actor503500Work {
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
-/// Matrix table of the 0x3D8 block, which runs from 0x40 up to the block's
-/// `obj160` display node: `func_actor_503500_80141FC8`'s sub-state 0 resets
-/// entries 1..8 to an identity rotation with zero translation. The shared
-/// `Actor503500Work` view names other blocks' fields over the same bytes.
-typedef struct Actor503500Work3D8Mtx {
-    /* 0x000 */ byte   pad_0[0x40];
-    /* 0x040 */ MATRIX mats[9];
-} Actor503500Work3D8Mtx;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8Mtx, 0x160);
-
-/// Chain state of the 0x3D8 block, which the shared `Actor503500Work` view
-/// names with the 0x2EC block's fields: `func_actor_503500_80141448` samples a
-/// cubic Bezier into `pts` (root first), re-aims the chain along it and hands
-/// `angles` to `func_actor_503500_80142220`, which only reads the `vx` pitch of
-/// entries 2..7. `field_3B6` / `field_3CC` are the same bytes as the shared
-/// view's, loaded signed here.
-typedef struct Actor503500Work3D8Chain {
-    /* 0x000 */ byte    pad_0[0x2C8];
-    /* 0x2C8 */ SVECTOR pts[9];
-    /* 0x310 */ SVECTOR angles[9];
-    /* 0x358 */ SVECTOR field_358; // far control point, local to the root's parent
-    /* 0x360 */ byte    pad_360[0x54];
-    /* 0x3B4 */ s16     field_3B4; // sway amplitude
-    /* 0x3B6 */ s16     field_3B6; // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16     phase[9];  // sway phase per link, stepped by 0x80
-    /* 0x3CA */ byte    pad_3CA[0x2];
-    /* 0x3CC */ s16     field_3CC; // weight of the rest pitch table
-} Actor503500Work3D8Chain;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
-
-/// Element of `D_actor_503500_80177B60`, the 0x3D8 blocks
-/// `func_actor_503500_8013FA74` clears for spawn slots 0xD..0x10. Like
-/// `Actor503500Work2EC`, the shared `Actor503500Work` cannot be indexed at this
-/// stride; the task's `field_1C` still points here through the shared view,
-/// and `Actor503500Work3D8Mtx` / `Actor503500Work3D8Chain` are narrower views
-/// of the same bytes. It opens with the light / colour matrices the init
-/// republishes on `TmdObject::lightMtx` / `field_20`, then a private copy of
-/// model parts 1..8's `coord` matrices.
-typedef struct Actor503500Work3D8 {
-    /* 0x000 */ MATRIX    light;
-    /* 0x020 */ MATRIX    color;
-    /* 0x040 */ MATRIX    mats[9];
-    /* 0x160 */ GpObj     obj160;
-    /* 0x180 */ GpRec18   rec180[8]; // obj160's table, count 8
-    /* 0x240 */ GpObj     obj240;
-    /* 0x260 */ GpRec18   rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ GpEffArg  field_2C0; // record this block's effects are spawned with
-    /* 0x2C8 */ SVECTOR   pts[9];
-    /* 0x310 */ SVECTOR   angles[9];
-    /* 0x358 */ SVECTOR   field_358;
-    /* 0x360 */ SVECTOR   field_360; // field_358 before this frame's step
-    /* 0x368 */ SVECTOR   field_368;
-    /* 0x370 */ byte      pad_370[0x28];
-    /* 0x398 */ s32       field_398; // step speed toward field_368
-    /* 0x39C */ GpFixed16 field_39C; // speed limit; integer half is the arrival radius
-    /* 0x3A0 */ byte      pad_3A0[0x4];
-    /* 0x3A4 */ s16       field_3A4; // sub-state, see func_actor_503500_80142310
-    /* 0x3A6 */ byte      pad_3A6[0x2];
-    /* 0x3A8 */ s16       field_3A8; // hit countdown, raised by each landed id's stun
-    /* 0x3AA */ s16       field_3AA;
-    /* 0x3AC */ byte      pad_3AC[0x6];
-    /* 0x3B2 */ u16       field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ s16       field_3B4; // sway amplitude
-    /* 0x3B6 */ s16       field_3B6; // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16       phase[9];  // sway phase per link, seeded to i * 0x200
-    /* 0x3CA */ byte      pad_3CA[0xA];
-    /* 0x3D4 */ s8        field_3D4; // set while field_358 sits on field_368
-    /* 0x3D5 */ s8        field_3D5;
-    /* 0x3D6 */ s8        field_3D6;
-    /* 0x3D7 */ s8        field_3D7; // TMD buffer countdown
-} Actor503500Work3D8;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
-
 /// Word-wise view of a `MATRIX` that `func_actor_503500_8013852C` uses to
 /// splat an identity rotation: five aligned stores instead of nine halfword
 /// ones, each word holding two adjacent `m[][]` entries.
@@ -498,56 +368,6 @@ static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
     m->m[2][2]         = 0x1000;
 }
 
-/// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
-/// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
-/// `Actor503500Work` cannot be indexed at this stride, and this block puts a
-/// spawn record at 0x240 where the shared view names the
-/// 0x3D8 block's `obj240`, so the array gets its own type; the task's
-/// `field_1C` still points at the block through the shared view, whose
-/// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
-/// colour matrices the init republishes on `TmdObject::lightMtx` / `field_20`,
-/// then a private copy of model parts 1..8's `coord` matrices.
-typedef struct Actor503500Work2EC {
-    /* 0x000 */ MATRIX   light;
-    /* 0x020 */ MATRIX   color;
-    /* 0x040 */ MATRIX   mats[9];
-    /* 0x160 */ GpObj    obj;
-    /* 0x180 */ GpRec18  rec[8];    // Gp_InitRec18Table(rec, 8, 0)
-    /* 0x240 */ GpEffArg field_240; // record the 0x2EC block's effects are spawned with
-                                    /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
-                                    /// to 0; the same offset as the shared view's `obj240.field_8`.
-    /* 0x248 */ void* field_248;
-    /// Bezier-sampled chain polyline, root first, that
-    /// `func_actor_503500_8013A0D0` re-aims the model's links along.
-    /* 0x24C */ SVECTOR pts[9];
-    /* 0x294 */ SVECTOR field_294;   // both seeded from D_actor_503500_8016F0A8
-    /* 0x29C */ SVECTOR field_29C;
-    /* 0x2A4 */ SVECTOR field_2A4;   // rotation, spun by func_actor_503500_80138A30
-                                     /// Part 0's `coord` matrix, saved by `func_actor_503500_80139014` once
-                                     /// the body has risen and restored every frame before scaling.
-    /* 0x2AC */ MATRIX field_2AC;
-    /* 0x2CC */ s32    field_2CC;    // approach speed, see func_actor_503500_80139EFC
-                                     /// Top approach speed, seeded to 0x800000; its integer half doubles as
-                                     /// the arrival distance `func_actor_503500_80139EFC` tests against.
-    /* 0x2D0 */ GpFixed16 field_2D0;
-    /* 0x2D4 */ s16       field_2D4; // sub-state index
-    /* 0x2D6 */ s16       field_2D6;
-    /* 0x2D8 */ s16       field_2D8; // per-frame countdown
-    /* 0x2DA */ s16       field_2DA;
-    /* 0x2DC */ s16       field_2DC; // vertical scale, 0x1000 down to 0x200
-    /* 0x2DE */ s16       field_2DE; // sub-state frame counter
-    /* 0x2E0 */ s16       phase;     // chain pulse phase, stepped by 0x80
-    /* 0x2E2 */ s16       field_2E2;
-    /* 0x2E4 */ s8        field_2E4; // sub-state phase, cleared with field_2D4
-    /* 0x2E5 */ s8        field_2E5;
-    /* 0x2E6 */ byte      pad_2E6[0x2];
-    /* 0x2E8 */ s8        field_2E8; // cleared, then awaited, by func_actor_503500_80138C08
-    /* 0x2E9 */ s8        field_2E9;
-    /* 0x2EA */ s8        field_2EA;
-    /* 0x2EB */ s8        field_2EB; // TMD buffer countdown
-} Actor503500Work2EC;
-STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
-
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose
 /// state-0 init `memCalloc`s the block instead of pointing `Task::work` at a
 /// static global: `func_actor_503500_80144300` (0xC0),
@@ -565,34 +385,6 @@ typedef struct Actor503500ObjWork {
 } Actor503500ObjWork;
 STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 
-/// The 0x44 block `func_actor_503500_801455A4` allocates: the shared head plus
-/// the effect task it reparents itself under.
-typedef struct Actor503500Work44 {
-    /* 0x00 */ Actor503500ObjWork head;
-    /* 0x38 */ Task*              field_38;
-    /* 0x3C */ s16                field_3C; // frame counter within `field_40`'s phase
-    /* 0x3E */ byte               pad_3E[0x2];
-    /* 0x40 */ s8                 field_40; // phase, advanced by `func_actor_503500_80145754`
-    /* 0x41 */ byte               pad_41[0x3];
-} Actor503500Work44;
-STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
-
-/// Head of the work block used by the two enemies whose teardown clears a
-/// four-entry record table (`func_actor_503500_801454E0` and
-/// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
-/// `GpActorD4` convention: the display node's `ctx.d4rec` points at the
-/// `GpActorD4Rec` directly behind it, whose `recs` in turn points at the
-/// `GpRec18` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
-/// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
-/// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
-/// allocates 0xAC, both with `memCalloc(_, 0)`.
-typedef struct Actor503500WorkRec4 {
-    /* 0x00 */ GpObj        obj;
-    /* 0x20 */ GpActorD4Rec d4;
-    /* 0x38 */ GpRec18      rec[4];
-} Actor503500WorkRec4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkRec4, 0x98);
-
 /// `SVECTOR`-shaped offset read through unsigned halfwords: every consumer
 /// copies the component straight into an `s16` field, so the sign of the load
 /// never reaches the result and the original emits `lhu`.
@@ -603,98 +395,6 @@ typedef struct Actor503500UVec {
     /* 0x6 */ u16 pad_6;
 } Actor503500UVec;
 STATIC_ASSERT_SIZEOF(Actor503500UVec, 8);
-
-/// The 0xD0 block `func_actor_503500_80144E8C` allocates, which is
-/// `Actor503500WorkRec4` plus this task's own payload: the effect task it
-/// reparents itself under, a rotation it seeds to identity next to the one in
-/// its `GsCOORDINATE2`, and the pair of words plus the halfword that
-/// `func_actor_503500_801450A0` reads and writes every frame.
-typedef struct Actor503500WorkD0 {
-    /* 0x00 */ Actor503500WorkRec4 head;
-    /* 0x98 */ Task*               field_98;
-    /* 0x9C */ MATRIX              field_9C;
-    /* 0xBC */ GpFixed16           field_BC; // angle; the high half turns field_9C
-    /* 0xC0 */ s32                 field_C0; // per-frame angle step
-    /* 0xC4 */ s16                 field_C4;
-    /* 0xC6 */ s16                 field_C6; // sub-state frame counter
-    /* 0xC8 */ byte                pad_C8[0x4];
-    /* 0xCC */ s8                  field_CC; // sub-state index
-    /* 0xCD */ byte                pad_CD[0x3];
-} Actor503500WorkD0;
-STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
-
-/// The 0xAC block `func_actor_503500_80145A2C` allocates: `Actor503500WorkRec4`
-/// plus the effect task it reparents itself under.
-typedef struct Actor503500WorkAC {
-    /* 0x00 */ Actor503500WorkRec4 head;
-    /* 0x98 */ Task*               field_98;
-    /* 0x9C */ byte                pad_9C[0x8];
-    /* 0xA4 */ s16                 field_A4; // sub-state frame counter
-    /* 0xA6 */ byte                pad_A6[0x2];
-    /* 0xA8 */ s8                  field_A8; // sub-state index
-    /* 0xA9 */ byte                pad_A9[0x3];
-} Actor503500WorkAC;
-STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
-
-/// The 0xC0 block `func_actor_503500_80144300` allocates: the display node,
-/// the four-entry `GpRec18` table its `field_C` points at, the effect task it
-/// reparents itself under, and the payload `func_actor_503500_80144778` steps
-/// every frame. `field_84` is the world position (the coordinate's translation
-/// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
-/// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
-typedef struct Actor503500WorkC0 {
-    /* 0x00 */ GpObj             obj;
-    /* 0x20 */ GpRec18           rec[4];
-    /* 0x80 */ Task*             field_80;
-    /* 0x84 */ Actor503500FixVec field_84;
-    /* 0x94 */ VECTOR            field_94;
-    /* 0xA4 */ VECTOR            field_A4; // per-frame velocity added onto field_84
-    /* 0xB4 */ s32               field_B4;
-    /* 0xB8 */ s16               field_B8;
-    /* 0xBA */ u16               field_BA; // sub-state frame counter
-    /* 0xBC */ s8                field_BC; // sub-state index, -1 finishes the task
-    /* 0xBD */ byte              pad_BD[0x1];
-    /* 0xBE */ s8                field_BE; // set when a record's kind (key high half) is 1
-    /* 0xBF */ s8                field_BF; // nonzero skips the push-back step
-} Actor503500WorkC0;
-STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
-
-/// The 0xB4 block `func_actor_503500_801448E8` allocates: the same head and
-/// world-position pair as `Actor503500WorkC0`, then the payload
-/// `func_actor_503500_80144B40` steps every frame. `field_A8` is the speed,
-/// `Task::spawnArg2` or 0x100000 when the spawner passes none.
-typedef struct Actor503500WorkB4 {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[4];
-    /* 0x80 */ Task*   field_80;
-    /* 0x84 */ VECTOR  field_84;
-    /* 0x94 */ VECTOR  field_94;
-    /* 0xA4 */ byte    pad_A4[0x4];
-    /* 0xA8 */ s32     field_A8;
-    /* 0xAC */ s16     field_AC;
-    /* 0xAE */ s16     field_AE;
-    /* 0xB0 */ s8      field_B0;
-    /* 0xB1 */ byte    pad_B1[0x3];
-} Actor503500WorkB4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
-
-/// Animation head of the boss block (`D_actor_503500_80176574`,
-/// `Mem_Set(_, 0x7E8)`), viewed through its own type rather than the shared
-/// `Actor503500Work`: the boss fronts its allocation with a `GpAnimCtx` --
-/// `func_actor_503500_80136D30` passes the block itself to `Gp_AnimTickIndex`
-/// -- whose slot array is inline at 0x14 and whose pose buffer starts
-/// at 0x334, the two addresses `func_actor_503500_80135950` hands to
-/// `func_800B3F84`. Twenty 0x28-byte slots fit exactly between them, and both
-/// tick loops walk indices 1..0x13. That run covers 0x40..0x60, where the
-/// shared view names the 0x160 block's display node, so the two blocks
-/// genuinely disagree about it: the halfword the shared view calls
-/// `Actor503500Slot40::boss.flags_4C` is `slots[1].field_10`, that animation
-/// slot's flags word. This type stops at the pose buffer.
-typedef struct Actor503500WorkBoss {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[20];
-} Actor503500WorkBoss;
-STATIC_ASSERT_SIZEOF(Actor503500WorkBoss, 0x334);
 
 /// 0x14-byte entry of the animation-preset table `func_actor_503500_80135950`
 /// is handed a pointer into (`D_actor_503500_8016EAC0`, indexed by preset id).
@@ -713,47 +413,6 @@ typedef struct Actor503500AnimPreset {
     /* 0x10 */ s32 field_10;
 } Actor503500AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor503500AnimPreset, 0x14);
-
-/// Element of `D_actor_503500_801714E0`, the payload
-/// `func_actor_503500_801437D0` sends the player as message 0x3FF. It picks one
-/// of the two rows by which side of the player the hit coordinate lies on.
-/// Every row seen so far points `field_0` at `D_actor_503500_801714C8`.
-typedef struct Actor503500Msg3FF {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ s32   field_C;
-    /* 0x10 */ s32   field_10;
-} Actor503500Msg3FF;
-STATIC_ASSERT_SIZEOF(Actor503500Msg3FF, 0x14);
-
-/// Work block of the knock-back task `func_actor_503500_801437D0` spawns
-/// (`Mem_Set(_, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
-/// rotation handed over in `Task::spawnArg2`; every frame `speed` is pushed
-/// through it by `ApplyMatrixLV` and added onto the 16.16 `pos`, whose integer
-/// halves go to the player as message 0x3FE. `field_34` counts frames spent at
-/// zero speed and `field_36` the remaining camera-shake frames.
-typedef struct Actor503500Work38 {
-    /* 0x00 */ Actor503500FixVec pos;
-    /* 0x10 */ MATRIX            rot;
-    /* 0x30 */ s32               speed;
-    /* 0x34 */ s16               field_34;
-    /* 0x36 */ s16               field_36;
-} Actor503500Work38;
-STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
-
-/// Payload of message 0x3FE: the displacement `func_actor_503500_80143AC0` asks
-/// the player to move by. A nonzero reply stops the push.
-typedef struct Actor503500Msg3FE {
-    /* 0x00 */ s32  x;
-    /* 0x04 */ s32  y;
-    /* 0x08 */ s32  z;
-    /* 0x0C */ byte pad_C[0x4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s8   field_12;
-    /* 0x13 */ byte pad_13[0x1];
-} Actor503500Msg3FE;
-STATIC_ASSERT_SIZEOF(Actor503500Msg3FE, 0x14);
 
 /// Work block of the enemy whose state-0 init is
 /// `func_actor_503500_801423C8` (`Mem_Set(_, 0x224)`), viewed through its own
@@ -797,137 +456,6 @@ typedef struct Actor503500Work224 {
     /* 0x223 */ s8  field_223;               // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
-
-/// Work block of the 0xF4 enemy whose state-0 init is
-/// `func_actor_503500_8013ECBC` (`D_actor_503500_80177A6C`), viewed through its
-/// own type rather than the shared `Actor503500Work`: it keeps a halfword at
-/// 0xEC -- `func_actor_503500_8013F4A4` stores one there and
-/// `func_actor_503500_8013F9D4` clears it -- where the shared view already
-/// names the 0xF0 block's `field_EC` / `field_ED` byte pair. That collision is
-/// why this enemy gets a separate view. Its sub-state index is `field_F0`, the
-/// one `func_actor_503500_8013F8AC` dispatches on.
-typedef struct Actor503500WorkF4 {
-    /* 0x00 */ GpObj obj;      // the display node, as in `Actor503500Work`
-    /* 0x20 */ byte  pad_20[0xC8];
-    /* 0xE8 */ s16   field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ u16   field_EA; // sub-state frame counter
-    /* 0xEC */ s16   field_EC;
-    /* 0xEE */ byte  pad_EE[0x2];
-    /* 0xF0 */ s8    field_F0; // sub-state index
-    /* 0xF1 */ s8    field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte  pad_F2[0x2];
-} Actor503500WorkF4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
-
-/// The second 0xF4 block: the enemy whose state-0 init is
-/// `func_actor_503500_8013CAE4` (`Mem_Set` over slot `spawnArg1` of
-/// `D_actor_503500_801770E8`), viewed through its own type rather than the
-/// shared `Actor503500Work`. It is named after its array because size no
-/// longer tells the two 0xF4 shapes apart: this one keeps its two sub-state
-/// counters as halfwords at 0xEC and 0xEE -- `func_actor_503500_8013D1CC` and
-/// `func_actor_503500_8013D558` step 0xEC and `func_actor_503500_8013DBA8`
-/// clears both -- where the shared view names the 0xEC / 0xED / 0xEE byte
-/// triple the other 0xF0 blocks dispatch on, and where `Actor503500WorkF4`
-/// puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
-/// the one `func_actor_503500_8013D990` dispatches on.
-typedef struct Actor503500Work770E8 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ byte     pad_EA[0x2];
-    /* 0xEC */ u16      field_EC; // sub-state frame counter
-    /* 0xEE */ s16      field_EE;
-    /* 0xF0 */ s8       field_F0; // sub-state index
-    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte     pad_F2[0x2];
-} Actor503500Work770E8;
-STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
-
-/// The first 0xF4 block: the enemy whose state-0 init is
-/// `func_actor_503500_8013BEE4` (`Mem_Set` over `D_actor_503500_801776A0`),
-/// viewed through its own type in the one function that needs it. Its death
-/// sub-state `func_actor_503500_8013C558` keeps three halfwords at 0xEA /
-/// 0xEC / 0xEE -- a frame counter, a scale that shrinks from 0x1000 and the
-/// step it shrinks by -- where the shared view names the 0xEC / 0xED / 0xEE
-/// byte triple. Its sub-state index is `field_F0`, the one
-/// `func_actor_503500_8013CA34` dispatches on.
-typedef struct Actor503500Work776A0 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ s16      field_EA; // sub-state frame counter
-    /* 0xEC */ u16      field_EC; // scale handed to func_actor_503500_80135E20
-    /* 0xEE */ s16      field_EE; // per-frame step of field_EC, stepped down by 4
-    /* 0xF0 */ s8       field_F0; // sub-state index
-    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte     pad_F2[0x2];
-} Actor503500Work776A0;
-STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
-
-/// Element of `D_actor_503500_801774C0`, the two 0xF0 blocks
-/// `func_actor_503500_8013AD64` clears for spawn slots 4 and 5. The shared
-/// `Actor503500Work` cannot be indexed at this stride, so the array gets its
-/// own type; the fields agree with the shared view, and the task's
-/// `field_1C` still points at the block through that view. `field_EC` holds
-/// the slot (`spawnArg1 - 4`) that selects this enemy's parent part and
-/// local offset.
-typedef struct Actor503500Work774C0 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec;
-    /* 0x38 */ byte     pad_38[0xA8];
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ byte     pad_E8[0x4];
-    /* 0xEC */ s8       field_EC;
-    /* 0xED */ byte     pad_ED[0x3];
-} Actor503500Work774C0;
-STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
-
-/// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
-/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
-/// slot is not a `TaskIdMap` here. Unlike the tasks covered by
-/// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
-/// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
-/// `func_actor_503500_80146508` republishes the two matrices onto
-/// `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
-///
-/// The size is the allocation, and the fields below are the ones the init
-/// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C8 are set to -1, and the
-/// three words at 0x4A0..0x4A8 are cleared. This is the same layout as
-/// `Actor317000Work` and its siblings in the other actor overlays, except that
-/// those write 0x4C8 as a halfword.
-typedef struct Actor503500Effect4CC {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x13]; // the slot array `func_800B3F84` is handed
-    /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ s8         field_43C;   // set once the slots have been started
-    /* 0x43D */ s8         field_43D;   // animation id the slots were seeded with
-    /* 0x43E */ s8         field_43E;   // bank index into `D_actor_503500_80176520`
-    /* 0x43F */ byte       pad_43F[0x1];
-    /* 0x440 */ MATRIX     light;
-    /* 0x460 */ MATRIX     color;
-    /* 0x480 */ s32        field_480[4]; // saved `coord.m` words 0..3
-    /* 0x490 */ s16        field_490;    // saved `coord.m[2][2]`
-    /* 0x492 */ byte       pad_492[0xE];
-    /* 0x4A0 */ s32        field_4A0;
-    /* 0x4A4 */ s32        field_4A4;
-    /* 0x4A8 */ s32        field_4A8;
-    /* 0x4AC */ byte       pad_4AC[0x4];
-    /* 0x4B0 */ s32        field_4B0;
-    /* 0x4B4 */ s32        field_4B4;
-    /* 0x4B8 */ s32        field_4B8;
-    /* 0x4BC */ byte       pad_4BC[0x4];
-    /* 0x4C0 */ s16        field_4C0;
-    /* 0x4C2 */ s16        field_4C2;
-    /* 0x4C4 */ s16        field_4C4;
-    /* 0x4C6 */ s16        field_4C6;
-    /* 0x4C8 */ s8         field_4C8;
-    /* 0x4C9 */ byte       pad_4C9[0x3];
-} Actor503500Effect4CC;
-STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 
 /// `Task` as this overlay's enemies use it. The layout is `Task`'s
 /// (`include/main/task.h`); only two slots are retyped: `work` holds the
@@ -985,24 +513,6 @@ typedef struct Actor503500ChainScratch {
 } Actor503500ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 
-/// Twelve-byte record of `Actor503500VecSet::field_C`, copied whole.
-typedef struct Actor503500Rec12 {
-    /* 0x00 */ s16 field_0[6];
-} Actor503500Rec12;
-STATIC_ASSERT_SIZEOF(Actor503500Rec12, 0xC);
-
-/// Vector set that `func_actor_503500_80136B64` rotates from the template at
-/// `D_actor_503500_8016F03C` into the live copy at `D_80183EEC`: the four
-/// `field_4` vectors are only rotated, the eight `field_8` ones are also
-/// offset by the attach coordinate's translation.
-typedef struct Actor503500VecSet {
-    /* 0x00 */ s32               field_0;
-    /* 0x04 */ SVECTOR*          field_4;
-    /* 0x08 */ SVECTOR*          field_8;
-    /* 0x0C */ Actor503500Rec12* field_C;
-} Actor503500VecSet;
-STATIC_ASSERT_SIZEOF(Actor503500VecSet, 0x10);
-
 /// Copies the transpose of `src`'s rotation into `dst` through `$12`-`$14`,
 /// three halfwords at a time, the way the libgte inline macros move matrices.
 #define TRANSPOSE_ROT(src, dst)           \
@@ -1028,12 +538,41 @@ STATIC_ASSERT_SIZEOF(Actor503500VecSet, 0x10);
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-void func_actor_503500_801324C4(Task* task);
-void func_actor_503500_801464E8(Task* arg0);
-void func_actor_503500_80146508(Task* arg0);
-void func_actor_503500_8013F8AC(Actor503500* arg0);
-void func_actor_503500_801440F0(Actor503500* arg0);
-void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
-void func_actor_503500_801422B8(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
+void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
+void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
+/// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
+GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1);
+/// Reports whether slot `arg1` of the boss work block's `enemies` array is
+/// empty. `arg0` is loaded by every caller but the body ignores it.
+s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
+void func_actor_503500_80135E20(Actor503500* arg0, s32 arg1, SVECTOR* arg2);
+/// Records the per-slot halfword for slot `arg1`; `arg0` is ignored the same
+/// way `func_actor_503500_80135E04` ignores it.
+void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
+void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
+s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
+void func_actor_503500_80136048(Actor503500* arg0);
+/// Reports whether the boss-wide gate is open; the body ignores its
+/// argument, and callers pass unrelated pointers they already hold.
+s32  func_actor_503500_8013608C(void* arg0);
+s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
+void func_actor_503500_8013611C(s32 arg0);
+s16  func_actor_503500_80136134(Actor503500* arg0);
+s32  func_actor_503500_80136208(void);
+s16  func_actor_503500_80136218(void);
+void func_actor_503500_80137290(s32 arg0);
+void func_actor_503500_801372AC(s32 arg0);
+void func_actor_503500_80137678(Actor503500* arg0);
+void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+void func_actor_503500_80138454(Actor503500* arg0);
+void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
+void func_actor_503500_80139014(Actor503500* arg0);
+void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+void func_actor_503500_80139EFC(Actor503500* arg0);
+void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
+void func_actor_503500_8013AB38(Actor503500* arg0);
+void func_actor_503500_8013BD0C(Actor503500* arg0);
+void func_actor_503500_8013EE5C(Actor503500* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
+void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords);
 
 #endif

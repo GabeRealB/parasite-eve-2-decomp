@@ -1,96 +1,44 @@
 #include "common.h"
 
-#include "main/task.h"
+#include "actors/actor_503500.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "main/session.h"
-#include "actors/actor_503500.h"
+#include "main/gameflag.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/tmd.h"
+
+/// Work block allocated by `func_actor_503500_80132430`
+/// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
+/// `func_actor_503500_801324EC` republishes the two matrices onto
+/// `TmdObject::lightMtx` / `field_20` -- the colour/light matrix pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
+/// -- so the allocation is exactly two `MATRIX`es plus a small tail.
+/// `func_actor_503500_80132664` sets `field_45` / `field_40` from the message
+/// mode (0..3).
+typedef struct Actor503500ColorMtx {
+    /* 0x00 */ MATRIX light;
+    /* 0x20 */ MATRIX color;
+    /* 0x40 */ s16    field_40;
+    /* 0x42 */ byte   pad_42[0x2];
+    /* 0x44 */ s8     field_44;
+    /* 0x45 */ s8     field_45;
+    /* 0x46 */ byte   pad_46[0x2];
+} Actor503500ColorMtx;
+STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
 extern GpMsgEntry D_actor_503500_80146888[];
+void              func_actor_503500_801324C4(Task* task);
 void              func_actor_503500_801324EC(Task* arg0);
-extern Task*      D_actor_503500_80176558;
-extern TaskDesc   D_actor_503500_8014B964;
-extern s8         D_actor_503500_80176D5A;
-extern s16        D_actor_503500_80176D2E;
-extern u16        D_actor_503500_80176D24;
-/// Opaque script/table blobs in the overlay's `.data`, handed to
-/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
-extern u8 D_actor_503500_8014CD98[];
-extern u8 D_actor_503500_8014D098[];
-/// whatever room overlay is resident owns the body.
-extern void              func_8017E27C(s32 arg0);
-extern Actor503500MsgPos D_actor_503500_8017655C;
-/// Player-facing flag byte in the main executable; no module header owns it yet.
-extern u8 D_80073BA9;
-/// Main-executable globals with no module header yet: `D_80071075` gates the
-/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
-/// `D_80114C12` the cutscene/among-us mode flag.
-extern u8  D_80071075;
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
-s32        func_actor_503500_80133684(Actor503500* arg0);
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
-void func_actor_503500_801338E8(Actor503500* arg0);
-void func_actor_503500_80134408(Actor503500* arg0);
-void func_actor_503500_801345F4(Actor503500* arg0);
-void func_actor_503500_80134A24(Actor503500* arg0);
-void func_actor_503500_80134C68(Actor503500* arg0);
-void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
-s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
-void func_actor_503500_8013611C(s32 arg0);
-void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
-void func_actor_503500_801372AC(s32 arg0);
-void func_actor_503500_80136450(Actor503500* arg0);
-void func_actor_503500_801369E4(Actor503500* arg0);
-void func_actor_503500_80136A80(Actor503500* arg0);
-void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
-void func_actor_503500_801374BC(Actor503500* arg0);
-void func_actor_503500_80137678(Actor503500* arg0);
-void func_actor_503500_80138454(Actor503500* arg0);
-void func_actor_503500_8013B460(Actor503500* arg0);
-void func_actor_503500_8013B8D0(Actor503500* arg0);
-void func_actor_503500_8013BE0C(Actor503500* arg0);
-void func_actor_503500_8013E384(Actor503500* arg0);
-void func_actor_503500_8013E740(Actor503500* arg0);
-void func_actor_503500_8013EBE4(Actor503500* arg0);
 /// Global "everything is frozen" mode byte in the main executable: 1 pauses the
 /// actor, 2 hides it, anything else runs the normal per-frame chain.
 extern u8 D_801153F4;
-void      func_actor_503500_801398D0(Actor503500* arg0);
-void      func_actor_503500_80139EFC(Actor503500* arg0);
-void      func_actor_503500_8013A0D0(Actor503500* arg0);
-void      func_actor_503500_8013A96C(Actor503500* arg0);
-void      func_actor_503500_8013AA44(Actor503500* arg0);
-void      func_actor_503500_8013AAC0(Actor503500* arg0);
-void      func_actor_503500_8013AB38(Actor503500* arg0);
-void      func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8013F328(Actor503500* arg0);
-void      func_actor_503500_8013F4A4(Actor503500* arg0);
-void      func_actor_503500_8013F948(Actor503500* arg0);
-void      func_actor_503500_8013F984(Actor503500* arg0);
-void      func_actor_503500_80140BE8(Actor503500* arg0);
-void      func_actor_503500_80141248(Actor503500* arg0);
-void      func_actor_503500_80141448(Actor503500* arg0);
-void      func_actor_503500_80141B94(Actor503500* arg0);
-void      func_actor_503500_80141D7C(Actor503500* arg0);
-void      func_actor_503500_801420C4(Actor503500* arg0);
-void      func_actor_503500_801421A8(Actor503500* arg0);
-void      func_actor_503500_80142310(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8014271C(Actor503500* arg0);
-void      func_actor_503500_80142980(Actor503500* arg0);
-void      func_actor_503500_8014418C(Actor503500* arg0);
-void      func_actor_503500_801441E8(Actor503500* arg0);
-void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
-
 /// `gameplay/gameplay.h` owns this prototype but cannot be included next to
 /// the gameplay module headers (`Gp_StateC08` is declared differently).
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
@@ -189,4 +137,124 @@ void func_actor_503500_80132430(Task* arg0)
     arg0->exitCallback = func_actor_503500_801324C4;
     arg0->state       += 1;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500", D_actor_503500_80131E24);
+
+/// `Task::exitCallback` of the actor's main task, and the third entry of its
+/// state table: hands the `GpEnemy` the spawn left in `Task::spawnArg2` back to
+/// `Gp_DestroyEnemy`.
+void func_actor_503500_801324C4(Task* task)
+{
+    Gp_DestroyEnemy(task->spawnArg2, task);
+}
+
+void func_actor_503500_801324EC(Task* arg0)
+{
+    TmdObject*           ext;
+    Actor503500ColorMtx* work;
+
+    ext           = arg0->extra;
+    work          = (Actor503500ColorMtx*)arg0->work;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
+}
+
+/// Message-0x7D4 handler of the main task's table (`D_actor_503500_80146888`):
+/// places the actor at `args` - the translation goes straight into the root
+/// coordinate's local matrix, the Euler angles into the coordinate's `rot`
+/// slot, from which the rotation is rebuilt. Clearing `flg` has the world
+/// matrix recomputed. Returns 0.
+s32 func_actor_503500_80132508(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+{
+    Actor503500Coord* coord;
+
+    coord             = (Actor503500Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
+
+s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
+{
+    TmdObject* obj;
+    s32        ret;
+
+    obj = task->extra;
+    ret = 0;
+    switch (mode) {
+        case 0:
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
+            break;
+        case 1:
+            obj->flags &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->flags &= ~4;
+            break;
+        case 2:
+            obj->flags                                  |= 0x80;
+            ((Actor503500ColorMtx*)task->work)->field_44 = mode;
+            obj->flags                                  |= 4;
+            break;
+        case 3:
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
+
+s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
+{
+    Actor503500ColorMtx* work;
+
+    work = (Actor503500ColorMtx*)task->work;
+    switch (msg->mode) {
+        case 0:
+            work->field_45 = 0;
+            work->field_40 = 0;
+            Display_ClampField126(0);
+            break;
+        case 1:
+            work->field_45                      = 1;
+            work->field_40                      = 0;
+            ((TmdObject*)task->extra)->otOffset = 0x15;
+            break;
+        case 2:
+            work->field_45                      = 2;
+            work->field_40                      = 0;
+            ((TmdObject*)task->extra)->otOffset = 0x14;
+            break;
+        case 3:
+            work->field_45 = 0;
+            work->field_40 = 10000;
+            break;
+    }
+    return 0;
+}
+
+/// `Task::state` handlers `func_actor_503500_8013270C` dispatches through.
+const TaskFuncTable3 D_actor_503500_80131E24 = {
+    {
+        func_actor_503500_80132430,
+        func_actor_503500_8013223C,
+        func_actor_503500_801324C4,
+    },
+};
+
+void func_actor_503500_8013270C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_503500_80131E24;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}

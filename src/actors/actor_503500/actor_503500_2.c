@@ -1,205 +1,79 @@
 #include "common.h"
 
-#include "main/task.h"
+#include <psyq/abs.h>
+
+#include "actors/actor_503500.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "main/session.h"
-#include "actors/actor_503500.h"
-#include "main/mem.h"
-#include "main/sound.h"
-#include "main/tmd.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/tmd.h"
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
-extern GpMsgEntry D_actor_503500_80146888[];
-/// State handlers `func_actor_503500_8013270C` dispatches through by
-/// `Task::state`, copied onto the stack first.
-extern TaskFuncTable3 D_actor_503500_80131E24;
-void                  func_actor_503500_801324EC(Task* arg0);
+/// Message payload at `D_actor_503500_8017655C`. `func_actor_503500_80132DEC`
+/// fills it from the player actor: the three words are the translation of the
+/// `GsCOORDINATE2` at `TmdObject::coords` (`MATRIX.t`), the three
+/// halfwords the rotation triple at +0x50/+0x52/+0x54 of that task's `work`
+/// block. `func_actor_503500_80132DD4` clears the position;
+/// `func_actor_503500_80132E7C` hands the record to `Gp_DispatchMsg` as
+/// message 0x3E9 while any position word is non-zero.
+///
+/// Size is bounded by the next `.bss` symbol in the overlay
+/// (`D_actor_503500_80176574`, 0x18 bytes later).
+typedef struct Actor503500MsgPos {
+    /* 0x00 */ s32     x;
+    /* 0x04 */ s32     y;
+    /* 0x08 */ s32     z;
+    /* 0x0C */ byte    pad_C[0x4];
+    /* 0x10 */ SVECTOR rot;
+} Actor503500MsgPos;
+STATIC_ASSERT_SIZEOF(Actor503500MsgPos, 0x18);
+
+/// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
+/// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
+/// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
+/// period whose integer half is the `Task::killCountdown` limit between
+/// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
+/// period until it passes 0x10 and the task dies.
+typedef struct Actor503500EffWork {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    union {
+        /* 0x8 */ s32 w;
+        struct {
+            /* 0x8 */ s16 lo;
+            /* 0xA */ s16 hi;
+        } h;
+    } field_8;
+} Actor503500EffWork;
+STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
+
 /// Spawn positions `func_actor_503500_80132778` indexes by `Task::spawnArg1`.
 extern SVECTOR  D_actor_503500_8014B97C[];
 extern Task*    D_actor_503500_80176558;
 extern TaskDesc D_actor_503500_8014B964;
-extern s8       D_actor_503500_80176D5A;
-extern s16      D_actor_503500_80176D2E;
-extern u16      D_actor_503500_80176D24;
 /// Opaque script/table blobs in the overlay's `.data`, handed to
 /// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
 extern u8 D_actor_503500_8014CD98[];
 extern u8 D_actor_503500_8014D098[];
-/// whatever room overlay is resident owns the body.
+/// Lives in the room overlay slot: whatever room overlay is resident owns the
+/// body.
 extern void              func_8017E27C(s32 arg0);
 extern Actor503500MsgPos D_actor_503500_8017655C;
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 extern u8 D_80073BA9;
-/// Main-executable globals with no module header yet: `D_80071075` gates the
-/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
-/// `D_80114C12` the cutscene/among-us mode flag.
-extern u8  D_80071075;
-extern s16 D_80073BA0;
-extern s8  D_80114C12;
-s32        func_actor_503500_80133684(Actor503500* arg0);
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
-void func_actor_503500_801338E8(Actor503500* arg0);
-void func_actor_503500_80134408(Actor503500* arg0);
-void func_actor_503500_801345F4(Actor503500* arg0);
-void func_actor_503500_80134A24(Actor503500* arg0);
-void func_actor_503500_80134C68(Actor503500* arg0);
-void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
-s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
-void func_actor_503500_8013611C(s32 arg0);
-void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
-void func_actor_503500_801372AC(s32 arg0);
-void func_actor_503500_80136450(Actor503500* arg0);
-void func_actor_503500_801369E4(Actor503500* arg0);
-void func_actor_503500_80136A80(Actor503500* arg0);
-void func_actor_503500_80136EFC(Actor503500* arg0, s32 arg1);
-void func_actor_503500_801374BC(Actor503500* arg0);
-void func_actor_503500_80137678(Actor503500* arg0);
-void func_actor_503500_80138454(Actor503500* arg0);
-void func_actor_503500_8013B460(Actor503500* arg0);
-void func_actor_503500_8013B8D0(Actor503500* arg0);
-void func_actor_503500_8013BE0C(Actor503500* arg0);
-void func_actor_503500_8013E384(Actor503500* arg0);
-void func_actor_503500_8013E740(Actor503500* arg0);
-void func_actor_503500_8013EBE4(Actor503500* arg0);
 /// Global "everything is frozen" mode byte in the main executable: 1 pauses the
 /// actor, 2 hides it, anything else runs the normal per-frame chain.
 extern u8 D_801153F4;
-void      func_actor_503500_801398D0(Actor503500* arg0);
-void      func_actor_503500_80139EFC(Actor503500* arg0);
-void      func_actor_503500_8013A0D0(Actor503500* arg0);
-void      func_actor_503500_8013A96C(Actor503500* arg0);
-void      func_actor_503500_8013AA44(Actor503500* arg0);
-void      func_actor_503500_8013AAC0(Actor503500* arg0);
-void      func_actor_503500_8013AB38(Actor503500* arg0);
-void      func_actor_503500_8013DBA8(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8013F328(Actor503500* arg0);
-void      func_actor_503500_8013F4A4(Actor503500* arg0);
-void      func_actor_503500_8013F948(Actor503500* arg0);
-void      func_actor_503500_8013F984(Actor503500* arg0);
-void      func_actor_503500_80140BE8(Actor503500* arg0);
-void      func_actor_503500_80141248(Actor503500* arg0);
-void      func_actor_503500_80141448(Actor503500* arg0);
-void      func_actor_503500_80141B94(Actor503500* arg0);
-void      func_actor_503500_80141D7C(Actor503500* arg0);
-void      func_actor_503500_801420C4(Actor503500* arg0);
-void      func_actor_503500_801421A8(Actor503500* arg0);
-void      func_actor_503500_80142310(Actor503500* arg0, s32 arg1);
-void      func_actor_503500_8014271C(Actor503500* arg0);
-void      func_actor_503500_80142980(Actor503500* arg0);
-void      func_actor_503500_8014418C(Actor503500* arg0);
-void      func_actor_503500_801441E8(Actor503500* arg0);
-void      func_actor_503500_80144238(Actor503500* arg0, s32 arg1);
-
-void func_actor_503500_801324EC(Task* arg0)
-{
-    TmdObject*           ext;
-    Actor503500ColorMtx* work;
-
-    ext           = arg0->extra;
-    work          = (Actor503500ColorMtx*)arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
-}
-
-/// Message-0x7D4 handler of the main task's table (`D_actor_503500_80146888`):
-/// places the actor at `args` - the translation goes straight into the root
-/// coordinate's local matrix, the Euler angles into the coordinate's `rot`
-/// slot, from which the rotation is rebuilt. Clearing `flg` has the world
-/// matrix recomputed. Returns 0.
-s32 func_actor_503500_80132508(Task* task, s32 arg1, Actor503500PlaceArgs* args)
-{
-    Actor503500Coord* coord;
-
-    coord             = (Actor503500Coord*)((TmdObject*)task->extra)->coords;
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->rot.vx     = args->rot.vx;
-    coord->rot.vy     = args->rot.vy;
-    coord->rot.vz     = args->rot.vz;
-    RotMatrix(&coord->rot, &coord->coord);
-    coord->flg = 0;
-    return 0;
-}
-
-s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
-{
-    TmdObject* obj;
-    s32        ret;
-
-    obj = task->extra;
-    ret = 0;
-    switch (mode) {
-        case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
-            break;
-        case 1:
-            obj->flags &= ~0x80;
-            Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
-            break;
-        case 2:
-            obj->flags                                  |= 0x80;
-            ((Actor503500ColorMtx*)task->work)->field_44 = mode;
-            obj->flags                                  |= 4;
-            break;
-        case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
-
-s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
-{
-    Actor503500ColorMtx* work;
-
-    work = (Actor503500ColorMtx*)task->work;
-    switch (msg->mode) {
-        case 0:
-            work->field_45 = 0;
-            work->field_40 = 0;
-            Display_ClampField126(0);
-            break;
-        case 1:
-            work->field_45                      = 1;
-            work->field_40                      = 0;
-            ((TmdObject*)task->extra)->otOffset = 0x15;
-            break;
-        case 2:
-            work->field_45                      = 2;
-            work->field_40                      = 0;
-            ((TmdObject*)task->extra)->otOffset = 0x14;
-            break;
-        case 3:
-            work->field_45 = 0;
-            work->field_40 = 10000;
-            break;
-    }
-    return 0;
-}
-
-void func_actor_503500_8013270C(Task* task)
-{
-    TaskFuncTable3 sp;
-
-    sp = D_actor_503500_80131E24;
-    if (D_801153F4 == 0) {
-        sp.funcs[task->state](task);
-    }
-}
+/// Player-facing mode byte in the main executable, also written by the
+/// acropolis helicopter landing pad room.
+extern s8 D_801153F1;
 
 void func_actor_503500_80132778(Task* task)
 {
@@ -321,4 +195,157 @@ void func_actor_503500_80132990(Task* task)
     addPrim(gGpuCurrentOt + 3, dr);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_503500/actor_503500_2", D_actor_503500_80131E44);
+/// Record handler (opcode 0x0D) of the actor's script data: queues the
+/// replacing load of overlay 0x82.
+void func_actor_503500_80132B78(void)
+{
+    CdCmd_EnqueueReplaceOverlay82();
+}
+
+/// Record handler (opcode 0x0D) of the actor's script data: queues the load
+/// of overlay 0x81.
+void func_actor_503500_80132B98(void)
+{
+    CdCmd_EnqueueOverlay81();
+}
+
+/// Record handler (opcode 0x0D) of the actor's script data: restores the
+/// stream random-number state.
+void func_actor_503500_80132BB8(void)
+{
+    Gp_RestoreStreamRng();
+}
+
+/// Record handler (opcode 0x0D) of the actor's script data: cancels the queued
+/// CD command and restarts the CD queue.
+void func_actor_503500_80132BD8(void)
+{
+    CdCmd_CancelReplaceAndActivate();
+}
+
+void func_actor_503500_80132BF8(void)
+{
+    Mc_SaveData.at4.loc.area = 0x16;
+    Mc_SaveData.at4.loc.warp = 1;
+    Mc_SaveData.at4.loc.room = 1;
+    Task_Spawn(0, 0x11, 0, 0);
+}
+
+void func_actor_503500_80132C40(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_503500_8014B964, 0, arg0, 0);
+}
+
+void func_actor_503500_80132C70(s32 arg0)
+{
+    D_actor_503500_80176558 = Task_SpawnFromTable(&D_actor_503500_8014B964, 1, arg0, 0);
+}
+
+/// Record handler (opcode 0x0D) of the actor's script data: calls
+/// `Gp_PulseState1C`.
+void func_actor_503500_80132CA4(void)
+{
+    Gp_PulseState1C();
+}
+
+void func_actor_503500_80132CC4(s8 arg0)
+{
+    Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 0x23);
+    D_801153F1 = arg0;
+}
+
+/// Record handler (opcode 0x0D) of the actor's script data, taking the
+/// record's argument word: ORs it into `GameSession::flowFlags` (the script
+/// passes 1 and 2).
+void func_actor_503500_80132D00(s32 bits)
+{
+    gGameSession->flowFlags |= bits;
+}
+
+void func_actor_503500_80132D20(Task* arg0)
+{
+    func_800E8634((s32)D_actor_503500_8014CD98, 0, (s32)D_actor_503500_8014D098);
+    taskKill(arg0);
+}
+
+void func_actor_503500_80132D60(void)
+{
+    Gp_StateC08.field_6 |= 1;
+}
+
+void func_actor_503500_80132D7C(void)
+{
+    gGameSession->viewDirty = 1;
+}
+
+void func_actor_503500_80132D90(s32 arg0)
+{
+    GameFlag_SetNibble(0x100, arg0);
+}
+
+void func_actor_503500_80132DB4(s32 arg0)
+{
+    func_8017E27C(arg0 & 0xFF);
+}
+
+void func_actor_503500_80132DD4(void)
+{
+    D_actor_503500_8017655C.x = 0;
+    D_actor_503500_8017655C.y = 0;
+    D_actor_503500_8017655C.z = 0;
+}
+
+void func_actor_503500_80132DEC(void)
+{
+    Task*          slot3;
+    GsCOORDINATE2* coord;
+    SVECTOR*       rot;
+
+    slot3 = gameGetPtrSlot(3);
+    coord = ((TmdObject*)slot3->extra)->coords;
+
+    D_actor_503500_8017655C.x = coord->coord.t[0];
+    D_actor_503500_8017655C.y = coord->coord.t[1];
+    D_actor_503500_8017655C.z = coord->coord.t[2];
+
+    /* Anchoring the rotation pointer *after* the three word stores is what
+     * makes cse keep the plain symbol as the base address; taking it first
+     * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
+    rot = &D_actor_503500_8017655C.rot;
+
+    rot->vx = ((GameActor*)slot3->work)->field_50;
+    rot->vy = ((GameActor*)slot3->work)->field_52;
+    rot->vz = ((GameActor*)slot3->work)->field_54;
+}
+
+void func_actor_503500_80132E7C(void)
+{
+    Task* slot3;
+
+    slot3 = gameGetPtrSlot(3);
+    if ((D_actor_503500_8017655C.x != 0) || (D_actor_503500_8017655C.y != 0) ||
+        (D_actor_503500_8017655C.z != 0)) {
+        Gp_DispatchMsg(slot3, 0x3E9, (s32)&D_actor_503500_8017655C, 0);
+    }
+}
+
+void func_actor_503500_80132EE8(u8 arg0)
+{
+    D_80115768 = arg0;
+}
+
+void func_actor_503500_80132EF4(void)
+{
+    func_80106350((GpActorWork*)gameGetPtrSlot(3), D_80073BA9, 0);
+}
+
+void func_actor_503500_80132F28(void)
+{
+    Gp_HaltPadScripts();
+    gGameSession->padScriptFlags = 0;
+}
+
+void func_actor_503500_80132F58(void)
+{
+    D_actor_503500_80176558 = NULL;
+}
