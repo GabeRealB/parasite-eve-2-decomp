@@ -3485,12 +3485,12 @@ id = 416
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b4_water_supply/shelter_b4_water_supply", rodata = "0x4", text = "0x90" },
+  { unit = "shelter_b4_water_supply/shelter_b4_water_supply_3", rodata = "0x3C", text = "0x1810" },
   { unit = "shelter_b4_water_supply/shelter_b4_water_supply_4", rodata = "0x64", text = "0x2114" },
   { unit = "shelter_b4_water_supply/shelter_b4_water_supply_5", rodata = "0x7C", text = "0x341C" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x7E4" },
   { unit = "shelter_b4_water_supply/shelter_b4_water_supply_2", text = "0x83C" },
   { lib = true, unit = "rooms_shared_8017e690", text = "0x17D0" },
-  { unit = "shelter_b4_water_supply/shelter_b4_water_supply_3", text = "0x1810" },
   { lib = true, unit = "rooms_shared_8017f4a0", text = "0x1C8C" },
   { lib = true, unit = "room_draw16", text = "0x1DE0" },
   { lib = true, unit = "room_draw27", text = "0x25D0" },

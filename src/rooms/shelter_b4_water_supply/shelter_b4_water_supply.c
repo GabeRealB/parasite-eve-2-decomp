@@ -225,5 +225,3 @@ void func_shelter_b4_water_supply_8017DD40(Task* arg0)
 void func_shelter_b4_water_supply_8017DD9C(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", jtbl_shelter_b4_water_supply_8017D5FC);
