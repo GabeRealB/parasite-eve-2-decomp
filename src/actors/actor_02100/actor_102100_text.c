@@ -272,7 +272,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
         scratch->shortVec.vz = 0x12C;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&scratch->shortVec);
-        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_rtv0();
         gte_stlvnl(&scratch->vec);
         scratch->vec.vx += coord->workm.t[0];
         scratch->vec.vy += coord->workm.t[1];
@@ -289,7 +289,7 @@ void Actor02100_Fn004C4(Actor02100* arg0)
             scratch->shortVec.vz = work->field_182;
             gte_SetRotMatrix(&work->field_144);
             gte_ldv0(&scratch->shortVec);
-            __asm__ volatile("nop; nop; .word 0x4A486012");
+            gte_rtv0();
             gte_stsv(&scratch->shortVec);
             scratch->shortVec.vz += 0x12C;
             Gp_SpawnEff(0x6003B, coord, 0, &scratch->shortVec);
@@ -606,7 +606,7 @@ void Actor02100_Fn011C4(Actor02100* arg0)
                         scratch->from.vz = (u16)scratch->lock.vz;
                         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                         gte_ldv0(&scratch->from);
-                        __asm__ volatile("nop; nop; .word 0x4A486012");
+                        gte_rtv0();
                         gte_stlvnl(&scratch->transformed);
                         scratch->transformed.vx += gGfxViewCoord.workm.t[0];
                         scratch->transformed.vy += gGfxViewCoord.workm.t[1];
@@ -690,7 +690,7 @@ case2:
     scratch->shortVec.vz = *(u16*)&scratch->vec.vz;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&scratch->shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stlvnl(vec);
     scratch->vec.vx += gGfxViewCoord.workm.t[0];
     scratch->vec.vy += gGfxViewCoord.workm.t[1];
@@ -742,7 +742,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Actor02100* arg0)
     scratch->shortVec.vz = 0x12C;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&scratch->shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stlvnl(&scratch->transformed);
     scratch->transformed.vx += coord->workm.t[0];
     scratch->transformed.vy += coord->workm.t[1];
@@ -766,7 +766,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Actor02100* arg0)
     *(u8**)G_SCRATCH_HEAD     = (u8*)shortScratch;
     gte_SetRotMatrix(&nextWork->field_144);
     gte_ldv0(&shortScratch->shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&nextWork->field_128[1]);
     nextWork->field_128[1].vz += 0x12C;
 
@@ -780,7 +780,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Actor02100* arg0)
     shortVec->vz          = 0x2710;
     gte_SetRotMatrix(&nextWork2->field_144);
     gte_ldv0(shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&nextWork2->field_B0);
     nextWork2->field_E8    = nextWork2->field_B0;
     *(u8**)G_SCRATCH_HEAD += 8;
@@ -814,7 +814,7 @@ static __inline__ void Actor02100_BuildVectors(Actor02100* arg0, Actor02100Work*
         gte_SetRotMatrix(&work->field_144);
         head -= 8;
         gte_ldv0((SVECTOR*)head);
-        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_rtv0();
     } else {
         work                  = arg0->field_1C;
         work->field_128[0].vz = 0x12C;
@@ -829,7 +829,7 @@ static __inline__ void Actor02100_BuildVectors(Actor02100* arg0, Actor02100Work*
         gte_SetRotMatrix(&work->field_144);
         head -= 8;
         gte_ldv0((SVECTOR*)head);
-        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_rtv0();
     }
     gte_stsv(&work->field_128[1]);
     work->field_128[1].vz += 0x12C;
@@ -845,7 +845,7 @@ static __inline__ void Actor02100_BuildVectors(Actor02100* arg0, Actor02100Work*
     shortVec->vz          = 0x2710;
     gte_SetRotMatrix(&nextWork->field_144);
     gte_ldv0(shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&nextWork->field_B0);
     nextWork->field_E8     = nextWork->field_B0;
     *(u8**)G_SCRATCH_HEAD += 8;
@@ -1018,7 +1018,7 @@ static __inline__ void Actor02100_OrientScratch(Actor02100* arg0)
     scratch->shortVec.vz = 0x12C;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&scratch->shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stlvnl(&scratch->transformed);
     scratch->transformed.vx += coord->workm.t[0];
     scratch->transformed.vy += coord->workm.t[1];
@@ -1065,7 +1065,7 @@ static __inline__ void Actor02100_UpdateVectors(Actor02100* arg0)
     inner->shortVec.vz    = vz;
     gte_SetRotMatrix(&work->field_144);
     gte_ldv0(&scratch->shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&work->field_128[1]);
     head2                  = *(u8**)G_SCRATCH_HEAD;
     work->field_128[1].vz += 0x12C;
@@ -1080,7 +1080,7 @@ static __inline__ void Actor02100_UpdateVectors(Actor02100* arg0)
     shortVec->vz          = 0x2710;
     gte_SetRotMatrix(&work2->field_144);
     gte_ldv0(shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&work2->field_B0);
     work2->field_E8        = work2->field_B0;
     *(u8**)G_SCRATCH_HEAD += 8;
@@ -1105,7 +1105,7 @@ static __inline__ void Actor02100_SetVector(Actor02100* arg0)
     shortVec->vy               = 0;
     gte_SetRotMatrix(&work->field_144);
     gte_ldv0(shortVec);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(&work->field_B0);
     work->field_E8         = work->field_B0;
     *(u8**)G_SCRATCH_HEAD += 8;

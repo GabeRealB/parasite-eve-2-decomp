@@ -4,6 +4,7 @@
 #include "main/tmd.h"
 #include "main/sound.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 #include "actors/actor_342400.h"
 #include "actors/actors_shared_80163354.h"
 
@@ -66,7 +67,7 @@ void func_actor_342400_80168B74(Task* arg0)
     d.vz = coord->coord.t[2] - work->field_70.vz;
     out  = &sq;
     gte_ldlvl(&d);
-    __asm__ volatile("nop; nop; .word 0x4AA00428"); // sqr 0
+    gte_sqr0();
     gte_stlvnl(out);
     if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
         work->field_422++;

@@ -939,7 +939,7 @@ s32 func_actor_401800_8013629C(Actor401800* arg0, GpRec18* recs, s16 count)
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0x96);
                 gte_ldsv(&s->offset);
-                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_gpf12();
                 gte_stsv(&s->offset);
                 arg0->field_2C->coords->coord.t[0] += s->offset.vx / 2;
                 arg0->field_2C->coords->coord.t[2] += s->offset.vz / 2;
@@ -1533,7 +1533,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             svp->vx = vec.vx;

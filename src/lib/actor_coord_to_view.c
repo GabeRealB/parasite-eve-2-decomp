@@ -1,5 +1,6 @@
 #include "actors/coord_to_view.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 #include "main/gfx.h"
 
 s32 ActorCoordToView(GsCOORDINATE2* coord, SVECTOR* pos)
@@ -26,7 +27,7 @@ s32 ActorCoordToView(GsCOORDINATE2* coord, SVECTOR* pos)
         gte_SetTransMatrix(&current->coord);
         gte_SetRotMatrix(&current->coord);
         gte_ldv0(&local);
-        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_rtv0tr();
         gte_stlvnl(&result);
         gte_stflg(&flag);
         local.vx = result.vx;

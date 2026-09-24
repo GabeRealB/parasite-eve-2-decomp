@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_101900.h"
 #include "actors/actor_101900_facing.h"
 #include "actors/actors_shared_80132808.h"
@@ -359,7 +362,7 @@ void Actor01900_Fn02018(GpEnemy* enemy, Actor01900* actor)
     VectorNormalSS(v, v);
     gte_lddp(2000);
     gte_ldsv(v);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(v);
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
@@ -601,12 +604,12 @@ void Actor01900_Fn02A50(Actor01900* arg0)
                 if (work->field_C14 > 0) {
                     gte_lddp(-0x19);
                     gte_ldsv(dir);
-                    __asm__ volatile("nop; nop; .word 0x4B98003D");
+                    gte_gpf12();
                     gte_stsv(dir);
                 } else {
                     gte_lddp(-0x64);
                     gte_ldsv(dir);
-                    __asm__ volatile("nop; nop; .word 0x4B98003D");
+                    gte_gpf12();
                     gte_stsv(dir);
                 }
                 arg0->field_2C->coords->coord.t[0] += s->dir.vx;
@@ -1012,7 +1015,7 @@ s32 Actor01900_Fn03C98(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16 arg3)
             VectorNormalSS(step, step);
             gte_lddp(0xC0);
             gte_ldsv(step);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(step);
             coord->coord.t[0] += s->step.vx;
             coord->coord.t[2] += s->step.vz;
@@ -1085,7 +1088,7 @@ s32 Actor01900_Fn03FF8(Actor01900* arg0, GpRec18* recs, s16 count)
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0xC0);
                 gte_ldsv(&s->offset);
-                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_gpf12();
                 gte_stsv(&s->offset);
                 arg0->field_2C->coords->coord.t[0] += s->offset.vx / 2;
                 arg0->field_2C->coords->coord.t[2] += s->offset.vz / 2;
@@ -1507,12 +1510,12 @@ void Actor01900_Fn05B4C(Actor01900* arg0)
     if (work->field_89A == 0) {
         gte_lddp(work->field_C2A);
         gte_ldsv(&work->field_C18);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(aim);
     } else {
         gte_lddp(work->field_C2A >> 1);
         gte_ldsv(&work->field_C18);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(aim);
     }
     if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {

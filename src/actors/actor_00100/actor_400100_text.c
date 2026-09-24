@@ -874,7 +874,7 @@ void Actor00100_Fn06398(Actor00100* arg0)
         }
         gte_lddp(0x85);
         gte_ldsv(gteVec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(gteVec);
         x               = head[-2].vx;
         work->field_8DC = 0;
@@ -938,7 +938,7 @@ void Actor00100_Fn06654(Actor00100* arg0)
         VectorNormalSS(vec, vec);
         gte_lddp(0x20);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         x                               = head[-2].vx;
         work->field_8DC                 = 0;
@@ -1352,7 +1352,7 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         VectorNormalSS(&scratch->vec, &scratch->vec);
         gte_lddp(1000);
         gte_ldsv(&scratch->vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(&scratch->vec);
         ((Actor00100MoveWork*)work)->index        = 0;
         ((Actor00100MoveWork*)work)->pos[0][0]    = (s16)((u16)scratch->vec.vx + arg0->field_2C->coords->coord.t[0]);
@@ -1403,7 +1403,7 @@ void Actor00100_Fn0782C(Actor00100* arg0)
         VectorNormalSS(direction, direction);
         gte_lddp(2000);
         gte_ldsv(direction);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(direction);
         ((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][0] = (s16)((u16)scratch->target.vx + arg0->field_2C->coords->coord.t[0]);
         ((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][1] = (s16)((u16)scratch->target.vz + arg0->field_2C->coords->coord.t[2]);
@@ -1646,7 +1646,7 @@ void Actor00100_Fn08588(Actor00100* arg0)
     VectorNormalSS(&scratch->vec, &scratch->vec);
     gte_lddp(-0x1A);
     gte_ldsv(&scratch->vec);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(&scratch->vec);
     coord               = arg0->field_2C->coords;
     coord->coord.t[0]  += scratch->vec.vx;
@@ -1745,7 +1745,7 @@ void Actor00100_Fn08A14(Actor00100* arg0)
     VectorNormalSS(&scratch->vec, &scratch->vec);
     gte_lddp(0x1A);
     gte_ldsv(&scratch->vec);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(&scratch->vec);
     coord               = arg0->field_2C->coords;
     coord->coord.t[0]  += scratch->vec.vx;
@@ -1810,7 +1810,7 @@ void Actor00100_Fn08E7C(Actor00100* arg0)
     scratch->y = 0;
     scratch->z = 0;
     gte_ldv0(scratch);
-    __asm__ volatile("nop; nop; .word 0x4A180001");
+    gte_rtps();
     gte_stsxy(&head[-1].screenX);
     gte_stdp(&head[-1].dp);
     gte_stflg(&head[-1].flag);

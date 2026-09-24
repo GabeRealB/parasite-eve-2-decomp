@@ -1,6 +1,7 @@
 #include "actors/coord_to_view.h"
 #include "common.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #include "main/gfx.h"
 #include "main/sound.h"
@@ -1086,7 +1087,7 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             pos.vy = entry->position.vy;
             pos.vz = entry->position.vz;
             gte_ldv0(&pos);
-            __asm__ volatile("nop; nop; .word 0x4A180001" : : : "memory");
+            gte_rtps();
             gte_stsxy(&screen);
             gte_stflg(&flag);
             gte_stszotz(&depth);

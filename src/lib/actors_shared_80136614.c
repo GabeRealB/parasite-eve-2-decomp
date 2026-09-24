@@ -7,6 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 /// `base` and `vec` hold the same address on purpose: the sibling at
 /// `func_actor_403100_8013B5E0` matches the identical `addiu`/`addu` pair the
@@ -44,7 +45,7 @@ s32 ActorsShared80136614(GsCOORDINATE2* arg0, u32* arg1)
     local = *(SVECTOR*)((s8*)head - 0x40);
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(vec);
     angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
     if (angle >= 0x801) {

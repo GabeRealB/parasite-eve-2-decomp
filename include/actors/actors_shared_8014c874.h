@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 
 #include "gameplay/1BC.h"
@@ -48,7 +49,7 @@ static __inline__ void ActorsShared8014c874_MoveForward(GsCOORDINATE2* coord, s1
     VectorNormalSS(vec, vec);
     gte_lddp(amount);
     gte_ldsv(vec);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(vec);
     coord->coord.t[0]          += head[-1].vx;
     coord->coord.t[1]          += vec->vy;

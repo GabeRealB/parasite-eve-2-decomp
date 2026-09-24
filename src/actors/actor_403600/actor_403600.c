@@ -6564,7 +6564,7 @@ void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
     local = *(SVECTOR*)vec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(vec);
     angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
     *arg2 = angle;
@@ -6602,7 +6602,7 @@ s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
     local = *(SVECTOR*)vec;
     gte_SetRotMatrix(head - 0x20);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(vec);
     angle  = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
     result = angle;

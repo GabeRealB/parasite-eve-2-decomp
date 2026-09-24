@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "psyq/abs.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern u8 D_80072729;
 
@@ -145,7 +146,7 @@ s32 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(&s->dir);
             push->vx          += s->dir.vx;
             push->vz          += s->dir.vz;

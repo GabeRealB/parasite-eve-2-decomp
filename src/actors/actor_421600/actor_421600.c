@@ -2715,7 +2715,7 @@ void func_actor_421600_80138750(Actor421600* arg0)
         VectorNormalSS(vec, vec);
         gte_lddp(0x20);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         x                       = head[-2].vx;
         work->field_8A8         = 0;

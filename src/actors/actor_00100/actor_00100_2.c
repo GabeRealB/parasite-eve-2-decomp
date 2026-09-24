@@ -396,7 +396,7 @@ s32 Actor00100_Fn01388(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(&s->dir);
             pos->vx           += s->dir.vx;
             pos->vz           += s->dir.vz;

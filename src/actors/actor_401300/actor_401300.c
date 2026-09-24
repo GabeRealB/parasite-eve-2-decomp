@@ -166,7 +166,7 @@ s32 func_actor_401300_80132910(Actor401300* arg0, GpRec18* recs, s16 count)
                 VectorNormalSS(&s->offset, &s->offset);
                 gte_lddp(0x140);
                 gte_ldsv(&s->offset);
-                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_gpf12();
                 gte_stsv(&s->offset);
                 arg0->field_2C->coords->coord.t[0] += s->offset.vx >> 2;
                 arg0->field_2C->coords->coord.t[2] += s->offset.vz >> 2;
@@ -252,7 +252,7 @@ s32 func_actor_401300_80132C78(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2, s16
             VectorNormalSS(step, step);
             gte_lddp(0xAF);
             gte_ldsv(step);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(step);
             coord->coord.t[0] += s->step.vx;
             coord->coord.t[2] += s->step.vz;
@@ -658,7 +658,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;
@@ -1052,7 +1052,7 @@ void func_actor_401300_80134454(GpEnemy* enemy, Actor401300* actor)
     VectorNormalSS(v, v);
     gte_lddp(2000);
     gte_ldsv(v);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(v);
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
@@ -1283,12 +1283,12 @@ void func_actor_401300_80134F90(Actor401300* arg0)
                 if (work->field_89E == 1) {
                     gte_lddp(-5);
                     gte_ldsv(dir);
-                    __asm__ volatile("nop; nop; .word 0x4B98003D");
+                    gte_gpf12();
                     gte_stsv(dir);
                 } else {
                     gte_lddp(-10);
                     gte_ldsv(dir);
-                    __asm__ volatile("nop; nop; .word 0x4B98003D");
+                    gte_gpf12();
                     gte_stsv(dir);
                 }
                 arg0->field_2C->coords->coord.t[0] += s->dir.vx;
@@ -4388,7 +4388,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

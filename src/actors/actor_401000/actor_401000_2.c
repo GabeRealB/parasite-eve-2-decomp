@@ -256,7 +256,7 @@ void func_actor_401000_80133274(GpEnemy* enemy, Actor401000* actor)
     VectorNormalSS(v, v);
     gte_lddp(2000);
     gte_ldsv(v);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(v);
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
@@ -3183,7 +3183,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

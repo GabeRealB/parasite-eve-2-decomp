@@ -11,6 +11,7 @@
 #include "main/task.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 /// XZ patrol point in `Actor401300Work::field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -488,7 +489,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

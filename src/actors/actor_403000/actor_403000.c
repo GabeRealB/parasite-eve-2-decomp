@@ -251,7 +251,7 @@ void func_actor_403000_80132AE0(GsCOORDINATE2* parent)
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(&local);
-                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_rtv0tr();
                 gte_stlvnl(&result);
                 gte_stflg(&flag);
                 local.vx = result.vx;
@@ -379,7 +379,7 @@ void func_actor_403000_801330D4(GsCOORDINATE2* parent)
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(&local);
-                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_rtv0tr();
                 gte_stlvnl(&result);
                 gte_stflg(&flag);
                 local.vx = result.vx;

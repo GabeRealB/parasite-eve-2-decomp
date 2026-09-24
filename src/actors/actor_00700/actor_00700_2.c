@@ -9,6 +9,7 @@
 #include "main/wipsys.h"
 #include "main/display.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -669,7 +670,7 @@ void Actor00700_Fn0305C(Actor00700* arg0)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->v[0]);
-    __asm__ volatile("nop; nop; .word 0x4A180001");
+    gte_rtps();
     gte_stsxy(&sc->sxy);
     gte_stszotz(&sc->otz);
     if (sc->otz < 20) {
@@ -701,7 +702,7 @@ void Actor00700_Fn0305C(Actor00700* arg0)
         gte_SetRotMatrix(&work->field_22C.quad.rotation);
         v = &sc->v[i];
         gte_ldv0(v);
-        __asm__ volatile("nop; nop; .word 0x4A486012");
+        gte_rtv0();
         gte_stsv(v);
         v->vx += x;
         v->vy += y;

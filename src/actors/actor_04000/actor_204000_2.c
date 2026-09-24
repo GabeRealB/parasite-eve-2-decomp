@@ -250,7 +250,7 @@ static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -1445,7 +1445,7 @@ void Actor04000_Fn055C8(Actor104000Ctx* arg0, Actor104000* arg1)
                 sv                                   = work->dir;
                 gte_lddp(0x14);
                 gte_ldsv(&sv);
-                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                gte_gpf12();
                 gte_stsv(&sv);
                 arg1->field_2C->field_8->coord.t[0] += sv.vx;
                 arg1->field_2C->field_8->coord.t[2] += sv.vz;

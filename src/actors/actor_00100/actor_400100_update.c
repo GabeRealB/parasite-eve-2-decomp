@@ -15,6 +15,7 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 void                         Actor00100_Fn001FC(GsCOORDINATE2*, s16);
 void                         Actor00100_Fn01D74(Actor00100*);
@@ -197,7 +198,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Actor00100* actor)
                                 VectorNormalSS(scratch, scratch);
                                 gte_lddp(250);
                                 gte_ldsv(scratch);
-                                __asm__ volatile("nop; nop; .word 0x4B98003D");
+                                gte_gpf12();
                                 gte_stsv(scratch);
                                 work->field_8D8 = (s32)(s16)scratch->vx;
                                 work->field_8DC = 0x3C;

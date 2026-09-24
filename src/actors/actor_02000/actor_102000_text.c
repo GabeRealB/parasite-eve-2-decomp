@@ -2,6 +2,7 @@
 
 #include "actors/actor_102000.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/fs.h"
@@ -822,13 +823,13 @@ void Actor02000_Fn01698(Actor02000* arg0)
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv((char*)matrix + 2);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 2);
     gte_ldclmv((char*)matrix + 4);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 4);
     angleX = work->field_688.vx;
     if (angleX != 0) {

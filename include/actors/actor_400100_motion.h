@@ -5,6 +5,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern u8 D_80072729;
 extern s8 D_80114C12;
@@ -37,7 +38,7 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     gte_lddp(amount);
     vec = (SVECTOR*)head - 1;
     gte_ldsv(vec);
-    __asm__ volatile("nop; nop; .word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(vec);
     matrix->t[0]                               = scratch->translation.vx;
     matrix->t[1]                               = scratch->translation.vy;
@@ -57,7 +58,7 @@ static __inline__ void Actor00100_MoveForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -84,7 +85,7 @@ static __inline__ void Actor00100_MoveForwardNonzero(GsCOORDINATE2* coord, s16 a
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;

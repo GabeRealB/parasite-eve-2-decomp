@@ -6,6 +6,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern u8 D_80072729;
 
@@ -27,7 +28,7 @@ static __inline__ void Actor461800_MoveForward(Task* task, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;

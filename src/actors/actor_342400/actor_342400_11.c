@@ -3,6 +3,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 #include "actors/actor_342400.h"
 
 void func_actor_342400_80168394(Task* arg0)
@@ -125,7 +126,7 @@ void func_actor_342400_80168530(Task* arg0)
     d.vz = coord->coord.t[2] - work->field_70.vz;
     out  = &sq;
     gte_ldlvl(&d);
-    __asm__ volatile("nop; nop; .word 0x4AA00428"); // sqr 0
+    gte_sqr0();
     gte_stlvnl(out);
     dist = SquareRoot0(sq.vx + sq.vy + sq.vz);
     if ((s16)work->field_412 > 120) {

@@ -10,6 +10,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
@@ -64,7 +65,7 @@ void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     scratch->offset.vz = 0;
     gte_SetRotMatrix(&parentCoord->coord);
     gte_ldv0(offset);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stlvnl(&scratch->result);
     coord->sub        = &gGfxViewCoord;
     coord->coord      = parentCoord->coord;

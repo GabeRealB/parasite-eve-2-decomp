@@ -12,6 +12,7 @@
 #include "main/gfx.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
@@ -1392,13 +1393,13 @@ void Actor00300_Fn0340C(Actor100300* arg0)
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv((char*)matrix + 2);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 2);
     gte_ldclmv((char*)matrix + 4);
-    __asm__ volatile("nop; nop; .word 0x4A49E012");
+    gte_rtir();
     gte_stclmv((char*)&coord[3].coord + 4);
     angleX = work->field_65C.vx;
     if (angleX != 0) {
@@ -1805,7 +1806,7 @@ void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     scratch->offset.vz = 0x320;
     gte_SetRotMatrix(&parentCoord->coord);
     gte_ldv0(offset);
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stlvnl(&scratch->result);
     coord->sub          = &gGfxViewCoord;
     coord->coord        = parentCoord->coord;

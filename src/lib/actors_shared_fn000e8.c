@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_101900.h"
 #include "actors/actor_101900_facing.h"
 #include "actors/actors_shared_80132808.h"
@@ -86,7 +89,7 @@ s32 ActorsSharedFn000e8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         VectorNormalSS(offset, offset);
         gte_lddp(0x100);
         gte_ldsv(offset);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(offset);
     }
     coord->flg                                 = 0;

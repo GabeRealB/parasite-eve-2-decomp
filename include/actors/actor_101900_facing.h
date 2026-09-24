@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/wipsys.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
@@ -66,7 +67,7 @@ static __inline__ void Actor01900_MoveForward(GsCOORDINATE2* coord, s16 amount)
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            __asm__ volatile("nop; nop; .word 0x4B98003D");
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -93,7 +94,7 @@ static __inline__ void Actor01900_StepForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += vec->vx;
         coord->coord.t[1]          += vec->vy;
@@ -118,7 +119,7 @@ static __inline__ void Actor01900_StepForwardHead(GsCOORDINATE2* coord, s16 amou
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        __asm__ volatile("nop; nop; .word 0x4B98003D");
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;
@@ -293,7 +294,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

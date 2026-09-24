@@ -11,6 +11,7 @@
 #include "main/tmd.h"
 #include "main/gfx.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -930,7 +931,7 @@ void Actor04400_Fn053FC(Task* arg0)
     d.vz = coord->coord.t[2] - work->field_70.vz;
     out  = &sq;
     gte_ldlvl(&d);
-    __asm__ volatile("nop; nop; .word 0x4AA00428"); // sqr 0
+    gte_sqr0();
     gte_stlvnl(out);
     dist = SquareRoot0(sq.vx + sq.vy + sq.vz);
     if ((s16)work->field_412 > 120) {
@@ -1097,7 +1098,7 @@ void Actor04400_Fn05A40(Task* arg0)
     d.vz = coord->coord.t[2] - work->field_70.vz;
     out  = &sq;
     gte_ldlvl(&d);
-    __asm__ volatile("nop; nop; .word 0x4AA00428"); // sqr 0
+    gte_sqr0();
     gte_stlvnl(out);
     if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
         work->field_422++;
@@ -2553,7 +2554,7 @@ void Actor04400_Fn0847C(Task* arg0)
         gte_SetTransMatrix(&current->coord);
         gte_SetRotMatrix(&current->coord);
         gte_ldv0(&local);
-        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_rtv0tr();
         gte_stlvnl(&result);
         gte_stflg(&flag);
         local.vx = result.vx;

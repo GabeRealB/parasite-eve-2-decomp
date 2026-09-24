@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #include "main/sound.h"
 #include "main/mc.h"
@@ -2219,7 +2220,7 @@ static inline s32 Actor403100CoordToViewInline(GsCOORDINATE2* coord, SVECTOR* po
         gte_SetTransMatrix(&current->coord);
         gte_SetRotMatrix(&current->coord);
         gte_ldv0(&local);
-        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_rtv0tr();
         gte_stlvnl(&result);
         gte_stflg(&flag);
         local.vx = result.vx;
@@ -2297,7 +2298,7 @@ void func_actor_403100_8013C7B4(Task* arg0)
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(localp);
-                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_rtv0tr();
                 gte_stlvnl(&result);
                 gte_stflg(&flag);
                 local.vx = result.vx;

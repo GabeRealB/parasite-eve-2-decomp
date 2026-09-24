@@ -6,6 +6,7 @@
 #include "actors/actors_shared_8016331c.h"
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 s32 func_actor_323000_80163448(Task* task, Actor323000Work* work)
 {
@@ -667,7 +668,7 @@ void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
                 gte_SetTransMatrix(&walker->coord);
                 gte_SetRotMatrix(&walker->coord);
                 gte_ldv0(localp);
-                __asm__ volatile("nop; nop; .word 0x4A480012");
+                gte_rtv0tr();
                 gte_stlvnl(&result);
                 gte_stflg(&flag);
                 local.vx = result.vx;

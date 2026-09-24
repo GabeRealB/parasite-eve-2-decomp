@@ -4,6 +4,7 @@
 #include "actors/actor_421600.h"
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 /// Per-frame scratch: the view-space body position and its arena zone.
 typedef struct Actor421600UpdateScratch {
@@ -103,7 +104,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            __asm__ volatile("nop; nop; .word 0x4A480012");
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

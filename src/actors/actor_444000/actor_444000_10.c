@@ -808,9 +808,7 @@ void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
     VectorNormalSS(d, d);
     gte_lddp(scale);
     gte_ldsv(d);
-    __asm__ volatile("nop");
-    __asm__ volatile("nop");
-    __asm__ volatile(".word 0x4B98003D");
+    gte_gpf12();
     gte_stsv(d);
 
     corners[face * 4].vx = corners[face * 4 + 2].vx = 0x2CEC;

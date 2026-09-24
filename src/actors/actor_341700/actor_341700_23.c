@@ -12,6 +12,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 #include "actors/actor_341700.h"
 #include "actors/actors_shared_80165cc0.h"
@@ -55,7 +56,7 @@ void func_actor_341700_8016A2CC(Task* arg0)
         gte_SetTransMatrix(&current->coord);
         gte_SetRotMatrix(&current->coord);
         gte_ldv0(&local);
-        __asm__ volatile("nop; nop; .word 0x4A480012");
+        gte_rtv0tr();
         gte_stlvnl(&result);
         gte_stflg(&flag);
         local.vx = result.vx;

@@ -229,7 +229,7 @@ void Actor01600_Fn03EEC(Actor01600* arg0)
                 scratch->offset.vz = 0;
                 scratch->offset.vy = -height;
                 gte_ldv0(&scratch->offset);
-                __asm__ volatile("nop; nop; .word 0x4A486012");
+                gte_rtv0();
                 gte_stlvnl(&scratch->pos);
                 head[-1].pos.vx = (s32)(head[-1].pos.vx + coord->workm.t[0]);
                 scratch->pos.vy = (s32)(scratch->pos.vy + coord->workm.t[1]);
@@ -498,7 +498,7 @@ s32 Actor01600_Fn045A8(Actor01600* arg0, s32* distance)
     local = *(SVECTOR*)vec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-    __asm__ volatile("nop; nop; .word 0x4A486012");
+    gte_rtv0();
     gte_stsv(vec);
     angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
     if (angle >= 0x801) {
