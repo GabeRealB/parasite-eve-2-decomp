@@ -1952,12 +1952,7 @@ id = 407
 text = ["0x10", "0x110"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_r37/shelter_r37", rodata = "0x4", text = "0x5C" },
-  { unit = "shelter_r37/shelter_r37_3", text = "0x10" },
-  { unit = "shelter_r37/shelter_r37_4", text = "0x18" },
-  { unit = "shelter_r37/shelter_r37_5", text = "0x6C" },
-  { unit = "shelter_r37/shelter_r37_2", text = "0xB0" },
-  { unit = "shelter_r37/shelter_r37_6", text = "0xB8" },
+  { unit = "shelter_r37/shelter_r37", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x110" },
 ]
 
