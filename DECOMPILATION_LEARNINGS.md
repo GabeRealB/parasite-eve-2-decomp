@@ -139995,3 +139995,25 @@ setRGB3(poly, 0, 0x10, 0x20);
 
 This went straight to 100%. When a colour block's order looks grouped by value
 rather than by vertex, try the `setRGBn` macros before permuting field stores.
+
+## A local copied from a parameter inside `if (param == K)` becomes the constant `K`; reassign the parameter instead (func_shelter_1f_vehicular_airlock_8017D990, 2026-09-24)
+
+**Symptom.** Target copies the parameter into a callee-saved register *before*
+the compare (`move s0,a2; li v0,3; bne s0,v0`), then passes `s0` (or an
+overriding constant) to a call. m2c's `var = arg2;` inside the `if (arg2 == 3)`
+arm compiles to `bne a2,v0; ... move s0,v0` - cse knows the local equals 3 on
+that path and substitutes the compare's constant (83.4%, `regs=3 insert=2
+delete=2`, structure matching).
+
+**Fix.** Drop the local and overwrite the parameter itself, so the value that
+crosses the calls is the incoming register's pseudo rather than a new birth
+cse can equate with the constant (100%):
+
+```c
+if (arg2 == 3) {
+    if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(0x7A) >= 6) {
+        arg2 = 5;
+    }
+    Gp_SpawnIfCapIdle(arg2, 0);
+}
+```
