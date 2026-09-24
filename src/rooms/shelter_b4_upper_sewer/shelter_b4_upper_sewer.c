@@ -1,8 +1,16 @@
 #include "common.h"
 
-extern u8   D_8007216C;
-extern u8   D_shelter_b4_upper_sewer_80188D2C;
-extern void func_shelter_b4_upper_sewer_8017E59C(s32);
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/task.h"
+
+#include "gameplay/3CD8.h"
+
+extern u8       D_8007216C;
+extern u8       D_801153F4;
+extern u8       D_shelter_b4_upper_sewer_80188D2C;
+extern TaskDesc D_shelter_b4_upper_sewer_80186300;
+extern void     func_shelter_b4_upper_sewer_8017E59C(s32);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D660);
@@ -16,7 +24,27 @@ s32 func_shelter_b4_upper_sewer_8017D9BC(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D9C4);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017DAB0);
+s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2)
+{
+    u8 temp_a1;
+
+    if (arg2 == 1) {
+        if (GameFlag_GetNibble(0xB8) == 0) {
+            Gp_MsgPlayer3F3(0);
+            Gp_MsgAlly3F3(0);
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            D_801153F4                        = 2;
+            temp_a1                           = Mc_SaveData.at4.loc.view;
+            Mc_SaveData.at4.loc.view          = 0xD;
+            D_shelter_b4_upper_sewer_80188D2C = temp_a1;
+            Task_SpawnFromTable(&D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
+        } else {
+            Gp_RunCapCmd1(6);
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_b4_upper_sewer_8017DB50(void)
 {
