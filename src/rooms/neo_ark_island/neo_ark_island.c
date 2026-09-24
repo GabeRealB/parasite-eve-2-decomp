@@ -27,7 +27,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_isl
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_island/neo_ark_island", func_neo_ark_island_8017E2A4);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", D_neo_ark_island_8017D614);
 
 /// Island arrival sequence, advanced one step per call: step 0 asks for the
 /// caption, step 1 waits for the CAP system to go idle, step 2 clears the mode

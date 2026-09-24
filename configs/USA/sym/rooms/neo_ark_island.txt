@@ -1,18 +1,1 @@
 // Overlay-local symbols for neo_ark_island.
-Room_DrawBillboard = 0x80181170; // shared body, see src/lib/
-Room_Draw02 = 0x8017FE40; // shared body, see src/lib/
-Room_Draw03 = 0x80180AF0; // shared body, see src/lib/
-Room_Draw04 = 0x8018026C; // shared body, see src/lib/
-Room_Draw16 = 0x8017ECB4; // shared body, see src/lib/
-Room_Draw19 = 0x8017F4A4; // shared body, see src/lib/
-Room_Draw23 = 0x8017F890; // shared body, see src/lib/
-RoomsShared8017f9e4 = 0x80180600; // shared body, see src/lib/
-RoomsShared8017f9e4Pos = 0x80181B84; // shared body data, see src/lib/
-RoomsShared8017f9e4Pos2 = 0x80181B8C; // shared body data, see src/lib/
-RoomsShared801802cc = 0x80180EE8; // shared body, see src/lib/
-RoomsShared8017ef80 = 0x8017FB9C; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017EB10; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D614; // shared body data, see src/lib/
-RoomsShared8017eb68 = 0x8017EB68; // shared body, see src/lib/
-RoomsShared8017efe8 = 0x8017EFE8; // shared body, see src/lib/
-func_neo_ark_island_8017EFE8 = 0x8017EFE8; // type:func absolute:True

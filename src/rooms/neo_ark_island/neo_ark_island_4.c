@@ -1,4 +1,8 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -8,18 +12,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017efe8.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/neo_ark_island.h"
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32 Gp_LcgState;
 
-void RoomsShared8017efe8(Task* task)
+/// `Gp_State1C` effect task that plays an eight-frame sprite animation. The
+/// first frame takes the angle from the spawn parameter's low 12 bits, the
+/// frame step from bits 12-15 and, from the top nibble, which of the two
+/// sprite drawers to use; a zero velocity is seeded from the spawn kind
+/// (random scatter, the stored direction, or none) and scaled to the requested
+/// speed. Each later frame draws the sprite, moves the coordinate under a
+/// constant downward pull while the speed is non-zero, and advances the frame
+/// every `step` ticks, releasing the effect after the eighth. Once the room's
+/// event state leaves zero it only draws, and releases at state 4.
+void func_neo_ark_island_8017EFE8(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
@@ -33,9 +42,9 @@ void RoomsShared8017efe8(Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
-            Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_island_8017F4A4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
         } else {
-            Room_Draw23(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_island_8017F890(coord, work->field_20, (s16)work->field_24);
         }
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -113,10 +122,10 @@ void RoomsShared8017efe8(Task* task)
             }
             return;
         case 1:
-            Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_neo_ark_island_8017F4A4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw23(coord, work->field_20, (s16)work->field_24);
+            func_neo_ark_island_8017F890(coord, work->field_20, (s16)work->field_24);
             break;
         default:
             return;
