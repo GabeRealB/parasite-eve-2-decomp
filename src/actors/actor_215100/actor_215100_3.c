@@ -1,18 +1,19 @@
 #include "common.h"
+#include <psyq/libgte.h>
 
-#include "actors/actors_shared_8014c874.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/gameplay.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared80132378(Task* task);
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
 
-/// State-1 handler: recomputes the part coordinate's world matrix, lifts its
-/// translation by 800 and hands it to the model's light/colour step, then runs
-/// the shared step and shadow bodies.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+#include "actors/actor_215100.h"
+
+/// State-1 handler of the actor's dispatcher: recomputes the root part's
+/// world matrix, hands the position 800 units above it to the model's
+/// light/colour step, then runs the animation step and draws the shadow.
+void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
@@ -25,6 +26,6 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    ActorsShared8014c874(task);
-    ActorsShared80132378(task);
+    func_actor_215100_8014C874(task);
+    func_actor_215100_8014CB2C(task);
 }

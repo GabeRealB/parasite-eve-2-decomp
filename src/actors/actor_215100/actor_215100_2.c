@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_215100.h"
-#include "actors/actors_shared_8014c874.h"
-#include "actors/actors_shared_801366fc.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -1285,10 +1283,12 @@ void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-/// Spawn handler (state 0) of the shared two-state dispatcher: the same body
-/// as `actor_150400`'s, over this overlay's larger work block. See that copy
-/// for why `mem`/`work`, `SOFT_BARRIER()` and `TOUCH_REG` are there.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+/// State-0 handler of the actor's dispatcher: allocates the work block, spawns
+/// the sub-model and adopts it as a child, takes the model's texture page and
+/// CLUT from the area placement the enemy's `placeKey` selects, sets up the
+/// animation context on clip 0xC, installs the message table whose handlers
+/// are the actor's script opcodes, and starts the animation.
+void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
@@ -1315,7 +1315,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_215100_8014CB04;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -1359,6 +1359,6 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
                   &work->field_374, work->slots);
     work->state    = 2;
     task->msgTable = D_actor_215100_8015E5A0;
-    ActorsShared8014c874(task);
+    func_actor_215100_8014C874(task);
     task->state++;
 }
