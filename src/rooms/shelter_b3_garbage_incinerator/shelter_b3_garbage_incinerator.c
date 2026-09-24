@@ -1,6 +1,7 @@
 #include "common.h"
-#include "gameplay/D4.h"
+
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -25,7 +26,17 @@ extern s16          D_80071076;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", D_shelter_b3_garbage_incinerator_8017D5C4);
+void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task);
+void func_shelter_b3_garbage_incinerator_8017DC54(Task* task);
+
+/// State handlers of the room's controller task, run by
+/// `func_shelter_b3_garbage_incinerator_8017DC7C`: set-up, a per-frame tick,
+/// and the kill.
+const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
+    func_shelter_b3_garbage_incinerator_8017DB7C,
+    func_shelter_b3_garbage_incinerator_8017DC54,
+    taskKill,
+} };
 
 void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
 {
@@ -171,11 +182,21 @@ void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     task->state = task->state + 1;
 }
 
-void func_shelter_b3_garbage_incinerator_8017DC54(void)
+void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
 {
     char pad[0x10];
 
     if (D_shelter_b3_garbage_incinerator_801855DC < 0x3D) {
         D_shelter_b3_garbage_incinerator_801855DC++;
     }
+}
+
+/// Runs the room controller's current state through its three-entry state
+/// table, copied onto the stack before the call.
+void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b3_garbage_incinerator_8017D5C4;
+    sp.funcs[task->state](task);
 }
