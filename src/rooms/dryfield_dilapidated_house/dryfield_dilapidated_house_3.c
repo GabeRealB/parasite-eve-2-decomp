@@ -33,6 +33,11 @@ extern SVECTOR    D_dryfield_dilapidated_house_801867A4[6];
 extern SVECTOR    D_dryfield_dilapidated_house_801867D4[6];
 extern TaskDesc   D_dryfield_dilapidated_house_80186854;
 
+/// State tables of the room task and of the task
+/// `func_dryfield_dilapidated_house_80180F04` dispatches.
+extern const TaskFuncTable3 D_dryfield_dilapidated_house_8017D5C4;
+extern const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640;
+
 void func_dryfield_dilapidated_house_8017F418(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
 
 void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
@@ -50,7 +55,16 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     arg0->state            += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_8017EB60);
+/// The room task: runs its current state out of
+/// `D_dryfield_dilapidated_house_8017D5C4`, copied onto the stack - setup, the
+/// room gate, then `taskKill`.
+void func_dryfield_dilapidated_house_8017EB60(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_dilapidated_house_8017D5C4;
+    sp.funcs[task->state](task);
+}
 
 /// Projects the eight local-space markers at
 /// `D_dryfield_dilapidated_house_801866B4` through the parent task's
@@ -750,7 +764,16 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     task->state       += 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_3", func_dryfield_dilapidated_house_80180F04);
+/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D640`,
+/// copied onto the stack: `func_dryfield_dilapidated_house_80180B84`,
+/// `func_dryfield_dilapidated_house_80180F5C`, then `taskKill`.
+void func_dryfield_dilapidated_house_80180F04(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_dilapidated_house_8017D640;
+    sp.funcs[task->state](task);
+}
 
 void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
 {

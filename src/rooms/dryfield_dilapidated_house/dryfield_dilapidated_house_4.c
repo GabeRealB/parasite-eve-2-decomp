@@ -32,6 +32,11 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
 extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
 
+/// State tables of the three task families this unit dispatches.
+extern const TaskFuncTable3 D_dryfield_dilapidated_house_8017D61C;
+extern const TaskFuncTable3 D_dryfield_dilapidated_house_8017D628;
+extern const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634;
+
 /// Steps the task's 0..0x1000 ramp by 0x44, saturating at 0x1000, and feeds the
 /// distance still to run (`0x1000 - ramp`) to the room record's matrix/vertex
 /// interpolator. Returns the ramp value, which the caller stores into its
@@ -92,7 +97,16 @@ void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src)
     dst->flags |= 0x80;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_80181134);
+/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D61C`,
+/// copied onto the stack: `func_dryfield_dilapidated_house_8018118C`,
+/// `func_dryfield_dilapidated_house_80181264`, then `taskKill`.
+void func_dryfield_dilapidated_house_80181134(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_dilapidated_house_8017D61C;
+    sp.funcs[task->state](task);
+}
 
 /// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D61C`:
 /// snapshots the placed model coordinate's matrix into a fresh `DdhModelWork`,
@@ -137,7 +151,15 @@ void func_dryfield_dilapidated_house_80181290(s32 p0, s32 p1, s32 p2, s32 p3, SV
     coeff->pad = p0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_801812E8);
+/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D628`,
+/// copied onto the stack.
+void func_dryfield_dilapidated_house_801812E8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_dilapidated_house_8017D628;
+    sp.funcs[task->state](task);
+}
 
 void func_dryfield_dilapidated_house_80181340(Task* arg0)
 {
@@ -177,7 +199,15 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
     taskKill(arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_dilapidated_house/dryfield_dilapidated_house_4", func_dryfield_dilapidated_house_8018145C);
+/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D634`,
+/// copied onto the stack.
+void func_dryfield_dilapidated_house_8018145C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_dilapidated_house_8017D634;
+    sp.funcs[task->state](task);
+}
 
 extern s32 D_dryfield_dilapidated_house_80186804[16];
 
