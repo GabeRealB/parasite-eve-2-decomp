@@ -13,7 +13,7 @@
 extern u8 D_801153F2;
 
 /// 0x6E4-byte work block hung off `Actor105700.field_1C`, allocated by
-/// `ActorsShared80135ae4` in both actor_105700 and actor_205700. It opens with the animation context and its
+/// `Actor05700_Fn03CC4` in both actor_105700 and actor_205700. It opens with the animation context and its
 /// nineteen 0x28-byte slots, exactly like the `Actor02000Work` block of
 /// `actor_102000`; the animation/state halfwords around 0x694-0x6E0 keep that
 /// block's offsets and meaning.
@@ -244,10 +244,13 @@ typedef struct Actor105700FxWork {
     /* 0x98 */ GpObj        obj98;
     /* 0xB8 */ GpActorD4Rec d4rec;
     /* 0xD0 */ GpRec18      recD0[1];
-    /* 0xE8 */ s16          field_E8; ///< effect puff frame counter (wraps at 4)
-    /* 0xEA */ s16          field_EA; ///< frame count; the burst ends the cycle at 0x5A
-    /* 0xEC */ byte         pad_EC[2];
-    /* 0xEE */ s16          field_EE;
+    /// Frame counter: paces the effect puffs while ticking (wraps at 4), then
+    /// counts the teardown's wait before the child is destroyed.
+    /* 0xE8 */ s16 field_E8;
+    /* 0xEA */ s16 field_EA; ///< frame count; the burst ends the cycle at 0x5A
+                             /// Teardown step of `Actor05700_Fn051D8`: 0 unlinks the bodies, 1 waits.
+    /* 0xEC */ s16 field_EC;
+    /* 0xEE */ s16 field_EE;
 } Actor105700FxWork;
 STATIC_ASSERT_SIZEOF(Actor105700FxWork, 0xF0);
 

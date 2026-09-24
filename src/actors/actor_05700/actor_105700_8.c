@@ -4,14 +4,14 @@
 #include "gameplay/1BC.h"
 #include "main/task.h"
 
-void ActorsShared80135ae4(Task* arg0);
+void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor);
 void Actor05700_Fn04338(Task* arg0);
 void Actor05700_Fn01A58(Task* arg0);
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 const GpEnemyTaskFuncTable3 Actor05700_D000A4 = {
-    ActorsShared80135ae4,
+    Actor05700_Fn03CC4,
     Actor05700_Fn04338,
     Actor05700_Fn01A58,
 };

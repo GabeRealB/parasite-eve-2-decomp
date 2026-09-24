@@ -8,12 +8,25 @@
 
 extern u32 Gp_LcgState;
 
-extern void       ActorsShared80135ae4AnimData;
-extern TaskDesc   ActorsShared80135ae4SpawnTable[];
-extern u16*       ActorsShared80135ae4CueTable[];
-extern GpPairSrcE ActorsShared80135ae4Params[];
+/// Animation bank the work block's animation context is started on.
+extern void Actor05700_D17408;
 
-void ActorsShared80135ae4(GpEnemy* ctx, Task* actor)
+/// The actor's spawn table: entry 3 is the model child re-skinned with the
+/// placement's texture page, entry 1 the effect child, and the whole table
+/// is kept in `field_66C` for later spawns.
+extern TaskDesc Actor05700_D173D8[];
+
+/// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
+extern u16* Actor05700_D173B0[];
+
+/// Enemy parameter record the spawn hands to its `GpEnemy`.
+extern GpPairSrcE Actor05700_D17108[];
+
+/// Spawn state handler: allocates the 0x6E4-byte work block, starts its
+/// animation, spawns the model and effect children, then by the enemy's spawn
+/// state either links the enemy and sets up its five collision bodies (state
+/// 0) or parks it on one of the two resume animations (states 1 and 2).
+void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
 {
     Actor105700Work* work;
     TmdObject*       obj;
@@ -58,16 +71,16 @@ void ActorsShared80135ae4(GpEnemy* ctx, Task* actor)
     obj->lightMtx              = &work->field_45C;
     obj->colorMtx              = &work->field_43C;
     work->field_6CA            = 0x39;
-    work->field_66C            = ActorsShared80135ae4SpawnTable;
+    work->field_66C            = Actor05700_D173D8;
     work->field_670.coord      = &((TmdObject*)actor->extra)->coords[3];
     work->field_670.spawnArgLo = 0x500;
     work->field_670.spawnArgHi = 2;
-    func_800B3F84(&work->ctx, &ActorsShared80135ae4AnimData, obj, work->field_30C, work->slots);
+    func_800B3F84(&work->ctx, &Actor05700_D17408, obj, work->field_30C, work->slots);
     for (i = 1; i < 0x13; i++) {
         Gp_AnimResetSlot(&work->ctx, i, 1);
     }
 
-    spawned    = Gp_SpawnEnemyFromTable(ActorsShared80135ae4SpawnTable, 3, 0, ctx);
+    spawned    = Gp_SpawnEnemyFromTable(Actor05700_D173D8, 3, 0, ctx);
     session    = gGameSession;
     spawned    = (GpEnemy*)spawned->task;
     sessionKey = (GpAreaKey*)&session->at4.loc.view;
@@ -96,7 +109,7 @@ void ActorsShared80135ae4(GpEnemy* ctx, Task* actor)
         tmdProcessStream(model);
     }
 
-    eff     = Gp_SpawnEnemyFromTable(ActorsShared80135ae4SpawnTable, 1, 0, ctx);
+    eff     = Gp_SpawnEnemyFromTable(Actor05700_D173D8, 1, 0, ctx);
     session = gGameSession;
     spawned = (GpEnemy*)eff->task;
 
@@ -152,10 +165,10 @@ case0:
     ctx->bodyPos.vx = 0;
     ctx->bodyPos.vy = 0;
     ctx->bodyPos.vz = 0;
-    ctx->param      = ActorsShared80135ae4Params;
+    ctx->param      = Actor05700_D17108;
     ctx->recs       = work->field_4EC;
     ctx->coord      = &parts[3];
-    ctx->hp         = ActorsShared80135ae4Params->hpMax;
+    ctx->hp         = Actor05700_D17108->hpMax;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     work->field_6AC = ctx->place->mode & 1;
     if (work->field_6AC == 0) {
@@ -168,7 +181,7 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = ActorsShared80135ae4CueTable[gGameSession->at4.loc.stage];
+    tbl = Actor05700_D173B0[gGameSession->at4.loc.stage];
     if (tbl != NULL) {
         work->field_6D6 = tbl[gGameSession->at4.loc.area];
     }
