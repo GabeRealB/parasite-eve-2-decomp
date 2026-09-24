@@ -2016,12 +2016,7 @@ id = 406
 objects = [
   { kind = "packageId" },
   { unit = "shelter_r36/shelter_r36", rodata = "0x4", text = "0x28" },
-  { unit = "shelter_r36/shelter_r36_3", rodata = "0x10", text = "0x474" },
-  { unit = "shelter_r36/shelter_r36_4", text = "0x310" },
-  { unit = "shelter_r36/shelter_r36_2", text = "0x354" },
-  { unit = "shelter_r36/shelter_r36_5", text = "0x40C" },
-  { unit = "shelter_r36/shelter_r36_6", text = "0x41C" },
-  { unit = "shelter_r36/shelter_r36_7", text = "0x600" },
+  { unit = "shelter_r36/shelter_r36_2", rodata = "0x10", text = "0x474" },
   { kind = "data", at = "0x650" },
 ]
 

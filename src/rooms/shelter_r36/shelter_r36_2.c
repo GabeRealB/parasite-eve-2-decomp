@@ -1,31 +1,103 @@
 #include "common.h"
 
-#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
 
-extern GpMsgEntry D_shelter_r36_8017E97C[];
-extern TaskDesc   D_shelter_r36_8017DF14[];
+extern s8       D_8007106B;
+extern TaskDesc D_shelter_r36_8017E9A4[];
 
-s32 func_shelter_r36_8017D914(void)
+/// Entry 1 of `D_shelter_r36_8017E9A4`: plays the location's stream. It blanks
+/// the display and allocates the auxiliary heap, queues CD command 0x61 for the
+/// stream slot of the current location with view 0x64, shows the display once
+/// the queue's `field_1FA` is set, and waits for the queue to go idle - or cuts
+/// it short when `Pad_CheckFlag800` fires. It then resets and restores the
+/// stream state, ends and resets the display heap.
+void func_shelter_r36_8017DA34(Task* arg0)
 {
-    return 0;
+    u8          slotParam[4];
+    GameLoc     key;
+    CdCmdQueue* queue;
+    Task*       task;
+
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+    }
+    return;
+
+L_case0:
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
+
+L_case1:
+    key          = gGameSession->at4;
+    key.loc.view = 0x64;
+    slotParam[0] = Stream_FindSlot(key.raw.data, 0, 0);
+    CdCmd_Enqueue(0x61, 0, slotParam);
+    goto advance;
+
+L_case2:
+    if (queue->field_1FA == 0) {
+        return;
+    }
+    SetDispMask(1);
+    goto advance;
+
+L_case3:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        SetDispMask(0);
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    SetDispMask(0);
+    CdCmd_ActivatePhase1();
+    goto advance;
+
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Stream_ResetRestoreState();
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+        return;
+    }
+    taskKill(task);
+    Display_ResetHeapWrapper();
 }
 
-s32 func_shelter_r36_8017D91C(void)
+/// Entry 0 of `D_shelter_r36_8017E9A4`: spawns that table's entry 1, the
+/// stream task `func_shelter_r36_8017DA34`, with an ordering table, passing on
+/// this task's `spawnArg1`, sets `D_8007106B`, spawns the view tasks and ends.
+void func_shelter_r36_8017DBC0(Task* arg0)
 {
-    return 0;
-}
-
-void func_shelter_r36_8017D924(Task* task)
-{
-    task->msgTable = D_shelter_r36_8017E97C;
-    Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.warp == 1) {
-        Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
-    }
-    if (gGameSession->at4.loc.warp == 2) {
-        Task_SpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
-    }
-    task->state++;
+    Display_SpawnWithOt(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    taskKill(arg0);
 }
