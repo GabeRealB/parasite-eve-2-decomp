@@ -16,13 +16,35 @@
 /// `inline_c.h` already emit real `lwc2`/`swc2`/`mtc2`/`ctc2` instructions and
 /// are used unchanged. The words match the instruction table in
 /// `gte_macros.inc`, the assembler-side replacement for DMPSX.
+///
+/// Notation in the comments below. Inputs are the vector registers V0..V2, the
+/// IR vector IR1..3 with its scalar IR0, the input colour RGBC and the control
+/// matrices: the rotation matrix RT with translation TR, the light matrix LLM,
+/// the light colour matrix LCM, the background colour BK and the far colour FC.
+/// Results land in MAC1..3 and IR1..3 (and MAC0 for scalar results); colours
+/// are pushed into the colour FIFO RGB0..2, screen points into SXY0..2 and
+/// depths into SZ0..3. Products are shifted right by 12 bits for 4.12 fixed
+/// point; the `0` and `_sf0` forms leave them unshifted. Commands marked
+/// "clamped" limit IR1..3 to non-negative values.
 
 #include <psyq/inline_c.h>
 
+/// Perspective transformation. `gte_rtps` rotates and translates V0
+/// (IR1..3 = TR + RT·V0), pushes its projected screen point into SXY and its
+/// depth into SZ, and sets IR0 to the depth-cue factor. `gte_rtpt` does the
+/// same for V0, V1 and V2 in turn.
 #undef gte_rtps
 #define gte_rtps()     __asm__ volatile("nop; nop; .word 0x4A180001")
 #undef gte_rtpt
 #define gte_rtpt()     __asm__ volatile("nop; nop; .word 0x4A280030")
+/// Matrix times vector (MVMVA): IR1..3 = [offset +] matrix · vector. The
+/// name spells the operands. Matrix: `rt` the rotation matrix, `ll` the light
+/// matrix, `lc` the light colour matrix. Vector: `v0`, `v1`, `v2` or `ir`.
+/// Offset: none, `tr` the translation vector, `bk` the background colour.
+/// `gte_rt` is `gte_rtv0tr` under Psy-Q's rotate-and-translate name, and
+/// `gte_rtir_sf0` is `gte_rtir` without the 12-bit shift. `gte_ll` (LLM·V0) and
+/// `gte_lc` (BK + LCM·IR) are clamped: they are the light and colour steps of
+/// vertex lighting.
 #undef gte_rt
 #define gte_rt()       __asm__ volatile("nop; nop; .word 0x4A480012")
 #undef gte_rtv0
@@ -103,6 +125,10 @@
 #define gte_lcv2bk()   __asm__ volatile("nop; nop; .word 0x4A4D2012")
 #undef gte_lcirbk
 #define gte_lcirbk()   __asm__ volatile("nop; nop; .word 0x4A4DA012")
+/// Depth cueing: blend a colour toward the far colour FC by IR0 and push the
+/// result into the colour FIFO. `gte_dpcs` blends the input colour RGBC,
+/// `gte_dpct` each of RGB0..2, and `gte_dpcl` the input colour after scaling it
+/// by IR1..3. `gte_intpl` blends the IR vector itself.
 #undef gte_dpcl
 #define gte_dpcl()     __asm__ volatile("nop; nop; .word 0x4A680029")
 #undef gte_dpcs
@@ -111,10 +137,17 @@
 #define gte_dpct()     __asm__ volatile("nop; nop; .word 0x4AF8002A")
 #undef gte_intpl
 #define gte_intpl()    __asm__ volatile("nop; nop; .word 0x4A980011")
+/// IR1..3 squared component by component, clamped.
 #undef gte_sqr12
 #define gte_sqr12()    __asm__ volatile("nop; nop; .word 0x4AA80428")
 #undef gte_sqr0
 #define gte_sqr0()     __asm__ volatile("nop; nop; .word 0x4AA00428")
+/// Lighting, clamped, results pushed into the colour FIFO. The `nc` commands
+/// light V0 (`s`, single) or V0..V2 (`t`, triple) as a surface normal: the
+/// light step LLM·V then the colour step BK + LCM·IR. `nc` stops there, `ncc`
+/// also multiplies by the input colour RGBC, and `ncd` does that and then
+/// depth-cues toward FC. `gte_cc` and `gte_cdp` run the colour step on IR
+/// without a normal: `gte_cc` multiplies by RGBC, `gte_cdp` also depth-cues.
 #undef gte_ncs
 #define gte_ncs()      __asm__ volatile("nop; nop; .word 0x4AC8041E")
 #undef gte_nct
@@ -131,16 +164,24 @@
 #define gte_cdp()      __asm__ volatile("nop; nop; .word 0x4B280414")
 #undef gte_cc
 #define gte_cc()       __asm__ volatile("nop; nop; .word 0x4B38041C")
+/// MAC0 = twice the signed area of the screen triangle SXY0..2. Its sign
+/// gives the triangle's winding, which is how back faces are culled.
 #undef gte_nclip
 #define gte_nclip()    __asm__ volatile("nop; nop; .word 0x4B400006")
+/// Average depth for the ordering table: the last three (`gte_avsz3`, scaled
+/// by ZSF3) or all four (`gte_avsz4`, scaled by ZSF4) SZ entries, into OTZ.
 #undef gte_avsz3
 #define gte_avsz3()    __asm__ volatile("nop; nop; .word 0x4B58002D")
 #undef gte_avsz4
 #define gte_avsz4()    __asm__ volatile("nop; nop; .word 0x4B68002E")
+/// Outer product: IR1..3 crossed with the rotation matrix's diagonal.
 #undef gte_op12
 #define gte_op12()     __asm__ volatile("nop; nop; .word 0x4B78000C")
 #undef gte_op0
 #define gte_op0()      __asm__ volatile("nop; nop; .word 0x4B70000C")
+/// General-purpose interpolation. `gte_gpf*` scales IR1..3 by IR0;
+/// `gte_gpl*` adds that product to the current MAC1..3, so a sequence of them
+/// accumulates a weighted sum. Both push the result into the colour FIFO.
 #undef gte_gpf12
 #define gte_gpf12()    __asm__ volatile("nop; nop; .word 0x4B98003D")
 #undef gte_gpf0
@@ -150,8 +191,10 @@
 #undef gte_gpl0
 #define gte_gpl0()     __asm__ volatile("nop; nop; .word 0x4BA0003E")
 
-/// The `_b` forms issue the same command without the two leading `nop`s, for
-/// code that has already spaced the GTE loads itself.
+/// The `_b` forms issue the same commands without the two leading `nop`s.
+/// The `nop`s cover the delay the GTE needs between a register load and a
+/// command reading it; Psy-Q offers these for code that has already spaced
+/// its loads itself.
 #undef gte_rtps_b
 #define gte_rtps_b()     __asm__ volatile(".word 0x4A180001")
 #undef gte_rtpt_b
