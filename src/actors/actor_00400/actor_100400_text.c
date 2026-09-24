@@ -2,7 +2,6 @@
 
 #include "actors/actor_100400.h"
 #include "actors/actor_100400_rotation.h"
-#include "actors/coord_to_view.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
@@ -453,7 +452,7 @@ void Actor00400_Fn01454(Actor100400* arg0)
         view.vx = 0;
         view.vy = 0;
         view.vz = 0;
-        ActorCoordToView(joint, &view);
+        Actor00400_Fn0A08C(joint, &view);
         delta0.vx = c0->coord.t[0] - view.vx;
         delta0.vy = c0->coord.t[1] - view.vy;
         delta0.vz = c0->coord.t[2] - view.vz;
@@ -2315,7 +2314,7 @@ void Actor00400_Fn04E18(Actor100400* arg0)
                 m.vec.vx = 0;
                 m.vec.vy = 0;
                 m.vec.vz = 0;
-                ActorCoordToView(coordN, &m.vec);
+                Actor00400_Fn0A08C(coordN, &m.vec);
                 if (w4->field_64E + 0x190 < m.vec.vy) {
                     obj2->field_14 = 1;
                 } else {
@@ -2808,14 +2807,14 @@ static inline void Actor00400_SpawnMarker(Actor100400* arg0)
             tip.vx  = 0;
             tip.vy  = 0;
             tip.vz  = height;
-            ActorCoordToView(span, &base);
-            ActorCoordToView(span, &tip);
+            Actor00400_Fn0A08C(span, &base);
+            Actor00400_Fn0A08C(span, &tip);
             task->work = (TaskIdMap*)marker;
             dst        = ((Actor100400Ctx*)task->extra)->field_8;
             pos.vx     = 0;
             pos.vy     = 0;
             pos.vz     = 0;
-            ActorCoordToView(origin, &pos);
+            Actor00400_Fn0A08C(origin, &pos);
             dst->coord.t[0]  = pos.vx;
             dst->coord.t[1]  = pos.vy;
             dst->coord.t[2]  = pos.vz;

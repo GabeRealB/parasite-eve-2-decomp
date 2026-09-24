@@ -149,7 +149,7 @@ typedef struct Actor100400MatWords {
 typedef union Actor100400Mat {
     MATRIX              mat;
     Actor100400MatWords ident;
-    /// The same storage reused as the view-space position `ActorCoordToView`
+    /// The same storage reused as the view-space position `Actor00400_Fn0A08C`
     /// fills in, once the rotation it held has been handed to the coordinate.
     SVECTOR vec;
 } Actor100400Mat;
@@ -335,6 +335,7 @@ void Actor00400_Fn00C84(Actor100400*);
 void Actor00400_Fn07400(Actor100400*);
 void Actor00400_Fn07518(Actor100400*);
 void Actor00400_Fn0A034(Actor100400*);
+s32  Actor00400_Fn0A08C(GsCOORDINATE2* coord, SVECTOR* pos);
 void Actor00400_Fn0A510(Actor100400*);
 void Actor00400_Fn0A57C(Actor100400*);
 
