@@ -668,6 +668,10 @@ extern s32 D_actor_356100_801731B0;
 /// `Actor01900_D172FC`.
 extern u16 D_actor_356100_80173290;
 
+/// Whole-unit part of the last movement step `func_actor_356100_80162AEC`
+/// applied, rounded away from zero when the step had a fraction.
+extern SVECTOR D_actor_356100_801732A0;
+
 /// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `Actor401300Work.field_910`.
