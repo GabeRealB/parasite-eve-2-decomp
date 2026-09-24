@@ -35,4 +35,8 @@ void func_dryfield_toilet_8017F09C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* 
 /// of `arg0`, shaded `rgb` at the centre and black at radius `arg1`.
 void func_dryfield_toilet_8017F4C0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
 
+/// Queues a semi-transparent textured quad lying flat at the world position of
+/// `arg0`, half-size `arg1`, alternating between two texture frames.
+void func_dryfield_toilet_8017FF2C(GsCOORDINATE2* arg0, s32 arg1);
+
 #endif // ROOMS_DRYFIELD_TOILET_H
