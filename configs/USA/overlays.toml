@@ -2673,18 +2673,7 @@ id = 438
 text = ["0x10", "0x20F4"]
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade", rodata = "0x4", text = "0x5C" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_4", text = "0x10" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_5", text = "0x18" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_6", text = "0x6C" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_2", text = "0xB0" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_7", text = "0xB8" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_3", text = "0x110" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_8", text = "0x160" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_9", text = "0x404" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_10", text = "0x830" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_11", text = "0xBC4" },
-  { unit = "neo_ark_south_promenade/neo_ark_south_promenade_12", text = "0x1734" },
+  { unit = "neo_ark_south_promenade/neo_ark_south_promenade", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x20F4" },
 ]
 
