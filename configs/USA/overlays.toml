@@ -3210,7 +3210,7 @@ objects = [
   { lib = true, unit = "rooms_shared_8017d878", text = "0x550" },
   { unit = "shelter_b2_septic_tank/shelter_b2_septic_tank_2", text = "0x5A8" },
   { lib = true, unit = "rooms_shared_8017e690", text = "0x14F8" },
-  { unit = "shelter_b2_septic_tank/shelter_b2_septic_tank_3", text = "0x1538" },
+  { unit = "shelter_b2_septic_tank/shelter_b2_septic_tank_3", rodata = "0x24", text = "0x1538" },
   { lib = true, unit = "rooms_shared_8017f4a0", text = "0x1A80" },
   { lib = true, unit = "room_draw16", text = "0x1BD4" },
   { lib = true, unit = "room_draw27", text = "0x23C4" },
