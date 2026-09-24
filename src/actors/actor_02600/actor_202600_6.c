@@ -10,7 +10,6 @@
 #include "gameplay/D4.h"
 
 #include "actors/actor_202600.h"
-#include "actors/actors_shared_8014d378.h"
 
 /* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
  * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
@@ -27,12 +26,12 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 /// position is cast down to the ground by `func_800EA1A8` and the shade comes
 /// from `func_800EA318`; otherwise the coordinate's own world translation is
 /// used at full shade.
-void ActorsShared8014d378_Fn4D8E0(ActorShared8014d378* arg0)
+void Actor02600_Fn03AC0(Actor202600* arg0)
 {
-    ActorShared8014d378Work* work;
-    GsCOORDINATE2*           coord;
-    VECTOR3                  vec;
-    s16                      hit;
+    Actor202600Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR3          vec;
+    s16              hit;
 
     work  = arg0->field_1C;
     coord = arg0->field_2C->field_8;

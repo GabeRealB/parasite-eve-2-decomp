@@ -1,12 +1,33 @@
 #include "common.h"
-#include "actors/actor_105500.h"
-#include "main/display.h"
-#include "psyq/inline_c.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
-void ActorsSharedFn02c94(Actor105500* actor)
+#include "actors/actor_202600.h"
+#include "main/display.h"
+
+/// Scratchpad block the line draw takes below the scratchpad top: `position`
+/// is the point handed to the GTE, `screen` and `depth` its projection. The
+/// first 0x10 bytes are reserved but never touched.
+typedef struct Actor202600LineScratch {
+    /* 0x00 */ s32     unused[4];
+    /* 0x10 */ SVECTOR position;
+    /* 0x18 */ s32     screen;
+    /* 0x1C */ s32     depth;
+} Actor202600LineScratch;
+STATIC_ASSERT_SIZEOF(Actor202600LineScratch, 0x20);
+
+/// Draws a vertical semi-transparent gouraud line in the space of the matrix
+/// `field_370`, from height `field_3A0 - 0x352` to height -0x352; nothing is
+/// drawn when either end projects nearer than depth 30. The line runs from grey
+/// 0x80 to 0xC0; while `field_3BC` counts down (never below 1) both ends are
+/// scaled by `field_3BC / 45`.
+void Actor02600_Fn02C94(Actor202600* actor)
 {
-    Actor105500LineScratch* s;
-    Actor105500Work*        work;
+    Actor202600LineScratch* s;
+    Actor202600Work*        work;
     LINE_G2*                line;
     DR_TPAGE*               page;
     s32                     x;
@@ -16,7 +37,7 @@ void ActorsSharedFn02c94(Actor105500* actor)
     s32                     shade;
     u8                      blue;
 
-    s              = (Actor105500LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor105500LineScratch));
+    s              = (Actor202600LineScratch*)(*(u8**)PSX_SCRATCH_ADDR(0x3FC) -= sizeof(Actor202600LineScratch));
     work           = actor->field_1C;
     s->position.vx = 0;
     s->position.vy = work->field_3A0 - 0x352;
@@ -24,11 +45,11 @@ void ActorsSharedFn02c94(Actor105500* actor)
     gte_SetRotMatrix(&work->field_370);
     gte_SetTransMatrix(&work->field_370);
     gte_ldv0(&s->position);
-    __asm__ volatile("nop; nop; .word 0x4a180001");
+    gte_rtps();
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
         return;
     }
     screen         = s->screen;
@@ -40,11 +61,11 @@ void ActorsSharedFn02c94(Actor105500* actor)
     gte_SetRotMatrix(&work->field_370);
     gte_SetTransMatrix(&work->field_370);
     gte_ldv0(&s->position);
-    __asm__ volatile("nop; nop; .word 0x4a180001");
+    gte_rtps();
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+        *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
         return;
     }
     line           = gGpuPrimCursor;
@@ -84,5 +105,5 @@ void ActorsSharedFn02c94(Actor105500* actor)
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), page);
-    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor105500LineScratch);
+    *(u8**)PSX_SCRATCH_ADDR(0x3FC) += sizeof(Actor202600LineScratch);
 }

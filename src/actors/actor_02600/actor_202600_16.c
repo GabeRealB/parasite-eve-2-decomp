@@ -1,15 +1,22 @@
 #include "common.h"
 
-#include "actors/actor_105500.h"
+#include "actors/actor_202600.h"
 #include "gameplay/3A34.h"
 
-void ActorsSharedFn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2)
+/// Status handling, run when the context's `field_4C` flags are non-zero.
+/// Flag 0x2 is consumed, unless `field_3C8` is 1, by switching to state 7 with
+/// `field_3D2` set. While flag 0x4 or 0x8 is set, `Gp_TickObjFlag4` yields a
+/// per-frame damage that is passed to `func_800DA6E8` and taken from the hit
+/// points in `field_40`; outside `field_3C8` 1 the actor then enters state 9 when they
+/// run out (setting `field_30` to 2) or state 6 otherwise. Both flags are
+/// cleared once `Gp_ObjFlag4Expired` returns non-zero.
+void Actor02600_Fn0366C(Actor202600* arg0)
 {
-    Actor105500Work* work;
+    Actor202600Work* work;
     s32              damage;
     s32              remaining;
     u8               flags;
-    Actor105500Ctx*  ctx;
+    Actor202600Ctx*  ctx;
 
     ctx   = arg0->field_20;
     flags = ctx->field_4C;

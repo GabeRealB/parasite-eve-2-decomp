@@ -5,7 +5,7 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-void ActorsShared801355a4_Fn32574(Actor202600* arg0)
+void Actor02600_Fn00754(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -54,7 +54,7 @@ void ActorsShared801355a4_Fn32574(Actor202600* arg0)
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void ActorsShared801355a4_Fn32734(Actor202600* arg0)
+void Actor02600_Fn00914(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -102,9 +102,8 @@ void ActorsShared801355a4_Fn32734(Actor202600* arg0)
 }
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void ActorsSharedFn02c94(Actor202600* arg0);
 
-void ActorsShared801355a4_Fn328B4(Actor202600* arg0)
+void Actor02600_Fn00A94(Actor202600* arg0)
 {
     register Actor202600* actor asm("s5") = arg0;
     Actor202600Work*      work;
@@ -154,7 +153,7 @@ void ActorsShared801355a4_Fn328B4(Actor202600* arg0)
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
-                work->field_2E4.key    = Gp_PackPair(&ActorsShared80135c4cPair, 5);
+                work->field_2E4.key    = Gp_PackPair(&Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x55200006;
@@ -173,7 +172,7 @@ void ActorsShared801355a4_Fn328B4(Actor202600* arg0)
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
                 work->field_2E4.pos.vy = -0x12C;
-                work->field_2E4.key    = Gp_PackPair(&ActorsShared80135c4cPair, 5);
+                work->field_2E4.key    = Gp_PackPair(&Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
                 if ((sessionFlags & 0xFFFF0000) == 0x05200000) {
                     value = (((u16)actor->field_20->field_8 >> 0xC) << 8) | 0x55200006;
@@ -229,11 +228,11 @@ void ActorsShared801355a4_Fn328B4(Actor202600* arg0)
             }
             break;
     }
-    ActorsSharedFn02c94(actor);
+    Actor02600_Fn02C94(actor);
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-void ActorsShared801355a4_Fn32DC0(Actor202600* arg0)
+void Actor02600_Fn00FA0(Actor202600* arg0)
 {
     Actor202600Work*       work;
     GsCOORDINATE2*         coord;
@@ -321,7 +320,7 @@ void ActorsShared801355a4_Fn32DC0(Actor202600* arg0)
     }
 }
 
-void ActorsShared801355a4_Fn33108(Actor202600* arg0)
+void Actor02600_Fn012E8(Actor202600* arg0)
 {
     Actor202600Work* work;
     GsCOORDINATE2*   coord;
@@ -354,7 +353,7 @@ void ActorsShared801355a4_Fn33108(Actor202600* arg0)
 
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void ActorsShared801355a4_Fn3325C(Actor202600* arg0)
+void Actor02600_Fn0143C(Actor202600* arg0)
 {
     Actor202600Work*  work;
     GsCOORDINATE2*    coord;
@@ -395,7 +394,7 @@ void ActorsShared801355a4_Fn3325C(Actor202600* arg0)
                         index = 4;
                     }
                 }
-                work->field_2E4.key = Gp_PackPair(&ActorsShared80135c4cPair, index);
+                work->field_2E4.key = Gp_PackPair(&Actor02600_D08950, index);
                 if (((s16)work->field_396 < 0x23) && ((work->field_3D0 != 0) || (work->field_3CE != 0))) {
                     work->field_39C        = 1;
                     work->field_3CA        = 0;

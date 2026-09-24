@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "actors/actor_202600.h"
 #include "gameplay/1BC.h"
@@ -7,7 +10,6 @@
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/task.h"
-#include <psyq/libgs.h>
 
 /// Spawn handler: allocates the actor's work block, links the four `GpObj`
 /// nodes (two collision-record tables, the coordinates and the effect arg) and

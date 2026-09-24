@@ -1,13 +1,15 @@
 #include "common.h"
 
-#include "actors/actor_105500.h"
+#include "actors/actor_202600.h"
 #include "gameplay/3A34.h"
 
-extern u32 Gp_LcgState;
-
-void ActorsShared801355a4_Fn3567C(Actor105500* arg0)
+/// Behaviour state 7. On entry it starts animation 0xE and stops the forward
+/// and turn steps; each frame after that `Gp_TickObjFlag2` is ticked on the
+/// context, and when it returns non-zero the actor goes to state 3
+/// with animation 0xB, `field_3D2` cleared and a random 0..15 in `field_39E`.
+void Actor02600_Fn0385C(Actor202600* arg0)
 {
-    Actor105500Work* work;
+    Actor202600Work* work;
     s16              state;
     u32              random;
 

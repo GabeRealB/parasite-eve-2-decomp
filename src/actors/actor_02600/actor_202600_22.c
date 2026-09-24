@@ -1,27 +1,31 @@
 #include "common.h"
 
+#include "actors/actor_202600.h"
 #include "actors/actors_shared_80135c4c.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/tmd.h"
 
-/// Creates the task's collision object, attaches it to model part four, and
-/// initializes its single collision record.
-void ActorsShared80135c4c(GpEnemy* enemy, Task* task)
+/// Setup state of the projectile task: allocates its 0x40-byte work, places
+/// its model's coordinate at the spawning model's fifth node (expressed
+/// relative to the view coordinate), and links the work's collision object
+/// with its single record, carrying the parent work's `field_3AC`. The enemy
+/// is destroyed when the allocation fails.
+void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
 {
-    Task*                           parent;
-    TmdObject*                      parentObj;
-    GsCOORDINATE2*                  coord;
-    ActorsShared80135c4cParentWork* parentWork;
-    GsCOORDINATE2*                  parentCoord;
-    ActorsShared80135c4cObjWork*    work;
-    u16                             pair;
+    Task*                        parent;
+    TmdObject*                   parentObj;
+    GsCOORDINATE2*               coord;
+    Actor202600Work*             parentWork;
+    GsCOORDINATE2*               parentCoord;
+    ActorsShared80135c4cObjWork* work;
+    u16                          pair;
 
     parent      = task->parent;
     parentObj   = parent->extra;
     coord       = ((TmdObject*)task->extra)->coords;
-    parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
+    parentWork  = (Actor202600Work*)parent->work;
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {
@@ -44,7 +48,7 @@ void ActorsShared80135c4c(GpEnemy* enemy, Task* task)
     work->obj.pos.vz   = 0;
     work->obj.ctx.recs = &work->rec;
     work->field_3C     = pair;
-    work->obj.key      = Gp_PackPair(&ActorsShared80135c4cPair, 2);
+    work->obj.key      = Gp_PackPair(&Actor02600_D08950, 2);
     work->obj.radius   = 0x100;
     work->obj.flags    = 1;
     Gp_LinkObj(3, &work->obj);

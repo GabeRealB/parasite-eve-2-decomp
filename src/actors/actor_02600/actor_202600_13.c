@@ -1,13 +1,19 @@
 #include "common.h"
-#include "actors/actor_105500.h"
-#include "main/sound.h"
+
+#include "actors/actor_202600.h"
 #include "gameplay/3A34.h"
+#include "main/sound.h"
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-void ActorsSharedFn020d4(Actor105500* arg0)
+/// Status-effect step, run every frame while `field_3B0` is set. `field_3B2`
+/// cycles through 0x50 frames; every 12 frames effect 3 is spawned, alternating
+/// between model nodes 3 and 5; every 0x24 frames sound 0x401A0005 is played
+/// with the top nibble of the context's `field_8` in bits 8-11, panned to the
+/// actor.
+void Actor02600_Fn020D4(Actor202600* arg0)
 {
-    Actor105500Work* work;
+    Actor202600Work* work;
     GsCOORDINATE2*   coord;
     s32              sound;
     s32              pan;
@@ -38,17 +44,21 @@ void ActorsSharedFn020d4(Actor105500* arg0)
     work->field_3BE = countdown;
     if ((s16)countdown <= 0) {
         work->field_3BE = 0x24U;
-        sound           = (((u16)((Actor105500Ctx*)arg0->field_20)->field_8 >> 0xC) << 8) | 0x401A0005;
+        sound           = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x401A0005;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(coord));
     }
 }
 
-void ActorsSharedFn02214(Actor105500* arg0)
+/// Turn step, run every frame while `field_3A6` is non-zero: reads the
+/// heading back from the coordinate, turns it toward `field_3A4` by at most
+/// `field_3A6` the shorter way round the circle, keeps the result in
+/// `field_3A2` and rebuilds the coordinate's rotation as that pure yaw.
+void Actor02600_Fn02214(Actor202600* arg0)
 {
-    Actor105500Work*       work;
+    Actor202600Work*       work;
     GsCOORDINATE2*         coord;
-    Actor105500RotScratch* sc;
+    Actor202600RotScratch* sc;
     s32                    ang;
     u16                    want;
     s16                    diff;
@@ -58,7 +68,7 @@ void ActorsSharedFn02214(Actor105500* arg0)
     s32                    next;
     s32                    wrapStep;
 
-    sc    = (Actor105500RotScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (Actor202600RotScratch*)(SCRATCH_SP -= 0x18);
     coord = arg0->field_2C->field_8;
     work  = arg0->field_1C;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;

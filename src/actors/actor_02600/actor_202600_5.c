@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "actors/actors_shared_8014d378.h"
+#include "actors/actor_202600.h"
 
 #include "gameplay/1BC.h"
 
@@ -13,11 +13,11 @@ extern s16 Actor02600_D08A10[];
 
 /// Switches the work's animation id, resetting the slots to the blend value the
 /// table gives for the new id; otherwise ticks every slot one frame.
-void ActorsShared8014d378_Fn4D7C4(ActorShared8014d378* arg0)
+void Actor02600_Fn039A4(Actor202600* arg0)
 {
-    ActorShared8014d378Work* work;
-    s32                      i;
-    s32                      value;
+    Actor202600Work* work;
+    s32              i;
+    s32              value;
 
     work = arg0->field_1C;
     i    = 1;

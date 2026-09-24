@@ -1,13 +1,21 @@
 #include "common.h"
-#include "actors/actor_105500.h"
+
+#include "actors/actor_202600.h"
 #include "actors/actors_shared_80135b58.h"
 
-void ActorsSharedFn03b60(Actor105500* arg0)
+MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
+MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
+
+/// Squashes the model vertically: `field_3A0` shrinks by 0x50 a frame while
+/// above 0x200, and the root coordinate becomes the matrix `field_370` scaled
+/// on Y by `field_3A0` (0x1000 = 1), built through a 0x30-byte scratchpad
+/// block that is released again.
+void Actor02600_Fn03B58(Actor202600* arg0)
 {
     GsCOORDINATE2*              coord;
     MATRIX*                     head;
     ActorShared80135b58Scratch* scratch;
-    Actor105500Work*            work;
+    Actor202600Work*            work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->field_1C;

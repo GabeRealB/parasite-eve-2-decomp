@@ -1,7 +1,11 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_202600.h"
-#include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -10,11 +14,8 @@
 #include "main/display.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "psyq/inline_c.h"
 
 void Actor02600_Fn02954(Actor202600* arg0, s32 arg1);
-void Actor02600_Fn03C4C(Actor202600* actor);
-void Actor05500_Fn03B60(Actor202600* arg0);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -123,12 +124,12 @@ void Actor02600_Fn02364(Actor202600Ctx* arg0, Actor202600* arg1)
                             Tmd_FreeBuffers((TmdObject*)obj);
                             obj->field_C |= 4;
                             Actor02600_Fn03C4C(arg1);
-                            ActorsShared80135b58((ActorShared80135b58*)arg1);
+                            Actor02600_Fn03D38(arg1);
                         } else {
                             work->field_3BA = (s16)((u16)work->field_3BA + 1);
                         }
                     }
-                    Actor05500_Fn03B60(arg1);
+                    Actor02600_Fn03B58(arg1);
                     age             = work->field_39E + 1;
                     work->field_39E = age;
                     if ((s16)age == 0xA) {
@@ -290,7 +291,7 @@ void Actor02600_Fn02954(Actor202600* actor, s32 frame)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_ldv0(projection);
-    __asm__ volatile("nop; nop; .word 0x4a180001");
+    gte_rtps();
     gte_stsxy(&scratchEnd[-1].screen);
     gte_stszotz(&scratchEnd[-1].depth);
     depth = s->depth;

@@ -28,7 +28,9 @@ typedef struct Actor202600Ctx {
     /* 0x15 */ byte         pad_15[0x27];
     /* 0x3C */ GpAreaPlace* field_3C;
     /* 0x40 */ s16          field_40;
-    /* 0x42 */ byte         pad_42[0x12];
+    /* 0x42 */ byte         pad_42[0xA];
+    /* 0x4C */ u8           field_4C;
+    /* 0x4D */ byte         pad_4D[7];
     /* 0x54 */ s32          field_54;
 } Actor202600Ctx;
 
@@ -76,7 +78,9 @@ typedef struct Actor202600Work {
     /* 0x3AE */ byte      pad_3AE[2];
     /* 0x3B0 */ s16       field_3B0;
     /* 0x3B2 */ s16       field_3B2;
-    /* 0x3B4 */ byte      pad_3B4[6];
+    /* 0x3B4 */ s16       field_3B4;
+    /* 0x3B6 */ s16       field_3B6;
+    /* 0x3B8 */ byte      pad_3B8[2];
     /* 0x3BA */ s16       field_3BA;
     /* 0x3BC */ s16       field_3BC;
     /* 0x3BE */ s16       field_3BE;
@@ -89,6 +93,7 @@ typedef struct Actor202600Work {
     /* 0x3CC */ s16       field_3CC;
     /* 0x3CE */ s16       field_3CE;
     /* 0x3D0 */ s16       field_3D0;
+    /* 0x3D2 */ s16       field_3D2;
 } Actor202600Work;
 STATIC_ASSERT_SIZEOF(Actor202600Work, 0x3D4);
 
@@ -178,6 +183,29 @@ extern u8         D_801153F2[2];
 extern s8         D_8011540E;
 extern s8         D_80115412;
 extern MATRIX*    D_80073B8C[1];
-extern GpU16Pair  ActorsShared80135c4cPair;
+extern GpU16Pair  Actor02600_D08950;
+
+void Actor02600_Fn0006C(Actor202600* arg0);
+void Actor02600_Fn00754(Actor202600* arg0);
+void Actor02600_Fn00914(Actor202600* arg0);
+void Actor02600_Fn00A94(Actor202600* arg0);
+void Actor02600_Fn00FA0(Actor202600* arg0);
+void Actor02600_Fn012E8(Actor202600* arg0);
+void Actor02600_Fn0143C(Actor202600* arg0);
+void Actor02600_Fn01A0C(Actor202600* arg0);
+void Actor02600_Fn01B30(Actor202600* arg0);
+void Actor02600_Fn020D4(Actor202600* arg0);
+void Actor02600_Fn02214(Actor202600* arg0);
+void Actor02600_Fn02C94(Actor202600* actor);
+void Actor02600_Fn0366C(Actor202600* arg0);
+void Actor02600_Fn03784(Actor202600* arg0);
+void Actor02600_Fn0385C(Actor202600* arg0);
+void Actor02600_Fn03910(Actor202600* arg0);
+void Actor02600_Fn039A4(Actor202600* arg0);
+void Actor02600_Fn03A68(Actor202600* arg0);
+void Actor02600_Fn03AC0(Actor202600* arg0);
+void Actor02600_Fn03B58(Actor202600* arg0);
+void Actor02600_Fn03C4C(Actor202600* actor);
+void Actor02600_Fn03D38(Actor202600* actor);
 
 #endif

@@ -6,7 +6,7 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 
-void ActorsShared801355a4_Fn33950(Actor202600* arg0)
+void Actor02600_Fn01B30(Actor202600* arg0)
 {
     Actor202600Obj2C* obj;
     Actor202600Work*  work;

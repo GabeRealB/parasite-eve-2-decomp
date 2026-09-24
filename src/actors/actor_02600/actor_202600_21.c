@@ -1,17 +1,17 @@
 #include "common.h"
 
-#include "main/mem.h"
-
+#include "actors/actor_202600.h"
 #include "actors/actors_shared_80135b58.h"
+#include "main/mem.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Folds a uniform 1/16 scale into the model's third coordinate node, through a
-/// 0x30-byte block borrowed from the scratchpad and released again: an identity
-/// rotation is splatted word-wise, `ScaleMatrix` shrinks its diagonal to 0x100,
-/// and `MulMatrix` multiplies the result into `field_8[2].coord`.
-void ActorsShared80135b58(ActorShared80135b58* actor)
+/// Shrinks the model's third coordinate node to 1/16 through a 0x30-byte
+/// block taken from the scratchpad and released again: an identity rotation
+/// is written word-wise, `ScaleMatrix` scales its diagonal to 0x100 and
+/// `MulMatrix` multiplies it into `field_8[2].coord`.
+void Actor02600_Fn03D38(Actor202600* actor)
 {
     void**                      scratch;
     void*                       head;

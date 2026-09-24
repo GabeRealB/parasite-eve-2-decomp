@@ -1,6 +1,5 @@
 #include "common.h"
 #include "actors/actor_202600.h"
-#include "actors/actors_shared_80149e8c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -8,7 +7,7 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-void ActorsShared80149e8c(Actor202600* arg0)
+void Actor02600_Fn0006C(Actor202600* arg0)
 {
     Actor202600Work*       work;
     Actor202600HitScratch* head;
