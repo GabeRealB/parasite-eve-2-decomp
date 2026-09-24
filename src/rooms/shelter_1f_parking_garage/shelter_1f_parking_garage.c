@@ -2,10 +2,12 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 
 #include "main/task.h"
 
-extern TaskDesc D_shelter_1f_parking_garage_80180BE0;
+extern GpMsgEntry D_shelter_1f_parking_garage_80180BB8[];
+extern TaskDesc   D_shelter_1f_parking_garage_80180BE0;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_parking_garage/shelter_1f_parking_garage", func_shelter_1f_parking_garage_8017D6AC);
 
@@ -37,6 +39,14 @@ s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF* ar
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_parking_garage/shelter_1f_parking_garage", func_shelter_1f_parking_garage_8017DE9C);
+void func_shelter_1f_parking_garage_8017DE9C(Task* task)
+{
+    task->msgTable = D_shelter_1f_parking_garage_80180BB8;
+    Game_SetPtrSlot(task, 7);
+    if (gGameSession->at4.loc.warp == 1) {
+        Gp_RunCapCmd1(5);
+    }
+    task->state = task->state + 1;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_parking_garage/shelter_1f_parking_garage", RoomsShared8017d878Table);
