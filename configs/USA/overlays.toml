@@ -1028,11 +1028,7 @@ id = 311
 text = ["0x10", "0xA54"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop", rodata = "0x4", text = "0x94" },
-  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop_3", text = "0x10" },
-  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop_4", text = "0x50" },
-  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop_5", text = "0x9C" },
-  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop_2", text = "0xF4" },
+  { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0xA54" },
 ]
 
