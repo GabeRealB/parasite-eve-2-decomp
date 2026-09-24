@@ -2088,18 +2088,9 @@ objects = [
 id = 384
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0xA8" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", rodata = "0x10", text = "0x320" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_4", rodata = "0x34", text = "0x111C" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_6", text = "0x48" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_7", text = "0x27C" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_2", text = "0x2C0" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_8", text = "0x2C8" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_9", text = "0x590" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_10", text = "0xD78" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_11", text = "0x1674" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_5", text = "0x22D4" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_12", text = "0x29AC" },
+  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0x48" },
+  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_2", rodata = "0x10", text = "0x320" },
+  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", rodata = "0x34", text = "0x111C" },
   { kind = "data", at = "0x2D24" },
 ]
 
