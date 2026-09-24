@@ -30,8 +30,8 @@ typedef struct Actor136100Work {
     /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
     /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
     /* 0x4B4 */ Task*      field_4B4; // gameGetPtrSlot(3) task
-    /* 0x4B8 */ Task*      field_4B8; // Task_SpawnFromTable(ActorsShared80134898Desc, 2) task
-    /* 0x4BC */ Task*      field_4BC; // Task_SpawnFromTable(ActorsShared80134898Desc, 3) task
+    /* 0x4B8 */ Task*      field_4B8; // task spawned from entry 2 of D_actor_136100_80140744
+    /* 0x4BC */ Task*      field_4BC; // task spawned from entry 3 of D_actor_136100_80140744
     /* 0x4C0 */ Task*      field_4C0; // second dispatch task (NULL-checked senders)
     /* 0x4C4 */ s16        field_4C4; // set by func_actor_136100_80134838
     /* 0x4C6 */ s16        field_4C6; // cleared alongside field_4C4
@@ -94,6 +94,11 @@ extern s16 D_actor_136100_8013F1EC[];
 
 /// Next animation indexed by field_4E0; negative entries skip the restart.
 extern s16 D_actor_136100_8013F1FC[];
+
+/// The actor's six-entry task table, spawned from by index: 0 is the actor
+/// itself, 2 and 3 the tasks kept in `field_4B8`/`field_4BC`, 4 the fade-in and
+/// 5 the fade-out.
+extern TaskDesc D_actor_136100_80140744[];
 
 extern s32 D_actor_136100_8013F3C4;
 extern s32 D_actor_136100_8013F3DC;

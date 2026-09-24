@@ -13,48 +13,47 @@
 #include "main/task.h"
 #include "psyq/libgpu.h"
 
-extern u8       D_80071075;
-extern s8       D_8007218A;
-extern u8       D_80073BAC;
-extern u8       D_80073BA9;
-extern s32      D_801833F4;
-extern s32      D_801834AC;
-extern s32      D_80183ACC;
-extern GpObj4A  D_801884AC;
-extern GpObj4A  D_801884F8;
-extern s32      D_actor_136100_8013F180[];
-extern s32      D_actor_136100_8013F1A0;
-extern s32      D_actor_136100_8013F1D4;
-extern s16      D_actor_136100_8013F218[];
-extern s32      D_actor_136100_8013F224;
-extern s32      D_actor_136100_8013F244;
-extern s32      D_actor_136100_8013F2C4;
-extern s32      D_actor_136100_8013F2F4;
-extern s32      D_actor_136100_8013F304[];
-extern s32      D_actor_136100_8013F31C;
-extern s32      D_actor_136100_8013F334[];
-extern s32      D_actor_136100_8013F364;
-extern s32      D_actor_136100_8013F37C;
-extern s32      D_actor_136100_8013F394;
-extern s32      D_actor_136100_8013F3AC;
-extern s32      D_actor_136100_8013F3F4;
-extern s32      D_actor_136100_8013F40C;
-extern s32      D_actor_136100_8013F424;
-extern s32      D_actor_136100_8013F43C;
-extern s32      D_actor_136100_8013F454;
-extern s32      D_actor_136100_8013F46C;
-extern s32      D_actor_136100_8013F784;
-extern s32      D_actor_136100_8013F94C;
-extern s32      D_actor_136100_8013FAE4;
-extern s32      D_actor_136100_8013FC64;
-extern s32      D_actor_136100_8013FD84;
-extern s32      D_actor_136100_80140114;
-extern s32      D_actor_136100_801402C4;
-extern s32      D_actor_136100_801404EC;
-extern s32      D_actor_136100_8014063C;
-extern Task*    D_actor_136100_8014078C;
-extern TaskDesc ActorsShared80134898Desc;
-extern s8       D_80114C12;
+extern u8      D_80071075;
+extern s8      D_8007218A;
+extern u8      D_80073BAC;
+extern u8      D_80073BA9;
+extern s32     D_801833F4;
+extern s32     D_801834AC;
+extern s32     D_80183ACC;
+extern GpObj4A D_801884AC;
+extern GpObj4A D_801884F8;
+extern s32     D_actor_136100_8013F180[];
+extern s32     D_actor_136100_8013F1A0;
+extern s32     D_actor_136100_8013F1D4;
+extern s16     D_actor_136100_8013F218[];
+extern s32     D_actor_136100_8013F224;
+extern s32     D_actor_136100_8013F244;
+extern s32     D_actor_136100_8013F2C4;
+extern s32     D_actor_136100_8013F2F4;
+extern s32     D_actor_136100_8013F304[];
+extern s32     D_actor_136100_8013F31C;
+extern s32     D_actor_136100_8013F334[];
+extern s32     D_actor_136100_8013F364;
+extern s32     D_actor_136100_8013F37C;
+extern s32     D_actor_136100_8013F394;
+extern s32     D_actor_136100_8013F3AC;
+extern s32     D_actor_136100_8013F3F4;
+extern s32     D_actor_136100_8013F40C;
+extern s32     D_actor_136100_8013F424;
+extern s32     D_actor_136100_8013F43C;
+extern s32     D_actor_136100_8013F454;
+extern s32     D_actor_136100_8013F46C;
+extern s32     D_actor_136100_8013F784;
+extern s32     D_actor_136100_8013F94C;
+extern s32     D_actor_136100_8013FAE4;
+extern s32     D_actor_136100_8013FC64;
+extern s32     D_actor_136100_8013FD84;
+extern s32     D_actor_136100_80140114;
+extern s32     D_actor_136100_801402C4;
+extern s32     D_actor_136100_801404EC;
+extern s32     D_actor_136100_8014063C;
+extern Task*   D_actor_136100_8014078C;
+extern s8      D_80114C12;
 
 void func_actor_136100_80132748(Task* arg0);
 void func_actor_136100_80133238(Task* arg0);
@@ -1053,14 +1052,14 @@ void func_actor_136100_80133BC8(Task* arg0)
             func_actor_136100_80133A88(arg0);
             work            = (Actor136100Work*)arg0->work;
             work->field_4E4 = GameFlag_GetNibble(0x73) == 0;
-            work->field_4B8 = Task_SpawnFromTable(&ActorsShared80134898Desc, 2, 0,
+            work->field_4B8 = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
                                                   (s32)((TmdObject*)arg0->extra)->coords + 0x140);
             if (work->field_4E4 == 0) {
                 func_actor_136100_ResetSlots(arg0, 1);
-                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)&gGfxViewCoord);
+                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, (s32)&gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
-                work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 1,
+                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
                                                       (s32)((TmdObject*)arg0->extra)->coords + 0x280);
                 Mem_CopyUnaligned(&D_actor_136100_8013F224, &D_801833F4, 0x20);
                 Mem_CopyUnaligned(&D_actor_136100_8013F2C4, &D_80183ACC, 0x30);

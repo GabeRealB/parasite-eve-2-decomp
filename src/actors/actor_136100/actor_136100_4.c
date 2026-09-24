@@ -5,14 +5,13 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-extern s32      D_actor_136100_8013F180[];
-extern TaskDesc ActorsShared80134898Desc;
-extern Task*    D_actor_136100_8014078C;
-extern s8       D_8007272D;
+extern s32   D_actor_136100_8013F180[];
+extern Task* D_actor_136100_8014078C;
+extern s8    D_8007272D;
 
 void func_actor_136100_801348C8(void)
 {
-    Task_SpawnFromTable(&ActorsShared80134898Desc, 5, 9, 0);
+    Task_SpawnFromTable(D_actor_136100_80140744, 5, 9, 0);
 }
 
 void func_actor_136100_801348F8(void)

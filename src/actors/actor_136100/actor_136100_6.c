@@ -1,10 +1,11 @@
 #include "common.h"
 
-#include "actors/actors_shared_801346ec.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared801346ec(Task* task, s32 arg1, s32 arg2)
+/// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
+/// its `TmdObject` flags) otherwise; `arg1` is unused.
+void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
