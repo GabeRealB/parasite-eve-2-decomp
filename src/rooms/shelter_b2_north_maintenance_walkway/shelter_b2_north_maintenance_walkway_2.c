@@ -22,23 +22,9 @@ extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[];
 
 extern void func_8016268C(void);
 
-/// Parameters of the event the walkway's message handler starts, latched into
-/// the room's pending copy when it fires. `flagId` is the game-flag nibble that
-/// records the event as done: a set nibble stops it firing again, and starting
-/// it sets the nibble (0 means no flag). What reads the other fields back is
-/// still undecompiled.
-typedef struct _WalkwayEvent {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _WalkwayEvent;
-
-extern s32           func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-extern TaskDesc      D_shelter_b2_north_maintenance_walkway_80183B48;
-extern RoomEventMsg  D_shelter_b2_north_maintenance_walkway_801863A8;
-extern u8            D_shelter_b2_north_maintenance_walkway_801863B0;
-extern _WalkwayEvent D_shelter_b2_north_maintenance_walkway_801863C4;
+extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
+extern u8       D_shelter_b2_north_maintenance_walkway_801863B0;
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

@@ -8,6 +8,23 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
+/// Parameters of the event the walkway's message handler starts, latched into
+/// the room's pending copy when it fires. `field_0` is the CAP command the
+/// event task runs and `field_4` the stage sound it plays (0 for none).
+/// `flagId` is the game-flag nibble that records the event as done: a set
+/// nibble stops it firing again, and starting it sets the nibble (0 means no
+/// flag). A non-zero `field_A` has the event task spawn task 0x31.
+typedef struct _WalkwayEvent {
+    s32 field_0;
+    s32 field_4;
+    s16 flagId;
+    u8  field_A;
+} _WalkwayEvent;
+
+/// The message and the event the walkway's handler latched for its event task.
+extern RoomEventMsg  D_shelter_b2_north_maintenance_walkway_801863A8;
+extern _WalkwayEvent D_shelter_b2_north_maintenance_walkway_801863C4;
+
 /// Set by the walkway's event gate when its last call latched a request and
 /// spawned the event task; every call clears it first.
 extern u8 D_shelter_b2_north_maintenance_walkway_801863C0;
