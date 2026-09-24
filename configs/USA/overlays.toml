@@ -1344,21 +1344,8 @@ objects = [
 id = 324
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x1C", text = "0x388" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_3", rodata = "0x28", text = "0x870" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_5", rodata = "0x58", text = "0x2328" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_8", rodata = "0x4", text = "0xB4" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_9", text = "0x538" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_2", text = "0x6F4" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_10", text = "0x818" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_11", text = "0x21BC" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_4", text = "0x2248" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_12", text = "0x22F0" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_13", text = "0x299C" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_6", text = "0x2A78" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_14", text = "0x2B54" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_15", text = "0x2B74" },
-  { unit = "dryfield_water_tower/dryfield_water_tower_7", text = "0x2BB4" },
+  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x4", text = "0xB4" },
+  { unit = "dryfield_water_tower/dryfield_water_tower_2", rodata = "0x28", text = "0x870" },
   { kind = "data", at = "0x2DD4" },
 ]
 
