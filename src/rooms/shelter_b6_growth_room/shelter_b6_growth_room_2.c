@@ -16,7 +16,51 @@ extern SVECTOR  D_shelter_b6_growth_room_8017F298[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F2C8[];
 extern SVECTOR  D_shelter_b6_growth_room_8017F300[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_2", func_shelter_b6_growth_room_8017D82C);
+/// The layout template and the live copy the reset below restores from it.
+extern ShelterB6GrowthRoomLayout D_shelter_b6_growth_room_8017F234;
+extern ShelterB6GrowthRoomLayout D_shelter_b6_growth_room_8017FAF0;
+
+/// Resets the live layout lists from the template: the four-entry vector list
+/// and its 12-byte records, then the eight-entry list, which is afterwards
+/// raised by 0x7D0 on y when `arg0` is nonzero.
+void func_shelter_b6_growth_room_8017D82C(s32 arg0)
+{
+    ShelterB6GrowthRoomLayout* dst;
+    ShelterB6GrowthRoomLayout* src;
+    ShelterB6GrowthRoomVec     d;
+    s32                        i;
+
+    dst = &D_shelter_b6_growth_room_8017FAF0;
+    src = &D_shelter_b6_growth_room_8017F234;
+
+    for (i = 0; i < 4; i++) {
+        dst->field_4[i].x = src->field_4[i].x;
+        dst->field_4[i].y = src->field_4[i].y;
+        dst->field_4[i].z = src->field_4[i].z;
+        dst->field_C[i]   = src->field_C[i];
+    }
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x = src->field_8[i].x;
+        dst->field_8[i].y = src->field_8[i].y;
+        dst->field_8[i].z = src->field_8[i].z;
+    }
+
+    if (arg0 == 0) {
+        d.x = 0;
+        d.y = 0;
+    } else {
+        d.x = 0;
+        d.y = 0x7D0;
+    }
+    d.z = 0;
+
+    for (i = 0; i < 8; i++) {
+        dst->field_8[i].x += d.x;
+        dst->field_8[i].y += d.y;
+        dst->field_8[i].z += d.z;
+    }
+}
 
 void func_shelter_b6_growth_room_8017D9D8(Task* task)
 {
