@@ -7,6 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_golem_freezer_1.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
@@ -132,14 +133,14 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(void)
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
-            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
+            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
             break;
         case 4:
-            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
+            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
             break;
         case 2:
         case 5:
-            Room_Draw13(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
+            func_shelter_b1_golem_freezer_1_8017DC5C(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
             break;
     }
 }
