@@ -1,20 +1,25 @@
 #include "common.h"
+
 #include <psyq/libgte.h>
+
 #include "gameplay/3688.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017f128.h"
-#include "rooms/rooms_shared_8017d5f0.h"
-#include "rooms/rooms_shared_8017f2f8.h"
+#include "rooms/acropolis_east_elevator_hall.h"
+
+/// Part of the mirrored player model each held-object reflection hangs off,
+/// indexed by `Task::spawnArg1`.
+extern u8 D_acropolis_east_elevator_hall_8017FC8C[];
 
 /// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
-/// mirror task the room set up and the parent is the held-object task being reflected. On the first frame it
-/// clones the parent's TMD source, parents the clone's root coordinate to the
-/// mirrored player's corresponding part, points the clone at the mirror's
-/// light and color matrices and negates the X translation; every frame it
-/// republishes the mirror model's draw flags onto the clone.
-void RoomsShared8017f128(Task* task)
+/// hall's mirror task and the parent is the held-object task being reflected.
+/// On the first frame it clones the parent's TMD source, parents the clone's
+/// root coordinate to the mirrored player's corresponding part, points the
+/// clone at the mirror's light and color matrices and negates the X
+/// translation, flipping the clone across X when `spawnArg1` is 2 or more;
+/// every frame it copies the mirror model's draw flags onto the clone.
+void func_acropolis_east_elevator_hall_8017F128(Task* task)
 {
     Task*           mirror;
     TmdObject*      mirrorExtra;
@@ -31,7 +36,7 @@ void RoomsShared8017f128(Task* task)
         Task_CallExit(task);
     }
     mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &((TmdObject*)mirror->extra)->coords[RoomsShared8017f128Parts[task->spawnArg1]];
+    mirrorPart  = &((TmdObject*)mirror->extra)->coords[D_acropolis_east_elevator_hall_8017FC8C[task->spawnArg1]];
     work        = (RoomMirrorWork*)mirror->work;
     mirrorExtra = mirror->extra;
     if (task->state == 0) {
@@ -52,7 +57,7 @@ void RoomsShared8017f128(Task* task)
         extra->lightMtx = &work->light;
         extra->colorMtx = &work->color;
         if (task->spawnArg1 >= 2) {
-            scale = RoomsShared8017f128Scale;
+            scale = D_acropolis_east_elevator_hall_8017D5C4;
             ScaleMatrix(&parts->coord, &scale);
         }
         parts->coord.t[0] = -srcParts->coord.t[0];
@@ -69,11 +74,13 @@ void RoomsShared8017f128(Task* task)
     }
 }
 
-void RoomsShared8017f2f8(Task* task)
+/// Runs the hall's mirror task: state 0 sets the mirror up, state 1 is its
+/// per-frame update.
+void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
 {
     TaskFunc states[2] = {
-        RoomsShared8017d5f0,
-        RoomsShared8017d7a4,
+        func_acropolis_east_elevator_hall_8017D5F0,
+        func_acropolis_east_elevator_hall_8017D7A4,
     };
 
     states[task->state](task);

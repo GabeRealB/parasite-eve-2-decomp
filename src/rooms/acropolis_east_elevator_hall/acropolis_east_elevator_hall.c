@@ -9,17 +9,13 @@
 #include "gameplay/gameplay.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d5f0.h"
+#include "rooms/acropolis_east_elevator_hall.h"
 
-/// Part index in the mirrored player model each held-object reflection hangs
-/// off, indexed by `Task::spawnArg1` (the held-object slot).
-extern u8 RoomsShared8017f128Parts[];
-
-INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", RoomsShared8017d7a4);
+INCLUDE_ASM("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", func_acropolis_east_elevator_hall_8017D7A4);
 /// Scale handed to `ScaleMatrix` to flip the reflection across X.
-const VECTOR RoomsShared8017f128Scale = { -0x1000, 0x1000, 0x1000, 0 };
+const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5D4);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E0);
 

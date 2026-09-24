@@ -5,23 +5,27 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "main/gfx.h"
-
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d5f0.h"
+#include "rooms/acropolis_east_elevator_hall.h"
 
-/// Sets up the room's mirror: re-attaches the player's own TMD source
+/// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
+/// one reflection of a held object.
+extern TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
+
+/// State 0 of the hall's mirror task. Re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
-/// `RoomMirrorWork` block the reflection's coordinate frame and matrices live
-/// in, and hangs the task off the player task so it dies with it. `spawnArg1`
-/// selects which of the hall's two mirrors this is; mirror 0 also raises
-/// `GameSession::field_4E`. The two child tasks mirror the player's held-object
-/// tasks (`GameActor::field_920` / `field_924`).
-void RoomsShared8017d5f0(Task* task)
+/// `RoomMirrorWork` block holding the reflection's coordinate frame and
+/// matrices, and reparents the task under the player task so it dies with it.
+/// `spawnArg1` must be 0 or 1, otherwise the task kills itself; 0 also raises
+/// `GameSession::field_4E`. For each held-object task the player has
+/// (`GameActor::field_920` / `field_924`) it spawns a reflection task and
+/// hangs it under that held object, then runs the first per-frame update.
+void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
 {
     Task*           owner;
     GameActor*      actor;
@@ -72,11 +76,11 @@ void RoomsShared8017d5f0(Task* task)
     for (i = 0; i < 2; i++) {
         child = (&actor->field_920)[i];
         if (child != NULL) {
-            spawned = Task_SpawnFromTable(&RoomsShared8017d5f0Desc, 1, i, (s32)task);
+            spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i, (s32)task);
             if (spawned != NULL) {
                 Task_Reparent(child, spawned);
             }
         }
     }
-    RoomsShared8017d7a4(task);
+    func_acropolis_east_elevator_hall_8017D7A4(task);
 }

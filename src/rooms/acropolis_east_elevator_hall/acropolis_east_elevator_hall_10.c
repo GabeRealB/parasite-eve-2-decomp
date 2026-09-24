@@ -1,4 +1,8 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -7,26 +11,20 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32 D_80070F70;
 
-/// Draws the two light shafts falling through an elevator hall's ceiling grate.
-/// The task's `GsCOORDINATE2` origin is projected once through `GsWSMATRIX`
-/// (`RTPS`) into a 0x14-byte `G_SCRATCH_HEAD` block; anything closer than
-/// `otz` 0x11 is dropped. `spawnArg1`'s low byte pulses the shafts' red
-/// channel off the frame counter `D_80070F70`, folding the counter's 0..0xFF
-/// ramp into a 0..0x80 triangle so the shafts brighten and dim; its high byte
-/// is the shaft length, divided by `otz` so the two `POLY_G4` halves narrow
-/// with distance.
-void RoomsShared8017f77c(Task* arg0)
+/// Draws a pulsing light shaft at the task's coordinate origin. The origin is
+/// projected once through `GsWSMATRIX` (`RTPS`) into a 0x14-byte
+/// `G_SCRATCH_HEAD` block; anything with `otz` below 0x11 is dropped.
+/// `spawnArg1`'s low byte scales the frame counter `D_80070F70`, and the
+/// product's low byte is folded into a 0..0x80 triangle wave that drives the
+/// red channel of one corner; its high byte is the shaft length, divided by
+/// `otz` so the two `POLY_G4` halves narrow with distance.
+void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
 {
     u8*               head;
     u8*               raw;
