@@ -3,6 +3,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 
@@ -100,7 +101,47 @@ void func_shelter_b1_armory_8018034C(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180468);
+/// Answers 1 and spawns the armory task when a pending mode-5 object with
+/// `field_48` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
+/// 0xF0 selects the task's parameter; on 0x105 a first visit also sets it.
+s32 func_shelter_b1_armory_80180468(s32 arg0, s32 arg1, s32 arg2)
+{
+    GpObj4C* node;
+    s32      found;
+
+    node = Gp_PendingObj4C;
+    while (node != NULL) {
+        if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+            found = 1;
+            goto check;
+        }
+        node = node->next;
+    }
+    found = 0;
+check:
+    if (found != 0) {
+        if (arg2 == 0x105) {
+            gGameSession->eventState = 1;
+            if (GameFlag_GetNibble(0xF0) != 0) {
+                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
+            } else {
+                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x180002, 0);
+                GameFlag_SetNibble(0xF0, 1);
+            }
+            return 1;
+        }
+        if (arg2 == 0x121 || arg2 == 0x122) {
+            gGameSession->eventState = 1;
+            if (GameFlag_GetNibble(0xF0) != 0) {
+                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x170003, 0);
+            } else {
+                Task_SpawnOnDefaultList(D_shelter_b1_armory_801824E8, 0, 0x190001, 0);
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
