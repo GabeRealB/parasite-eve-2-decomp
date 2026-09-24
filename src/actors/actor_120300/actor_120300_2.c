@@ -28,8 +28,6 @@ extern s32 D_actor_120300_80141A34;
 
 extern s16 D_actor_120300_80140980[];
 
-extern TaskDesc ActorsShared80134898Desc;
-
 s32 func_actor_120300_80131EE0(Task* arg0);
 
 /// After `func_actor_120300_80131EE0`, runs the request at `field_4C8` (0..19):
@@ -469,8 +467,8 @@ void func_actor_120300_801335D8(Task* arg0)
         Gp_AnimResetSlot(&animWork->anim, (u16)i, 0xE);
         i++;
     } while ((u16)i < 0x14U);
-    work->field_4B8 = Task_SpawnFromTable(&ActorsShared80134898Desc, 2, 0, (s32)arg0);
-    work->field_4BC = Task_SpawnFromTable(&ActorsShared80134898Desc, 3, 0, (s32)arg0);
+    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, (s32)arg0);
+    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, (s32)arg0);
     arg0->msgTable  = &D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
     Task_Reparent(arg0, work->field_4B8);

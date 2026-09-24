@@ -36,8 +36,6 @@ extern s32        D_actor_120300_80141A34;
 /// Animation id per `Actor120300Work::field_4D4`; -1 skips the restart.
 extern s16 D_actor_120300_80140980[];
 
-extern TaskDesc ActorsShared80134898Desc;
-
 /// Ticks slots 1..19 of a task's animation context and, if every one of them
 /// then has `GpAnimSlot.flags` bit 0x100 set, re-reads the work block and
 /// restarts all twenty slots on the id `D_actor_120300_80140980` selects for

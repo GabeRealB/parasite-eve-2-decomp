@@ -60,6 +60,11 @@ typedef struct Actor120300 {
 
 extern Actor120300* D_actor_120300_80141BA8;
 
+/// The actor's five-entry task table, spawned from by index. Entries 2 and 3
+/// are the two tasks kept in `field_4B8`/`field_4BC`; entry 4 is the fade to
+/// black.
+extern TaskDesc D_actor_120300_80141B6C[];
+
 /// `func_800B4114` is deliberately not declared in `gameplay/1BC.h` (see its
 /// note): this overlay hands it a `u16` animation id, so the `s32` `arg2` here
 /// is what keeps the caller's zero-extension.
