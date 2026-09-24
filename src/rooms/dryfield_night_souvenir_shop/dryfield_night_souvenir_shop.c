@@ -5,8 +5,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s32 arg1);
-
 void func_dryfield_night_souvenir_shop_8017D654(void)
 {
 }
