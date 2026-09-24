@@ -73,11 +73,18 @@ extern s16 D_shelter_b4_water_supply_80182638;
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b4_water_supply_80184E50;
 
-void func_shelter_b4_water_supply_8017DE74(s32 arg0);
-void func_shelter_b4_water_supply_8017E5D8(s32 arg0);
+void func_shelter_b4_water_supply_8017DE74(Task* task);
+void func_shelter_b4_water_supply_8017E5D8(Task* task);
+void func_shelter_b4_water_supply_8017ED90(Task* arg0);
+void func_shelter_b4_water_supply_8017EDD0(Task* task);
 
 void func_shelter_b4_water_supply_8017F3A0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_water_supply_8017FB90(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_water_supply_8017FF7C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_water_supply_80181158(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_water_supply_801813DC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b4_water_supply_80181800(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_shelter_b4_water_supply_8018226C(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif // ROOMS_SHELTER_B4_WATER_SUPPLY_H

@@ -49,8 +49,8 @@ s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out)
 /// each quad is followed by a draw-mode packet selecting blend mode 2. Quads
 /// the projection flags as invalid are skipped. The per-surface values live in
 /// a work block pushed on the scratchpad stack for the duration of the call.
-/// `arg0` is unused.
-void func_shelter_b4_water_supply_8017DE74(s32 arg0)
+/// `task`, the water task whose drawing state calls it, is unused.
+void func_shelter_b4_water_supply_8017DE74(Task* task)
 {
     SVECTOR                        v0, v1, v2, v3;
     s32                            sxy0, sxy1, sxy2, sxy3;
@@ -185,8 +185,9 @@ void func_shelter_b4_water_supply_8017DE74(s32 arg0)
 /// (0x80, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
 /// invalid are skipped. The per-surface values live in a work block pushed on
-/// the scratchpad stack for the duration of the call. `arg0` is unused.
-void func_shelter_b4_water_supply_8017E5D8(s32 arg0)
+/// the scratchpad stack for the duration of the call. `task`, the water task
+/// whose drawing state calls it, is unused.
+void func_shelter_b4_water_supply_8017E5D8(Task* task)
 {
     SVECTOR                        v0, v1, v2, v3;
     s32                            sxy0, sxy1, sxy2, sxy3;
@@ -313,4 +314,13 @@ void func_shelter_b4_water_supply_8017E5D8(s32 arg0)
     *(u8**)0x1F8003FC += 0xC;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply_2", func_shelter_b4_water_supply_8017ED28);
+/// The water task: runs its current state - `func_shelter_b4_water_supply_8017ED90`
+/// once, then `func_shelter_b4_water_supply_8017EDD0`, which draws the surfaces -
+/// and each tick publishes the room's water height to the session.
+void func_shelter_b4_water_supply_8017ED28(Task* task)
+{
+    TaskFunc states[2] = { func_shelter_b4_water_supply_8017ED90, func_shelter_b4_water_supply_8017EDD0 };
+
+    states[task->state](task);
+    gGameSession->waterY = D_shelter_b4_water_supply_80182638;
+}

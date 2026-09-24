@@ -25,7 +25,65 @@ void              func_shelter_b4_water_supply_8017DB18(void);
 extern GpSaveLoc D_shelter_b4_water_supply_80184E3C;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D650);
+extern s16 D_80071076;
+
+/// The task the staged event block `D_shelter_b4_water_supply_80184E44`
+/// spawns. State 0 sends the block's `field_4` to the slot-3 game pointer as
+/// message 0x3EE, skipping to state 2 when it is 0xFFFF; state 1 waits until
+/// that pointer answers 0x3F0 with 0. States 2 and 3 play the block's sound
+/// event `field_8`, if any, and wait for its voice to go quiet. State 4 queues
+/// type-7 sound event 0x80000000, commits the save location in the block's
+/// first four bytes
+/// (stage, area, warp, room), re-spawns the player task as type 0x11 and kills
+/// itself.
+void func_shelter_b4_water_supply_8017D650(Task* arg0)
+{
+    GpMsg3EE msg;
+    void*    slot;
+
+    slot = gameGetPtrSlot(3);
+    switch (arg0->state) {
+        case 0:
+            msg.field_12 = D_shelter_b4_water_supply_80184E44.field_4;
+            if (msg.field_12 == -1) {
+                arg0->state = 2;
+                break;
+            }
+            Gp_DispatchMsg(slot, 0x3EE, (s32)&msg, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 1:
+            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 2:
+            if (D_shelter_b4_water_supply_80184E44.field_8 == 0) {
+                arg0->state = 4;
+                break;
+            }
+            SndEvt_EnqueueType6(D_shelter_b4_water_supply_80184E44.field_8, 0, 0);
+            arg0->state = (s32)(arg0->state + 1);
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(D_shelter_b4_water_supply_80184E44.field_8) == 0) {
+                arg0->state = (s32)(arg0->state + 1);
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7((s32)0x80000000, 0);
+            D_80071076                = 1;
+            Mc_SaveData.at4.loc.stage = D_shelter_b4_water_supply_80184E44.field_0;
+            Mc_SaveData.at4.loc.area  = D_shelter_b4_water_supply_80184E44.field_1;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.field_2;
+            Mc_SaveData.at4.loc.room  = D_shelter_b4_water_supply_80184E44.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+        default:
+            break;
+    }
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", D_shelter_b4_water_supply_8017D5D8);
 
@@ -34,7 +92,6 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supp
 extern GpStateBD8 D_shelter_b4_water_supply_80184E34;
 extern u8         D_801153F4;
 extern s16        D_80114D08;
-extern s16        D_80071076;
 
 void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
 {

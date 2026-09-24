@@ -24,8 +24,6 @@ typedef struct _ShelterB4WaterSupplySplash {
 extern s32 D_8007107C;
 extern s8  D_8007217B;
 extern u8* D_shelter_b4_water_supply_80184E50;
-void       func_shelter_b4_water_supply_8017DE74(s32);
-void       func_shelter_b4_water_supply_8017E5D8(s32);
 
 extern s32 D_80115730;
 extern s32 D_80115734;
@@ -44,15 +42,19 @@ extern SVECTOR D_shelter_b4_water_supply_801826D0[];
 /// model, compared against this frame's to measure how far each moved.
 extern SVECTOR D_shelter_b4_water_supply_801826E0[];
 
-void func_shelter_b4_water_supply_8017EDD0(s32 arg0)
+/// The water task's drawing state: points the primitive cursor
+/// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
+/// slice of one of two primitive areas, chosen by `D_8007217B`, then draws both
+/// lists of water surfaces.
+void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
     if (D_8007217B == 0) {
         D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C374 + D_8007107C * 0xC000;
     } else {
         D_shelter_b4_water_supply_80184E50 = (u8*)D_8005C370 + D_8007107C * 0xC000;
     }
-    func_shelter_b4_water_supply_8017DE74(arg0);
-    func_shelter_b4_water_supply_8017E5D8(arg0);
+    func_shelter_b4_water_supply_8017DE74(task);
+    func_shelter_b4_water_supply_8017E5D8(task);
 }
 
 /// Room task. State 0 installs five effect ids in the shared effect-id slots,
