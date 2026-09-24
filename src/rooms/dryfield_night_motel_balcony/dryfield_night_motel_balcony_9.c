@@ -1,7 +1,11 @@
 #include "common.h"
+
+#include "main/gameflow.h"
 #include "main/task.h"
 
-void Room_Script03(Task* arg0)
+/// Draws a white fade overlay (mode 2) each tick while `killCountdown`
+/// climbs by 4, and kills the task once it reaches 0x100.
+void func_dryfield_night_motel_balcony_8017E068(Task* arg0)
 {
     u16 temp_v0;
 

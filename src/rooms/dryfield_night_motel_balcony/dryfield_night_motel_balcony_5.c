@@ -7,6 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/dryfield_night_motel_balcony.h"
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182C60[];
 extern SVECTOR D_dryfield_night_motel_balcony_80182C70;
@@ -47,27 +48,27 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         hi   = 1;
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][2]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182C70, 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C70, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][4]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182C80, 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C80, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][6]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182C90, 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C90, 0x180);
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][8]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
     }
     for (i = 10; i < 18; i++) {
         if (mask & D_dryfield_night_motel_balcony_80182D40[hi][i]) {
-            Room_Draw17(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
+            func_dryfield_night_motel_balcony_8017F440(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
         }
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
-        Room_Draw08(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
     }
     if (GameFlag_GetNibble(0x7F) == 1) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
