@@ -4,6 +4,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/gtemac.h>
 
 #include "decomp/common.h"
 #include "gameplay/1A8.h"
@@ -30,35 +32,6 @@
 #include "main/wipsys.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
-
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real()  __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
-#define gte_MulMatrix0_real(r1, r2, r3) \
-    {                                   \
-        gte_SetRotMatrix(r1);           \
-        gte_ldclmv(r2);                 \
-        gte_rtir_real();                \
-        gte_stclmv(r3);                 \
-        gte_ldclmv((char*)(r2) + 2);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 2);    \
-        gte_ldclmv((char*)(r2) + 4);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 4);    \
-    }
-
-#define gte_RotTransPers_real(r1, r2, r3, r4, r5) \
-    {                                             \
-        gte_ldv0(r1);                             \
-        gte_rtps_real();                          \
-        gte_stsxy(r2);                            \
-        gte_stdp(r3);                             \
-        gte_stflg(r4);                            \
-        gte_stszotz(r5);                          \
-    }
 
 #define gte_TransposeMatrix(src, dst)     \
     __asm__ volatile("lhu $12,0(%0);"     \
@@ -274,7 +247,7 @@ static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
     v = *out;
     gte_SetRotMatrix(m);
     gte_ldv0(&v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(out);
 }
 
@@ -436,7 +409,7 @@ void func_acropolis_square_8017D8C8(Task* task)
             plane->viewRow.vz = work->coord.coord.m[1][2];
             gte_lddp(-0x1000);
             gte_ldsv(&plane->viewRow);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&plane->viewRow);
             work->coord.coord.m[1][0] = plane->viewRow.vx;
             work->coord.coord.m[1][1] = plane->viewRow.vy;
@@ -627,7 +600,7 @@ void func_acropolis_square_8017D8C8(Task* task)
                 plane->reflect.m[2][0] = -plane->reflect.m[2][0];
                 plane->reflect.m[2][1] = -plane->reflect.m[2][1];
                 plane->reflect.m[2][2] = -plane->reflect.m[2][2];
-                gte_MulMatrix0_real(&plane->basis, &plane->reflect, &plane->reflect);
+                gte_MulMatrix0(&plane->basis, &plane->reflect, &plane->reflect);
                 work->coord.coord      = plane->reflect;
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
@@ -769,11 +742,11 @@ void func_acropolis_square_8017D8C8(Task* task)
                 extent->pos.vx = 0;
                 extent->pos.vy = -0x3E8;
                 extent->pos.vz = 0;
-                gte_RotTransPers_real(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
+                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
                 extent->pos.vx = 0;
                 extent->pos.vy = 0x3E8;
                 extent->pos.vz = 0;
-                gte_RotTransPers_real(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
+                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
             } else {
                 Gp_UpdateCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
@@ -781,11 +754,11 @@ void func_acropolis_square_8017D8C8(Task* task)
                 extent->pos.vx = 0;
                 extent->pos.vy = -0x7D0;
                 extent->pos.vz = 0;
-                gte_RotTransPers_real(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
+                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
                 extent->pos.vx = 0;
                 extent->pos.vy = 0;
                 extent->pos.vz = 0;
-                gte_RotTransPers_real(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
+                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
             }
             if (extent->sxyFoot.vy > extent->sxyHead.vy) {
                 extent->sxyHead.vx = extent->sxyFoot.vy;
@@ -880,8 +853,8 @@ void func_acropolis_square_8017D8C8(Task* task)
         work->color = *ownerBody->colorMtx;
         Gp_UpdateCoord(ownParts);
         gte_TransposeMatrix(&ownParts->workm, &mtx);
-        gte_MulMatrix0_real(&ownerParts->workm, &mtx, &mtx);
-        gte_MulMatrix0_real(&work->light, &mtx, &work->light);
+        gte_MulMatrix0(&ownerParts->workm, &mtx, &mtx);
+        gte_MulMatrix0(&work->light, &mtx, &work->light);
     }
 }
 
@@ -2648,7 +2621,7 @@ void func_acropolis_square_801825DC(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisSquareBeamScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AcropolisSquareBeamScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
     if (((AcropolisSquareBeamScratch*)(head - 0x18))->otz >= 0x11) {
