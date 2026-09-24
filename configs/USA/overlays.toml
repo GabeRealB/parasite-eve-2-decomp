@@ -2886,7 +2886,7 @@ objects = [
   { unit = "actor_00700/actor_100700_text", rodata = "0x3C", text = "0x8B4" },
   { kind = "rodata", at = "0x54" },
   { unit = "actor_00700/actor_100700_init", text = "0x60" },
-  { lib = true, unit = "actors_shared_801651a0", text = "0x1CF0" },
+  { unit = "actor_00700/actor_00700_3", text = "0x1CF0" },
   { unit = "actor_00700/actor_00700_2", text = "0x1D80" },
   { kind = "model", at = "0x3670" },
   { kind = "data", at = "0x4ED8" },
