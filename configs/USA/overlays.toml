@@ -2920,19 +2920,7 @@ label = "no map pool names this room"
 id = 451
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid", rodata = "0x14", text = "0x40" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_5", text = "0x438" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_2", text = "0x47C" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_6", text = "0x558" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_3", text = "0x59C" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_7", text = "0x5D8" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_4", text = "0x630" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_8", text = "0x690" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_9", text = "0x934" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_10", text = "0xD60" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_11", text = "0x10F4" },
-  { unit = "neo_ark_pyramid/neo_ark_pyramid_12", text = "0x1C64" },
+  { unit = "neo_ark_pyramid/neo_ark_pyramid", rodata = "0x4", text = "0x40" },
   { kind = "data", at = "0x2624" },
 ]
 
