@@ -1,3 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator_4", func_neo_ark_eve_elevator_8017D5D0);
+/// The room's handler for message 0x13F1: does nothing and returns 0.
+s32 func_neo_ark_eve_elevator_8017D5D0(void)
+{
+    return 0;
+}
