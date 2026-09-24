@@ -15,15 +15,15 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern s32 D_80115728;
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-extern void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-extern void Room_Draw02(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
-extern void RoomsShared8017fdd4Ring(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-extern void RoomsShared8017fdd4Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
-extern s32  Gp_LcgState;
 
-void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+/// Projects the coordinate's world position through `GsWSMATRIX` and, unless
+/// the GTE flags the projection, queues a star of gouraud `POLY_G4` wedges
+/// around it, coloured `arg2` (partly at half brightness) at the centre and
+/// black at the tips: a fan of radius `arg1 * 64 / (otz + 1)`, a brighter
+/// fan of half that radius, and spikes reaching between the two radii
+/// derived from `arg1`.
+void func_dryfield_motel_balcony_8017F7E8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

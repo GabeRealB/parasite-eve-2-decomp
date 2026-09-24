@@ -16,9 +16,10 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-extern void RoomsShared8017fdd4Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
-void RoomsShared8017fdd4Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+/// A second copy of the star at 0x8017F7E8, drawn around the projected
+/// coordinate in the colour `arg2` at radii derived from `arg1`.
+void func_dryfield_motel_balcony_801818B0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");

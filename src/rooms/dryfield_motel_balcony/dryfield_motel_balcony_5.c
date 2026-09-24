@@ -16,11 +16,12 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-extern void RoomsShared8017e890Draw(GsCOORDINATE2* arg0, s16 arg1);
-extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
-extern void RoomsShared8017e4f8Fade(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
-void RoomsShared8017e4f8Halo(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+/// Projects the coordinate's world position through `GsWSMATRIX` and, unless
+/// the GTE flags the projection, queues a fan of eight gouraud `POLY_G4`
+/// wedges around it, of radius `arg1 * 64 / (otz + 1)`: black at the rim and
+/// coloured `arg2` at the centre.
+void func_dryfield_motel_balcony_8017E66C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 {
     register RoomFanScratch* block asm("s2");
     register POLY_G4*        prim asm("s0");

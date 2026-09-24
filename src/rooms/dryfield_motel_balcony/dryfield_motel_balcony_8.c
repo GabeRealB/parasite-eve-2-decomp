@@ -13,9 +13,11 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-extern void RoomsShared8017fdd4Ring(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
-void RoomsShared8017fdd4Ring(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+/// A second copy of the fan at 0x8017E66C: eight gouraud `POLY_G4` wedges
+/// of radius `arg1 * 64 / (otz + 1)` around the projected coordinate, black
+/// at the rim and coloured `arg2` at the centre.
+void func_dryfield_motel_balcony_801809AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 {
     register RoomFanScratch* block asm("s2");
     register POLY_G4*        prim asm("s0");
