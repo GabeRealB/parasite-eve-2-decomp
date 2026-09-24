@@ -1,25 +1,24 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
+#include "rooms/dryfield_night_breezeway.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
-/// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
-/// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
-/// `gDisplayState.animFrame` into `rsin` so the lit vertex pulses as
-/// `rsin(...) / 34 + 0x78` on red. Shared body, linked into every room overlay
-/// that uses it.
-void Room_Draw38(SVECTOR* arg0, s16 arg1, s32 arg2)
+/// Draws a pulsing red star at the world point `arg0`, projected through
+/// `Gfx_ViewWorldMtx`; nothing is drawn when the projection flags an error.
+/// Two gouraud `POLY_G4` halves of a diamond and two `LINE_G3` diagonals
+/// surround the projected point, with radius `(s16)arg2 * 32` over its depth.
+/// The lit vertices take a red of `rsin(animFrame * arg1) / 34 + 0x78`, so
+/// `arg1` sets the pulse rate. The work block lives on the scratchpad stack.
+void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw13Scratch* block;
