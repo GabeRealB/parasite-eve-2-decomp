@@ -4,6 +4,8 @@
 
 #include "gameplay/3CD8.h"
 #include "main/session.h"
+
+#include "rooms/dryfield_night_water_tower.h"
 #include "rooms/room_common.h"
 
 /// The water tower's effect chain, six 8-byte `SVECTOR` anchors laid out
@@ -29,24 +31,24 @@ void func_dryfield_night_water_tower_8017DB80(void)
     Gp_State1C->roomEffectMode = 2;
     switch (gGameSession->at4.loc.view) {
         case 2:
-            Room_Draw17(&D_dryfield_night_water_tower_8017E73C, 2, 0x400);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E73C, 2, 0x400);
             break;
         case 3:
-            Room_Draw08(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            Room_Draw17(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
+            func_dryfield_night_water_tower_8017DC70(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
             break;
         case 4:
-            Room_Draw08(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
-            Room_Draw17(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
-            Room_Draw17(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
+            func_dryfield_night_water_tower_8017DC70(&D_dryfield_night_water_tower_8017E71C[0], 0x100);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E71C[2], 2, 0x400);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
             break;
         case 5:
-            Room_Draw17(&D_dryfield_night_water_tower_8017E734, 2, 0x400);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E734, 2, 0x400);
             break;
         case 7:
         case 10:
-            Room_Draw17(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
-            Room_Draw17(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
+            func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E744, 2, 0x400);
             break;
     }
 }
