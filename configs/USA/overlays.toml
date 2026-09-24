@@ -2211,21 +2211,6 @@ id = 380
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", rodata = "0x4", text = "0x38" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_4", rodata = "0x24", text = "0x3134" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_6", text = "0x428" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_2", text = "0x46C" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_7", text = "0x474" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_3", text = "0x4CC" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_8", text = "0x6C8" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_9", text = "0xE44" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_10", text = "0x11A0" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_11", text = "0x1444" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_12", text = "0x1870" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_13", text = "0x1C04" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_14", text = "0x2774" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_15", text = "0x368C" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_5", text = "0x42EC" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway_16", text = "0x49C4" },
   { kind = "data", at = "0x4D3C" },
 ]
 
