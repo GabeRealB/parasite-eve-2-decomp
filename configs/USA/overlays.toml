@@ -1714,15 +1714,7 @@ objects = [
 id = 369
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar", rodata = "0x4", text = "0x6C" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_5", text = "0x10" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_6", text = "0x74" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_2", text = "0x134" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_7", text = "0x13C" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_3", text = "0x180" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_8", text = "0x188" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_9", text = "0x1E0" },
-  { unit = "dryfield_night_cellar/dryfield_night_cellar_4", text = "0x468" },
+  { unit = "dryfield_night_cellar/dryfield_night_cellar", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x4E8" },
 ]
 
