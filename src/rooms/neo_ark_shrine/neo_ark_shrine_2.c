@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3688.h"
 #include "gameplay/3A34.h"
@@ -23,9 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
@@ -948,7 +946,7 @@ void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(pos);
-    gte_rtps_real();
+    gte_rtps();
     ds    = &gDisplayState;
     blend = (((u8)ds->animFrame & 1) * 16) + 0x20;
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
@@ -1107,7 +1105,7 @@ void func_neo_ark_shrine_80180144(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1191,7 +1189,7 @@ void func_neo_ark_shrine_80180570(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1386,10 +1384,10 @@ void func_neo_ark_shrine_80180DF4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -1547,7 +1545,7 @@ void func_neo_ark_shrine_80181474(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

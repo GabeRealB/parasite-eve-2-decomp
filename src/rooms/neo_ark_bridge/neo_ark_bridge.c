@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -16,9 +17,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-/// `rtv0`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Scratchpad block the ripple borrows from `G_SCRATCH_HEAD` for one call:
 /// the transposed view rotation, the camera-space row vector fed to the GTE
@@ -56,7 +54,7 @@ static inline void _neoArkBridgeRotTrans(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 
@@ -338,7 +336,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
         y0              = y - 0x78;
         scratch->row.vy = y0;
         gte_ldv0(&scratch->row);
-        gte_rtv0_real();
+        gte_rtv0();
         xl     = xLeft0;
         xr     = xRight0;
         passes = 1;

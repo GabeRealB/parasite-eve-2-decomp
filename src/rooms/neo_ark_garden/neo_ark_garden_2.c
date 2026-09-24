@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -16,13 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// `rtps` / `rtpt` / `rtv0` / `gpf12`. The `inline_c.h` macros of those names
-/// assemble to different words, so the instructions are spelled out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// The block the garden's ambience task reaches through `Task::spawnArg2`.
 /// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
@@ -229,7 +223,7 @@ void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -324,7 +318,7 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
         v->vz = (s16)tbl->y * 250;
         gte_SetRotMatrix(wm);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->vx;
         tbl++;
@@ -337,10 +331,10 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -472,7 +466,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
                 mem->move.vx = 0;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
             }
             mem->period       += 8;
@@ -523,11 +517,11 @@ void func_neo_ark_garden_8017FCE8(Task* task)
                 work->field_1C = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&work->field_18);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_18);
                 gte_lddp(0xCC);
                 gte_ldsv(&work->field_18);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&work->field_18);
                 task->state = 1;
                 break;
@@ -587,7 +581,7 @@ void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 a
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -682,7 +676,7 @@ void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw07Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw07Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -763,7 +757,7 @@ void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw10Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw10Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -916,7 +910,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
@@ -1027,7 +1021,7 @@ void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -1039,10 +1033,10 @@ void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
