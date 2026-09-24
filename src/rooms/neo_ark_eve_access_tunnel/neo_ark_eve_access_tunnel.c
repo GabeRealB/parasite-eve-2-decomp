@@ -1,8 +1,10 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -10,14 +12,80 @@
 #include "main/task.h"
 #include "rooms/neo_ark_eve_access_tunnel.h"
 
-/// Staging save location the room commits when the tunnel's save is taken.
-extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
+/// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
+/// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
+/// both its input and its output.
+///
+/// `field_0` is the code the resolver switches on, `field_2` passes through
+/// unchanged, `field_3` is the byte it writes, and a non-zero `field_5` makes it
+/// return without touching anything. The caller stages the block from the
+/// `NaetEventDesc` it is about to publish and copies `field_3` back into it.
+typedef struct NaetUtilParam {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  field_5;
+} NaetUtilParam;
+STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
-/// CAP countdown the tunnel reloads while the save sequence runs.
+/// The twelve bytes `func_neo_ark_eve_access_tunnel_8017D980` stages in
+/// `D_neo_ark_eve_access_tunnel_801807A8` before spawning the tunnel's outgoing
+/// task from `D_neo_ark_eve_access_tunnel_8017EA88`.
+///
+/// The task that consumes it is the outgoing task,
+/// `func_neo_ark_eve_access_tunnel_8017D810`: `field_4` is the halfword it
+/// forwards as message 0x3EE and gives up on when it reads 0xFFFF, `field_8` the
+/// sound event it queues and polls, and the four bytes at 0x0 are the
+/// save-location block it copies into `Mc_SaveData`'s 0x5..0x8. `field_1` is the
+/// code `func_neo_ark_eve_access_tunnel_8017D980` hands its resolver, staged
+/// from the task's `spawnArg1`.
+///
+/// `field_6` is never read or written by either side, so it is padding.
+typedef struct NaetEventDesc {
+    /* 0x0 */ u8   field_0;
+    /* 0x1 */ u8   field_1;
+    /* 0x2 */ u8   field_2;
+    /* 0x3 */ u8   field_3;
+    /* 0x4 */ u16  field_4;
+    /* 0x6 */ byte pad_6[0x2];
+    /* 0x8 */ s32  field_8;
+} NaetEventDesc;
+STATIC_ASSERT_SIZEOF(NaetEventDesc, 0xC);
+
+/// Descriptor the tunnel's outgoing task is spawned from, index 0 of the table
+/// `func_neo_ark_eve_access_tunnel_8017D980` hands `Task_SpawnFromTable`.
+extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
+
+/// The staged event descriptor, read by the task spawned above.
+extern NaetEventDesc D_neo_ark_eve_access_tunnel_801807A8;
+
+/// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
+extern s8 D_8007272D;
+
+/// CAP countdown the tunnel reloads while its sequences run.
 extern s16 D_80114D08;
 
 /// Set when the tunnel's save is written to the memory card.
 extern s16 D_80071076;
+
+/// Staging save location the room commits when the tunnel's save is taken:
+/// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
+/// later copies into `Mc_SaveData.at4.loc.area` / `warp` / `room`.
+extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
+
+/// The room's message table, installed in `Task::msgTable` by the room task's
+/// first state. Terminated by the `0x7FFFFFFF` id.
+extern GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[];
+
+/// The room's three task descriptors: the departure sequence, the save
+/// sequence and the CAP-wait flag setter, spawned by the message handlers.
+extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[];
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
+void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
 
 /// Resolves the code in `arg0->field_0` into a state byte in `arg1->field_3`,
 /// unless `arg0->field_5` is set. Only six codes produce one, each from a
@@ -171,7 +239,14 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", D_neo_ark_eve_access_tunnel_8017D688);
+/// The room task's three states: install the message table, adjust the views
+/// each frame, and end the task. `func_neo_ark_eve_access_tunnel_8017E038` runs
+/// them through a stack copy.
+const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
+    func_neo_ark_eve_access_tunnel_8017DF24,
+    func_neo_ark_eve_access_tunnel_8017DFC0,
+    taskKill,
+};
 
 /// Tunnel departure sequence, advanced one step per call: step 0 raises CAP
 /// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
@@ -279,4 +354,158 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             taskKill(task);
             break;
     }
+}
+
+/// Message handler for id 0x13F1 in the room's message table: accepts the
+/// message and does nothing.
+s32 func_neo_ark_eve_access_tunnel_8017DC64(void)
+{
+    return 0;
+}
+
+/// Tunnel message handler. Message 9 either raises the CAP command that opens
+/// the tunnel (nibble 0xB9 still clear) or, once that nibble is set, latches the
+/// save location the outgoing message carries and starts the cutscene that
+/// leads to the EVE encounter. The two `switch`es are load-bearing: the
+/// equivalent `if` / `else` chain makes reorg fill the second field_5 branch's
+/// delay slot from the return block instead of the fall-through.
+s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179B14(src, dst);
+    switch (*(u16*)src) {
+        case 9:
+            switch (GameFlag_GetNibble(0xB9)) {
+                case 0:
+                    if (src->field_5 == 0) {
+                        Gp_SetNibbleIf(src->field_6, 2);
+                        Gp_RunCapCmd1(1);
+                    }
+                    break;
+                default:
+                    if (src->field_5 == 0) {
+                        D_8007272D                                   = 0x18;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_2 = dst->field_0;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_4 = dst->field_2;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_1 = dst->field_3;
+                        Gp_MsgPlayerWeapon(0);
+                        Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
+                    }
+                    break;
+            }
+            return 0;
+    }
+    return 1;
+}
+
+s32 func_neo_ark_eve_access_tunnel_8017DD70(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (gGameSession->at4.loc.place == 0xB) {
+        switch (arg2) {
+            case 6:
+                if (GameFlag_GetNibble(0x142) == 0) {
+                    if (Gp_StateF0.field_0 == 1) {
+                        Gp_RunCapCmd1(6);
+                    }
+                } else {
+                    Gp_RunCapCmd1(8);
+                }
+                break;
+            case 7:
+                if (GameFlag_GetNibble(0x143) == 0) {
+                    if (Gp_StateF0.field_0 == 1) {
+                        Gp_RunCapCmd1(7);
+                    }
+                } else {
+                    Gp_RunCapCmd1(9);
+                }
+                break;
+        }
+    }
+    return 0;
+}
+
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if (arg2->field_2 == 0xA) {
+        if (GameFlag_GetNibble(0xF8) != 0) {
+            Gp_RunCapCmd1(5);
+            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
+        } else {
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, arg2->field_3, 0);
+        }
+        return 0;
+    }
+    return 0;
+}
+
+s32 func_neo_ark_eve_access_tunnel_8017DE9C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 1) {
+        SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);
+    }
+    return 0;
+}
+
+/// Third entry of the room's task table: waits for the CAP command to finish,
+/// then, unless it ended on event key 0xC, sets the game-flag nibble named by
+/// the task's spawn argument to 2, and ends the task.
+void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
+{
+    if (Gp_CapBusy() == 0) {
+        if (Gp_GetCapEventKey() != 0xC) {
+            GameFlag_SetNibble(arg0->spawnArg1, 2);
+        }
+        taskKill(arg0);
+    }
+}
+
+/// State 0 of the tunnel's message task: park the room's message table in
+/// `Task::msgTable` and publish the task in pointer slot 7, as every room-entry
+/// task does. Then, once the session has reached state 0xB, set bit 15 of every
+/// 16-bit half of the 0x25800-byte image buffer and latch `GameSession::flowFlags`
+/// bit 0 - the flag that suppresses the bank-load spawn when the task ends.
+void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
+{
+    arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
+    Game_SetPtrSlot(arg0, 7);
+    if (gGameSession->at4.loc.place == 0xB) {
+        u16* ptr = (u16*)Fs_ImgBuffers;
+        s32  i   = 0;
+
+        do {
+            *ptr = (u16)(*ptr | 0x8000);
+            i   += 1;
+            ptr += 1;
+        } while (i <= 0x12BFF);
+        gGameSession->flowFlags = 1;
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
+
+/// State 1 of the tunnel's message task, run every frame: while the session is
+/// below state 4 it sets both runs of view flags, and at state 0xB it sets the
+/// CD command queue's `field_22A` to 2.
+void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
+{
+    CdCmdQueue* queue = &CdCmd_Queue;
+
+    if (gGameSession->at4.loc.place < 4U) {
+        func_neo_ark_eve_access_tunnel_8017E090(0, 0);
+        func_neo_ark_eve_access_tunnel_8017E090(1, 0);
+    }
+    if (gGameSession->at4.loc.place == 0xB) {
+        queue->field_22A = 2;
+    }
+}
+
+/// Runs the task's current state through a stack copy of the room's
+/// three-entry state table.
+void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_eve_access_tunnel_8017D688;
+    sp.funcs[task->state](task);
 }
