@@ -1947,11 +1947,13 @@ objects = [
 ]
 
 [rooms.overlays.shelter_r37]
-label = "cutscene or one-off room; no map names it"
+label = "cutscene or one-off room; no map names it; code starts at 0x10: the handler the room's message table at 0x110 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x18 and left it as rodata words"
 id = 407
+text = ["0x10", "0x110"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_r37/shelter_r37", rodata = "0x4", text = "0x5C" },
+  { unit = "shelter_r37/shelter_r37_3", text = "0x10" },
   { lib = true, unit = "room_util02", text = "0x18" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x6C" },
   { unit = "shelter_r37/shelter_r37_2", text = "0xB0" },
