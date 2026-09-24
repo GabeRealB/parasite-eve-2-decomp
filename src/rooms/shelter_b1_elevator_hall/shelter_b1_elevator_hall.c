@@ -23,7 +23,67 @@ extern s8  D_801153F4;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D620);
+void func_shelter_b1_elevator_hall_8017D620(Task* task)
+{
+    RoomEventMsg msg;
+    RoomEventMsg msg2;
+
+    switch (task->state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            D_801153F4 = 1;
+            goto next;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                D_801153F4 = 0;
+                goto next;
+            }
+            break;
+        case 2:
+            D_801153F4 = 1;
+            switch (Gp_GetCapEventKey()) {
+                case 0xB:
+                    Mc_SaveData.at4.loc.area = 9;
+                    Mc_SaveData.at4.loc.warp = 3;
+                    break;
+                case 0xC:
+                    Mc_SaveData.at4.loc.area = 0x1B;
+                    Mc_SaveData.at4.loc.warp = 2;
+                    break;
+                case 0xD:
+                    Mc_SaveData.at4.loc.area = 0x2A;
+                    Mc_SaveData.at4.loc.warp = 3;
+                    break;
+                default:
+                    Gp_MsgPlayerWeapon(1);
+                    D_801153F4 = 0;
+                    taskKill(task);
+                    break;
+            }
+            goto next;
+        case 3:
+            if (SndVoice_HasActiveId(task->spawnArg1) != 0) {
+                break;
+            }
+        next:
+            task->state++;
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            msg.field_3 = 1;
+            msg.field_5 = 0;
+            msg.msgId   = Mc_SaveData.at4.loc.area;
+            msg.field_2 = Mc_SaveData.at4.loc.warp;
+            msg2        = msg;
+            func_80179A04((GpSaveLoc*)&msg, (GpSaveLoc*)&msg2);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.warp = msg2.field_2;
+            Mc_SaveData.at4.loc.room = msg2.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(task);
+            break;
+    }
+}
 
 s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
