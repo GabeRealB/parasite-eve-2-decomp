@@ -1685,15 +1685,6 @@ id = 361
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_driveway/dryfield_night_driveway", rodata = "0x4", text = "0x48" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_3", rodata = "0x24", text = "0x100C" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_4", text = "0x6AC" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_5", text = "0x6B8" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_6", text = "0x6C8" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_7", text = "0x6D4" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_2", text = "0x724" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_8", text = "0x7BC" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_9", text = "0x7CC" },
-  { unit = "dryfield_night_driveway/dryfield_night_driveway_10", text = "0x824" },
   { kind = "data", at = "0x10B8" },
 ]
 
