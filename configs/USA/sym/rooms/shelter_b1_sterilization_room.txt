@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b1_sterilization_room.
+D_shelter_b1_sterilization_room_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
