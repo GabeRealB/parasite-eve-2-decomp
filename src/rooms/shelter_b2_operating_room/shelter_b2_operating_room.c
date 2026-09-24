@@ -32,5 +32,3 @@ s32 func_shelter_b2_operating_room_8017DD0C(void)
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_operating_room/shelter_b2_operating_room", jtbl_shelter_b2_operating_room_8017D5FC);
