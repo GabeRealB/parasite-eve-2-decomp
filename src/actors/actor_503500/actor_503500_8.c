@@ -7,8 +7,6 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "actors/actor_503500.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_801366fc.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/sound.h"

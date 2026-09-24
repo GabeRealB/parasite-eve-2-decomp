@@ -887,7 +887,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. Unlike the tasks covered by
-/// `Actor503500ObjWork` this one exits through `ActorsShared801327b4`, which
+/// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
 /// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
 /// `func_actor_503500_80146508` republishes the two matrices onto
 /// `TmdObject::lightMtx` / `field_20`, the light/colour pair
@@ -1028,6 +1028,8 @@ STATIC_ASSERT_SIZEOF(Actor503500VecSet, 0x10);
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
+void func_actor_503500_801324C4(Task* task);
+void func_actor_503500_801464E8(Task* arg0);
 void func_actor_503500_80146508(Task* arg0);
 void func_actor_503500_8013F8AC(Actor503500* arg0);
 void func_actor_503500_801440F0(Actor503500* arg0);

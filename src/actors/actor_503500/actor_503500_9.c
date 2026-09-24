@@ -7,8 +7,6 @@
 #include "gameplay/D4.h"
 #include "main/session.h"
 #include "actors/actor_503500.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_801366fc.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/sound.h"
@@ -941,6 +939,6 @@ void func_actor_503500_8014642C(Actor503500* arg0)
     TOUCH_REG(enemy);
 
     arg0->field_24     = D_actor_503500_80176530;
-    arg0->exitCallback = ActorsShared801327b4;
+    arg0->exitCallback = func_actor_503500_801464E8;
     arg0->state++;
 }
