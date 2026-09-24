@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/dryfield_parking_lot.h"
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
 /// The address sits past the end of this package, so the linker resolves it
@@ -26,7 +26,7 @@ extern GpAreaApplyRec D_8018155C[];
 /// 3 once it is set.
 ///
 /// Messages 0x11 and 0x12 are the events: each builds the request the gate at
-/// `RoomsShared8017d638` takes, message 0x11 for nibble 0x40 and message 0x12
+/// `func_dryfield_parking_lot_8017D5E8` takes, message 0x11 for nibble 0x40 and message 0x12
 /// for nibble 0x35 with collected bit 0x110. When the gate reports the event
 /// fired, 0x11 applies the area records above and sets nibbles 0x46 / 0x97
 /// while 0x12 sets the collected bit. Anything else is not consumed.
@@ -65,11 +65,11 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         req.field_C = Gp_PackStageSndId(0x520F0007);
         req.flagId  = 0x40;
         req.itemId  = 0x12;
-        ret         = RoomsShared8017d638(&req, out);
+        ret         = func_dryfield_parking_lot_8017D5E8(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (RoomsShared8017d638Flag != 0) {
+        if (D_dryfield_parking_lot_8017FB58 != 0) {
             Gp_ApplyAreaRecs(D_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
@@ -81,8 +81,8 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         req.field_C = Gp_PackStageSndId(0x520F0007);
         req.flagId  = 0x35;
         req.itemId  = 0x10;
-        ret         = RoomsShared8017d638(&req, out);
-        if (RoomsShared8017d638Flag != 0) {
+        ret         = func_dryfield_parking_lot_8017D5E8(&req, out);
+        if (D_dryfield_parking_lot_8017FB58 != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {
@@ -91,4 +91,4 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
     return ret;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_parking_lot/dryfield_parking_lot", D_dryfield_parking_lot_8017D5DC);

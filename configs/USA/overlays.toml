@@ -1135,12 +1135,12 @@ id = 319
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_parking_lot/dryfield_parking_lot", rodata = "0x1C", text = "0x2FC" },
-  { lib = true, unit = "rooms_shared_8017d638", rodata = "0x4", text = "0x28" },
-  { lib = true, unit = "rooms_shared_8017dab4", text = "0x4E0" },
+  { unit = "dryfield_parking_lot/dryfield_parking_lot_5", rodata = "0x4", text = "0x28" },
+  { unit = "dryfield_parking_lot/dryfield_parking_lot_6", text = "0x4E0" },
   { unit = "dryfield_parking_lot/dryfield_parking_lot_2", text = "0x530" },
-  { lib = true, unit = "rooms_shared_8017db84", text = "0x548" },
+  { unit = "dryfield_parking_lot/dryfield_parking_lot_7", text = "0x548" },
   { unit = "dryfield_parking_lot/dryfield_parking_lot_3", text = "0x58C" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x594" },
+  { unit = "dryfield_parking_lot/dryfield_parking_lot_8", text = "0x594" },
   { unit = "dryfield_parking_lot/dryfield_parking_lot_4", text = "0x5EC" },
   { kind = "data", at = "0x638" },
 ]
