@@ -140094,3 +140094,35 @@ equivalence again.
 Inputs: `base_7.i` `e44ad76ab7968cfb55649883e6dabbb3d3a6f103989904ff4be48c07d696f9d9`
 (match), label probe `base_5.i`
 `cae185cdd1f37583be625a47f8fbdd591600e07abbe643f8c808796aa8d23e39` (99.64%).
+
+### Buy `do{}while(0)` ref weight on a *use* in a later block, not on the join that sets the pseudo (func_shelter_r48_8017D660, 2026-09-24)
+
+A spilled `wave` needed 11 loop-weighted refs to rank between two other
+allocnos in `global.c`. Wrapping the join assignment `wave = wave1; wave1 =
+wave + 1;` in latches gave the right allocation but serialised the join block
+in sched2: `sched.c` (`sched_analyze_insn`, "LOOP_BEG/END note in the middle of
+a basic block") attaches the notes to the next insn and makes it a full
+barrier, so the `start` reload stayed after the `wave` spill store (target has
+`lw start; sw wave`). Duplicating the assignment into both `if` arms does not
+help either: cross-jumping is jump2 (`toplev.c`, after sched2), so the arms are
+still separate blocks when sched2 runs.
+
+Fix: keep the join assignment plain and put the latches around a *use* of
+`wave` in a later block, whose notes sit behind that block's own compare:
+
+```c
+if (start != 1) {
+    dist = y - start;
+    if (dist < fadeLen) {
+        do { do { do { do {          /* each level: +1 weight on this use */
+            wave1  = wave >> ((fadeLen - dist) >> 1);
+            wave1 += 1;
+        } while (0); } while (0); } while (0); } while (0);
+    }
+}
+```
+
+Putting the same latch on a use inside an inner loop (`i`-loop) changed loop.c's
+invariant hoisting there, so pick a use outside nested loops. To size the ref
+count, compute `floor_log2(n) * n / live_length` for the neighbours from the
+`.lreg` "Register N used X times across Y insns" lines.
