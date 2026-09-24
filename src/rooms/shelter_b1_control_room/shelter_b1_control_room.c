@@ -3,6 +3,9 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017D600);
 
@@ -13,7 +16,23 @@ s32 func_shelter_b1_control_room_8017ECCC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017ECD4);
+s32 func_shelter_b1_control_room_8017ECD4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId != 0x13) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0xAD) != 0) {
+        return 1;
+    }
+    if (in->field_5 != 0) {
+        return 0;
+    }
+    Gp_SetNibbleIf(in->field_6, 2);
+    Gp_RunCapCmd1(1);
+    return 0;
+}
 
 s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
