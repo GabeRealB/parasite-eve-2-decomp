@@ -6,8 +6,11 @@
 #include <psyq/inline_c.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
@@ -19,7 +22,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "rooms/acropolis_west_elevator_hall.h"
 #include "rooms/room_common.h"
 
 /// GTE commands spelled as raw words: the `inline_c.h` macros of these names
@@ -119,9 +121,143 @@ typedef struct {
     s32     bottom;
 } _MirrorExtentScratch;
 
+/// Scratch state of an elevator-car task, stored at `Task::work`.
+/// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
+/// `memCalloc(4, 0)`, so the size below is the allocation and not a guess.
+typedef struct {
+    /* 0x0 */ s32 field_0;
+} AwehElevatorState;
+
+extern s32 D_80070F70;
+extern s8  D_8007272D;
+extern s32 Gp_LcgState;
+
 /// The save's location key, read as one word to test its view and area
 /// together.
 extern s32 D_8007216C;
+
+extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
+extern s32        D_acropolis_west_elevator_hall_80184620;
+extern s32        D_acropolis_west_elevator_hall_80184890;
+extern s32        D_acropolis_west_elevator_hall_801849C8;
+extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
+extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
+
+/// Index of the mirror model's coordinate part each held-object reflection is
+/// parented to, by the reflection's `spawnArg1`.
+extern u8 D_acropolis_west_elevator_hall_801802A4[];
+
+/// The mirror's task table: entry 0 runs the mirror itself, entry 1 a
+/// held-object reflection.
+extern TaskDesc D_acropolis_west_elevator_hall_801802A8[];
+
+/// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
+/// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
+/// `...80184E04` the blended result that `...80185004` uploads to VRAM.
+extern u16      D_acropolis_west_elevator_hall_80184A04[];
+extern u16      D_acropolis_west_elevator_hall_80184C04[];
+extern u16      D_acropolis_west_elevator_hall_80184E04[];
+extern GpImgRec D_acropolis_west_elevator_hall_80185004[];
+
+/// The hall's two elevator-car tasks, spawned by the room task.
+extern Task* D_acropolis_west_elevator_hall_80186AE4[];
+
+void func_acropolis_west_elevator_hall_8017D7B0(Task* task);
+void func_acropolis_west_elevator_hall_8017F354(Task* task);
+void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
+void func_acropolis_west_elevator_hall_8017F64C(Task* task);
+void func_acropolis_west_elevator_hall_8017F6F0(Task* task);
+
+/// Scale applied to held-object reflections in slots 2 and up: it mirrors
+/// them across X.
+const VECTOR D_acropolis_west_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+
+/// State handlers of the room task: set-up, the cutscene hand-off and
+/// `taskKill`.
+const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4 = {
+    { func_acropolis_west_elevator_hall_8017F568, func_acropolis_west_elevator_hall_8017F354, taskKill },
+};
+
+/// State handlers of an elevator-car task: set-up, travel and `taskKill`.
+const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0 = {
+    { func_acropolis_west_elevator_hall_8017F64C, func_acropolis_west_elevator_hall_8017F6F0, taskKill },
+};
+
+/// Position of the first effect `func_acropolis_west_elevator_hall_8017F7D4`
+/// spawns in view 2.
+const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720, 0xAC, 0 };
+
+/// Position of the effect `func_acropolis_west_elevator_hall_8017F7D4` spawns
+/// in view 5.
+const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
+
+/// First state of the hall's mirror task: re-attaches the player's own TMD
+/// source to this task so the reflection draws the player's model, allocates
+/// the `RoomMirrorWork` block the reflection's coordinate frame and matrices
+/// live in, and reparents the task under the player task. `spawnArg1` must be 0
+/// or 1, and 0 also raises `GameSession::field_4E`. For each held-object task
+/// the player has (`GameActor::field_920` / `field_924`) it spawns a reflection
+/// from entry 1 of the mirror's task table and reparents it under that task,
+/// then runs the mirror's per-frame update once.
+void func_acropolis_west_elevator_hall_8017D5FC(Task* task)
+{
+    Task*           owner;
+    GameActor*      actor;
+    TmdObject*      extra;
+    GsCOORDINATE2*  parts;
+    RoomMirrorWork* work;
+    Task*           child;
+    Task*           spawned;
+    s32             i;
+
+    owner = gameGetPtrSlot(3);
+    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
+        taskKill(task);
+        return;
+    }
+    extra = task->extra;
+    parts = extra->coords;
+    if ((u32)task->spawnArg1 >= 2U) {
+        taskKill(task);
+        return;
+    }
+    work = memCalloc(sizeof(RoomMirrorWork), 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work   = (TaskIdMap*)work;
+    extra->tpage = 6;
+    tmdProcessStream(extra);
+    tmdProcessStream(extra);
+    extra->flags    = 0x10;
+    extra->otOffset = 0x1F;
+    if (task->spawnArg1 == 0) {
+        gGameSession->field_4E = 1;
+    }
+    parts->sub      = &work->coord;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
+    Task_Reparent(owner, task);
+    task->state++;
+    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
+    work->field_4   = 1;
+    work->configRev = -1;
+    extra->flags   |= 0x80;
+    work->field_4   = 0;
+    work->viewFlg   = -1;
+    actor           = (GameActor*)owner->work;
+    for (i = 0; i < 2; i++) {
+        child = (&actor->field_920)[i];
+        if (child != NULL) {
+            spawned = Task_SpawnFromTable(D_acropolis_west_elevator_hall_801802A8, 1, i, (s32)task);
+            if (spawned != NULL) {
+                Task_Reparent(child, spawned);
+            }
+        }
+    }
+    func_acropolis_west_elevator_hall_8017D7B0(task);
+}
 
 /// Rotates `out` in place by `m` through the GTE.
 static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
@@ -675,12 +811,533 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
         gte_MulMatrix0_real(&work->light, &mtx, &work->light);
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5C4);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5D4);
+/// Per-frame callback of a held-object reflection. `spawnArg2` is the mirror
+/// task that spawned it and the parent is the held-object task it reflects;
+/// with no parent it exits. On the first frame it clones the parent's TMD
+/// source, hangs the clone's root coordinate off the mirror model's part that
+/// `D_acropolis_west_elevator_hall_801802A4` names for its slot, points the
+/// clone at the mirror's light and color matrices and negates the X
+/// translation, scaling slots 2 and up by the rodata vector; every frame it
+/// copies the mirror model's draw flags onto the clone.
+void func_acropolis_west_elevator_hall_8017F134(Task* task)
+{
+    Task*           mirror;
+    TmdObject*      mirrorExtra;
+    RoomMirrorWork* work;
+    GsCOORDINATE2*  mirrorPart;
+    TmdObject*      src;
+    GsCOORDINATE2*  srcParts;
+    TmdObject*      extra;
+    GsCOORDINATE2*  parts;
+    VECTOR          scale;
+    u16             flags;
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5E0);
+    if (task->parent == NULL) {
+        Task_CallExit(task);
+    }
+    mirror      = (Task*)task->spawnArg2;
+    mirrorPart  = &((TmdObject*)mirror->extra)->coords[D_acropolis_west_elevator_hall_801802A4[task->spawnArg1]];
+    work        = (RoomMirrorWork*)mirror->work;
+    mirrorExtra = mirror->extra;
+    if (task->state == 0) {
+        src      = task->parent->extra;
+        srcParts = src->coords;
+        if (Gp_AttachTmd(task, src->source) == NULL) {
+            Task_CallExit(task);
+            return;
+        }
+        extra        = task->extra;
+        parts        = extra->coords;
+        extra->tpage = src->tpage;
+        tmdProcessStream(extra);
+        tmdProcessStream(extra);
+        extra->flags    = 0x10;
+        extra->otOffset = 0x1F;
+        parts->sub      = mirrorPart;
+        extra->lightMtx = &work->light;
+        extra->colorMtx = &work->color;
+        if (task->spawnArg1 >= 2) {
+            scale = D_acropolis_west_elevator_hall_8017D5C4;
+            ScaleMatrix(&parts->coord, &scale);
+        }
+        parts->coord.t[0] = -srcParts->coord.t[0];
+        parts->coord.t[1] = srcParts->coord.t[1];
+        parts->coord.t[2] = srcParts->coord.t[2];
+        parts->flg        = 0;
+        task->state++;
+    }
+    extra        = task->extra;
+    flags        = mirrorExtra->flags;
+    extra->flags = flags;
+    if (task->spawnArg1 >= 2) {
+        extra->flags = flags & 0xFFEF;
+    }
+}
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5EC);
+/// The mirror task's per-frame entry: state 0 sets the mirror up, state 1
+/// runs its update.
+void func_acropolis_west_elevator_hall_8017F304(Task* task)
+{
+    TaskFunc states[2] = {
+        func_acropolis_west_elevator_hall_8017D5FC,
+        func_acropolis_west_elevator_hall_8017D7B0,
+    };
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall", D_acropolis_west_elevator_hall_8017D5F4);
+    states[task->state](task);
+}
+
+/// Runs the one-shot cutscene hand-off for the west elevator hall: once the
+/// session reports state 8 == 1 the room spawns its scripted task pair, opens
+/// the story flags for the elevator and marks the sequence as running; the
+/// second block retires it again when the session goes idle.
+///
+/// `args` and the scratch block above it are dead here - the dispatch that
+/// consumed them is gone - but the compiler still reserves and fills them, so
+/// they have to stay for the frame layout to match.
+void func_acropolis_west_elevator_hall_8017F354(Task* task)
+{
+    s32 args[2] = { 0, 4 };
+    u8  scratch[0x210];
+    u8  sessionState;
+
+    if (D_acropolis_west_elevator_hall_801849C8 == 0) {
+        sessionState = gGameSession->at4.loc.warp;
+        if (sessionState == 1) {
+            D_acropolis_west_elevator_hall_801849C8 = sessionState;
+            func_800E8634((s32)&D_acropolis_west_elevator_hall_80184620, 0, (s32)&D_acropolis_west_elevator_hall_80184890);
+            GameFlag_SetNibble(3, 0);
+            GameFlag_SetNibble(0x155, 1);
+            GameFlag_SetNibble(0x7A, 1);
+            func_800E3FAC(0xA2, 1);
+        }
+    }
+    if (D_acropolis_west_elevator_hall_801849C8 == 1 && gGameSession->eventState == 0) {
+        D_acropolis_west_elevator_hall_801849C8 = 2;
+    }
+}
+
+/// Per-frame entry of an elevator-car task: runs the state its `state` field
+/// selects from `D_acropolis_west_elevator_hall_8017D5E0` (set-up, travel,
+/// then kill).
+void func_acropolis_west_elevator_hall_8017F418(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_west_elevator_hall_8017D5E0;
+    sp.funcs[task->state](task);
+}
+
+/// Sets both of the hall's elevator-car tasks moving forwards, by storing 1 in
+/// each task's `spawnArg1` (the per-frame step direction the car task reads).
+s32 func_acropolis_west_elevator_hall_8017F470(void)
+{
+    D_acropolis_west_elevator_hall_80186AE4[0]->spawnArg1 = 1;
+    D_acropolis_west_elevator_hall_80186AE4[1]->spawnArg1 = 1;
+    return 0;
+}
+
+/// Sets both elevator-car tasks moving backwards, by storing -1 in each task's
+/// `spawnArg1`.
+s32 func_acropolis_west_elevator_hall_8017F498(void)
+{
+    D_acropolis_west_elevator_hall_80186AE4[0]->spawnArg1 = -1;
+    D_acropolis_west_elevator_hall_80186AE4[1]->spawnArg1 = -1;
+    return 0;
+}
+
+s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    if (*(u16*)src == 1 && GameFlag_GetNibble(0x21) == 0 && src->field_5 == 0) {
+        GameFlag_SetNibble(0x21, 1);
+        D_8007272D   = 1;
+        dst->field_2 = 7;
+    }
+    return 1;
+}
+
+s32 func_acropolis_west_elevator_hall_8017F560(void)
+{
+    return 0;
+}
+
+void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
+{
+    arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
+    Game_SetPtrSlot(arg0, 7);
+    D_acropolis_west_elevator_hall_80186AE4[0] =
+        Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
+    D_acropolis_west_elevator_hall_80186AE4[1] =
+        Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 1, 0, 1);
+    arg0->state = (s32)(arg0->state + 1);
+}
+
+/// Per-frame entry of the room task: runs the state its `state` field selects
+/// from `D_acropolis_west_elevator_hall_8017D5D4` (set-up, the cutscene
+/// hand-off, then kill).
+void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_west_elevator_hall_8017D5D4;
+    sp.funcs[task->state](task);
+}
+
+/// Second state of the elevator task: allocates its scratch block, parks the
+/// car model at its starting position and parents it to the room's view
+/// coordinate system.
+void func_acropolis_west_elevator_hall_8017F64C(Task* task)
+{
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    AwehElevatorState* work;
+
+    extra = (TmdObject*)task->extra;
+    coord = extra->coords;
+    work  = (AwehElevatorState*)memCalloc(sizeof(AwehElevatorState), 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work        = (TaskIdMap*)work;
+    work->field_0     = 0;
+    extra->flags      = 0;
+    coord->sub        = &gGfxViewCoord;
+    coord->coord.t[0] = -1000;
+    coord->coord.t[1] = -20;
+    coord->coord.t[2] = 0x974;
+    coord->flg        = 0;
+    task->state++;
+}
+
+/// Fourth state of the elevator task: drives the car along its shaft from the
+/// task's per-frame step, clamps the travel to [0, 0x2D0], and refreshes the
+/// model's world matrix and lighting from the resulting position.
+void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
+{
+    VECTOR             pos;
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    AwehElevatorState* work;
+
+    work  = (AwehElevatorState*)task->work;
+    extra = (TmdObject*)task->extra;
+    coord = extra->coords;
+
+    work->field_0 += task->spawnArg1 * 0x14;
+    if (work->field_0 < 0) {
+        work->field_0 = 0;
+    }
+    if (work->field_0 >= 0x2D1) {
+        work->field_0 = 0x2D0;
+    }
+    coord->coord.t[0] = (work->field_0 * (s32)task->spawnArg2) - 1000;
+    if ((u8)gGameSession->at4.loc.view == 5) {
+        extra->flags = 0;
+    } else {
+        extra->flags = 0x80;
+    }
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    func_800D7A9C(extra, &pos, 0, 3);
+}
+
+/// Third state of the elevator task: on the two session phases that use it,
+/// spawns the lift's ambient effects around the room's coordinate system.
+void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
+{
+    SVECTOR        pos;
+    SVECTOR        altPos;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    switch (task->state) {
+        case 0:
+            task->msgTable = D_acropolis_west_elevator_hall_801849F4;
+            Game_SetPtrSlot(task, 5);
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state = task->state + 1;
+            return;
+        case 1:
+            if ((u8)gGameSession->at4.loc.view == 2) {
+                pos = D_acropolis_west_elevator_hall_8017D5EC;
+                Gp_SpawnEff(0x6001F, coord, 0x1804, &pos);
+                pos.vx = -0x1800;
+                pos.vy = -0x4F0;
+                pos.vz = -0x600;
+                Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
+                pos.vx = -0x1800;
+                pos.vy = -0x4F0;
+                pos.vz = -0x2C0;
+                Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
+            }
+            if ((u8)gGameSession->at4.loc.view == 5) {
+                altPos = D_acropolis_west_elevator_hall_8017D5F4;
+                Gp_SpawnEff(0x60025, coord, 0, &altPos);
+            }
+            return;
+    }
+}
+
+/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::scale`
+/// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
+/// palette on every step it takes, and latching `angle` once the ramp is
+/// full. On every session phase but 5 the CLUT is then blended straight back
+/// to the unlit palette and the effect's work object is released, so only
+/// phase 5 keeps the lit bay on screen.
+void func_acropolis_west_elevator_hall_8017F990(Task* task)
+{
+    GpEffWork* work;
+    s32        i;
+    s32        blend;
+
+    work  = (GpEffWork*)task->spawnArg2;
+    blend = 0;
+    if (work->angle == 0) {
+        work->scale = work->scale + 0x800;
+        if (work->scale == 0x1000) {
+            work->angle = 1;
+        }
+        blend = 1;
+    }
+
+    if (blend != 0) {
+        for (i = 0; i < 0x100; i += 0x10) {
+            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
+                               &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        }
+        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+    }
+
+    if ((u8)gGameSession->at4.loc.view != 5) {
+        for (i = 0; i < 0x100; i += 0x10) {
+            Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
+                               &D_acropolis_west_elevator_hall_80184A04[i], 0,
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
+        }
+        Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
+        Gp_ReleaseState1CMem(work, task);
+    }
+}
+
+/// Draws one frame of a pair of red-shaded gradient quads and then retires
+/// the task. The task coordinate's origin is projected once through
+/// `GsWSMATRIX` (`RTPS`) into a 0x14-byte `G_SCRATCH_HEAD` block; anything
+/// nearer than `otz` 0x11 is not drawn. The red level pulses with the global
+/// counter `D_80070F70` times `spawnArg1`'s low byte, folded into a 0..0x80
+/// triangle; `spawnArg1`'s second byte sets the quads' extent, divided by
+/// `otz` so they shrink with distance.
+void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
+{
+    u8*               head;
+    u8*               raw;
+    RoomShaftScratch* block;
+    POLY_G4*          prim;
+    GsCOORDINATE2*    coord;
+    void*             mem;
+    u16               vz;
+    s32               i;
+    s32               red;
+    s32               pulse;
+    s32               level;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x14;
+    /* `raw` and `block` have to stay separate registers: the ROM computes the
+       block address into a scratch register and copies it into the callee-saved
+       one the rest of the function uses. */
+    SOFT_TOUCH_REG(raw);
+    block                   = (RoomShaftScratch*)raw;
+    block->vec.vx           = *(u16*)&coord->workm.t[0];
+    block->vec.vy           = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = block;
+    block->vec.vz           = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stszotz(&block->otz);
+    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
+        pulse = D_80070F70 * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
+        if (pulse & 0x80) {
+            level = 0x80 - (pulse & 0x7F);
+        } else {
+            level = pulse & 0x7F;
+        }
+        /* Same split for the ramp: the ROM keeps the triangle result in a
+           scratch register and copies it into the callee-saved `red`. */
+        red              = level;
+        block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1)->height << 9) / block->otz;
+        for (i = 0; i < 2; i++) {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, red, 0, 0);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx - block->halfWidth;
+            prim->x1 = prim->x2 = block->sx;
+            prim->x3            = block->sx + block->halfWidth;
+            prim->y0 = prim->y2 = prim->y3 = block->sy;
+            prim->y1                       = (block->sy - block->halfWidth) + block->halfWidth * (i + i);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+
+/// Copies 82 scanlines through DR_MOVE packets, applying a horizontal cosine
+/// distortion to a 120-pixel-wide strip of the current frame buffer. During
+/// alternate 128-frame intervals, each row uses a random divisor for the
+/// displacement. The packets share OT slot 0x72, then the task retires.
+void func_acropolis_west_elevator_hall_8017FE18(Task* task)
+{
+    RECT         rect;
+    DR_MOVE*     mv;
+    void*        mem;
+    unsigned int tagMask;
+    s32          otOfs;
+    s32          byteOfs;
+    s32          i;
+    s32          base;
+    s32          y;
+    s32          t;
+    s32          v;
+    s32          rng;
+    s32          phase;
+    s32          frame;
+
+    mem  = task->spawnArg2;
+    base = gDisplayState.drawBuffer * 0x110 + 0x50;
+
+    otOfs = 0x72;
+    for (i = 0; i < 0x52; i++) {
+        phase = i * 2;
+        frame = gDisplayState.animFrame;
+        USE_REG2(frame, phase);
+        y = i + base;
+        SOFT_TOUCH_REG(y);
+        t = 0x800 - rcos((frame + phase) * 16);
+        if (gDisplayState.animFrame & 0x80) {
+            rng = Gp_LcgState * 5 + 0x71357911;
+            {
+                s32 quotient = t / (s32)((((u32)rng >> 16) & 0x3F) + 0xC0);
+                SOFT_USE_REG(quotient);
+                v           = quotient;
+                Gp_LcgState = rng;
+            }
+        } else {
+            v = t / 0x100;
+        }
+
+        byteOfs        = otOfs << 2;
+        v             += 0x50;
+        rect.x         = v;
+        rect.y         = y;
+        rect.w         = 0x78;
+        rect.h         = 1;
+        tagMask        = 0xFF000000;
+        mv             = (DR_MOVE*)gGpuPrimCursor;
+        gGpuPrimCursor = mv + 1;
+        SetDrawMove(mv, &rect, 0x50, i + base);
+        {
+            u_long* ot;
+            u_long  mask;
+            u_long  addrMask = 0xFFFFFF;
+            SOFT_USE_REG(addrMask);
+            ot   = (u_long*)(byteOfs + (s32)gGpuCurrentOt);
+            mask = tagMask;
+            SOFT_TOUCH_REG_USE(mask, mv);
+            mv->tag = (mv->tag & mask) | getaddr(ot);
+            *ot     = (*ot & mask) | ((u_long)mv & addrMask);
+        }
+    }
+
+    Gp_ReleaseState1CMem(mem, task);
+}
+
+/// Draws one frame of the hall's soft light billboard and then retires the
+/// task. The effect coordinate is projected through `GsWSMATRIX` with a
+/// single `RTPS`, and the resulting screen point becomes the centre of
+/// a semi-transparent `POLY_FT4` whose half-extent shrinks with distance
+/// (`0x6700 / otz`). Sprites closer than `otz == 0x11` are skipped entirely,
+/// which is why the primitive is claimed from `gGpuPrimCursor` before the
+/// depth test but only filled in and linked afterwards.
+void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
+{
+    void**            scratch;
+    u8*               head;
+    RoomShaftScratch* block;
+    s32*              otzp;
+    GsCOORDINATE2*    coord;
+    void*             mem;
+    POLY_FT4*         prim;
+    u16               vz;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (RoomShaftScratch*)(head - 0x14);
+    otzp          = &block->otz;
+    block->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_rtps_real();
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setlen(prim, 9);
+    setcode(prim, 0x2C);
+    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stszotz(otzp);
+    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
+        prim->tpage      = 0xAB;
+        prim->clut       = 0x4380;
+        prim->u0         = 0;
+        prim->v0         = 0;
+        prim->u1         = 0x67;
+        prim->v1         = 0;
+        prim->u2         = 0;
+        prim->v2         = 0x67;
+        prim->u3         = 0x67;
+        prim->v3         = 0x67;
+        prim->code      |= 3;
+        block->halfWidth = 0x6700 / ((RoomShaftScratch*)(head - 0x14))->otz;
+        prim->x0 = prim->x2 = block->sx - *(u16*)&block->halfWidth;
+        prim->x1 = prim->x3 = block->sx + *(u16*)&block->halfWidth;
+        prim->y0 = prim->y1 = block->sy - *(u16*)&block->halfWidth;
+        prim->y2 = prim->y3 = block->sy + *(u16*)&block->halfWidth;
+        addPrim((u_long*)(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+
+s32 func_acropolis_west_elevator_hall_80180274(void)
+{
+    Gp_SpawnEff(0x60033, NULL, 0, NULL);
+    return 0;
+}
