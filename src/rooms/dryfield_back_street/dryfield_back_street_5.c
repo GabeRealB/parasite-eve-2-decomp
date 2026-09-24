@@ -1,26 +1,23 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "rooms/dryfield_back_street.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
+/// The `inline_c.h` GTE command lacks the two leading nops this code has.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a ring. `arg1` is the inner half-extent and `arg2` the extra outer
-/// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
-/// so each wedge fades to a black outer rim. Same body as `Room_Draw09` with
-/// `otz` at 0x0, the two radii at 0x4/0x8, `flag` at 0xC and `vec` at 0x10.
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw02(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws a ring of sixteen gouraud quads around the coordinate's projected
+/// position, when it projects. The ring runs from radius
+/// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
+/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
+void func_dryfield_back_street_8017DC74(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;

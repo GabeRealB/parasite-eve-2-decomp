@@ -1,24 +1,22 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "rooms/dryfield_back_street.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
+/// The `inline_c.h` GTE command lacks the two leading nops this code has.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges around
-/// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
-/// inner vertex so each wedge fades to black. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw04(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+/// Draws a glow of eight gouraud wedges around the coordinate's projected
+/// position, when it projects. The radius is `(s16)arg1 * 64 / (otz + 1)`;
+/// only the centre vertex takes the colour `rgb`, so each wedge fades to black.
+void func_dryfield_back_street_8017E0A0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
     RoomDraw04Scratch* block;
     POLY_G4*           prim;

@@ -1,28 +1,41 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "main/gfx.h"
+#include "rooms/dryfield_back_street.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017f9e4.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-#include "main/display.h"
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-#include "rooms/rooms_shared_801802cc.h"
 
+/// The `inline_c.h` GTE commands lack the two leading nops this code has.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 extern s32 Gp_LcgState;
 
-void Room_Draw02(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+/// The beam's two anchors, offsets on the effect's parent frame. The code
+/// reaches the second both as element 1 and under its own label.
+extern SVECTOR D_dryfield_back_street_8017F9A4[];
+extern SVECTOR D_dryfield_back_street_8017F9AC;
 
-void RoomsShared8017f9e4(Task* task)
+void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
+
+/// A beam between two anchors, the two entries of
+/// `D_dryfield_back_street_8017F9A4` on the effect's parent frame (the second
+/// also reached under its own name). State 0 allocates two eight-slot
+/// coordinate trails and fills both with the anchors' frames; each later frame
+/// records the anchors into the next slot and draws the trails with
+/// `func_dryfield_back_street_8017E924`. The work block is released after
+/// `spawnArg1` frames. Nothing runs once the room's event state reaches 2.
+void func_dryfield_back_street_8017E434(Task* task)
 {
     GsCOORDINATE2  coord;
     GsCOORDINATE2* coords;
@@ -47,14 +60,14 @@ void RoomsShared8017f9e4(Task* task)
                 }
                 task->work           = (TaskIdMap*)coords;
                 objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = RoomsShared8017f9e4Pos[0].vx;
-                objCoord->coord.t[1] = RoomsShared8017f9e4Pos[0].vy;
-                objCoord->coord.t[2] = RoomsShared8017f9e4Pos[0].vz;
+                objCoord->coord.t[0] = D_dryfield_back_street_8017F9A4[0].vx;
+                objCoord->coord.t[1] = D_dryfield_back_street_8017F9A4[0].vy;
+                objCoord->coord.t[2] = D_dryfield_back_street_8017F9A4[0].vz;
                 objCoord->flg        = 0;
                 Gp_UpdateCoord(objCoord);
                 task->state      = 1;
                 coord.sub        = work->parent;
-                vec              = &RoomsShared8017f9e4Pos[1];
+                vec              = &D_dryfield_back_street_8017F9A4[1];
                 coord.coord.t[0] = vec->vx;
                 coord.coord.t[1] = vec->vy;
                 coord.coord.t[2] = vec->vz;
@@ -80,9 +93,9 @@ void RoomsShared8017f9e4(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = RoomsShared8017f9e4Pos2.vx;
-                coord.coord.t[1] = RoomsShared8017f9e4Pos2.vy;
-                coord.coord.t[2] = RoomsShared8017f9e4Pos2.vz;
+                coord.coord.t[0] = D_dryfield_back_street_8017F9AC.vx;
+                coord.coord.t[1] = D_dryfield_back_street_8017F9AC.vy;
+                coord.coord.t[2] = D_dryfield_back_street_8017F9AC.vz;
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -105,7 +118,7 @@ void RoomsShared8017f9e4(Task* task)
                     dst->flg = 0;
                     Gp_UpdateCoord(dst);
                 }
-                Room_Draw03(coords, &coords[8], work->age & 7, 0x123);
+                func_dryfield_back_street_8017E924(coords, &coords[8], work->age & 7, 0x123);
                 if (work->age == task->spawnArg1 && work->age != 0) {
                     Gp_ReleaseState1CMem(work, task);
                 }
@@ -119,9 +132,8 @@ void RoomsShared8017f9e4(Task* task)
 /// adjacent slots on `arg0` and `arg1`. The leading edge is scaled by
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
-/// fade. Dropped when `gte_stflg` is negative. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw03(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
+/// fade. Dropped when `gte_stflg` is negative.
+void func_dryfield_back_street_8017E924(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
     GsCOORDINATE2*     a;
@@ -225,7 +237,12 @@ void Room_Draw03(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
 }
 
-void RoomsShared801802cc(Task* task)
+/// A burst on an effect's anchor. It spawns effect 0x60076 and then either,
+/// with a non-zero `spawnArg1`, a spray of randomly moving 0x60070 sparks for
+/// seven frames, or two 0x6007C effects and a widening, fading double ring for
+/// seven frames; then the work block is released. The task also ends when the
+/// room's event state reaches 4, and does nothing while it is between 1 and 3.
+void func_dryfield_back_street_8017ED1C(Task* task)
 {
     GsCOORDINATE2* objCoord;
     GpEffWork*     work;
@@ -280,8 +297,8 @@ void RoomsShared801802cc(Task* task)
             rgb[0]       = work->angle;
             rgb[1]       = (u16)work->angle >> 1;
             rgb[2]       = (u16)work->angle >> 2;
-            Room_Draw02(objCoord, 0x100, 0x100, rgb);
-            Room_Draw02(objCoord, work->scale, work->scale, rgb);
+            func_dryfield_back_street_8017DC74(objCoord, 0x100, 0x100, rgb);
+            func_dryfield_back_street_8017DC74(objCoord, work->scale, work->scale, rgb);
             if (work->age >= 7) {
                 task->state = 3;
             }

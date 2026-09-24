@@ -1,25 +1,25 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "rooms/dryfield_back_street.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
+/// The `inline_c.h` GTE command lacks the two leading nops this code has.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a two-ring billboard. `arg1` is a signed half-extent; on-screen radii
-/// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
-/// (inner). The RGB triple tints the inner vertex of the inner ring at full
-/// brightness and the outer ring at half, so each wedge fades to a black rim.
-/// Shared body, linked into every room overlay that uses it.
-void Room_DrawBillboard(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
+/// Draws a flare around the coordinate's projected position, when it
+/// projects: sixteen gouraud wedges lit only at the centre, eight at the
+/// radius `(s16)arg1 * 64 / (otz + 1)` in half the colour `arg2` and eight at
+/// half that radius in the full colour, then four rays at quarter turns that
+/// alternate between the radius and twice it, their bases on the inner
+/// radius `(s16)arg1 * 8 / (otz + 1)`.
+void func_dryfield_back_street_8017EFA4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
 {
     register RoomBillboardScratch* block asm("s3");
     register POLY_G4*              prim asm("s2");
