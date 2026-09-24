@@ -3,13 +3,18 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/session.h"
+#include "main/task.h"
 #include "rooms/room_common.h"
 
 extern s16 D_800691CA;
 
 extern s32 D_shelter_b6_corridor_8017F354;
 extern s32 D_shelter_b6_corridor_8017F684;
+extern s32 D_shelter_b6_corridor_8017EF24[];
+extern s16 D_shelter_b6_corridor_801851B0;
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -86,7 +91,28 @@ s32 func_shelter_b6_corridor_8017E028(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017E064);
+void func_shelter_b6_corridor_8017E064(Task* arg0)
+{
+    u16* ptr;
+    s32  i;
+
+    arg0->msgTable = D_shelter_b6_corridor_8017EF24;
+    Game_SetPtrSlot(arg0, 7);
+    ptr = (u16*)Fs_ImgBuffers;
+    i   = 0;
+    do {
+        *ptr = (u16)(*ptr | 0x8000);
+        i   += 1;
+        ptr += 1;
+    } while (i <= 0x12BFF);
+    D_shelter_b6_corridor_801851B0 = 2;
+    if (gGameSession->at4.loc.place == 1) {
+        D_80062735               = 2;
+        gGameSession->flowFlags |= 1;
+        gGameSession->flowFlags |= 2;
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
 
 void func_shelter_b6_corridor_8017E12C(void)
 {
