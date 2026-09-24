@@ -3,8 +3,10 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -14,6 +16,10 @@ extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CAC;
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CE8;
 extern GpSaveLoc  D_shelter_b1_elevator_hall_801849F8;
+extern GpStateBD8 D_shelter_b1_elevator_hall_801849F0;
+
+extern s16 D_80071076;
+extern s8  D_801153F4;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 
@@ -59,7 +65,64 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D99C);
+void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
+{
+    s16 temp_v0;
+
+    switch (arg0->state) {
+        case 0:
+            Gp_RunCapCmd(5, 0);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            D_801153F4 = 0;
+            goto advance;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xA) {
+                taskKill(arg0);
+                Gp_MsgPlayerWeapon(1);
+                D_801153F4 = 0;
+                break;
+            }
+            D_801153F4          = 1;
+            arg0->killCountdown = 3;
+            arg0->state++;
+            break;
+        case 3:
+            temp_v0             = (u16)arg0->killCountdown - 1;
+            arg0->killCountdown = temp_v0;
+            if ((temp_v0 << 0x10) != 0) {
+                break;
+            }
+            Gp_TriggerPeIfArmed();
+            goto advance;
+        case 4:
+            D_shelter_b1_elevator_hall_801849F0.field_0 = 0;
+            D_shelter_b1_elevator_hall_801849F0.field_1 = 0;
+            D_shelter_b1_elevator_hall_801849F0.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b1_elevator_hall_801849F0);
+            SndEvt_EnqueueType6(0x54090007, 0, 0);
+            goto advance;
+        case 5:
+            if (SndVoice_HasActiveId(0x54090007) != 0) {
+                break;
+            }
+        advance:
+            arg0->state++;
+            break;
+        case 6:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = (u8)D_shelter_b1_elevator_hall_801849F8.field_2;
+            Mc_SaveData.at4.loc.warp = (u8)D_shelter_b1_elevator_hall_801849F8.field_4;
+            Mc_SaveData.at4.loc.room = (u8)D_shelter_b1_elevator_hall_801849F8.field_1;
+            Task_Spawn(0, 0x11, 0x10, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_shelter_b1_elevator_hall_8017DB54(void)
 {
