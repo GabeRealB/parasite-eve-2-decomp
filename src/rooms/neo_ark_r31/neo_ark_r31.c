@@ -1,10 +1,24 @@
 #include "common.h"
+
+#include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
+#include "main/fs.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern s32 D_neo_ark_r31_8017DC54;
 extern u8  D_80071071[];
 extern s32 D_8007107C;
+extern s16 D_800691CA;
+
+/// Room message handler table installed into `Task::msgTable`.
+extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
+extern s32        D_80133F90;
+extern s32        D_80134470;
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 void func_neo_ark_r31_8017D5D0(Task* task)
 {
@@ -75,4 +89,63 @@ s32 func_neo_ark_r31_8017D8B0(void)
 {
     return 0;
 }
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_r31/neo_ark_r31", D_neo_ark_r31_8017D5C4);
+
+/// Message handler for the save location: copies the incoming `GpSaveLoc`
+/// onto the outgoing one and passes both to `func_80179B14`. Returns 1.
+s32 func_neo_ark_r31_8017D8B8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    return 1;
+}
+
+s32 func_neo_ark_r31_8017D8FC(void)
+{
+    return 0;
+}
+
+s32 func_neo_ark_r31_8017D904(void)
+{
+    return 0;
+}
+
+/// Room task state 0: installs the message table, claims pointer slot 7,
+/// sets `CdCmd_Queue.field_22A` to 2 and starts the room script with
+/// `func_800E8634`. Advances to state 1.
+void func_neo_ark_r31_8017D90C(Task* arg0)
+{
+    CdCmdQueue* queue;
+
+    queue          = &CdCmd_Queue;
+    arg0->msgTable = D_neo_ark_r31_8017D9F4;
+    Game_SetPtrSlot(arg0, 7);
+    queue->field_22A = 2;
+    func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);
+    arg0->state = (s32)(arg0->state + 1);
+}
+
+/// Room task state 1: stores 2 into `D_800691CA` every tick.
+void func_neo_ark_r31_8017D980(Task* task)
+{
+    D_800691CA = 2;
+}
+
+/// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by
+/// `Task::state`: the set-up tick, the tick that stores 2 into `D_800691CA`,
+/// and `taskKill`.
+const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
+    {
+        func_neo_ark_r31_8017D90C,
+        func_neo_ark_r31_8017D980,
+        taskKill,
+    },
+};
+
+/// Room task: dispatches through a stack copy of its state table.
+void func_neo_ark_r31_8017D990(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_r31_8017D5C4;
+    sp.funcs[task->state](task);
+}
