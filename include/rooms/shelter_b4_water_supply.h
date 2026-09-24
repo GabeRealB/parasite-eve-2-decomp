@@ -33,4 +33,37 @@ extern ShelterB4WaterSupplyEventDesc D_shelter_b4_water_supply_80184E44;
 
 s32 func_shelter_b4_water_supply_8017DDFC(RoomEventMsg* in, RoomEventMsg* out);
 
+/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
+/// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
+/// is not otherwise read.
+typedef struct ShelterB4WaterSupplySurface {
+    s16 x;
+    s16 z;
+    s16 width;
+    u16 depth;
+    s16 end;
+} ShelterB4WaterSupplySurface;
+
+/// Per-surface values the water drawer keeps in a block taken from the
+/// scratchpad stack at `0x1F8003FC` rather than in registers.
+typedef struct ShelterB4WaterSupplyWaterWork {
+    s16 y;
+    s16 step;
+    s16 wave;
+    s16 half;
+    s16 x;
+    s16 z;
+} ShelterB4WaterSupplyWaterWork;
+
+/// The room's water surfaces.
+extern ShelterB4WaterSupplySurface D_shelter_b4_water_supply_8018265C[];
+
+/// Height of the water surfaces.
+extern s16 D_shelter_b4_water_supply_80182638;
+
+/// Cursor into the primitive area the water surface is written to.
+extern u8* D_shelter_b4_water_supply_80184E50;
+
+void func_shelter_b4_water_supply_8017E5D8(s32 arg0);
+
 #endif // ROOMS_SHELTER_B4_WATER_SUPPLY_H
