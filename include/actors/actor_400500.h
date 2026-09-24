@@ -218,8 +218,6 @@ typedef struct Actor400500Work {
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
 extern u8              D_801153F4;
-extern TaskFuncTable4  D_actor_400500_80131E4C;
-extern TaskFuncTable10 D_actor_400500_80131F7C;
 extern u8              D_actor_400500_80153CB0[];
 extern Actor400500Zone D_actor_400500_80153D6C[];
 
@@ -227,9 +225,6 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// Still called by actor_206100, which includes this header; remove once that
 /// entry is demoted.
 void ActorsShared80132c4c(MATRIX* src, MATRIX* dst);
-void func_actor_400500_80134D6C(s32 otz);
-s32  func_actor_400500_8013B920(GsCOORDINATE2* coord, SVECTOR* pos);
-void func_actor_400500_8013DE2C(MATRIX* src, MATRIX* dst);
 void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade);
 void func_actor_400500_80138088(Task* task);
 s32  func_actor_400500_8013B720(GsCOORDINATE2* coord, MATRIX* matrix);
