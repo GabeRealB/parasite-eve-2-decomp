@@ -29,7 +29,7 @@ extern s32            D_dryfield_night_trailer_coach_80189080;
 extern s32            D_dryfield_night_trailer_coach_801892C0;
 extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208;
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_trailer_coach/dryfield_night_trailer_coach_2", D_dryfield_night_trailer_coach_8017D7DC);
 
 void func_dryfield_night_trailer_coach_8018231C(Task* task)
 {

@@ -3,14 +3,13 @@
 #include <psyq/libgte.h>
 
 #include "main/session.h"
+#include "rooms/dryfield_night_trailer_coach.h"
 
 extern SVECTOR D_dryfield_night_trailer_coach_801893F8[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189480[];
 
 void func_dryfield_night_trailer_coach_801838B4(SVECTOR* v, s32 arg1);
-void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
-void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
 
 void func_dryfield_night_trailer_coach_80182924(void)
 {
@@ -47,14 +46,14 @@ void func_dryfield_night_trailer_coach_80182924(void)
         case 5:
         case 7:
             r = D_dryfield_night_trailer_coach_801893F8;
-            Room_Draw18(&r[0], 0x60, 0xA0);
+            func_dryfield_night_trailer_coach_80182AB8(&r[0], 0x60, 0xA0);
             func_dryfield_night_trailer_coach_801838B4(&r[1], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[3], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[5], 0x100);
             func_dryfield_night_trailer_coach_801838B4(&r[7], 0x100);
             break;
         case 8:
-            Room_Draw05(&D_dryfield_night_trailer_coach_801893F8[0], 0x60, 0x30);
+            func_dryfield_night_trailer_coach_80182F2C(&D_dryfield_night_trailer_coach_801893F8[0], 0x60, 0x30);
             break;
     }
 }

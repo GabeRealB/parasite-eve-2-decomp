@@ -8,6 +8,7 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_night_trailer_coach.h"
 #include "rooms/rooms_shared_80181228.h"
 
 /// Cutscene trigger for the trailer coach at night. Where the day version has
@@ -17,7 +18,7 @@
 /// Request 0xE forces area 8 for the scene, fills the room's cutscene record
 /// the same way the motel lobby fills its own -- save view 8, slot 1, and the
 /// cap file picked by `GameFlag_GetNibble(0x7A)` (file 1 below four, file 2 at
-/// four or more) -- then hands it to `RoomsShared80181228Desc`. Request 3
+/// four or more) -- then hands it to `D_dryfield_night_trailer_coach_80184FE4`. Request 3
 /// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
 /// asks the cap system to run command 0x17. Always returns 0.
 extern s8                     D_80072170;
@@ -42,7 +43,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_night_trailer_coach_8018C21C.field_8  = 0x531B0005;
         D_dryfield_night_trailer_coach_8018C21C.field_10 = 0x531B0004;
         D_dryfield_night_trailer_coach_8018C21C.field_C  = 0x531B0006;
-        Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 3, (s32)&D_dryfield_night_trailer_coach_8018C21C);
+        Task_SpawnFromTable(&D_dryfield_night_trailer_coach_80184FE4, 0, 3, (s32)&D_dryfield_night_trailer_coach_8018C21C);
     }
     if (arg2 == 3) {
         Task_SpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
@@ -95,5 +96,3 @@ extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189480[];
 
 void func_dryfield_night_trailer_coach_801838B4(SVECTOR* v, s32 arg1);
-void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
-void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
