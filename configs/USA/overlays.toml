@@ -977,8 +977,8 @@ objects = [
   { kind = "packageId" },
   { unit = "mist_r21/mist_r21", rodata = "0x4", text = "0x5C" },
   { unit = "mist_r21/mist_r21_2", text = "0x1C" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x148" },
-  { lib = true, unit = "room_util05", text = "0x1A0" },
+  { unit = "mist_r21/mist_r21_3", text = "0x148" },
+  { unit = "mist_r21/mist_r21_4", text = "0x1A0" },
   { kind = "data", at = "0x1B0" },
 ]
 

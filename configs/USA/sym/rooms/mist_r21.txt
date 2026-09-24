@@ -1,4 +1,1 @@
 // Overlay-local symbols for mist_r21.
-Room_Util05 = 0x8017D760; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017D708; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
