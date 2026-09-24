@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Item-pickup model task step: hides the mesh with flag 4 once the item's
-/// 2-bit flag reads 2 (already taken), otherwise resets it and allocates
-/// its TMD buffers. The view index is fetched but unused.
-void RoomsShared801822b0(Task* task)
+/// Model task step for a pickup's mesh: when the pickup's 2-bit flag reads 2
+/// it sets mesh flag 4, otherwise it resets the mesh flags and draw offset and
+/// allocates the mesh's TMD buffers. The view index is fetched but unused.
+void func_acropolis_hallway_8017E1C0(Task* task)
 {
     GpItemObj8* obj;
     TmdObject*  tmd;
