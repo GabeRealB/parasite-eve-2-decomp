@@ -1521,12 +1521,14 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_r08]
-label = "cutscene or one-off room; no map names it"
+label = "cutscene or one-off room; no map names it. Code starts at 0x30: the four handlers the room's message table at 0x2F84 names (0x30, 0x38, 0x60, 0x68) are frameless leaves, so the span detector, which keys on a stack prologue, begins at 0x70 and left them as rodata words"
 id = 345
+text = ["0x30", "0x2F84"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_r08/dryfield_night_r08", rodata = "0x4", text = "0x70" },
   { unit = "dryfield_night_r08/dryfield_night_r08_2", rodata = "0x10", text = "0x158" },
+  { unit = "dryfield_night_r08/dryfield_night_r08_3", text = "0x30" },
   { lib = true, unit = "room_util05", text = "0xF0" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x100" },
   { lib = true, unit = "room_draw12", text = "0x58C" },
