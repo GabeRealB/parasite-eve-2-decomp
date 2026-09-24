@@ -304,7 +304,7 @@ void func_actor_342400_801640B0(Task* arg0)
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
             func_actor_342400_801639A8(arg0);
             if (work->field_432 == 1) {
-                func_actor_342400_80169654(arg0, 6, (u16*)&work->field_98);
+                func_actor_342400_80169654(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             update_rotation(arg0);
             func_actor_342400_801653DC(arg0, 0);

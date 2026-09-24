@@ -26,6 +26,30 @@ void func_actor_342400_8016A370(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_30", func_actor_342400_8016A494);
+extern TaskFuncTable4 D_actor_342400_80161F14;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_30", func_actor_342400_8016A4FC);
+/// Runs the sub-state handler for `field_422` from a four-entry table.
+void func_actor_342400_8016A494(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable4   sp;
+
+    work = (Actor342400Work*)arg0->work;
+    sp   = D_actor_342400_80161F14;
+    sp.funcs[(s16)work->field_422](arg0);
+}
+
+/// Sets `field_432`, requests animation 7 and advances the sub-state.
+void func_actor_342400_8016A4FC(Task* arg0)
+{
+    Actor342400Work* work;
+    Actor342400Work* work2;
+
+    work             = (Actor342400Work*)arg0->work;
+    work->field_432  = 1;
+    work2            = (Actor342400Work*)arg0->work;
+    work2->field_41C = 0x10;
+    work2->field_418 = 7;
+    work2->field_414 = 2;
+    work->field_422  = work->field_422 + 1;
+}

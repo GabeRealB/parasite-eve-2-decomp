@@ -13,6 +13,7 @@ void func_actor_342400_8016AC80(Task* arg0);
 void func_actor_342400_8016AD94(Task* arg0);
 
 extern TaskFuncTable10 D_actor_342400_80161E80;
+extern TaskFuncTable6  D_actor_342400_80161E68;
 
 void func_actor_342400_8016978C(Task* arg0)
 {
@@ -22,7 +23,14 @@ void func_actor_342400_8016978C(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_16", func_actor_342400_80169810);
+/// Runs the handler for the task's `Task::state` from the six-entry table.
+void func_actor_342400_80169810(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_actor_342400_80161E68;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_actor_342400_80169880(Task* arg0)
 {

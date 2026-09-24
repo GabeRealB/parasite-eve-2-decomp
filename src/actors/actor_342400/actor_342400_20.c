@@ -1,15 +1,34 @@
 #include "common.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "actors/actor_342400.h"
 
 void func_actor_342400_8016B33C(Task* arg0);
-void func_actor_342400_801694A8(Task* arg0, s32 arg1);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016A950);
+/// After 0x18 frames sets model flag 2, clears the frame counter, sets
+/// `field_451` and advances the state.
+void func_actor_342400_8016A950(Task* arg0)
+{
+    u16              ticks;
+    Actor342400Work* work;
+    TmdObject*       model;
+
+    work            = (Actor342400Work*)arg0->work;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x18) {
+        model->flags    = model->flags | 2;
+        work->field_412 = 0U;
+        work->field_451 = 1;
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 void func_actor_342400_8016A9AC(Task* arg0)
 {
@@ -21,7 +40,19 @@ void func_actor_342400_8016A9AC(Task* arg0)
     work->field_422 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016A9C4);
+/// Advances the state after two frames.
+void func_actor_342400_8016A9C4(Task* arg0)
+{
+    u16              ticks;
+    Actor342400Work* work;
+
+    work            = (Actor342400Work*)arg0->work;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 2) {
+        work->field_420 = work->field_420 + 1;
+    }
+}
 
 void func_actor_342400_8016AA08(Task* arg0)
 {
@@ -56,7 +87,23 @@ void func_actor_342400_8016AA9C(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016AAB8);
+/// After 0x24 frames destroys the enemy, first telling slot-4 task 0 with
+/// message 0x13F4 when in place 1 of stage 4 areas 0x27/0x28.
+void func_actor_342400_8016AAB8(Task* arg0)
+{
+    Actor342400Work* work;
+    u16              ticks;
+
+    work            = (Actor342400Work*)arg0->work;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks >= 0x24) {
+        if ((gGameSession->at4.loc.stage == 4) && ((u32)(gGameSession->at4.loc.area - 0x27) < 2U) && (gGameSession->at4.loc.place == 1)) {
+            Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x13F4, 1, 0);
+        }
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 void func_actor_342400_8016AB6C(Task* arg0)
 {
@@ -198,4 +245,15 @@ void func_actor_342400_8016AFA8(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_20", func_actor_342400_8016B038);
+extern TaskFuncTable4 D_actor_342400_80161FD8;
+
+/// Runs the sub-state handler for `field_422` from a four-entry table.
+void func_actor_342400_8016B038(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable4   sp;
+
+    work = (Actor342400Work*)arg0->work;
+    sp   = D_actor_342400_80161FD8;
+    sp.funcs[(s16)work->field_422](arg0);
+}

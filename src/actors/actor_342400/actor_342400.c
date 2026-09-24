@@ -205,15 +205,56 @@ void func_actor_342400_80162748(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_801627C0);
+void func_actor_342400_80162B60(Task* arg0);
+void func_actor_342400_80162C10(Task* arg0);
+void func_actor_342400_80162CA8(Task* arg0);
+void func_actor_342400_80162CBC(Task* arg0);
+void func_actor_342400_80162DA0(Task* arg0);
+void func_actor_342400_80162E6C(Task* arg0);
+void func_actor_342400_80162F08(Task* arg0);
+void func_actor_342400_80162F1C(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400", func_actor_342400_80162824);
+/// The first spawner task's four state handlers, dispatched by
+/// `func_actor_342400_801627C0`.
+const TaskFuncTable4 D_actor_342400_80161E34 = { {
+    func_actor_342400_80162B60,
+    func_actor_342400_80162C10,
+    func_actor_342400_80162CA8,
+    func_actor_342400_80162CBC,
+} };
+
+/// Runs the first spawner task's handler for its `Task::state`.
+void func_actor_342400_801627C0(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_342400_80161E34;
+    sp.funcs[arg0->state](arg0);
+}
+
+/// The second spawner task's four state handlers, dispatched by
+/// `func_actor_342400_80162824`.
+const TaskFuncTable4 D_actor_342400_80161E44 = { {
+    func_actor_342400_80162DA0,
+    func_actor_342400_80162E6C,
+    func_actor_342400_80162F08,
+    func_actor_342400_80162F1C,
+} };
+
+/// Runs the second spawner task's handler for its `Task::state`.
+void func_actor_342400_80162824(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_342400_80161E44;
+    sp.funcs[arg0->state](arg0);
+}
 
 /// The five state handlers `func_actor_342400_80162888` dispatches through by
 /// `Task::state`. splat migrates this table into that function's own `.s`, so
 /// there is no standalone rodata file to `INCLUDE_RODATA`; defining it here
-/// emits it where the function sits, between the 0x80161E44 rodata of the
-/// `INCLUDE_ASM` above and the `D_actor_342400_80161E68` include below.
+/// emits it where the function sits, before the `D_actor_342400_80161E68`
+/// include below.
 const TaskFuncTable5 D_actor_342400_80161E54 = { {
     func_actor_342400_80162084,
     func_actor_342400_80162FFC,

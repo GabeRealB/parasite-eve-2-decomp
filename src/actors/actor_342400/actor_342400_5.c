@@ -49,7 +49,7 @@ void func_actor_342400_80164F3C(Task* arg0)
             }
             func_actor_342400_80165CC0(arg0);
             if (work->field_432 == 1) {
-                func_actor_342400_80169654(arg0, 6, &work->field_80);
+                func_actor_342400_80169654(arg0, 6, (SVECTOR3*)&work->field_80);
             }
             coord->flg = 0;
         case 1:

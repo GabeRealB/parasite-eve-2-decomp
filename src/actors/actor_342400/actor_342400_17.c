@@ -36,11 +36,45 @@ void func_actor_342400_80169990(Task* arg0)
     work->field_422 = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_801699A4);
+extern TaskFuncTable3 D_actor_342400_80161EE0;
+extern TaskFuncTable5 D_actor_342400_80161EEC;
+extern TaskFuncTable5 D_actor_342400_80161F00;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_80169A2C);
+/// Unless `func_actor_342400_80169518` consumes a pending request, runs the
+/// sub-state handler for `field_422` from a three-entry table.
+void func_actor_342400_801699A4(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable3   sp;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_80169A98);
+    work = (Actor342400Work*)arg0->work;
+    sp   = D_actor_342400_80161EE0;
+    if ((func_actor_342400_80169518(arg0) << 0x10) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
+
+/// Runs the sub-state handler for `field_422` from a five-entry table.
+void func_actor_342400_80169A2C(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable5   sp;
+
+    work = (Actor342400Work*)arg0->work;
+    sp   = D_actor_342400_80161EEC;
+    sp.funcs[(s16)work->field_422](arg0);
+}
+
+/// Runs the sub-state handler for `field_422` from another five-entry table.
+void func_actor_342400_80169A98(Task* arg0)
+{
+    Actor342400Work* work;
+    TaskFuncTable5   sp;
+
+    work = (Actor342400Work*)arg0->work;
+    sp   = D_actor_342400_80161F00;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 void func_actor_342400_80169B04(Task* arg0)
 {
@@ -102,4 +136,14 @@ void func_actor_342400_80169C84(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_17", func_actor_342400_80169CF8);
+/// Requests animation 0xC and advances the sub-state.
+void func_actor_342400_80169CF8(Task* arg0)
+{
+    Actor342400Work* work = (Actor342400Work*)arg0->work;
+
+    work->field_426 = 8;
+    work->field_41C = 0x10;
+    work->field_418 = 0xC;
+    work->field_414 = 1;
+    work->field_422 = work->field_422 + 1;
+}

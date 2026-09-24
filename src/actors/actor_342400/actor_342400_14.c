@@ -1,8 +1,22 @@
 #include "common.h"
 #include "main/task.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "actors/actor_342400.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_14", func_actor_342400_801694A8);
+/// Claims or releases `Gp_StateF0`'s hold for this enemy. With `arg1` set it
+/// claims the hold (bit 7 plus the enemy's slot) unless one is already held;
+/// with `arg1` clear it releases the hold if it is this enemy's.
+void func_actor_342400_801694A8(Task* arg0, s32 arg1)
+{
+    if ((arg1 << 0x10) != 0) {
+        if (!((s8)Gp_StateF0.field_1F & 0x80)) {
+            Gp_StateF0.field_1F = (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) | 0x80;
+        }
+    } else if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+}
 
 /// While `field_41E` is 1, consumes the pending request in `field_448`:
 /// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at

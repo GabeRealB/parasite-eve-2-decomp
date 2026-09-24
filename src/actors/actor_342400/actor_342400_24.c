@@ -3,8 +3,10 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/gfx.h"
+#include "main/tmd.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
@@ -86,9 +88,54 @@ void func_actor_342400_8016B744(Task* arg0)
     work->field_422++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_24", func_actor_342400_8016B84C);
+/// Plays sound 2, releases `Gp_StateF0`'s hold if it is this enemy's,
+/// unlinks the enemy node, detaches its records and unlinks its three hit
+/// bodies, hides the model and advances the state.
+void func_actor_342400_8016B84C(Task* arg0)
+{
+    Actor342400Work* work2;
+    Actor342400Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       model;
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_24", func_actor_342400_8016B914);
+    work            = (Actor342400Work*)arg0->work;
+    enemy           = (GpEnemy*)arg0->spawnArg2;
+    model           = (TmdObject*)arg0->extra;
+    work->field_412 = 0;
+    SndEvt_EnqueueType7(0x402C0002, 1);
+    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC)) {
+        Gp_StateF0.field_1F = 0;
+    }
+    Gp_UnlinkNode(&enemy->node);
+    enemy->recs = 0;
+    work2       = (Actor342400Work*)arg0->work;
+    Gp_UnlinkObj(&work2->obj_2AC);
+    Gp_UnlinkObj(&work2->obj_2CC);
+    Gp_UnlinkObj(&work2->obj_3AC);
+    model->flags    = model->flags | 0x80;
+    work->field_420 = work->field_420 + 1;
+}
+
+/// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
+/// frames destroys the enemy.
+void func_actor_342400_8016B914(Task* arg0)
+{
+    Actor342400Work* work;
+    TmdObject*       model;
+    u16              ticks;
+
+    work            = (Actor342400Work*)arg0->work;
+    model           = (TmdObject*)arg0->extra;
+    ticks           = work->field_412 + 1;
+    work->field_412 = ticks;
+    if ((s16)ticks == 3) {
+        Tmd_FreeBuffers(model);
+        model->flags |= 4;
+    }
+    if ((s16)work->field_412 >= 0x24) {
+        Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+    }
+}
 
 void func_actor_342400_8016B9A4(Task* arg0)
 {
@@ -136,4 +183,22 @@ void func_actor_342400_8016BA3C(Task* arg0)
     work->field_420++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_342400/actor_342400_24", func_actor_342400_8016BAF4);
+/// Ticks the animation and, once the hit flags are set, advances the state.
+void func_actor_342400_8016BAF4(Task* arg0)
+{
+    Actor342400Work* work;
+    Actor342400Work* work2;
+    s32              cond;
+
+    work = (Actor342400Work*)arg0->work;
+    func_actor_342400_80165CC0(arg0);
+    work2 = (Actor342400Work*)arg0->work;
+    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        work->field_420 = work->field_420 + 1;
+    }
+}
