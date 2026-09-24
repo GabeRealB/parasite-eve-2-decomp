@@ -1,32 +1,311 @@
 #include "common.h"
-#include "gameplay/D4.h"
-#include "main/session.h"
-#include "main/sound.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/mem.h"
 #include "main/task.h"
+#include "main/tmd.h"
+#include "rooms/room_common.h"
 
-extern GpMsgEntry D_dryfield_water_hole_8017FC5C[];
-extern TaskDesc   D_dryfield_water_hole_8017FC8C[];
-s32               func_dryfield_water_hole_8017D78C(s32 arg0, s32 arg1, s32 arg2)
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+extern u32 Gp_LcgState;
+
+void func_dryfield_water_hole_8017F5D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_water_hole_8017F9C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+
+/// Per-frame driver of a particle effect, drawn as the spinning sprite of
+/// `func_dryfield_water_hole_8017F5D4` (state 1) or, when the spawn
+/// argument's top nibble is set, the upright sprite of
+/// `func_dryfield_water_hole_8017F9C0` (state 2). The first frame takes
+/// the size from the argument's low 12 bits, a random spin angle, and the ticks
+/// per animation frame from bits 12-15. Unless the work block already carries a
+/// velocity it picks one by the kind in bits 24-27 - none, a random upward
+/// burst, a random spray, a narrow upward jet, or the block's stored direction
+/// - scaled to the speed in bits 16-23 (0x40 when zero). Every later tick
+/// draws, moves the coordinate by the velocity with gravity pulling it down,
+/// and releases the block after animation frame 7. While the room's event
+/// state is non-zero it only draws, releasing the block from event state 4 on.
+void func_dryfield_water_hole_8017F118(Task* task)
 {
-    switch (arg2) {
-        case 4:
-            SndEvt_EnqueueType6(0x52200004, 0, 0);
-            break;
-        case 5:
-            SndEvt_EnqueueType6(0x52200005, 0, 0);
-            break;
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            kind;
+    s32            step;
+    s32            state;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState < 4) {
+            if (task->state < 2) {
+                func_dryfield_water_hole_8017F5D4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            } else {
+                func_dryfield_water_hole_8017F9C0(coord, work->field_20, (s16)work->field_24);
+            }
+            return;
+        }
+        Gp_ReleaseState1CMem(work, task);
+        return;
     }
-    return 0;
+    Gp_UpdateCoord(coord);
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 0xF;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            state          = 1;
+            if (task->spawnArg1 & 0xF0000000) {
+                state = 2;
+            }
+            task->state = state;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                switch (kind & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            return;
+        case 1:
+            func_dryfield_water_hole_8017F5D4(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            break;
+        case 2:
+            func_dryfield_water_hole_8017F9C0(coord, work->field_20, (s16)work->field_24);
+            break;
+        default:
+            return;
+    }
+    if ((s16)work->field_2A != 0) {
+        coord->coord.t[0] += work->field_10.vx;
+        coord->coord.t[1] += work->field_10.vy;
+        coord->coord.t[2] += work->field_10.vz;
+        coord->flg         = 0;
+        work->field_10.vy += 6;
+    }
+    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+        work->field_20++;
+        if ((s16)work->field_20 >= 8) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+    }
 }
 
-void func_dryfield_water_hole_8017D7DC(Task* arg0)
+/// Draws a spinning sprite at the coordinate's world position, projected
+/// through `GsWSMATRIX`. If the projection is valid, one semi-transparent
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) is queued, its texture the 32-texel
+/// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
+/// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
+/// `arg3`. The work block lives on the scratchpad stack.
+void func_dryfield_water_hole_8017F5D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    arg0->msgTable = D_dryfield_water_hole_8017FC5C;
-    Game_SetPtrSlot(arg0, 7);
-    Task_SpawnFromTable(D_dryfield_water_hole_8017FC8C, 0, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    void**             scratch;
+    u8*                head;
+    RoomDraw19Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    s32                u0;
+    s32                ang;
+    s32                ang2;
+    u16                vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    TOUCH_REG_USE(arg2, scratch);
+    head                                        = *scratch;
+    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                       = (RoomDraw19Scratch*)(head - 0x1C);
+    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
+    vz                                          = *(u16*)&arg0->workm.t[2];
+    *scratch                                    = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        ang            = (s16)arg3;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43D3;
+        u0          = (arg1 & 0xFFFF) << 5;
+        setUV4(prim, u0, 0xE0, u0 + 0x1F, 0xE0, u0, 0xFF, u0 + 0x1F, 0xFF);
+        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang)) >> 12;
+        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = ang + 0x400;
+        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_dryfield_water_hole_8017D838(void)
+/// Draws an upright sprite at the coordinate's world position, projected
+/// through `GsWSMATRIX`. If the projection is valid, one semi-transparent
+/// `POLY_FT4` (tpage 0x2B, clut 0x43D2) is queued, its texture the 56-texel
+/// cell `arg1 & 7` of a four-wide, two-row grid starting at v 0x70. The quad
+/// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
+/// point sits a quarter of the way up from its bottom edge. The work block
+/// lives on the scratchpad stack.
+void func_dryfield_water_hole_8017F9C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 {
+    void**             scratch;
+    u8*                head;
+    RoomDraw23Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    DisplayState*      ds;
+    s32                tex;
+    u32                cell;
+    s32                u1;
+    s32                vbase;
+    s32                v0;
+    s32                v1;
+    s32                sarg;
+    s32                t;
+    s16                xy;
+    u16                vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    SOFT_TOUCH_REG_USE(arg2, scratch);
+    head                                        = *scratch;
+    ((RoomDraw23Scratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    block                                       = (RoomDraw23Scratch*)(head - 0x18);
+    block->vec.vy                               = *(u16*)&arg0->workm.t[1];
+    vz                                          = *(u16*)&arg0->workm.t[2];
+    tex                                         = arg1;
+    SOFT_TOUCH_REG(tex);
+    *scratch      = block;
+    block->vec.vz = vz;
+    vec           = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw23Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw23Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw23Scratch*)(head - 0x18))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        prim->clut  = 0x43D2;
+        SOFT_BARRIER();
+        cell  = (u16)tex;
+        tex   = (cell & 3) * 0x38;
+        vbase = ((cell & 7) >> 2) * 0x38;
+        v0    = vbase + 0x70;
+        SOFT_USE_REG(v0);
+        u1       = tex + 0x37;
+        v1       = vbase - 0x59;
+        prim->v2 = v1;
+        prim->v3 = v1;
+        TOUCH_REG(u1);
+        sarg          = (s16)arg2;
+        prim->v0      = v0;
+        prim->v1      = v0;
+        t             = sarg * 0x38;
+        prim->u0      = tex;
+        prim->u1      = u1;
+        prim->u2      = tex;
+        prim->u3      = u1;
+        block->radius = (t - sarg) / block->otz;
+        xy            = *(u16*)&block->sx - *(u16*)&block->radius;
+        prim->x2      = xy;
+        prim->x0      = xy;
+        xy            = *(u16*)&block->sx + *(u16*)&block->radius;
+        prim->x3      = xy;
+        prim->x1      = xy;
+        v1            = (*(u16*)&block->sy - *(u16*)&block->radius) - (block->radius >> 1);
+        xy            = v1;
+        ds            = &gDisplayState;
+        prim->y1      = xy;
+        prim->y0      = xy;
+        xy            = *(u16*)&block->sy + (block->radius >> 1);
+        prim->y3      = xy;
+        prim->y2      = xy;
+        addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x18;
 }
