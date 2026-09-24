@@ -9,6 +9,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+#include "rooms/shelter_b4_water_supply.h"
+
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
 /// valve script has run.
 extern TaskDesc   D_shelter_b4_water_supply_80182620[];
@@ -66,7 +69,35 @@ s32 func_shelter_b4_water_supply_8017DAE4(Task* task, s32 msgId, s32 arg2, s32 a
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DB18);
+void func_shelter_b4_water_supply_8017DB18(void)
+{
+    ShelterB4WaterSupplyEventDesc  work;
+    RoomEventMsg                   param;
+    ShelterB4WaterSupplyEventDesc* wp;
+    s32                            (*resolve)(RoomEventMsg*, RoomEventMsg*) = func_shelter_b4_water_supply_8017DDFC;
+
+    work.field_0 = 3;
+    work.field_1 = 0x20;
+    work.field_2 = 3;
+    work.field_3 = 1;
+    work.field_8 = 0x542E0003;
+    work.field_4 = 0x400;
+    Gp_MsgPlayerWeapon(0);
+    wp            = &work;
+    param.msgId   = wp->field_1;
+    param.field_2 = wp->field_2;
+    param.field_3 = wp->field_3;
+    param.field_5 = 0;
+    resolve(&param, &param);
+    wp->field_1                        = param.msgId;
+    wp->field_2                        = param.field_2;
+    wp->field_3                        = param.field_3;
+    D_shelter_b4_water_supply_80184E44 = work;
+    Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
+    if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
+        GameFlag_SetNibble(0x4C, 6);
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DC28);
 

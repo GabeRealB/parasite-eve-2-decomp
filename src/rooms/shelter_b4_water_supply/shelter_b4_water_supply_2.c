@@ -9,6 +9,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
+#include "rooms/shelter_b4_water_supply.h"
 
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
 /// valve script has run.
