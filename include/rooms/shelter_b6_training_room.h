@@ -4,6 +4,8 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/task.h"
 
@@ -20,5 +22,9 @@ void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Draws a glowing disc at the world point `arg0`.
 void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+/// Draws a flat textured quad of half-size `arg1` centred on `arg0`'s
+/// translation.
+void func_shelter_b6_training_room_8017F540(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif // ROOMS_SHELTER_B6_TRAINING_ROOM_H
