@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actors_shared_80132cb8.h"
 
@@ -8,10 +9,6 @@
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/tmd.h"
-
-/// `gpf 12`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
 {
@@ -40,11 +37,11 @@ void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
     VectorNormalSS(normal, normal);
     gte_lddp(scale);
     gte_ldsv(normal);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(normal);
     gte_lddp(0x1388);
     gte_ldsv(d);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(d);
 
     verts[index * 4].vx = verts[index * 4 + 2].vx =
@@ -66,7 +63,7 @@ void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
     VectorNormalSS(normal, normal);
     gte_lddp(0x1000);
     gte_ldsv(normal);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(normal);
 
     if (gGameSession->at4.loc.area == 0x27) {

@@ -15,14 +15,8 @@
 #include "main/gfx.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
-
-/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `mvmva 1, 0, 3, 3, 0` (`rtir`), spelled out for the same reason.
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -695,14 +689,14 @@ void func_actor_503500_80136B64(Actor503500* arg0, s32 arg1, s32 arg2)
     src = in->field_4;
     for (i = 0; i < 4; i++, dst++, src++) {
         gte_ldv0(src);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(dst);
     }
     dst = out->field_8;
     src = in->field_8;
     for (i = 0; i < 8; i++, dst++, src++) {
         gte_ldv0(src);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(dst);
         dst->vx += ofs.vx;
         dst->vy += ofs.vy;
@@ -1173,13 +1167,13 @@ void func_actor_503500_80137678(Actor503500* arg0)
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord);
     gte_ldclmv((char*)&m.mat + 2);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((char*)&coord->coord + 2);
     gte_ldclmv((char*)&m.mat + 4);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
     work->pos.vx.w    += work->vel.vx.w;
     work->pos.vy.w    += work->vel.vy.w;
@@ -1296,7 +1290,7 @@ void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
         pos.vz = pos.vz * scale / 4096;
         gte_SetRotMatrix(&rot);
         gte_ldv0(&pos);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&pos);
         pos.vx += D_actor_503500_8016F068.vx;
         pos.vy += D_actor_503500_8016F068.vy;
@@ -1652,7 +1646,7 @@ void func_actor_503500_80138A30(Actor503500* arg0)
     RotMatrix(&work->field_2A4, &m.mat);
     gte_SetRotMatrix(&m.mat);
     gte_ldv0(&D_actor_503500_8016F0C8);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&v);
     work->field_29C.vx  = D_actor_503500_8016F0B8[idx].vx + v.vx;
     work->field_29C.vy  = D_actor_503500_8016F0B8[idx].vy + v.vy;
@@ -1714,7 +1708,7 @@ void func_actor_503500_80138C08(Actor503500* arg0)
             TRANSPOSE_ROT(mat, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&pos);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&work->field_29C);
             break;
         case 2:
@@ -1733,7 +1727,7 @@ void func_actor_503500_80138C08(Actor503500* arg0)
                         ofs.vz = 0x640;
                         gte_SetRotMatrix(src);
                         gte_ldv0(&ofs);
-                        gte_rtv0_real();
+                        gte_rtv0();
                         gte_stsv(&ofs);
                         dst->coord.t[0] = pos.vx + ofs.vx;
                         dst->coord.t[1] = pos.vy + ofs.vy;
@@ -2106,7 +2100,7 @@ void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s
         pos.vz = pos.vz * scale / 4096;
         gte_SetRotMatrix(&rot);
         gte_ldv0(&pos);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&pos);
         pos.vx += D_actor_503500_8016F0B0.vx;
         pos.vy += D_actor_503500_8016F0B0.vy;
@@ -2212,7 +2206,7 @@ void func_actor_503500_8013A0D0(Actor503500* arg0)
     ofs.vz          = 1000;
     gte_SetRotMatrix(&m);
     gte_ldv0(&ofs);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&ctrl[1]);
     ctrl[1].vx += ctrl[0].vx;
     ctrl[1].vy += ctrl[0].vy;
@@ -2220,7 +2214,7 @@ void func_actor_503500_8013A0D0(Actor503500* arg0)
     Gp_ComposeParentWorld(coord->sub, &m, &tmp);
     gte_SetRotMatrix(&m);
     gte_ldv0(&work->field_294);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&ofs);
     tmp.vx    += ofs.vx;
     tmp.vy    += ofs.vy;
@@ -2295,18 +2289,18 @@ void func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase)
         gte_SetRotMatrix(&s->world);
         dir = &s->dir;
         gte_ldclmv(&coords[i].coord);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(&s->world);
         gte_ldclmv((char*)&coords[i].coord + 2);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->world + 2);
         gte_ldclmv((char*)&coords[i].coord + 4);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->world + 4);
         TRANSPOSE_ROT(&s->world, &s->inv);
         gte_SetRotMatrix(&s->inv);
         gte_ldv0(&s->diff);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&s->pos);
         VectorNormalS(&s->pos, dir);
         Gfx_OrthonormalBasis(&s->basis, dir, &s->up);

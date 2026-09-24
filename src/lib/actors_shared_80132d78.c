@@ -10,10 +10,7 @@
 #include "actors/actor_402200.h"
 #include "actors/actors_shared_80137ca4.h"
 #include "psyq/inline_c.h"
-
-/// `rtv0`: rotate V0 through the loaded rotation matrix, no translation. The
-/// `inline_c.h` macro of that name assembles to a different word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 s32 ActorsShared80132d78(ActorShared80132d78* arg0)
 {
@@ -80,7 +77,7 @@ void ActorsShared80132e34(Actor402200* arg0)
         sc->in.vy       = 0;
         gte_SetRotMatrix(&coord->field_0.coord);
         gte_ldv0(&sc->in);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stlvnl(&sc->out);
         work->field_6A4  = Player_Status.coordMtx->t[0] + sc->out.vx;
         work->field_6A8  = Player_Status.coordMtx->t[1];

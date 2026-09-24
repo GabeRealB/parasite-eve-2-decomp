@@ -13,10 +13,6 @@
 
 #include <psyq/inline_c.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
 

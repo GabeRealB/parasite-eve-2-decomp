@@ -12,10 +12,7 @@
 #include "main/gfx.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
 {
@@ -50,7 +47,7 @@ void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -62,12 +59,12 @@ void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sc->sxy0);
     gte_stflg(&flag);
     if (flag >= 0) {
         gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
         gte_stflg(&flag);
         if (flag >= 0) {

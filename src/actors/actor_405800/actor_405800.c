@@ -3,6 +3,7 @@
 #include "actors/actors_shared_80131fc8.h"
 
 #include "psyq/inline_c.h"
+#include "gte.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -22,8 +23,6 @@
 #include "actors/actors_shared_80139dcc.h"
 #include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32                   Gp_LcgState;
 extern u8                    D_801153F4;
@@ -510,7 +509,7 @@ static __inline__ void Actor405800_ProjectPart(GsCOORDINATE2* part)
     gte_SetRotMatrix(wm);
     gte_SetTransMatrix(wm);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((Actor405800PerspScratch*)(head - 0x18))->sxy);
     gte_stdp(&((Actor405800PerspScratch*)(head - 0x18))->p);
     gte_stflg(&((Actor405800PerspScratch*)(head - 0x18))->flag);

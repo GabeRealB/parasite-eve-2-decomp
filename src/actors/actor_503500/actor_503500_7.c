@@ -15,14 +15,8 @@
 #include "main/gfx.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
-
-/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `mvmva 1, 0, 3, 3, 0` (`rtir`), spelled out for the same reason.
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -431,7 +425,7 @@ void func_actor_503500_8013AF60(Actor503500* arg0, Actor503500Work* arg1, GpRec1
         pos.vz = pos.vz * scale / 4096;
         gte_SetRotMatrix(&rot);
         gte_ldv0(&pos);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&pos);
         pos.vx += D_actor_503500_8016F0F0[work->field_EC].vx;
         pos.vy += D_actor_503500_8016F0F0[work->field_EC].vy;
@@ -535,7 +529,7 @@ void func_actor_503500_8013B60C(Actor503500* arg0, s32 side, s32 arg2)
         }
         gte_SetRotMatrix(&m);
         gte_ldv0(&ofs);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&ofs);
         coord->coord.t[0] = pos.vx + ofs.vx;
         coord->coord.t[1] = pos.vy + ofs.vy;
@@ -556,13 +550,13 @@ void func_actor_503500_8013B60C(Actor503500* arg0, s32 side, s32 arg2)
         RotMatrixZYX(&pos, &m);
         gte_SetRotMatrix(&coord->coord);
         gte_ldclmv(&m);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(&coord->coord);
         gte_ldclmv((char*)&m + 2);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&coord->coord + 2);
         gte_ldclmv((char*)&m + 4);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&coord->coord + 4);
     }
 }

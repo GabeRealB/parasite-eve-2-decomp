@@ -5,14 +5,10 @@
 #include "gameplay/gameplay.h"
 #include "actors/actor_402200.h"
 #include "psyq/inline_c.h"
+#include "gte.h"
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
-
-/// `rtps`: project V0 through the loaded rotation and translation matrices.
-/// The `inline_c.h` macro of that name assembles to a different word, so the
-/// opcode is written out with its two delay slots kept explicit.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 s32 ActorsShared801381e0(Task* task)
 {
@@ -40,7 +36,7 @@ void ActorsShared8013820c(GsCOORDINATE2* arg0, s32 arg1)
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy);
     gte_stdp(&block->dp);
     gte_stflg(&block->flag);

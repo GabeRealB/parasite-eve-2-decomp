@@ -3,6 +3,7 @@
 #include "gameplay/gameplay.h"
 #include "rooms/rooms_shared_80182078.h"
 #include "actors/actors_shared_8016331c.h"
+#include "gte.h"
 
 s32 ActorsShared80162bd0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
 {
@@ -134,7 +135,7 @@ s32 ActorsShared80162bd0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 pus
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

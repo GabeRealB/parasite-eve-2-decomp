@@ -13,11 +13,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-
-/// `rtir` / `mvmva 1, 0, 0, 3, 0` (rtv0). The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 extern TaskDesc D_actor_560800_8017575C;
 
@@ -98,20 +94,20 @@ void func_actor_560800_80136AA8(Task* arg0)
     gte_SetRotMatrix(&s->chain);
     for (i = 1; i < 6; i++) {
         gte_ldclmv(&((TmdObject*)arg0->extra)->coords[i].coord);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(&s->link);
         gte_ldclmv((char*)&((TmdObject*)arg0->extra)->coords[i].coord + 2);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->link + 2);
         gte_ldclmv((char*)&((TmdObject*)arg0->extra)->coords[i].coord + 4);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->link + 4);
         s->joint.vx = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[0];
         s->joint.vy = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[1];
         s->joint.vz = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[2];
         gte_SetRotMatrix(&s->link);
         gte_ldv0(&s->joint);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&s->joint);
         s->joint.vx += s->pos.vx;
         s->joint.vy += s->pos.vy;
@@ -161,20 +157,20 @@ void func_actor_560800_80136AA8(Task* arg0)
         Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->coords[i].coord, s->rot[i].vz, 0);
         gte_SetRotMatrix(&s->chain);
         gte_ldclmv(&((TmdObject*)arg0->extra)->coords[i].coord);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(&s->chain);
         gte_ldclmv((char*)&((TmdObject*)arg0->extra)->coords[i].coord + 2);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->chain + 2);
         gte_ldclmv((char*)&((TmdObject*)arg0->extra)->coords[i].coord + 4);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv((char*)&s->chain + 4);
         s->joint.vx = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[0];
         s->joint.vy = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[1];
         s->joint.vz = ((TmdObject*)arg0->extra)->coords[i + 1].coord.t[2];
         gte_SetRotMatrix(&s->chain);
         gte_ldv0(&s->joint);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&s->joint);
         s->ang.vx += s->rot[i].vx;
         s->ang.vx %= 0x1000;

@@ -16,11 +16,7 @@
 #include "actors/actors_shared_8013bbe4.h"
 
 #include <psyq/inline_c.h>
-
-/* `gte_ApplyMatrix` / `gte_MulMatrix0` from `psyq/gtemac.h`, except with the
- * real `rtv0` / `rtir` encodings this toolchain assembles correctly. */
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 void func_actor_510900_80135744(Actor510900* arg0);
 void func_actor_510900_8013864C(Actor510900* arg0);
@@ -1388,13 +1384,13 @@ void func_actor_510900_80138D38(Actor510900* arg0)
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv(&matrix->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][1]);
     gte_ldclmv(&matrix->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][2]);
 
     angleX = work->field_570.vx;
@@ -1458,7 +1454,7 @@ void func_actor_510900_80138F44(Actor510900* arg0)
 
     gte_SetRotMatrix(&coord->coord);
     gte_ldv0(&scratch->center);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&scratch->rotated);
 
     scratch->center.vx = coord->coord.t[0] + scratch->rotated.vx;
@@ -1479,7 +1475,7 @@ void func_actor_510900_80138F44(Actor510900* arg0)
     for (i = 0; i < 12; i++) {
         gte_SetRotMatrix(&coord->coord);
         gte_ldv0(&D_actor_510900_80167BDC[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&scratch->rotated);
         corners[i].vx = scratch->rotated.vx + scratch->center.vx;
         corners[i].vy = scratch->rotated.vy + scratch->center.vy;
@@ -1489,7 +1485,7 @@ void func_actor_510900_80138F44(Actor510900* arg0)
     for (i = 0; i < 3; i++) {
         gte_SetRotMatrix(&coord->coord);
         gte_ldv0(&D_actor_510900_80167BC4[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&normals[i]);
     }
 
@@ -1766,7 +1762,7 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     scratch->rot.vz = 0xA0;
     gte_SetRotMatrix(&coord->coord);
     gte_ldv0(&scratch->rot);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stlvnl(&scratch->pos);
     coord->sub         = &gGfxViewCoord;
     coord->coord.t[0] += scratch->pos.vx;
@@ -1779,13 +1775,13 @@ void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
     RotMatrix(&scratch->rot, &scratch->mtx);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&scratch->mtx);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord);
     gte_ldclmv(&scratch->mtx.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
     gte_ldclmv(&scratch->mtx.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
     dx              = Player_Status.coordMtx->t[0] - coord->coord.t[0];
@@ -1888,13 +1884,13 @@ void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     RotMatrix(&scratch->rot, &scratch->mtx);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&scratch->mtx);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord);
     gte_ldclmv(&scratch->mtx.m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
     gte_ldclmv(&scratch->mtx.m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
     coord->flg         = 0;
     coord->coord.t[0] += -(coord->coord.m[0][1] * 0x96) >> 12;

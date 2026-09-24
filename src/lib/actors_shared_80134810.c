@@ -4,12 +4,11 @@
 #include "main/task.h"
 #include "main/mem.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include "actors/actors_shared_80135b58.h"
 #include "main/tmd.h"
 #include "actors/actors_shared_8014ca28.h"
 #include "gameplay/1BC.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -64,21 +63,21 @@ void ActorsShared80134810(Task* arg0, GsCOORDINATE2* arg1)
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
 
     ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(vec);
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
 

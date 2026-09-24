@@ -15,14 +15,7 @@
 #include "actors/actors_shared_8013bbe4.h"
 
 #include <psyq/inline_c.h>
-
-/* `gte_ApplyMatrix` / `gte_MulMatrix0` / `gte_RotTransPers` / `gte_LoadAverageShort12`
- * from `psyq/gtemac.h`, except with the real `rtv0` / `rtir` / `rtps` / `gpf`
- * encodings this toolchain assembles correctly. */
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtir_real()  __asm__ volatile("nop; nop; .word 0x4A49E012")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_actor_510900_80135744(Actor510900* arg0);
@@ -403,7 +396,7 @@ void func_actor_510900_80132D4C(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -519,7 +512,7 @@ void func_actor_510900_801332EC(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -626,7 +619,7 @@ void func_actor_510900_8013371C(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -737,7 +730,7 @@ void func_actor_510900_80133C84(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -917,13 +910,13 @@ void func_actor_510900_80134284(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(&block->vec1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy1);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -1050,15 +1043,15 @@ void func_actor_510900_8013482C(Task* arg0)
             eff->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
             gte_lddp(eff->scale << 3);
             gte_ldsv(&eff->move);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&eff->move);
             gte_lddp(eff->index << 12);
             gte_ldsv(&eff->move);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&eff->move);
             gte_SetRotMatrix(&eff->parent->coord);
             gte_ldv0(&eff->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&eff->move);
         } else if (!(arg0->spawnArg1 & 0xF0000000)) {
             n = D_80070F70 & 3;
@@ -1129,7 +1122,7 @@ void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((Actor510900QuadScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((Actor510900QuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

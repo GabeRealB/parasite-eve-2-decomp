@@ -16,10 +16,7 @@
 #include "main/wipsys.h"
 #include "main/gfx.h"
 #include <psyq/inline_c.h>
-
-/// `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 /// The actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -407,7 +404,7 @@ void func_actor_503500_801450A0(Actor503500* arg0)
         d4->end1Radius = work->field_C4 * 0x7D >> 9;
         gte_SetRotMatrix(&work->field_9C);
         gte_ldv0(&D_actor_503500_801715CC);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(d4);
     }
 }

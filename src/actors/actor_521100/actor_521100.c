@@ -17,12 +17,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-
-/* `gte_MulMatrix0` from `psyq/gtemac.h`, except with the real `rtir` encoding
- * this toolchain assembles correctly. */
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-
-#define gte_rtv0_tr_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -1049,7 +1044,7 @@ void func_actor_521100_801339B0(Actor521100* arg0)
                 sc->vec.vy = 0;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&sc->vec);
-                gte_rtv0_tr_real();
+                gte_rtv0();
                 gte_stlvnl(&sc->pos);
                 sc->pos.vx   = coord->coord.t[0] + sc->pos.vx;
                 sc->pos.vy   = coord->coord.t[1] + sc->pos.vy;
@@ -1175,7 +1170,7 @@ void func_actor_521100_801339B0(Actor521100* arg0)
                 sc->vec.vz = 0;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&sc->vec);
-                gte_rtv0_tr_real();
+                gte_rtv0();
                 gte_stlvnl(&sc->pos);
                 pcoord         = ((GpActorWork*)player)->extra->coords;
                 sc->aim.pos.vx = pcoord->coord.t[0] + sc->pos.vx;
@@ -1681,13 +1676,13 @@ void func_actor_521100_80135024(Actor521100* arg0)
     USE_REG(matrix);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(matrix);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv(&matrix->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][1]);
     gte_ldclmv(&matrix->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][2]);
     angleX = work->field_678.vx;
     if (angleX != 0) {
