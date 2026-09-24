@@ -3,7 +3,15 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
+
+/// State table of the room's three-state task dispatcher
+/// (`func_acropolis_patio_8017DF8C`), held in the room's leading rodata.
+extern const TaskFuncTable3 D_acropolis_patio_8017D5C4;
 
 /// 0x78 stack scratch the patio's look-at task
 /// (`func_acropolis_patio_8017DE2C`) builds each frame and hands to
