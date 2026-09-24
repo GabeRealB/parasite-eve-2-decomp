@@ -3,6 +3,9 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "rooms/shelter_b4_lower_sewer.h"
 
 /// One water surface: its near edge starts at (`x`, `z`) and runs `step` along
 /// X; its far edge sits `dz` further along Z. A surface whose `end` is -1
@@ -28,7 +31,6 @@ typedef struct {
 extern s16      D_shelter_b4_lower_sewer_80181E6C;
 extern _Surface D_shelter_b4_lower_sewer_80181E7C[];
 extern _Surface D_shelter_b4_lower_sewer_80181E90[];
-extern u8*      D_shelter_b4_lower_sewer_80183E14;
 
 /// Draws each surface in `D_shelter_b4_lower_sewer_80181E7C` at height
 /// `D_shelter_b4_lower_sewer_80181E6C` as two strips of 32 semi-transparent
@@ -36,8 +38,9 @@ extern u8*      D_shelter_b4_lower_sewer_80183E14;
 /// seam between the strips is lifted by a sine wave whose phase advances with
 /// the frame counter. The outer edges are coloured (0, 0x20, 0x80) and the seam
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
-/// blend mode 2. Quads the projection flags as invalid are skipped.
-void func_shelter_b4_lower_sewer_8017D72C(void)
+/// blend mode 2. Quads the projection flags as invalid are skipped. Called
+/// from the water task's drawing state with the task, which it does not read.
+void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
     s32              sxy0, sxy1, sxy2, sxy3;
@@ -173,8 +176,9 @@ void func_shelter_b4_lower_sewer_8017D72C(void)
 /// `D_shelter_b4_lower_sewer_80181E6C`. The far edge of each quad is lifted by
 /// a sine wave whose phase advances with the frame counter, so the surface
 /// ripples. Each quad is followed by a draw-mode packet selecting blend mode 2;
-/// quads the projection flags as invalid are skipped.
-void func_shelter_b4_lower_sewer_8017DE8C(void)
+/// quads the projection flags as invalid are skipped. Called from the water
+/// task's drawing state with the task, which it does not read.
+void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
     s32              sxy0, sxy1, sxy2, sxy3;
@@ -256,4 +260,13 @@ void func_shelter_b4_lower_sewer_8017DE8C(void)
     *(u8**)0x1F8003FC += 0xC;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer_2", func_shelter_b4_lower_sewer_8017E2D4);
+/// The room's water task: runs its state (`func_shelter_b4_lower_sewer_8017E33C`
+/// once, then `func_shelter_b4_lower_sewer_8017E37C` every frame) and publishes
+/// `D_shelter_b4_lower_sewer_80181E6C` as the session's water height.
+void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
+{
+    TaskFunc states[2] = { func_shelter_b4_lower_sewer_8017E33C, func_shelter_b4_lower_sewer_8017E37C };
+
+    states[task->state](task);
+    gGameSession->waterY = D_shelter_b4_lower_sewer_80181E6C;
+}

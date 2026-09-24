@@ -3,11 +3,14 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/D4.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b4_lower_sewer.h"
 
+extern s32 D_8007107C;
+extern s8  D_8007217B;
 extern s32 D_8011572C;
 extern s32 D_80115738;
 extern s32 D_8011574C;
@@ -18,7 +21,20 @@ extern SVECTOR D_shelter_b4_lower_sewer_80181EA4[];
 extern SVECTOR D_shelter_b4_lower_sewer_80181F04[];
 extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_lower_sewer/shelter_b4_lower_sewer_3", func_shelter_b4_lower_sewer_8017E37C);
+/// Drawing state of the water task: points the primitive cursor
+/// `D_shelter_b4_lower_sewer_80183E14` at `D_8005C374` or `D_8005C370`, chosen
+/// by `D_8007217B`, plus 0xC000 bytes per `D_8007107C`, then draws both sets
+/// of water surfaces.
+void func_shelter_b4_lower_sewer_8017E37C(Task* task)
+{
+    if (D_8007217B == 0) {
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    } else {
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+    }
+    func_shelter_b4_lower_sewer_8017D72C(task);
+    func_shelter_b4_lower_sewer_8017DE8C(task);
+}
 
 void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 {
