@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_521100.h"
-#include "actors/actors_shared_80134934.h"
-#include "actors/actors_shared_8013bbe4.h"
 
 void      Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void      func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
@@ -15,7 +13,7 @@ void      func_actor_521100_801358D4(Actor521100* arg0);
 void      func_actor_521100_80135964(Actor521100* arg0);
 extern u8 D_801153F4;
 
-void ActorsShared80131e24Sub1(Actor521100Ctx* arg0, Actor521100* arg1)
+void func_actor_521100_801353CC(Actor521100Ctx* arg0, Actor521100* arg1)
 {
     Actor521100Work* work;
 
@@ -36,8 +34,8 @@ void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1)
     temp_s0        = arg1->field_1C;
     arg0->field_14 = 1;
     func_actor_521100_80135964(arg1);
-    ActorsShared80134934((ActorShared80134934*)arg1);
-    ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
+    func_actor_521100_80135A34(arg1);
+    func_actor_521100_80135A90(arg1);
     if (temp_s0->field_68C != 0) {
         func_actor_521100_80135230(arg1);
     }
@@ -100,6 +98,6 @@ default_body:
     arg1->field_2C->field_8[1].flg = 0;
     Gp_UpdateCoord(temp_s2);
 case1:
-    ActorsShared80134934((ActorShared80134934*)arg1);
-    ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
+    func_actor_521100_80135A34(arg1);
+    func_actor_521100_80135A90(arg1);
 }

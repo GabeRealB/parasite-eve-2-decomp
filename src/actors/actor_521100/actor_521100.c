@@ -13,7 +13,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_521100.h"
-#include "actors/actors_shared_80134934.h"
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
@@ -48,7 +47,7 @@ void func_actor_521100_80134774();
 /// Every body's coordinate is assigned first in its block: the model pointer is
 /// reloaded from the task each time, and that load has to precede the stores
 /// into the work block, which it cannot be scheduled across.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
 {
     GpAreaKey        key;
     TmdObject*       obj;
@@ -1758,4 +1757,4 @@ void func_actor_521100_80135230(Actor521100* arg0)
         work->field_68C = 0;
     }
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", D_actor_521100_80131E40);

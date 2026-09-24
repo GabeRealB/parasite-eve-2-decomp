@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_521100.h"
-#include "actors/actors_shared_801326b4.h"
-#include "actors/actors_shared_801366fc.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
@@ -94,19 +92,19 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback       = ActorsShared801366fc;
-    coord->sub               = &gGfxViewCoord;
-    enemy->field_4           = &coord->coord;
-    enemy->field_48          = 0;
-    enemy->node.targeted     = 0;
-    enemy->node.flags        = 1;
-    obj->otOffset            = 1;
-    obj->lightMtx            = &D_actor_521100_8016A3D8->light;
-    obj->colorMtx            = &D_actor_521100_8016A3D8->color;
-    vec.vx                   = coord->workm.t[0];
-    vec.vy                   = coord->workm.t[1] - 0x320;
-    ActorsShared801326b4Task = task;
-    vec.vz                   = coord->workm.t[2];
+    task->exitCallback      = func_actor_521100_801366FC;
+    coord->sub              = &gGfxViewCoord;
+    enemy->field_4          = &coord->coord;
+    enemy->field_48         = 0;
+    enemy->node.targeted    = 0;
+    enemy->node.flags       = 1;
+    obj->otOffset           = 1;
+    obj->lightMtx           = &D_actor_521100_8016A3D8->light;
+    obj->colorMtx           = &D_actor_521100_8016A3D8->color;
+    vec.vx                  = coord->workm.t[0];
+    vec.vy                  = coord->workm.t[1] - 0x320;
+    D_actor_521100_8016A3DC = task;
+    vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->poses);
     D_actor_521100_8016A3D8->animId    = 1;

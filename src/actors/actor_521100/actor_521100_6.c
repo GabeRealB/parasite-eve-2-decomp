@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_521100.h"
-#include "actors/actors_shared_801326b4.h"
 #include "main/task.h"
 
 /// Ticks animation slots 1..0x12 of the actor's animation context.
@@ -103,7 +102,7 @@ s32 func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args)
 
     if (args->animId + 1 < 0xB) {
         D_actor_521100_8016A3D8->animId    = (u16)args->animId + 1;
-        dispatcher                         = ActorsShared801326b4Task;
+        dispatcher                         = D_actor_521100_8016A3DC;
         D_actor_521100_8016A3D8->field_47C = 2;
         D_actor_521100_8016A3D8->field_482 = 0;
         func_actor_521100_80135F2C(dispatcher);

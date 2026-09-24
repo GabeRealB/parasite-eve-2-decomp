@@ -145,7 +145,7 @@ typedef struct Actor521100Work4B4 {
 } Actor521100Work4B4;
 STATIC_ASSERT_SIZEOF(Actor521100Work4B4, 0x4B4);
 
-/// Work block of the actor `ActorsShared80131e24Sub0` spawns:
+/// Work block of the actor `func_actor_521100_80131E8C` spawns:
 /// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's
 /// animation context, slots and pose buffer, the `color` / `light` matrices the
 /// model is drawn under, and the collision bodies the spawn links: `obj47C`
@@ -163,7 +163,7 @@ typedef struct Actor521100Work {
     /* 0x514 */ GpObj      obj514;
     /* 0x534 */ GpRec18    rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
-    /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `ActorsShared80131e24Sub0`
+    /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `func_actor_521100_80131E8C`
     /// fills both - the two pointers, `pos` and
     /// `key` / `radius` - and links them. The state bodies then raise
     /// `flags` bit 0x8000 on the frame their effect fires, hand both back with
@@ -491,6 +491,13 @@ void func_actor_521100_80136724(void);
 void func_actor_521100_8013677C(void);
 void func_actor_521100_80136820(void);
 s32  func_actor_521100_801369B8(Task* task, s32 arg1, Actor521100AnimArgs* args);
+void func_actor_521100_80135A34(Actor521100* arg0);
+void func_actor_521100_80135A90(Actor521100* arg0);
+void func_actor_521100_801366FC(Task* task);
+
+/// The task `func_actor_521100_80136604` runs, stored by its create state
+/// `func_actor_521100_80135DDC`.
+extern Task* D_actor_521100_8016A3DC;
 
 /// Message 0x7DB handler, listed in `D_actor_521100_8016A358` -- the
 /// `{id, handler}` table the create body `func_actor_521100_80135DDC` installs
