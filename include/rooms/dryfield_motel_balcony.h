@@ -32,9 +32,10 @@ s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 void func_dryfield_motel_balcony_8017DB84(Task* task);
 void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 
-void func_dryfield_motel_balcony_8017DF84(GsCOORDINATE2*, s32, s32, s32);
+void func_dryfield_motel_balcony_8017DF84(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void func_dryfield_motel_balcony_8017E66C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void func_dryfield_motel_balcony_8017EF44(GsCOORDINATE2* arg0, s16 arg1);
+void func_dryfield_motel_balcony_8017F470(GsCOORDINATE2* arg0, s32 arg1);
 void func_dryfield_motel_balcony_8017F7E8(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void func_dryfield_motel_balcony_801809AC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 void func_dryfield_motel_balcony_801818B0(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
