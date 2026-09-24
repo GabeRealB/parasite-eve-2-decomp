@@ -3,10 +3,7 @@
 
 #include "common.h"
 
-#include <psyq/libgte.h>
-
 #include "main/task.h"
-#include "main/ui.h"
 #include "rooms/room_common.h"
 
 /// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
@@ -59,33 +56,17 @@ typedef struct DnmlCapScript {
 
 STATIC_ASSERT_SIZEOF(DnmlCapScript, 0x18);
 
-extern DnmlCapScript D_dryfield_night_motel_lobby_801844E0;
-
 /// The lobby's hotspot table: fifteen `RoomHotspot` entries, the last of them
 /// (index 14) the `id == -1` terminator the scans stop on. The room's init
 /// clears every entry's `hit` flag on the way in.
 extern RoomHotspot D_dryfield_night_motel_lobby_80182820[];
 
-/// The seven digits of the lobby keypad code as entered so far, most recent
-/// first at index 0; `0xA` marks a slot the player has not filled. The room's
-/// init resets all seven to `0xA`,
-/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in at index 0
-/// (its own count of digits entered is bounded by 7) and
-/// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
-/// the code. The datum's eighth byte is padding before the cap script.
-extern u8 D_dryfield_night_motel_lobby_801844D8[7];
-
-/// The lobby's eleven-entry task state table, in the room's leading rodata.
-/// The dispatcher below copies it onto the stack, so the handler runs from the
-/// copy rather than from here.
+/// The eleven states of the room's examine task, run by
+/// `func_dryfield_night_motel_lobby_80180D58`.
 extern const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0;
 
-/// Dispatches the room's main task through the table above: the eleven handlers
-/// are copied onto the stack and the one named by `Task::state` is called.
-void func_dryfield_night_motel_lobby_80180D58(Task* task);
-
-/// Draws the examine cursor over the room's hotspot table and, on a confirm,
-/// raises the phase flag cap slot 9 waits on.
+/// Draws the keypad's seven digit slots, or blanks them all to `0xA` while the
+/// keypad is not yet in use; see `DnmlExamineWork`.
 void func_dryfield_night_motel_lobby_801802A8(Task* task);
 
 /// Applies one keypad press, `key` being the id of the hotspot pressed. Keys
@@ -95,52 +76,21 @@ void func_dryfield_night_motel_lobby_801802A8(Task* task);
 /// entered, and a zero is refused while the entry is a lone zero.
 void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
 
-/// Whether the keypad above holds the lobby's code: exactly four digits, the
-/// three older slots still `0xA`, and those four reading `3 0 3 3` in the
-/// order they were typed. `func_dryfield_night_motel_lobby_80180440` calls it
-/// on a confirm and sets its accept flag on a non-zero result.
-s16 func_dryfield_night_motel_lobby_80180734(void);
-
-/// Task callback of the descriptor at `D_dryfield_night_motel_lobby_80182814`:
-/// allocates the examine work at `Task::work`, spawns the examine child task,
-/// bumps the state once and resets the room's per-visit state -- the hotspot
-/// hits, the keypad digits and three session flags.
-void func_dryfield_night_motel_lobby_80180E98(Task* task);
-
-/// Message handler for the lobby's `arg2 == 3` event: on the first visit it
-/// latches the visit flag and starts the scene, otherwise it fills in the cap
-/// script and spawns the cutscene task.
-s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2);
-
-/// The room's three-entry task state table, dispatched the same way by
-/// `func_dryfield_night_motel_lobby_8017FE38`.
-extern const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4;
-
-/// The "%" suffix appended to the percentages the play-data panels print.
-extern u8 D_dryfield_night_motel_lobby_80182508[];
-
-/// UI descriptor the "Play Data" panel and the usage panel spawn when they
-/// first open.
-extern UiObjectDesc D_dryfield_night_motel_lobby_80182720;
-
-/// Exit callback `func_dryfield_night_motel_lobby_8017EDD8` installs.
-void func_dryfield_night_motel_lobby_8017F4C8(Task* task);
-
-/// Moves and draws the action-prompt cursors from the pads.
-void func_dryfield_night_motel_lobby_801807C0(Task* task);
-
 /// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
 /// each entry's `hit` flag, and returns whether any entry was hit.
 s32 func_dryfield_night_motel_lobby_80180DE4(RoomHotspot* table, s16 x, s16 y);
 
-/// Resets both action prompts and steps the task on one state.
-void func_dryfield_night_motel_lobby_80181298(Task* task);
-
-/// Draws a pulsing gouraud marker of two diamonds and two diagonals at the
-/// projection of `pos`.
-void func_dryfield_night_motel_lobby_80181404(SVECTOR* pos, s32 rate, s32 size);
-
-/// Draws a pulsing gouraud glow of wedges at the projection of `pos`.
-void func_dryfield_night_motel_lobby_80181878(SVECTOR* pos, s32 rate, s32 size);
+/// States of the examine task, in the order `D_dryfield_night_motel_lobby_8017D6B0`
+/// lists them.
+void func_dryfield_night_motel_lobby_80180E98(Task* task);
+void func_dryfield_night_motel_lobby_80180FA4(Task* task);
+void func_dryfield_night_motel_lobby_80180FD8(Task* task);
+void func_dryfield_night_motel_lobby_8018103C(Task* task);
+void func_dryfield_night_motel_lobby_801810AC(Task* task);
+void func_dryfield_night_motel_lobby_80181138(Task* task);
+void func_dryfield_night_motel_lobby_8018119C(Task* task);
+void func_dryfield_night_motel_lobby_801811E0(Task* task);
+void func_dryfield_night_motel_lobby_80181218(Task* task);
+void func_dryfield_night_motel_lobby_8018122C(Task* task);
 
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H
