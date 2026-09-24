@@ -2482,24 +2482,8 @@ id = 395
 text = ["0x24", "0x48B4"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", rodata = "0x4", text = "0x70" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_4", rodata = "0x10", text = "0x2CAC" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_6", text = "0x24" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_7", text = "0x2C" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_8", text = "0x80" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_2", text = "0xC4" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_9", text = "0xCC" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_10", text = "0x124" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_11", text = "0x8A0" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_3", text = "0xBFC" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_12", text = "0xD18" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_13", text = "0xFBC" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_14", text = "0x13E8" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_15", text = "0x177C" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_16", text = "0x22EC" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_17", text = "0x3204" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_5", text = "0x3E64" },
-  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_18", text = "0x453C" },
+  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", rodata = "0x4", text = "0x24" },
+  { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_2", rodata = "0x10", text = "0x2CAC" },
   { kind = "data", at = "0x48B4" },
 ]
 
