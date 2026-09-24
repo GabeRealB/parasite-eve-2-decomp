@@ -11,7 +11,9 @@ typedef struct {
     u8 flagId;
 } _SpawnArg;
 
-void RoomsShared8017d5e4(Task* task)
+/// Hides the task's model while the 2-bit game flag its spawn argument names
+/// reads 2, and shows it otherwise.
+void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
     TmdObject* obj = task->extra;
 
