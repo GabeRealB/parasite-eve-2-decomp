@@ -2,6 +2,7 @@
 #define ROOMS_SHELTER_B2_SEPTIC_TANK_H
 
 #include "common.h"
+#include <psyq/libgte.h>
 
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
@@ -39,5 +40,7 @@ extern u8* D_shelter_b2_septic_tank_80187054;
 
 void func_shelter_b2_septic_tank_8017DB68(void);
 void func_shelter_b2_septic_tank_8017E2DC(void);
+void func_shelter_b2_septic_tank_80180054(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b2_septic_tank_8018083C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_SHELTER_B2_SEPTIC_TANK_H

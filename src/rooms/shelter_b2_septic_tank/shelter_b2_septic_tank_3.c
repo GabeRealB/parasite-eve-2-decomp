@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b2_septic_tank.h"
 
 extern s32     D_8011572C;
 extern s32     D_80115738;
@@ -34,80 +35,80 @@ void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
             switch (Gp_GetViewIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    Room_Draw12(&p[0], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[2], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[14], 0x200, 0, 0x111);
-                    Room_Draw12(&p[16], 0x200, 0, 0x111);
-                    Room_Draw12(&p[60], 0x200, 0, 0x111);
-                    Room_Draw12(&p[62], 0x200, 0, 0x111);
-                    Room_Draw30(&p[70], 0x300, 0x10);
-                    Room_Draw30(&p[72], 0x300, 0x100);
+                    func_shelter_b2_septic_tank_80180054(&p[0], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[2], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[14], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[16], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[60], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[62], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_8018083C(&p[70], 0x300, 0x10);
+                    func_shelter_b2_septic_tank_8018083C(&p[72], 0x300, 0x100);
                     break;
                 }
                 case 3: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    Room_Draw12(&p[0], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[2], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[4], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[6], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[14], 0x200, 0, 0x111);
-                    Room_Draw12(&p[16], 0x200, 0, 0x111);
-                    Room_Draw12(&p[18], 0x200, 0, 0x111);
-                    Room_Draw12(&p[20], 0x200, 0, 0x111);
-                    Room_Draw12(&p[28], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[30], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[44], 0x200, 0, 0x111);
-                    Room_Draw12(&p[46], 0x200, 0, 0x111);
-                    Room_Draw12(&p[48], 0x200, 0, 0x111);
-                    Room_Draw12(&p[60], 0x200, 0, 0x111);
-                    Room_Draw12(&p[62], 0x200, 0, 0x111);
-                    Room_Draw30(&p[70], 0x300, 0x10);
-                    Room_Draw30(&p[71], 0x300, 0x100);
-                    Room_Draw30(&p[72], 0x300, 0x100);
+                    func_shelter_b2_septic_tank_80180054(&p[0], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[2], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[4], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[6], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[14], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[16], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[18], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[20], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[28], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[30], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[44], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[46], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[48], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[60], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[62], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_8018083C(&p[70], 0x300, 0x10);
+                    func_shelter_b2_septic_tank_8018083C(&p[71], 0x300, 0x100);
+                    func_shelter_b2_septic_tank_8018083C(&p[72], 0x300, 0x100);
                     break;
                 }
                 case 4: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183344;
-                    Room_Draw12(&p[0], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[2], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[4], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[6], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[14], 0x200, 0, 0x111);
-                    Room_Draw12(&p[16], 0x200, 0, 0x111);
-                    Room_Draw12(&p[18], 0x200, 0, 0x111);
-                    Room_Draw12(&p[20], 0x200, 0, 0x111);
-                    Room_Draw12(&p[34], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[36], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[48], 0x200, 0, 0x111);
-                    Room_Draw12(&p[50], 0x200, 0, 0x111);
-                    Room_Draw12(&p[52], 0x200, 0, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    func_shelter_b2_septic_tank_80180054(&p[0], 0x200, -0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[2], 0x200, -0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[4], 0x200, -0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[6], 0x200, -0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[14], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[16], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[18], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[20], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[34], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[36], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[48], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[50], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[52], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
                     break;
                 }
                 case 5: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183374;
-                    Room_Draw12(&p[0], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[14], 0x200, 0, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
-                    Room_Draw12(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
+                    func_shelter_b2_septic_tank_80180054(&p[0], 0x200, -0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[14], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183514, 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183524, 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(D_shelter_b2_septic_tank_80183534, 0x200, 0x800, 0x100);
                     break;
                 }
                 case 6: {
                     SVECTOR* p = D_shelter_b2_septic_tank_80183314;
-                    Room_Draw12(&p[0], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[2], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[4], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[14], 0x200, 0, 0x111);
-                    Room_Draw12(&p[28], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[30], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[60], 0x200, 0, 0x111);
-                    Room_Draw12(&p[62], 0x200, 0, 0x111);
-                    Room_Draw30(&p[70], 0x300, 0x10);
-                    Room_Draw30(&p[71], 0x300, 0x100);
-                    Room_Draw30(&p[72], 0x300, 0x100);
+                    func_shelter_b2_septic_tank_80180054(&p[0], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[2], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[4], 0x200, 0x400, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[14], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[28], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[30], 0x200, 0x800, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[60], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_80180054(&p[62], 0x200, 0, 0x111);
+                    func_shelter_b2_septic_tank_8018083C(&p[70], 0x300, 0x10);
+                    func_shelter_b2_septic_tank_8018083C(&p[71], 0x300, 0x100);
+                    func_shelter_b2_septic_tank_8018083C(&p[72], 0x300, 0x100);
                     break;
                 }
             }
