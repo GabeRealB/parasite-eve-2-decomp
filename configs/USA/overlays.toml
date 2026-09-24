@@ -2203,10 +2203,13 @@ objects = [
 ]
 
 [rooms.overlays.shelter_1f_airlock]
+label = "code starts at 0x10: the handler the room's message table at 0xED4 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x18 and left it as rodata words"
 id = 424
+text = ["0x10", "0xED4"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_airlock/shelter_1f_airlock", rodata = "0x4", text = "0x5C" },
+  { unit = "shelter_1f_airlock/shelter_1f_airlock_4", text = "0x10" },
   { lib = true, unit = "room_util03", text = "0x18" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0x6C" },
   { unit = "shelter_1f_airlock/shelter_1f_airlock_2", text = "0xB0" },
