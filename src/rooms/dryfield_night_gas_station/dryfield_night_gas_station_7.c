@@ -8,9 +8,7 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_night_gas_station.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_801807d4.h"
 
-extern Task* RoomsShared8017e320Task;
 extern Task* D_dryfield_night_gas_station_801907AC;
 
 extern s32 D_8011572C;
@@ -19,10 +17,12 @@ extern s32 D_80115758;
 extern u32 Gp_LcgState;
 
 /// The room's effect anchors, 8 bytes apart. Entries 0-9 are drawn in pairs by
-/// `Room_Draw01`, 10-18 one at a time by `Room_Draw17`, and 19-20 are where the
+/// `func_dryfield_night_gas_station_801812B4`, 10-18 one at a time by
+/// `func_dryfield_night_gas_station_80181AF8`, and 19-20 are where the
 /// spawned effects are scattered around.
 extern SVECTOR D_dryfield_night_gas_station_80189C8C[];
-/// Entries 21-24 of the anchor list, reached by name: two `Room_Draw01` pairs
+/// Entries 21-24 of the anchor list, reached by name: two
+/// `func_dryfield_night_gas_station_801812B4` pairs
 /// drawn together whenever one of views 2, 3, 13 or 14 is current.
 extern SVECTOR D_dryfield_night_gas_station_80189D34[];
 /// Per-anchor view masks, one word per anchor: bit `n` set draws the anchor
@@ -31,8 +31,8 @@ extern s32 D_dryfield_night_gas_station_80189D54[];
 
 void func_dryfield_night_gas_station_80180C20(void)
 {
-    RoomsShared801807d4Task               = 0;
-    RoomsShared8017e320Task               = 0;
+    D_dryfield_night_gas_station_801907A4 = 0;
+    D_dryfield_night_gas_station_801907A8 = 0;
     D_dryfield_night_gas_station_801907AC = 0;
 }
 
@@ -176,16 +176,16 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     }
     for (i = 0; i < 10; i += 2) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            Room_Draw01(&D_dryfield_night_gas_station_80189C8C[i], 0x180, 0x222);
+            func_dryfield_night_gas_station_801812B4(&D_dryfield_night_gas_station_80189C8C[i], 0x180, 0x222);
         }
     }
     if (mask & 0x600C) {
-        Room_Draw01(&D_dryfield_night_gas_station_80189D34[0], 0x180, 0x444);
-        Room_Draw01(&D_dryfield_night_gas_station_80189D34[2], 0x180, 0x444);
+        func_dryfield_night_gas_station_801812B4(&D_dryfield_night_gas_station_80189D34[0], 0x180, 0x444);
+        func_dryfield_night_gas_station_801812B4(&D_dryfield_night_gas_station_80189D34[2], 0x180, 0x444);
     }
     for (i = 10; i < 19; i++) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            Room_Draw17(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
+            func_dryfield_night_gas_station_80181AF8(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
         }
     }
     if (GameFlag_GetNibble(0x63) == 0) {
