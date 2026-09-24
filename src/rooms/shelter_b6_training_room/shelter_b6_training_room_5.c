@@ -1,6 +1,7 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
+#include "main/mc.h"
 #include "main/task.h"
 
 #include "rooms/rooms_shared_801807d4.h"
@@ -15,7 +16,15 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_training_room/shelter_b6_training_room_5", func_shelter_b6_training_room_8017DB28);
+/// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
+/// Actor 503500 carries the same body.
+void func_shelter_b6_training_room_8017DB28(void)
+{
+    Mc_SaveData.at4.loc.area = 0x16;
+    Mc_SaveData.at4.loc.warp = 1;
+    Mc_SaveData.at4.loc.room = 1;
+    Task_Spawn(0, 0x11, 0, 0);
+}
 
 void func_shelter_b6_training_room_8017DB70(void)
 {

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actors_shared_80132724.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -985,7 +986,18 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017FCA0);
+/// Sends message 0x7DA to the slot-4 task, tagged with the current session's
+/// stage and area and the caller's selector. The actors' shared library carries
+/// the same body.
+void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
+{
+    ActorsShared80132724Msg msg;
+
+    msg.field_0 = gGameSession->at4.loc.stage;
+    msg.field_1 = gGameSession->at4.loc.area;
+    msg.field_2 = arg0;
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+}
 
 typedef struct {
     u8  pad_00[0xC];

@@ -6918,8 +6918,7 @@ slot = 1
 id = 277
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "actor_548100/actor_548100", rodata = "0x7C", text = "0xB8" },
+  { unit = "actor_548100/actor_548100", rodata = "0x4", text = "0xB8" },
   { lib = true, unit = "actors_shared_8013845c", text = "0x2908" },
   { unit = "actor_548100/actor_548100_2", text = "0x2958" },
   { lib = true, unit = "actors_shared_80134d88", text = "0x2F68" },

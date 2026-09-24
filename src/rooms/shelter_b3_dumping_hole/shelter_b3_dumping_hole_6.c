@@ -7,6 +7,7 @@
 #include "main/mem.h"
 #include "main/fs.h"
 #include "main/display.h"
+#include "actors/actor_342400.h"
 
 typedef struct {
     u8 _pad0[0x24];
@@ -150,7 +151,51 @@ void func_shelter_b3_dumping_hole_80183218(u8 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_6", func_shelter_b3_dumping_hole_80183298);
+/// Spawns the two enemies of one slot from the `D_80151E60` table, numbering
+/// them from the spawn counter, and marks the slot live. Actor 342400 carries
+/// the same body.
+void func_shelter_b3_dumping_hole_80183298(Task* arg0)
+{
+    Actor342400ChildWork* work;
+    GpEnemy*              enemy;
+    Task*                 task;
+    TmdObject*            obj;
+
+    work = memCalloc(0xC, 0);
+    if (work == NULL) {
+        goto kill;
+    }
+    arg0->work   = (TaskIdMap*)work;
+    work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
+    work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
+    if (work->enemy0 == NULL && work->enemy1 == NULL) {
+    kill:
+        taskKill(arg0);
+        return;
+    }
+    if (work->enemy0 != NULL) {
+        enemy           = work->enemy0;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
+        D_shelter_b3_dumping_hole_8018F4D4++;
+        task       = enemy->task;
+        obj        = task->extra;
+        obj->tpage = 3;
+        obj->clut  = 5;
+        enemy->hp  = 1;
+    }
+    if (work->enemy1 != NULL) {
+        enemy           = work->enemy1;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
+        D_shelter_b3_dumping_hole_8018F4D4++;
+        task       = enemy->task;
+        obj        = task->extra;
+        obj->tpage = 3;
+        obj->clut  = 5;
+        enemy->hp  = 1;
+    }
+    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1 >> 16)].field_6 = 1;
+    arg0->state++;
+}
 
 void func_shelter_b3_dumping_hole_801833EC(DumpingHoleState* arg0)
 {
