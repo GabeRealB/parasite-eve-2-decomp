@@ -2964,25 +2964,7 @@ label = "no map pool names this room"
 id = 415
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir", rodata = "0x4", text = "0x8CC" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_4", rodata = "0x44", text = "0x25C4" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_5", rodata = "0x64", text = "0x32A4" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_7", rodata = "0x7C", text = "0x5544" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_9", text = "0x90" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_10", text = "0x11E8" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_2", text = "0x1208" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_11", text = "0x12CC" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_3", text = "0x1324" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_12", text = "0x2584" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_13", text = "0x2E1C" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_14", text = "0x2F70" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_15", text = "0x3760" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_6", text = "0x3E30" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_16", text = "0x4330" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_17", text = "0x4B74" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_18", text = "0x5AB4" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_8", text = "0x6714" },
-  { unit = "shelter_b4_reservoir/shelter_b4_reservoir_19", text = "0x6DEC" },
+  { unit = "shelter_b4_reservoir/shelter_b4_reservoir", rodata = "0x4", text = "0x90" },
   { kind = "data", at = "0x7164" },
 ]
 
