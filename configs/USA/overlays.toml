@@ -3459,11 +3459,15 @@ objects = [
 slot = 1
 id = 255
 objects = [
-  # No packageId object: every compiled jump table in the rodata sits at an
-  # 8-aligned offset counted from the id word (the first at 0x28), so the id
-  # opens the code object's rodata. Split the id out and the object's rodata
-  # starts at 0x4, its tables misalign, and the image comes out 4 bytes short.
-  { unit = "actor_403600/actor_403600", rodata = "0x0", text = "0x2D8" },
+  # Every compiled jump table sits at an offset that is 0 mod 8 (the first
+  # at 0x28), so the rodata after the id cannot be one object from 0x4: an
+  # object must start at 0x18 or 0x28. The constants at 0x4-0x18 are read
+  # only by code up to 0x6E14 and the one at 0x18 by the owner of the 0x28
+  # table, so the second object starts at 0x18. Its text cut is a choice:
+  # any function boundary from 0x6E14 to 0x78D8 matches.
+  { kind = "packageId" },
+  { unit = "actor_403600/actor_403600", rodata = "0x4", text = "0x2D8" },
+  { unit = "actor_403600/actor_403600_2", rodata = "0x18", text = "0x6E14" },
   { kind = "data", at = "0x102B4" },
   { kind = "model", at = "0x103B0" },
   { kind = "model", at = "0x17A1C" },
