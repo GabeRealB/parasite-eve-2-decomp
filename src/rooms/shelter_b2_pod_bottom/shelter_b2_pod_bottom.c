@@ -47,4 +47,4 @@ void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     arg0->state++;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_bottom/shelter_b2_pod_bottom", D_shelter_b2_pod_bottom_8017D5C4);

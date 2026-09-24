@@ -1,7 +1,1 @@
 // Overlay-local symbols for shelter_b2_pod_bottom.
-Room_Util02 = 0x8017D5F4; // shared body, see src/lib/
-Room_Util05 = 0x8017D6F8; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017D708; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/
-RoomsShared80180898 = 0x80180898; // shared body, see src/lib/
-func_shelter_b2_pod_bottom_80180898 = 0x80180898; // type:func absolute:True
