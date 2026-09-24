@@ -8,7 +8,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/gfx.h"
-#include "rooms/rooms_shared_8017f470.h"
+#include "rooms/shelter_b2_elevator.h"
 
 typedef struct {
     /* 0x0 */ s32 field_0;
@@ -25,8 +25,8 @@ void func_shelter_b2_elevator_8017D5E8(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
     Game_SetPtrSlot(task, 7);
-    RoomsShared8017f470Cars[0] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 0, 0, -1);
-    RoomsShared8017f470Cars[1] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 1, 0, 1);
+    D_shelter_b2_elevator_8017EA00[0] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 0, 0, -1);
+    D_shelter_b2_elevator_8017EA00[1] = Task_SpawnFromTable(&D_shelter_b2_elevator_8017DF70, 1, 0, 1);
     if (D_8007218B != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
@@ -93,4 +93,4 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             break;
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator/shelter_b2_elevator", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator/shelter_b2_elevator", D_shelter_b2_elevator_8017D5C4);
