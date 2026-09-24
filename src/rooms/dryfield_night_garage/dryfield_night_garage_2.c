@@ -1,148 +1,378 @@
 #include "common.h"
 
-#include "gameplay/1A8.h"
-#include "gameplay/268.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
+#include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
+#include "main/wipsys.h"
+#include "rooms/dryfield_night_garage.h"
+#include "rooms/room_common.h"
 
-/// Cutscene script blob argument of `func_800E8634`.
-extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Byte at 0x8007272D, written when the garage scene ends.
-extern s8 D_8007272D;
+extern s8 D_8007106B;
 
-/// One entry of the room's 0x98-byte display-object table. Only the flag byte
-/// at 0x4A is touched here: bit 6 shows the entry, clearing it hides it.
-typedef struct {
-    /* 0x00 */ u8 pad_0[0x4A];
-    /* 0x4A */ u8 field_4A;
-    /* 0x4B */ u8 pad_4B[0x4D];
-} DryfieldNightGarageObj;
+extern s32            D_dryfield_night_garage_80182DE0;
+extern s32            D_dryfield_night_garage_80182DE4;
+extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
+extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
 
-STATIC_ASSERT_SIZEOF(DryfieldNightGarageObj, 0x98);
+/// Descriptor of the task `func_dryfield_night_garage_80180D4C` spawns.
+extern TaskDesc D_dryfield_night_garage_80183380;
 
-extern TaskDesc               D_8013B11C[];
-extern s32                    D_dryfield_night_garage_80182DE0;
-extern s32                    D_dryfield_night_garage_80182DE4;
-extern TaskDesc               D_dryfield_night_garage_80182C98[];
-extern s32                    D_dryfield_night_garage_80182DF8;
-extern s32                    D_dryfield_night_garage_801831B8;
-extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
+/// The garage's two point-pair runs, 8-byte `SVECTOR`s laid back to back from
+/// `801833A4`: four pairs the visit-3/15 case sweeps (`A4[0]`, `A4[2]`, `A4[4]`,
+/// `A4[6]`), of which the last two are also what visit 11 sweeps from
+/// `801833D4`. `801833D4` is named separately because visit 11 reaches it by
+/// name where the visit-3/15 case reaches the same address as `A4[6]` -
+/// indexing emits the base plus 0x30, naming it emits its own `lui`.
+extern SVECTOR D_dryfield_night_garage_801833A4[];
+extern SVECTOR D_dryfield_night_garage_801833D4;
 
-/// The room's own `GpMsgEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
-/// publishes in `Task::msgTable`. It terminates with id 0x7FFFFFFF.
-extern GpMsgEntry D_dryfield_night_garage_80181C38[];
-
-/// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
-/// payload of the 0x3E8 message.
-extern s32 D_dryfield_night_garage_80181C68;
-
-/// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
-extern s32 D_dryfield_night_garage_80181C7C;
-
-/// Cutscene script blobs owned by the main executable.
-extern s32 D_8013B570;
-extern s32 D_8013B590;
-extern s32 D_8013C388;
-
-s32 func_800D4D2C(s32 arg0);
-
-s32 func_dryfield_night_garage_80180A64(s32 arg0);
-
-void func_dryfield_night_garage_80180604(s32 arg0);
-
-/// State 0 of this room's message task, run when the garage scene starts.
-/// Publishes the room's message table in `Task::msgTable` and the task itself
-/// in pointer slot 7, clears the display bit on the first object entry, then
-/// hands off to the player actor through messages 0x3E9 / 0x3E8.
-void func_dryfield_night_garage_8017FF2C(Task* task)
+void func_dryfield_night_garage_801809A4(Task* arg0)
 {
-    DryfieldNightGarageObj* base;
-    DryfieldNightGarageObj* obj;
-    Task*                   player;
+    s32 temp_v1;
 
-    task->msgTable = D_dryfield_night_garage_80181C38;
-    Game_SetPtrSlot(task, 7);
-    D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
-    player                                      = gameGetPtrSlot(0xA);
-    if (gGameSession->at4.loc.place == 3 && player != NULL) {
-        Gp_DispatchMsg(player, 0x3E9, (s32)&D_8013B570, 0);
-        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
-        Gp_DispatchMsg(player, 0x3E8, (s32)&D_dryfield_night_garage_80181C68, 0);
-        func_dryfield_night_garage_80180604(0);
-        Gp_EndPlayerActorTask((GpActorWork*)player);
-        if (GameFlag_GetNibble(0x8E) == 0) {
-            Gp_FillAllyHp();
-            GameFlag_SetNibble(0x8E, 1);
-            func_800E8634((s32)&D_8013B590, 0, (s32)&D_8013C388);
-        } else {
-            func_800E8614((s32)&D_dryfield_night_garage_80181C7C, 1);
-        }
+    temp_v1 = arg0->state;
+    switch (temp_v1) {
+        case 0:
+            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE0, 0);
+            arg0->state = arg0->state + 1;
+            return;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                Gp_MsgPlayerWeapon(1);
+                Gp_DispatchMsg(func_dryfield_night_garage_80180A64(0), 0x7DB, (s32)&D_dryfield_night_garage_80182DE4, 0);
+                break;
+            }
+            return;
     }
-    if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0x6C) > 0) {
-        if (GameFlag_GetNibble(0x6C) == 1) {
-            GameFlag_SetNibble(0x6C, 2);
-        }
-        base            = D_dryfield_night_garage_80186E60;
-        obj             = base + 1;
-        base->field_4A |= 0x40;
-        obj->field_4A  &= 0xBF;
-    }
-    task->state = (s32)(task->state + 1);
+    taskKill(arg0);
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+Task* func_dryfield_night_garage_80180A64(s32 arg0)
 {
-    DryfieldNightGarageObj* base;
-    DryfieldNightGarageObj* obj;
+    GpWorkObj* work;
+    Task*      task;
 
-    if (msg->field_2 == 6) {
-        if (gGameSession->at4.loc.place == 2) {
-            if (GameFlag_GetNibble(0x6C) == 0) {
-                if (Gp_HasCollectedBit(0x113) == 0) {
-                    Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
-                } else if (Gp_HasCollectedBit(0x117) == 0 && Gp_HasCollectedBit(0x118) == 0) {
-                    Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
-                } else if (Gp_HasCollectedBit(0x118) == 0) {
-                    Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
-                } else if (GameFlag_GetNibble(0x6C) == 0) {
-                    base            = D_dryfield_night_garage_80186E60;
-                    obj             = base + 1;
-                    base->field_4A |= 0x40;
-                    obj->field_4A  &= 0xBF;
-                    func_800E8634((s32)&D_dryfield_night_garage_80182DF8, 0,
-                                  (s32)&D_dryfield_night_garage_801831B8);
-                    GameFlag_SetNibble(0x6C, 1);
-                    func_800E3FAC(0xA2, 0x17);
-                    Gp_ClearCollectedBit(0x118);
-                    D_8007272D = 5;
-                }
-            } else {
-                Gp_MsgPlayerWeapon(0);
-                if (GameFlag_GetNibble(0x6C) == 1) {
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0xA, 0);
-                } else {
-                    Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0x15, 0);
-                }
-            }
-        }
+    work = Gp_FindWorkById(gGameSession->at4.loc.area | ((arg0 << 12) | (gGameSession->at4.loc.stage << 8)));
+    task = NULL;
+    if (work != NULL) {
+        task = (Task*)work->field_0;
     }
-    if (msg->field_2 == 1) {
-        if (GameFlag_GetNibble(0x97) != 0) {
-            Gp_StartCapSlot(0x14, 1, 0);
+    return task;
+}
+
+void func_dryfield_night_garage_80180AB0(void)
+{
+    Gp_ApplyAreaRecs(D_dryfield_night_garage_801875D8);
+    GameFlag_SetNibble(0x59, 0);
+    GameFlag_SetNibble(0x5A, 0);
+    GameFlag_SetNibble(0x4B, 5);
+    GameFlag_SetNibble(0x35, 1);
+    if (GameFlag_GetNibble(0xCE) != 0) {
+        Gp_ApplyAreaRecs(D_dryfield_night_garage_80187620);
+    }
+}
+
+void func_dryfield_night_garage_80180B20(Task* arg0)
+{
+    u8          slotParam[4];
+    GameLoc     key;
+    s16         slot;
+    CdCmdQueue* queue;
+    Task*       task;
+
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+    }
+    return;
+
+L_case0:
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
+
+L_case1:
+    key = gGameSession->at4;
+    if (Wip_SysFlags.field_0 == 2) {
+        if (task->spawnArg1 != 0) {
+            key.loc.view = 0x67;
         } else {
-            Gp_SpawnIfCapIdle(0x36, 0);
+            key.loc.view = 0x65;
+        }
+    } else {
+        if (task->spawnArg1 != 0) {
+            key.loc.view = 0x66;
+        } else {
+            key.loc.view = 0x64;
         }
     }
-    if (msg->field_2 == 2 && gGameSession->at4.loc.place == 3 && gameGetPtrSlot(0xA) != NULL) {
-        Task_SpawnFromTable(D_8013B11C, 1, 0, 0);
+    slot = Stream_FindSlot(key.raw.data, 0, 0);
+    {
+        s32 cmd;
+        s32 zero;
+        u8* p;
+        cmd  = 0x61;
+        zero = 0;
+        p    = slotParam;
+        SOFT_TOUCH_REG4(cmd, zero, p, slot);
+        slotParam[0] = slot;
+        CdCmd_Enqueue(cmd, zero, p);
     }
-    return 0;
+    goto advance;
+
+L_case2:
+    if (queue->field_1FA == 0) {
+        return;
+    }
+    SetDispMask(1);
+    goto advance;
+
+L_case3:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        SetDispMask(0);
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    SetDispMask(0);
+    CdCmd_ActivatePhase1();
+    goto advance;
+
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Stream_ResetRestoreState();
+advance:
+    task->state = task->state + 1;
+    return;
+
+L_case5:
+    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+        return;
+    }
+    taskKill(task);
+    Display_ResetHeapWrapper();
+}
+
+/// Fades the screen to white: draws a white overlay whose level, kept in
+/// `killCountdown`, rises by 4 each frame, and kills the task once it reaches
+/// 0x100.
+void func_dryfield_night_garage_80180CEC(Task* arg0)
+{
+    u16 temp_v0;
+
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    temp_v0             = arg0->killCountdown + 4;
+    arg0->killCountdown = temp_v0;
+    if ((s16)temp_v0 >= 0x100) {
+        taskKill(arg0);
+    }
+}
+
+/// Spawns `D_dryfield_night_garage_80183380` with an ordering table, passing
+/// on the task's `spawnArg1`, sets `D_8007106B`, spawns the view tasks and
+/// kills itself.
+void func_dryfield_night_garage_80180D4C(Task* arg0)
+{
+    Display_SpawnWithOt(&D_dryfield_night_garage_80183380, 1, arg0->spawnArg1, 0);
+    D_8007106B = 1;
+    Gp_SpawnViewTasks();
+    taskKill(arg0);
+}
+
+/// Draws a glowing strip between `arg0[0]` and `arg0[1]`. Both points are
+/// projected; when the second lies past the near limit, gouraud quads are
+/// fanned around each projected point with a radius of `arg1 * 64` over its
+/// depth, starting at angle `arg2`, and joined by quads between the two. The
+/// inner colour alternates between 0x20 and 0x30 with the frame counter.
+void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
+{
+    u8*                head;
+    RoomDraw11Scratch* block;
+    POLY_G4*           prim;
+    POLY_G4*           p;
+    SVECTOR*           p1;
+    s32                ang;
+    s32                t;
+    s32                t2;
+    s32                t3;
+    s32                rgb;
+    s32                extent;
+    s32                r0;
+    s32                r1;
+    s32                base;
+
+    {
+        void** scratch;
+        u8*    tmp;
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        tmp      = head - 0x18;
+        *scratch = tmp;
+        p1       = arg0 + 1;
+        block    = (RoomDraw11Scratch*)tmp;
+    }
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
+    gte_stszotz(&block->otz0);
+    gte_ldv0(p1);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
+    gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
+    if (block->otz1 >= 0x11) {
+        if (((RoomDraw11Scratch*)(head - 0x18))->otz0 < 0x10) {
+            ((RoomDraw11Scratch*)(head - 0x18))->otz0 = 0x10;
+        }
+        extent    = (s16)arg1 * 64;
+        r0        = extent / ((RoomDraw11Scratch*)(head - 0x18))->otz0;
+        r1        = extent / block->otz1;
+        ang       = 0;
+        base      = (s16)arg2;
+        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
+        block->r0 = r0;
+        block->r1 = r1;
+        do {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            p        = prim;
+            p->r2    = rgb;
+            p->g2    = rgb;
+            prim->b2 = rgb;
+            p->r3    = 0;
+            p->g3    = 0;
+            p->b3    = 0;
+            p->x0    = block->sx0 + ((block->r0 * rsin(base + ang)) >> 12);
+            p->y0    = block->sy0 + ((block->r0 * rcos(base + ang)) >> 12);
+            t        = ang + 0x200;
+            prim->x1 = block->sx0 + ((block->r0 * rsin(base + t)) >> 12);
+            prim->y1 = block->sy0 + ((block->r0 * rcos(base + t)) >> 12);
+            t2       = ang + 0x400;
+            p->x2    = block->sx0;
+            prim->y2 = block->sy0;
+            prim->x3 = block->sx0 + ((block->r0 * rsin(base + t2)) >> 12);
+            prim->y3 = block->sy0 + ((block->r0 * rcos(base + t2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb, rgb, rgb);
+            setRGB3(prim, rgb, rgb, rgb);
+            prim->x0 = block->sx0 + ((block->r0 * rsin(base + (ang * 2))) >> 12);
+            prim->y0 = block->sy0 + ((block->r0 * rcos(base + (ang * 2))) >> 12);
+            prim->x1 = block->sx1 + ((block->r1 * rsin(base + (ang * 2))) >> 12);
+            prim->y1 = block->sy1 + ((block->r1 * rcos(base + (ang * 2))) >> 12);
+            prim->x2 = block->sx0;
+            prim->y2 = block->sy0;
+            prim->x3 = block->sx1;
+            prim->y3 = block->sy1;
+            addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+            SCHED_BARRIER();
+            t3             = ang - 0x1000;
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            t              = ang - 0x1000;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb, rgb, rgb);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx1 + ((block->r1 * rsin(base - t3)) >> 12);
+            prim->y0 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
+            t        = ang - 0xE00;
+            prim->x1 = block->sx1 + ((block->r1 * rsin(base - t)) >> 12);
+            prim->y1 = block->sy1 + ((block->r1 * rcos(base - t)) >> 12);
+            t        = ang - 0xC00;
+            prim->x2 = block->sx1;
+            prim->y2 = block->sy1;
+            t        = base - t;
+            prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+            prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+            ang      = t2;
+            addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+        } while (ang < 0x800);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
+
+/// Garage room draw: sweeps the glowing strip the current visit
+/// (`gGameSession->at4.loc.view`) selects. Visits 3 and 15 sweep all four of the
+/// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
+/// with its own blend (`arg2` 0x800 instead of 0). Each case names its own last
+/// draw, which `jump.c` cross-jumps into one tail block after the last case.
+void func_dryfield_night_garage_80181518(void)
+{
+    switch (gGameSession->at4.loc.view) {
+        case 3:
+        case 15: {
+            SVECTOR* p = D_dryfield_night_garage_801833A4;
+            func_dryfield_night_garage_80180D9C(&p[0], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[2], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[4], 0x200, 0);
+            func_dryfield_night_garage_80180D9C(&p[6], 0x200, 0);
+            break;
+        }
+        case 7:
+        case 14:
+            func_dryfield_night_garage_80180D9C(&D_dryfield_night_garage_801833A4[0], 0x200, 0);
+            break;
+        case 11: {
+            SVECTOR* p = &D_dryfield_night_garage_801833D4;
+            func_dryfield_night_garage_80180D9C(&p[0], 0x200, 0x800);
+            func_dryfield_night_garage_80180D9C(&p[2], 0x200, 0x800);
+            break;
+        }
+    }
 }

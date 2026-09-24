@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_night_garage.
+D_dryfield_night_garage_8017D6F4 = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
