@@ -12,22 +12,446 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "main/session.h"
-#include "gameplay/3A34.h"
+#include "main/gameflag.h"
 
 #include "gameplay/D4.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 
-#include "actors/actor_403100.h"
-#include "actors/actor_403100_rotation.h"
-#include "actors/actor_403100_regions.h"
+void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
+void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
+void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
+void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_actor_403100_8013D06C(void);
+s32  func_actor_403100_8013D460(GsCOORDINATE2* coord, SVECTOR* pos);
 
-/// The actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern TaskFuncTable3 D_actor_403100_80131E70;
-extern TaskFuncTable3 D_actor_403100_80131E7C;
+typedef struct Actor403100QuadEntry {
+    /* 0x00 */ u16 tpage;
+    /* 0x02 */ u16 clut;
+    /* 0x04 */ u16 w;
+    /* 0x06 */ u16 h;
+    /* 0x08 */ u16 x;
+    /* 0x0A */ u16 y;
+    /* 0x0C */ u16 depth;
+    /* 0x0E */ u8  u;
+    /* 0x0F */ u8  v;
+    /* 0x10 */ u32 field_10;
+} Actor403100QuadEntry;
+STATIC_ASSERT_SIZEOF(Actor403100QuadEntry, 0x14);
+
+typedef struct Actor403100RectEntry {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s16 w;
+    /* 0x06 */ s16 h;
+    /* 0x08 */ s32 value;
+} Actor403100RectEntry;
+STATIC_ASSERT_SIZEOF(Actor403100RectEntry, 0xC);
+
+typedef union Actor403100Flags {
+    u32 word;
+    u16 half;
+    struct {
+        u16 low;
+        s16 high;
+    } h;
+} Actor403100Flags;
+STATIC_ASSERT_SIZEOF(Actor403100Flags, 0x4);
+
+typedef struct Actor403100Light {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ union {
+        GsCOORDINATE2 coord;
+        GpObj44       light;
+    } field_4;
+} Actor403100Light;
+STATIC_ASSERT_SIZEOF(Actor403100Light, 0x64);
+
+/// Rotation matrix with aligned word stores for identity initialization.
+typedef union Actor403100Matrix {
+    MATRIX mat;
+    struct {
+        /* 0x00 */ s32 m00_m01;
+        /* 0x04 */ s32 m02_m10;
+        /* 0x08 */ s32 m11_m12;
+        /* 0x0C */ s32 m20_m21;
+        /* 0x10 */ s16 m22;
+    } ident;
+} Actor403100Matrix;
+STATIC_ASSERT_SIZEOF(Actor403100Matrix, 0x20);
+
+extern GpPairSrcE D_actor_403100_8014762C;
+
+typedef struct Actor403100Entry {
+    /* 0x00 */ s16           active;
+    /* 0x02 */ s16           age;
+    /* 0x04 */ s16           frame;
+    /* 0x06 */ SVECTOR       delta;
+    /* 0x0E */ SVECTOR       position;
+    /* 0x16 */ u8            pad_16[0xA];
+    /* 0x20 */ GsCOORDINATE2 coord;
+    /* 0x70 */ GpObj         obj;
+    /* 0x90 */ GpRec18       records[4];
+} Actor403100Entry;
+STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
+
+extern GpAreaApplyRec   D_8018F2CC;
+extern s16              D_actor_403100_80155810;
+extern Actor403100Entry D_actor_403100_80155814[28];
+extern GsCOORDINATE2    D_actor_403100_80155834;
+extern GpRec18          D_actor_403100_801558A4[];
+
+void func_8017F6C8(s32 screen, s32 depth, s32 size, s32 frame);
+
+/// Eight animation-set pointers passed to slot 3 in message 0x3FF.
+/// Entry 4 is replaced by entry 7 of the selected player animation block.
+typedef struct Actor403100AnimTable {
+    /* 0x00 */ GpAnimSet* sets[8];
+} Actor403100AnimTable;
+STATIC_ASSERT_SIZEOF(Actor403100AnimTable, 0x20);
+
+/// Position and Euler rotation payload sent to slot 3 as message 0x3E9.
+typedef struct Actor403100MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor403100MsgPos;
+STATIC_ASSERT_SIZEOF(Actor403100MsgPos, 0x18);
+
+/// The word at `Actor403100Work::field_664`, which the overlay reads both as a
+/// whole word and as four separate bytes: `func_actor_403100_8013D2A0` gates a
+/// new request on `word & 0xFFFF00` (the two bytes at 0x665 / 0x666) being
+/// clear, then sets those two bytes, while `func_actor_403100_8013CDC0`
+/// switches on the byte at 0x666 alone. Both views are modelled explicitly.
+typedef union Actor403100Req {
+    /* 0x0 */ s32 word;
+    struct {
+        /* 0x0 */ s8 field_664;
+        /* 0x1 */ s8 field_665;
+        /* 0x2 */ u8 field_666; // 4-state machine ticked by func_actor_403100_8013CDC0
+        /* 0x3 */ s8 field_667;
+    } b;
+} Actor403100Req;
+STATIC_ASSERT_SIZEOF(Actor403100Req, 0x4);
+
+/// Per-actor work block for the `actor_403100` overlay.
+///
+/// `func_actor_403100_80136610` allocates it with `memCalloc(0x678, 0)` and
+/// stores the same pointer twice: into the `Task::work` slot (0x1C), which an
+/// enemy actor reuses for its own work block, and into the overlay-wide
+/// `D_actor_403100_80155808`. It also hands `work + 0x20` and `work` to the
+/// `TmdObject` at `Task::extra` (`field_1C` / `field_20`). Most of the overlay
+/// reaches it through the global rather than through the task.
+typedef struct Actor403100Work {
+    /* 0x000 */ union {
+        byte pad_0[0x80];
+        struct {
+            MATRIX color;
+            MATRIX light;
+            MATRIX coord;
+        } matrices;
+    } field_0;
+    /* 0x080 */ s16     field_80;
+    /* 0x082 */ s16     field_82; // facing angle, stepped towards field_B2
+    /* 0x084 */ s16     field_84;
+    /* 0x086 */ byte    pad_86[0x2];
+    /* 0x088 */ SVECTOR savedRotation;
+    /* 0x090 */ s16     field_90;
+    /* 0x092 */ s16     field_92;
+    /* 0x094 */ s16     field_94;
+    /* 0x096 */ byte    pad_96[2];
+    /* 0x098 */ s16     field_98;
+    /* 0x09A */ s16     field_9A;
+    /* 0x09C */ s16     field_9C;
+    /* 0x09E */ byte    pad_9E[2];
+    /* 0x0A0 */ s16     field_A0;
+    /* 0x0A2 */ s16     field_A2;
+    /* 0x0A4 */ s16     field_A4;
+    /* 0x0A6 */ byte    pad_A6[0x2];
+    /* 0x0A8 */ s16     field_A8;
+    /* 0x0AA */ s16     field_AA;
+    /* 0x0AC */ s16     field_AC;
+    /* 0x0AE */ byte    pad_AE[0x2];
+    /* 0x0B0 */ s16     field_B0;
+    /* 0x0B2 */ s16     field_B2; // target angle
+    /* 0x0B4 */ s16     field_B4; // angle offset, decayed towards 0
+    /* 0x0B6 */ byte    pad_B6[2];
+    /* 0x0B8 */ union {
+        struct {
+            GpAnimCtx  anim;
+            GpAnimSlot slots[15];
+        } animation;
+        struct {
+            byte             pad_B8[0x4C];
+            Actor403100Flags flags_104;
+            byte             pad_108[0x24];
+            u16              flags_12C;
+            byte             pad_12E[0x2E6];
+        } legacy;
+    } field_B8;
+    /* 0x414 */ GpObj field_414; // display nodes unlinked on death
+    /* 0x434 */ byte  pad_434[0x48];
+    /* 0x47C */ GpObj field_47C;
+    /// Contact records the actor's own body collects, under `field_414`:
+    /// `func_actor_403100_8013335C` walks all eight for kind-2 hits and
+    /// `Gp_ClearRec18Occupied` empties the table each frame.
+    /* 0x49C */ GpRec18 pad_49C[8];
+    /* 0x55C */ GpObj   field_55C;
+    /// Contact records from the first attached collider (`field_55C`).
+    /* 0x57C */ GpRec18 pad_57C[1];
+    /* 0x594 */ GpObj   field_594;
+    /// Contact records from the second attached collider (`field_594`).
+    /* 0x5B4 */ GpRec18          pad_5B4[1];
+    /* 0x5CC */ byte             pad_5CC[4];
+    /* 0x5D0 */ s32              field_5D0;
+    /* 0x5D4 */ s32              field_5D4;
+    /* 0x5D8 */ s16              field_5D8;
+    /* 0x5DA */ s16              field_5DA; // animation request kind
+    /* 0x5DC */ u16              field_5DC;
+    /* 0x5DE */ s16              field_5DE; // animation id
+    /* 0x5E0 */ u16              field_5E0;
+    /* 0x5E2 */ s16              field_5E2;
+    /* 0x5E4 */ s16              field_5E4; // frames until the next hit is taken
+    /* 0x5E6 */ s16              field_5E6;
+    /* 0x5E8 */ s16              field_5E8;
+    /* 0x5EA */ s16              field_5EA;
+    /* 0x5EC */ u16              field_5EC; // per-state frame counter
+    /* 0x5EE */ s16              field_5EE;
+    /* 0x5F0 */ s16              field_5F0;
+    /* 0x5F2 */ s16              field_5F2;
+    /* 0x5F4 */ s16              field_5F4;
+    /* 0x5F6 */ s16              field_5F6;
+    /* 0x5F8 */ u16              field_5F8; // state index
+    /* 0x5FA */ u16              field_5FA; // sub-state index
+    /* 0x5FC */ s16              field_5FC;
+    /* 0x5FE */ s16              field_5FE;
+    /* 0x600 */ s16              field_600;
+    /* 0x602 */ s16              field_602;
+    /* 0x604 */ s16              field_604;
+    /* 0x606 */ s16              field_606;
+    /* 0x608 */ s16              field_608;
+    /* 0x60A */ s16              field_60A;
+    /* 0x60C */ s16              field_60C;
+    /* 0x60E */ s16              field_60E;
+    /* 0x610 */ s16              field_610;
+    /* 0x612 */ s16              field_612[3];
+    /* 0x618 */ s16              field_618;
+    /* 0x61A */ byte             pad_61A[0x2];
+    /* 0x61C */ s16              field_61C;
+    /* 0x61E */ s16              field_61E;
+    /* 0x620 */ s16              field_620;
+    /* 0x622 */ s16              field_622;
+    /* 0x624 */ byte             pad_624[2];
+    /* 0x626 */ s16              field_626;
+    /* 0x628 */ s16              field_628;
+    /* 0x62A */ s16              field_62A;
+    /* 0x62C */ s16              field_62C;
+    /* 0x62E */ s16              field_62E;
+    /* 0x630 */ s16              field_630;
+    /* 0x632 */ s16              field_632;
+    /* 0x634 */ Actor403100Flags flags_634;
+    /* 0x638 */ s16              field_638;
+    /* 0x63A */ s16              field_63A;
+    /* 0x63C */ union {
+        s16 regionFlags[9];
+        struct {
+            s16  field_63C;
+            s16  field_63E;
+            byte pad_640[0xE];
+        } fields;
+    } regions;
+    /* 0x64E */ byte           pad_64E[6];
+    /* 0x654 */ s16            field_654;
+    /* 0x656 */ u16            field_656;
+    /* 0x658 */ s16            field_658;
+    /* 0x65A */ s16            field_65A;
+    /* 0x65C */ u8             field_65C;
+    /* 0x65D */ s8             field_65D;
+    /* 0x65E */ byte           pad_65E[0x1];
+    /* 0x65F */ s8             field_65F;
+    /* 0x660 */ byte           pad_660[0x4];
+    /* 0x664 */ Actor403100Req field_664;
+    /* 0x668 */ union {
+        u16 flags;
+        struct {
+            s8 field_668;
+            s8 field_669;
+        } b;
+    } field_668;
+    /* 0x66A */ byte pad_66A[0x5];
+    /* 0x66F */ s8   field_66F;
+    /* 0x670 */ byte pad_670[0x8];
+} Actor403100Work;
+STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
+
+void func_actor_403100_8013480C(Task* arg0, s32 arg1);
+
+void       func_actor_403100_80133C94(void);
+void       func_actor_403100_80133D88(Task* arg0);
+void       func_actor_403100_80133E88(Task* arg0);
+void       func_actor_403100_8013E5FC(void);
+void       func_actor_403100_8013E624(Task* arg0);
+void       func_8004BFF8(s16 angle, MATRIX* matrix);
+extern s32 D_80070F70;
+
+void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
+
+/* This routine ignores its incoming arguments; callers use both forms. */
+void func_actor_403100_801327CC();
+void func_actor_403100_801328DC(Task* arg0);
+void func_actor_403100_8013B128(Task* arg0);
+void func_actor_403100_8013B3C4(Task* arg0);
+void func_actor_403100_8013D11C(Task* arg0);
+void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
+void func_actor_403100_8013D1B8(s16 arg0, s16 arg1);
+void func_actor_403100_8013D24C(void);
+s32  func_actor_403100_8013D2F4(GsCOORDINATE2* coord, MATRIX* matrix);
+s32  func_actor_403100_8013E33C(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2);
+void func_actor_403100_8013D770(Task* arg0);
+void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2);
+void func_actor_403100_8013F610(void);
+void func_actor_403100_8013F658(void);
+void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
+
+extern GpImgRec  D_actor_403100_801555EC;
+extern GpU16Pair D_actor_403100_80147614;
+void             func_actor_403100_801342B4(Task* arg0);
+void             func_actor_403100_8013C7B4(Task* arg0);
+
+extern u8 D_actor_403100_801557A8[];
+
+void func_8018257C(void);
+void func_8017E250(s32 arg0, s32 arg1);
+
+extern TaskDesc D_actor_403100_8015560C;
+extern s16      D_actor_403100_80155794[5][2];
+
+void func_actor_403100_8013E964(void);
+void func_actor_403100_8013E96C(Task* arg0);
+void func_actor_403100_8013E9D8(Task* arg0);
+void func_actor_403100_8013EA60(Task* arg0);
+void func_actor_403100_8013EAD4(Task* arg0);
+void func_actor_403100_8013EB68(Task* arg0);
+void func_actor_403100_8013EBC8(Task* arg0);
+void func_actor_403100_8013EC4C(Task* arg0);
+void func_actor_403100_8013ECD0(Task* arg0);
+void func_actor_403100_8013ED48(void);
+
+/* Per-frame actor dispatcher tables and region query. */
+typedef struct {
+    void (*funcs[4])(void);
+} Actor403100VoidTable4;
+extern Actor403100RectEntry D_actor_403100_80155638[];
+extern s32                  D_80166098;
+s32                         func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
+
+extern u8 D_actor_403100_801557B0[2][16];
+
+typedef struct {
+    s16 x;
+    s16 z;
+    s16 width;
+    s16 depth;
+    s32 id;
+} Actor403100Region;
+extern Actor403100Region D_actor_403100_80155698[];
+
+static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
+{
+    Actor403100Region* region;
+    for (region = D_actor_403100_80155698; region->id != -1; region++) {
+        if (x >= region->x && x <= region->x + region->width &&
+            z >= region->z && z <= region->z + region->depth) {
+            return region->id;
+        }
+    }
+    return 0;
+}
+
+static __inline__ s32 Actor403100_FindEffectRegion(s16 x, s16 z)
+{
+    Actor403100RectEntry* region;
+    for (region = D_actor_403100_80155638; region->value != -1; region++) {
+        if (x >= region->x && x <= region->x + region->w && z >= region->y && z <= region->y + region->h)
+            return region->value;
+    }
+    return 0;
+}
+
+/* Inline forms of this actor's rotation traversal helpers. */
+static __inline__ s32 Actor403100_AccumulateRotation(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    *arg1 = arg0->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(arg1);
+        MatrixNormal(arg1, &matrix);
+        *arg1 = matrix;
+        coord = coord->sub;
+    }
+}
+
+static __inline__ s32 Actor403100_LocalizeRotation(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    if (coord == &gGfxViewCoord) {
+        return 0;
+    }
+    matrix = coord->coord;
+    while (1) {
+        coord = coord->sub;
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            break;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(&matrix);
+        MatrixNormal(&matrix, &normal);
+        matrix = normal;
+    }
+    __asm__ volatile(
+        "lhu $12, 0(%0);"
+        "lhu $13, 6(%0);"
+        "lhu $14, 12(%0);"
+        "sh $12, 0(%1);"
+        "sh $13, 2(%1);"
+        "sh $14, 4(%1);"
+        "lhu $12, 2(%0);"
+        "lhu $13, 8(%0);"
+        "lhu $14, 14(%0);"
+        "sh $12, 6(%1);"
+        "sh $13, 8(%1);"
+        "sh $14, 10(%1);"
+        "lhu $12, 4(%0);"
+        "lhu $13, 10(%0);"
+        "lhu $14, 16(%0);"
+        "sh $12, 12(%1);"
+        "sh $13, 14(%1);"
+        "sh $14, 16(%1);"
+        : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+    gte_SetRotMatrix(&transposed);
+    MulRotMatrix(arg1);
+    return 1;
+}
 
 /// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
 /// this actor's `GsCOORDINATE2`.
@@ -36,12 +460,13 @@ extern GpEnemy*         D_actor_403100_8015580C;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-void                  func_8017E3C8(void);
-void                  func_8017E4B8(void);
-extern u16            D_actor_403100_80147630;
-extern GsCOORDINATE2* D_actor_403100_80155630;
-extern u32            D_actor_403100_801556EC[];
-extern u32            D_actor_403100_8015572C[];
+void                        func_8017E3C8(void);
+void                        func_8017E4B8(void);
+extern u16                  D_actor_403100_80147630;
+extern GsCOORDINATE2*       D_actor_403100_80155630;
+extern u32                  D_actor_403100_801556EC[];
+extern u32                  D_actor_403100_8015572C[];
+extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
 extern s8                   D_8007216C;
 extern s8                   D_8007218A;
@@ -59,8 +484,11 @@ extern u8  D_80165FC0;
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
 void func_8017E128(s32 arg0);
+void func_80182730(void);
 
-/* Still `INCLUDE_ASM` in this unit. */
+extern MATRIX Gfx_ViewWorldMtx;
+
+/* Defined later in this file. */
 void func_actor_403100_801326DC(Actor403100Work* work);
 void func_actor_403100_8013712C(Task* arg0);
 void func_actor_403100_8013C008(s16 arg0, s16 arg1);
@@ -70,6 +498,113 @@ void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
 void func_actor_403100_8013E6F0(Task* arg0);
 void func_actor_403100_8013F12C(void);
+void func_actor_403100_8013E16C(void);
+void func_actor_403100_8013E174(void);
+void func_actor_403100_8013E1E4(void);
+void func_actor_403100_8013E2BC(void);
+void func_actor_403100_8013BA64(Task* arg0);
+void func_actor_403100_8013C214(Task* arg0);
+void func_actor_403100_8013CBE0(Task* arg0);
+void func_actor_403100_8013CDC0(void);
+void func_actor_403100_8013D2A0(s16 arg0);
+void func_actor_403100_8013D6B4(Task* arg0);
+void func_actor_403100_8013D700(Task* arg0);
+void func_actor_403100_80136830(Task* arg0);
+void func_actor_403100_80137268(void);
+void func_actor_403100_80137310(void);
+void func_actor_403100_8013BB8C(Task* arg0);
+void func_actor_403100_8013BDE4(Task* arg0);
+void func_actor_403100_8013BEF0(Task* arg0);
+void func_actor_403100_8013D88C(Task* arg0);
+void func_actor_403100_8013D8F4(Task* arg0);
+void func_actor_403100_8013DA6C(void);
+void func_actor_403100_8013DAC4(Task* arg0);
+void func_actor_403100_8013DB48(Task* arg0);
+void func_actor_403100_8013DC18(Task* arg0);
+void func_actor_403100_8013DCAC(Task* arg0);
+void func_actor_403100_8013DD78(Task* arg0);
+void func_actor_403100_8013DE0C(Task* arg0);
+void func_actor_403100_8013DEA0(Task* arg0);
+void func_actor_403100_8013DF0C(void);
+void func_actor_403100_8013DF64(void);
+void func_actor_403100_8013DFBC(Task* arg0);
+void func_actor_403100_8013E6A0(Task* arg0);
+void func_actor_403100_8013E784(Task* arg0);
+void func_actor_403100_8013E7C8(Task* arg0);
+void func_actor_403100_8013E88C(Task* arg0);
+void func_actor_403100_8013E920(Task* arg0);
+void func_actor_403100_8013ED50(Task* arg0);
+void func_actor_403100_8013EDDC(void);
+void func_actor_403100_8013EE28(Task* arg0);
+void func_actor_403100_8013EEB0(void);
+void func_actor_403100_8013EEB8(Task* arg0);
+void func_actor_403100_8013EF24(void);
+void func_actor_403100_8013EF2C(void);
+void func_actor_403100_8013EF34(void);
+void func_actor_403100_8013EF58(void);
+void func_actor_403100_8013EF60(void);
+void func_actor_403100_8013EFC0(void);
+void func_actor_403100_8013EFC8(Task* arg0);
+void func_actor_403100_8013F034(Task* arg0);
+void func_actor_403100_8013F0A8(Task* arg0);
+void func_actor_403100_8013F18C(void);
+void func_actor_403100_8013F1D8(void);
+void func_actor_403100_8013F230(void);
+void func_actor_403100_8013F270(void);
+void func_actor_403100_8013F2D8(void);
+void func_actor_403100_8013F344(void);
+void func_actor_403100_8013F3AC(void);
+void func_actor_403100_8013F3EC(Task* arg0);
+void func_actor_403100_8013F488(void);
+void func_actor_403100_8013F4E0(void);
+void func_actor_403100_8013F520(void);
+void func_actor_403100_8013F588(void);
+void func_actor_403100_8013F6B0(void);
+void func_actor_403100_8013F6F4(void);
+void func_actor_403100_8013F76C(void);
+void func_actor_403100_8013F7AC(void);
+void func_actor_403100_8013F7B4(void);
+void func_actor_403100_8013F7BC(void);
+
+static __inline__ s16 Actor403100_TestFlags(void)
+{
+    if (D_actor_403100_80155808->flags_634.half & 1) {
+        return 1;
+    }
+    if (D_actor_403100_80155808->flags_634.word & 0x102) {
+        return 1;
+    }
+    return 0;
+}
+
+static __inline__ s16 Actor403100_TestFlags104(void)
+{
+    if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & 1) {
+        return 1;
+    }
+    if (D_actor_403100_80155808->field_B8.legacy.flags_104.word & 0x102) {
+        return 1;
+    }
+    return 0;
+}
+
+static __inline__ s16 Actor403100_TestFlags12C(void)
+{
+    if (D_actor_403100_80155808->field_B8.legacy.flags_12C & 0x100) {
+        return 1;
+    }
+    return 0;
+}
+
+/// Per-frame hooks run before the behaviour mode, indexed by `field_5F2`.
+const Actor403100VoidTable4 D_actor_403100_80131E24 = {
+    {
+        func_actor_403100_8013E16C,
+        func_actor_403100_8013E174,
+        func_actor_403100_8013E1E4,
+        func_actor_403100_8013E2BC,
+    },
+};
 
 void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
@@ -1172,9 +1707,23 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E70);
+/// States of the task `func_actor_403100_8013E04C` runs, by `Task::state`.
+const TaskFuncTable3 D_actor_403100_80131E70 = {
+    {
+        func_actor_403100_8013E6A0,
+        func_actor_403100_8013E6F0,
+        func_actor_403100_8013E784,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131E7C);
+/// States of the task `func_actor_403100_8013E0A4` runs, by `Task::state`.
+const TaskFuncTable3 D_actor_403100_80131E7C = {
+    {
+        func_actor_403100_8013E7C8,
+        func_actor_403100_8013E88C,
+        func_actor_403100_8013E920,
+    },
+};
 
 void func_actor_403100_80134D50(Task* arg0)
 {
@@ -1433,16 +1982,6 @@ void func_actor_403100_801355D4(Task* arg0)
     func_actor_403100_801327CC(arg0);
     D_actor_403100_80155808->field_5FA += 1;
 }
-static __inline__ s16 Actor403100_TestFlags104(void)
-{
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & 1) {
-        return 1;
-    }
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.word & 0x102) {
-        return 1;
-    }
-    return 0;
-}
 
 void func_actor_403100_801356F4(Task* arg0)
 {
@@ -1553,13 +2092,6 @@ void func_actor_403100_80135AE0(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
     D_actor_403100_80155808->field_5EC += 1;
-}
-static __inline__ s16 Actor403100_TestFlags12C(void)
-{
-    if (D_actor_403100_80155808->field_B8.legacy.flags_12C & 0x100) {
-        return 1;
-    }
-    return 0;
 }
 
 void func_actor_403100_80135C00(Task* arg0)
@@ -1846,25 +2378,111 @@ void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EB0);
+/// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131EB0 = {
+    {
+        func_actor_403100_8013ED50,
+        func_actor_403100_8013506C,
+        (TaskFunc)func_actor_403100_8013EDDC,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EBC);
+/// Steps of the behaviour mode `func_actor_403100_8013E9D8`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131EBC = {
+    {
+        func_actor_403100_8013EE28,
+        func_actor_403100_801351F8,
+        (TaskFunc)func_actor_403100_8013EEB0,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EC8);
+/// Steps of the behaviour mode `func_actor_403100_8013EA60`, indexed by `field_5FA`.
+const TaskFuncTable4 D_actor_403100_80131EC8 = {
+    {
+        func_actor_403100_8013539C,
+        func_actor_403100_8013EEB8,
+        func_actor_403100_801354A0,
+        (TaskFunc)func_actor_403100_8013EF24,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131ED8);
+/// Steps of the behaviour mode `func_actor_403100_8013EAD4`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131ED8 = {
+    {
+        func_actor_403100_801355D4,
+        func_actor_403100_801356F4,
+        (TaskFunc)func_actor_403100_8013EF2C,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EE4);
+/// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131EE4 = {
+    {
+        (TaskFunc)func_actor_403100_8013EF34,
+        func_actor_403100_8013588C,
+        (TaskFunc)func_actor_403100_8013EF58,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131EF0);
+/// Steps of the behaviour mode `func_actor_403100_8013EBC8`, indexed by `field_5FA`.
+const TaskFuncTable4 D_actor_403100_80131EF0 = {
+    {
+        func_actor_403100_801359DC,
+        func_actor_403100_80135AE0,
+        (TaskFunc)func_actor_403100_8013EF60,
+        (TaskFunc)func_actor_403100_8013EFC0,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F00);
+/// Steps of the behaviour mode `func_actor_403100_8013EC4C`, indexed by `field_5FA`.
+const TaskFuncTable4 D_actor_403100_80131F00 = {
+    {
+        func_actor_403100_8013EFC8,
+        func_actor_403100_80135C00,
+        func_actor_403100_80135F30,
+        func_actor_403100_80136100,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F10);
+/// Steps of the behaviour mode `func_actor_403100_8013ECD0`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131F10 = {
+    {
+        func_actor_403100_8013F034,
+        func_actor_403100_8013631C,
+        func_actor_403100_8013F0A8,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F1C);
+/// The actor's six top-level states, by `Task::state`; run by
+/// `func_actor_403100_8013E0FC`.
+const TaskFuncTable6 D_actor_403100_80131F1C = {
+    {
+        func_actor_403100_80136610,
+        func_actor_403100_80134D50,
+        func_actor_403100_80136830,
+        func_actor_403100_801339EC,
+        func_actor_403100_8013D8F4,
+        func_actor_403100_8013D88C,
+    },
+};
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F34);
+/// Behaviour modes of the actor's main state, indexed by `field_5F8`. Each
+/// mode steps through its own table by `field_5FA`.
+const TaskFuncTable11 D_actor_403100_80131F34 = {
+    {
+        (TaskFunc)func_actor_403100_8013DA6C,
+        func_actor_403100_8013DAC4,
+        func_actor_403100_8013DB48,
+        func_actor_403100_8013DC18,
+        func_actor_403100_8013DCAC,
+        func_actor_403100_8013DD78,
+        func_actor_403100_8013DE0C,
+        func_actor_403100_8013DEA0,
+        (TaskFunc)func_actor_403100_8013DF0C,
+        (TaskFunc)func_actor_403100_8013DF64,
+        func_actor_403100_8013DFBC,
+    },
+};
 
 void func_actor_403100_80136830(Task* arg0)
 {
@@ -2191,4 +2809,3619 @@ void func_actor_403100_8013712C(Task* arg0)
     SndEvt_EnqueueType7(0x401F0004, 1);
     D_actor_403100_80155808->field_5FA += 1;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_403100/actor_403100", D_actor_403100_80131F60);
+/// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80131F60 = {
+    {
+        (TaskFunc)func_actor_403100_8013F18C,
+        (TaskFunc)func_actor_403100_80137268,
+        (TaskFunc)func_actor_403100_80137310,
+    },
+};
+
+void func_actor_403100_80137268(void)
+{
+    s16 state;
+
+    state = D_actor_403100_80155808->field_628 - 1;
+    switch (state) {
+        case 0:
+            if (D_actor_403100_80155808->field_62E < 0x1F40) {
+                D_actor_403100_80155808->field_5FA += 1;
+            }
+            break;
+        case 1:
+        case 5:
+            D_actor_403100_80155808->field_5FA += 1;
+            break;
+        case 2:
+        case 3:
+        case 4:
+            if (D_actor_403100_80155808->field_62E < 0x17D4) {
+                D_actor_403100_80155808->field_5FA += 1;
+            }
+            break;
+    }
+}
+void func_actor_403100_80137310(void)
+{
+    s32 halfHealth;
+    s16 phase;
+    s16 previousState;
+    s16 state;
+    u32 random1;
+    u32 random2;
+
+    halfHealth = Player_Status.hpMax / 2;
+    phase      = D_actor_403100_80155808->field_628;
+    if (phase != 2 && phase != 6) {
+        if ((Player_Status.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
+            random1                            = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random1;
+            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0[1][(random1 >> 16) & 15];
+            D_actor_403100_80155808->field_5FA = 0;
+        } else {
+            random2                            = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random2;
+            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0[0][(random2 >> 16) & 15];
+            D_actor_403100_80155808->field_5FA = 0;
+        }
+        if ((s16)D_actor_403100_80155808->field_5F8 == 4) {
+            if (D_actor_403100_80155808->field_65C != 0) {
+                D_actor_403100_80155808->field_5F8 = 2;
+                D_actor_403100_80155808->field_5FA = 0;
+            }
+        }
+        if ((s16)D_actor_403100_80155808->field_5F8 == 5) {
+            if (D_actor_403100_80155808->field_628 != 1) {
+                D_actor_403100_80155808->field_5F8 = 7;
+                D_actor_403100_80155808->field_5FA = 0;
+            }
+        }
+        if (((s16)D_actor_403100_80155808->field_5F8 == 7) && ((u32)((u16)D_actor_403100_80155808->field_628 - 3) >= 2U)) {
+            D_actor_403100_80155808->field_5F8 = 4;
+            D_actor_403100_80155808->field_5FA = 0;
+        }
+        D_actor_403100_80155808->field_612[(u8)D_actor_403100_80155808->pad_66A[3]] = (u16)D_actor_403100_80155808->field_5F8;
+        previousState                                                               = D_actor_403100_80155808->field_612[0];
+        if ((previousState == D_actor_403100_80155808->field_612[1]) && (previousState == D_actor_403100_80155808->field_612[2])) {
+            state = (s16)D_actor_403100_80155808->field_5F8;
+            if (state == 2 || state == 4 || state == 7) {
+                D_actor_403100_80155808->field_5F8 = 3;
+                D_actor_403100_80155808->field_5FA = 0;
+            } else if (state == 3) {
+                if (D_actor_403100_80155808->field_65C != 0) {
+                    D_actor_403100_80155808->field_5F8 = 2;
+                    D_actor_403100_80155808->field_5FA = 0;
+                } else {
+                    D_actor_403100_80155808->field_5F8 = 4;
+                    D_actor_403100_80155808->field_5FA = 0;
+                }
+            }
+            D_actor_403100_80155808->field_612[(u8)D_actor_403100_80155808->pad_66A[3]] = (u16)D_actor_403100_80155808->field_5F8;
+        }
+        D_actor_403100_80155808->pad_66A[3] = (u8)D_actor_403100_80155808->pad_66A[3] + 1;
+        if ((u8)D_actor_403100_80155808->pad_66A[3] >= 3U) {
+            D_actor_403100_80155808->pad_66A[3] = 0;
+        }
+    } else {
+        D_actor_403100_80155808->field_5F8 = 6;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_801375B8(void)
+{
+    u16 angle;
+    u32 random2;
+    u32 random1;
+
+    random1                             = (Gp_LcgState * 5) + 0x71357911;
+    random2                             = (random1 * 5) + 0x71357911;
+    Gp_LcgState                         = random2;
+    D_actor_403100_80155808->pad_65E[0] = ((random1 >> 0x10) & 1) + (((random2 >> 0x10) & 1) + 1);
+    D_actor_403100_80155808->field_62C  = 0x20;
+    angle                               = (u16)D_actor_403100_80155808->field_B2;
+    D_actor_403100_80155808->field_5F6  = 0;
+    D_actor_403100_80155808->field_61C  = 4;
+    D_actor_403100_80155808->field_604  = 0;
+    D_actor_403100_80155808->field_608  = 0;
+    D_actor_403100_80155808->field_626  = (s16)angle;
+    if ((s16)angle >= 0xD1) {
+        D_actor_403100_80155808->field_626 = 0xD0;
+    }
+    if (D_actor_403100_80155808->field_626 < -0x160) {
+        D_actor_403100_80155808->field_626 = -0x160;
+    }
+    D_actor_403100_80155808->field_5DE             = 4;
+    D_actor_403100_80155808->field_5E2             = 0xC;
+    D_actor_403100_80155808->field_5DA             = 2;
+    D_actor_403100_80155808->field_5EC             = 0;
+    D_actor_403100_80155808->field_55C.flags      &= 0x7FFF;
+    D_actor_403100_80155808->field_594.flags      &= 0x7FFF;
+    D_actor_403100_80155808->field_668.b.field_668 = 0;
+    D_actor_403100_80155808->field_668.b.field_669 = 0;
+    D_actor_403100_80155808->field_5FA            += 1;
+    D_actor_403100_80155808->field_664.b.field_665 = 0;
+    D_actor_403100_80155808->field_664.b.field_666 = 0;
+    D_actor_403100_80155808->pad_66A[4]            = 0;
+}
+void func_actor_403100_801376D8(Task* arg0)
+{
+    Task* task;
+    s32   sound;
+    s32   pan;
+    u16   counter;
+    u16   angle;
+
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x36) < 4U) {
+        func_actor_403100_8013C7B4(arg0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x39) {
+        func_actor_403100_801342B4(arg0);
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0003;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[7]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[7]) / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    D_actor_403100_80155808->field_5EC += 1;
+    if (D_actor_403100_80155808->field_668.flags != 0) {
+        D_actor_403100_80155808->field_5F6 = 4;
+        if (D_actor_403100_80155808->field_5F2 == 0) {
+            Gp_StateC08.field_6 |= 1;
+            func_actor_403100_8013D1B8(5, 0x3F4);
+            D_actor_403100_80155808->field_5F4 = 0x17;
+            D_actor_403100_80155808->field_5F2 = 1;
+            task                               = gameGetPtrSlot(3);
+            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+                (*Gp_ActorSlots)->actor->field_956 = 0xA;
+            }
+        }
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->pad_66A[4]            = 1;
+        func_actor_403100_8013D2A0(1);
+    }
+    D_actor_403100_80155808->field_608 += (s16)((D_actor_403100_80155808->field_626 - D_actor_403100_80155808->field_608) << 4) >> 7;
+    if (Actor403100_TestFlags104()) {
+        if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
+            D_actor_403100_80155808->field_5E2        = 0x10;
+            D_actor_403100_80155808->field_5DE        = 5;
+            D_actor_403100_80155808->field_5DA        = 2;
+            D_actor_403100_80155808->field_5FA       += 2;
+            D_actor_403100_80155808->field_55C.flags &= 0x7FFF;
+            D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+            return;
+        }
+        counter                                             = D_actor_403100_80155808->field_5FA;
+        *(volatile s16*)&D_actor_403100_80155808->field_5E2 = 0xA;
+        *(volatile s16*)&D_actor_403100_80155808->field_5DE = 2;
+        *(volatile s16*)&D_actor_403100_80155808->field_5DA = 2;
+        angle                                               = *(volatile u16*)&D_actor_403100_80155808->field_B2;
+        D_actor_403100_80155808->field_5EC                  = 0;
+        D_actor_403100_80155808->field_626                  = (s16)angle;
+        D_actor_403100_80155808->field_5FA                  = counter + 1;
+        if ((s16)angle >= 0xD1) {
+            D_actor_403100_80155808->field_626 = 0xD0;
+        }
+        if (D_actor_403100_80155808->field_626 < -0x160) {
+            D_actor_403100_80155808->field_626 = -0x160;
+        }
+    }
+}
+void func_actor_403100_801379B4(Task* arg0)
+{
+    Task* task;
+    s32   sound;
+    s32   pan;
+    s8    count;
+    u16   angle;
+
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x3C) < 9U) {
+        func_actor_403100_8013C7B4(arg0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+        func_actor_403100_801342B4(arg0);
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0003;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[7]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[7]) / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    D_actor_403100_80155808->field_5EC += 1;
+    if (D_actor_403100_80155808->field_668.flags != 0) {
+        D_actor_403100_80155808->field_5F6 = 4;
+        if (D_actor_403100_80155808->field_5F2 == 0) {
+            Gp_StateC08.field_6 |= 1;
+            func_actor_403100_8013D1B8(5, 0x3F4);
+            D_actor_403100_80155808->field_5F4 = 0x17;
+            D_actor_403100_80155808->field_5F2 = 1;
+            task                               = gameGetPtrSlot(3);
+            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+                (*Gp_ActorSlots)->actor->field_956 = 0xA;
+            }
+        }
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        func_actor_403100_8013D2A0(1);
+        D_actor_403100_80155808->pad_66A[4] = 1;
+        D_actor_403100_80155808->pad_65E[0] = 1;
+    }
+    D_actor_403100_80155808->field_608 += (s16)((D_actor_403100_80155808->field_626 - D_actor_403100_80155808->field_608) << 4) >> 7;
+    if (Actor403100_TestFlags104()) {
+        count                               = (u8)D_actor_403100_80155808->pad_65E[0] - 1;
+        D_actor_403100_80155808->pad_65E[0] = count;
+        if (!(count & 0xFF)) {
+            D_actor_403100_80155808->field_5E2        = 0x10;
+            D_actor_403100_80155808->field_5DE        = 5;
+            D_actor_403100_80155808->field_5DA        = 2;
+            D_actor_403100_80155808->field_5FA       += 1;
+            D_actor_403100_80155808->field_55C.flags &= 0x7FFF;
+            D_actor_403100_80155808->field_594.flags &= 0x7FFF;
+            return;
+        }
+        D_actor_403100_80155808->field_5E2 = 0xA;
+        angle                              = (u16)D_actor_403100_80155808->field_B2;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5DE = 2;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_626 = (s16)angle;
+        if ((s16)angle >= 0xD1) {
+            D_actor_403100_80155808->field_626 = 0xD0;
+        }
+        if (D_actor_403100_80155808->field_626 < -0x140) {
+            D_actor_403100_80155808->field_626 = -0x140;
+        }
+    }
+}
+void func_actor_403100_80137CA8(void)
+{
+    u16 angleY;
+    u16 angleX;
+    u32 random;
+
+    angleX                             = (u16)D_actor_403100_80155808->field_604;
+    angleY                             = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = angleX + ((s32) - (angleX << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_608 = angleY + ((s32) - (angleY << 0x14) >> 0x17);
+    if (Actor403100_TestFlags104()) {
+        if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
+            D_actor_403100_80155808->field_5EC = 0;
+            random                             = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random;
+            if (!((random >> 0x10) & 3)) {
+                D_actor_403100_80155808->field_5FC  = 0x14;
+                D_actor_403100_80155808->field_5E2  = 0x1C;
+                D_actor_403100_80155808->field_5DE  = 3;
+                D_actor_403100_80155808->field_5DA  = 1;
+                D_actor_403100_80155808->field_5FA += 1;
+                return;
+            }
+            D_actor_403100_80155808->field_5FC  = 8;
+            D_actor_403100_80155808->field_5E2  = 0x20;
+            D_actor_403100_80155808->field_5DE  = 1;
+            D_actor_403100_80155808->field_5DA  = 1;
+            D_actor_403100_80155808->field_5FA += 2;
+            return;
+        }
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_80137DC4(Task* arg0)
+{
+    s32 sound;
+    s32 sound2;
+    s32 pan;
+    s32 pan2;
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x31) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]) / 2));
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[1]) / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_80137F4C(void)
+{
+    Actor403100Entry* entry;
+    GpObj*            obj;
+    Actor403100Entry* entries;
+    s32               i;
+
+    D_actor_403100_80155808->field_5F6 = 0;
+    if (D_actor_403100_80155808->field_65C == 0) {
+        D_actor_403100_80155808->field_62C = 0x1C;
+    } else {
+        D_actor_403100_80155808->field_62C = 0x30;
+    }
+    i                                         = 0;
+    entries                                   = D_actor_403100_80155814;
+    obj                                       = &D_actor_403100_80155814->obj;
+    entry                                     = entries;
+    D_actor_403100_80155810                   = 0;
+    D_actor_403100_80155808->flags_634.h.high = 0x14;
+    for (; i < 0x1C; i++) {
+        if (entry->active != 0) {
+            entry->active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+        entry++;
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_5E2  = 0x10;
+    D_actor_403100_80155808->field_5DE  = 7;
+    D_actor_403100_80155808->field_5DA  = 2;
+    D_actor_403100_80155808->field_61C  = 1;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_80138048(Task* arg0)
+{
+    SVECTOR        offset;
+    SVECTOR        velocity;
+    GsCOORDINATE2* effectCoord;
+    s32            sound;
+    s32            sound2;
+    s32            state;
+    s32            pan;
+    s32            pan2;
+
+    if (D_actor_403100_80155810 == 1) {
+        D_actor_403100_80155808->field_5FA = 3;
+        return;
+    }
+    state                               = (s8)D_actor_403100_80155808->pad_66A[2];
+    D_actor_403100_80155808->field_5EC += 1;
+    if (state == 1) {
+        if (D_actor_403100_80155808->field_664.b.field_666 == 0) {
+            D_actor_403100_80155808->field_664.b.field_666 = (u8)state;
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
+        if (D_actor_403100_80155808->field_628 == 4) {
+            D_actor_403100_80155808->field_98  = -0x1770;
+            D_actor_403100_80155808->field_9A  = -0xC80;
+            D_actor_403100_80155808->field_9C  = -0x1B58;
+            D_actor_403100_80155808->field_61C = 3;
+        }
+        if (D_actor_403100_80155808->field_628 == 5) {
+            D_actor_403100_80155808->field_98  = 0x500;
+            D_actor_403100_80155808->field_9A  = -0xC80;
+            D_actor_403100_80155808->field_9C  = 0x2710;
+            D_actor_403100_80155808->field_61C = 3;
+        }
+        if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
+            func_80182730();
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        D_actor_403100_80155808->field_61C = 5;
+        if (D_actor_403100_80155808->field_65C) {
+            D_actor_403100_80155808->field_65A = 0x10;
+        } else {
+            D_actor_403100_80155808->field_65A = 8;
+        }
+    }
+    if (((s16)D_actor_403100_80155808->field_5EC == 0x3D) && (D_actor_403100_80155808->field_65C == 0)) {
+        D_actor_403100_80155808->field_61C = 0;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        D_actor_403100_80155808->field_61C = 1;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]) / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+        offset.vy   = -0x1F0;
+        offset.vz   = 0x620;
+        velocity.vy = -0x20;
+        offset.vx   = 0;
+        velocity.vx = 0;
+        velocity.vz = 0xF0;
+        func_actor_403100_80132064(arg0, &offset, &velocity, 0);
+        func_actor_403100_8013D11C(arg0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7E) {
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]) / 2));
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+        effectCoord = &((TmdObject*)arg0->extra)->coords[3];
+        offset.vy   = -0x140;
+        offset.vx   = 0;
+        offset.vz   = 0x400;
+        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_61C  = 1;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_8013842C(Task* arg0)
+{
+    SVECTOR        offset;
+    s32            sound;
+    s32            sound2;
+    s32            pan;
+    GsCOORDINATE2* effectCoord;
+    s32            pan2;
+    u16            frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x31) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]) / 2));
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[1]) / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE             = 0x12;
+        D_actor_403100_80155808->field_664.b.field_666 = 1;
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x32) < 0xBU) {
+        effectCoord = &((TmdObject*)arg0->extra)->coords[3];
+        offset.vy   = -0x140;
+        offset.vx   = 0;
+        offset.vz   = 0x400;
+        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_80138610(Task* arg0)
+{
+    u16            counter;
+    u16            timer;
+    u16            angle;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        coord->coord.t[1]                 += 0x30;
+        timer                              = D_actor_403100_80155808->field_5EC;
+        D_actor_403100_80155808->field_5EC = timer + 1;
+        if ((s16)timer >= 0x11) {
+            counter                                             = *(volatile u16*)&D_actor_403100_80155808->field_5FA;
+            *(volatile s16*)&D_actor_403100_80155808->field_61E = 0;
+            *(volatile s16*)&D_actor_403100_80155808->field_61E = 2;
+            angle                                               = *(volatile u16*)&D_actor_403100_80155808->field_B2;
+            D_actor_403100_80155808->field_5EC                  = 0;
+            D_actor_403100_80155808->field_620                  = 0;
+            D_actor_403100_80155808->field_626                  = (s16)angle;
+            D_actor_403100_80155808->field_5FA                  = counter + 1;
+            if ((s16)angle >= 0xD1) {
+                D_actor_403100_80155808->field_626 = 0xD0;
+            }
+            if (D_actor_403100_80155808->field_626 < -0x160) {
+                D_actor_403100_80155808->field_626 = -0x160;
+            }
+        }
+    }
+}
+void func_actor_403100_801386DC(Task* arg0)
+{
+    u16            velocity;
+    u16            accel;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    func_actor_403100_8013D24C();
+    D_actor_403100_80155808->field_608 =
+        (u16)D_actor_403100_80155808->field_608 +
+        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_5EC += 1;
+    accel                               = D_actor_403100_80155808->field_61E + 4;
+    velocity                            = D_actor_403100_80155808->field_620 + accel;
+    D_actor_403100_80155808->field_620  = velocity;
+    D_actor_403100_80155808->field_61E  = accel;
+    coord->coord.t[1]                  -= (s16)velocity;
+    if ((s16)D_actor_403100_80155808->field_5EC >= 6) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_80138790(Task* arg0)
+{
+    u16            velocity;
+    u16            accel;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    func_actor_403100_8013D24C();
+    D_actor_403100_80155808->field_608 =
+        (u16)D_actor_403100_80155808->field_608 +
+        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_5EC += 1;
+    accel                               = D_actor_403100_80155808->field_61E - 4;
+    velocity                            = D_actor_403100_80155808->field_620 + accel;
+    D_actor_403100_80155808->field_620  = velocity;
+    D_actor_403100_80155808->field_61E  = accel;
+    coord->coord.t[1]                  -= (s16)velocity;
+    if ((s16)D_actor_403100_80155808->field_5EC >= 6) {
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_80138844(Task* arg0)
+{
+    Task*          player;
+    s32            sound;
+    s32            sound2;
+    s32            y;
+    s32            pan;
+    s32            pan2;
+    u16            velocity;
+    u16            accel;
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    func_actor_403100_8013D24C();
+    if ((D_actor_403100_80155808->field_668.flags != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+        Gp_StateC08.field_6 |= 1;
+        func_actor_403100_8013D1B8(5, 0x3F4);
+        D_actor_403100_80155808->field_5F4 = 0x17;
+        D_actor_403100_80155808->field_5F2 = 1;
+        player                             = gameGetPtrSlot(3);
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+        }
+    }
+    func_actor_403100_8013C7B4(arg0);
+    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->field_608 =
+        (u16)D_actor_403100_80155808->field_608 +
+        ((s32)(((u16)D_actor_403100_80155808->field_626 - (u16)D_actor_403100_80155808->field_608) << 0x14) >> 0x17);
+    accel                              = D_actor_403100_80155808->field_61E - 4;
+    velocity                           = D_actor_403100_80155808->field_620 + accel;
+    D_actor_403100_80155808->field_620 = velocity;
+    D_actor_403100_80155808->field_61E = accel;
+    y                                  = coord->coord.t[1] - (s16)velocity;
+    coord->coord.t[1]                  = y;
+    if (y >= 0) {
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        func_actor_403100_801342B4(arg0);
+        Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x1E;
+        sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+        pan                                = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[1]) / 2));
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0003;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[7]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[7]) / 2));
+        coord->coord.t[1]                   = 0;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_80138AB4(void)
+{
+    Task* player;
+    u16   frame;
+
+    func_actor_403100_8013D24C();
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if (((s16)frame < 0x20) && ((u8)D_actor_403100_80155808->field_668.b.field_668 != 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+        Gp_StateC08.field_6 |= 1;
+        func_actor_403100_8013D1B8(5, 0x3F4);
+        D_actor_403100_80155808->field_5F4 = 0x17;
+        D_actor_403100_80155808->field_5F2 = 1;
+        player                             = gameGetPtrSlot(3);
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            (*Gp_ActorSlots)->actor->field_956 = 0xA;
+        }
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5DE  = 5;
+        D_actor_403100_80155808->field_5F6  = 0;
+        D_actor_403100_80155808->field_5DA  = 2;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_80138C18(void)
+{
+    u16 velocityZ;
+    u16 velocityX;
+    u32 random;
+
+    func_actor_403100_8013D24C();
+    velocityX                          = (u16)D_actor_403100_80155808->field_604;
+    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
+    D_actor_403100_80155808->field_608 = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
+    if (Actor403100_TestFlags104()) {
+        random      = (Gp_LcgState * 5) + 0x71357911;
+        Gp_LcgState = random;
+        if ((random >> 0x10) & 1) {
+            func_actor_403100_8013D2A0(1);
+        }
+        D_actor_403100_80155808->field_5FC  = 8;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5DE  = 1;
+        D_actor_403100_80155808->field_5DA  = 1;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_80138D08(Task* arg0)
+{
+    TmdObject*       obj;
+    Actor403100Work* work;
+
+    obj = arg0->extra;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        obj->otOffset                                  = 0;
+        work                                           = D_actor_403100_80155808;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        work->field_62C                                = 0x40;
+        work->field_5E2                                = 0x10;
+        work->field_5DE                                = 9;
+        work->field_5F6                                = 0;
+        work->field_5DA                                = 2;
+        work->field_61C                                = 2;
+        work->field_5EC                                = 0;
+        work->field_604                                = 0;
+        work->field_608                                = 0;
+        work->field_632                                = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->pad_670[3]            = 0;
+        D_actor_403100_80155808->field_5FA            += 1;
+    }
+}
+void func_actor_403100_80138DB0(Task* arg0)
+{
+    s32              sound;
+    s32              pan;
+    s32              depth;
+    Task*            player;
+    Actor403100Work* work;
+
+    player                             = (Task*)Gp_ActorSlots[0];
+    D_actor_403100_80155808->field_5EC = (u16)(D_actor_403100_80155808->field_5EC + 1);
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        if ((s16)D_actor_403100_80155808->field_5EC < 0x101) {
+            func_actor_403100_8013C7B4(arg0);
+            work = D_actor_403100_80155808;
+            if ((u8)work->field_668.b.field_668 != 0) {
+                work->pad_670[3]                    = 1;
+                D_actor_403100_80155808->pad_670[1] = 1;
+                Gp_StateC08.field_6                 = (u8)(Gp_StateC08.field_6 | 1);
+                sound                               = (((u16)((GpEnemy*)player->spawnArg2)->placeKey >> 0xC) << 8) | 7;
+                pan                                 = (s8)Gp_GetObjPan(&((TmdObject*)player->extra)->coords[1]);
+                depth                               = gpGetObjDepth(&((TmdObject*)player->extra)->coords[1]);
+                SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+                D_actor_403100_80155808->field_65F  = 0;
+                D_actor_403100_80155808->pad_660[0] = 1;
+                func_actor_403100_8013D1B8(1, 0x3F4);
+                D_actor_403100_80155808->field_5EC  = 0U;
+                D_actor_403100_80155808->pad_65E[0] = 0;
+                D_actor_403100_80155808->field_5FA += 1;
+            } else if ((u8)work->field_668.b.field_669 != 0) {
+                work->field_5E2 = -0x10;
+                work->field_5FA = 0xA;
+            }
+            D_actor_403100_80155808->field_61C = 0;
+        } else {
+            D_actor_403100_80155808->field_61C = 2;
+        }
+        if (Actor403100_TestFlags104()) {
+            D_actor_403100_80155808->field_5F8 = 1;
+            D_actor_403100_80155808->field_5FA = 0U;
+        }
+    }
+}
+void func_actor_403100_80138F88(Task* arg0)
+{
+    s32              message[6];
+    Actor403100Work* work;
+    s32              sound;
+    s32              y;
+    s32              pan;
+    s32              depth;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   part;
+
+    coords = ((TmdObject*)arg0->extra)->coords;
+    part   = coords + 6;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, D_actor_403100_80155808->field_610);
+    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
+    D_actor_403100_80155808->field_610 = (u16)D_actor_403100_80155808->field_610 + 6;
+    y                                  = *(s32*)(u32)&coords->coord.t[1];
+    *(s32*)(u32)&coords->coord.t[1]    = y + (-y >> 6);
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    if (Actor403100_TestFlags104()) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000C;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        D_8007216C                      = 0xB;
+        *(s32*)(u32)&coords->coord.t[0] = -0x44C;
+        work                            = D_actor_403100_80155808;
+        SOFT_TOUCH_REG(work);
+        *(s32*)(u32)&coords->coord.t[2] = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1] = 0;
+        work->field_82                  = 0xC00;
+        work->field_5E2                 = 0x10;
+        work->field_5DE                 = 0xC;
+        work->field_5DA                 = 2;
+        work->field_604                 = 0xD0;
+        work->field_608                 = -0x350;
+        work->field_A0                  = -0x110;
+        work->field_A2                  = 0x290;
+        work->field_80                  = 0;
+        work->field_84                  = 0;
+        work->field_5EC                 = 0;
+        work->field_A4                  = 0x60;
+        work->field_5FA                += 1;
+        part->coord.t[0]                = -0xBD0;
+        work->field_604                 = 0x30;
+        work->field_608                 = -0xD0;
+        work->field_A0                  = -0x150;
+        work->field_A2                  = 0x270;
+        work->field_A4                  = -0xA0;
+        part->coord.t[0]                = -0x1120;
+        work->field_47C.radius          = 0x500;
+        func_actor_403100_8013D74C(arg0);
+        D_actor_403100_80155808->field_664.b.field_667 = 0;
+        D_actor_403100_80155808->field_65F             = 0;
+        D_actor_403100_80155808->pad_660[0]            = 0;
+        D_actor_403100_80155808->field_5E8             = 0;
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+        func_actor_403100_8013D1B8(1, 0x3FF);
+        message[5] = 0x28;
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)message, 0);
+        D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
+    }
+}
+void func_actor_403100_8013922C(Task* arg0)
+{
+    s32            message[6];
+    s16            health;
+    s32            damage;
+    s32            state;
+    u16            frame;
+    u32            random;
+    u8             request;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* part;
+
+    coords                              = ((TmdObject*)arg0->extra)->coords;
+    part                                = coords + 6;
+    D_actor_403100_80155808->field_5EC += 1;
+    func_actor_403100_8013D6B4(arg0);
+    func_actor_403100_8013C214(arg0);
+    func_actor_403100_8013C214(arg0);
+    D_actor_403100_80155808->field_82 = 0xC00;
+    D_actor_403100_80155808->field_80 = 0;
+    D_actor_403100_80155808->field_84 = 0;
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        request = (u8)D_actor_403100_80155808->field_65F;
+        if ((request == 1) && ((u8)D_actor_403100_80155808->field_664.b.field_667 == request)) {
+            random                             = (Gp_LcgState * 5) + 0x71357911;
+            Gp_LcgState                        = random;
+            D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            D_actor_403100_80155808->field_65F = 0;
+        }
+    } else {
+        frame                              = D_actor_403100_80155808->field_654 + 1;
+        D_actor_403100_80155808->field_654 = frame;
+        if ((s16)frame == 0x3C) {
+            func_actor_403100_8013D2A0(1);
+        }
+        if ((s16)D_actor_403100_80155808->field_654 >= 0x79) {
+            gGameSession->suppressDeathChecks = 0;
+        }
+    }
+    func_actor_403100_80132528(arg0);
+    func_actor_403100_8013D700(arg0);
+    func_actor_403100_8013C214(arg0);
+    if (D_actor_403100_80155808->pad_66A[2] != 0) {
+        if (D_actor_403100_80155808->field_5DE != 0xD) {
+            D_actor_403100_80155808->field_5DE = 0xD;
+            D_actor_403100_80155808->field_5E2 = 0x10;
+            D_actor_403100_80155808->field_5DA = 2;
+            if ((u8)D_actor_403100_80155808->field_664.b.field_665 == 0) {
+                D_actor_403100_80155808->field_66F             = 1;
+                D_actor_403100_80155808->field_664.b.field_665 = 1;
+            }
+        }
+    } else {
+        if (Actor403100_TestFlags()) {
+            D_actor_403100_80155808->field_5E2 = 0x10;
+            D_actor_403100_80155808->field_5DE = 0xC;
+            D_actor_403100_80155808->field_5DA = 2;
+        }
+    }
+    if ((u8)D_actor_403100_80155808->pad_660[0] != 0) {
+        D_actor_403100_80155808->pad_660[0] = 0;
+        func_actor_403100_8013D1B8(1, 0x3FF);
+        message[5] = 0x28;
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)message, 0);
+        D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
+    }
+    if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
+        (((u8)D_actor_403100_80155808->field_664.b.field_667 == 1) &&
+         ((s16)D_actor_403100_80155808->field_5EC >= 0x1C2) &&
+         ((u8)D_actor_403100_80155808->pad_670[0] == 0)) ||
+        (D_actor_403100_8015580C->hp <= 0)) {
+        damage = (s16)D_actor_403100_80155808->field_656 - D_actor_403100_8015580C->hp;
+        health = D_actor_403100_8015580C->hp;
+        if ((damage >= 0x3C) && (health > 0)) {
+            D_actor_403100_80155808->field_5EC  = 0;
+            D_actor_403100_80155808->field_5FA += 1;
+            return;
+        }
+        func_actor_403100_8013D1B8(1, 0x3F4);
+        TOUCH_MEM(D_actor_403100_80155808);
+        state = 8;
+        TOUCH_REG(state);
+        D_actor_403100_80155808->field_5DE = 0xE;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5E2 = state;
+        Mc_SaveData.at4.loc.view           = 0xC;
+        *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]    = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1]    = 0;
+        D_actor_403100_80155808->field_82  = 0xC00;
+        D_actor_403100_80155808->field_80  = 0;
+        D_actor_403100_80155808->field_84  = 0;
+        D_actor_403100_80155808->field_604 = 0;
+        D_actor_403100_80155808->field_608 = 0;
+        D_actor_403100_80155808->field_A0  = 0;
+        D_actor_403100_80155808->field_A2  = 0;
+        D_actor_403100_80155808->field_A4  = 0;
+        part->coord.t[0]                   = -0x877;
+        D_actor_403100_80155808->field_5FA = state;
+    }
+}
+void func_actor_403100_801395EC(Task* arg0)
+{
+    Actor403100Entry* entry;
+    Actor403100Entry* entries;
+    GpObj*            obj;
+    s32               x;
+    s32               i;
+    u16               frame;
+    TmdObject*        model;
+    GsCOORDINATE2*    part;
+    GsCOORDINATE2*    coords;
+
+    model                              = arg0->extra;
+    coords                             = model->coords;
+    part                               = coords + 6;
+    D_actor_403100_80155808->field_604 = (u16)D_actor_403100_80155808->field_604 + ((s32)(-0x2E0 - D_actor_403100_80155808->field_604) >> 3);
+    D_actor_403100_80155808->field_608 = (u16)D_actor_403100_80155808->field_608 + ((s32)(0x10 - D_actor_403100_80155808->field_608) >> 3);
+    D_actor_403100_80155808->field_A0  = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 3);
+    D_actor_403100_80155808->field_A2  = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x280 - D_actor_403100_80155808->field_A2) >> 3);
+    D_actor_403100_80155808->field_A4  = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x140 - D_actor_403100_80155808->field_A4) >> 3);
+    x                                  = *(s32*)(u32)&part->coord.t[0];
+    *(s32*)(u32)&part->coord.t[0]      = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xC00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    i                                  = 0;
+    if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
+        entries                                   = D_actor_403100_80155814;
+        obj                                       = &entries->obj;
+        entry                                     = entries;
+        D_8007216C                                = 0x18;
+        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        D_actor_403100_80155808->field_5E8        = 0;
+        D_actor_403100_80155808->field_604        = 0;
+        D_actor_403100_80155808->field_608        = 0;
+        D_actor_403100_80155808->field_A0         = 0;
+        D_actor_403100_80155808->field_A2         = 0;
+        D_actor_403100_80155808->field_A4         = 0;
+        *(s32*)(u32)&part->coord.t[0]             = -0x877;
+        D_actor_403100_80155808->field_5DE        = 7;
+        D_actor_403100_80155808->field_5DA        = 2;
+        D_actor_403100_80155808->flags_634.h.high = 0x14;
+        D_actor_403100_80155808->field_B2         = 0x200;
+        D_actor_403100_80155808->field_5EC        = 0;
+        D_actor_403100_80155808->field_5E2        = 0x10;
+        D_actor_403100_80155808->field_61C        = 0;
+        D_actor_403100_80155808->field_B0         = 0;
+        D_actor_403100_80155808->field_B4         = 0;
+        D_actor_403100_80155810                   = 0;
+        D_actor_403100_80155808->field_5FA       += 1;
+        *(s32*)(u32)&coords->coord.t[0]           = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]           = 0x2710;
+        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        D_actor_403100_80155808->field_80         = 0;
+        D_actor_403100_80155808->field_82         = 0xA00;
+        D_actor_403100_80155808->field_84         = 0;
+        do {
+            if (entry->active != 0) {
+                entry->active = 0;
+                Gp_UnlinkObj(obj);
+            }
+            obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+            i  += 1;
+            entry++;
+        } while (i < 0x1C);
+        SndEvt_EnqueueType7(0x401F0004, 1);
+    }
+}
+void func_actor_403100_80139818(Task* arg0)
+{
+    SVECTOR          position;
+    SVECTOR          velocity;
+    GpActorWork*     playerTask;
+    Task*            task;
+    s16              deathFrame;
+    s32              sound;
+    s32              sound2;
+    s32              sound3;
+    s32              sound4;
+    s32              sound5;
+    s32              pan;
+    s32              pan2;
+    s32              pan3;
+    s32              pan4;
+    s32              pan5;
+    u16              frame;
+    s32              depth;
+    s32              depth2;
+    s32              depth3;
+    s32              depth4;
+    s32              depth5;
+    GsCOORDINATE2*   effectCoords;
+    u32              configHi;
+    Actor403100Work* work;
+    PlayerStatus*    config;
+    GsCOORDINATE2*   part;
+    GsCOORDINATE2*   coords;
+
+    playerTask = *Gp_ActorSlots;
+    coords     = ((TmdObject*)arg0->extra)->coords;
+    part       = coords + 6;
+    __asm__("lui %0, %%hi(Player_Status)" : "=r"(configHi));
+    __asm__("addiu %0, %1, %%lo(Player_Status)" : "=r"(config) : "r"(configHi));
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if ((u8)D_actor_403100_80155808->field_65F == 1) {
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            D_actor_403100_80155808->field_65F = 0;
+        }
+    }
+    D_actor_403100_80155808->field_60E = 0;
+    D_actor_403100_80155808->field_610 = 0x3C;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, 0x3C);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x33) {
+        D_actor_403100_80155808->field_61C = 0;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        D_actor_403100_80155808->field_61C = 1;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 4);
+        depth = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 4);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+        position.vy = -0x1F0;
+        position.vz = 0x620;
+        velocity.vy = -0x20;
+        position.vx = 0;
+        velocity.vx = 0;
+        velocity.vz = 0xE0;
+        func_actor_403100_80132064(arg0, &position, &velocity, 0);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+        effectCoords = ((TmdObject*)arg0->extra)->coords;
+        position.vy  = -0x140;
+        position.vx  = 0;
+        position.vz  = 0x400;
+        Gp_SpawnEff(0x60070, effectCoords + 3, -0x3FFCB400, &position);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+        func_8010B2A0(0, 3);
+        func_actor_403100_8013D1B8(1, 0x3F4);
+        task = gameGetPtrSlot(3);
+        Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
+        if (config->hp <= 0) {
+            sound2 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
+            pan2   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
+            depth2 = gpGetObjDepth(playerTask->extra->coords + 1);
+            SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+            gGameSession->areaBgmCountdown    = 0x7F;
+            work                              = D_actor_403100_80155808;
+            work->pad_670[0]                  = 1;
+            work->field_654                   = 0;
+            gGameSession->suppressDeathChecks = 1;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            func_actor_403100_8013D1B8(6, 0x3FF);
+        } else {
+            sound3 = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 7;
+            pan3   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
+            depth3 = gpGetObjDepth(playerTask->extra->coords + 1);
+            SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x80) {
+        sound4 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000D;
+        pan4   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 4);
+        depth4 = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 4);
+        SndEvt_EnqueueType6(sound4, (s32)pan4, (s8)(depth4 / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0xC9) {
+        sound5 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000E;
+        pan5   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 1);
+        depth5 = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 1);
+        SndEvt_EnqueueType6(sound5, (s32)pan5, (s8)(depth5 / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    D_actor_403100_80155808->field_604 = -0x20;
+    D_actor_403100_80155808->field_608 = 0x450;
+    D_actor_403100_80155808->field_A0  = 0x290;
+    D_actor_403100_80155808->field_A2  = 0x210;
+    D_actor_403100_80155808->field_A4  = -0x160;
+    *(s32*)(u32)&part->coord.t[0]      = -0xE27;
+    *(s32*)(u32)&coords->coord.t[0]    = -0x44C;
+    *(s32*)(u32)&coords->coord.t[1]    = -0x1388;
+    *(s32*)(u32)&coords->coord.t[2]    = 0x2710;
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_84  = 0;
+    func_actor_403100_80132528(arg0);
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Actor403100_TestFlags()) {
+            func_actor_403100_8013D1B8(1, 0x3F4);
+            D_actor_403100_80155808->field_5EC  = 0;
+            D_actor_403100_80155808->field_61C  = 0;
+            D_actor_403100_80155808->field_610  = 0x3C;
+            D_actor_403100_80155808->field_5FA += 1;
+        }
+    } else {
+        deathFrame                         = (u16)D_actor_403100_80155808->field_654 + 1;
+        D_actor_403100_80155808->field_654 = deathFrame;
+        if (deathFrame == 0x3C) {
+            func_actor_403100_8013D2A0(0);
+        }
+        if (D_actor_403100_80155808->field_654 >= 0x79) {
+            gGameSession->suppressDeathChecks = 0;
+        }
+    }
+}
+void func_actor_403100_80139E80(Task* arg0)
+{
+    s16            angle;
+    s32            y;
+    s32            x;
+    u16            velocityX;
+    u16            rotationX;
+    u16            rotationZ;
+    u16            velocityZ;
+    u16            rotationY;
+    u16            frame;
+    GsCOORDINATE2* part;
+    GsCOORDINATE2* coords;
+
+    coords                             = ((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_60E = (u16)D_actor_403100_80155808->field_60E - 1;
+    angle                              = (u16)D_actor_403100_80155808->field_610 + 6;
+    D_actor_403100_80155808->field_610 = angle;
+    func_actor_403100_8013C008(D_actor_403100_80155808->field_60E, angle);
+    part                               = coords + 6;
+    y                                  = coords->coord.t[1];
+    coords->coord.t[1]                 = (s32)(y + ((s32)-y >> 6));
+    velocityX                          = (u16)D_actor_403100_80155808->field_604;
+    velocityZ                          = (u16)D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_604 = velocityX + ((s32)(-0x1100 - (s16)(velocityX * 0x10)) >> 7);
+    rotationX                          = (u16)D_actor_403100_80155808->field_A0;
+    D_actor_403100_80155808->field_608 = velocityZ + ((s32)(0x4E00 - (s16)(velocityZ * 0x10)) >> 7);
+    rotationY                          = (u16)D_actor_403100_80155808->field_A2;
+    D_actor_403100_80155808->field_A0  = rotationX + ((s32)(0x2400 - (s16)(rotationX * 0x10)) >> 7);
+    rotationZ                          = (u16)D_actor_403100_80155808->field_A4;
+    D_actor_403100_80155808->field_A2  = rotationY + ((s32)(-0x1D00 - (s16)(rotationY * 0x10)) >> 7);
+    D_actor_403100_80155808->field_A4  = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
+    x                                  = part->coord.t[0];
+    part->coord.t[0]                   = (s32)(x + ((s32)(-0x807 - x) >> 3));
+    func_actor_403100_80132528(arg0);
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame >= 0x1F) {
+        D_actor_403100_80155808->field_5E2              = 8;
+        D_actor_403100_80155808->field_5DE              = 0xE;
+        D_actor_403100_80155808->field_5DA              = 2;
+        *(s16*)(u32)&D_actor_403100_80155808->field_5EC = 0;
+        D_8007216C                                      = 0xC;
+        *(s32*)(u32)&coords->coord.t[0]                 = -0x44C;
+        *(s32*)(u32)&coords->coord.t[2]                 = 0x1770;
+        *(s32*)(u32)&coords->coord.t[1]                 = 0;
+        D_actor_403100_80155808->field_82               = 0xC00;
+        D_actor_403100_80155808->field_80               = 0;
+        D_actor_403100_80155808->field_84               = 0;
+        D_actor_403100_80155808->field_604              = 0;
+        D_actor_403100_80155808->field_608              = 0;
+        D_actor_403100_80155808->field_A0               = 0;
+        D_actor_403100_80155808->field_A2               = 0;
+        D_actor_403100_80155808->field_A4               = 0;
+        *(s32*)(u32)&part->coord.t[0]                   = -0x877;
+        D_actor_403100_80155808->field_5FA             += 1;
+    }
+}
+void func_actor_403100_8013A064(Task* arg0)
+{
+    GameActor* actor;
+    Task*      task;
+    s16        state;
+    s16        message;
+    s32        sound;
+    s32        pan;
+    u16        frame;
+    s32        depth;
+
+    actor                              = (*Gp_ActorSlots)->actor;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x3C) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000F;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[8]);
+        depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[8]);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    D_actor_403100_80155808->field_80 = 0;
+    D_actor_403100_80155808->field_82 = 0xC00;
+    D_actor_403100_80155808->field_84 = 0;
+    func_actor_403100_80132528(arg0);
+    if ((s16)D_actor_403100_80155808->field_5EC >= 0x44) {
+        D_actor_403100_80155808->field_5FC  = 0x14;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5DE  = 5;
+        D_actor_403100_80155808->field_5DA  = 1;
+        Mc_SaveData.at4.loc.view            = 0x17;
+        D_actor_403100_80155808->field_5FA += 1;
+        func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
+        task = gameGetPtrSlot(3);
+        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 5), 0) != 0) {
+            gGameSession->suppressDeathChecks = 1;
+            state                             = 7;
+            if (D_actor_403100_8015580C->hp <= 0) {
+                D_actor_403100_8015580C->hp = 0x3E8;
+            }
+            message                             = 0x3FF;
+            D_actor_403100_80155808->pad_670[0] = 1;
+            actor->field_956                    = 0xA;
+        } else {
+            state   = 2;
+            message = 0x3F4;
+        }
+        func_actor_403100_8013D1B8(state, message);
+        D_actor_403100_80155808->field_5EC = 0;
+    }
+}
+void func_actor_403100_8013A254(void)
+{
+    GpActorWork*     actor;
+    Actor403100Work* work;
+    s32              sound;
+    s32              sound2;
+    s32              pan;
+    s32              pan2;
+    u16              frame;
+    s32              depth;
+    s32              depth2;
+
+    actor                              = *Gp_ActorSlots;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xB) {
+        if (D_actor_403100_80155808->regions.fields.field_63E == 0) {
+            func_8017E250(1, 1);
+            D_actor_403100_80155808->regions.fields.field_63E = 1;
+        } else {
+            func_8017E250(1, 2);
+        }
+        Gp_SpawnPadLerp(8, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 8;
+        sound                              = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0006;
+        pan                                = (s8)Gp_GetObjPan(actor->extra->coords + 1);
+        depth                              = gpGetObjDepth(actor->extra->coords + 1);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+        sound2 = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0007;
+        pan2   = (s8)Gp_GetObjPan(actor->extra->coords + 1);
+        depth2 = gpGetObjDepth(actor->extra->coords + 1);
+        SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+    }
+    D_actor_403100_80155808->field_65F = 0;
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (D_actor_403100_8015580C->hp > 0) {
+                D_8007216C = 6;
+            }
+            D_actor_403100_80155808->field_632             = 0;
+            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            work                                = D_actor_403100_80155808;
+            work->pad_670[3]                    = 0;
+            work->field_47C.radius              = 0x400;
+            D_actor_403100_80155808->pad_670[1] = 0;
+            D_actor_403100_80155808->field_5F8  = 1;
+            D_actor_403100_80155808->field_5FA  = 0;
+        }
+    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x1E) {
+        gGameSession->suppressDeathChecks = 0;
+    }
+}
+void func_actor_403100_8013A4C8(Task* arg0)
+{
+    Actor403100Entry* entries;
+    GpObj*            obj;
+    s32               i;
+    Actor403100Work*  work;
+
+    i                                          = 0;
+    entries                                    = D_actor_403100_80155814;
+    obj                                        = &entries->obj;
+    ((TmdObject*)arg0->extra)->otOffset        = 0x1F;
+    work                                       = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
+    (*(volatile s16*)&D_actor_403100_80155810) = 0;
+    work->field_62C                            = 0x30;
+    work->field_5F6                            = 0;
+    work->flags_634.h.high                     = 0x1C;
+    for (; i < 0x1C; i++) {
+        if (entries[i].active != 0) {
+            entries[i].active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_5E2  = 0x10;
+    D_actor_403100_80155808->field_5DE  = 7;
+    D_actor_403100_80155808->field_5DA  = 2;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_8013A5AC(Task* arg0)
+{
+    SVECTOR        offset;
+    SVECTOR        velocity;
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* effectCoord;
+
+    if (D_actor_403100_80155810 == 1) {
+        D_actor_403100_80155808->field_5FA = 3;
+        return;
+    }
+    D_actor_403100_80155808->field_98   = -0x3110;
+    D_actor_403100_80155808->field_5EC += 1;
+    D_actor_403100_80155808->field_9A   = -0xC80;
+    D_actor_403100_80155808->field_9C   = ((s32)(rsin((s16)D_actor_403100_80155808->field_5EC << 5) * 0x10) >> 6) + 0x6DB;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        D_actor_403100_80155808->field_61C = 0;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        D_actor_403100_80155808->field_61C = 1;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0004;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x7C) {
+        SndEvt_EnqueueType7(0x401F0004, 0xA);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x34) < 0x48U) {
+        offset.vy   = -0x1F0;
+        offset.vz   = 0x620;
+        velocity.vy = -0x20;
+        offset.vx   = 0;
+        velocity.vx = 0;
+        velocity.vz = 0xE0;
+        func_actor_403100_80132064(arg0, &offset, &velocity, 0);
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x7D) < 0xBU) {
+        effectCoord = &((TmdObject*)arg0->extra)->coords[3];
+        offset.vy   = -0x140;
+        offset.vx   = 0;
+        offset.vz   = 0x400;
+        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_8013A81C(Task* arg0)
+{
+    SVECTOR        offset;
+    s32            sound;
+    s32            sound2;
+    s32            pan;
+    GsCOORDINATE2* effectCoord;
+    s32            pan2;
+    u16            frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x31) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0002;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]) / 2));
+        sound2 = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[1]) / 2));
+        D_actor_403100_80155808->field_664.b.field_666 = 1;
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    if ((u32)(D_actor_403100_80155808->field_5EC - 0x32) < 0xBU) {
+        effectCoord = &((TmdObject*)arg0->extra)->coords[3];
+        offset.vy   = -0x140;
+        offset.vx   = 0;
+        offset.vz   = 0x400;
+        Gp_SpawnEff(0x60070, effectCoord, -0x3FFCB400, &offset);
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013AA04(Task* arg0)
+{
+    s32 sound;
+    s32 pan;
+    u16 angle;
+    u16 frame;
+    s32 depth;
+
+    angle                              = (u16)D_actor_403100_80155808->field_82;
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_82  = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
+        func_actor_403100_8013C7B4(arg0);
+    } else if ((func_actor_403100_80133928() << 0x10) != 0) {
+        return;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x44) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0008;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[7]);
+        depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[7]);
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+    }
+    if (D_actor_403100_80155808->field_668.flags != 0) {
+        D_actor_403100_80155808->pad_670[3] = 1;
+        D_actor_403100_80155808->pad_670[1] = 1;
+        Gp_StateC08.field_6                |= 1;
+        func_actor_403100_8013D1B8(3, 0x3F4);
+        func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5EC             = 0;
+        gGameSession->field_12C                        = 1;
+        D_actor_403100_80155808->field_5FA            += 1;
+        return;
+    }
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5F8             = 1;
+        D_actor_403100_80155808->field_5FA             = 0;
+    }
+}
+void func_actor_403100_8013AC04(void)
+{
+    s32              state;
+    s32              message;
+    s32              sound;
+    Task*            task;
+    s32              finished;
+    s32              pan;
+    s32              depth;
+    Task*            player;
+    GameActor*       actor;
+    u8               completed;
+    Actor403100Work* work;
+
+    player   = (Task*)*Gp_ActorSlots;
+    actor    = (GameActor*)player->work;
+    finished = 0;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0) {
+        Gp_SpawnPadLerp(0xC, 0xFF, 0x80);
+        sound = (((u16)((GpEnemy*)player->spawnArg2)->placeKey >> 0xC) << 8) | 7;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)player->extra)->coords[1]);
+        depth = gpGetObjDepth(&((TmdObject*)player->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    work = D_actor_403100_80155808;
+    if ((s16)work->field_5EC < 5) {
+        func_actor_403100_8013D0B8(work->field_90, work->field_92, (s16)(work->field_94 + 0x3E8), 0x800);
+    }
+    if (((s16)D_actor_403100_80155808->field_5EC >= 6) || (D_actor_403100_80155808->field_94 >= 0x1B58)) {
+        finished = 1;
+    }
+    D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
+    if ((completed = finished != 0)) {
+        D_8007216C = 0x14;
+        task       = gameGetPtrSlot(3);
+        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 2), 0) != 0) {
+            gGameSession->suppressDeathChecks   = 1;
+            gGameSession->areaBgmCountdown      = 0x7F;
+            D_actor_403100_80155808->pad_670[0] = 1U;
+        }
+        func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
+        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+            actor->field_956 = 0xA;
+            state            = 7;
+            message          = 0x3FF;
+        } else {
+            state   = 2;
+            message = 0x3F4;
+        }
+        func_actor_403100_8013D1B8(state, message);
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
+    }
+}
+void func_actor_403100_8013AE28(void)
+{
+    Task* player;
+    s32   sound;
+    s32   sound2;
+    s32   sound3;
+    s32   pan;
+    s32   pan2;
+    s32   pan3;
+    s32   depth;
+    u16   frame;
+
+    player                             = (Task*)*Gp_ActorSlots;
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0xA) {
+        if (D_actor_403100_80155808->regions.fields.field_63C == 0) {
+            func_8017E250(0, 1);
+            D_actor_403100_80155808->regions.fields.field_63C = 1;
+        } else {
+            func_8017E250(0, 2);
+        }
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0xB) {
+        sound = (((u16)((GpEnemy*)player->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0006;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)player->extra)->coords[1]);
+        depth = gpGetObjDepth(&((TmdObject*)player->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
+        D_actor_403100_80155808->field_5FE = 0x12;
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
+        sound2 = (((u16)((GpEnemy*)player->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0007;
+        pan2   = (s8)Gp_GetObjPan(&((TmdObject*)player->extra)->coords[1]);
+        depth  = gpGetObjDepth(&((TmdObject*)player->extra)->coords[1]);
+        SndEvt_EnqueueType6(sound2, pan2, (s8)(depth / 2));
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
+        if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
+            sound3 = (((u16)((GpEnemy*)player->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
+            pan3   = (s8)Gp_GetObjPan(&((TmdObject*)player->extra)->coords[1]);
+            depth  = gpGetObjDepth(&((TmdObject*)player->extra)->coords[1]);
+            SndEvt_EnqueueType6(sound3, pan3, (s8)(depth / 2));
+        }
+    }
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            D_actor_403100_80155808->field_668.b.field_668 = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            if (D_actor_403100_8015580C->hp > 0) {
+                D_8007216C = 4;
+            }
+            gGameSession->field_12C             = 0;
+            D_actor_403100_80155808->pad_670[3] = 0;
+            D_actor_403100_80155808->pad_670[1] = 0;
+            D_actor_403100_80155808->field_5F8  = 1;
+            D_actor_403100_80155808->field_5FA  = 0;
+        }
+    } else if ((s16)D_actor_403100_80155808->field_5EC >= 0x32) {
+        gGameSession->suppressDeathChecks = 0;
+    }
+}
+void func_actor_403100_8013B128(Task* arg0)
+{
+    Actor403100Entry* entries;
+    Actor403100Work*  work;
+    Actor403100Work*  finalWork;
+    GpObj*            obj;
+    s32               sound;
+    s32               i;
+    s32               pan;
+    s32               depth;
+    GsCOORDINATE2*    coords;
+    TmdObject*        model;
+
+    model                                  = arg0->extra;
+    coords                                 = model->coords;
+    gGameSession->field_12C                = 0;
+    model->otOffset                        = 0;
+    D_actor_403100_8015580C->reactionFlags = 0;
+    Gp_SetLightMode(arg0->spawnArg2, 0);
+    D_actor_403100_8015580C->node.flags = 9;
+    i                                   = 0;
+    if (D_actor_403100_80155808->field_5D0 < 0) {
+        arg0->state                        = 4;
+        D_actor_403100_80155808->field_5F8 = 0;
+        D_actor_403100_80155808->field_5FA = 0U;
+        return;
+    }
+    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    entries                 = D_actor_403100_80155814;
+    obj                     = &entries->obj;
+    D_actor_403100_80155810 = 0;
+    for (; i < 0x1C; i++) {
+        if (entries[i].active != 0) {
+            entries[i].active = 0;
+            Gp_UnlinkObj(obj);
+        }
+        obj = (GpObj*)((u8*)obj + sizeof(Actor403100Entry));
+    }
+    SndEvt_EnqueueType7(0x401F0004, 1);
+    D_actor_403100_80155808->field_622              = (s16)gGameSession->at4.loc.view;
+    D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
+    D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
+    Mc_SaveData.at4.loc.view                        = 0x18;
+    work                                            = D_actor_403100_80155808;
+    work->pad_660[1]                                = 1;
+    work->field_5F6                                 = 5;
+    work->field_5E2                                 = 0x10;
+    work->field_5DE                                 = 0x10;
+    work->field_5DA                                 = 2;
+    work->field_61C                                 = 2;
+    D_actor_403100_80155808->field_604              = 0;
+    D_actor_403100_80155808->field_608              = 0;
+    D_actor_403100_80155808->field_A0               = 0;
+    D_actor_403100_80155808->field_A2               = 0;
+    D_actor_403100_80155808->field_A4               = 0;
+    coords->coord.t[0]                              = -0x44C;
+    coords->coord.t[1]                              = -0x1388;
+    coords->coord.t[2]                              = 0x2710;
+    D_actor_403100_80155808->field_80               = 0;
+    D_actor_403100_80155808->field_82               = 0xA00;
+    D_actor_403100_80155808->field_84               = 0;
+    gGameSession->hideHud                           = 1;
+    Gp_MsgPlayerWeapon(0);
+    sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F000B;
+    pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+    depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]);
+    SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    finalWork             = D_actor_403100_80155808;
+    finalWork->field_5EC  = 0;
+    finalWork->pad_670[3] = 1;
+    finalWork->field_5FA  = (u16)(finalWork->field_5FA + 1);
+}
+void func_actor_403100_8013B3C4(Task* arg0)
+{
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coords;
+
+    coords                              = ((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_5EC += 1;
+    Mc_SaveData.at4.loc.view            = 0x18;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
+        Gp_LoadImages(&D_actor_403100_801555EC);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x10E) {
+        sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0005;
+        pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
+        depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]);
+        SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+    }
+    coords->coord.t[0]                = -0x44C;
+    coords->coord.t[1]                = -0x1388;
+    coords->coord.t[2]                = 0x2710;
+    D_actor_403100_80155808->field_80 = 0;
+    D_actor_403100_80155808->field_82 = 0xA00;
+    D_actor_403100_80155808->field_84 = 0;
+    if (Actor403100_TestFlags()) {
+        D_actor_403100_80155808->pad_670[3] = 0;
+        Gp_LinkNode(&D_actor_403100_8015580C->node);
+        D_actor_403100_8015580C->node.flags = 8;
+        gGameSession->hideHud               = 0;
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+        coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
+        *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;
+        Mc_SaveData.at4.loc.view                      = (u8)D_actor_403100_80155808->field_622;
+        D_actor_403100_80155808->field_5F8            = 1;
+        D_actor_403100_80155808->field_5FA            = 0;
+    }
+}
+
+void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
+{
+    SVECTOR        headRotation, middleRotation, lowerRotation;
+    MATRIX         worldMatrix;
+    VECTOR         delta, local;
+    MATRIX*        allocated;
+    MATRIX*        matrices;
+    SVECTOR*       angles;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* head;
+    GsCOORDINATE2* middle;
+    GsCOORDINATE2* lower;
+    GsCOORDINATE2* root;
+    MATRIX*        transpose;
+    MATRIX*        transpose2;
+    MATRIX*        dest;
+    s32            sum;
+    s32            offsetY;
+    s32            mode3;
+    u16            copyValue;
+
+    coords    = ((TmdObject*)arg0->extra)->coords;
+    allocated = (MATRIX*)(*(u8**)0x1F8003FC - 0x88);
+    __asm__("move %0,%1" : "=r"(matrices) : "r"(allocated));
+    angles                     = (SVECTOR*)((u8*)allocated + 0x80);
+    *(s32*)&allocated->m[0][0] = 0x1000;
+    *(s32*)&matrices->m[0][2]  = 0;
+    *(s32*)&matrices->m[1][1]  = 0x1000;
+    *(s32*)&matrices->m[2][0]  = 0;
+    matrices->m[2][2]          = 0x1000;
+    root                       = ((TmdObject*)arg0->extra)->coords;
+    *(MATRIX**)0x1F8003FC      = matrices;
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &root[3].workm, &worldMatrix);
+    delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
+    offsetY  = worldMatrix.t[1] + 0x600;
+    delta.vy = D_actor_403100_80155808->field_9A - offsetY;
+    delta.vz = D_actor_403100_80155808->field_9C - worldMatrix.t[2];
+    ApplyTransposeMatrixLV(&root->coord, &delta, &local);
+    angles->vx = (ratan2(-local.vy, local.vz) << 20) >> 20;
+    angles->vy = (ratan2(local.vx, local.vz) << 20) >> 20;
+    angles->vz = 0;
+    head       = &coords[3];
+    middle     = &coords[2];
+    lower      = &coords[1];
+    mode3      = 3;
+    SOFT_TOUCH_REG(mode3);
+    if (arg1 == 0) {
+        func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
+        func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 1) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 2) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        Gp_MtxToEuler(&coords[2].coord, &middleRotation);
+        Gp_MtxToEuler(&coords[1].coord, &lowerRotation);
+        SOFT_USE_REG(mode3);
+        sum                                = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
+        headRotation.vx                    = sum;
+        headRotation.vy                    = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
+        headRotation.vz                    = (u16)headRotation.vz + ((u16)middleRotation.vz + (u16)lowerRotation.vz);
+        D_actor_403100_80155808->field_B0 += ((s32)((sum - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B2 += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->field_B2) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == mode3) {
+        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
+        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 4) {
+        Gp_MtxToEuler(&coords[3].coord, &headRotation);
+        D_actor_403100_80155808->field_B0 += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->field_B0) << 20) >> 23);
+        D_actor_403100_80155808->field_B4 += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->field_B4) << 20) >> 23);
+        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    } else if (arg1 == 5) {
+        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
+        func_actor_403100_8013CF60(angles, D_actor_403100_80155808->field_65A, 4, 2, 8);
+        func_actor_403100_8013D06C();
+        RotMatrixZXY((SVECTOR*)&D_actor_403100_80155808->field_B0, matrices);
+    }
+    transpose = &matrices[3];
+    TransposeMatrix(&middle->coord, transpose);
+    transpose2 = &matrices[2];
+    TransposeMatrix(&lower->coord, transpose2);
+    MulMatrix(transpose, transpose2);
+    MulMatrix(transpose, matrices);
+    head->coord.m[0][0] = (u16)transpose->m[0][0];
+    copyValue           = (u16)transpose->m[0][1];
+    SOFT_USE_REG(copyValue);
+    dest = &head->coord;
+    SOFT_TOUCH_REG(dest);
+    dest->m[0][1]      = copyValue;
+    dest->m[0][2]      = (u16)transpose->m[0][2];
+    dest->m[1][0]      = (u16)transpose->m[1][0];
+    dest->m[1][1]      = (u16)transpose->m[1][1];
+    dest->m[1][2]      = (u16)transpose->m[1][2];
+    dest->m[2][0]      = (u16)transpose->m[2][0];
+    dest->m[2][1]      = (u16)transpose->m[2][1];
+    dest->m[2][2]      = (u16)transpose->m[2][2];
+    *(u8**)0x1F8003FC += 0x88;
+    lower->flg         = 0;
+    middle->flg        = 0;
+    head->flg          = 0;
+}
+/// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `field_5FA`.
+const TaskFuncTable6 D_actor_403100_80131F84 = {
+    {
+        (TaskFunc)func_actor_403100_801375B8,
+        func_actor_403100_801376D8,
+        func_actor_403100_801379B4,
+        (TaskFunc)func_actor_403100_80137CA8,
+        func_actor_403100_80137DC4,
+        (TaskFunc)func_actor_403100_8013F1D8,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `field_5FA`.
+const TaskFuncTable5 D_actor_403100_80131F9C = {
+    {
+        (TaskFunc)func_actor_403100_80137F4C,
+        func_actor_403100_80138048,
+        (TaskFunc)func_actor_403100_8013F230,
+        (TaskFunc)func_actor_403100_8013F270,
+        func_actor_403100_8013842C,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `field_5FA`.
+const TaskFuncTable9 D_actor_403100_80131FB0 = {
+    {
+        (TaskFunc)func_actor_403100_8013F2D8,
+        (TaskFunc)func_actor_403100_8013F344,
+        func_actor_403100_80138610,
+        func_actor_403100_801386DC,
+        func_actor_403100_80138790,
+        func_actor_403100_80138844,
+        (TaskFunc)func_actor_403100_80138AB4,
+        (TaskFunc)func_actor_403100_80138C18,
+        (TaskFunc)func_actor_403100_8013F3AC,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `field_5FA`.
+const TaskFuncTable11 D_actor_403100_80131FD4 = {
+    {
+        func_actor_403100_80138D08,
+        func_actor_403100_80138DB0,
+        func_actor_403100_8013F3EC,
+        func_actor_403100_80138F88,
+        func_actor_403100_8013922C,
+        func_actor_403100_801395EC,
+        func_actor_403100_80139818,
+        func_actor_403100_80139E80,
+        func_actor_403100_8013A064,
+        (TaskFunc)func_actor_403100_8013A254,
+        (TaskFunc)func_actor_403100_8013F488,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `field_5FA`.
+const TaskFuncTable5 D_actor_403100_80132000 = {
+    {
+        func_actor_403100_8013A4C8,
+        func_actor_403100_8013A5AC,
+        (TaskFunc)func_actor_403100_8013F4E0,
+        (TaskFunc)func_actor_403100_8013F520,
+        func_actor_403100_8013A81C,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `field_5FA`.
+const TaskFuncTable4 D_actor_403100_80132014 = {
+    {
+        (TaskFunc)func_actor_403100_8013F588,
+        func_actor_403100_8013AA04,
+        (TaskFunc)func_actor_403100_8013AC04,
+        (TaskFunc)func_actor_403100_8013AE28,
+    },
+};
+
+/// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `field_5FA`.
+const TaskFuncTable3 D_actor_403100_80132024 = {
+    {
+        (TaskFunc)func_actor_403100_8013F6B0,
+        (TaskFunc)func_actor_403100_8013F6F4,
+        (TaskFunc)func_actor_403100_8013F76C,
+    },
+};
+
+/// Handlers `func_actor_403100_8013BA64` dispatches on `field_5F6`.
+const TaskFuncTable6 D_actor_403100_80132030 = {
+    {
+        func_actor_403100_8013BB8C,
+        func_actor_403100_8013BDE4,
+        (TaskFunc)func_actor_403100_8013F7AC,
+        (TaskFunc)func_actor_403100_8013F7B4,
+        func_actor_403100_8013BEF0,
+        (TaskFunc)func_actor_403100_8013F7BC,
+    },
+};
+
+void func_actor_403100_8013BA64(Task* arg0)
+{
+    GsCOORDINATE2* coords   = ((TmdObject*)arg0->extra)->coords;
+    TaskFuncTable6 handlers = D_actor_403100_80132030;
+
+    D_actor_403100_80155808->field_602 = (u16)D_actor_403100_80155808->field_600;
+    handlers.funcs[D_actor_403100_80155808->field_5F6](arg0);
+    if (((Gp_GetViewIndex() & 0xFF) == 7) || ((Gp_GetViewIndex() & 0xFF) == 8)) {
+        if ((s16)D_actor_403100_80155808->field_5F8 == 6) {
+            if (D_actor_403100_80155808->field_628 == 2) {
+                coords->coord.t[0] += (-4000 - coords->coord.t[0]) >> 4;
+            } else {
+                coords->coord.t[0] += (-2700 - coords->coord.t[0]) >> 4;
+            }
+        }
+    } else {
+        coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
+    }
+}
+void func_actor_403100_8013BB8C(Task* arg0)
+{
+    s16                 mode;
+    s32                 delta;
+    s32                 delta2;
+    s32                 delta3;
+    s32                 sound;
+    s32                 pan;
+    s32                 depth;
+    TmdObject*          obj;
+    register TmdObject* original asm("v1");
+    GsCOORDINATE2*      coords;
+
+    original = arg0->extra;
+    SOFT_TOUCH_REG(original);
+    obj    = original;
+    coords = obj->coords;
+    mode   = (u16)D_actor_403100_80155808->field_628 - 1;
+    switch (mode) {
+        case 0:
+        case 4:
+            obj->otOffset = 0;
+            delta         = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            if (delta > 4864) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta < -4864) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+        case 1:
+        case 5:
+            delta2 = 1300 - coords->coord.t[2];
+            if (delta2 > 48) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta2 < -48) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+        case 2:
+        case 3:
+            obj->otOffset = 0;
+            delta3        = D_actor_403100_80155808->field_94 - coords->coord.t[2];
+            if (delta3 > 640) {
+                coords->coord.t[2]                += D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else if (delta3 < -640) {
+                coords->coord.t[2]                -= D_actor_403100_80155808->field_62C;
+                D_actor_403100_80155808->field_600 = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+            } else {
+                D_actor_403100_80155808->field_5F6++;
+            }
+            break;
+    }
+    if (D_actor_403100_80155808->field_600 == 0) {
+        if (D_actor_403100_80155808->field_602 != 0) {
+            Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+            D_actor_403100_80155808->field_5FE = 0x1E;
+            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+            pan                                = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 1);
+            depth                              = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 1);
+            SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        }
+    }
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+}
+void func_actor_403100_8013BDE4(Task* arg0)
+{
+    s16            angle;
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coords;
+
+    coords = ((TmdObject*)arg0->extra)->coords;
+    if (D_actor_403100_80155808->field_600 != 0) {
+        angle                              = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+        D_actor_403100_80155808->field_600 = angle;
+        if (angle == 0) {
+            Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+            D_actor_403100_80155808->field_5FE = 0x1E;
+            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+            pan                                = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 1);
+            depth                              = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 1);
+            SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        }
+    } else {
+        D_actor_403100_80155808->field_5F6 = 0;
+    }
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+}
+void func_actor_403100_8013BEF0(Task* arg0)
+{
+    s16            angle;
+    s32            sound;
+    s32            pan;
+    s32            depth;
+    GsCOORDINATE2* coords;
+
+    coords = ((TmdObject*)arg0->extra)->coords;
+    if (D_actor_403100_80155808->field_600 != 0) {
+        angle                              = ((u16)D_actor_403100_80155808->field_600 + 0x20) & 0x7FF;
+        D_actor_403100_80155808->field_600 = angle;
+        if (angle == 0) {
+            Gp_SpawnPadLerp(0x1E, 0xFF, 8);
+            D_actor_403100_80155808->field_5FE = 0x1E;
+            sound                              = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x401F0001;
+            pan                                = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords + 1);
+            depth                              = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 1);
+            SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+        }
+    } else {
+        D_actor_403100_80155808->field_5F6++;
+    }
+    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->field_600) << 13) >> 16);
+}
+void func_actor_403100_8013C008(s16 arg0, s16 arg1)
+{
+    POLY_FT4*             poly;
+    Actor403100QuadEntry* entry;
+    s32                   i;
+    u16                   clut;
+
+    for (i = 0; i < 2; i++) {
+        entry          = &D_actor_403100_801557E0[i];
+        poly           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = poly + 1;
+        setPolyFT4(poly);
+        poly->tpage = entry->tpage;
+        SOFT_TOUCH_REG(poly);
+        clut = entry->clut;
+        setShadeTex(poly, 1);
+        poly->clut = clut;
+        poly->u0   = entry->u;
+        poly->v0   = entry->v;
+        poly->u1   = entry->u + (u8)entry->w;
+        poly->v1   = entry->v;
+        poly->u2   = entry->u;
+        poly->v2   = entry->v + (u8)entry->h;
+        poly->u3   = entry->u + (u8)entry->w;
+        poly->v3   = entry->v + (u8)entry->h;
+        poly->x0   = entry->x + arg0;
+        poly->y0   = entry->y + arg1;
+        poly->x1   = arg0 + (entry->x + entry->w);
+        poly->y1   = entry->y + arg1;
+        poly->x2   = entry->x + arg0;
+        poly->y2   = arg1 + (entry->y + entry->h);
+        poly->x3   = arg0 + (entry->x + entry->w);
+        poly->y3   = arg1 + (entry->y + entry->h);
+        addPrim((u32*)((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+    }
+}
+void func_actor_403100_8013C214(Task* arg0)
+{
+    GpActorWork*     playerTask;
+    GsCOORDINATE2*   soundCoords;
+    Task*            task;
+    s16              next;
+    s16              next2;
+    s32              sound;
+    s32              randomSound;
+    s32              phase;
+    s32              x1;
+    s32              nextX1;
+    s32              x2;
+    s32              nextX2;
+    s32              x3;
+    s32              nextX3;
+    s32              x4;
+    s32              nextX4;
+    s32              sound2;
+    s32              pan;
+    s32              pan2;
+    s32              depth;
+    u32              random;
+    s32              depth2;
+    GsCOORDINATE2*   coords;
+    Actor403100Work* work;
+    s32              sound3, pan3;
+    s32              depth3;
+
+    playerTask = *Gp_ActorSlots;
+    coords     = ((TmdObject*)arg0->extra)->coords + 6;
+    if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+        if (D_actor_403100_80155808->field_638 != 0) {
+            next                               = (u16)D_actor_403100_80155808->field_638 - 1;
+            D_actor_403100_80155808->field_638 = next;
+            if (next == 1) {
+                D_actor_403100_80155808->pad_660[0] = 1;
+            }
+        } else {
+            D_actor_403100_80155808->field_5EE = (u16)D_actor_403100_80155808->field_5EE + 1;
+            next2                              = (u16)D_actor_403100_80155808->field_63A + 1;
+            D_actor_403100_80155808->field_63A = next2;
+            if (next2 >= 0xB4) {
+                D_actor_403100_80155808->field_63A = 0;
+                task                               = gameGetPtrSlot(3);
+                if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 3), 0) != 0) {
+                    sound = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 0x531D000B;
+                    pan   = (s8)Gp_GetObjPan(playerTask->extra->coords + 1);
+                    depth = gpGetObjDepth(playerTask->extra->coords + 1);
+                    SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
+                    gGameSession->areaBgmCountdown    = 0x7F;
+                    work                              = D_actor_403100_80155808;
+                    work->pad_670[0]                  = 1;
+                    work->field_654                   = 0;
+                    gGameSession->suppressDeathChecks = 1;
+                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+                    func_actor_403100_8013D1B8(6, 0x3FF);
+                }
+                if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
+                    Gp_SpawnPadLerp(0xA, 0xC0U, 0x20U);
+                    random      = (Gp_LcgState * 5) + 0x71357911;
+                    Gp_LcgState = random;
+                    randomSound = (random >> 0x10) & 3;
+                    if (randomSound == 0) {
+                        soundCoords = playerTask->extra->coords + 1;
+                        sound2      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 6;
+                        pan2        = (s8)Gp_GetObjPan(soundCoords);
+                        depth2      = gpGetObjDepth(playerTask->extra->coords + 1);
+                        SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
+                    } else if (randomSound == 1) {
+                        soundCoords = playerTask->extra->coords + 1;
+                        sound3      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2)->placeKey >> 0xC) << 8) | 7;
+                        pan3        = (s8)Gp_GetObjPan(soundCoords);
+                        depth3      = gpGetObjDepth(playerTask->extra->coords + 1);
+                        SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
+                    }
+                }
+            }
+            phase = ((u16)D_actor_403100_80155808->field_5EE >> 5) & 3;
+            if (phase == 0) {
+                D_actor_403100_80155808->field_664.b.field_667 = 0;
+                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 1);
+                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 1);
+                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 1);
+                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 1);
+                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 1);
+                x1                                             = coords->coord.t[0];
+                nextX1                                         = x1 + ((s32)(-0xB80 - x1) >> 3);
+                coords->coord.t[0]                             = nextX1;
+                if (nextX1 >= -0xBD0) {
+                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    return;
+                }
+            } else if (phase == 1) {
+                D_actor_403100_80155808->field_664.b.field_667 = 0;
+                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 2);
+                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 2);
+                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 2);
+                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 2);
+                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 2);
+                x2                                             = coords->coord.t[0];
+                nextX2                                         = x2 + ((s32)(-0x1180 - x2) >> 2);
+                coords->coord.t[0]                             = nextX2;
+                if (nextX2 < -0x111F) {
+                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                }
+            } else if (phase == 2) {
+                D_actor_403100_80155808->field_664.b.field_667 = 0;
+                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 2);
+                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 2);
+                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 2);
+                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 2);
+                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 2);
+                x3                                             = coords->coord.t[0];
+                nextX3                                         = x3 + ((s32)(-0xB80 - x3) >> 2);
+                coords->coord.t[0]                             = nextX3;
+                if (nextX3 >= -0xBD0) {
+                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    return;
+                }
+            } else if (phase == 3) {
+                D_actor_403100_80155808->field_664.b.field_667 = 0;
+                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 1);
+                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 1);
+                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 1);
+                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 1);
+                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 1);
+                x4                                             = coords->coord.t[0];
+                nextX4                                         = x4 + ((s32)(-0x1180 - x4) >> 2);
+                coords->coord.t[0]                             = nextX4;
+                if (nextX4 < -0x111F) {
+                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                }
+            }
+        }
+    }
+}
+static inline s32 Actor403100CoordToViewInline(GsCOORDINATE2* coord, SVECTOR* pos, GsCOORDINATE2* view)
+{
+    SVECTOR        local;
+    VECTOR         result;
+    s32            flag;
+    GsCOORDINATE2* current;
+
+    current  = coord;
+    local.vx = pos->vx;
+    local.vy = pos->vy;
+    local.vz = pos->vz;
+    while (1) {
+        if (current->sub == NULL) {
+            return 0;
+        }
+        if (current == view) {
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            return 1;
+        }
+        gte_SetTransMatrix(&current->coord);
+        gte_SetRotMatrix(&current->coord);
+        gte_ldv0(&local);
+        gte_rtv0tr();
+        gte_stlvnl(&result);
+        gte_stflg(&flag);
+        local.vx = result.vx;
+        local.vy = result.vy;
+        local.vz = result.vz;
+        current  = current->sub;
+    }
+}
+
+static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
+{
+    D_actor_403100_80155808->field_5FC = frame;
+    D_actor_403100_80155808->field_5E2 = angle;
+    D_actor_403100_80155808->field_5DE = anim;
+    D_actor_403100_80155808->field_5DA = 1;
+}
+
+void func_actor_403100_8013C7B4(Task* arg0)
+{
+    SVECTOR        pos0, pos1, delta;
+    GsCOORDINATE2* playerCoord;
+    GsCOORDINATE2* joint;
+    s16            dx0;
+    s16            dx1;
+    s16            dz0;
+    s16            dz1;
+    u16            savedAngle;
+    GsCOORDINATE2* coords;
+    GsCOORDINATE2* second;
+    GsCOORDINATE2* walker;
+    GsCOORDINATE2* view;
+
+    playerCoord = (*Gp_ActorSlots)->extra->coords;
+    savedAngle  = (u16)D_actor_403100_80155808->field_5E2;
+    coords      = ((TmdObject*)arg0->extra)->coords;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC();
+    func_actor_403100_801328DC(arg0);
+    view              = &gGfxViewCoord;
+    gGfxViewCoord.flg = 0;
+    Gp_UpdateCoord(view);
+    SOFT_TOUCH_REG_USE(view, arg0);
+    second        = coords + 7;
+    joint         = coords + 8;
+    coords[8].flg = 0;
+    Gp_UpdateCoord(joint);
+    pos0.vx = 0x160;
+    pos0.vy = 0x148;
+    pos0.vz = 0x2C0;
+    Actor403100CoordToViewInline(joint, &pos0, view);
+    dx0      = *(u16*)&playerCoord->coord.t[0] - (u16)pos0.vx;
+    delta.vx = dx0;
+    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
+    dz0      = *(u16*)&playerCoord->coord.t[2] - (u16)pos0.vz;
+    delta.vz = dz0;
+    if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
+        D_actor_403100_80155808->field_668.b.field_668 = 1;
+    }
+    {
+        SVECTOR  local;
+        VECTOR   result;
+        s32      flag;
+        SVECTOR* localp = &local;
+        walker          = second;
+        pos1.vx         = 0x160;
+        pos1.vy         = 0x148;
+        pos1.vz         = 0x180;
+        local.vx        = 0x160;
+        local.vy        = 0x148;
+        local.vz        = 0x180;
+        while (1) {
+            if (walker->sub == NULL)
+                break;
+            if (walker != &gGfxViewCoord) {
+                gte_SetTransMatrix(&walker->coord);
+                gte_SetRotMatrix(&walker->coord);
+                gte_ldv0(localp);
+                gte_rtv0tr();
+                gte_stlvnl(&result);
+                gte_stflg(&flag);
+                local.vx = result.vx;
+                local.vy = result.vy;
+                local.vz = result.vz;
+                walker   = walker->sub;
+                continue;
+            }
+            pos1.vx = local.vx;
+            pos1.vy = local.vy;
+            pos1.vz = local.vz;
+            break;
+        }
+    }
+    dx1      = *(u16*)&playerCoord->coord.t[0] - (u16)pos1.vx;
+    delta.vx = dx1;
+    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
+    dz1      = *(u16*)&playerCoord->coord.t[2] - (u16)pos1.vz;
+    delta.vz = dz1;
+    if ((SquareRoot0((dx1 * dx1) + (dz1 * dz1)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
+        D_actor_403100_80155808->field_668.b.field_669 = 1;
+    }
+    D_actor_403100_80155808->field_5E2 = -(s16)savedAngle;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_5E2 = (s16)savedAngle;
+    Actor403100ResetStateInline(D_actor_403100_80155808->field_5DE, D_actor_403100_80155808->field_5E2, 0);
+}
+void func_actor_403100_8013CBE0(Task* arg0)
+{
+    s16 next;
+    s16 next2;
+    s32 sound;
+    s32 soundId;
+    s32 pan;
+    u32 random;
+    s32 depth;
+    u8  request;
+    u8  state;
+
+    state = D_actor_403100_80155808->field_664.b.field_665;
+    switch (state) {
+        case 0:
+            D_actor_403100_80155808->field_5E8 = (s16)((u16)D_actor_403100_80155808->field_5E8 + ((s32) - (D_actor_403100_80155808->field_5E8 * 0x10) >> 7));
+            return;
+        case 1:
+            request = D_actor_403100_80155808->field_66F;
+            if (request == state) {
+                soundId = 0x401F0009;
+                goto play_sound;
+            }
+            if (request == 2) {
+                random      = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState = random;
+                if ((random >> 16) & 1) {
+                    soundId = 0x401F0000;
+                    TOUCH_REG(soundId);
+                    soundId |= 2;
+                } else {
+                    soundId = 0x401F0000;
+                    TOUCH_REG(soundId);
+                    soundId |= 5;
+                }
+            play_sound:
+                sound = (((u16)((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | soundId;
+                pan   = (s8)((s32 (*)(GsCOORDINATE2*, s32))Gp_GetObjPan)(((TmdObject*)arg0->extra)->coords + 4, soundId);
+                depth = gpGetObjDepth(((TmdObject*)arg0->extra)->coords + 4);
+                SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
+            }
+            D_actor_403100_80155808->field_66F             = 0U;
+            D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+            return;
+        case 2:
+            next                               = (u16)D_actor_403100_80155808->field_5E8 + ((s32)(-0x2200 - (D_actor_403100_80155808->field_5E8 * 0x10)) >> 7);
+            D_actor_403100_80155808->field_5E8 = next;
+            if (next < -0x1FF) {
+                D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+                return;
+            }
+            return;
+        case 3:
+            next2                              = (u16)D_actor_403100_80155808->field_5E8 + 0xC;
+            D_actor_403100_80155808->field_5E8 = next2;
+            if ((next2 << 16) >= 0) {
+                D_actor_403100_80155808->field_664.b.field_665 = 0U;
+            }
+            break;
+    }
+}
+void func_actor_403100_8013CDC0(void)
+{
+    s16 next;
+    s16 next2;
+    u8  state;
+
+    state = D_actor_403100_80155808->field_664.b.field_666;
+    switch (state) { /* irregular */
+        case 0:
+            D_actor_403100_80155808->field_5EA =
+                (u16)D_actor_403100_80155808->field_5EA +
+                ((s32) - (D_actor_403100_80155808->field_5EA * 0x10) >> 7);
+            return;
+        case 1:
+            D_actor_403100_80155808->field_664.b.field_666 = 2;
+            return;
+        case 2:
+            next = (u16)D_actor_403100_80155808->field_5EA +
+                   ((s32)(0x1E00 - (D_actor_403100_80155808->field_5EA * 0x10)) >> 7);
+            D_actor_403100_80155808->field_5EA = next;
+            if (next >= 0x1C0) {
+                D_actor_403100_80155808->field_664.b.field_666 =
+                    D_actor_403100_80155808->field_664.b.field_666 + 1;
+                return;
+            }
+            return;
+        case 3:
+            next2                              = (u16)D_actor_403100_80155808->field_5EA - 0xC;
+            D_actor_403100_80155808->field_5EA = next2;
+            if ((next2 << 0x10) <= 0) {
+                D_actor_403100_80155808->field_664.b.field_666 = 0;
+            }
+            break;
+    }
+}
+
+void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
+{
+    s16 facing;
+    s16 target;
+    s16 angle;
+    u16 targetU;
+    u16 facingU;
+
+    angle = *arg0 - 0x140;
+    *arg0 = angle;
+    if ((angle < (s16)arg2) && (arg3 < (s16)angle)) {
+        target  = D_actor_403100_80155808->field_B0;
+        targetU = (u16)D_actor_403100_80155808->field_B0;
+        if ((u32)(((s16)angle - target) + 0x20) >= 0x41U) {
+            if (target < (s16)angle) {
+                D_actor_403100_80155808->field_B0 = (s16)(targetU + arg1);
+                return;
+            }
+            D_actor_403100_80155808->field_B0 = (s16)(targetU - arg1);
+        }
+    } else {
+        facing  = D_actor_403100_80155808->field_B0;
+        facingU = (u16)D_actor_403100_80155808->field_B0;
+        if (facing >= 0x21) {
+            D_actor_403100_80155808->field_B0 = (s16)(facingU - 0x18);
+            return;
+        }
+        if (facing < -0x20) {
+            D_actor_403100_80155808->field_B0 = (s16)(facingU + 0x18);
+        }
+    }
+}
+void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    s16 facing;
+    s16 target;
+    u16 yaw;
+    u16 targetU;
+    u16 facingU;
+
+    yaw = (u16)arg0->vy;
+    if ((u32)((yaw + 0x27F) & 0xFFFF) < 0x4FFU) {
+        target  = D_actor_403100_80155808->field_B2;
+        targetU = (u16)D_actor_403100_80155808->field_B2;
+        if ((u32)(((s16)yaw - target) + 0x20) >= 0x41U) {
+            if (target < (s16)yaw) {
+                D_actor_403100_80155808->field_B2 = targetU + arg1;
+                D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg2;
+                return;
+            }
+            D_actor_403100_80155808->field_B2 = targetU - arg1;
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg2;
+            return;
+        }
+        facing  = (s16)D_actor_403100_80155808->field_82;
+        facingU = D_actor_403100_80155808->field_82;
+        if (facing < target) {
+            D_actor_403100_80155808->field_82 = facingU + arg3;
+            return;
+        }
+        if (target < facing) {
+            D_actor_403100_80155808->field_82 = facingU - arg3;
+        }
+    } else {
+        if ((s16)yaw >= 0x281) {
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 + arg4;
+        }
+        if (arg0->vy < -0x280) {
+            D_actor_403100_80155808->field_82 = D_actor_403100_80155808->field_82 - arg4;
+        }
+    }
+}
+
+void func_actor_403100_8013D06C(void)
+{
+    if (D_actor_403100_80155808->field_B4 >= 0x11) {
+        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 - 8;
+    }
+    if (D_actor_403100_80155808->field_B4 < -0x10) {
+        D_actor_403100_80155808->field_B4 = (u16)D_actor_403100_80155808->field_B4 + 8;
+    }
+}
+
+void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    Actor403100MsgPos msg;
+
+    msg.pos.vx = arg0;
+    msg.pos.vy = arg1;
+    msg.pos.vz = arg2;
+    msg.rot.vx = 0;
+    msg.rot.vy = arg3;
+    msg.rot.vz = 0;
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&msg, 0);
+}
+void func_actor_403100_8013D11C(Task* arg0)
+{
+    GsCOORDINATE2* coords;
+    GpObj44*       light;
+    s16            value;
+    u32            random;
+
+    coords                       = ((TmdObject*)arg0->extra)->coords;
+    D_80114FF8.field_0           = 8;
+    light                        = &D_80114FF8.field_4.light;
+    light->field_58              = 0x300;
+    random                       = Gp_LcgState * 5 + 0x71357911;
+    light->field_5C              = 0x3000;
+    value                        = ((random >> 16) & 0x700) + 0x800;
+    light->field_50              = value;
+    light->field_52              = value >> 3;
+    light->field_54              = value >> 4;
+    coords                      += 3;
+    light->field_18.vx           = coords->coord.t[0];
+    light->field_18.vy           = coords->coord.t[1];
+    light->field_18.vz           = coords->coord.t[2];
+    Gp_LcgState                  = random;
+    D_80114FF8.field_4.coord.flg = 0;
+}
+void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
+{
+    GpAnimArg msg;
+
+    msg.field_0                        = &D_actor_403100_8015570C;
+    msg.field_4                        = (s32)arg0;
+    msg.field_8                        = 0;
+    msg.field_C                        = 0;
+    msg.field_10                       = 0;
+    D_actor_403100_80155808->field_65D = (s8)arg0;
+    if (arg1 == 0x3FF) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&msg, 0);
+    } else if (arg1 == 0x3F4) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F4, (s32)&msg, 0);
+    }
+}
+void func_actor_403100_8013D24C(void)
+{
+    s32 state;
+
+    state = (s8)D_actor_403100_80155808->pad_66A[2];
+    if ((state == 1) && !(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
+        D_actor_403100_80155808->field_664.b.field_665 = state;
+        D_actor_403100_80155808->field_664.b.field_666 = (u8)state;
+        D_actor_403100_80155808->field_66F             = state;
+    }
+}
+void func_actor_403100_8013D2A0(s16 arg0)
+{
+    if (!(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
+        if (arg0 == 1) {
+            D_actor_403100_80155808->field_66F = 2;
+        }
+        D_actor_403100_80155808->field_664.b.field_665 = 1;
+        D_actor_403100_80155808->field_664.b.field_666 = 1;
+    }
+}
+
+s32 func_actor_403100_8013D2F4(GsCOORDINATE2* coord, MATRIX* matrix)
+{
+    MATRIX         result;
+    MATRIX         parent;
+    GsCOORDINATE2* current;
+
+    current = coord->sub;
+    *matrix = coord->coord;
+    while (1) {
+        if (current == NULL) {
+            return 0;
+        }
+        if (current == &gGfxViewCoord) {
+            return 1;
+        }
+        parent = current->coord;
+        MatrixNormal(&parent, &parent);
+        gte_SetRotMatrix(&parent);
+        MulRotMatrix(matrix);
+        MatrixNormal(matrix, &result);
+        *matrix = result;
+        current = current->sub;
+    }
+}
+/// Carries `pos`, a point local to `coord`, up the `sub` chain by applying
+/// each level's matrix. If the chain reaches the view coordinate the
+/// transformed point is written back to `pos` and 1 is returned; if it ends
+/// first, `pos` is left untouched and 0 is returned.
+s32 func_actor_403100_8013D460(GsCOORDINATE2* coord, SVECTOR* pos)
+{
+    SVECTOR        local;
+    VECTOR         result;
+    s32            flag;
+    GsCOORDINATE2* current;
+
+    current  = coord;
+    local.vx = pos->vx;
+    local.vy = pos->vy;
+    local.vz = pos->vz;
+    while (1) {
+        if (current->sub == NULL) {
+            return 0;
+        }
+        if (current == &gGfxViewCoord) {
+            pos->vx = local.vx;
+            pos->vy = local.vy;
+            pos->vz = local.vz;
+            return 1;
+        }
+        gte_SetTransMatrix(&current->coord);
+        gte_SetRotMatrix(&current->coord);
+        gte_ldv0(&local);
+        gte_rtv0tr();
+        gte_stlvnl(&result);
+        gte_stflg(&flag);
+        local.vx = result.vx;
+        local.vy = result.vy;
+        local.vz = result.vz;
+        current  = current->sub;
+    }
+}
+
+void func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2)
+{
+    u16 value;
+
+    switch (arg2[1]) {
+        case 10:
+            arg0->state                        = 3;
+            D_actor_403100_80155808->field_5F8 = 0;
+            D_actor_403100_80155808->field_5FA = 0;
+            break;
+        case 0xFFFF:
+            D_actor_403100_80155808->field_5F8 = 0;
+            D_actor_403100_80155808->field_5FA = 0;
+            arg0->state                        = 2;
+            break;
+        default:
+            value = arg2[1];
+            if (value < 9U) {
+                D_actor_403100_80155808->field_5F8 = value;
+                D_actor_403100_80155808->field_5FA = 0;
+                arg0->state                        = 1;
+            }
+            break;
+    }
+    D_actor_403100_80155808->field_5FA = 0;
+}
+void func_actor_403100_8013D5F4(void)
+{
+    D_actor_403100_80155808->field_65F = 1;
+}
+
+void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
+{
+    u16        flags;
+    TmdObject* object;
+
+    object = arg0->extra;
+    switch (arg2) {
+        case 0:
+            object->flags = (object->flags | 0x80) & 0xFFFB;
+            return;
+        case 1:
+            object->flags = object->flags & 0xFF7B;
+            return;
+        case 2:
+            object->flags                      = object->flags | 0x80;
+            D_actor_403100_80155808->field_658 = arg2;
+            flags                              = object->flags | 4;
+            object->flags                      = flags;
+            return;
+        case 3:
+            flags         = (object->flags & 0xFF7F) | 4;
+            object->flags = flags;
+            return;
+    }
+}
+void func_actor_403100_8013D6B4(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = ((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_606 = D_actor_403100_80155808->field_604;
+    D_actor_403100_80155808->field_60A = D_actor_403100_80155808->field_608;
+    D_actor_403100_80155808->field_A8  = D_actor_403100_80155808->field_A0;
+    D_actor_403100_80155808->field_AA  = D_actor_403100_80155808->field_A2;
+    D_actor_403100_80155808->field_AC  = D_actor_403100_80155808->field_A4;
+    D_actor_403100_80155808->field_5D4 = coord[6].coord.t[0];
+    D_actor_403100_80155808->field_5F0 = D_actor_403100_80155808->field_5EE;
+}
+void func_actor_403100_8013D700(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = ((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_604 = D_actor_403100_80155808->field_606;
+    D_actor_403100_80155808->field_608 = D_actor_403100_80155808->field_60A;
+    D_actor_403100_80155808->field_A0  = D_actor_403100_80155808->field_A8;
+    D_actor_403100_80155808->field_A2  = D_actor_403100_80155808->field_AA;
+    D_actor_403100_80155808->field_A4  = D_actor_403100_80155808->field_AC;
+    coord[6].coord.t[0]                = D_actor_403100_80155808->field_5D4;
+    D_actor_403100_80155808->field_5EE = D_actor_403100_80155808->field_5F0;
+}
+void func_actor_403100_8013D74C(Task* arg0)
+{
+    D_actor_403100_80155808->field_5EE             = 0;
+    D_actor_403100_80155808->field_664.b.field_667 = 0;
+    D_actor_403100_80155808->field_638             = 0;
+    D_actor_403100_80155808->field_63A             = 0;
+}
+void func_actor_403100_8013D770(Task* arg0)
+{
+    SVECTOR           rotation;
+    Actor403100Matrix matrix;
+    MATRIX*           dest;
+    MATRIX*           mtx;
+    GsCOORDINATE2*    coords;
+    GsCOORDINATE2*    updated;
+
+    coords               = ((TmdObject*)arg0->extra)->coords;
+    dest                 = &coords[6].coord;
+    coords[6].flg        = 0;
+    mtx                  = &matrix.mat;
+    matrix.ident.m00_m01 = 0x1000;
+    matrix.ident.m02_m10 = 0;
+    *(s32*)&mtx->m[1][1] = 0x1000;
+    matrix.ident.m20_m21 = 0;
+    mtx->m[2][2]         = 0x1000;
+    Gp_MtxToEuler(dest, &rotation);
+    USE_REG(mtx);
+    rotation.vz += D_actor_403100_80155808->field_A4;
+    rotation.vy += D_actor_403100_80155808->field_A2;
+    rotation.vx += D_actor_403100_80155808->field_A0;
+    RotMatrix(&rotation, &matrix.mat);
+    dest->m[0][0] = matrix.mat.m[0][0];
+    dest->m[0][1] = matrix.mat.m[0][1];
+    dest->m[0][2] = matrix.mat.m[0][2];
+    dest->m[1][0] = matrix.mat.m[1][0];
+    dest->m[1][1] = matrix.mat.m[1][1];
+    dest->m[1][2] = matrix.mat.m[1][2];
+    dest->m[2][0] = matrix.mat.m[2][0];
+    dest->m[2][1] = matrix.mat.m[2][1];
+    updated       = coords + 6;
+    USE_REG(updated);
+    dest->m[2][2] = matrix.mat.m[2][2];
+    Gp_UpdateCoord(updated);
+}
+void func_actor_403100_8013D88C(Task* arg0)
+{
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_47C);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_414);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_55C);
+    Gp_UnlinkObj(&D_actor_403100_80155808->field_594);
+    Gp_DestroyEnemy(arg0->spawnArg2, arg0);
+}
+
+void func_actor_403100_8013D8F4(Task* arg0)
+{
+    D_actor_403100_80155808->field_658     = -1;
+    D_actor_403100_80155808->field_618     = 0x1400;
+    Gp_StateC08.field_6                    = Gp_StateC08.field_6 | 1;
+    gGameSession->field_12C                = 0;
+    D_actor_403100_8015580C->reactionFlags = 0;
+    Gp_SetLightMode(arg0->spawnArg2, 0);
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    Gp_UnlinkNode(&D_actor_403100_8015580C->node);
+    func_800E8614((s32)&D_80165FC0, 0);
+    arg0->state                        = 1;
+    D_actor_403100_80155808->field_5F8 = 0;
+    D_actor_403100_80155808->field_5FA = 0;
+    D_actor_403100_80155808->field_5F8 = 9;
+    D_actor_403100_80155808->field_5FA = 0;
+}
+s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
+{
+    while (entry->value != -1) {
+        if (x >= entry->x && entry->x + entry->w >= x &&
+            y >= entry->y && entry->y + entry->h >= y) {
+            return entry->value;
+        }
+        entry++;
+    }
+    return 0;
+}
+void func_actor_403100_8013DA6C(void)
+{
+    void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013712C, func_actor_403100_8013F12C };
+
+    fns[(s16)D_actor_403100_80155808->field_5FA]();
+}
+
+void func_actor_403100_8013DAC4(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131F60;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    }
+}
+void func_actor_403100_8013DB48(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_actor_403100_80131F84;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+        func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
+        func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
+    }
+}
+void func_actor_403100_8013DC18(Task* arg0)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_actor_403100_80131F9C;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    }
+}
+void func_actor_403100_8013DCAC(Task* arg0)
+{
+    TaskFuncTable9 sp;
+
+    sp = D_actor_403100_80131FB0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
+    func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
+}
+void func_actor_403100_8013DD78(Task* arg0)
+{
+    TaskFuncTable11 sp;
+
+    sp = D_actor_403100_80131FD4;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+}
+void func_actor_403100_8013DE0C(Task* arg0)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_actor_403100_80132000;
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    }
+}
+void func_actor_403100_8013DEA0(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_actor_403100_80132014;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+}
+void func_actor_403100_8013DF0C(void)
+{
+    void (*fns[2])(void) = { func_actor_403100_8013F610, func_actor_403100_8013F658 };
+
+    fns[(s16)D_actor_403100_80155808->field_5FA]();
+}
+void func_actor_403100_8013DF64(void)
+{
+    void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013B128, (void (*)(void))func_actor_403100_8013B3C4 };
+
+    fns[(s16)D_actor_403100_80155808->field_5FA]();
+}
+void func_actor_403100_8013DFBC(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80132024;
+    func_actor_403100_8013D24C();
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+}
+void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
+{
+    D_actor_403100_80155808->field_5FC = arg2;
+    D_actor_403100_80155808->field_5E2 = arg1;
+    D_actor_403100_80155808->field_5DE = arg0;
+    D_actor_403100_80155808->field_5DA = 1;
+}
+
+void func_actor_403100_8013E04C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131E70;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_403100_8013E0A4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131E7C;
+    sp.funcs[task->state](task);
+}
+
+/// Runs the handler for the task's current top-level state.
+void func_actor_403100_8013E0FC(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_actor_403100_80131F1C;
+    sp.funcs[arg0->state](arg0);
+}
+
+void func_actor_403100_8013E16C(void)
+{
+}
+
+void func_actor_403100_8013E174(void)
+{
+    s16 timer;
+
+    if (D_80073BA0 > 0) {
+        timer                              = (u16)D_actor_403100_80155808->field_5F4 - 1;
+        D_actor_403100_80155808->field_5F4 = timer;
+        if (timer < 0) {
+            func_actor_403100_8013D1B8(5, 0x3F4);
+            D_actor_403100_80155808->field_5F2 = 2;
+            return;
+        }
+        func_actor_403100_8013D1B8(5, 0x3F4);
+    }
+}
+void func_actor_403100_8013E1E4(void)
+{
+    GpAnimArg sp;
+
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+        sp.field_0                      = &D_actor_403100_8015570C;
+        sp.field_8                      = 1;
+        sp.field_C                      = 3;
+        sp.field_10                     = 0;
+        sp.field_4                      = 4;
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&sp, 0);
+        D_actor_403100_80155808->field_5F2 = 3;
+    }
+}
+void func_actor_403100_8013E2BC(void)
+{
+    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+        D_actor_403100_80155808->field_5F4             = 0;
+        D_actor_403100_80155808->field_65D             = 0;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_5F2             = 0;
+    }
+}
+s32 func_actor_403100_8013E33C(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    *arg1 = arg0->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(arg1);
+        MatrixNormal(arg1, &matrix);
+        *arg1 = matrix;
+        coord = coord->sub;
+    }
+}
+s32 func_actor_403100_8013E450(GsCOORDINATE2* arg0, MATRIX* arg1, GsCOORDINATE2* arg2)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+
+    coord = arg0->sub;
+    if (coord == &gGfxViewCoord) {
+        return 0;
+    }
+    matrix = coord->coord;
+    while (1) {
+        coord = coord->sub;
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == arg2) {
+            break;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(&matrix);
+        MatrixNormal(&matrix, &normal);
+        matrix = normal;
+    }
+    __asm__ volatile(
+        "lhu $12, 0(%0);"
+        "lhu $13, 6(%0);"
+        "lhu $14, 12(%0);"
+        "sh $12, 0(%1);"
+        "sh $13, 2(%1);"
+        "sh $14, 4(%1);"
+        "lhu $12, 2(%0);"
+        "lhu $13, 8(%0);"
+        "lhu $14, 14(%0);"
+        "sh $12, 6(%1);"
+        "sh $13, 8(%1);"
+        "sh $14, 10(%1);"
+        "lhu $12, 4(%0);"
+        "lhu $13, 10(%0);"
+        "lhu $14, 16(%0);"
+        "sh $12, 12(%1);"
+        "sh $13, 14(%1);"
+        "sh $14, 16(%1);"
+        : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+    gte_SetRotMatrix(&transposed);
+    MulRotMatrix(arg1);
+    return 1;
+}
+void func_actor_403100_8013E5FC(void)
+{
+    D_actor_403100_8015580C->recs       = 0;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5F8 += 1;
+}
+void func_actor_403100_8013E624(Task* arg0)
+{
+    u16 timer;
+
+    timer                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = timer;
+    if ((s16)timer == 0x12) {
+        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    }
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x168) {
+        arg0->state                        = 5;
+        D_actor_403100_80155808->field_5F8 = 0;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013E6A0(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    arg0->killCountdown = 0x5A;
+    coord->sub          = &gGfxViewCoord;
+    coord->flg          = 0;
+    arg0->state         = arg0->state + 1;
+    func_actor_403100_8013E6F0(arg0);
+}
+
+void func_actor_403100_8013E6F0(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u16            countdown;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (D_801153F4 == 0) {
+        coord->flg = 0;
+        if (!(arg0->killCountdown & 7)) {
+            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+        }
+        countdown           = arg0->killCountdown - 1;
+        arg0->killCountdown = countdown;
+        if ((countdown << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            taskKill(arg0);
+        }
+    }
+}
+
+void func_actor_403100_8013E784(Task* arg0)
+{
+    u16 temp_v0;
+
+    temp_v0             = arg0->killCountdown + 1;
+    arg0->killCountdown = temp_v0;
+    if ((s16)temp_v0 >= 0x1E) {
+        taskKill(arg0);
+    }
+}
+
+void func_actor_403100_8013E7C8(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* coord2;
+    u16            countdown;
+
+    coord2              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    arg0->killCountdown = 0x5A;
+    coord2->sub         = &gGfxViewCoord;
+    coord2->flg         = 0;
+    arg0->state        += 1;
+    coord               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (D_801153F4 == 0) {
+        coord->flg = 0;
+        if (!(arg0->killCountdown & 7)) {
+            Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
+        }
+        countdown           = arg0->killCountdown - 1;
+        arg0->killCountdown = countdown;
+        if ((countdown << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            taskKill(arg0);
+        }
+    }
+}
+
+void func_actor_403100_8013E88C(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    u16            countdown;
+
+    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    if (D_801153F4 == 0) {
+        coord->flg = 0;
+        if (!(arg0->killCountdown & 7)) {
+            Gp_SpawnEff(0x60095, coord, 0x20400, NULL);
+        }
+        countdown           = arg0->killCountdown - 1;
+        arg0->killCountdown = countdown;
+        if ((countdown << 0x10) <= 0) {
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            taskKill(arg0);
+        }
+    }
+}
+
+void func_actor_403100_8013E920(Task* arg0)
+{
+    u16 temp_v0;
+
+    temp_v0             = arg0->killCountdown + 1;
+    arg0->killCountdown = temp_v0;
+    if ((s16)temp_v0 >= 0x1E) {
+        taskKill(arg0);
+    }
+}
+void func_actor_403100_8013E964(void)
+{
+}
+
+void func_actor_403100_8013E96C(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131EB0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+}
+void func_actor_403100_8013E9D8(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131EBC;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+}
+void func_actor_403100_8013EA60(Task* arg0)
+{
+    TaskFuncTable4 sp;
+    TmdObject*     obj;
+
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131EC8;
+    obj->flags = 0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+}
+void func_actor_403100_8013EAD4(Task* arg0)
+{
+    TaskFuncTable3 sp;
+    TmdObject*     obj;
+
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131ED8;
+    obj->flags = 0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->field_61C);
+}
+void func_actor_403100_8013EB68(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_403100_80131EE4;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+}
+void func_actor_403100_8013EBC8(Task* arg0)
+{
+    TaskFuncTable4 sp;
+    TmdObject*     obj;
+
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131EF0;
+    obj->flags = 0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+}
+void func_actor_403100_8013EC4C(Task* arg0)
+{
+    TaskFuncTable4 sp;
+    TmdObject*     obj;
+
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131F00;
+    obj->flags = 0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+}
+void func_actor_403100_8013ECD0(Task* arg0)
+{
+    TaskFuncTable3 sp;
+    TmdObject*     obj;
+
+    obj        = arg0->extra;
+    sp         = D_actor_403100_80131F10;
+    obj->flags = 0;
+    sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
+    func_actor_403100_801327CC(arg0);
+}
+void func_actor_403100_8013ED48(void)
+{
+}
+
+void func_actor_403100_8013ED50(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 3;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_801327CC();
+    D_actor_403100_80155808->field_82  = 0;
+    coord->coord.t[0]                  = -0x2710;
+    coord->coord.t[1]                  = -0x258;
+    coord->coord.t[2]                  = -0x2328;
+    D_actor_403100_80155808->field_600 = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013EDDC(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame == 0x1E) {
+        func_8017E128(1);
+    }
+}
+
+void func_actor_403100_8013EE28(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_61C = 2;
+    D_actor_403100_80155808->field_5DE = 3;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_801327CC(arg0);
+    D_actor_403100_80155808->field_82   = 0;
+    coord->coord.t[0]                   = -0x1710;
+    coord->coord.t[1]                   = 0;
+    coord->coord.t[2]                   = -0x2846;
+    D_actor_403100_80155808->field_618  = 0x1910;
+    D_actor_403100_80155808->field_5EC  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_8013EEB0(void)
+{
+}
+
+void func_actor_403100_8013EEB8(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                               = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_5EC += 1;
+    coord->coord.t[2]                  += 0x64;
+    if ((s16)D_actor_403100_80155808->field_5EC == 0x20) {
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+    func_actor_403100_801327CC();
+}
+void func_actor_403100_8013EF24(void)
+{
+}
+
+void func_actor_403100_8013EF2C(void)
+{
+}
+
+void func_actor_403100_8013EF34(void)
+{
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5EE = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013EF58(void)
+{
+}
+
+void func_actor_403100_8013EF60(void)
+{
+    if (Actor403100_TestFlags12C()) {
+        D_actor_403100_80155808->field_5FC  = 0xB4;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5DE  = 1;
+        D_actor_403100_80155808->field_5DA  = 1;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_8013EFC0(void)
+{
+}
+
+void func_actor_403100_8013EFC8(Task* arg0)
+{
+    TmdObject*     obj;
+    GsCOORDINATE2* coord;
+
+    obj               = (TmdObject*)arg0->extra;
+    obj->otOffset     = 0x10;
+    coord             = (GsCOORDINATE2*)obj->coords;
+    coord->coord.t[0] = -0x49C;
+    coord->coord.t[2] = 0x1130;
+    coord->coord.t[1] = 0;
+
+    D_actor_403100_80155808->field_82  = 0xC00;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0x14;
+    D_actor_403100_80155808->field_5DA = 2;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013F034(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord             = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord->coord.t[0] = -0xAF0;
+    coord->coord.t[1] = 0x300;
+    coord->coord.t[2] = -0xE74;
+
+    D_actor_403100_80155808->field_82  = 0x800;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0x18;
+    D_actor_403100_80155808->field_5DA = 2;
+    D_actor_403100_80155808->field_618 = 0x1400;
+    D_actor_403100_80155808->field_600 = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5EE = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013F0A8(Task* arg0)
+{
+    TmdObject* obj;
+
+    obj                           = (TmdObject*)arg0->extra;
+    obj->flags                   |= 0x80;
+    D_actor_403100_8014762C.bp    = 0;
+    D_actor_403100_8014762C.mp    = 0;
+    D_actor_403100_8014762C.exp >>= 1;
+    gGameSession->at4.loc.place   = 4;
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    arg0->state                        = 5;
+    D_actor_403100_80155808->field_5F8 = 0;
+    D_actor_403100_80155808->field_5FA = 0;
+}
+void func_actor_403100_8013F12C(void)
+{
+    u16 frame;
+
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        frame                              = D_actor_403100_80155808->field_5EC + 1;
+        D_actor_403100_80155808->field_5EC = frame;
+        if ((s16)frame >= 0x1F) {
+            D_actor_403100_80155808->field_5F8 = 1;
+            D_actor_403100_80155808->field_5FA = 0;
+        }
+    }
+}
+
+void func_actor_403100_8013F18C(void)
+{
+    D_actor_403100_80155808->field_5FC = 4;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 1;
+    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->field_62C = 0x20;
+    D_actor_403100_80155808->field_5F6 = 0;
+    D_actor_403100_80155808->field_61C = 0;
+    D_actor_403100_80155808->field_5EC = 0;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013F1D8(void)
+{
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013F230(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((s16)frame >= 0xD) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+
+void func_actor_403100_8013F270(void)
+{
+    D_actor_403100_80155808->field_5EC = 0;
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    D_actor_403100_80155808->field_5FC = 0x14;
+    D_actor_403100_80155808->field_5E2 = 0x1C;
+    D_actor_403100_80155808->field_5DE = 3;
+    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013F2D8(void)
+{
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->field_61C             = 4;
+        D_actor_403100_80155808->field_5F6             = 4;
+        D_actor_403100_80155808->field_604             = 0;
+        D_actor_403100_80155808->field_608             = 0;
+        D_actor_403100_80155808->field_5FA             = D_actor_403100_80155808->field_5FA + 1;
+    }
+}
+
+void func_actor_403100_8013F344(void)
+{
+    if (((func_actor_403100_80133928() << 0x10) == 0) &&
+        (D_actor_403100_80155808->field_5F6 == 5)) {
+        D_actor_403100_80155808->field_5E2 = 0x10;
+        D_actor_403100_80155808->field_5DE = 4;
+        D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5DA = 2;
+        D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+    }
+}
+
+void func_actor_403100_8013F3AC(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC + 1;
+    D_actor_403100_80155808->field_5EC = frame;
+    if ((s16)frame >= 0x5A) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+
+void func_actor_403100_8013F3EC(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+
+    coord                              = ((TmdObject*)arg0->extra)->coords;
+    D_actor_403100_80155808->field_5F6 = 5;
+    coord->coord.t[0]                  = -0x44C;
+    coord->coord.t[1]                  = -0x1388;
+    coord->coord.t[2]                  = 0x2710;
+    D_actor_403100_80155808->field_82  = 0xA00;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0xB;
+    D_actor_403100_80155808->field_80  = 0;
+    D_actor_403100_80155808->field_84  = 0;
+    D_actor_403100_80155808->field_5DA = 2;
+    func_actor_403100_80132528(arg0);
+    Mc_SaveData.at4.loc.view            = 0x18;
+    D_actor_403100_80155808->field_60E  = 0;
+    D_actor_403100_80155808->field_610  = 0;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_8013F488(void)
+{
+    if (Actor403100_TestFlags()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013F4E0(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((s16)frame >= 0xD) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013F520(void)
+{
+    D_actor_403100_80155808->field_5EC = 0;
+    SndEvt_EnqueueType7(0x401F0004, 0xA);
+    D_actor_403100_80155808->field_5FC  = 0x14;
+    D_actor_403100_80155808->field_5E2  = 0x1C;
+    D_actor_403100_80155808->field_5DE  = 3;
+    D_actor_403100_80155808->field_5DA  = 1;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_8013F588(void)
+{
+    if ((func_actor_403100_80133928() << 0x10) == 0) {
+        D_actor_403100_80155808->field_5F6             = 4;
+        D_actor_403100_80155808->field_5E2             = 0xC;
+        D_actor_403100_80155808->field_61C             = 2;
+        D_actor_403100_80155808->field_5DE             = 8;
+        D_actor_403100_80155808->field_5DA             = 2;
+        D_actor_403100_80155808->field_5EC             = 0;
+        D_actor_403100_80155808->field_82              = (u16)D_actor_403100_80155808->field_82 & 0xFFF;
+        D_actor_403100_80155808->field_668.b.field_668 = 0;
+        D_actor_403100_80155808->field_668.b.field_669 = 0;
+        D_actor_403100_80155808->field_5FA            += 1;
+    }
+}
+void func_actor_403100_8013F610(void)
+{
+    D_actor_403100_80155808->field_61C = 2;
+    D_actor_403100_80155808->field_5F6 = 4;
+    D_actor_403100_80155808->field_5FC = 8;
+    D_actor_403100_80155808->field_5E2 = 0x10;
+    D_actor_403100_80155808->field_5DE = 0xA;
+    D_actor_403100_80155808->field_5DA = 1;
+    D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
+}
+
+void func_actor_403100_8013F658(void)
+{
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+void func_actor_403100_8013F6B0(void)
+{
+    D_actor_403100_80155808->field_61C  = 2;
+    D_actor_403100_80155808->field_5F6  = 4;
+    D_actor_403100_80155808->field_5FC  = 0xA;
+    D_actor_403100_80155808->field_5E2  = 8;
+    D_actor_403100_80155808->field_5DE  = 0xA;
+    D_actor_403100_80155808->field_5DA  = 1;
+    D_actor_403100_80155808->field_5FA += 1;
+}
+void func_actor_403100_8013F6F4(void)
+{
+    if (Actor403100_TestFlags104()) {
+        D_actor_403100_80155808->field_5FC  = 4;
+        D_actor_403100_80155808->field_5E2  = 0x10;
+        D_actor_403100_80155808->field_5EC  = 0;
+        D_actor_403100_80155808->field_5DE  = 1;
+        D_actor_403100_80155808->field_5DA  = 1;
+        D_actor_403100_80155808->field_5FA += 1;
+    }
+}
+void func_actor_403100_8013F76C(void)
+{
+    u16 frame;
+
+    frame                              = D_actor_403100_80155808->field_5EC;
+    D_actor_403100_80155808->field_5EC = frame + 1;
+    if ((s16)frame >= 0x3D) {
+        D_actor_403100_80155808->field_5F8 = 1;
+        D_actor_403100_80155808->field_5FA = 0;
+    }
+}
+
+void func_actor_403100_8013F7AC(void)
+{
+}
+
+void func_actor_403100_8013F7B4(void)
+{
+}
+
+void func_actor_403100_8013F7BC(void)
+{
+}
