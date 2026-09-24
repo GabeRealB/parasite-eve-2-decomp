@@ -15,6 +15,17 @@ extern void func_mine_forked_tunnel_8017DC70(Task* arg0);
 extern s32  func_mine_forked_tunnel_8017DD08(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void func_mine_forked_tunnel_8017DF34(s32 arg0);
 
+extern u8 D_801153F4;
+
+void func_mine_forked_tunnel_8017D5E8(Task* arg0);
+void func_mine_forked_tunnel_8017D724(Task* arg0);
+
+/// State table of the tunnel's enemy task, indexed by `Task::state`: set-up,
+/// the per-frame path walk, and the exit that releases the enemy.
+const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
+    { func_mine_forked_tunnel_8017D5E8, func_mine_forked_tunnel_8017D724, func_mine_forked_tunnel_8017DC50 },
+};
+
 void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     MineForkedTunnelWork* work;
@@ -179,7 +190,19 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         arg0->killCountdown++;
     }
 }
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", func_mine_forked_tunnel_8017DBE4);
+
+/// Dispatches the tunnel's enemy task through its three-state table (set-up,
+/// path walk, exit), copied onto the stack first; nothing runs while
+/// `D_801153F4` is non-zero.
+void func_mine_forked_tunnel_8017DBE4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mine_forked_tunnel_8017D5C4;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_mine_forked_tunnel_8017DC50(Task* arg0)
 {

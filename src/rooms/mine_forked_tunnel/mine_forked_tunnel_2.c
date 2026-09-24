@@ -6,6 +6,11 @@
 #include "rooms/room_common.h"
 #include "rooms/mine_forked_tunnel.h"
 
+extern u8 D_801153F4;
+
+/// State table of the enemy's pitch-animated child, indexed by `Task::state`.
+extern const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0;
+
 /// `Task::msgTable` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
 /// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
@@ -48,7 +53,18 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
     return ret;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel_2", func_mine_forked_tunnel_8017DDE8);
+/// Dispatches the enemy's pitch-animated child through its three-state table
+/// (attach, pitch walk, `taskKill`), copied onto the stack first; nothing runs
+/// while `D_801153F4` is non-zero.
+void func_mine_forked_tunnel_8017DDE8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mine_forked_tunnel_8017D5D0;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 /// Spawn state 0: adopt the parent task's model lighting - the light and colour
 /// matrix pointers off the parent's `TmdObject` plus its coordinate as the
