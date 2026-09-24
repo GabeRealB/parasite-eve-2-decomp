@@ -846,12 +846,8 @@ id = 294
 objects = [
   { kind = "packageId" },
   { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58" },
-  { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x10", text = "0x3E8" },
-  { unit = "acropolis_observatory/acropolis_observatory_4", rodata = "0x3C", text = "0xBDC" },
-  { unit = "acropolis_observatory/acropolis_observatory_5", text = "0x1FC" },
-  { unit = "acropolis_observatory/acropolis_observatory_2", text = "0x204" },
-  { unit = "acropolis_observatory/acropolis_observatory_6", text = "0x390" },
-  { unit = "acropolis_observatory/acropolis_observatory_7", text = "0xB14" },
+  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8" },
+  { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC" },
   { kind = "data", at = "0x11F8" },
 ]
 
