@@ -139948,3 +139948,24 @@ LUID and flips relative to the other arguments.
 `(u16)arg1` inside; declaring `u16 arg1` matched outright (`s16 arg1` did too),
 and the body's `(u16)` cast became redundant. Try the narrow type the body
 casts to before reaching for locals or pins.
+
+### Entry `andi` after the argument copies with registers right: the masked local is reused later (func_shelter_b1_pod_service_gantry_8017DF70, 2026-09-24)
+
+**Symptom.** Only the prologue differed: the target computes `idx = arg1 & 0xFFF`
+(`andi s1,a1,0xfff`) right after the scratch-pointer `lui/ori` and *before*
+`move s6,a2` / `move s5,a3`; the build put it after them. Statement order,
+`u32`/`s32`/`u16` for `idx` and `s32` parameters all left it in place.
+
+**Cause.** The same LUID tie-break as the entry above (backward `sched.c`
+`rank_for_schedule`): with `idx` set once, its `and` is an ordinary
+single-set insn that wins the tie and lands after the copies. The target's
+`$s1` also holds the second spin angle later (`addiu s1,s1,0x400`), i.e. the
+original reused `idx` for it; a second assignment to the local changes how
+its entry `and` is treated and flips the order. The permuter found the lead
+(any later reassignment of `idx`, distance 270 → 10).
+
+**Fix.** Drop the separate `ang2` and write `idx = ang + 0x400;
+rsin(idx) / rcos(idx)`. Reusing `ang` for both (`ang = arg1 & 0xFFF ...
+ang = arg3`) fixed the prologue but routed `ang`'s sign extension through
+`$v0`; `ang += 0x400` broke allocation outright. When a callee-saved register
+in the target carries two unrelated values, try the reuse on each pairing.
