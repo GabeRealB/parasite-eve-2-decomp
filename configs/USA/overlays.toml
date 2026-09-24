@@ -1843,12 +1843,12 @@ id = 389
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x1C", text = "0x310" },
-  { lib = true, unit = "rooms_shared_8017d638", rodata = "0x4", text = "0x3C" },
-  { lib = true, unit = "rooms_shared_8017db84", text = "0x6FC" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_4", rodata = "0x4", text = "0x3C" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_5", text = "0x6FC" },
   { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_2", text = "0x740" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x748" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_6", text = "0x748" },
   { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_3", text = "0x7A0" },
-  { lib = true, unit = "room_draw01", text = "0x900" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel_7", text = "0x900" },
   { kind = "data", at = "0x1144" },
 ]
 

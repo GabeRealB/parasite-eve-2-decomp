@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -7,9 +9,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
-
-#include <psyq/libgte.h>
+#include "rooms/shelter_b1_access_tunnel.h"
 
 /// Parameters of an event the access tunnel's message handler starts, latched
 /// into the room's pending copy when it fires. `flagId` is the game-flag nibble
@@ -89,7 +89,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = 0x54130001;
         req.flagId  = 0xAD;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b1_access_tunnel_8017D5FC(&req, out);
     }
     if (in->msgId == 0x14) {
         event.field_0 = 4;
@@ -116,4 +116,4 @@ s32 func_shelter_b1_access_tunnel_8017DCB4(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_access_tunnel/shelter_b1_access_tunnel", D_shelter_b1_access_tunnel_8017D5F0);
