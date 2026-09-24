@@ -1,4 +1,8 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3FB8.h"
 #include "main/display.h"
@@ -6,24 +10,21 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
-
+/// `rtps` / `rtpt` / `rtv0`. The `inline_c.h` macros of those names assemble
+/// to different words, so the instructions are spelled out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
-/// with `Gfx_ViewWorldMtx` (no GTE translation) and adds `arg0->workm.t`, then
-/// projects the four corners through `GsWSMATRIX`. When `gte_stflg` is
-/// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x28, clut
-/// 0x428C) coloured `(0x30, 0x20, 0x20)`. The frame counter picks between two
-/// 0x1F-wide UV columns: `u` is `(field_8 & 1) * 32` plus 0xC0 / 0xDF, at
-/// v = 0x38..0x57. Same 0x38 scratch layout as `GpQuadScratch` (`otz` is not
-/// incremented). Shared body, linked into every room overlay that uses it.
-void Room_Draw06(GsCOORDINATE2* arg0, s32 arg1)
+/// Draws a flickering flat quad at the coordinate `arg0`: scales the unit quad
+/// `D_80111E38` by `arg1` in the x/z plane, rotates it by `Gfx_ViewWorldMtx`
+/// with no translation, adds `arg0->workm.t`, and projects the four corners
+/// through `GsWSMATRIX`. When the GTE flag is non-negative, queues one
+/// semi-transparent `POLY_FT4` (tpage 0x28, clut 0x428C) coloured
+/// `(0x30, 0x20, 0x20)`. Odd and even frames of `gDisplayState.animFrame`
+/// alternate between two 32-texel columns (u 0xC0..0xDF or 0xE0..0xFF, v
+/// 0x38..0x57).
+void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

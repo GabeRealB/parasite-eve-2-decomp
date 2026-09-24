@@ -1,22 +1,31 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_801807c4.h"
-#include <psyq/inline_c.h>
 #include "main/display.h"
 #include "main/mem.h"
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
+/// `rtv0` / `gpf12` / `rtps`. The `inline_c.h` macros of those names assemble
+/// to different words, so the instructions are spelled out.
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void RoomsShared801807c4(Task* task)
+/// Effect task that moves the task's coordinate toward the coordinate in
+/// `Task::spawnArg1` while no event is running. State 0 takes their world
+/// displacement into the coordinate's parent frame and scales it by
+/// 0xCC / 0x1000; state 1 adds that step to the coordinate every tick and, on
+/// odd ticks, draws a sprite there through `func_neo_ark_garden_8017FF0C` with
+/// an advancing phase. The work block is released after 20 ticks, or once the
+/// event state reaches 4.
+void func_neo_ark_garden_8017FCE8(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
@@ -54,7 +63,7 @@ void RoomsShared801807c4(Task* task)
                 coord->flg         = 0;
                 Gp_UpdateCoord(coord);
                 if (work->field_22 & 1) {
-                    Room_Draw14(coord, (s16)++work->field_20, 0x200, 0x80);
+                    func_neo_ark_garden_8017FF0C(coord, (s16)++work->field_20, 0x200, 0x80);
                 }
                 if ((s16)work->field_22 >= 20) {
                     Gp_ReleaseState1CMem(work, task);
@@ -66,13 +75,14 @@ void RoomsShared801807c4(Task* task)
     }
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4`
-/// (tpage 0x2A, clut 0x42CB). `arg1` selects one of four 24-texel UV columns
-/// `(arg1 & 3) * 24 + 0x60` at v=0..0x17. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the RGB on all
-/// three channels. Shared body, linked into every room overlay that uses it.
-void Room_Draw14(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Draws a grey sprite at the coordinate's world position: projects it through
+/// `GsWSMATRIX` and, when the GTE flag is non-negative, queues one
+/// semi-transparent `POLY_FT4` (tpage 0x2A, clut 0x42CB). `arg1 & 3` picks one
+/// of four 24-texel animation frames at u 0x60 + frame * 24, v 0..0x17. `arg2`
+/// is a signed half-extent; the on-screen radius is
+/// `(s16)arg2 * 23 / (otz + 1)`. `arg3` is the grey level on all three
+/// channels.
+void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -150,15 +160,12 @@ void Room_Draw14(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     *scratch = (u8*)*scratch + 0x18;
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a ring. `arg1` is the inner half-extent and `arg2` the extra outer
-/// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
-/// so each wedge fades to a black outer rim. Same body as `Room_Draw09` with
-/// `flag` at 0xC and the two radii at 0x10/0x14. Shared body, linked into
-/// every room overlay that uses it.
-void Room_Draw07(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws a gouraud ring at the coordinate's world position: projects it
+/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues sixteen
+/// `POLY_G4` segments. One edge of the ring lies at on-screen radius
+/// `(s16)arg1 * 64 / (otz + 1)` and is black; the other lies at
+/// `(s16)(arg1 + arg2) * 64 / (otz + 1)` and takes the RGB triple `rgb`.
+void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw07Scratch* block;
     POLY_G4*           prim;
@@ -246,13 +253,12 @@ void Room_Draw07(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges around
-/// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
-/// inner vertex so each wedge fades to black. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw10(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+/// Draws a gouraud glow disc at the coordinate's world position: projects it
+/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues eight
+/// `POLY_G4` wedges around the projected centre. `arg1` is a signed
+/// half-extent; the on-screen radius is `(s16)arg1 * 64 / (otz + 1)`. Only
+/// the centre vertex takes the RGB triple `rgb`, so each wedge fades to black.
+void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
     void**             scratch;
     u8*                head;

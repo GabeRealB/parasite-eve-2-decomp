@@ -1,10 +1,1 @@
 // Overlay-local symbols for neo_ark_garden.
-Room_Draw06 = 0x80181020; // shared body, see src/lib/
-Room_Draw07 = 0x80180190; // shared body, see src/lib/
-Room_Draw10 = 0x801805B4; // shared body, see src/lib/
-Room_Draw14 = 0x8017FF0C; // shared body, see src/lib/
-Room_Draw38 = 0x8017EFB8; // shared body, see src/lib/
-Room_Util05 = 0x8017EA34; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017EA44; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D614; // shared body data, see src/lib/
-RoomsShared801807c4 = 0x8017FCE8; // shared body, see src/lib/

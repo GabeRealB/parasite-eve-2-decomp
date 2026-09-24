@@ -76,4 +76,4 @@ void func_neo_ark_garden_8017E9B4(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D614);

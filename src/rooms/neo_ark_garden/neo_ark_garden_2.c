@@ -78,7 +78,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             } else {
                 work->soundDelay--;
             }
-            Room_Draw38(&D_neo_ark_garden_801813D8, 0x600, 0xC0);
+            func_neo_ark_garden_8017EFB8(&D_neo_ark_garden_801813D8, 0x600, 0xC0);
             break;
         case 4:
             if (work->soundDelay == 0) {

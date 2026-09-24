@@ -2430,12 +2430,12 @@ objects = [
   { unit = "neo_ark_garden/neo_ark_garden", rodata = "0x4", text = "0x8C" },
   { unit = "neo_ark_garden/neo_ark_garden_2", rodata = "0x60", text = "0x14DC" },
   { unit = "neo_ark_garden/neo_ark_garden_3", rodata = "0x78", text = "0x1E6C" },
-  { lib = true, unit = "room_util05", text = "0x1474" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x1484" },
-  { lib = true, unit = "room_draw38", text = "0x19F8" },
-  { lib = true, unit = "rooms_shared_801807c4", text = "0x2728" },
+  { unit = "neo_ark_garden/neo_ark_garden_5", text = "0x1474" },
+  { unit = "neo_ark_garden/neo_ark_garden_6", text = "0x1484" },
+  { unit = "neo_ark_garden/neo_ark_garden_7", text = "0x19F8" },
+  { unit = "neo_ark_garden/neo_ark_garden_8", text = "0x2728" },
   { unit = "neo_ark_garden/neo_ark_garden_4", text = "0x3388" },
-  { lib = true, unit = "room_draw06", text = "0x3A60" },
+  { unit = "neo_ark_garden/neo_ark_garden_9", text = "0x3A60" },
   { kind = "data", at = "0x3DD8" },
 ]
 
