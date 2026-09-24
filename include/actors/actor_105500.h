@@ -9,17 +9,6 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-/// Scratchpad block the collision handler allocates below the scratchpad top:
-/// the delta vector reported by func_800E0C10, the normalised push direction and
-/// its grid-space image, plus a rotation used when re-aiming the actor.
-typedef struct Actor105500HitScratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ VECTOR         normal;
-    /* 0x20 */ VECTOR         local;
-    /* 0x30 */ SVECTOR        rot;
-} Actor105500HitScratch;
-STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
-
 typedef struct Actor105500Obj2C {
     /* 0x00 */ byte           pad_0[8];
     /* 0x08 */ GsCOORDINATE2* field_8;
@@ -28,14 +17,6 @@ typedef struct Actor105500Obj2C {
     /* 0x1C */ MATRIX*        field_1C;
     /* 0x20 */ MATRIX*        field_20;
 } Actor105500Obj2C;
-
-/// Animation view of the work prefix used by Actor05500_Fn02FFC.
-/// The helper-task view below retains its object and record fields.
-typedef struct Actor105500Anim {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[8];
-} Actor105500Anim;
-STATIC_ASSERT_SIZEOF(Actor105500Anim, 0x154);
 
 typedef struct Actor105500Work {
     /* 0x000 */ GpObj     obj;
@@ -111,13 +92,6 @@ typedef struct Actor105500RotScratch {
 } Actor105500RotScratch;
 STATIC_ASSERT_SIZEOF(Actor105500RotScratch, 0x18);
 
-typedef struct Actor105500StateFuncTable3 {
-    void (*funcs[3])(void*, Actor105500*);
-} Actor105500StateFuncTable3;
-
-extern Actor105500StateFuncTable3 Actor05500_D0002C;
-extern Actor105500StateFuncTable3 Actor05500_D00038;
-
 typedef struct Actor105500Ctx {
     /* 0x00 */ byte         pad_0[8];
     /* 0x08 */ u16          field_8;
@@ -133,37 +107,7 @@ typedef struct Actor105500Ctx {
     /* 0x54 */ s32          field_54;
 } Actor105500Ctx;
 
-void Actor05500_Fn03560(Actor105500Ctx* arg0, Actor105500* arg1);
-
-extern u8      D_801153F2[2];
-extern u32     Gp_LcgState;
-extern u16     Actor05500_D08980[];
-extern u16     Actor05500_D08990[];
-extern u16     Actor05500_D089A0[];
-extern s16     Actor05500_D089B0[];
-extern s16     Actor05500_D089E0[];
-extern s16     Actor05500_D089E8[];
-extern s16     Actor05500_D08A20;
-extern s16     Actor05500_D08A38[][2];
-extern s16     Actor05500_D08A5C[][2];
-extern s8      D_8011540E;
-extern MATRIX* D_80073B8C[1];
-extern s8      D_80115412;
-void           Actor05500_Fn02C94(Actor105500* arg0);
-extern s16     Actor05500_D08A1E;
-
-extern GpU16Pair Actor05500_D08958;
-extern s16       Actor05500_D08A18[];
-void             Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
-
-extern GpPairSrcE Actor05500_D08970;
-extern SVECTOR    Actor05500_D089B8[];
-extern s16        Actor05500_D089D8[];
-extern SVECTOR    Actor05500_D089F0[];
-extern s16        Actor05500_D08A10[];
-extern TaskDesc   Actor05500_D08ABC;
-extern u8         Actor05500_D08AD4[];
-void              Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor);
+extern u32 Gp_LcgState;
 
 typedef struct Actor105500LineScratch {
     s32     unused[4];
@@ -173,28 +117,5 @@ typedef struct Actor105500LineScratch {
 } Actor105500LineScratch;
 
 STATIC_ASSERT_SIZEOF(Actor105500LineScratch, 0x20);
-
-typedef struct Actor105500QuadScratch {
-    SVECTOR p[4];
-    s32     screen;
-    s32     depth;
-} Actor105500QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor105500QuadScratch, 0x28);
-
-typedef struct Actor105500TextureObj {
-    byte pad_0[0x24];
-    s8   field_24;
-    u8   field_25;
-} Actor105500TextureObj;
-
-typedef struct Actor105500Uv {
-    u8 u;
-    u8 pad_1;
-    u8 v;
-    u8 pad_3;
-} Actor105500Uv;
-
-extern Actor105500Uv Actor05500_D08A80[];
-extern s16           Actor05500_D08AA0[];
 
 #endif
