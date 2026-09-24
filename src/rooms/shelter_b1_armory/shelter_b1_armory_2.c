@@ -1,9 +1,11 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d638.h"
@@ -12,11 +14,51 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
+extern u8 D_shelter_b1_armory_8018557C;
+
+/// `Mc_SaveData.at4.loc.view`, spelled by address because the store below
+/// relocates against this name.
+extern u8 D_8007216C;
+
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180214);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_8018034C);
+void func_shelter_b1_armory_8018034C(Task* task)
+{
+    McSaveData* save;
+    u8          view;
+
+    switch (task->state) {
+        case 0:
+            gGameSession->eventState     = 1;
+            gGameSession->hideHud        = 1;
+            save                         = &Mc_SaveData;
+            view                         = save->at4.loc.view;
+            save->at4.loc.view           = 0xD;
+            D_shelter_b1_armory_8018557C = view;
+            Gp_MsgPlayer3F3(0);
+            Gp_RunCapCmd(0x16, 0);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                break;
+            }
+            func_800D4D2C(0x40);
+            goto advance;
+        case 2:
+            task->state = 3;
+        case 3:
+            gGameSession->eventState = 0;
+            gGameSession->hideHud    = 0;
+            Gp_MsgPlayer3F3(1);
+            Gp_MsgPlayerWeapon(1);
+            D_8007216C = D_shelter_b1_armory_8018557C;
+        advance:
+            task->state = task->state + 1;
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180468);
 
