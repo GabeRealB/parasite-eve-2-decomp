@@ -97,7 +97,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     }
 }
 
-/// Red counterpart of `Room_Draw37`'s light shaft. `data` is rotated by
+/// Draws a red light shaft at a point. `data` is rotated by
 /// `coord`'s `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block; nothing is drawn when
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width

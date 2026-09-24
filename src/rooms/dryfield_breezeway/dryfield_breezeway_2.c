@@ -10,7 +10,6 @@
 #include "main/tmd.h"
 
 #include "rooms/dryfield_breezeway.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 
 /// Main-executable globals with no module header yet: `D_8007216C` is the
 /// 1-based index of the area record the room is showing, the value
@@ -429,7 +428,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_dryfield_breezeway_8017FCB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if ((prompt->buttons[0].state == 2) && (hs->id != -1)) {
             do {
@@ -485,7 +484,7 @@ void func_dryfield_breezeway_8017E81C(Task* task)
     func_8004BFF8(rsin(D_80070F70 * 0x10), m);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
-    if (RoomsShared8017ecb4(hs, work->cursorX, work->cursorY) != 0) {
+    if (func_dryfield_breezeway_8017FCB4(hs, work->cursorX, work->cursorY) != 0) {
         prompt->mode = 2;
         while (hs->id != -1) {
             if (hs->hit != 0) {

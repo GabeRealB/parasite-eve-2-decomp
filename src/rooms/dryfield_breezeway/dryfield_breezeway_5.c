@@ -7,10 +7,11 @@
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/room_common.h"
 
-/// The action-prompt arm `Room_Util14` performs, plus a reset of the caller's
-/// kill countdown: highlights the prompt for the fixed target id 0x80, clears
-/// the on-screen position `func_800D4E78` fills in again when the prompt is
-/// spawned, and steps the caller's script on one state.
+/// State 1 of the room's key-item event task: arms the action prompt and
+/// resets the caller's kill countdown. It highlights the prompt for the fixed
+/// target id 0x80, clears the on-screen position `func_800D4E78` fills in
+/// again when the prompt is spawned, and steps the caller's script on one
+/// state.
 void func_dryfield_breezeway_8017FD68(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
@@ -23,7 +24,7 @@ void func_dryfield_breezeway_8017FD68(Task* task)
     task->state         = task->state + 1;
 }
 
-/// The action-prompt arm `Room_Util21` performs, run once the room's hotspot
+/// State 3 of the room's key-item event task, run once the room's hotspot
 /// scan has landed on an entry: re-seeds the cursor scan
 /// `func_dryfield_breezeway_8017EB8C` at its reset position, clears the
 /// prompt's highlight state, then re-spawns the prompt at the coordinates the

@@ -1,18 +1,1 @@
 // Overlay-local symbols for dryfield_breezeway.
-Room_Draw26 = 0x8017E948; // shared body, see src/lib/
-Room_Draw36 = 0x8017F998; // shared body, see src/lib/
-Room_Script11 = 0x8017FE90; // shared body, see src/lib/
-Room_Util04 = 0x8017FF1C; // shared body, see src/lib/
-RoomsShared8017ed38 = 0x8017F538; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DE68; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5DC; // shared body data, see src/lib/
-RoomsShared8017d638 = 0x8017D638; // shared body, see src/lib/
-RoomsShared8017d638Flag = 0x801843A4; // shared body data, see src/lib/
-RoomsShared8017d638Msg = 0x8018439C; // shared body data, see src/lib/
-RoomsShared8017d638Req = 0x801843AC; // shared body data, see src/lib/
-RoomsShared8017d638Desc = 0x80181DD4; // shared body data, see src/lib/
-RoomsShared8017fc38 = 0x8017FC38; // shared body, see src/lib/
-RoomsShared8017fc38Table = 0x8017D5E8; // shared body data, see src/lib/
-RoomsShared8017ecb4 = 0x8017FCB4; // shared body, see src/lib/
-RoomsShared8017f280 = 0x8017FA80; // shared body, see src/lib/
-RoomsShared8017d74c = 0x8017D79C; // shared body, see src/lib/

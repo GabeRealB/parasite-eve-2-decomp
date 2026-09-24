@@ -67,7 +67,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// against: `func_dryfield_breezeway_8017E464` seeds them with the reset
 /// position (0, 0x20) `func_dryfield_breezeway_8017FD9C` also passes to
 /// `func_dryfield_breezeway_8017EB8C`, and `func_dryfield_breezeway_8017E81C`
-/// feeds them to `RoomsShared8017ecb4`.
+/// feeds them to `func_dryfield_breezeway_8017FCB4`.
 ///
 /// `light` / `color` are the room's own lighting pair, the block's whole first
 /// 0x40 bytes: `func_dryfield_breezeway_8017E464` publishes them onto
@@ -228,10 +228,11 @@ extern DbwPlacement D_dryfield_breezeway_80181E40[];
 extern RoomHotspot D_dryfield_breezeway_80182E00[];
 
 /// This room's prop hotspot table, the 0xFFFF-terminated `RoomHotspot` run
-/// `RoomsShared8017ecb4` hit-tests the action cursor against. Its entries are
-/// the room's interactive props: `func_dryfield_breezeway_8017E464` clears
-/// every entry's `hit` through it before the first frame -- both tables', so
-/// the key-item prompt above starts clean too -- and the scan in
+/// `func_dryfield_breezeway_8017FCB4` hit-tests the action cursor against. Its
+/// entries are the room's interactive props:
+/// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
+/// before the first frame -- both tables', so the key-item prompt above starts
+/// clean too -- and the scan in
 /// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
 /// on.
 extern RoomHotspot D_dryfield_breezeway_80182DDC[];
@@ -295,5 +296,14 @@ STATIC_ASSERT_SIZEOF(DbwGlowScratch, 0x18);
 
 void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
 void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3);
+
+/// Raised by the room's event gate `func_dryfield_breezeway_8017D638` when it
+/// latched a request and spawned the event task, cleared on every other call.
+extern u8 D_dryfield_breezeway_801843A4;
+
+s32  func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg);
+void func_dryfield_breezeway_8017F538(Task* task);
+s32  func_dryfield_breezeway_8017FCB4(RoomHotspot* table, s16 x, s16 y);
+void func_dryfield_breezeway_8017FF1C(Task* task);
 
 #endif // ROOMS_DRYFIELD_BREEZEWAY_H

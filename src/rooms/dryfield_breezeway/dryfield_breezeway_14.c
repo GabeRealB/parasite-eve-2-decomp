@@ -5,10 +5,17 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "rooms/dryfield_breezeway.h"
+
 extern s8  D_8007216C;
 extern s16 D_80114D08;
 
-void Room_Script11(Task* arg0)
+/// Exit state of the room's key-item event task, undoing its set-up
+/// (`func_dryfield_breezeway_8017E464`): sends the two player messages with 1,
+/// releases the display reference, clears the session's event, HUD and
+/// cutscene holds, puts `D_8007216C` back from 6 to 4, kills the prompt task
+/// the set-up spawned (`Task::spawnArg2`) and asks for its own removal.
+void func_dryfield_breezeway_8017FE90(Task* arg0)
 {
     D_80114D08 = 0xA;
     Gp_MsgPlayerWeapon(1);

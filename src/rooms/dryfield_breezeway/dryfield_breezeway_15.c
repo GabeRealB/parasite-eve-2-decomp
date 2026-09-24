@@ -1,15 +1,15 @@
 #include "common.h"
 
 #include "main/task.h"
+
+#include "rooms/dryfield_breezeway.h"
 #include "rooms/room_common.h"
 
 /// Resets both action-prompt slots before a script's first cursor scan and steps
 /// the caller on one state: clears each slot's leading words and its two
 /// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
 /// marks the slot as highlighted (`mode` 1).
-///
-/// Shared body, linked into every room overlay that uses it.
-void Room_Util04(Task* task)
+void func_dryfield_breezeway_8017FF1C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;

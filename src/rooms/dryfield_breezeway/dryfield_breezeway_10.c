@@ -1,14 +1,30 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "main/display.h"
 #include "main/pad.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ed38.h"
-#include <psyq/libgpu.h>
 
-void Room_Draw36(s32 x, s32 y, s32 mode);
+void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant);
 
-void RoomsShared8017ed38(Task* task)
+/// Per-frame cursor driver of the room's action prompt, state 1 of the prompt
+/// task `func_dryfield_breezeway_8017FA80` runs.
+///
+/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
+/// 2 port 1 only, anything else both. For each port it integrates the analog
+/// stick (pad status 0x12 reads it linearly, 0x73 squares it) and then the
+/// d-pad -- whose four bits select one of eight 1/16-of-a-turn headings fed to
+/// `rsin`/`rcos` -- into the prompt's 1/512-pixel position, clamps that to the
+/// screen, classifies the confirm (0x40) and cancel (0xA0) buttons into the
+/// prompt's two button slots, and hands the rounded position to
+/// `func_dryfield_breezeway_8017F998` to draw the cursor.
+/// `RoomActionPrompt::targetId` acts as the cursor speed here and `field_E` as
+/// the double-press window: a second press inside that many frames without the
+/// cursor having moved reports state 4 instead of 2.
+void func_dryfield_breezeway_8017F538(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -138,16 +154,14 @@ void RoomsShared8017ed38(Task* task)
 
         prompt->screen.xy.x = prompt->field_0 >> 9;
         prompt->screen.xy.y = prompt->field_4 >> 9;
-        Room_Draw36(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
+        func_dryfield_breezeway_8017F998(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
     }
 }
 
 /// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
 /// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
 /// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-///
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw36(s32 x, s32 y, s32 variant)
+void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant)
 {
     POLY_FT4* prim;
     s16       px;

@@ -9,7 +9,6 @@
 
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -35,7 +34,8 @@ s32 func_dryfield_breezeway_8017D90C(void)
 /// answers message 0x17 by writing 1 or 2 into the outgoing record's `field_3`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
-/// item 0x15) to the shared gate `RoomsShared8017d638`, returning its answer.
+/// item 0x15) to the room's event gate `func_dryfield_breezeway_8017D638`,
+/// returning its answer.
 /// A gate that latched the request is followed by the room's own follow-up:
 /// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
 s32 func_dryfield_breezeway_8017D940(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -59,8 +59,8 @@ s32 func_dryfield_breezeway_8017D940(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
             req.field_C = 0x52160003;
             req.flagId  = 0x37;
             req.itemId  = 0x15;
-            ret         = RoomsShared8017d638(&req, out);
-            if (RoomsShared8017d638Flag != 0) {
+            ret         = func_dryfield_breezeway_8017D638(&req, out);
+            if (D_dryfield_breezeway_801843A4 != 0) {
                 GameFlag_SetNibble(0x56, 4);
                 func_800E3FAC(0xA2, 0x38);
             }
@@ -203,6 +203,6 @@ void func_dryfield_breezeway_8017DE60(void)
 {
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", D_dryfield_breezeway_8017D5DC);
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", RoomsShared8017fc38Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", D_dryfield_breezeway_8017D5E8);
