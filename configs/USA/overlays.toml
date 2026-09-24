@@ -2426,16 +2426,6 @@ id = 420
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage", rodata = "0x4", text = "0xEC" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_3", text = "0x944" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_4", text = "0x954" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_2", text = "0x9AC" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_5", text = "0xAC0" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_6", text = "0x12A8" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_7", text = "0x164C" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_8", text = "0x18F0" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_9", text = "0x1D1C" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_10", text = "0x20B0" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage_11", text = "0x2C20" },
   { kind = "data", at = "0x35E0" },
 ]
 
