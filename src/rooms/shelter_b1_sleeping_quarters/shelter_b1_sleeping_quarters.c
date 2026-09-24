@@ -70,5 +70,3 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
     }
 }
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", jtbl_shelter_b1_sleeping_quarters_8017D5D0);
