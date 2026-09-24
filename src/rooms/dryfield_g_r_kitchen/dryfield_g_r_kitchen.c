@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
@@ -16,11 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// `rtps` / `rtv0`. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
@@ -277,7 +273,7 @@ void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
     *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
@@ -285,7 +281,7 @@ void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
     *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
@@ -293,11 +289,11 @@ void func_dryfield_g_r_kitchen_8017D9FC(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx1);
     gte_stszotz(&((RoomDraw24Scratch*)(head - 0x28))->otz1);
     if (block->otz1 >= 0x11) {
@@ -417,7 +413,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg1);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
     *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
@@ -425,7 +421,7 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
     *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
@@ -433,11 +429,11 @@ void func_dryfield_g_r_kitchen_8017E27C(GsCOORDINATE2* arg0, SVECTOR* arg1, SVEC
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx1);
     gte_stszotz(&((RoomDraw24Scratch*)(head - 0x28))->otz1);
     if (block->otz1 >= 0x11) {
