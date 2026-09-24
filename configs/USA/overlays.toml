@@ -790,11 +790,7 @@ objects = [
 id = 289
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_plaza/acropolis_plaza_2", rodata = "0x4", text = "0x63C" },
-  { unit = "acropolis_plaza/acropolis_plaza_3", rodata = "0x24", text = "0x7D0" },
-  { unit = "acropolis_plaza/acropolis_plaza_4", rodata = "0x64", text = "0x1224" },
   { unit = "acropolis_plaza/acropolis_plaza", rodata = "0x4", text = "0x114" },
-  { unit = "acropolis_plaza/acropolis_plaza_5", text = "0x498" },
   { kind = "data", at = "0x505C" },
 ]
 
