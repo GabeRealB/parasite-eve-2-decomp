@@ -70,7 +70,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", D_shelter_b2_pod_access_tunnel_8017D5D8);
 
 void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
 {
