@@ -140040,3 +140040,57 @@ broke the tie in favour of the second chain, and matched outright. Operand
 order, chained `x = (Gp_LcgState = ...)` forms and temps did nothing here; when
 two draw chains swap registers, try moving the block's constant stores between
 draws before anything else.
+
+## A narrow constant store takes an earlier compare's register: cse's wider-mode search, and killing the class with output-only asm (func_shelter_b3_garbage_incinerator_8017E158, 2026-09-24)
+
+**Symptom.** After `if ((id & 0x7FFF) == 5 && kind == 1) { calls...; if (r < 4)
+{...} else { room = 5; D = 5; } }`, the target's else arm has its own `li v1,5`
+and the compare's `5` is a `li v1,5` right before it. The candidate stores the
+byte from the compare's register instead (`andi` result or the compare's
+`force_reg` constant), which then lives across the calls in an `$sN`. Every
+flag, `switch`, inline-helper and `do {} while (0)` variant tried over 65
+attempts either kept the reuse or left an extra test (98.65% plateau).
+
+**Mechanism** (`cse.c` `cse_insn`, "See if we have a CONST_INT that is already
+in a register in a wider mode"). For a QImode/HImode set whose source folds to a
+CONST_INT - including a `mem:QI` store of `(subreg:QI (reg:SI k))` where `k = 5`
+- cse looks the constant up in SImode and takes the first REG in that class. The
+compare puts two REGs there: its `force_reg` constant pseudo, and (via
+`record_jump_equiv` on the fall-through) the compared value. A `(subreg:QI reg)`
+costs 0, like the constant, so the register wins. An SImode set is safe (pseudo
+cost 1 > const 0); a narrow one never is. The else arm reached through the
+room test's taken branch is on the same cse path, so the class is still there.
+Nothing between the compare and the store invalidates a pseudo: calls do not,
+and a `CODE_LABEL` would end the path (`cse_end_of_basic_block` stops at any
+label) but jump.c deletes every label without a use before cse runs.
+
+**Diagnosis that confirms it cheaply.** A label that can never lose its use -
+`static void *p = &&lbl;` puts it on `forced_labels` - placed between the two
+tests ended the path and matched the whole room section (99.64%). The one
+leftover was dbr: `redundant_insn` stops scanning at a label, so the second
+branch stole a duplicate `lui` from its target. So the target had no label
+there at dbr time, only the lost equivalence.
+
+**Fix.** Make both compare operands locals and give them new, unknown
+definitions right after the compare with output-only asm:
+
+```c
+t    = id & 0x7FFF;
+want = 5;
+if (t != want) break;
+DEF_REG(t);      /* "=r": invalidates t's class entry in cse1 and cse2 */
+DEF_REG(want);   /* want replaces the force_reg temp, so it can be killed too */
+if (kind == 1) { ... room = 5; ... }
+```
+
+Emits nothing, survives both cse passes (volatile), and leaves `kind == 1` in
+its class, which the arms' `1` stores need. `TOUCH_REG2(t, want)` does not
+work: after the compare the two inputs are equivalent, cse feeds one register to
+both and reload emits `move v1,v0`. Assigning `t` a new value in C does not work
+either unless that value stays used through cse2: a set whose uses cse
+substitutes is deleted as trivially dead after cse1, and cse2 records the
+equivalence again.
+
+Inputs: `base_7.i` `e44ad76ab7968cfb55649883e6dabbb3d3a6f103989904ff4be48c07d696f9d9`
+(match), label probe `base_5.i`
+`cae185cdd1f37583be625a47f8fbdd591600e07abbe643f8c808796aa8d23e39` (99.64%).

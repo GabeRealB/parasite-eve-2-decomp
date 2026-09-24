@@ -3333,10 +3333,10 @@ id = 410
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", rodata = "0x4", text = "0x12C" },
+  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", rodata = "0x28", text = "0x714" },
   { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", rodata = "0x40", text = "0x1AE8" },
   { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_6", rodata = "0x5C", text = "0x3B4C" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x6BC" },
-  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", text = "0x714" },
   { lib = true, unit = "room_util19", text = "0x10D0" },
   { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_3", text = "0x114C" },
   { lib = true, unit = "actors_shared_80149e54", text = "0x1210" },

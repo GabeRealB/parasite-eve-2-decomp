@@ -181,5 +181,3 @@ void func_shelter_b3_garbage_incinerator_8017DC54(void)
         D_shelter_b3_garbage_incinerator_801855DC++;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", jtbl_shelter_b3_garbage_incinerator_8017D5E8);
