@@ -4,6 +4,7 @@
 
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 s32 func_800E3FCC(s32 arg0);
@@ -39,7 +40,18 @@ s32 func_shelter_b2_breeding_room_8017D750(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", func_shelter_b2_breeding_room_8017D758);
+s32 func_shelter_b2_breeding_room_8017D758(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 7:
+            SndEvt_EnqueueType6(0x54200007, 0, 0);
+            break;
+        case 0x68:
+            SndEvt_EnqueueType6(0x54200008, 0, 0);
+            break;
+    }
+    return 0;
+}
 
 void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 {
