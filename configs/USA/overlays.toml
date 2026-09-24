@@ -2276,12 +2276,12 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", rodata = "0x4", text = "0x114" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_4", rodata = "0x100", text = "0xAD0" },
-  { lib = true, unit = "room_util06", text = "0x6A4" },
+  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_5", text = "0x6A4" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", text = "0x6AC" },
-  { lib = true, unit = "room_script18", text = "0x910" },
+  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_6", text = "0x910" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_3", text = "0x964" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0xA78" },
-  { lib = true, unit = "room_draw01", text = "0xC84" },
+  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_7", text = "0xA78" },
+  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_8", text = "0xC84" },
   { kind = "data", at = "0x14C8" },
 ]
 

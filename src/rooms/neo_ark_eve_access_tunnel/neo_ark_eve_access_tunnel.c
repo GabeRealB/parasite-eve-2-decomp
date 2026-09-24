@@ -20,7 +20,7 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tun
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D810);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", D_neo_ark_eve_access_tunnel_8017D688);
 
 /// Tunnel departure sequence, advanced one step per call: step 0 raises CAP
 /// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
