@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -24,18 +25,6 @@
 SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
 extern s32 Gp_LcgState;
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
-/// The `inline_c.h` macro of that name assembles to a different word, so spell
-/// the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// `rtpt`. Likewise.
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
@@ -316,7 +305,7 @@ void func_hypervelocity_8011D830(Task* task)
             work->move.vz = 0x400;
             gte_SetRotMatrix((MATRIX*)srcm);
             gte_ldv0(&work->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&work->move);
             for (i = 0; i < 0x10; i++) {
                 Gp_LcgState                 = Gp_LcgState * 5 + 0x71357911;
@@ -482,7 +471,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
         sc->rim[i].vz = -back;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->rim[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&sc->rim[i]);
         sc->rim[i].vx += *(u16*)&coord->workm.t[0];
         sc->rim[i].vy += *(u16*)&coord->workm.t[1];
@@ -493,7 +482,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
         vert->vz       = 0;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->hub[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&sc->hub[i]);
         sc->hub[i].vx += *(u16*)&coord->workm.t[0];
         vert->vy      += *(u16*)&coord->workm.t[1];
@@ -502,11 +491,11 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 0x10; i++) {
         gte_ldv0(&sc->rim[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sc->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&sc->rim[next], &sc->hub[i], &sc->hub[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
         gte_stflg(&sc->flag);
         if (sc->flag >= 0) {
@@ -562,7 +551,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->sx);
     gte_stflg(&((HyperQuadScratch*)(head - sizeof(HyperQuadScratch)))->flag);
     if (block->flag >= 0) {
@@ -638,7 +627,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         v->vz = tbl->y * spin;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&ground->workm.t[0];
         tbl++;
@@ -650,10 +639,10 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sc->sxy0);
     gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
     gte_stflg(&flag);
     if (flag >= 0) {
@@ -742,7 +731,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
         sc->rim[i].vz = tbl[i].y * half;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->rim[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&sc->rim[i]);
         *(u16*)&sc->rim[i].vx = *(u16*)&sc->rim[i].vx + *(u16*)&coord->workm.t[0];
         *(u16*)&sc->rim[i].vy = *(u16*)&sc->rim[i].vy + *(u16*)&coord->workm.t[1];
@@ -753,7 +742,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
         vert->vz              = tbl[i].y * half;
         gte_SetRotMatrix(rot);
         gte_ldv0(&sc->hub[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&sc->hub[i]);
         *(u16*)&vert->vx = *(u16*)&vert->vx + *(u16*)&coord->workm.t[0];
         i++;
@@ -765,10 +754,10 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
     i = 0;
     do {
         gte_ldv0(&sc->rim[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sc->sxy0);
         gte_ldv3(&sc->rim[i + 2], &sc->hub[i], &sc->hub[i + 2]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
         gte_stflg(&sc->flag);
         if (sc->flag >= 0) {

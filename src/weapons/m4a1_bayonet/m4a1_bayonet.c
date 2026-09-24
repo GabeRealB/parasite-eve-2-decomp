@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -23,11 +24,6 @@ SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 /// array's address plus 8, and another names it directly, which compiles
 /// to its own address - so it has to be a separate object, not element 1.
 SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
-
-/// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 /// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs once the
 /// room is fading (`Gp_State1C->eventState` non-zero); the task is then released
@@ -183,13 +179,13 @@ void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_G4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {

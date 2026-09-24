@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -20,11 +21,6 @@ SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
 extern s32 Gp_LcgState;
-
-/// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 void func_gunblade_8011D1E4(Task* task)
 {
@@ -173,13 +169,13 @@ void func_gunblade_8011D70C(s16 slot, s16 flags)
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_G4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {

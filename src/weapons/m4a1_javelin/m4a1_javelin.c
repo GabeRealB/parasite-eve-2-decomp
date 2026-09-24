@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -33,15 +34,6 @@ u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 
 /// The four RGB444 beam colours `GpEffWork::step` fades through.
 u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
-/// The `inline_c.h` macro of that name assembles to a different word, so spell
-/// the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern u32 Gp_LcgState;
 
@@ -155,7 +147,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 pb.vz = (work->period * rcos(i)) >> 12;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&pb);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&pb);
                 pb.vx = (u16)pb.vx + (u16)pa.vx;
                 pb.vy = (u16)pb.vy + (u16)pa.vy;
@@ -187,7 +179,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             } else {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&work->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&pb);
                 pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
                 pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
@@ -205,7 +197,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             if (Gp_State1C->groundTrace != 0) {
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&qb);
                 qb.vx = (u16)qb.vx + (u16)pb.vx;
                 qb.vy = (u16)qb.vy + (u16)pb.vy;
@@ -225,7 +217,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                                                D_m4a1_javelin_8011FAAC[work->step]);
                     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                     gte_ldv0(&D_m4a1_javelin_8011FA98);
-                    gte_rtv0_real();
+                    gte_rtv0();
                     gte_stsv(&qa);
                     qa.vx = (u16)qa.vx + (u16)pa.vx;
                     qa.vy = (u16)qa.vy + (u16)pa.vy;
@@ -305,14 +297,14 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx0);
     gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
     if (sc->flag >= 0) {
         gte_stszotz(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->otz0);
         sc->otz0++;
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->sx1);
         gte_stflg(&((M4a1JavelinRingScratch*)(head - sizeof(M4a1JavelinRingScratch)))->flag);
         if (sc->flag >= 0) {
@@ -457,7 +449,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx0);
     gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
     if (sc->flag < 0) {
@@ -466,7 +458,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     gte_stszotz(&((M4a1JavelinRingScratch*)head)[-1].otz0);
     ((M4a1JavelinRingScratch*)head)[-1].otz0++;
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1JavelinRingScratch*)head)[-1].sx1);
     gte_stflg(&((M4a1JavelinRingScratch*)head)[-1].flag);
     if (sc->flag < 0) {
@@ -589,14 +581,14 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sc->sx0);
     gte_stflg(&sc->flag);
     if (sc->flag >= 0) {
         gte_stszotz(otz0);
         sc->otz0++;
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sc->sx1);
         gte_stflg(&sc->flag);
         if (sc->flag >= 0) {
@@ -648,7 +640,7 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->sx);
     gte_stflg(&((M4a1JavelinQuadScratch*)(head - sizeof(M4a1JavelinQuadScratch)))->flag);
     if (block->flag >= 0) {

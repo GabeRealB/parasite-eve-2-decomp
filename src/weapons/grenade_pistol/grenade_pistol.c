@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -21,11 +22,6 @@
 #include "weapons/grenade_pistol.h"
 #include "weapons/m4a1_grenade.h"
 #include "weapons/weapon.h"
-
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 void func_grenade_pistol_8011DB8C(Task* task);
 
@@ -136,7 +132,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
     gte_SetRotMatrix(&muzzle->workm);
     gte_SetTransMatrix(&muzzle->workm);
     gte_ldv0(vec);
-    gte_rtv0tr_real();
+    gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);

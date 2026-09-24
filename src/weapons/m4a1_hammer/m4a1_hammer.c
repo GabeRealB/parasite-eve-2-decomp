@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -20,12 +21,6 @@
 SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
 extern u32 Gp_LcgState;
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
-/// The `inline_c.h` macro of that name assembles to a different word, so spell
-/// the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
 /// `Gp_State1C` work block, `Task::extra` reaches the coordinate the flare
@@ -162,7 +157,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 work->pos.vy = D_m4a1_hammer_8012D630[j];
                                 gte_SetRotMatrix(&coord->workm);
                                 gte_ldv0(&work->pos);
-                                gte_rtv0_real();
+                                gte_rtv0();
                                 gte_stsv(&work->pos);
                                 work->pos.vx = (u16)work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
                                 work->pos.vy = (u16)work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
@@ -221,7 +216,7 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1HammerFlareScratch*)(head - 0x1C))->sxy0);
     gte_stflg(&((M4a1HammerFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -328,7 +323,7 @@ void func_m4a1_hammer_8011DE60(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1HammerFlareScratch*)(head - 0x1C))->sxy0);
     gte_stflg(&((M4a1HammerFlareScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -388,14 +383,14 @@ void func_m4a1_hammer_8011E29C(GsCOORDINATE2* coord, SVECTOR* arg1, s32 arg2, s1
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1HammerTrailScratch*)(head - 0x20))->sxy0);
     gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((M4a1HammerTrailScratch*)(head - 0x20))->otz);
         block->otz++;
         gte_ldv0(arg1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((M4a1HammerTrailScratch*)(head - 0x20))->sxy1);
         gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {

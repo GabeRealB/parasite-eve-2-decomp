@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -11,11 +12,6 @@
 #include "main/mem.h"
 #include "main/tmd.h"
 #include "weapons/m4a1_grenade.h"
-
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 /// Equipped-weapon index; `Gp_GetItemSlot(D_80073BA9 + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is
@@ -206,7 +202,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     gte_SetRotMatrix(&muzzle->workm);
     gte_SetTransMatrix(&muzzle->workm);
     gte_ldv0(vec);
-    gte_rtv0tr_real();
+    gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     mtx          = (MATRIX*)(head - 0x20);

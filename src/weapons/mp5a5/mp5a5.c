@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -21,12 +22,6 @@
 #include "weapons/weapon.h"
 #include "weapons/weapons_shared_8011d468.h"
 #include "weapons/weapons_shared_8011d864.h"
-
-/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0`. The `inline_c.h` macros of those
-/// names assemble to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
@@ -165,7 +160,7 @@ void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((WeaponFlashCoreScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -234,7 +229,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     wm           = &arg0->workm;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
     *(u16*)&blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&arg0->workm.t[1];
@@ -247,7 +242,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[1].vz = depth;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
     *(u16*)&blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&arg0->workm.t[1];
@@ -260,7 +255,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[2].vz = 0;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
     *(u16*)&blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&arg0->workm.t[0];
     ang                  = ang + 0xC0;
@@ -273,7 +268,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     blk->v[3].vz = 0;
     gte_SetRotMatrix(wm);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
     *(u16*)&blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&arg0->workm.t[0];
     *(u16*)&blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&arg0->workm.t[1];
@@ -281,14 +276,14 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_G4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&((WeaponQuadScratch*)(head - 0x24))->v[1], &((WeaponQuadScratch*)(head - 0x24))->v[2],
              &((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
     if (((WeaponQuadScratch*)(head - 0x24))->otz >= 0x11) {

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -24,19 +25,6 @@ extern s32 Gp_LcgState;
 /// Translation of the Pyke's effect coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x200, 0x40)`.
 SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
-
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix, no translation.
-/// The `inline_c.h` macro of that name assembles to a different word, so spell
-/// the instruction out.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `rtps`: project V0 through the current matrices. The `inline_c.h` macro of
-/// that name assembles to a different word, so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// `rtpt`: project V0..V2 through the current matrices. The `inline_c.h` macro
-/// of that name assembles to a different word, so spell the instruction out.
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 void func_m4a1_pyke_8011E4AC(Task* task);
 
@@ -194,7 +182,7 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((M4a1PykeBeamScratch*)(head - 0x18))->sx);
     gte_stflg(&((M4a1PykeBeamScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -296,7 +284,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                 return;
             }
             task->exitCallback = func_m4a1_pyke_8011E4AC;
-            /* The three halfwords are the SVECTOR `gte_rtv0_real` rotates in
+            /* The three halfwords are the SVECTOR `gte_rtv0` rotates in
                place, so `field_14` has to be cleared after the random pitch is
                written to `field_12`, not alongside `field_10`. */
             work->move.vx = 0;
@@ -306,7 +294,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             work->move.vz = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&work->move);
             work->scale        = (u16)task->spawnArg1 + 0x180;
             ang1               = Gp_LcgState * 5 + 0x71357911;
@@ -417,7 +405,7 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     idx = frame % 12;
     gte_stsxy(&((M4a1PykeQuadScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((M4a1PykeQuadScratch*)(head - 0x1C))->flag);
@@ -492,7 +480,7 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
         block->vec[i].vz = tbl[i].y * width;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&block->vec[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->vec[i]);
         *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&pos->vx;
         *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&pos->vy;
@@ -502,10 +490,10 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy[0]);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy[1], &block->sxy[2], &block->sxy[3]);
     gte_stflg(&flag);
     if (flag >= 0) {
