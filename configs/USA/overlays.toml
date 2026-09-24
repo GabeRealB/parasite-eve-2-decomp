@@ -2873,17 +2873,7 @@ id = 448
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_woodland_path/neo_ark_woodland_path", rodata = "0x4", text = "0xD4" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_5", rodata = "0x60", text = "0x2368" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_6", rodata = "0xB0", text = "0x2EAC" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_7", text = "0x12D0" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_2", text = "0x1314" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_8", text = "0x13F0" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_3", text = "0x1448" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_9", text = "0x1740" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_4", text = "0x1B94" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_10", text = "0x1EE0" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_11", text = "0x2034" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_12", text = "0x2824" },
+  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_2", rodata = "0x60", text = "0x1448" },
   { kind = "data", at = "0x4078" },
 ]
 

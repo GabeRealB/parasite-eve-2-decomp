@@ -1,16 +1,17 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/rand.h>
 
+#include "gameplay/1A8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-#include <psyq/rand.h>
 
 /// Scratchpad block the ripple borrows from `G_SCRATCH_HEAD` for one call:
 /// the transposed view rotation, the camera-space row vector fed to the GTE
@@ -37,6 +38,17 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 extern s32 D_8007107C;
 extern u8  D_80071090;
 extern u8  D_801153F4;
+
+extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+/// The room's message table, parked in the entry task by
+/// `func_neo_ark_woodland_path_8017E944`.
+extern GpMsgEntry D_neo_ark_woodland_path_80181650[];
+
+/// Spawn descriptor of the arming task, and the task spawned from it, which
+/// the room's 0x13EF and 0x13F4 handlers forward their messages to.
+extern TaskDesc D_neo_ark_woodland_path_80184A44[];
+extern Task*    D_neo_ark_woodland_path_80181680;
 
 /// Rotates `v` in place by `m` through the GTE, working from a stack copy so
 /// the load and the store can name the same vector.
@@ -761,4 +773,74 @@ s32 func_neo_ark_woodland_path_8017E888(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path", D_neo_ark_woodland_path_8017D614);
+/// Room message handler for the path's save location: copies the incoming
+/// record onto the outgoing one and forwards both to `func_80179B14`. Always
+/// answers 1.
+s32 func_neo_ark_woodland_path_8017E890(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+{
+    *out = *in;
+    func_80179B14(in, out);
+    return 1;
+}
+
+s32 func_neo_ark_woodland_path_8017E8D4(void)
+{
+    return 0;
+}
+
+/// 0x13EF handler of the room's message table: passes the message on to the
+/// arming task `func_neo_ark_woodland_path_8017E944` spawned, answering -1
+/// while there is none.
+s32 func_neo_ark_woodland_path_8017E8DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    s32 ret;
+
+    if (D_neo_ark_woodland_path_80181680 == NULL) {
+        ret = -1;
+    } else {
+        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+    }
+    return ret;
+}
+
+/// 0x13F4 handler of the room's message table: passes the message on to the
+/// arming task `func_neo_ark_woodland_path_8017E944` spawned, answering -1
+/// while there is none.
+s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    s32 ret;
+
+    if (D_neo_ark_woodland_path_80181680 == NULL) {
+        ret = -1;
+    } else {
+        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+    }
+    return ret;
+}
+
+void func_neo_ark_woodland_path_8017E944(Task* arg0)
+{
+    arg0->msgTable = D_neo_ark_woodland_path_80181650;
+    Game_SetPtrSlot(arg0, 7);
+    D_neo_ark_woodland_path_80181680 = Task_SpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
+    arg0->state                      = (s32)(arg0->state + 1);
+}
+
+void func_neo_ark_woodland_path_8017E9A8(Task* task)
+{
+}
+
+/// State handlers of the room's entry task: set-up, idle, then kill.
+const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
+    { func_neo_ark_woodland_path_8017E944, func_neo_ark_woodland_path_8017E9A8, taskKill }
+};
+
+/// Task tick that dispatches on the task's state through the three-entry
+/// handler table `D_neo_ark_woodland_path_8017D614`, copied to the stack first.
+void func_neo_ark_woodland_path_8017E9B0(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_woodland_path_8017D614;
+    sp.funcs[task->state](task);
+}
