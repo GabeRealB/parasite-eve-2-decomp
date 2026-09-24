@@ -6,12 +6,16 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "rooms/room_common.h"
 
 extern TaskDesc       D_80135E78;
 extern GpMsgEntry     D_shelter_b6_growth_room_8017F16C[];
 extern GpAreaApplyRec D_shelter_b6_growth_room_801807C8;
 extern u8             D_80136110[];
 extern u8             D_80136308[];
+
+extern void func_801327A8(void);
+extern void func_80132834(void);
 
 s32 func_shelter_b6_growth_room_8017D634(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -29,7 +33,16 @@ s32 func_shelter_b6_growth_room_8017D634(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", func_shelter_b6_growth_room_8017D6C8);
+s32 func_shelter_b6_growth_room_8017D6C8(s32 arg0, s32 arg1, RoomEventMsg* arg2)
+{
+    if (arg2->field_2 == 1) {
+        func_801327A8();
+    }
+    if (arg2->field_2 == 2) {
+        func_80132834();
+    }
+    return 0;
+}
 
 void func_shelter_b6_growth_room_8017D71C(Task* arg0)
 {
