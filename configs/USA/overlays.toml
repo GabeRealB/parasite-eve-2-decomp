@@ -2821,24 +2821,8 @@ label = "no map pool names this room"
 id = 412
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall", rodata = "0x1C", text = "0x340" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_6", rodata = "0x58", text = "0x3858" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_8", rodata = "0x4", text = "0x6C" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_9", text = "0x80C" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", text = "0x850" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_10", text = "0x858" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_3", text = "0x8B0" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_11", text = "0x9F0" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_12", text = "0x1234" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_4", text = "0x1500" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_13", text = "0x17C4" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_14", text = "0x1BE8" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_15", text = "0x1F7C" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_5", text = "0x2314" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_16", text = "0x2D64" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_17", text = "0x3724" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_18", text = "0x3DB0" },
-  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_7", text = "0x4A10" },
+  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall", rodata = "0x4", text = "0x6C" },
+  { unit = "shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", rodata = "0x58", text = "0x3858" },
   { kind = "data", at = "0x5460" },
 ]
 

@@ -7,12 +7,19 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
-#include "main/task.h"
-#include "rooms/room_common.h"
+#include "gameplay/3A34.h"
 
-s32  func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg);
-void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 arg2);
-void func_shelter_b3_elevator_hall_8017F1A8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
-void func_shelter_b3_elevator_hall_80180324(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
+/// The gameplay-resident light slot the room's glows write: `mode` becomes 2
+/// and `data.light` takes the glow's world position and a randomised
+/// intensity.
+typedef struct {
+    s32 mode;
+    union {
+        GsCOORDINATE2 coord;
+        GpObj44       light;
+    } data;
+} ShelterB3ElevatorHallLight;
+
+extern ShelterB3ElevatorHallLight D_80114FF8;
 
 #endif // ROOMS_SHELTER_B3_ELEVATOR_HALL_H
