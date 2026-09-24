@@ -111,11 +111,11 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-/// A twin-ring burst in orange. Each tick draws the halo and a second ring at a
-/// growing angle while a wider, dimmer echo ring expands and fades behind them;
-/// once the echo is gone the main level falls 0x18 a tick and the work block
-/// is released. It pauses while the room's event state is set and releases the
-/// block when that state reaches 4.
+/// A burst in orange. Each tick draws a disc and a glow at a growing size while
+/// a wider, dimmer ring expands and fades behind them; once that ring is gone
+/// the main level falls 0x18 a tick and the work block is released. It pauses
+/// while the room's event state is set and releases the block when that state
+/// reaches 4.
 void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)
 {
     u8             rgb[3];
