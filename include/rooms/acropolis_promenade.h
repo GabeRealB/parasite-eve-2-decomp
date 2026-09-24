@@ -70,4 +70,6 @@ typedef struct ApmTwinkleScratch {
 } ApmTwinkleScratch;
 STATIC_ASSERT_SIZEOF(ApmTwinkleScratch, 0x18);
 
+void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
+
 #endif // ROOMS_ACROPOLIS_PROMENADE_H

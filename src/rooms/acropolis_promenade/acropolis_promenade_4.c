@@ -61,7 +61,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
         Gp_SpawnEff(0x8006004B, coord, (s16)work->field_22, &D_acropolis_promenade_80181AFC[0]);
         Gp_SpawnEff(0x8006004B, coord, (s16)work->field_22, &D_acropolis_promenade_80181AFC[1]);
         Gp_SpawnEff(0x60057, coord, (s16)work->field_22, &D_acropolis_promenade_80181B0C[0]);
-        Room_Draw21(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
+        func_acropolis_promenade_8017F434(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
     }
     for (i = 0; i < 3; i++) {
         if (D_acropolis_promenade_80181B78[i] & mask) {

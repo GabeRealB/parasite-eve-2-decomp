@@ -1,4 +1,8 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -9,30 +13,25 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181d28.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-
 /// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
 /// so spell the instruction out.
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// One frame of a room glow sprite: a camera-facing, semi-transparent
-/// `POLY_FT4` centred on the task's own coordinate frame. The frame's
-/// translation is projected through `GsWSMATRIX` into a 0x14-byte
-/// `G_SCRATCH_HEAD` block, and the quad is drawn as a square of half-extent
-/// `0x6180 / otz` around the resulting screen point, so it shrinks with
-/// distance and is dropped entirely inside `otz` 0x11.
+/// Glow sprite task: queues one camera-facing, semi-transparent `POLY_FT4`
+/// centred on the task's coordinate frame. The frame's translation is
+/// projected through `GsWSMATRIX` into a 0x14-byte `G_SCRATCH_HEAD` block, and
+/// the quad is a square of half-extent `0x6180 / otz` around the projected
+/// point, so it shrinks with distance; nothing is drawn at `otz` 0x10 or less.
 ///
-/// `Task::spawnArg1` picks one of three lamps: it selects the 0x27x0x27 texture
-/// cell at `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
-/// `0x4380 | ((arg + 2) & 0x3F)`, and the pair of grey levels the sprite
-/// flickers between - a base of 0x20 / 0x60 / 0x20 plus 0x08 / 0x10 / 0x0C on
-/// the frames where `gDisplayState.animFrame` is odd.
+/// `Task::spawnArg1` (0..2) selects the 0x27x0x27 texture cell at
+/// `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
+/// `0x4380 | ((arg + 2) & 0x3F)`, and the grey level: a base of
+/// 0x20 / 0x60 / 0x20, plus 0x08 / 0x10 / 0x0C on odd
+/// `gDisplayState.animFrame`s.
 ///
-/// The task is one-shot: the work block is released
-/// as soon as the quad has been queued, so the room respawns it every frame.
-void RoomsShared80181d28(Task* task)
+/// The work block in `spawnArg2` is released after the quad is queued, so
+/// each spawn draws a single frame.
+void func_acropolis_promenade_8017F0BC(Task* task)
 {
     GsCOORDINATE2*              coord;
     RoomEffWork*                work;

@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,23 +9,20 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus four
-/// inner cross wedges around the projected centre. `arg1` is a signed
-/// half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
+/// Draws a radial glow at the world-space point `arg0`: the point is
+/// projected through `Gfx_ViewWorldMtx` and, when the GTE flag is
+/// non-negative, sixteen gouraud wedges (eight at the outer radius in the
+/// half-brightness colour, eight at half that radius in the full colour) plus
+/// four cross wedges reaching out from the inner radius are queued around the
+/// projected centre, each fading to black at its rim. `arg1` is a signed
+/// half-extent: the radii are `(s16)arg1 * 64 / otz` (outer) and
 /// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the colour one nibble per
-/// channel - bits 8..11 red, 4..7 green, 0..3 blue, each scaled to 8 bits -
-/// with bits 12..15 giving the shift for a `gDisplayState.animFrame & 1` flicker
-/// added to every channel. The outer disc alternates full and half brightness
-/// wedges; the inner cross reuses the half-brightness colour. Shared body,
-/// linked into every room overlay that uses it.
-void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// channel - bits 8..11 red, 4..7 green, 0..3 blue, each scaled by 16 - with
+/// bits 12..15 the shift of a `gDisplayState.animFrame & 1` flicker added to
+/// every channel.
+void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     RoomDraw05Scratch* block;
     POLY_G4*           prim;
