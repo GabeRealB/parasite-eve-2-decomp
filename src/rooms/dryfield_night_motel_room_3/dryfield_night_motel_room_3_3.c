@@ -36,5 +36,3 @@ void func_dryfield_night_motel_room_3_8017D9B4(void)
             break;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_room_3/dryfield_night_motel_room_3_3", D_dryfield_night_motel_room_3_8017D5F4);
