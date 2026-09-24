@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "actors/actor_560800.h"
+#include "actors/actors_shared_8013411c.h"
 
 #include "gameplay/1BC.h"
 
@@ -26,6 +27,7 @@
 
 #include "main/task.h"
 #include "main/gfx.h"
+#include "main/tmd.h"
 
 extern s8       D_8007106B;
 extern TaskDesc D_actor_560800_8016EA28;
@@ -1749,4 +1751,22 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_560800/actor_560800", func_actor_560800_801361F4);
+/// Message handler that places the task's model from `placement`: the
+/// position becomes the model coordinate's translation, the Y, X and Z
+/// rotations are applied in that order, and the coordinate is marked for
+/// recalculation.
+void func_actor_560800_801361F4(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
+{
+    GsCOORDINATE2* coord;
+    MATRIX*        mtx;
+
+    coord             = ((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    mtx               = &coord->coord;
+    coord->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
+    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
+    coord->flg = 0;
+}
