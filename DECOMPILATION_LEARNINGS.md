@@ -139801,3 +139801,8 @@ call in `s2`/`s3`. A statement `if (r) { w = q - d; } else { w = q; }` keeps
 the else arm. The negated form (`-(v >> 12)` shared by both arms after the
 draw) is still unmatched: sched1 fills the `lw` load delay with `sra`/`negu`,
 where the target has them after the draw's final `addu`.
+### A parameter kept in `$s0` only to store the constant it was tested against: cse's jump equivalence, cut by a call in each arm of a later `if` (func_shelter_b2_laboratory_8017FD18, 2026-09-24)
+
+**Symptom:** 90%. `if (arg2 == 4) { …calls…; p.field_1 = 4; … }` saved `arg2` in `$s0` across every call and stored it with `sb s0,1(a3)`. The target has `li v0,4; sb v0,1(a3)` and no saved register. cse records `arg2 == 4` on the fall-through path, and its wider-mode constant lookup finds that SImode register for the QImode store of `4`. That works for as long as the extended basic block continues.
+
+The target also had `li a0,0xA2` in the delay slot of the `beqz` for a later `x ? 0x28 : 0x29` argument (entry: "A call's `a0` setup in the delay slot of the *preceding* `if` branch…"). Writing the call once in each arm, `if (f(0x83)) g(0xA2, 0x28); else g(0xA2, 0x29);`, gave 100%, and it fixed the `$s0` store too. With constant arms, the first jump pass turns a ternary or an `if`/`else` into "default, then conditional set", and deletes the `j` and the barrier (`base_3.i.jump`). With a call in each arm, the barrier survives into cse and ends the extended basic block, so the equivalence never reaches the store. When a constant store takes a register the function tested against that constant, look for an earlier `if`/`else` that should keep its `j` over the else arm.
