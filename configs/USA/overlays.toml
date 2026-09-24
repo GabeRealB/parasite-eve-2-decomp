@@ -1085,18 +1085,7 @@ objects = [
 id = 308
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_general_store/dryfield_general_store", rodata = "0x1C", text = "0x314" },
-  { unit = "dryfield_general_store/dryfield_general_store_6", rodata = "0x4", text = "0x40" },
-  { unit = "dryfield_general_store/dryfield_general_store_7", text = "0x6B8" },
-  { unit = "dryfield_general_store/dryfield_general_store_2", text = "0x798" },
-  { unit = "dryfield_general_store/dryfield_general_store_8", text = "0x800" },
-  { unit = "dryfield_general_store/dryfield_general_store_9", text = "0x834" },
-  { unit = "dryfield_general_store/dryfield_general_store_3", text = "0x83C" },
-  { unit = "dryfield_general_store/dryfield_general_store_10", text = "0x98C" },
-  { unit = "dryfield_general_store/dryfield_general_store_11", text = "0x99C" },
-  { unit = "dryfield_general_store/dryfield_general_store_4", text = "0x9F4" },
-  { unit = "dryfield_general_store/dryfield_general_store_12", text = "0xB70" },
-  { unit = "dryfield_general_store/dryfield_general_store_5", text = "0xB90" },
+  { unit = "dryfield_general_store/dryfield_general_store", rodata = "0x4", text = "0x40" },
   { kind = "data", at = "0xB98" },
 ]
 
