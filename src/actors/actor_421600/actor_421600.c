@@ -2,6 +2,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_421600.h"
 #include "actors/actor_421600_update.h"
@@ -18,7 +19,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-#include "gte.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 

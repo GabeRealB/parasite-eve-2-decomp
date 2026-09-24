@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_101900.h"
 #include "actors/actor_101900_facing.h"
 #include "actors/actors_shared_80132808.h"
@@ -14,7 +17,6 @@
 #include "main/sound.h"
 #include "psyq/abs.h"
 #include "rooms/rooms_shared_80182078.h"
-#include "gte.h"
 
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.

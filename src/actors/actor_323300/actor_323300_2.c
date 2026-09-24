@@ -2,6 +2,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_323300.h"
 #include "actors/actors_shared_80132808.h"
@@ -11,7 +12,6 @@
 #include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/tmd.h"
-#include "gte.h"
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// `gameplay/1BC.h`.

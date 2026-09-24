@@ -1,4 +1,8 @@
 #include "common.h"
+
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_201200.h"
 #include "actors/actor_201200_motion.h"
 #include "actors/actors_shared_8014a7b0.h"
@@ -9,7 +13,6 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "gte.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;

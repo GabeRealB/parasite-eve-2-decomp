@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_403200.h"
 #include "actors/actor_403200_view.h"
 #include "gameplay/3A34.h"
@@ -8,7 +11,6 @@
 #include "main/gfx.h"
 #include "main/sound.h"
 #include "main/tmd.h"
-#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)

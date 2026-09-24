@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/abs.h>
 
 #include "actors/actor_401000.h"
@@ -11,7 +12,6 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/wipsys.h"
-#include "gte.h"
 
 /// `Actor401300_MoveForward`: the plain forward-step helper, the shape the
 /// state-8 body `func_actor_401000_801388F4` inlines. The `Nonzero` variant

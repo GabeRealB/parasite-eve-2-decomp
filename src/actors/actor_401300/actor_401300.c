@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include "psyq/abs.h"
 
 #include "actors/actor_401300.h"
@@ -15,7 +16,6 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
-#include "gte.h"
 
 extern u8 D_801153F4;
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);

@@ -1,19 +1,17 @@
 #include "common.h"
 
+#include <psyq/abs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
+#include "actors/actor_356100.h"
 #include "actors/actors_shared_80132808.h"
-#include "main/mc.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
-
-#include <psyq/abs.h>
-#include <psyq/inline_c.h>
-
+#include "main/mc.h"
 #include "rooms/rooms_shared_80182078.h"
-
-#include "actors/actor_356100.h"
-#include "gte.h"
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 

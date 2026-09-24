@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include "psyq/abs.h"
 
 #include "actors/actor_401800.h"
@@ -14,7 +15,6 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "gte.h"
 
 /// Binds the work block's light and color matrices onto the model object.
 /// Same body as `Actor01900_BindMatrices` / `Actor401300_BindMatrices`.
