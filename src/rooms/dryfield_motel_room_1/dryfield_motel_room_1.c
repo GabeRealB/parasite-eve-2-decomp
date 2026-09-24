@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
@@ -16,7 +17,15 @@ s32 func_dryfield_motel_room_1_8017D5EC(void)
 {
     return 0;
 }
-INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D5F4);
+
+/// Fallback entry of the room's message table: copies the incoming location
+/// record onto the outgoing one and answers 1, leaving the decision to whoever
+/// reads the reply.
+s32 func_dryfield_motel_room_1_8017D5F4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    return 1;
+}
 
 s32 func_dryfield_motel_room_1_8017D61C(void)
 {
