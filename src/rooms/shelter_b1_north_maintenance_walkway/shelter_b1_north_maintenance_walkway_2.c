@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_north_maintenance_walkway.h"
 
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
@@ -67,37 +68,37 @@ void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
         case 2: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B18;
-            Room_Draw11(&p[0], 0x200, 0x800);
-            Room_Draw11(&p[4], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
             break;
         }
         case 3: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B08;
-            Room_Draw11(&p[0], 0x200, 0x800);
-            Room_Draw11(&p[2], 0x200, 0x800);
-            Room_Draw11(&p[4], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[2], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[4], 0x200, -0x400);
             break;
         }
         case 4:
         case 6: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B48;
-            Room_Draw25(&p[0], 0x200);
-            Room_Draw11(&p[-18], 0x200, 0);
-            Room_Draw11(&p[-16], 0x200, 0);
-            Room_Draw11(&p[-14], 0x200, 0);
-            Room_Draw11(&p[-12], 0x200, -0x400);
-            Room_Draw11(&p[-10], 0x200, -0x400);
-            Room_Draw11(&p[-8], 0x200, -0x400);
-            Room_Draw11(&p[-6], 0x200, 0x800);
+            func_shelter_b1_north_maintenance_walkway_8017E55C(&p[0], 0x200);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-18], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-16], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-14], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-12], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-10], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-8], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[-6], 0x200, 0x800);
             break;
         }
         case 5: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184AB8;
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[6], 0x200, -0x400);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[0], 0x200, 0);
+            func_shelter_b1_north_maintenance_walkway_8017DDE0(&p[6], 0x200, -0x400);
             break;
         }
     }
