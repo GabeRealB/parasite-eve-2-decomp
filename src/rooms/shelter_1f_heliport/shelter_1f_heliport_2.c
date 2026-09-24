@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -15,6 +16,7 @@ extern void func_801322A0(void);
 extern void func_80149E38(void);
 extern void func_80149EBC(void);
 
+extern TaskDesc D_80136CDC;
 extern TaskDesc D_shelter_1f_heliport_801811C8;
 
 extern SVECTOR D_shelter_1f_heliport_80181204;
@@ -44,7 +46,33 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     func_shelter_1f_heliport_8018085C(((TmdObject*)task->extra)->coords, &D_shelter_1f_heliport_80181204);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_80180334);
+s32 func_shelter_1f_heliport_80180334(s32 arg0, s32 arg1, s32 arg2)
+{
+    GpObj4C* node;
+    s32      found;
+
+    if (arg2 == 0x124 && GameFlag_GetNibble(0xE4) == 1 && gameGetPtrSlot(0xA) != NULL) {
+        found = 0;
+        node  = Gp_PendingObj4C;
+        while (node != NULL) {
+            if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                found = 1;
+                break;
+            }
+            node  = node->next;
+            found = 0;
+        }
+
+        if (found != 0) {
+            gGameSession->hideHud    = 1;
+            gGameSession->eventState = 1;
+            GameFlag_SetNibble(0x4B, 9);
+            Task_SpawnOnDefaultList(&D_80136CDC, 0, 0, 0);
+            return 1;
+        }
+    }
+    return 0;
+}
 
 s32 func_shelter_1f_heliport_8018041C(s32 arg0, s32 arg1, s32 arg2)
 {
