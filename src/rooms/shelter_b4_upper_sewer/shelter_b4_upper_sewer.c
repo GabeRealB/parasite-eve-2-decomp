@@ -10,6 +10,10 @@
 
 extern u8         D_8007216C;
 extern u8         D_801153F4;
+extern s16        D_80114D08;
+extern u8         D_80115680;
+extern u8         D_80115690;
+extern u8         D_shelter_b4_upper_sewer_80186318;
 extern u8         D_shelter_b4_upper_sewer_80188D2C;
 extern TaskDesc   D_shelter_b4_upper_sewer_80186300;
 extern GpMsgEntry D_shelter_b4_upper_sewer_801862D0[];
@@ -24,7 +28,54 @@ extern GpSaveLoc D_shelter_b4_upper_sewer_80188D24;
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D660);
+void func_shelter_b4_upper_sewer_8017D660(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            func_shelter_b4_upper_sewer_8017E59C(0);
+            gGameSession->eventState = 1;
+            task->state++;
+            break;
+        case 1:
+            gGameSession->hideHud = 1;
+            Gp_RunCapCmd(1, 0);
+            D_80115690 = 1;
+            D_80115680 = 5;
+            task->state++;
+            break;
+        case 2:
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
+        case 3:
+            if (Gp_GetCapEventKey() == 0xC) {
+                taskKill(task);
+                D_8007216C = D_shelter_b4_upper_sewer_80188D2C;
+                Gp_MsgPlayerWeapon(1);
+                Gp_MsgPlayer3F3(1);
+                Gp_MsgAllyWeapon(1);
+                Gp_MsgAlly3F3(1);
+                gGameSession->eventState = 0;
+                gGameSession->hideHud    = 0;
+                D_801153F4               = 0;
+                D_80114D08               = 0xA;
+                break;
+            }
+            func_800E8614((s32)&D_shelter_b4_upper_sewer_80186318, 0);
+            GameFlag_SetNibble(0xB8, 1);
+            GameFlag_SetNibble(0x1BD, 0);
+            task->state++;
+            break;
+        case 4:
+            if (gGameSession->eventState == 0) {
+                D_80114D08 = 0xA;
+                D_801153F4 = 0;
+                taskKill(task);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D80C);
 
