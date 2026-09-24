@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -16,11 +17,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` GTE commands lack the two leading nops this code has.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern u32 Gp_LcgState;
 
@@ -246,13 +242,13 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -380,7 +376,7 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
@@ -564,7 +560,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 }
                 gte_SetRotMatrix(&work->field_8->coord);
                 gte_ldv0(&work->field_10);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_10);
             }
             VectorNormalSS(&work->field_10, &work->field_10);
@@ -580,7 +576,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 }
                 gte_lddp(work->field_24);
                 gte_ldsv(&work->field_10);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&delta);
                 coord->coord.t[0] += delta.vx;
                 coord->coord.t[1] += delta.vy;
@@ -588,7 +584,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 coord->flg         = 0;
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(&delta);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&dir);
                 pos.vx  = coord->workm.t[0];
                 pos.vy  = coord->workm.t[1];
@@ -608,7 +604,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                     work->field_28 = (s16)work->field_28 >> 1;
                     gte_lddp(work->field_24);
                     gte_ldsv(&work->field_10);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&delta);
                     coord->coord.t[0] += delta.vx;
                     coord->coord.t[1] += delta.vy;
@@ -680,7 +676,7 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -928,7 +924,7 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1152,13 +1148,13 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
                 }
                 gte_SetRotMatrix(&work->field_8->coord);
                 gte_ldv0(&work->field_10);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_10);
             }
             VectorNormalSS(&work->field_10, &work->field_10);
             gte_lddp(work->field_24);
             gte_ldsv(&work->field_10);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&work->field_10);
             coord->flg      = 0;
             task->state     = 1;
@@ -1221,7 +1217,7 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1323,13 +1319,13 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
                 }
                 gte_SetRotMatrix(&work->field_8->coord);
                 gte_ldv0(&work->field_10);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_10);
             }
             VectorNormalSS(&work->field_10, &work->field_10);
             gte_lddp(work->field_24);
             gte_ldsv(&work->field_10);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&work->field_10);
             coord->flg  = 0;
             task->state = 1;
@@ -1402,7 +1398,7 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {

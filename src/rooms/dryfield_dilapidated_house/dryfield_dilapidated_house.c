@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
@@ -25,13 +26,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -1043,7 +1037,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         sc.vec.vz = D_dryfield_dilapidated_house_801866B4[i].vz;
         gte_SetRotMatrix(mtx);
         gte_ldv0(&sc.vec);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&sc.vec);
         sc.vec.vx = *(u16*)&sc.vec.vx + *(u16*)&mtx->t[0];
         sc.vec.vy = *(u16*)&sc.vec.vy + *(u16*)&mtx->t[1];
@@ -1051,7 +1045,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&sc.vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sc.sxy);
         gte_stdp(&sc.dp);
         gte_stflg(&sc.flag);
@@ -1112,7 +1106,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         vec.vz = out[2];
         gte_SetRotMatrix(mtx);
         gte_ldv0(&vec);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&vec);
         vec.vx = *(u16*)&vec.vx + *(u16*)&mtx->t[0];
         vec.vy = *(u16*)&vec.vy + *(u16*)&mtx->t[1];
@@ -1120,7 +1114,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sxy);
         gte_stdp(&dp);
         gte_stflg(&flag);
@@ -1155,7 +1149,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         vec.vz = out[2];
         gte_SetRotMatrix(mtx);
         gte_ldv0(&vec);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&vec);
         vec.vx = *(u16*)&vec.vx + *(u16*)&mtx->t[0];
         vec.vy = *(u16*)&vec.vy + *(u16*)&mtx->t[1];
@@ -1163,7 +1157,7 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sxy);
         gte_stdp(&dp);
         gte_stflg(&flag);
@@ -1369,10 +1363,10 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
     }
     gte_SetRotMatrix(mtx);
     gte_ldv0(&a);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&a);
     gte_ldv0(&b);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&b);
     t     = (s16)f * 0.75 + 1024.0;
     b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
@@ -1387,13 +1381,13 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&a);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&proj[0].sxy);
     gte_stdp(&proj[0].depthCue);
     gte_stflg(arg3);
     gte_stszotz(arg2);
     gte_ldv0(&b);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&proj[1].sxy);
     gte_stdp(&proj[0].depthCue);
     gte_stflg(arg3);
@@ -1418,7 +1412,7 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
         a.vx = D_dryfield_dilapidated_house_801867A4[i].vx * scale / *arg2;
         a.vy = D_dryfield_dilapidated_house_801867A4[i].vy * scale / *arg2;
         gte_ldv0(&a);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&b);
         verts[i].vx = b.vx + x0;
         verts[i].vy = b.vy + y0;
@@ -1428,7 +1422,7 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
         a.vx = D_dryfield_dilapidated_house_801867D4[i].vx * scale / *arg2;
         a.vy = D_dryfield_dilapidated_house_801867D4[i].vy * scale / *arg2;
         gte_ldv0(&a);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&b);
         verts[i + 6].vx = b.vx + x1;
         verts[i + 6].vy = b.vy + y1;
@@ -1438,7 +1432,7 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
         a.vx = ((D_dryfield_dilapidated_house_801867A4[i].vx * r) >> 12) * scale / *arg2;
         a.vy = ((D_dryfield_dilapidated_house_801867A4[i].vy * r) >> 12) * scale / *arg2;
         gte_ldv0(&a);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&b);
         verts[i + 12].vx = b.vx + x0;
         verts[i + 12].vy = b.vy + y0;
@@ -1447,7 +1441,7 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
         a.vx = ((D_dryfield_dilapidated_house_801867D4[i].vx * r) >> 12) * scale / *arg2;
         a.vy = ((D_dryfield_dilapidated_house_801867D4[i].vy * r) >> 12) * scale / *arg2;
         gte_ldv0(&a);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&b);
         verts[i + 18].vx = b.vx + x1;
         verts[i + 18].vy = b.vy + y1;
@@ -1483,7 +1477,7 @@ void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     SetTransMatrix(&Gfx_ViewWorldMtx);
     for (i = 0; i < 16; i++) {
         gte_ldv3(v, v + 1, v + 16);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(p, p + 1, p + 16);
         gte_stszotz(z);
         p++;
@@ -1590,7 +1584,7 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
         v0->vz = pos[0].vz;
 
         gte_ldv0(v0);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(v0);
 
         v0->vx += tx;
@@ -1605,7 +1599,7 @@ void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
         work->step[i] = (work->step[i] + D_dryfield_dilapidated_house_80186804[i]) & 0x3FFF;
 
         gte_ldv0(v1);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(v1);
 
         v1->vx += tx;
@@ -1674,11 +1668,11 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
             do {
                 gte_lddp(blend);
                 gte_ldsv(nrmA);
-                gte_gpf12_real();
+                gte_gpf12();
                 nrmDst = nrm + i;
                 gte_lddp(inv);
                 gte_ldsv(nrmB);
-                gte_gpl12_real();
+                gte_gpl12();
                 nrmB++;
                 i++;
                 nrmA++;
@@ -2056,7 +2050,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     for (i = 0; i < 4; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[0]);
         blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
         blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
@@ -2064,7 +2058,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         next = (i + 1) & 3;
         gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + next]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[1]);
         blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
         blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
@@ -2072,7 +2066,7 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         far = i + 4;
         gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + far]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[2]);
         blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
         blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
@@ -2080,20 +2074,20 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
         gte_SetRotMatrix(&coord->workm);
         farNext = next + 4;
         gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + farNext]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[3]);
         blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
         blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
         blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_G4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stszotz(&blk->otz);
         setRGB0(prim, shade, shade, shade);
@@ -2106,41 +2100,41 @@ void func_dryfield_dilapidated_house_801815E8(GsCOORDINATE2* coord, s16 arg1)
     }
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[0]);
     blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&coord->workm.t[0];
     blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&coord->workm.t[1];
     blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 1]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[1]);
     blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&coord->workm.t[0];
     blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&coord->workm.t[1];
     blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 3]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[2]);
     blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&coord->workm.t[0];
     blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&coord->workm.t[1];
     blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1 + 2]);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&blk->v[3]);
     blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&coord->workm.t[0];
     blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&coord->workm.t[1];
     blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&coord->workm.t[2];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_G4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
     setRGB0(prim, shade, shade, shade);
@@ -2301,13 +2295,13 @@ void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_G4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
@@ -2473,7 +2467,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
         block->inner[i].vz = 0x100;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -2484,7 +2478,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
         op->vz             = 0;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -2493,11 +2487,11 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -2566,7 +2560,7 @@ void func_dryfield_dilapidated_house_80182F14(GsCOORDINATE2* arg0, s32 arg1, s16
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2635,7 +2629,7 @@ void func_dryfield_dilapidated_house_801832A8(GsCOORDINATE2* arg0, s16 arg1, s16
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
@@ -2713,7 +2707,7 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -2724,7 +2718,7 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -2733,11 +2727,11 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
