@@ -1,11 +1,18 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern s32        func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern void       func_80131FB8(void);
+extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
+extern s8         D_8007218B;
+extern s32        D_80132D70;
+extern s32        D_80133088;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017D600);
 
@@ -72,5 +79,17 @@ s32 func_shelter_b1_control_room_8017EE24(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017EE2C);
+void func_shelter_b1_control_room_8017EE2C(Task* arg0)
+{
+    arg0->msgTable = D_shelter_b1_control_room_80181B94;
+    Game_SetPtrSlot(arg0, 7);
+    if (gGameSession->at4.loc.place == 0xB) {
+        func_80131FB8();
+        if (D_8007218B != 9) {
+            func_800E8634((s32)&D_80132D70, 0, (s32)&D_80133088);
+        }
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
+
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", RoomsShared8017d878Table);
