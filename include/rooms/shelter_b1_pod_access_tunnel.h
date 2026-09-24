@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 /// Event parameters latched into the room's pending event when an event
 /// starts. `field_8` is the game flag checked and set as the event starts
 /// (0 for none); the other fields are only copied here, so their roles are
@@ -26,5 +28,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterB1PodAccessTunnelWork, 0xC);
 
 void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1);
+
+/// Draws a flickering gouraud band between `arg0[0]` and `arg0[1]`, radius
+/// `arg1` scaled by depth, coloured by the 4-bit channels packed in `arg2`.
+void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_SHELTER_B1_POD_ACCESS_TUNNEL_H

@@ -5,6 +5,7 @@
 #include "rooms/room_common.h"
 
 #include "main/task.h"
+#include "rooms/shelter_b1_pod_access_tunnel.h"
 
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -27,21 +28,21 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839E4;
-            Room_Draw01(&p[0], 0x180, 0x111);
-            Room_Draw01(&p[2], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[0], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[2], 0x180, 0x111);
         } break;
         case 3:
         case 7: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            Room_Draw01(&p[0], 0x180, 0x111);
-            Room_Draw01(&p[2], 0x180, 0x111);
-            Room_Draw01(&p[4], 0x180, 0x111);
-            Room_Draw01(&p[6], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[0], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[2], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[4], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[6], 0x180, 0x111);
         } break;
         case 4: {
             SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            Room_Draw01(&p[0], 0x180, 0x111);
-            Room_Draw01(&p[2], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[0], 0x180, 0x111);
+            func_shelter_b1_pod_access_tunnel_8017E8F4(&p[2], 0x180, 0x111);
         } break;
     }
 }
