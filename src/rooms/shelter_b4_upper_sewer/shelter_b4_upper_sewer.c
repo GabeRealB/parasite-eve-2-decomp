@@ -4,6 +4,7 @@
 #include "main/mc.h"
 #include "main/task.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -15,6 +16,12 @@ extern GpMsgEntry D_shelter_b4_upper_sewer_801862D0[];
 extern s16        D_shelter_b4_upper_sewer_80186438;
 extern TaskDesc   D_shelter_b4_upper_sewer_8018643C[];
 extern void       func_shelter_b4_upper_sewer_8017E59C(s32);
+/// Save location filled from the outgoing location just before a table task is
+/// spawned: `field_2` / `field_4` / `field_1` take its `field_0` / `field_2` /
+/// `field_3`.
+extern GpSaveLoc D_shelter_b4_upper_sewer_80188D24;
+
+extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", RoomsShared8017d878Table);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D660);
@@ -26,7 +33,30 @@ s32 func_shelter_b4_upper_sewer_8017D9BC(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer", func_shelter_b4_upper_sewer_8017D9C4);
+s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    func_80179A04(src, dst);
+    if (*(u16*)src == 0x2D) {
+        if (src->field_5 == 0) {
+            D_shelter_b4_upper_sewer_80188D24.field_2 = dst->field_0;
+            D_shelter_b4_upper_sewer_80188D24.field_4 = dst->field_2;
+            D_shelter_b4_upper_sewer_80188D24.field_1 = dst->field_3;
+            Task_SpawnFromTable(&D_shelter_b4_upper_sewer_80186300, 1, 7, 0);
+        }
+        return 0;
+    }
+    if (*(u16*)src == 0x2E) {
+        if (src->field_5 == 0) {
+            D_shelter_b4_upper_sewer_80188D24.field_2 = dst->field_0;
+            D_shelter_b4_upper_sewer_80188D24.field_4 = dst->field_2;
+            D_shelter_b4_upper_sewer_80188D24.field_1 = dst->field_3;
+            Task_SpawnFromTable(&D_shelter_b4_upper_sewer_80186300, 1, 8, 0);
+        }
+        return 0;
+    }
+    return 1;
+}
 
 s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2)
 {
