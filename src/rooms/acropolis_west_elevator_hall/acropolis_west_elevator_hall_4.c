@@ -17,11 +17,12 @@
 
 #include "rooms/acropolis_west_elevator_hall.h"
 
-extern SVECTOR    D_acropolis_west_elevator_hall_8017D5EC;
-extern SVECTOR    D_acropolis_west_elevator_hall_8017D5F4;
-extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
-extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
-extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
+extern TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4;
+extern SVECTOR        D_acropolis_west_elevator_hall_8017D5EC;
+extern SVECTOR        D_acropolis_west_elevator_hall_8017D5F4;
+extern GpMsgEntry     D_acropolis_west_elevator_hall_801849CC[];
+extern GpMsgEntry     D_acropolis_west_elevator_hall_801849F4[];
+extern TaskDesc       D_acropolis_west_elevator_hall_80184568[];
 /// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
 /// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
 /// `...80184E04` the blended result that `...80185004` uploads to VRAM.
@@ -47,7 +48,16 @@ void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_4", func_acropolis_west_elevator_hall_8017F5F4);
+/// Per-frame entry of the room task: runs the state its `state` field selects
+/// from `D_acropolis_west_elevator_hall_8017D5D4` (set-up, the cutscene
+/// hand-off, then kill).
+void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_west_elevator_hall_8017D5D4;
+    sp.funcs[task->state](task);
+}
 
 /// Second state of the elevator task: allocates its scratch block, parks the
 /// car model at its starting position and parents it to the room's view

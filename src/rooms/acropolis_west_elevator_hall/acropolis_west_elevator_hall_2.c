@@ -11,6 +11,8 @@ extern s32 D_acropolis_west_elevator_hall_80184620;
 extern s32 D_acropolis_west_elevator_hall_80184890;
 extern s32 D_acropolis_west_elevator_hall_801849C8;
 
+extern TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0;
+
 /// Runs the one-shot cutscene hand-off for the west elevator hall: once the
 /// session reports state 8 == 1 the room spawns its scripted task pair, opens
 /// the story flags for the elevator and marks the sequence as running; the
@@ -41,4 +43,13 @@ void func_acropolis_west_elevator_hall_8017F354(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_west_elevator_hall/acropolis_west_elevator_hall_2", func_acropolis_west_elevator_hall_8017F418);
+/// Per-frame entry of an elevator-car task: runs the state its `state` field
+/// selects from `D_acropolis_west_elevator_hall_8017D5E0` (set-up, travel,
+/// then kill).
+void func_acropolis_west_elevator_hall_8017F418(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_west_elevator_hall_8017D5E0;
+    sp.funcs[task->state](task);
+}
