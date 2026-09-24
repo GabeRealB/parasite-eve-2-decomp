@@ -9,6 +9,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -30,7 +31,9 @@ typedef struct {
 } _LatchedEvent;
 
 extern s16 D_80071076;
+extern u8  D_8007216D;
 extern u8  D_801153F4;
+extern s8  D_8011540A;
 extern u8  D_80115690;
 
 extern s32 D_dryfield_driveway_8017E384;
@@ -39,6 +42,8 @@ extern s32 D_dryfield_driveway_8017E67C;
 
 extern TaskDesc D_dryfield_driveway_8017E2F0;
 extern TaskDesc D_dryfield_driveway_8017E2FC[];
+
+extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
 extern GpStateBD8    D_dryfield_driveway_80180680;
 extern RoomEventMsg  D_dryfield_driveway_80180688;
@@ -102,7 +107,7 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
 /// message 0x20 reports nibbles 0x51 and 0x53 and, before nibble 0x3A reaches
 /// 2, either spawns the second cutscene task of `D_dryfield_driveway_8017E2FC`
 /// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
-s32 func_dryfield_driveway_8017D77C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     _LatchedEvent  req;
     _LatchedEvent* p;
@@ -232,4 +237,123 @@ void func_dryfield_driveway_8017DB68(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_driveway/dryfield_driveway", D_dryfield_driveway_8017D5D8);
+/// Script callback: stores its argument in the gameplay byte `D_8011540A`.
+void func_dryfield_driveway_8017DC48(s32 arg0)
+{
+    D_8011540A = arg0;
+}
+
+/// Script callback: stores its argument in the session's `viewDirty` flag.
+void func_dryfield_driveway_8017DC54(s16 arg0)
+{
+    gGameSession->viewDirty = arg0;
+}
+
+/// Script callback: stores its argument in the gameplay byte `D_80115768`.
+void func_dryfield_driveway_8017DC64(u8 arg0)
+{
+    D_80115768 = arg0;
+}
+
+/// Message handler: queues stage sound 6 with a distinct cue for messages 8
+/// and 10, and reports every message as unhandled.
+s32 func_dryfield_driveway_8017DC70(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    switch (arg2) {
+        case 8:
+            Gp_EnqueueStageSnd6(0x52190008, 0, 0);
+            break;
+        case 10:
+            Gp_EnqueueStageSnd6(0x5219000A, 0, 0);
+            break;
+    }
+    return 0;
+}
+
+/// Message handler for message 0x114: while flag nibble 0x3A is 1, looks for a
+/// pending object of kind 5 with `field_48` 0xFF and a non-zero `field_4B`;
+/// when one exists it advances the nibble to 2, spawns the first cutscene task
+/// of `D_dryfield_driveway_8017E2FC`, moves the session to room 2 with the HUD
+/// hidden and an event running, and reports the message handled.
+s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    GpObj4C* node;
+    s32      found;
+
+    if (arg2 == 0x114) {
+        if (GameFlag_GetNibble(0x3A) == 1) {
+            node = Gp_PendingObj4C;
+            while (node != NULL) {
+                if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                    found = 1;
+                    goto check;
+                }
+                node = node->next;
+            }
+            found = 0;
+        check:
+            if (found != 0) {
+                GameFlag_SetNibble(0x3A, 2);
+                Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
+                gGameSession->at4.loc.room = (D_8007216D = 2);
+                gGameSession->hideHud      = 1;
+                gGameSession->eventState   = 1;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/// Message handler that reports every message as unhandled.
+s32 func_dryfield_driveway_8017DDB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    return 0;
+}
+
+/// Message handler that reports every message as unhandled.
+s32 func_dryfield_driveway_8017DDB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    return 0;
+}
+
+/// State 0 of the room task: attach the room's message table, publish the task
+/// in pointer slot 7 and advance to the next state.
+void func_dryfield_driveway_8017DDC0(Task* task)
+{
+    task->msgTable = D_dryfield_driveway_8017E754;
+    Game_SetPtrSlot(task, 7);
+    task->state = (s32)(task->state + 1);
+}
+
+/// State 1 of the room task: does nothing.
+void func_dryfield_driveway_8017DE04(Task* task)
+{
+    char pad[0x10];
+}
+
+/// The room task's state table, dispatched by `func_dryfield_driveway_8017DE14`
+/// from a stack copy.
+const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
+    {
+        func_dryfield_driveway_8017DDC0,
+        func_dryfield_driveway_8017DE04,
+        taskKill,
+    },
+};
+
+/// The room task: dispatches through its three-state table, copied onto the
+/// stack first.
+void func_dryfield_driveway_8017DE14(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_dryfield_driveway_8017D5D8;
+    sp.funcs[task->state](task);
+}
+
+/// Sets the room effect mode to 2.
+void func_dryfield_driveway_8017DE6C(void)
+{
+    Gp_State1C->roomEffectMode = 2;
+}
