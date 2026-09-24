@@ -55,5 +55,3 @@ void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
 void func_shelter_b2_pod_access_tunnel_8017DC0C(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", jtbl_shelter_b2_pod_access_tunnel_8017D5F8);

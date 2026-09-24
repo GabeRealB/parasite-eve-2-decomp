@@ -3231,7 +3231,7 @@ objects = [
   { unit = "shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", rodata = "0x4", text = "0x6C" },
   { unit = "shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_3", rodata = "0x50", text = "0x1120" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x654" },
-  { unit = "shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_2", text = "0x6AC" },
+  { unit = "shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_2", rodata = "0x38", text = "0x6AC" },
   { lib = true, unit = "room_draw11", text = "0x9A4" },
   { lib = true, unit = "rooms_shared_8017dcb8", text = "0x2048" },
   { unit = "shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel_4", text = "0x2314" },
