@@ -143,6 +143,7 @@ extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
 extern s8         D_8007218B;
 extern s32        D_80132D70;
 extern s32        D_80133088;
+extern GpAreaKey  D_8007216C;
 
 void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
 
@@ -155,7 +156,91 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
     gte_stsv(out);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_control_room/shelter_b1_control_room", func_shelter_b1_control_room_8017D600);
+/// Fills in `cfg` for the current area key.
+///
+/// Every field starts from a default that leaves the mirror inactive, with the
+/// player task (`gameGetPtrSlot(3)`) as its subject. Three places turn it on,
+/// each for a set of views: area 7 of stage 5 while the session is in room 2,
+/// area 0x1E of stages 2 and 3, and area 0x12 of stage 4. In stage 4's area the
+/// subject becomes the `Gp_LookupSlot4(0)` task instead, and only when `place`
+/// is 0xB; with any other `place`, `field_18` is set so the mirror task exits
+/// on its first frame.
+///
+/// The `do { } while (0)` is not logic. Its loop notes act as a scheduling
+/// barrier: without it, the scheduler would move the shared constant 1 down to
+/// its first store, below the key reads.
+void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
+{
+    s32        stage;
+    s32        area;
+    s32        view;
+    GpAreaKey* key;
+    s32        one;
+
+    key = &D_8007216C;
+    one = 1;
+    do {
+        stage = key->stage;
+        area  = key->area;
+        view  = key->view;
+    } while (0);
+    cfg->stripX      = 0x1C0;
+    cfg->active      = 0;
+    cfg->copyPending = 0;
+    cfg->firstLayer  = 0;
+    cfg->mode        = one;
+    cfg->offset.vy   = 0;
+    cfg->field_10    = one;
+    cfg->field_18    = 0;
+    switch (stage) {
+        case 5:
+            if (area == 7 && (u32)(view - 6) < 6 && gGameSession->at4.loc.room == 2) {
+                cfg->offset.vy   = 0x9B;
+                cfg->active      = 1;
+                cfg->copyPending = 1;
+            }
+            break;
+        case 4:
+            if (area == 0x12) {
+                if (key->place == 0xB) {
+                    cfg->field_10 = 0;
+                    cfg->subject  = (Task*)Gp_LookupSlot4(0);
+                    if (view == 4 || view == 1) {
+                        cfg->normal.vz   = -0x1000;
+                        cfg->offset.vz   = -0xABE;
+                        cfg->mode        = 0;
+                        cfg->normal.vx   = 0;
+                        cfg->normal.vy   = 0;
+                        cfg->offset.vx   = 0;
+                        cfg->offset.vy   = 0;
+                        cfg->active      = 1;
+                        cfg->copyPending = 1;
+                        cfg->stripX      = 0x140;
+                        cfg->firstLayer  = 1;
+                    }
+                } else {
+                    cfg->field_18 = 1;
+                }
+            }
+            break;
+        case 2:
+        case 3:
+            if (area == 0x1E && (view == 8 || view == 1)) {
+                cfg->offset.vx   = 0xA38;
+                cfg->firstLayer  = -1;
+                cfg->normal.vx   = 0;
+                cfg->normal.vz   = 0;
+                cfg->offset.vy   = 0;
+                cfg->offset.vz   = 0;
+                cfg->active      = 1;
+                cfg->copyPending = 1;
+            }
+            break;
+    }
+    if (cfg->field_10 == 1) {
+        cfg->subject = gameGetPtrSlot(3);
+    }
+}
 
 /// Per-frame update of the room's mirror task.
 ///

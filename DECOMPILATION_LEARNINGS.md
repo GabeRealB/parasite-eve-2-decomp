@@ -140242,3 +140242,48 @@ Recognise it by a callee-saved copy just after a call, used only before the next
 call, in a function where the separate-variable version gets a caller-saved
 register. Check `.lreg` for the copy's "crosses 1 call" and `.sched` for its
 position before believing it.
+
+## A shared constant kept above loads: put the loop-note barrier on the loads, not on the constant (func_shelter_b1_control_room_8017D600, 2026-09-24)
+
+**Symptom.** In the entry block, a constant register (`li s3,1`) sits between
+the prologue saves (`sw s3; li s3,1; sw ra; ...`), above three global reads, and
+its first use comes eleven instructions later. Ours sinks it to its first store.
+
+**Why.** sched1 gives a *birthing* set (`birthing_insn_p`: a SET of a pseudo
+with `REG_N_SETS == 1`, live below) the launch priority, so it lands directly
+above its first user. The two obvious ways out both fail:
+
+- A second set of the holder (`REG_N_SETS == 2`) stops the boost, but it also
+  stops `update_equiv_regs` doubling the live length. The holder's global-alloc
+  priority then roughly doubles, and it takes `$s1` instead of `$s3`.
+- `do { one = 1; } while (0)` stops the boost by attaching fake `REG_DEAD` notes
+  to the set, but loop notes also make that insn a barrier in sched2. Every
+  prologue save then has to come before it, so `sw ra` can no longer follow
+  `li s3`.
+
+**Fix.** Keep one single-set holder and put the barrier on the *loads*. Write
+the constant before them, and hoist the address into a pointer first so that
+its `lui/addiu` are not the first insns inside the loop:
+
+```c
+key = &D_8007216C;
+one = 1;
+do {
+    stage = key->stage;
+    area  = key->area;
+    view  = key->view;
+} while (0);
+cfg->stripX = 0x1C0;
+```
+
+In sched1, LOOP_BEG makes the first load a barrier. The address insns and
+`one = 1` then all become ready together when that barrier is scheduled, and the
+luid tie puts `one` last among them: `lui, addiu, li 1, loads`. Sched2 puts it
+after `sw s3` and ahead of the remaining saves.
+
+Two placements fail. With the barrier directly after the loads (an empty loop
+before the `0x1C0` store), the loads wait out their two-cycle latency in the
+queue, and the constant, alone on the ready list, is placed just above the
+barrier. With the constant written before the pointer, its luid is lowest, and
+sched2 puts it ahead of `lui`. Any insn the notes land on must be one that the
+target places after the last prologue save.
