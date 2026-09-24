@@ -11,7 +11,7 @@ extern Task*      D_shelter_1f_guardroom_8017E014;
 
 void func_shelter_1f_guardroom_8017D9CC(s32 arg0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", D_shelter_1f_guardroom_8017D5C4);
 
 void func_shelter_1f_guardroom_8017D5E8(Task* task)
 {
