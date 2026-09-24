@@ -4,7 +4,11 @@
 
 #include "rooms/room_common.h"
 
-s32 Room_Script02(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Message-table handler for id 0x13EE: echoes the incoming record into the
+/// reply and, for a message 2 that is not report-only (`field_5 == 0`),
+/// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
+/// once it has reached 4. Returns 1.
+s32 func_dryfield_night_motel_room_1_8017D5F8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 val;
     s32 n;
