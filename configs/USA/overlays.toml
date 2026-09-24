@@ -2942,22 +2942,7 @@ id = 435
 text = ["0x10", "0x2830"]
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2", rodata = "0x4", text = "0x5C" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_5", text = "0x10" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_6", text = "0x18" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_7", text = "0xD4" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_8", text = "0xDC" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_9", text = "0x114" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_2", text = "0x134" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_10", text = "0x294" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_3", text = "0x2EC" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_11", text = "0x494" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_12", text = "0x834" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_13", text = "0xAD8" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_14", text = "0xF04" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_15", text = "0x1298" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_16", text = "0x1E08" },
-  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_4", text = "0x27C8" },
+  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x2830" },
 ]
 
