@@ -20,11 +20,11 @@ extern void func_shelter_b1_main_corridor_8017F064(GsCOORDINATE2* arg0, s16 arg1
 
 /// A coloured flash. Its first tick places it at the work block's position
 /// under the block's parent, and splits `spawnArg1` into a duration (low half)
-/// and a colour row (high half). For that many ticks it brightens and widens,
-/// drawing a halo, a half-bright second halo every other tick and a ring that
-/// closes in; then it fades out over further ticks through a second drawer and
-/// releases its work block. The colour is its brightness shifted down per
-/// channel by the chosen row.
+/// and a colour row (high half). For that many ticks it brightens and grows,
+/// drawing a radial glow, a half-bright larger glow every other tick and a ring
+/// that closes in; then it draws a starburst that grows as it dims by 0x10 a
+/// tick, and releases its work block once it is dark. The colour is its
+/// brightness shifted down per channel by the chosen row.
 void func_shelter_b1_main_corridor_8017F81C(Task* arg0)
 {
     u8             rgb[3];
@@ -108,10 +108,10 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-/// An orange burst: each tick draws a halo and a second pattern at an
-/// advancing angle, and while its ring colour lasts, a ring that widens by 0x30
-/// a tick as that colour dims by 0x18. Once the ring is gone the halo dims by
-/// 0x18 a tick and the work block is released when it is dark.
+/// An orange burst: each tick draws a radial glow and a textured glow that
+/// grow by 0x10 a tick, and while its ring colour lasts, a ring that widens by
+/// 0x30 a tick as that colour dims by 0x18. Once the ring is gone the radial
+/// glow dims by 0x18 a tick and the work block is released when it is dark.
 void func_shelter_b1_main_corridor_8017FBB4(Task* arg0)
 {
     u8             rgb[3];

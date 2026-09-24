@@ -5,6 +5,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_main_corridor.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>

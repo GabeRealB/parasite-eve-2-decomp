@@ -2,8 +2,10 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -12,10 +14,11 @@
 #include "rooms/shelter_b1_main_corridor.h"
 
 /// Parameters of an event the corridor's message handler starts, latched into
-/// the room's pending copy when it fires. `flagId` is the game-flag nibble that
-/// records the event as done: a set nibble stops it firing again, and starting
-/// it sets the nibble (0 means no flag). What reads the other fields back is
-/// still undecompiled.
+/// the room's pending copy when it fires. `field_0` is the CAP command the
+/// event task runs and `field_4` the stage sound it then plays (0 for none); a
+/// non-zero `field_A` also has it spawn task 0x31. `flagId` is the game-flag
+/// nibble that records the event as done: a set nibble stops it firing again,
+/// and starting it sets the nibble (0 means no flag).
 typedef struct _CorridorEvent {
     s32 field_0;
     s32 field_4;
@@ -23,13 +26,66 @@ typedef struct _CorridorEvent {
     u8  field_A;
 } _CorridorEvent;
 
+extern s16            D_80071076;
+extern u8             D_801153F4;
+extern u8             D_80115690;
 extern s32            func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern GpStateBD8     D_shelter_b1_main_corridor_80185D24;
 extern TaskDesc       D_shelter_b1_main_corridor_80183098;
 extern RoomEventMsg   D_shelter_b1_main_corridor_80185D3C;
 extern u8             D_shelter_b1_main_corridor_80185D44;
 extern _CorridorEvent D_shelter_b1_main_corridor_80185D68;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017D8F4);
+/// The event task the message handler spawns: runs the latched event's CAP
+/// command and waits for it, spawns task 0x31 if the event asks for it, plays
+/// the event's stage sound (if any) and waits for it to end, then queues sound
+/// event 0x80000000, records the latched message's area, warp and room in the
+/// save data's location, spawns task 0x11 and kills itself.
+void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_shelter_b1_main_corridor_80185D68.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_shelter_b1_main_corridor_80185D68.field_A != 0) {
+                    D_shelter_b1_main_corridor_80185D24.field_0 = 0;
+                    D_shelter_b1_main_corridor_80185D24.field_1 = 0;
+                    D_shelter_b1_main_corridor_80185D24.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b1_main_corridor_80185D24);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_shelter_b1_main_corridor_80185D68.field_4 != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b1_main_corridor_80185D68.field_4, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_main_corridor_80185D68.field_4)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_b1_main_corridor_80185D3C.msgId;
+            Mc_SaveData.at4.loc.warp = D_shelter_b1_main_corridor_80185D3C.field_2;
+            Mc_SaveData.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D3C.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

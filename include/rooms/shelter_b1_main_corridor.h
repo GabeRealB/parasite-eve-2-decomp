@@ -15,6 +15,7 @@ void func_shelter_b1_main_corridor_8017E070(SVECTOR* arg0, s32 arg1, s32 arg2, s
 void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b1_main_corridor_8017F488(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 frame);
+void func_shelter_b1_main_corridor_8018028C(GsCOORDINATE2* arg0, s32 arg1);
 void func_shelter_b1_main_corridor_80180604(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b1_main_corridor_801817C8(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b1_main_corridor_801826CC(GsCOORDINATE2* coord, s16 frame, u8* rgb);

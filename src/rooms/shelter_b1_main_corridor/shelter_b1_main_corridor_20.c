@@ -14,10 +14,10 @@
 
 extern void func_shelter_b1_main_corridor_8018139C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3);
 
-/// A magenta flash lasting `spawnArg1` ticks: it brightens and widens,
-/// drawing two patterns at full and half brightness and a ring that closes in,
-/// then queues one `Gp_DrawFadeQuad` in its colour and fades out over further
-/// ticks through a second drawer before releasing its work block.
+/// A magenta flash lasting `spawnArg1` ticks: it brightens and grows, drawing
+/// a radial glow, a half-bright one twice its size and a ring that closes in.
+/// It then queues one `Gp_DrawFadeQuad` in its colour and draws a starburst
+/// that shrinks as it dims by 0x10 a tick, releasing its work block once dark.
 void func_shelter_b1_main_corridor_801810F8(Task* arg0)
 {
     u8                      rgb[3];
