@@ -61,28 +61,32 @@ typedef struct Actor401800Work {
     /// XZ patrol points: the spawn position and one step along its facing.
     /* 0x00C */ Actor401800Waypoint field_C[2];
     /* 0x014 */ s16                 field_14;
-    /* 0x016 */ byte                pad_16[0x44];
-    /* 0x05A */ u16                 field_5A;
-    /* 0x05C */ byte                pad_5C[0xC];
-    /* 0x068 */ u16                 field_68;
-    /* 0x06A */ byte                pad_6A[0x43A];
-    /* 0x4A4 */ u16                 field_4A4;
-    /* 0x4A6 */ byte                pad_4A6[0x3EE];
-    /* 0x894 */ s32                 field_894;
-    /* 0x898 */ s16                 field_898;
-    /* 0x89A */ s16                 field_89A;
-    /* 0x89C */ s16                 field_89C;
-    /* 0x89E */ s16                 field_89E;
-    /* 0x8A0 */ u16                 field_8A0;
-    /* 0x8A2 */ s16                 field_8A2;
-    /* 0x8A4 */ s16                 field_8A4;
-    /* 0x8A6 */ s16                 field_8A6;
-    /* 0x8A8 */ s16                 field_8A8;
-    /* 0x8AA */ u16                 field_8AA;
-    /* 0x8AC */ s16                 field_8AC;
-    /* 0x8AE */ s16                 field_8AE;
-    /* 0x8B0 */ s16                 field_8B0;
-    /* 0x8B2 */ byte                pad_8B2[2];
+    /// Heading of the root coordinate, `ratan2` of its Z axis, stored by the
+    /// placement handler `func_actor_401800_8013DE3C` after it rotates the
+    /// model into place.
+    /* 0x016 */ s16  field_16;
+    /* 0x018 */ byte pad_18[0x42];
+    /* 0x05A */ u16  field_5A;
+    /* 0x05C */ byte pad_5C[0xC];
+    /* 0x068 */ u16  field_68;
+    /* 0x06A */ byte pad_6A[0x43A];
+    /* 0x4A4 */ u16  field_4A4;
+    /* 0x4A6 */ byte pad_4A6[0x3EE];
+    /* 0x894 */ s32  field_894;
+    /* 0x898 */ s16  field_898;
+    /* 0x89A */ s16  field_89A;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ u16  field_8A0;
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ s16  field_8A6;
+    /* 0x8A8 */ s16  field_8A8;
+    /* 0x8AA */ u16  field_8AA;
+    /* 0x8AC */ s16  field_8AC;
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
+    /* 0x8B2 */ byte pad_8B2[2];
     /// State the `0x3FF` handler last ran for: `func_actor_401800_8013A034`
     /// sends the actor's 0x200 effect when `field_5A & 0x3FF` is 4 and differs
     /// from this, then stores the mask back. Same slot `Actor01900Work.field_894`
@@ -305,10 +309,10 @@ STATIC_ASSERT_SIZEOF(Actor401800RangeScratch, 0xC);
 
 /// Animation view of the same task work block: the pose context at 0x1C and
 /// its slot array, then the blend context the actor keeps beside it. The
-/// arrays cover the slot indices `ActorsShared80132a84` walks, which is
-/// the identical body of `Actor01900_Fn01950`; the offsets all match
-/// `Actor01900AnimWork`, and the tail overlays the work block's
-/// `field_8A2` / `field_8A4` (the state the slot writes step down by 3).
+/// arrays cover the slot indices the blended tick `func_actor_401800_801337EC`
+/// walks; the offsets all match `Actor01900AnimWork`, and the tail overlays
+/// the work block's `field_8A2` / `field_8A4` (the state the slot writes step
+/// down by 3).
 typedef struct Actor401800AnimWork {
     /* 0x000 */ byte       pad_0[0x1C];
     /* 0x01C */ GpAnimCtx  anim;
@@ -624,19 +628,16 @@ typedef struct Actor401800Msg7D3 {
 /// and the other families' step helpers test.
 extern u8 D_80072729;
 
-/// Pushes `coord` away from the obstacles in `recs`, exactly as
-/// `Actor00100_Fn00508` does for actor 00100: records of kind 0x10000 (which
-/// also raises the returned `blocked` flag) or 0x30000 each give a bearing, at
-/// most eight; bearings more than 0x400 apart cancel each other. Each survivor
-/// becomes a 10-unit step added to `pos` and to the coordinate's translation.
+/// Pushes `coord` away from the obstacles in `recs`: records of kind 0x10000
+/// (which also raises the returned `blocked` flag) or 0x30000 each give a
+/// bearing, at most eight; bearings more than 0x400 apart cancel each other.
+/// Each survivor becomes a 10-unit step added to `pos` and to the coordinate's
+/// translation.
 s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos);
 s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
-/// Nudges a coordinate frame away from the obstacles recorded in a `GpRec18`
-/// table: it takes the frame's world position and the point one unit in front
-/// of it, sorts the records by bearing, and where two of them close to within
-/// 0x400 pushes the frame `push` units along the bisector. Returns 1 when a
-/// push was applied. Same body as `RoomsShared80182078`, which six acropolis
-/// rooms carry.
+/// Nudges a coordinate frame `push` units away from the obstacles recorded in
+/// a `GpRec18` table, judged by their bearings relative to the frame's facing.
+/// Returns 1 when a push was applied.
 s32 func_actor_401800_80132E0C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push);
 /// Re-seeds the `rec` contact record the aim-and-rescale body arms for the
 /// actor's root coordinate. Same role `func_actor_401300_80132910` plays.
@@ -651,6 +652,12 @@ s32 func_actor_401800_80133918(Actor401800* arg0);
 void func_actor_401800_801348A8(Actor401800* arg0, s16 arg1, s32 arg2);
 s32  func_actor_401800_8013DCBC(Actor401800* arg0, s32 arg1, Actor401800Msg7D3* arg2);
 void func_actor_401800_80133EB8(Actor401800* arg0);
+/// Turns joint `coord` by `yaw` about the world Y axis.
+void func_actor_401800_801320C8(GsCOORDINATE2* coord, s16 yaw);
+/// Blended per-frame tick of the pose and blend animation contexts.
+void func_actor_401800_801337EC(Actor401800* arg0);
+/// Returns the animation event to play for the current state and frame, or 0.
+s32 func_actor_401800_80133B78(Actor401800Work* work);
 /// Enemy init: allocates the work block, binds the model matrices, sets up both
 /// animation contexts and the three hit/body `GpObj` nodes, then picks the
 /// starting state and tint row from the spawn flags and rescales the model.

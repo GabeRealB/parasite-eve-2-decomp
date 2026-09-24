@@ -1,17 +1,27 @@
 #include "common.h"
 
+#include "actors/actor_401800.h"
 #include "actors/actors_shared_80133eb8.h"
-#include "actors/actors_shared_80132808.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/sound.h"
 
-extern s8 ActorsShared80133eb8_Transitions;
-void      func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
-void      ActorsShared80133eb8_BlendTick(ActorsShared80133eb8Actor* arg0);
-s32       ActorsShared80133eb8_Sound(ActorsShared80133eb8Work* arg0);
+/// Clip-transition table the cross-fade reads: one byte per (previous clip,
+/// requested clip) pair, rows of 0x2D, handed to `func_800B4114` as the
+/// transition argument.
+extern s8 D_actor_401800_8015514C;
 
-/// Shared animation driver for actor_401000 and actor_401800.
-void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
+
+/// The actor's per-frame animation driver. A pending clip change in
+/// `field_898` either cross-fades every pose slot from the previous clip to the
+/// requested one (1) or restarts them on it (2); a blend request in `field_8A6`
+/// restarts the blend context on `field_8A8`. The slots are then advanced,
+/// blended while `field_89A` is set (cleared once the pose context reports its
+/// end), the head yaw in `field_8B0` eases toward `field_8AE` by at most 0x100 a
+/// frame and turns two joints of the model by it, and the animation event for
+/// the current state and frame is played at the model's pan and depth.
+void func_actor_401800_80133EB8(Actor401800* arg0)
 {
     ActorsShared80133eb8Work* seekWork;
     ActorsShared80133eb8Work* resetWork;
@@ -46,15 +56,15 @@ void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
     s8*                       secondarySlot;
     s8*                       tickSlot;
 
-    work  = arg0->field_1C;
+    work  = (ActorsShared80133eb8Work*)arg0->field_1C;
     enemy = arg0->field_20;
     state = work->field_898;
     if (state == 1) {
         // Keep the copy before the comparison so it fills the branch delay slot.
-        seekWork = arg0->field_1C;
+        seekWork = (ActorsShared80133eb8Work*)arg0->field_1C;
         if (work->field_89C != (s16)work->field_89E) {
             seekIndex = 1;
-            table     = (u32)&ActorsShared80133eb8_Transitions;
+            table     = (u32)&D_actor_401800_8015514C;
             // Slot i has stride 0x28; its rate is at work + 0x39 + i * 0x28.
             seekSlot = ((s8*)work + 0x28);
             do {
@@ -92,7 +102,7 @@ void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
         work->field_8B4      = 0;
     }
     if (work->field_8A6 == 2) {
-        secondaryWork            = arg0->field_1C;
+        secondaryWork            = (ActorsShared80133eb8Work*)arg0->field_1C;
         secondaryIndex           = 1;
         secondarySlot            = ((s8*)secondaryWork + 0x28);
         secondaryWork->field_8AA = 0x30;
@@ -109,7 +119,7 @@ void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
     }
     work->field_8A0 = (u16)(work->field_8A0 + 1);
     if ((s16)work->field_89A == 0) {
-        tickWork  = arg0->field_1C;
+        tickWork  = (ActorsShared80133eb8Work*)arg0->field_1C;
         tickIndex = 1;
         tickSlot  = ((s8*)tickWork + 0x28);
         do {
@@ -120,7 +130,7 @@ void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {
-        ActorsShared80133eb8_BlendTick(arg0);
+        func_actor_401800_801337EC(arg0);
         if (work->field_4A4 & 1) {
             work->field_89A = 0;
         }
@@ -151,14 +161,14 @@ void ActorsShared80133eb8(ActorsShared80133eb8Actor* arg0)
             clampedAngle = -0x400;
         }
         signedTurn = (s16)clampedAngle * 2 / 3;
-        ActorsShared80132808(&arg0->field_2C->coords[5], signedTurn);
-        ActorsShared80132808(&arg0->field_2C->coords[2], (s16)clampedAngle / 2);
+        func_actor_401800_801320C8(&arg0->field_2C->coords[5], signedTurn);
+        func_actor_401800_801320C8(&arg0->field_2C->coords[2], (s16)clampedAngle / 2);
         arg0->field_2C->coords[5].flg = 0;
         arg0->field_2C->coords[4].flg = 0;
         arg0->field_2C->coords[3].flg = 0;
         arg0->field_2C->coords[2].flg = 0;
     }
-    sound = ActorsShared80133eb8_Sound(work);
+    sound = func_actor_401800_80133B78((Actor401800Work*)work);
     if (sound != 0) {
         soundId = sound | (((u16)enemy->placeKey >> 0xC) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->field_2C->coords);

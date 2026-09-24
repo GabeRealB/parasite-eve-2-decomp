@@ -5,7 +5,6 @@
 #include "psyq/abs.h"
 
 #include "actors/actor_401800.h"
-#include "actors/actors_shared_80133eb8.h"
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -1087,7 +1086,7 @@ void func_actor_401800_80136560(Actor401800* arg0)
         work->field_89A        = 0;
         work->field_8A2        = animRate;
         work->field_A08.flags |= 0x4000;
-        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        func_actor_401800_80133EB8(arg0);
         work->field_C1C = 0;
         work->field_6   = 0;
         work->field_8   = 0;
@@ -1107,7 +1106,7 @@ void func_actor_401800_80136560(Actor401800* arg0)
     s->delta.vy                                         = Player_Status.coordMtx->t[1] - coord->coord.t[1];
     s->delta.vz                                         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     arg0->field_2C->coords->flg                         = 0;
-    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    func_actor_401800_80133EB8(arg0);
     s->playerYaw                                        = ratan2(-((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][0],
                                                                  ((TmdObject*)((Task*)gameGetPtrSlot(3))->extra)->coords->coord.m[2][2]);
     coord                                               = arg0->field_2C->coords;
@@ -1599,7 +1598,7 @@ void func_actor_401800_801381E4(Actor401800* arg0)
         work->field_898        = 1;
         work->field_8A2        = 0x10;
         work->field_89E        = 4;
-        ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+        func_actor_401800_80133EB8(arg0);
         func_actor_401800_80132C68(arg0->field_2C->coords, &work->field_A28, 0xC);
         work->field_BF0 = arg0->field_2C->coords->coord.t[0];
         work->field_BF2 = arg0->field_2C->coords->coord.t[1];
@@ -1628,7 +1627,7 @@ void func_actor_401800_801381E4(Actor401800* arg0)
         work->field_C20             = 0;
         work->field_8C2             = 0xA;
     }
-    ActorsShared80133eb8((ActorsShared80133eb8Actor*)arg0);
+    func_actor_401800_80133EB8(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && gactor->field_954 != 2) {
         Actor401800_ViewWalk(arg0->field_2C->coords, &sv, &dir);
         ang = Actor401800_ViewYaw(arg0->field_2C->coords, &dir);
@@ -3108,7 +3107,7 @@ void func_actor_401800_8013DCB4(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_401800/actor_401800_2", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_401800/actor_401800_2", D_actor_401800_80132064);
 
 /* func_actor_401800_8013DCBC (the 0x7D3 message handler) lives in
  * actor_401800_2.c: the jump table GCC emits for its switch is what owns the
