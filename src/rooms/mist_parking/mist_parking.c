@@ -18,10 +18,6 @@
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", jtbl_mist_parking_8017D5C4);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", jtbl_mist_parking_8017D64C);
-
 /// One row of the vending machine's price ladder (`D_mist_parking_801863B0`,
 /// thirteen rows). `spendThreshold` is the running total the player has to have
 /// spent for the row to unlock — the last row's is `S32_MAX`, so it never does

@@ -1087,7 +1087,8 @@ id = 303
 text = ["0x338", "0x8A98"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_parking/mist_parking", rodata = "0x4", text = "0xF80" },
+  { unit = "mist_parking/mist_parking_18", rodata = "0x4", text = "0x338" },
+  { unit = "mist_parking/mist_parking", rodata = "0x110", text = "0xF80" },
   { unit = "mist_parking/mist_parking_2", rodata = "0x13C", text = "0x2B10" },
   { unit = "mist_parking/mist_parking_19", rodata = "0x1BC", text = "0x48CC" },
   { unit = "mist_parking/mist_parking_4", rodata = "0x21C", text = "0x4E38" },
@@ -1096,7 +1097,6 @@ objects = [
   { unit = "mist_parking/mist_parking_13", rodata = "0x29C", text = "0x6580" },
   { unit = "mist_parking/mist_parking_14", rodata = "0x2A8", text = "0x65EC" },
   { unit = "mist_parking/mist_parking_17", rodata = "0x2EC", text = "0x7168" },
-  { unit = "mist_parking/mist_parking_18", text = "0x338" },
   { unit = "mist_parking/mist_parking_20", text = "0x9A8" },
   { unit = "mist_parking/mist_parking_21", text = "0x134C" },
   { unit = "mist_parking/mist_parking_22", text = "0x29DC" },

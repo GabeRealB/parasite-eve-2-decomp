@@ -15,6 +15,9 @@
 extern s16   D_80071076;
 extern Task* D_mist_parking_80195320;
 
+/// State handlers of the task `func_mist_parking_801832AC` runs.
+extern TaskFuncTable3 D_mist_parking_8017D7F4;
+
 void func_mist_parking_801830F8(void)
 {
 }
@@ -76,4 +79,12 @@ void func_mist_parking_8018326C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_8", func_mist_parking_801832AC);
+/// Runs the handler for the task's state from a stack copy of
+/// `D_mist_parking_8017D7F4`: the text block's setup, its wait and its exit.
+void func_mist_parking_801832AC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_parking_8017D7F4;
+    sp.funcs[task->state](task);
+}

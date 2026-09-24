@@ -8,7 +8,18 @@ extern u8  D_801156F9;
 extern s32 D_mist_parking_8018D830;
 extern s8  D_mist_parking_8018DA28[];
 
-INCLUDE_ASM("rooms/nonmatchings/mist_parking/mist_parking_6", func_mist_parking_80182898);
+/// State handlers of the task `func_mist_parking_80182898` runs.
+extern TaskFuncTable3 D_mist_parking_8017D7DC;
+
+/// Runs the handler for the task's state from a stack copy of
+/// `D_mist_parking_8017D7DC`.
+void func_mist_parking_80182898(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_parking_8017D7DC;
+    sp.funcs[task->state](task);
+}
 
 void func_mist_parking_801828F0(Task* task)
 {
