@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -21,9 +22,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` GTE command lacks the two leading nops this code has.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// An event the event gate latches for the room's event task. The gate builds
 /// it on the stack and copies it whole. `field_0` is the CAP command the task
@@ -395,13 +393,13 @@ void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {

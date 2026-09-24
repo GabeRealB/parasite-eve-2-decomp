@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -17,10 +18,6 @@
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Queues a flickering disc at the world point `arg0`: a semi-transparent
 /// `POLY_FT4` square centred on the point's projection, with half-width
@@ -59,7 +56,7 @@ void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);

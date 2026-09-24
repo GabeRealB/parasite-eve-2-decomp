@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -21,8 +22,6 @@
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_garage.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s8 D_8007106B;
 
@@ -249,11 +248,11 @@ void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
