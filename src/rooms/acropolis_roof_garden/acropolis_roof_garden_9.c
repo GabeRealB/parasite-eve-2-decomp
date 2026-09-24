@@ -1,15 +1,14 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017f10c.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/acropolis_roof_garden.h"
 
 extern GpQuadCorner D_80111E38[];
 
@@ -19,17 +18,12 @@ extern GpQuadCorner D_80111E38[];
 #define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
-/// Draws one mote of a room's ambient effect: the unit quad
-/// `D_80111E38` scaled to `arg1` half-size, rotated by the mote's own
-/// `GsCOORDINATE2` and then projected through `GsWSMATRIX` into a 0x24-byte
-/// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
-/// three through `rtpt`; motes inside `otz` 0x11 are dropped.
-///
-/// `arg2` is the fade level: zero draws the mote as a raw texture
-/// (`setShadeTex`), otherwise it is the grey the quad is modulated by and the
-/// quad is drawn semi-transparent, which is how the task's fade-out step
-/// (`RoomsShared8017f10c` state 3) dims it away.
-void RoomsShared8017f10cSub(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+/// Draws one mote: the unit quad `D_80111E38` scaled by `arg1`, rotated and
+/// placed by the mote's coordinate frame, then projected through
+/// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
+/// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
+/// else modulates it to that grey and draws it semi-transparent.
+void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
     register GsCOORDINATE2* coord asm("t7");
     register void**         scratch asm("a0");

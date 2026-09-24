@@ -4,6 +4,8 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 /// One grey level per sprite variant, indexed by the variant the roof garden's
 /// sprite task picked out of `Task::spawnArg1` (bits 8..9). The overlay holds
@@ -22,5 +24,9 @@ typedef struct RgFlareScratch {
     /* 0x14 */ u16     sx;
     /* 0x16 */ u16     sy;
 } RgFlareScratch;
+
+/// Draws one textured mote quad of `arg1` half-size at the coordinate frame,
+/// faded to grey `arg2` (0 draws it unshaded).
+void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
 
 #endif // ROOMS_ACROPOLIS_ROOF_GARDEN_H

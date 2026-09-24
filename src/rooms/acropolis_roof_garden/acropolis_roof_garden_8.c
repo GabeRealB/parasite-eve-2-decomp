@@ -6,11 +6,19 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017f10c.h"
+#include "rooms/acropolis_roof_garden.h"
 
 extern s32 Gp_LcgState;
 
-void RoomsShared8017f10c(Task* task)
+/// One drifting mote of the room's ambient effect. The first tick seeds it
+/// from `Gp_LcgState`: a size of 0x20, a random tilt pair (`field_28` /
+/// `field_2A`) and a random drift in `field_10`. While it flies, the drift
+/// moves its coordinate frame and the tilt rotates it; each drift axis eases
+/// back towards zero by one a tick and re-rolls a fresh multiple of 8 when it
+/// gets there, and the tilt wanders by a random step. Once the frame has
+/// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
+/// fades back out and releases its work block.
+void func_acropolis_roof_garden_8017F10C(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;
@@ -88,7 +96,7 @@ void RoomsShared8017f10c(Task* task)
             if (coord->coord.t[1] > 0) {
                 task->state = 2;
             }
-            RoomsShared8017f10cSub(coord, (s16)work->field_24, 0);
+            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
             break;
         case 2:
             if ((s16)work->field_26 < 0x80) {
@@ -96,12 +104,12 @@ void RoomsShared8017f10c(Task* task)
             } else {
                 task->state = 3;
             }
-            RoomsShared8017f10cSub(coord, (s16)work->field_24, 0);
+            func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, 0);
             break;
         case 3:
             if ((s16)work->field_26 >= 0x11) {
                 work->field_26 -= 0x10;
-                RoomsShared8017f10cSub(coord, (s16)work->field_24, (s16)work->field_26);
+                func_acropolis_roof_garden_8017F560(coord, (s16)work->field_24, (s16)work->field_26);
             } else {
                 Gp_ReleaseState1CMem(work, task);
             }
