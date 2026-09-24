@@ -1,29 +1,25 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the GTE flag is non-negative, queues the same sixteen-wedge gouraud disc
-/// plus two inner cross wedges as `Room_Draw05`, but tinted. `arg1` is a
-/// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and
-/// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the tint into four nibbles,
-/// `[shift][r][g][b]`: each colour nibble is scaled to 8 bits by `<< 4`, and
-/// bit 0 of `gDisplayState.animFrame` is added to all three channels shifted
-/// left by the top nibble, so the disc flickers on alternating frames. The
-/// outer ring draws at half brightness first and full brightness second; the
-/// inner cross uses the halved colour throughout. Shared body, linked into
-/// every room overlay that uses it.
-void Room_Draw15(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a tinted, flickering disc at `arg0`: when projecting the point raises
+/// no GTE error, sixteen gouraud wedges ring it (radius `arg1 * 64` over its
+/// depth), drawn at half and then full brightness, with two inner cross
+/// wedges (radius `arg1 * 8` over its depth) at half brightness. `arg2`
+/// packs the tint as four nibbles, shift, red, green and blue; the frame
+/// counter's low bit, shifted left by the shift nibble, is added to every
+/// channel.
+void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw05Scratch* block;

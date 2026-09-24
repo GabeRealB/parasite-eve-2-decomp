@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
@@ -13,7 +15,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b1_armory.h"
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -25,7 +27,7 @@ extern u8 D_shelter_b1_armory_8018557C;
 /// relocates against this name.
 extern u8 D_8007216C;
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", D_shelter_b1_armory_8017D714);
 
 void func_shelter_b1_armory_80180214(Task* task)
 {
@@ -156,7 +158,7 @@ s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEv
         req.field_C = 0x540D0001;
         req.flagId  = 0xA6;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b1_armory_8017FF40(&req, out);
     }
     if (in->msgId != 0xD) {
         return 1;
