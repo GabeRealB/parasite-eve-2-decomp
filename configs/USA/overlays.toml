@@ -1737,15 +1737,7 @@ objects = [
 id = 370
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass", rodata = "0x4", text = "0x2A8" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_5", text = "0x10" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_6", text = "0x30C" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_2", text = "0x340" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_7", text = "0x350" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_3", text = "0x394" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_8", text = "0x39C" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_9", text = "0x3F4" },
-  { unit = "dryfield_night_underpass/dryfield_night_underpass_4", text = "0x67C" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x718" },
 ]
 
