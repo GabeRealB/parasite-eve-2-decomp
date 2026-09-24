@@ -2471,12 +2471,12 @@ id = 443
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b6_corridor/shelter_b6_corridor", rodata = "0x4", text = "0x8E8" },
-  { lib = true, unit = "actors_shared_80149e54", text = "0x10" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0xB84" },
+  { unit = "shelter_b6_corridor/shelter_b6_corridor_5", text = "0x10" },
+  { unit = "shelter_b6_corridor/shelter_b6_corridor_6", text = "0xB84" },
   { unit = "shelter_b6_corridor/shelter_b6_corridor_2", text = "0xBDC" },
-  { lib = true, unit = "room_util15", text = "0xC44" },
+  { unit = "shelter_b6_corridor/shelter_b6_corridor_7", text = "0xC44" },
   { unit = "shelter_b6_corridor/shelter_b6_corridor_3", text = "0xC78" },
-  { lib = true, unit = "room_draw01", text = "0xDA0" },
+  { unit = "shelter_b6_corridor/shelter_b6_corridor_8", text = "0xDA0" },
   { unit = "shelter_b6_corridor/shelter_b6_corridor_4", text = "0x15E4" },
   { kind = "data", at = "0x1948" },
 ]
