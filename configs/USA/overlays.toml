@@ -1587,11 +1587,14 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_motel_room_5]
+label = "code starts at 0x30: the 0x13F1 handler the room's message table at 0x470 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x38 and left it as rodata words"
 id = 364
+text = ["0x30", "0x470"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5", rodata = "0x4", text = "0xB4" },
   { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5_3", rodata = "0x10", text = "0x3E4" },
+  { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5_4", text = "0x30" },
   { lib = true, unit = "room_script04", text = "0x38" },
   { lib = true, unit = "rooms_shared_8017db84", text = "0xC4" },
   { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5_2", text = "0x108" },
