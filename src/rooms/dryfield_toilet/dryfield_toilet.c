@@ -42,4 +42,4 @@ void func_dryfield_toilet_8017D5E4(void)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_toilet/dryfield_toilet", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_toilet/dryfield_toilet", D_dryfield_toilet_8017D5C4);

@@ -1,7 +1,9 @@
 #include "common.h"
 
-#include <psyq/inline_c.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -13,9 +15,6 @@
 #include "main/tmd.h"
 #include "rooms/dryfield_toilet.h"
 #include "rooms/room_common.h"
-
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -258,7 +257,7 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
             col[0] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][0];
             col[1] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][1];
             col[2] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][2];
-            Room_Draw10(coord, mem->angle, col);
+            func_dryfield_toilet_8017F4C0(coord, mem->angle, col);
             break;
         case 2:
             Gp_UpdateCoord(coord);
@@ -271,12 +270,12 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
             col[0] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][0];
             col[1] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][1];
             col[2] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][2];
-            Room_Draw10(coord, mem->angle, col);
+            func_dryfield_toilet_8017F4C0(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
             col[2] >>= 1;
             if (mem->age & 1) {
-                Room_Draw10(coord, (s16)(mem->angle + 0x100), col);
+                func_dryfield_toilet_8017F4C0(coord, (s16)(mem->angle + 0x100), col);
             }
             break;
         case 3:
@@ -284,7 +283,7 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
             col[0] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][0];
             col[1] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][1];
             col[2] = mem->scale >> D_dryfield_toilet_80181120[arg0->spawnArg1][2];
-            Room_Draw10(coord, mem->angle, col);
+            func_dryfield_toilet_8017F4C0(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = (u16)mem->scale >> 1;
             col[2] = (u16)mem->scale >> 2;
@@ -301,7 +300,7 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
             coord->workm.t[0] += mem->move.vx;
             coord->workm.t[1] += mem->move.vy;
             coord->workm.t[2] += mem->move.vz;
-            Room_Draw07(coord, (s16)(mem->period + 0x80), 0x100, col);
+            func_dryfield_toilet_8017F09C(coord, (s16)(mem->period + 0x80), 0x100, col);
             mem->angle -= 0x10;
             if (mem->scale > 0x10) {
                 mem->scale -= 0x10;
