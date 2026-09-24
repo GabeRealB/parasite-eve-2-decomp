@@ -21,7 +21,9 @@
 /// the current `Gp_Bit2Banks` word (`Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag`,
 /// seeded with 5 or 4 by `func_actor_548100_80132684`) and `collectBitId` an id
 /// in the `Gp_ClearCollectedBit` space (0x120 for the instance that reaches
-/// `Gp_StartCapSlot` with kind 1).
+/// `Gp_StartCapSlot` with kind 1). `promptKind` is the picked hotspot's prompt
+/// display mode, copied from it by `func_actor_548100_80132550` and handed to
+/// `func_800D4E78` when `func_actor_548100_80134DBC` re-spawns the prompt.
 ///
 /// 0x8 and up is the ramp `func_actor_548100_80134FEC` drives: `field_8` is the
 /// period, `field_A` the elapsed counter it advances by 4 and clamps to
@@ -37,7 +39,7 @@ typedef struct Actor548100Work {
     /* 0x00 */ byte pad_0[0x2];
     /* 0x02 */ s16  step;
     /* 0x04 */ s16  collectBitId;
-    /* 0x06 */ s8   field_6;
+    /* 0x06 */ s8   promptKind;
     /* 0x07 */ s8   bit2Slot;
     /* 0x08 */ s16  field_8;
     /* 0x0A */ s16  field_A;
@@ -201,8 +203,14 @@ s32 func_actor_548100_801348A4(Actor548100Hotspot* table, s16 x, s16 y);
 /// onto its stack before indexing. Entry 0 is the spawner
 /// `func_actor_548100_80132420`, 2 the spawner `func_actor_548100_80132550`,
 /// 4 the `step` switch `func_actor_548100_80132684` and 9 the ramp driver
-/// `func_actor_548100_80134FEC`; several of the rest are
-/// `ActorsShared` bodies shared with the sibling actors.
+/// `func_actor_548100_80134FEC`; 1 and 3 arm and re-spawn the action prompt
+/// (`func_actor_548100_80134D88`, `func_actor_548100_80134DBC`).
 extern TaskFuncTable11 D_actor_548100_80131E6C;
+
+/// State 1 of the action-prompt task: the per-frame cursor driver.
+void func_actor_548100_80131ED8(Task* task);
+
+/// State 0 of the action-prompt task: resets both prompt slots.
+void func_actor_548100_80135154(Task* task);
 
 #endif

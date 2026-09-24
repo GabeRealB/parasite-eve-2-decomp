@@ -70,7 +70,7 @@ void func_actor_548100_80132338(s32 x, s32 y, s32 variant);
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void ActorsShared8013845cSub1(Task* task)
+void func_actor_548100_80131ED8(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -312,7 +312,7 @@ void func_actor_548100_80132550(Task* task)
                     prompt->mode     = 0;
                     prompt->targetId = 0;
                     work->step       = hs->id;
-                    work->field_6    = hs->promptKind;
+                    work->promptKind = hs->promptKind;
                     task->state      = 3;
                     return;
                 }
