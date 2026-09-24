@@ -2318,16 +2318,16 @@ id = 423
 text = ["0x170", "0x3594"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_heliport/shelter_1f_heliport", rodata = "0x4", text = "0xDB8" },
+  { unit = "shelter_1f_heliport/shelter_1f_heliport_5", rodata = "0x4", text = "0x170" },
+  { unit = "shelter_1f_heliport/shelter_1f_heliport", rodata = "0x110", text = "0xDB8" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_6", text = "0x7E0" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_7", text = "0x1184" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_8", text = "0x2814" },
-  { unit = "shelter_1f_heliport/shelter_1f_heliport_2", rodata = "0x15C", text = "0x2948" },
+  { unit = "shelter_1f_heliport/shelter_1f_heliport_2", rodata = "0x13C", text = "0x2948" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_9", text = "0x2FD4" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_3", text = "0x3098" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_10", text = "0x31A8" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport_4", text = "0x3200" },
-  { unit = "shelter_1f_heliport/shelter_1f_heliport_5", text = "0x170" },
   { kind = "data", at = "0x3594" },
 ]
 
