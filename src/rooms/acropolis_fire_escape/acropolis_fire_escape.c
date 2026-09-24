@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -66,8 +67,6 @@ typedef struct {
 } AcropolisFireEscapeGlowScratch;
 
 STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern UiObjectDesc   D_800611E4;
 extern UiObject*      D_80067634;
@@ -1701,7 +1700,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sx);
         gte_stszotz(&block->otz);
         block->otz -= 0x20;
@@ -1853,7 +1852,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AcropolisFireEscapeGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
     if (((AcropolisFireEscapeGlowScratch*)(head - 0x18))->otz >= 0x11) {

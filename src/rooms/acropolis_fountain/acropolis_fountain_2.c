@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -21,10 +22,6 @@
 #include "main/task.h"
 #include "rooms/acropolis_fountain.h"
 #include "rooms/room_common.h"
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Work block the fountain's splash task keeps at `Task::spawnArg2`.
 /// `func_acropolis_fountain_8017E014` latches the camera the splash effect was
@@ -208,7 +205,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AcropolisFountainSprayScratch*)(head - 0x14))->pos);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);

@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -123,8 +124,6 @@ typedef struct MistShootingGalleryLayout {
     /* 0x22 */ s16                      field_22;
 } MistShootingGalleryLayout;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryLayout, 0x24);
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern UiObjectDesc D_mist_shooting_gallery_80185060;
 extern s32          D_mist_shooting_gallery_8018E0BC;
@@ -2013,13 +2012,13 @@ void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -2153,7 +2152,7 @@ void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw31Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw31Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {

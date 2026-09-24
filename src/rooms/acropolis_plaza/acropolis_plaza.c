@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -243,9 +244,6 @@ typedef union AcropolisPlazaTailMsg {
     /* 0x0 */ RoomPlacement           place;
 } AcropolisPlazaTailMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 D_80070F70;
 extern u32 Gp_LcgState;
@@ -1955,7 +1953,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaBeamScratch*)(head - 0x60))->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AcropolisPlazaBeamScratch*)(head - 0x60))->sx);
     gte_stszotz(&((AcropolisPlazaBeamScratch*)(head - 0x60))->otz);
     entry->field_0 = 0;
@@ -2021,7 +2019,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             for (i = 1; i < 7; i++) {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&blk->vec[i]);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&blk->vec[i]);
                 // Add the field offset last to keep this pointer separate from the GTE address.
                 point           = ((AcropolisPlazaBeamScratch*)((SVECTOR*)blk + i))->vec;
@@ -2032,7 +2030,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             gte_SetRotMatrix(&GsWSMATRIX);
             for (i = 1; i < 7; i++) {
                 gte_ldv0(&blk->vec[i]);
-                gte_rtps_real();
+                gte_rtps();
                 gte_stsxy(&blk->screen[i]);
             }
             i              = 0;
@@ -2131,7 +2129,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         blk->vec[0].vz = 0xE00;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->vec[0]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->vec[0]);
         blk->vec[0].vx += *(u16*)&coord->workm.t[0];
         blk->vec[0].vy += *(u16*)&coord->workm.t[1];
@@ -2139,7 +2137,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
@@ -2208,7 +2206,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->sx);
     gte_stszotz(&((AcropolisPlazaFlareScratch*)(head - 0x4C))->otz);
     if (blk->otz >= 0x11) {
@@ -2313,7 +2311,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         blk->vec.vz = 0xE00;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->vec);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->vec);
         blk->vec.vx += *(u16*)&coord->workm.t[0];
         blk->vec.vy += *(u16*)&coord->workm.t[1];
@@ -2321,7 +2319,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
@@ -2379,7 +2377,7 @@ void func_acropolis_plaza_80182054(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisPlazaGlowScratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AcropolisPlazaGlowScratch*)(head - 0x14))->sx);
     gte_stszotz(&blk->otz);
     if (((AcropolisPlazaGlowScratch*)(head - 0x14))->otz >= 0x11) {

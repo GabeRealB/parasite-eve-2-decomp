@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -90,8 +91,6 @@ typedef struct _MistShootingGalleryFlashScratch {
     /* 0x18 */ DVECTOR sxy;
 } MistShootingGalleryFlashScratch;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryFlashScratch, 0x1C);
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern TaskDesc D_mist_shooting_gallery_801856B8;
 extern TaskDesc D_mist_shooting_gallery_801856D0;
@@ -267,7 +266,7 @@ void func_mist_shooting_gallery_80182294(GsCOORDINATE2* coord, s16 arg1, s16 arg
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((MistShootingGalleryFlashScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -335,13 +334,13 @@ void func_mist_shooting_gallery_801826C4(GsCOORDINATE2* coord, SVECTOR* arg1, s3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy0);
     gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((MistShootingGalleryBeamScratch*)(head - 0x20))->otz);
         gte_ldv0(arg1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy1);
         gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
