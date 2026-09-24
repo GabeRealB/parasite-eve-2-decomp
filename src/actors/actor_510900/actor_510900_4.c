@@ -13,7 +13,6 @@
 #include "main/wipsys.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
-#include "actors/actors_shared_8013bbe4.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -2527,4 +2526,4 @@ body:
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900_4", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_510900/actor_510900_4", D_actor_510900_80131ECC);

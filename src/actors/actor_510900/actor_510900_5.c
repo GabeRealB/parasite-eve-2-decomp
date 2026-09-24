@@ -7,7 +7,6 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
-#include "actors/actors_shared_8013bbe4.h"
 
 extern u8 D_801153F4;
 
@@ -259,7 +258,7 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         arg0->node.flags = 8;
         goto default_body;
     case1:
-        ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
+        func_actor_510900_8013BBE4(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
@@ -284,7 +283,7 @@ void func_actor_510900_8013B6A0(Actor510900Ctx* arg0, Actor510900* arg1)
         temp_s1->field_0.flg                  = 0;
         arg1->field_2C->field_8->field_50.flg = 0;
         Gp_UpdateCoord(&temp_s1->field_0);
-        ActorsShared8013bbe4((ActorShared8013bbe4*)arg1);
+        func_actor_510900_8013BBE4(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         func_actor_510900_80138F44(arg1);
         func_actor_510900_8013BC80(arg1);

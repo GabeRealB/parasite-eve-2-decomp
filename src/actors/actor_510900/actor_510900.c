@@ -12,7 +12,6 @@
 #include "main/wipsys.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
-#include "actors/actors_shared_8013bbe4.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
