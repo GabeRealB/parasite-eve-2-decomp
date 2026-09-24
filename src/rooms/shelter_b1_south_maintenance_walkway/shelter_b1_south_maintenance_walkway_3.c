@@ -6,6 +6,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_south_maintenance_walkway.h"
 
 extern s32     D_8011572C;
 extern s32     D_80115730;
@@ -34,34 +35,34 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
         case 2:
             p = D_shelter_b1_south_maintenance_walkway_80182330;
             SOFT_TOUCH_REG(p);
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[6], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[0], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[6], 0x200, 0x400);
             break;
         case 3:
             p = D_shelter_b1_south_maintenance_walkway_80182330;
             SOFT_TOUCH_REG(p);
-            Room_Draw11(&p[0], 0x200, 0);
-            Room_Draw11(&p[2], 0x200, 0);
-            Room_Draw11(&p[6], 0x200, 0x400);
-            Room_Draw11(&p[8], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[0], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[2], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[6], 0x200, 0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[8], 0x200, 0x400);
             break;
         case 4:
             p = D_shelter_b1_south_maintenance_walkway_801823D0;
             SOFT_TOUCH_REG(p);
-            Room_Draw25(&p[0], 0x200);
-            Room_Draw11(&p[-16], 0x200, 0);
-            Room_Draw11(&p[-10], 0x200, -0x400);
-            Room_Draw11(&p[-6], 0x200, 0x800);
+            func_shelter_b1_south_maintenance_walkway_8017E404(&p[0], 0x200);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-16], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-10], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-6], 0x200, 0x800);
             break;
         case 5:
             p = D_shelter_b1_south_maintenance_walkway_801823D0;
             SOFT_TOUCH_REG(p);
-            Room_Draw25(&p[0], 0x200);
-            Room_Draw11(&p[-16], 0x200, 0);
-            Room_Draw11(&p[-8], 0x200, 0);
-            Room_Draw11(&p[-6], 0x200, -0x400);
-            Room_Draw11(&p[-4], 0x200, 0);
-            Room_Draw11(&p[-2], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017E404(&p[0], 0x200);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-16], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-8], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-6], 0x200, -0x400);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-4], 0x200, 0);
+            func_shelter_b1_south_maintenance_walkway_8017DC88(&p[-2], 0x200, -0x400);
             break;
     }
 }

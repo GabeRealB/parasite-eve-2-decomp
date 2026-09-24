@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,20 +9,12 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
-/// the resulting OTZ is at least 0x11, queues four gouraud `POLY_G4` wedges
-/// around the projected centre. `arg1` is a signed half-extent; the on-screen
-/// radius is `arg1 * 64 / otz`. The inner vertex's red channel alternates
-/// between 0x20 and 0x28 with the frame counter's low bit.
-///
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw25(SVECTOR* arg0, s16 arg1)
+/// Queues a red gouraud disc of four quads at the projected point `arg0`, of
+/// radius `arg1` scaled by depth, its centre alternating between 0x20 and 0x28
+/// on successive frames. Nothing is drawn nearer than OTZ 0x11.
+void func_shelter_b1_south_maintenance_walkway_8017E404(SVECTOR* arg0, s16 arg1)
 {
     u8*                head;
     RoomDraw25Scratch* block;
