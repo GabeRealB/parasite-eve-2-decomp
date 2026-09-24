@@ -1,13 +1,26 @@
 #include "common.h"
+
 #include <psyq/libgte.h>
+
 #include "main/mem.h"
+#include "main/stage.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_80183304.h"
+#include "rooms/dryfield_trailer_coach.h"
 
-void RoomsShared80183304(Task* task)
+/// The message pointers the two-line text block reads: entries 0-1 by default,
+/// entries 2-3 when the task's `spawnArg1` is 1.
+extern u8* D_dryfield_trailer_coach_801853E4[4];
+
+void func_dryfield_trailer_coach_801827D0(Task* arg0);
+
+/// Opens a two-line text block: allocates the `RoomTextBlock` (killing the task
+/// if that fails), links its two line nodes to the lines of
+/// `D_dryfield_trailer_coach_801853E4` chosen by `spawnArg1`, hands the list to
+/// `Ui_SpawnTextBlock` and advances the task.
+void func_dryfield_trailer_coach_801826A0(Task* task)
 {
     RoomTextBlock* block;
     TextLineNode*  node;
@@ -26,11 +39,11 @@ void RoomsShared80183304(Task* task)
 
     i                  = 0;
     mode               = 1;
-    line               = RoomsShared80183304Lines;
-    table              = (s32)RoomsShared80183304Lines;
+    line               = D_dryfield_trailer_coach_801853E4;
+    table              = (s32)D_dryfield_trailer_coach_801853E4;
     off                = 8;
     task->work         = (TaskIdMap*)block;
-    task->exitCallback = Room_Script21;
+    task->exitCallback = func_dryfield_trailer_coach_801827D0;
 
     for (; i < 2; i++) {
         if (task->spawnArg1 == mode) {
@@ -53,10 +66,10 @@ void RoomsShared80183304(Task* task)
     task->state++;
 }
 
-/// Room script callback: poll the text block parked at `Task::work` until
-/// `TextBlockDesc::field_2` is set, copy that result through `Task::spawnArg2`,
-/// and step the caller on one state.
-void Room_Util27(Task* task)
+/// Waits for the text block parked at `Task::work` to report a result in
+/// `TextBlockDesc::field_2`, stores it through `Task::spawnArg2` and advances
+/// the task.
+void func_dryfield_trailer_coach_80182794(Task* task)
 {
     s16 result;
 
@@ -67,7 +80,9 @@ void Room_Util27(Task* task)
     }
 }
 
-void Room_Script21(Task* arg0)
+/// Exit callback of the text-block task: kills it and calls
+/// `Stage_SetEndingFlag`.
+void func_dryfield_trailer_coach_801827D0(Task* arg0)
 {
     taskKill(arg0);
     Stage_SetEndingFlag();

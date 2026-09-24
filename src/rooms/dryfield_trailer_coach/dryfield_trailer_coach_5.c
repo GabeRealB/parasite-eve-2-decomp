@@ -1,20 +1,19 @@
 #include "common.h"
 
-#include "gameplay/gameplay.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/dryfield_trailer_coach.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -176,9 +175,9 @@ void func_dryfield_trailer_coach_80182EB4(GsCOORDINATE2* coord, SVECTOR* data, s
 }
 
 /// Picks the trailer's shaft drawer for the current camera view. The
-/// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: views 2 and
-/// 8 (bits 2 and 8, `0x104`) take `Room_Draw37` with the tall half-extent 0xC0,
-/// and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
+/// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: views 2
+/// and 8 (bits 2 and 8, `0x104`) take `func_dryfield_trailer_coach_801829A8`
+/// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `field_8` is the
 /// coordinate both draws share.
 void func_dryfield_trailer_coach_801838DC(Task* arg0)
@@ -189,7 +188,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     mask  = 1 << gGameSession->at4.loc.view;
     coord = ((TmdObject*)arg0->extra)->coords;
     if (mask & 0x104) {
-        Room_Draw37(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
+        func_dryfield_trailer_coach_801829A8(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
         return;
     }
     if (mask & 0x400) {
