@@ -1,8 +1,9 @@
 #include "common.h"
 #include "gameplay/3CD8.h"
 #include "main/display.h"
+#include "rooms/shelter_b6_growth_room.h"
 
-void func_shelter_b6_growth_room_8017E448(s32 arg0, u8 arg1)
+void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 {
     POLY_G4* prim;
 

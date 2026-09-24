@@ -3975,9 +3975,9 @@ id = 442
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b6_growth_room/shelter_b6_growth_room", rodata = "0x4", text = "0x74" },
+  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_2", rodata = "0x10", text = "0x26C" },
   { lib = true, unit = "room_util03", text = "0x30" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x214" },
-  { unit = "shelter_b6_growth_room/shelter_b6_growth_room_2", text = "0x26C" },
   { lib = true, unit = "room_draw13", text = "0xAE8" },
   { unit = "shelter_b6_growth_room/shelter_b6_growth_room_3", text = "0xE88" },
   { kind = "data", at = "0x1BAC" },
