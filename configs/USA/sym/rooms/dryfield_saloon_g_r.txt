@@ -1,15 +1,1 @@
 // Overlay-local symbols for dryfield_saloon_g_r.
-Room_Draw24 = 0x8017E430; // shared body, see src/lib/
-Room_Draw35 = 0x8017DBB4; // shared body, see src/lib/
-Room_Script20 = 0x8017D99C; // shared body, see src/lib/
-RoomsShared8017db84Msgs = 0x8017ECBC; // shared body data, see src/lib/
-RoomsShared8017db84 = 0x8017D9CC; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DA18; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5DC; // shared body data, see src/lib/
-RoomsShared8017d638 = 0x8017D5E8; // shared body, see src/lib/
-RoomsShared8017d638Flag = 0x80181BE4; // shared body data, see src/lib/
-RoomsShared8017d638Msg = 0x80181BDC; // shared body data, see src/lib/
-RoomsShared8017d638Req = 0x80181BE8; // shared body data, see src/lib/
-RoomsShared8017d638Desc = 0x8017ECB0; // shared body data, see src/lib/
-RoomsShared8017d74c = 0x8017D74C; // shared body, see src/lib/
-RoomsShared8017dca4 = 0x8017D8BC; // shared body, see src/lib/
