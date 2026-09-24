@@ -1688,11 +1688,11 @@ objects = [
   { unit = "mine_tunnel_entrance/mine_tunnel_entrance", rodata = "0x4", text = "0x74" },
   { unit = "mine_tunnel_entrance/mine_tunnel_entrance_3", rodata = "0x14", text = "0x160" },
   { unit = "mine_tunnel_entrance/mine_tunnel_entrance_4", text = "0x28" },
-  { lib = true, unit = "room_util02", text = "0x30" },
-  { lib = true, unit = "rooms_shared_8017d8c8", text = "0x84" },
+  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_5", text = "0x30" },
+  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_6", text = "0x84" },
   { unit = "mine_tunnel_entrance/mine_tunnel_entrance_2", text = "0xD0" },
-  { lib = true, unit = "rooms_shared_80181e70", text = "0xFC" },
-  { lib = true, unit = "room_draw17", text = "0x2A8" },
+  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_7", text = "0xFC" },
+  { unit = "mine_tunnel_entrance/mine_tunnel_entrance_8", text = "0x2A8" },
   { kind = "data", at = "0x530" },
 ]
 
