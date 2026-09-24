@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,18 +9,17 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Same two-point gouraud wedges as `Room_Draw11`, but the inner vertex is
-/// scaled by the frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red
-/// is `blend * ((arg3 << 16) >> 24)`, green `blend * (((arg3 << 16) >> 20) & 1)`,
-/// blue `blend * (arg3 & 1)`. Shared body, linked into every room overlay that
-/// uses it.
-void Room_Draw12(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
+/// projected through the view matrix; unless the far end is nearer than OTZ
+/// 0x11, gouraud `POLY_G4` wedges around each end (radius `(s16)arg1 * 64 /
+/// otz` at that end) are joined by quads between the two, each fading from the
+/// beam colour on the axis to black at the rim. `arg2` turns the wedges about
+/// the axis. `arg3` packs the colour: the red factor in bits 8-15 and the
+/// green and blue factors in bits 4 and 0, each multiplying an intensity that
+/// alternates between 0x20 and 0x28 with the display frame counter.
+void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw11Scratch* block;
