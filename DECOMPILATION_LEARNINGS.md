@@ -140197,3 +140197,48 @@ fresh single-set destination (plain `q = v >> 12` after `r >>= 16`) where the ta
 wants the shift placed immediately before the branch, where reorg moves it into the
 delay slot. Diagnose first: in `.sched`, look for the insn at priority 1 sitting at
 the end of the ready list while everything else is 2 or `7f000001`.
+
+## A copy that must cross a call it is emitted after: declare the parameter narrower so sched1 can sink it (func_shelter_b1_pod_service_gantry_8017F450, 2026-09-24)
+
+**Symptom.** Target: `jal Mem_Set; …; move s7,s5` - a copy of a parameter taken
+*after* a call, in a callee-saved register, although it dies before the next call.
+Written after the call, the copy crosses nothing and global-alloc gives it `a2`.
+Written before the call, it crosses the call but stays in front of the `jal`.
+Merging it with a later variable that does live across calls puts it in a
+callee-saved register, but that pseudo is then multi-set, so sched1's
+`birthing_insn_p` boost is lost and the copy is emitted first after the call
+instead of after the `li`.
+
+**Mechanism.** Every register parameter's pseudo carries a `REG_EQUIV` to its
+incoming stack slot (`(mem (plus $0 N))` after elimination). sched1 analyses that
+address for every reader (`reg_known_equiv_p`, `sched.c`), which records a use of a
+call-used hard register, so the next `CALL_INSN` gets an anti-dependence on the
+reader: nothing that reads a parameter can move past a later call. When the
+declared type is narrower than the incoming register (`s16` for an `a3` argument),
+the incoming `SImode` pseudo is a separate register with **no** `REG_EQUIV`, and
+reads of it can move. Two more facts complete it: flow counts the copy as crossing
+the call, and sched1 keeps `REG_N_CALLS_CROSSED` for a pseudo live in several
+blocks (`sched.c`, end of `schedule_insns`) while it recomputes `REG_LIVE_LENGTH`
+from the new order. The copy therefore sinks below the call, keeps its call
+crossing (callee-saved only), and gets the short live length, and with it the
+global-alloc priority, of the late position.
+
+**Fix.**
+```c
+void f(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s16 arg3)
+{
+    ...
+    color   = arg3;      /* s32, then the u16 snapshot, both before the call */
+    color16 = color;
+    Mem_Set(block, 0, 0x18);
+    ...
+        c     = color16;              /* the only later read */
+        green = blend + (c & 0xF0);   /* a fresh variable, not color reused */
+        arg3  = blend + ((arg3 & 0xF) << 4);
+```
+`lo = arg3` straight from the `s16` did not work (an HI-to-HI copy of the
+parameter's own pseudo, which cse made canonical); going through an `s32` did.
+Recognise it by a callee-saved copy just after a call, used only before the next
+call, in a function where the separate-variable version gets a caller-saved
+register. Check `.lreg` for the copy's "crosses 1 call" and `.sched` for its
+position before believing it.

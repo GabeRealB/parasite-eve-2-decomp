@@ -3,6 +3,7 @@
 #include "main/fs.h"
 #include "main/mem.h"
 #include "gameplay/gameplay.h"
+#include "gameplay/3CD8.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_pod_service_gantry.h"
 #include <psyq/inline_c.h>
@@ -11,8 +12,11 @@
 #include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern void D_shelter_b1_pod_service_gantry_8017FAF4;
+extern s32  D_801752EC;
+extern s8   D_shelter_b1_pod_service_gantry_8018256C[];
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017D8F4);
 
@@ -312,4 +316,88 @@ void func_shelter_b1_pod_service_gantry_8017F160(GsCOORDINATE2* arg0, u16 arg1, 
     *scratch = (u8*)*scratch + 0x18;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017F450);
+/// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:
+/// the point is rotated by `workm`, offset by its translation and projected
+/// through `GsWSMATRIX` into a zeroed scratch block popped from
+/// `G_SCRATCH_HEAD`. When the GTE flag is non-negative, four Gouraud
+/// `POLY_G4` quarter-wedges of radius `arg2 * 64 / otz` are queued, each lit
+/// at the centre vertex and black on the rim. `arg3` packs the centre colour
+/// as three 4-bit channels (red in bits 8-11, green 4-7, blue 0-3); a one-bit
+/// flicker, taken from the global at 0x801752EC plus the per-slot byte
+/// `arg1 & 7` of this room's random table, is shifted left by `arg3`'s top
+/// nibble and added to every channel.
+void func_shelter_b1_pod_service_gantry_8017F450(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s16 arg3)
+{
+    u8*                head;
+    RoomDraw14Scratch* block;
+    POLY_G4*           prim;
+    s32                ang;
+    s32                t;
+    s32                t2;
+    s32                blend;
+    s32                color;
+    u16                color16;
+    u32                c;
+    s32                green;
+    u8                 red;
+
+    head                    = *(u8**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = head - 0x18;
+    block                   = *(RoomDraw14Scratch**)G_SCRATCH_HEAD;
+    color                   = arg3;
+    color16                 = color;
+    Mem_Set(block, 0, 0x18);
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = 0;
+    block->vec.vy                               = -0xC4;
+    block->vec.vz                               = 0;
+    gte_SetRotMatrix(&arg0->workm);
+    gte_ldv0(block);
+    gte_rtv0_real();
+    gte_stsv(block);
+    ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&((RoomDraw14Scratch*)(head - 0x18))->vec.vx + *(u16*)&arg0->workm.t[0];
+    block->vec.vy                               = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
+    block->vec.vz                               = *(u16*)&block->vec.vz + *(u16*)&arg0->workm.t[2];
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(block);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw14Scratch*)(head - 0x18))->otz);
+        arg2          = ((s16)arg2 * 64) / block->otz;
+        ang           = 0;
+        blend         = (D_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
+        c             = color16;
+        blend       <<= c >> 12;
+        red           = blend + ((c >> 4) & 0xF0);
+        green         = blend + (c & 0xF0);
+        arg3          = blend + ((arg3 & 0xF) << 4);
+        block->radius = arg2;
+        do {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, red, green, arg3);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->radius * rsin(ang)) >> 12);
+            t        = ang + 0x200;
+            prim->y0 = *(u16*)&block->sy + ((block->radius * rcos(ang)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->radius * rsin(t)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->radius * rcos(t)) >> 12);
+            t2       = ang + 0x400;
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            prim->x3 = *(u16*)&block->sx + ((block->radius * rsin(t2)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->radius * rcos(t2)) >> 12);
+            ang      = t2;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
