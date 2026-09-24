@@ -33,15 +33,14 @@ extern s32 D_mist_r18_80186EA0;
 /// arms the countdown, state 1 draws the revealed glyphs each frame and
 /// advances one glyph whenever the countdown runs out. Any other state, or a
 /// session that has left the message, kills the task.
-void func_mist_r18_8017D5F4(Task* task)
+void func_mist_r18_8017D5EC(Task* task)
 {
     MistR18Sprite     sprite;
-    GameSession*      session;
     MistR18TextSpawn* spawn;
     s32               i;
 
     spawn = task->spawnArg2;
-    if (session->eventState == 0) {
+    if (gGameSession->eventState == 0) {
         task->state = -1;
     }
 

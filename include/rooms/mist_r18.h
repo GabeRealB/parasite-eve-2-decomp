@@ -43,7 +43,7 @@ typedef struct MistR18Glyph {
 
 STATIC_ASSERT_SIZEOF(MistR18Glyph, 0x4);
 
-/// Spawn descriptor for the typewriter text task `func_mist_r18_8017D5F4`
+/// Spawn descriptor for the typewriter text task `func_mist_r18_8017D5EC`
 /// drives, hung off `Task::spawnArg2`.
 ///
 /// `script` is a run of glyph indices terminated by 0xFF, with 0xFE as a line
