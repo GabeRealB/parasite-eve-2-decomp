@@ -139867,3 +139867,17 @@ gave an exact match.
   post-call copy, and the later block jumps back to it.
 
 Inputs: `base_11.i` `8b5b0330…4c1f` (98.64%), `base_18.i` `0e8d6cbf…e258` (100%).
+
+### `addiu aN, base, K` then loads at small offsets from `aN`: take a pointer local to the sub-object (func_shelter_b2_main_corridor_8017E390, 2026-09-24)
+
+**Symptom.** The target tests `gGameSession->at4.loc.stage` and `.area` as
+`addiu a0,a1,4` / `lbu v1,3(a0)` / `lbu v1,2(a0)`, but reads `.view` from the
+session base itself (`lbu v0,4(a1)`). Writing all three as
+`gGameSession->at4.loc.x` folds every offset into the load (`lbu v1,7(a0)`),
+and with `&&` the first two also merge into one masked `lw` (see the
+`fold_truthop` entry above).
+
+**Fix.** Nest the tests, and read the first two through a local
+`GpAreaKey* k = &gGameSession->at4.loc;` while the third stays spelled from
+`gGameSession`. The separate address computation survives because `k` is a
+distinct pseudo that CSE does not fold back into the base.

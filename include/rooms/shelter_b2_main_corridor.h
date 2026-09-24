@@ -72,4 +72,39 @@ extern ShelterB2MainCorridorExit D_shelter_b2_main_corridor_80189674;
 s32  func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
 void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
 
+/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
+/// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
+/// is not otherwise read.
+typedef struct ShelterB2MainCorridorSurface {
+    s16 x;
+    s16 z;
+    s16 width;
+    s16 depth;
+    s32 end;
+} ShelterB2MainCorridorSurface;
+
+/// Per-surface values the water drawer keeps in a block taken from the
+/// scratchpad stack at `0x1F8003FC` rather than in registers. `dx` and `dz`
+/// are the spacing between vertices along X and Z, and `wave` the height the
+/// sine wave adds to the vertex being placed.
+typedef struct ShelterB2MainCorridorWaterWork {
+    s16 y;
+    s16 dx;
+    s16 wave;
+    s16 dz;
+    s16 x;
+    s16 z;
+} ShelterB2MainCorridorWaterWork;
+
+/// The room's water surfaces.
+extern ShelterB2MainCorridorSurface D_shelter_b2_main_corridor_80182DEC[];
+
+/// Height of the water surfaces.
+extern s16 D_shelter_b2_main_corridor_80182E28;
+
+/// Cursor into the primitive area the water surface is written to.
+extern u8* D_shelter_b2_main_corridor_80189660;
+
+void func_shelter_b2_main_corridor_8017E390(void);
+
 #endif
