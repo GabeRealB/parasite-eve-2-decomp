@@ -8,9 +8,7 @@
 #include "rooms/mine_mesa.h"
 #include "rooms/room_common.h"
 
-extern Task* RoomsShared8018459cTask;
 extern Task* D_mine_mesa_80189B58;
-extern Task* RoomsShared8017e8a8Task;
 
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -28,9 +26,9 @@ extern SVECTOR D_mine_mesa_80186508[];
 
 void func_mine_mesa_8017EB38(void)
 {
-    RoomsShared8018459cTask = NULL;
-    D_mine_mesa_80189B58    = NULL;
-    RoomsShared8017e8a8Task = NULL;
+    D_mine_mesa_80189B54 = NULL;
+    D_mine_mesa_80189B58 = NULL;
+    D_mine_mesa_80189B5C = NULL;
 }
 
 /// Refreshes the live layout from the template. It copies the three `field_4`
@@ -72,11 +70,9 @@ void func_mine_mesa_8017EB54(s32 arg0)
 
 /// Publishes the mesa's three effect ids as `Gp_State1C->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
-/// shows: one `Room_Draw17` quad per position, UV column `arg1` and half-extent
-/// 0x200 - 0x300 for the two column-0 positions of views 2 and 5. Each view is
-/// one run of that base's positions; views 4 and 11 both end on 0x30, so the
-/// compiler merges their last two calls into one shared tail, which in turn
-/// ends on the single `Room_Draw17` every other view finishes with.
+/// shows: one `func_mine_mesa_8017EFA8` quad per position, texture column 1
+/// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
+/// 5.
 void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
@@ -90,66 +86,66 @@ void func_mine_mesa_8017ED08(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_mesa_801864D0;
-            Room_Draw17(&p[0], 0, 0x300);
-            Room_Draw17(&p[1], 1, 0x200);
-            Room_Draw17(&p[2], 1, 0x200);
-            Room_Draw17(&p[3], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 0, 0x300);
+            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            Room_Draw17(&p[0], 1, 0x200);
-            Room_Draw17(&p[1], 1, 0x200);
-            Room_Draw17(&p[2], 1, 0x200);
-            Room_Draw17(&p[3], 1, 0x200);
-            Room_Draw17(&p[6], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_mesa_801864C8;
-            Room_Draw17(&p[0], 0, 0x300);
-            Room_Draw17(&p[1], 0, 0x300);
-            Room_Draw17(&p[5], 1, 0x200);
-            Room_Draw17(&p[6], 1, 0x200);
-            Room_Draw17(&p[8], 1, 0x200);
-            Room_Draw17(&p[9], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 0, 0x300);
+            func_mine_mesa_8017EFA8(&p[1], 0, 0x300);
+            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[8], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[9], 1, 0x200);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            Room_Draw17(&p[0], 1, 0x200);
-            Room_Draw17(&p[1], 1, 0x200);
-            Room_Draw17(&p[4], 1, 0x200);
-            Room_Draw17(&p[5], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[4], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            Room_Draw17(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
             break;
         }
         case 9: {
             SVECTOR* p = D_mine_mesa_80186508;
-            Room_Draw17(&p[0], 1, 0x200);
-            Room_Draw17(&p[1], 1, 0x200);
-            Room_Draw17(&p[2], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
             break;
         }
         case 10: {
             SVECTOR* p = D_mine_mesa_801864D8;
-            Room_Draw17(&p[0], 1, 0x200);
-            Room_Draw17(&p[2], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
             break;
         }
         case 11: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            Room_Draw17(&p[0], 1, 0x200);
-            Room_Draw17(&p[1], 1, 0x200);
-            Room_Draw17(&p[2], 1, 0x200);
-            Room_Draw17(&p[3], 1, 0x200);
-            Room_Draw17(&p[4], 1, 0x200);
-            Room_Draw17(&p[5], 1, 0x200);
-            Room_Draw17(&p[6], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[4], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
+            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
             break;
         }
     }

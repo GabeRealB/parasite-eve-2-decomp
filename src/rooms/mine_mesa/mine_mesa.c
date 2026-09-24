@@ -97,4 +97,4 @@ void func_mine_mesa_8017D808(void)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa", D_mine_mesa_8017D5D8);

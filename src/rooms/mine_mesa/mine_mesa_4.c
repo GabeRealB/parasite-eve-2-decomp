@@ -5,6 +5,7 @@
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/task.h"
+#include "rooms/mine_mesa.h"
 #include "rooms/room_common.h"
 
 extern u8       D_801156F9;
@@ -15,7 +16,6 @@ extern TaskDesc D_mine_mesa_80181990;
 extern SVECTOR D_mine_mesa_80184184[];
 
 extern Task* D_mine_mesa_80189B58;
-extern Task* RoomsShared8018459cTask;
 
 /// Head-aim record `func_mine_mesa_8017E2A4` allocates and parks in
 /// `Task::work`, handed straight to `func_800B17D4` as its `arg2`: the yaw and
@@ -84,7 +84,7 @@ void func_mine_mesa_8017E074(Task* arg0)
 /// not, then hands the record to `func_800B17D4` between the slot-3 task whose
 /// head turns and the slot-0xA task it turns toward -- the mirror of
 /// `func_mine_mesa_8017E2A4`, which looks from slot 0xA. Every other state
-/// kills the task and clears `RoomsShared8018459cTask`, and a state-0 NULL
+/// kills the task and clears `D_mine_mesa_80189B54`, and a state-0 NULL
 /// allocation falls out of its own `if` into that same kill.
 void func_mine_mesa_8017E15C(Task* arg0)
 {
@@ -132,7 +132,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
                 /* fallthrough */
             default:
                 taskKill(arg0);
-                RoomsShared8018459cTask = NULL;
+                D_mine_mesa_80189B54 = NULL;
                 break;
         }
     }

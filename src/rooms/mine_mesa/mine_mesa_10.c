@@ -235,4 +235,4 @@ void func_mine_mesa_80181848(Task* arg0)
     arg0->state++;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_10", RoomsShared80181e70Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_mesa/mine_mesa_10", D_mine_mesa_8017D660);

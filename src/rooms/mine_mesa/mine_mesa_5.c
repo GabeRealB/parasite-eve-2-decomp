@@ -3,16 +3,14 @@
 #include "gameplay/1BC.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/mine_mesa.h"
 
-extern Task*    RoomsShared8017e8a8Task;
-extern TaskDesc RoomsShared8017daf0Desc;
-extern Task*    RoomsShared8018459cTask;
-extern Task*    D_mine_mesa_80189B58;
-extern u8       D_801156F9;
+extern Task* D_mine_mesa_80189B58;
+extern u8    D_801156F9;
 
 void func_mine_mesa_8017E6D8(void)
 {
-    D_mine_mesa_80189B58 = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 2, 0, 0);
+    D_mine_mesa_80189B58 = Task_SpawnFromTable(&D_mine_mesa_801842F4, 2, 0, 0);
 }
 
 void func_mine_mesa_8017E70C(s32 arg0)
@@ -31,10 +29,10 @@ void func_mine_mesa_8017E70C(s32 arg0)
 
 void func_mine_mesa_8017E760(void)
 {
-    if (RoomsShared8018459cTask != NULL) {
-        taskKill(RoomsShared8018459cTask);
+    if (D_mine_mesa_80189B54 != NULL) {
+        taskKill(D_mine_mesa_80189B54);
     }
-    RoomsShared8018459cTask = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 3, 0, 0);
+    D_mine_mesa_80189B54 = Task_SpawnFromTable(&D_mine_mesa_801842F4, 3, 0, 0);
 }
 
 /// Head-aim driver for the slot-3 skeleton: turns its head toward the slot-A
@@ -73,12 +71,12 @@ void func_mine_mesa_8017E7B0(Task* task)
             return;
         }
         taskKill(task);
-        RoomsShared8018459cTask = NULL;
+        D_mine_mesa_80189B54 = NULL;
     }
 }
 
 void func_mine_mesa_8017E8B0(s32 arg0)
 {
-    RoomsShared8017e8a8Task = Task_SpawnFromTable(&RoomsShared8017daf0Desc, 4, arg0, 0);
+    D_mine_mesa_80189B5C = Task_SpawnFromTable(&D_mine_mesa_801842F4, 4, arg0, 0);
     Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
 }
