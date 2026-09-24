@@ -91,6 +91,29 @@ def referenced(family: str, by_name: dict[str, int]) -> dict[int, str]:
     return found
 
 
+def own_span(spec: dict) -> tuple[int, int] | None:
+    """The addresses the family's own overlays occupy, over every load slot.
+
+    A reference into that span is not an import the whole family shares: it
+    points into another overlay of the same family resident in a different
+    slot, or past the referring overlay's own end. Declaring it here would plant
+    the name inside every larger overlay that covers the address, so those
+    references are declared in the referring overlay's own symbol map instead.
+    """
+    from gen_overlay_configs import PACKAGE_DIR, slot_packages
+
+    slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+    spans = []
+    for package, slot, _entry in slot_packages(spec):
+        path = PACKAGE_DIR / f"{package}.pe2pkg"
+        if path.is_file():
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            spans.append((load, load + path.stat().st_size))
+    if not spans:
+        return None
+    return min(lo for lo, _ in spans), max(hi for _, hi in spans)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("family", nargs="?", help="family to regenerate (default: all)")
@@ -108,6 +131,10 @@ def main() -> int:
             rc = 1
             continue
         addrs = referenced(family, by_name)
+        span = own_span(spec)
+        local = [a for a in addrs if span and span[0] <= a < span[1]]
+        for a in local:
+            del addrs[a]
         # A family with no references is normal, not a failure: several are
         # pure data (all 24 map pictures and the debug name table contain no
         # code at all), so they import nothing and still need the file to exist
@@ -145,7 +172,8 @@ def main() -> int:
         dest.write_text("\n".join(lines), encoding="utf-8")
         print(
             f"{family}: {len(addrs)} references -> {dest} "
-            f"({len(named)} named, {len(unnamed)} unnamed)"
+            f"({len(named)} named, {len(unnamed)} unnamed; "
+            f"{len(local)} inside the family's own span, left to each overlay's map)"
         )
     return rc
 

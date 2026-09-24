@@ -34,9 +34,9 @@ extern u8 D_8007216C;
 
 extern GpRec14 D_actor_335800_80164E7C;
 
-extern s32 D_80165FC0;
+extern s32 D_actor_335800_80165FC0;
 
-extern s32 D_80166098;
+extern s32 D_actor_335800_80166098;
 
 /// The warp-payload table the two dispatchers above reach by entry:
 /// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
@@ -169,9 +169,9 @@ void func_actor_335800_80162364(Task* arg0)
 {
     if (arg0->state == 0) {
         if (arg0->spawnArg1 != 0) {
-            func_800E8614((s32)&D_80166098, 0);
+            func_800E8614((s32)&D_actor_335800_80166098, 0);
         } else {
-            func_800E8614((s32)&D_80165FC0, 0);
+            func_800E8614((s32)&D_actor_335800_80165FC0, 0);
         }
         arg0->state += 1;
         return;

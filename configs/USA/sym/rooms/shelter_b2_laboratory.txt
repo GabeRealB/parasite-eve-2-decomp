@@ -1,2 +1,5 @@
 // Overlay-local symbols for shelter_b2_laboratory.
 D_shelter_b2_laboratory_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+
+// Past this room's image. What occupies this address when the code runs is not established.
+D_80188888 = 0x80188888; // absolute:True

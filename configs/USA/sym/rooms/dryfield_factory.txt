@@ -1,1 +1,5 @@
 // Overlay-local symbols for dryfield_factory.
+
+// Past this room's image. What occupies this address when the code runs is not established.
+D_8018A7BC = 0x8018A7BC; // absolute:True
+D_8018A7C8 = 0x8018A7C8; // absolute:True

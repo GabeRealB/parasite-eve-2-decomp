@@ -254,6 +254,9 @@ def main() -> None:
     for name, ms in sorted(meaning.items()):
         ms = {(o, ad) for o, ad in ms
               if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in ms))}
+        # Two importers may see a slot through different resident sets, but an
+        # import into a slot at one address names the same place either way.
+        ms = {('slot' if o in slot_members else o, ad) for o, ad in ms}
         if len(ms) > 1:
             owners = sorted({o for o, _ in ms})
             desc = ', '.join(f'{o}@{"+" if o in groups.values() else ""}0x{ad:08X}' for o, ad in sorted(ms)[:4]) + (f', ... ({len(ms)} in all)' if len(ms) > 4 else '')
@@ -277,7 +280,9 @@ def main() -> None:
         for d in ds:
             per_owner[canon(d.owner)].add(d.name)
         for owner, ns in sorted(per_owner.items()):
-            if len(ns) > 1:
+            # A shared slot holds a different image at each load, so two names
+            # imported into it at one address may well mean different things.
+            if len(ns) > 1 and owner not in slot_members:
                 report('addresses', {owner} | {d.image for d in ds}, f'0x{addr:08X} is ambiguous ({len(cover)} images) and {owner} alone '
                        f'declares it as {", ".join(sorted(ns))}')
 

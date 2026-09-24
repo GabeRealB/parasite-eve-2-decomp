@@ -5,3 +5,8 @@ ActorsShared8016449c = 0x8016449C; // shared body, see src/lib/
 ActorsShared8013411c = 0x80164034; // shared body, see src/lib/
 ActorsShared80163148 = 0x80163EAC; // shared body, see src/lib/
 ActorsShared80163224 = 0x80163FB8; // shared body, see src/lib/
+
+// Referenced in another actor load slot, resident beside this one.
+func_80143490 = 0x80143490; // absolute:True
+D_80144A74 = 0x80144A74; // absolute:True
+D_80144A7C = 0x80144A7C; // absolute:True

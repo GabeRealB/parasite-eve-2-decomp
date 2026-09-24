@@ -4,3 +4,9 @@ ActorsShared80135df4 = 0x80138EA8; // shared body, see src/lib/
 ActorsShared80135a60 = 0x80138568; // shared body, see src/lib/
 ActorsShared80132808 = 0x80131FC0; // shared body, see src/lib/
 D_actor_110600_80131F1C = 0x80131F1C; // force_not_migration:True effect offset vector, read from C
+
+// Referenced in another actor load slot, resident beside this one.
+D_8015BD7C = 0x8015BD7C; // absolute:True
+D_8015C064 = 0x8015C064; // absolute:True
+D_8015C950 = 0x8015C950; // absolute:True
+D_8015D2E8 = 0x8015D2E8; // absolute:True

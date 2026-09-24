@@ -11,3 +11,6 @@ ActorsShared80149ed0Context = 0x80158BA8; // shared screen-wave data
 ActorsShared80149ed0Columns = 0x80158BAC; // shared screen-wave data
 ActorsShared80149ed0Rows = 0x80158BFC; // shared screen-wave data
 ActorsShared80149ed0Amplitude = 0x80158B08; // shared screen-wave data
+
+// Referenced in another actor load slot, resident beside this one.
+D_80147E48 = 0x80147E48; // absolute:True
