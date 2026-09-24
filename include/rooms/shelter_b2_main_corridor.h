@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/task.h"
+#include "rooms/room_common.h"
 
 /// The twelve bytes the room's message handler stages before spawning a task
 /// from `D_shelter_b2_main_corridor_80182C44`. `field_1` takes either the
@@ -33,5 +34,14 @@ extern s32 D_shelter_b2_main_corridor_80182CA8;
 
 /// The staged event block, read by the task spawned from the descriptor above.
 extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189684;
+
+/// A second copy of the staged event block, taken whole once the block has been
+/// passed through `func_shelter_b2_main_corridor_8017E0FC`.
+extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189664;
+
+/// Descriptor of the task spawned after the staged block has been copied.
+extern TaskDesc D_shelter_b2_main_corridor_801828E4;
+
+s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
 
 #endif
