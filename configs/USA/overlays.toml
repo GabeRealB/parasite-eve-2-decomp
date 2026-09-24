@@ -1596,16 +1596,7 @@ id = 358
 text = ["0x10", "0x10BC"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway", rodata = "0x4", text = "0x40" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_4", text = "0x10" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_5", text = "0x6C" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_6", text = "0x74" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_2", text = "0xB8" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_7", text = "0xC0" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_8", text = "0x118" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_9", text = "0x58C" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_10", text = "0xD74" },
-  { unit = "dryfield_night_breezeway/dryfield_night_breezeway_3", text = "0xFFC" },
+  { unit = "dryfield_night_breezeway/dryfield_night_breezeway", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x10BC" },
 ]
 
