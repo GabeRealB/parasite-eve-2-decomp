@@ -73,7 +73,67 @@ void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DA00);
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
+/// Draws a camera-facing textured quad centred on `coord`'s origin. The origin
+/// is projected with the coordinate's world-screen matrix; if it lands outside
+/// the 320x240 screen or behind the camera nothing is drawn and 1 is returned.
+/// Otherwise a semi-transparent `POLY_FT4` of `w` x `h` texels at (`u`, `v`),
+/// scaled by `scale` (4096 = 1.0), is linked into the ordering table at the
+/// projected depth, or at `otzOverride` when that is non-zero, and 0 is returned.
+u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 w, s16 h, s16 u,
+                                          s16 v, s16 tpageX, s16 tpageY, s16 scale,
+                                          s16 clut, s32 otzOverride)
+{
+    SVECTOR   origin;
+    s32       sxy;
+    s32       z;
+    s32       otz;
+    u16       off;
+    POLY_FT4* prim;
+    u16       hw;
+    u16       hh;
+    s16       sx;
+    s16       sy;
+
+    Gp_UpdateCoord(coord);
+    gte_SetTransMatrix(&coord->workm);
+    gte_SetRotMatrix(&coord->workm);
+    origin.vx = origin.vy = origin.vz = 0;
+    gte_ldv0(&origin);
+    gte_rtps_real();
+    gte_stsxy(&sxy);
+    gte_stszotz(&z);
+    sy = sxy >> 16;
+    sx = sxy;
+    if (otzOverride != 0) {
+        z = otzOverride;
+    }
+    otz = z;
+    if (sx < -0xA0) {
+        off = 1;
+    } else if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
+        off = 1;
+    } else {
+        off = 0;
+    }
+    if (off) {
+        return 1;
+    }
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(prim + 1);
+    setlen(prim, 9);
+    setcode(prim, 0x2F);
+    hw = w * scale / 4096;
+    hh = h * scale / 4096;
+    setXY4(prim, sx - hw / 2, sy - hh / 2, sx + hw / 2, sy - hh / 2, sx - hw / 2, sy + hh / 2,
+           sx + hw / 2, sy + hh / 2);
+    setUV4(prim, u, v, u + w - 1, v, u, v + h - 1, u + w - 1, v + h - 1);
+    prim->clut  = clut;
+    prim->tpage = getTPage(0, 1, tpageX / 64 * 64, tpageY / 256 * 256);
+    addPrim(gGpuCurrentOt + (z >> 4), prim);
+    return 0;
+}
 
 typedef struct {
     s16 field_0;
@@ -103,10 +163,6 @@ typedef struct {
 extern u32                  Gp_LcgState;
 extern s16                  D_shelter_b3_dumping_hole_80188154[];
 extern DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[];
-
-u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 arg1, s16 arg2,
-                                          s16 arg3, s16 arg4, s16 arg5, s16 arg6,
-                                          s16 arg7, s16 arg8, s16 arg9);
 
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
@@ -354,8 +410,6 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     v.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
     func_800D7A9C(e2, &v, 0, 3);
 }
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 #define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
 

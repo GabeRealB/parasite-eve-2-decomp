@@ -139709,3 +139709,34 @@ before the inner switch and the constants were rematerialised. Jump2
 cross-jumps the five kill blocks back into the single one the target has.
 Separate `if`s also stop `fold` from merging `x < -A || x > A` into the
 `addiu; andi 0xffff; sltiu` range test.
+
+### Splitting an `||` chain's first test into its own `else if` arm is an invisible live-length knob for a global-alloc near-tie (func_shelter_b3_dumping_hole_8017DA00, 2026-09-24)
+
+**Symptom.** 99.76%, only two stack-passed `s16` parameters swapped between
+`$s6` and `$s7`. `trace_gcc.py --regs` showed the global priorities 327 vs 322
+(`2 refs / span 61` against `3 refs / span 93`) - one or two insns apart. Both
+are live from the prologue; one dies early in the draw block, the other late.
+
+**Mechanism.** With refs 2 and 3, adding `k` insns to the region where *both*
+are live flips the order once `3(61+k) > 2(93+k)`. A probe of two empty
+`__asm__ volatile("")` right after the leading call matched at 100%, confirming
+the tie before looking for source.
+
+**Fix.** The culling test was
+`if (sx < -0xA0 || (sx > 0xA0 || ...)) off = 1; else off = 0;` (right-nested only
+to stop `fold_range_test` turning the `sx` pair into `sltiu`). Writing it as
+
+```c
+if (sx < -0xA0) {
+    off = 1;
+} else if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
+    off = 1;
+} else {
+    off = 0;
+}
+```
+
+emits the identical object but carries extra jump insns through sched1, where
+live lengths are recomputed; jump2 threads them away after allocation. It also
+makes the right-nesting unnecessary, since `sx < -0xA0` and `sx > 0xA0` are no
+longer operands of one `||`.
