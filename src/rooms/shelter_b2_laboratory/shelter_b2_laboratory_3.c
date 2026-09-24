@@ -2,6 +2,7 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -98,4 +99,32 @@ void func_shelter_b2_laboratory_80180290(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_80180350);
+extern s8  D_8007272D;
+extern u16 D_8007A39C;
+
+void func_shelter_b2_laboratory_80180350(Task* task)
+{
+    GpSndParam* pair;
+
+    switch (task->state) {
+        case 0:
+            if (gGameSession->at4.loc.view == 0xD) {
+                task->state = 1;
+            }
+            return;
+        case 1:
+            D_8007272D    = 0xE;
+            pair          = (GpSndParam*)&D_8007A39C;
+            pair->field_0 = 0;
+            pair->field_2 = 0;
+            Task_SpawnFromTable(&D_80062774, 0, 0, 0);
+            task->state++;
+            return;
+        case 2:
+            if (gGameSession->eventState == 0) {
+                Gp_RunCapCmd1(GameFlag_GetNibble(0x83) != 0 ? 0x24 : 0x23);
+                taskKill(task);
+            }
+            return;
+    }
+}
