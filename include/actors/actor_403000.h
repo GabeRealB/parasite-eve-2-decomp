@@ -370,6 +370,15 @@ typedef struct Actor403000DropScratch {
 } Actor403000DropScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DropScratch, 0x28);
 
+/// 0x14-byte `G_SCRATCH_HEAD` block `func_actor_403000_80132348` hands
+/// `func_800E0C10`: the `GpDeltaScratch` it fills plus the returned flag, set
+/// when the X or Z delta is nonzero.
+typedef struct Actor403000DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            field_10;
+} Actor403000DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor403000DeltaFlag, 0x14);
+
 /// Squared horizontal components and radius used by `Actor403000_Outside`.
 typedef struct Actor403000RadiusScratch {
     /* 0x00 */ s32 x;
@@ -524,7 +533,9 @@ void func_actor_403000_80133AF8(Actor403000* arg0);
 
 s32 func_actor_403000_80134204(GsCOORDINATE2* coord);
 
-s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s32 count);
+/// Step `coord` by the movement the first `count` records of `recs` resolve
+/// to; returns whether the actor moved on X or Z.
+s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.

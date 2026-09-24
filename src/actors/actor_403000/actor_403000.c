@@ -36,6 +36,10 @@ extern s32               D_80070F70;
 extern s16               D_80073BA0;
 extern Actor403000Msg7DA D_actor_403000_80158D8C;
 
+/// Integer part of the last movement step `func_actor_403000_80132348`
+/// applied to the actor's root coordinate.
+extern SVECTOR D_actor_403000_80158D84;
+
 void func_800B4114(GpAnimCtx* anim, s32 slot, s16 animation, s32 arg3, s32 arg4);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_actor_403000_80132AE0(GsCOORDINATE2* coord);
@@ -45,7 +49,58 @@ void func_actor_403000_8013D648(Actor403000* arg0);
 void func_actor_403000_801377C8(Actor403000* arg0);
 void func_actor_403000_8013B74C(Actor403000* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403000/actor_403000", func_actor_403000_80132348);
+/// Step `coord` by the movement the first `count` records of `recs` resolve
+/// to, and latch the integer part of that delta into
+/// `D_actor_403000_80158D84`. Returns the "moved" flag: set when the X or Z
+/// delta is nonzero. A nonzero fractional half nudges the coordinate and the
+/// latched step one unit further away from zero.
+s32 func_actor_403000_80132348(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor403000DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(recs, &s->delta, (s32)count, NULL) != 0) {
+        coord->coord.t[0]          = coord->coord.t[0] + ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
+        D_actor_403000_80158D84.vx = ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_403000_80158D84.vy = s->delta.vy.w >> 16;
+        D_actor_403000_80158D84.vz = s->delta.vz.w >> 16;
+        val                        = ((Actor403000DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                D_actor_403000_80158D84.vx++;
+            } else {
+                coord->coord.t[0]--;
+                D_actor_403000_80158D84.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                D_actor_403000_80158D84.vz++;
+            } else {
+                coord->coord.t[2]--;
+                D_actor_403000_80158D84.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
 
 s32 func_actor_403000_801324EC(Actor403000* arg0, s32 arg1, Actor403000Event* arg2)
 {
