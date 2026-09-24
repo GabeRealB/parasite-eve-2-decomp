@@ -1,7 +1,6 @@
 #include "common.h"
 #include "actors/actor_213100.h"
 
-#include "actors/actors_shared_801327b4.h"
 #include "gameplay/1BC.h"
 #include "main/mem.h"
 #include "main/task.h"
@@ -75,6 +74,6 @@ void func_actor_213100_8014A118(Task* arg0)
     preset.field_10 = 0;
     func_actor_213100_8014A258(arg0, 0, &preset, 0);
     arg0->msgTable     = D_actor_213100_801521C0;
-    arg0->exitCallback = ActorsShared801327b4;
+    arg0->exitCallback = func_actor_213100_8014A21C;
     arg0->state++;
 }

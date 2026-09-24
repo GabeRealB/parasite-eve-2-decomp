@@ -52,6 +52,8 @@ typedef struct Actor213100AnimPreset {
 } Actor213100AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor213100AnimPreset, 0x14);
 
+void func_actor_213100_8014A21C(Task* arg0);
+
 void func_actor_213100_8014A23C(Task* arg0);
 
 s32 func_actor_213100_8014A258(Task* arg0, s32 arg1, Actor213100AnimPreset* arg2, s32 arg3);
