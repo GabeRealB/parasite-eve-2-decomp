@@ -13,7 +13,7 @@
 #include "rooms/room_common.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
-/// table is `RoomsShared8017d8d0States` (dispatcher `func_shelter_r47_80182B18`).
+/// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).
 /// `memCalloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
 /// at `Task::work`.
 typedef struct {

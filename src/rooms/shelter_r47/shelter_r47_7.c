@@ -9,7 +9,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 #include "rooms/shelter_r47.h"
 
 extern u8 D_shelter_r47_8018A696;
@@ -119,7 +118,7 @@ void func_shelter_r47_801844A0(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons[0].state == 2) {
             for (; hs->id != -1; hs++) {

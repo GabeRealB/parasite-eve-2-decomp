@@ -3,7 +3,11 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "gameplay/D4.h"
 #include "main/task.h"
+#include "main/ui.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
@@ -67,6 +71,16 @@ extern ShelterR47Object       D_shelter_r47_80187C0C;
 extern Task*                  D_shelter_r47_8018A690;
 extern RoomsShared80181228Rec D_shelter_r47_8018A698;
 
+/// The "%" suffix the room's percentage formatters append.
+extern u8 D_shelter_r47_80186C68[];
+/// Task descriptor table: the room spawns entry 0 with a cutscene record as its
+/// argument, and `func_shelter_r47_8017F628` spawns entry 1 while it waits for
+/// the player to skip.
+extern TaskDesc D_shelter_r47_80186F08;
+/// UI object descriptor that the "Play Data" page tasks spawn as a child on
+/// their first frame.
+extern UiObjectDesc D_shelter_r47_80186E80;
+
 void func_shelter_r47_80183210(void);
 void func_shelter_r47_80183B84(Task* task);
 void func_shelter_r47_80183E24(void);
@@ -75,5 +89,10 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1);
 void func_shelter_r47_80184124(Task* task, s16 arg1);
 void func_shelter_r47_801851B8(Task* task);
 s32  func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2);
+void func_shelter_r47_8017F5EC(Task* task);
+s32  func_shelter_r47_801852A0(RoomHotspot* table, s16 x, s16 y);
+void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_SHELTER_R47_H

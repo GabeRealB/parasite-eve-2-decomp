@@ -230,6 +230,10 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_5", func_shelter_r47_8018585C);
 
+void func_shelter_r47_80185A4C(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_r47_80186260(SVECTOR* arg0, s32 arg1, s32 arg2);
+
 void func_shelter_r47_801858BC(void)
 {
     u8 view;
@@ -237,30 +241,30 @@ void func_shelter_r47_801858BC(void)
     view = Gp_GetViewIndex();
     switch (view) {
         case 5:
-            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            Room_Draw13(&D_shelter_r47_80187624[1], 0x280, 0x444);
-            Room_Draw13(&D_shelter_r47_80187624[2], 0x280, 0x444);
-            Room_Draw13(&D_shelter_r47_80187624[3], 0x280, 0x444);
-            Room_Draw13(&D_shelter_r47_80187624[4], 0x280, 0x444);
-            Room_Draw13(&D_shelter_r47_80187624[5], 0x280, 0x444);
-            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
-            Room_Draw13(&D_shelter_r47_80187624[7], 0x300, 0x344);
-            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
-            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            func_shelter_r47_80185DEC(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[1], 0x280, 0x444);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[2], 0x280, 0x444);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[3], 0x280, 0x444);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[4], 0x280, 0x444);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[5], 0x280, 0x444);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[7], 0x300, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 13:
-            Room_Draw13(&D_shelter_r47_80187664[0], 0x280, 0x344);
-            Room_Draw13(&D_shelter_r47_80187664[1], 0x180, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187664[0], 0x280, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187664[1], 0x180, 0x344);
             break;
         case 14:
-            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
-            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
-            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            func_shelter_r47_80185DEC(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 44:
-            Room_Draw05(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            func_shelter_r47_80186260(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[6], 0x100, 0x344);
             break;
     }
 }

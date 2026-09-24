@@ -13,7 +13,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 #include "rooms/shelter_r47.h"
 
 /// Scratch state of the room's first cap script: the task family whose state

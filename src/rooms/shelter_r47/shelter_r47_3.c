@@ -13,7 +13,7 @@
 #include "rooms/room_common.h"
 
 /// Scratch state of the room's first cap script: the task family whose state
-/// table is `RoomsShared8017d8d0States` (dispatcher `func_shelter_r47_80182B18`).
+/// table is `D_shelter_r47_8017D6C8` (dispatcher `func_shelter_r47_80182B18`).
 /// `memCalloc(0x54)` in its state-0 entry `func_shelter_r47_8018138C`, stored
 /// at `Task::work`.
 typedef struct {
@@ -79,11 +79,11 @@ STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
 extern u8 D_8007216C;
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47_3", D_shelter_r47_8017D638);
 
 s32  func_shelter_r47_8018097C(Task* task);
 void func_shelter_r47_80181914(Task* task, s16 arg1);
@@ -124,10 +124,6 @@ extern ShelterR47SpritePart* D_shelter_r47_8018729C[];
 
 extern SVECTOR D_shelter_r47_80187624[];
 extern SVECTOR D_shelter_r47_80187664[];
-
-void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
-void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
-void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
 
 void func_shelter_r47_8018080C(Task* task)
 {

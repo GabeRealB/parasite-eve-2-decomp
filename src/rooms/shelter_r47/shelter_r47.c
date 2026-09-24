@@ -10,7 +10,7 @@
 
 #include "rooms/shelter_r47.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", D_shelter_r47_8017D6A4);
 
 /// Message table the room's controller task answers with.
 extern GpMsgEntry D_shelter_r47_80186F2C[];
@@ -247,7 +247,7 @@ s32 func_shelter_r47_801801DC(s32 arg0, s32 arg1, s32 arg2)
             D_shelter_r47_8018A698.field_8  = 0x542F000F;
             D_shelter_r47_8018A698.field_10 = 0x542F000D;
             D_shelter_r47_8018A698.field_C  = 0x542F000E;
-            Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 0xA, (s32)&D_shelter_r47_8018A698);
+            Task_SpawnFromTable(&D_shelter_r47_80186F08, 0, 0xA, (s32)&D_shelter_r47_8018A698);
         } else {
             GameFlag_SetNibble(0x13E, 1);
             Gp_MsgPlayerWeapon(0);
@@ -315,4 +315,4 @@ void func_shelter_r47_80180324(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", RoomsShared8017d8d0States);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r47/shelter_r47", D_shelter_r47_8017D6C8);
