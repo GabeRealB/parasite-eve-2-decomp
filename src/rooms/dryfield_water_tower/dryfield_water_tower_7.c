@@ -17,8 +17,9 @@ extern RoomPlacement D_dryfield_water_tower_801823A8;
 
 /// The pair of placements the same function sends with message 0x7D4, one to
 /// each of `field_8` and `field_4`; the second is the element at 0x18, so the
-/// run is declared as an array. Both are `Room_Util08` payloads, the handler
-/// the room's script table pairs with 0x7D4.
+/// run is declared as an array. Both are payloads of
+/// `func_dryfield_water_tower_8017F77C`, the handler the room's script table
+/// pairs with 0x7D4.
 extern RoomPlacement D_dryfield_water_tower_801823D8[];
 
 void func_dryfield_water_tower_80180174(s16 arg0)
@@ -68,9 +69,7 @@ void func_dryfield_water_tower_80180220(void)
 
 /// Sets the current view's skip-OT-link byte from the nibble-0x55 band: the
 /// argument's low byte zero skips the view's sprites, non-zero draws them. Only
-/// the stage byte 2 (the first stage table) has a record to write, and the
-/// lookup walks it exactly like the `Room_Util16` / `Room_Util17` bodies, down
-/// to taking `&gGameSession->at4.loc.view` as its own pointer.
+/// the stage byte 2 (the first stage table) has a record to write.
 void func_dryfield_water_tower_801802D8(u8 arg0)
 {
     GpAreaKey*         sess;

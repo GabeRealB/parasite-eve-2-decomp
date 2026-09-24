@@ -8,7 +8,7 @@
 #include "main/session.h"
 
 /// Message 0x7DB handler, the room script table `D_dryfield_water_tower_80181B00`
-/// lists beside its `Room_Util08` 0x7D4 entry. It rests the cap script: the
+/// lists beside its 0x7D4 entry `func_dryfield_water_tower_8017F77C`. It rests the cap script: the
 /// three halfword slots it keeps its timers in are cleared along with the
 /// task's kill countdown, and the payload's halfword becomes the task's state,
 /// so the 0x7DB sender picks the state the cap script resumes in. The opcode

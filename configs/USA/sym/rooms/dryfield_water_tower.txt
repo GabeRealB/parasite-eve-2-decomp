@@ -1,17 +1,1 @@
 // Overlay-local symbols for dryfield_water_tower.
-Room_Util07 = 0x8017F8B0; // shared body, see src/lib/
-Room_Util08 = 0x8017F77C; // shared body, see src/lib/
-Room_Util09 = 0x80180134; // shared body, see src/lib/
-Room_Util10 = 0x80180154; // shared body, see src/lib/
-Room_Util12 = 0x80180114; // shared body, see src/lib/
-RoomsShared8017d878 = 0x8017DDD8; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5DC; // shared body data, see src/lib/
-RoomsShared8017d638 = 0x8017D674; // shared body, see src/lib/
-RoomsShared8017d638Flag = 0x8018769C; // shared body data, see src/lib/
-RoomsShared8017d638Msg = 0x80187694; // shared body data, see src/lib/
-RoomsShared8017d638Req = 0x801876B0; // shared body data, see src/lib/
-RoomsShared8017d638Desc = 0x80180394; // shared body data, see src/lib/
-RoomsShared8017d74c = 0x8017D7D8; // shared body, see src/lib/
-RoomsShared8017dc64 = 0x8017DC64; // shared body, see src/lib/
-RoomsShared8017ff5c = 0x8017FF5C; // shared body, see src/lib/
-RoomsShared8017daf8 = 0x8017DAF8; // shared body, see src/lib/

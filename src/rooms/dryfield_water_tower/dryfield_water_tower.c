@@ -72,8 +72,4 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
     taskKill(arg0);
 }
 
-/* func_dryfield_water_tower_8017DAF8 is the room's message handler; it is the
-   shared body RoomsShared8017daf8 (src/lib/, see its header), linked
-   into both water tower rooms from the `shared` span at 0x538. */
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_tower/dryfield_water_tower", D_dryfield_water_tower_8017D5DC);

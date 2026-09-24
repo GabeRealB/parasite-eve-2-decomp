@@ -7,6 +7,8 @@
 
 #include "main/task.h"
 
+#include "rooms/room_common.h"
+
 /// Work block of the water tower's script task, allocated as 0x18 zeroed bytes
 /// by `func_dryfield_water_tower_8017FD64` and hung off `Task::work` (0x1C) --
 /// that slot is *not* a `TaskIdMap` here. Reach it with
@@ -39,27 +41,19 @@ typedef struct DwtwWork {
 } DwtwWork;
 STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
 
-/// Fade block `func_dryfield_water_tower_80180038` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
-/// block in this room, distinct from `DwtwWork`. Reach it with
-/// `(DwtwFadeWork*)task->work`.
+/// Fade block the room's two fade tasks allocate with `Mem_Malloc(8, 0)` and
+/// park in `Task::work` -- a second, smaller work block in this room, distinct
+/// from `DwtwWork`. Reach it with `(DwtwFadeWork*)task->work`. The size is the
+/// allocation's.
 ///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
-/// raises all three by `spawnArg1` each frame (so `spawnArg1` is the fade rate,
-/// not a colour) and kills itself once the red channel passes 0x100. `field_0`
-/// is never touched.
+/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the
+/// fade-out `func_dryfield_water_tower_80180038` raises all three by
+/// `spawnArg1` each frame from zero, the fade-in
+/// `func_dryfield_water_tower_8017FF5C` lowers them from 0xFF, so `spawnArg1`
+/// is the fade rate, not a colour. `field_0` is never touched.
 ///
 /// The same 8-byte block the actors' fade tasks carry as
-/// `Actor560800FadeWork`, with one difference: this one neither reparents
-/// itself nor clears the display mask before killing the task, so the room sees
-/// the fade end where the actors darken the screen. The task is the second of
-/// the three descriptors in `D_dryfield_water_tower_8018277C`.
-///
-/// This layout is the fade-*out* direction only. Entry 2 of that table runs it
-/// backwards, from 0xFF down past zero, and the water tower shares that body
-/// with the warehouse as `RoomsShared8017ff5c` (`src/lib/`), which
-/// carries its own copy of these three halfwords rather than including this
-/// header.
+/// `Actor560800FadeWork`.
 typedef struct DwtwFadeWork {
     /* 0x0 */ byte pad_0[2];
     /* 0x2 */ u16  r;
@@ -79,7 +73,8 @@ typedef union DwtwVec {
 
 /// Payload `Gp_DispatchMsg` carries for message 0x7DB, the record this room's
 /// script table `D_dryfield_water_tower_80181B00` pairs with
-/// `func_dryfield_water_tower_8017F808` next to its `Room_Util08` 0x7D4 entry.
+/// `func_dryfield_water_tower_8017F808` next to its 0x7D4 entry
+/// `func_dryfield_water_tower_8017F77C`.
 /// Only the halfword at 0x2 is read; it becomes the receiving task's state. The
 /// same four bytes the actors send in `Actor210600Msg` / `Actor560800Msg`, and
 /// the shape `AcropolisBridgeMsg7DB` gives them on the receiving side.
@@ -158,7 +153,8 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 /// `field_40` is the slot-3 game pointer (`gameGetPtrSlot(3)`), the task the
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
-/// `D_..._80182384` -- the 0x7D4 (`Room_Util08`) targets -- and `field_4C` is
+/// `D_..._80182384` -- the 0x7D4 (`func_dryfield_water_tower_8017F77C`)
+/// targets -- and `field_4C` is
 /// the task it spawns off a second table, `D_..._8018277C`. `field_50` is the
 /// script-18 task `func_dryfield_water_tower_8017E93C` spawns when the cap
 /// script reaches one of its last three states, one of the room's three
@@ -227,5 +223,19 @@ extern Task* D_dryfield_water_tower_801876AC;
 /// `func_dryfield_water_tower_8017F128`, which allocates the cap script's
 /// 0x7C-byte scratch block into the task's `work` first.
 extern Task* D_dryfield_water_tower_801876A4;
+
+/// The event the room's gate `func_dryfield_water_tower_8017D674` latched:
+/// the incoming message and the request, kept for the event task it spawns
+/// from `D_dryfield_water_tower_80180394`, and the flag the gate sets once it
+/// has done so.
+extern RoomEventMsg D_dryfield_water_tower_80187694;
+extern RoomEventReq D_dryfield_water_tower_801876B0;
+extern u8           D_dryfield_water_tower_8018769C;
+extern TaskDesc     D_dryfield_water_tower_80180394;
+
+/// The room entry task's three states: init, idle and `taskKill`.
+extern const TaskFuncTable3 D_dryfield_water_tower_8017D5DC;
+
+s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg);
 
 #endif // ROOMS_DRYFIELD_WATER_TOWER_H

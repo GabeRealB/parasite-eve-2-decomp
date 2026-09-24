@@ -65,7 +65,7 @@ extern u8  D_dryfield_water_tower_80182F44;
 extern TaskDesc D_dryfield_water_tower_80182384;
 
 /// The room's two cap placements with message 0x7D4, the pair the cap props
-/// publish to themselves through `Room_Util08`: `[0]` is the raised position
+/// publish to themselves through `func_dryfield_water_tower_8017F77C`: `[0]` is the raised position
 /// (Y = -0x1F40, the one a task spawned with a non-zero `spawnArg1` publishes)
 /// and `[1]` the lowered one (Y = -0xFA0) the lowering prop stops at. They are
 /// the two 0x18-byte records above them in the same run --

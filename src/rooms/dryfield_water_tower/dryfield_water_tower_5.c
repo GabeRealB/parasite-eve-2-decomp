@@ -17,14 +17,14 @@
 
 /// Placement `func_dryfield_water_tower_8017F908` sends to the prop task at
 /// `DryfieldWaterTowerState::field_44` with message 0x7D4, whose handler is
-/// `Room_Util08` -- the same message and handler the table's other 0x0D entry
+/// `func_dryfield_water_tower_8017F77C` -- the same message and handler the table's other 0x0D entry
 /// `func_dryfield_water_tower_8017FA5C` uses below. One whole 0x18-byte run,
 /// unlike the placement that one sends, which splat splits in three.
 extern RoomPlacement D_dryfield_water_tower_80181A58;
 
 /// Placement `func_dryfield_water_tower_8017F9AC` sends to the prop task at
 /// `DryfieldWaterTowerState::field_44` with the same message 0x7D4, whose
-/// handler is `Room_Util08`. The 0x18 bytes immediately below the `80181A58`
+/// handler is `func_dryfield_water_tower_8017F77C`. The 0x18 bytes immediately below the `80181A58`
 /// run `func_dryfield_water_tower_8017F908` sends with that message, so the two
 /// streams differ in the placement they hand the task and in nothing else this
 /// record carries.
@@ -32,7 +32,7 @@ extern RoomPlacement D_dryfield_water_tower_80181A40;
 
 /// Placement `func_dryfield_water_tower_8017FA5C` sends to the prop task at
 /// `DryfieldWaterTowerState::field_48` with message 0x7D4, whose handler is
-/// `Room_Util08`. The first of three chunks splat splits it into; the other two
+/// `func_dryfield_water_tower_8017F77C`. The first of three chunks splat splits it into; the other two
 /// (`80181AA4` / `80181AA8`) are the rest of the 0x18 bytes.
 extern RoomPlacement D_dryfield_water_tower_80181AA0;
 
@@ -92,7 +92,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 ///
 /// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
 /// says the view has already been announced, records the view in the saved
-/// location byte `D_8007216C`, sends its 0x7D4 (`Room_Util08`) placement
+/// location byte `D_8007216C`, sends its 0x7D4 placement
 /// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
@@ -117,7 +117,7 @@ void func_dryfield_water_tower_8017F908(void)
 /// `func_dryfield_water_tower_8017F908` and `func_dryfield_water_tower_8017FA5C`
 /// and the one that does not recompute the view: it records the view
 /// `DryfieldWaterTowerState::field_68` in the saved location, starts the prop
-/// task at `field_44` on state 1 with its 0x7D4 (`Room_Util08`) placement
+/// task at `field_44` on state 1 with its 0x7D4 placement
 /// `80181A40` and stops the pad scripts, the same three-step restart the other
 /// two perform on their own prop tasks.
 ///
@@ -231,9 +231,9 @@ extern GpAnimArg D_dryfield_water_tower_80182448[];
 
 /// The task table `Task_SpawnFromTable`'s `2` below indexes: entry 0 is the
 /// room task `func_dryfield_water_tower_8017FD64` itself, entry 1 the private
-/// fade-out task `func_dryfield_water_tower_80180038` and entry 2 the shared
-/// fade-*up* body `RoomsShared8017ff5c`, the one state 1 starts here with the
-/// fade rate 8.
+/// fade-out task `func_dryfield_water_tower_80180038` and entry 2 the fade-in
+/// task `func_dryfield_water_tower_8017FF5C`, the one state 1 starts here with
+/// the fade rate 8.
 extern TaskDesc D_dryfield_water_tower_8018277C[];
 
 /// The room's per-frame body, run by `func_dryfield_water_tower_8017FD64`
