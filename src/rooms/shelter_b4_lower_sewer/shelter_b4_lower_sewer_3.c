@@ -6,6 +6,7 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b4_lower_sewer.h"
 
 extern s32 D_8011572C;
 extern s32 D_80115738;
@@ -36,66 +37,66 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
         case 2:
         case 6: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F14;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
             break;
         }
         case 3: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[4], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[6], 0x200, 0x222);
             break;
         }
         case 4: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x222);
-            Room_Draw01(&p[24], 0x200, 0x222);
-            Room_Draw01(&p[26], 0x200, 0x222);
-            Room_Draw01(&p[28], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[4], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[6], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[24], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[26], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[28], 0x200, 0x222);
             break;
         }
         case 5: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[28], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[28], 0x200, 0x222);
             break;
         }
         case 7: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x222);
-            Room_Draw01(&p[8], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[4], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[6], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[8], 0x200, 0x222);
             break;
         }
         case 8: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x222);
-            Room_Draw01(&p[8], 0x200, 0x222);
-            Room_Draw01(&p[22], 0x200, 0x222);
-            Room_Draw01(&p[24], 0x200, 0x222);
-            Room_Draw01(&p[26], 0x200, 0x222);
-            Room_Draw01(&p[28], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[4], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[6], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[8], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[22], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[24], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[26], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[28], 0x200, 0x222);
             break;
         }
         case 9: {
             SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            Room_Draw01(&p[0], 0x200, 0x222);
-            Room_Draw01(&p[2], 0x200, 0x222);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[24], 0x200, 0x222);
-            Room_Draw01(&p[26], 0x200, 0x222);
-            Room_Draw01(&p[28], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[0], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[2], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[4], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[24], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[26], 0x200, 0x222);
+            func_shelter_b4_lower_sewer_8017E6A0(&p[28], 0x200, 0x222);
             break;
         }
     }
