@@ -1,27 +1,22 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
+
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/neo_ark_shrine.h"
 #include "rooms/room_common.h"
 
-/// Scratch state of the shrine's cap script, stored at `Task::work`
-/// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
-typedef struct {
-    /* 0x00 */ u8  pad_0[8];
-    /* 0x08 */ u16 timer; ///< frames the current script step has run
-    /* 0x0A */ u8  pad_A[2];
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ s8  field_E;
-    /* 0x0F */ s8  field_F;
-} NeoArkShrineScript;
-
-void func_neo_ark_shrine_8017F448(void);
+extern u8 D_8007216D;
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -29,11 +24,6 @@ extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C;
-
-/// State table of the shrine's second falling prop, indexed by `Task::state`.
-extern TaskFuncTable3 D_neo_ark_shrine_8017D620;
-
-extern TaskDesc D_neo_ark_shrine_80182508;
 
 /// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
 extern Task* D_neo_ark_shrine_80186864;
@@ -46,13 +36,18 @@ extern s32 D_neo_ark_shrine_80181E74;
 /// indices per slot, `0xFF` terminated, into `D_neo_ark_shrine_8018686C`.
 extern s16 D_neo_ark_shrine_801825EC[][5];
 
-/// Current order index of each of the 16 slots. Read back through a `u16`
-/// pointer where the puzzle swaps two of them, which is why those accesses are
-/// unsigned while the rest are `s16`.
-extern s16 D_neo_ark_shrine_8018686C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_8018252C[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_801825AC[16];
+extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
 
 /// Steps the currently selected group and returns which kind of step it was.
-s16 func_neo_ark_shrine_8017E254();
+s16 func_neo_ark_shrine_8017E254(void);
+
+/// Always returns 0.
+s32 func_neo_ark_shrine_8017D6A4(void)
+{
+    return 0;
+}
 
 s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -154,29 +149,22 @@ void func_neo_ark_shrine_8017D948(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Argument-less helper, called by this room's cap script every frame. Declared
-/// without a parameter list because this state passes `task` to it: the extra
-/// `$a0` set makes the hotspot scan's argument setup *not* a "birthing insn" in
-/// sched1's `adjust_priority`, so it is not launched at `LAUNCH_PRIORITY` and
-/// the scan block keeps `hs` in the branch delay slot. At entry `$a0` still
-/// holds the caller's `task`, so the copy is redundant and the allocator drops
-/// it - the emitted code is the same either way.
-void func_neo_ark_shrine_8017EAC0();
-
-extern RoomHotspot D_neo_ark_shrine_80182430[];
-
 /// Idle state of the shrine's cap script: the hotspot the cursor sits on is
 /// confirm-tested (`buttons[0].state == 2`) and its `id` / `promptKind` are
 /// latched into the script state, with the 3-vs-6 split decided by hotspot id
 /// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
-/// hit test `func_neo_ark_shrine_8017EC10` just marked, and `buttons[1].state == 2` leaves
-/// the scan by advancing the task to state 5.
+/// hit test `func_neo_ark_shrine_8017EC10` just marked, and
+/// `buttons[1].state == 2` leaves the scan by advancing the task to state 5.
 ///
 /// Both oddities below are allocator levers, not logic. The `do { } while (0)`
 /// around the last state store folds away, but flow counts the reference at
 /// loop depth 2, which is what lifts the parameter above the hotspot pointer in
 /// global-alloc's rank; without it the two swap `$s2`/`$s4`. Passing `task` to
-/// the helper above is the sched1 counterpart.
+/// the per-frame helper is the sched1 counterpart: the extra `$a0` set makes
+/// the hotspot scan's argument setup *not* a "birthing insn" in sched1's
+/// `adjust_priority`, so it is not launched at `LAUNCH_PRIORITY` and the scan
+/// block keeps `hs` in the branch delay slot. At entry `$a0` still holds
+/// `task`, so the copy itself is dropped by the allocator.
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
     RoomHotspot*        hs     = D_neo_ark_shrine_80182430;
@@ -310,8 +298,189 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D5D0);
+const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
+    {
+        func_neo_ark_shrine_8017ECC4,
+        func_neo_ark_shrine_8017EDAC,
+        func_neo_ark_shrine_8017D9A0,
+        func_neo_ark_shrine_8017EDE0,
+        func_neo_ark_shrine_8017EE44,
+        func_neo_ark_shrine_8017EED4,
+        func_neo_ark_shrine_8017DB10,
+        func_neo_ark_shrine_8017EF68,
+        func_neo_ark_shrine_8017EFE4,
+        func_neo_ark_shrine_8017F094,
+        func_neo_ark_shrine_8017F0F0,
+        func_neo_ark_shrine_8017F178,
+        func_neo_ark_shrine_8017F21C,
+        func_neo_ark_shrine_8017F274,
+        func_neo_ark_shrine_8017F320,
+        func_neo_ark_shrine_8017F398,
+    },
+};
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D610);
+const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
+    { func_neo_ark_shrine_8017F4C8, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
+};
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D620);
+const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
+    { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
+};
+
+/// Alignment pad closing this unit's `.rodata`: the next object starts with a
+/// jump table, which the original build aligned to 8. Nothing reads it.
+const u32 D_neo_ark_shrine_8017D62C = 0;
+
+/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
+/// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
+/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
+void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
+{
+    LINE_F2* line;
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+}
+
+/// Animates and draws the shrine's sliding-tile puzzle. Each tile's target
+/// position is taken from the board position it now occupies; its drawn
+/// position eases halfway there every frame and snaps once both axes are
+/// within four units. Every tile but tile 0, the gap, is then drawn as a 32x32
+/// textured quad.
+void func_neo_ark_shrine_8017DF7C(void)
+{
+    s32               i;
+    s32               tile;
+    NeoArkShrineSlot* cur;
+    NeoArkShrineSlot* tgt;
+    POLY_FT4*         prim;
+
+    for (i = 0; i < 16; i++) {
+        tile                              = D_neo_ark_shrine_8018686C[i];
+        D_neo_ark_shrine_801868CC[tile].x = D_neo_ark_shrine_8018252C[i].x;
+        D_neo_ark_shrine_801868CC[tile].y = D_neo_ark_shrine_8018252C[i].y;
+    }
+
+    for (i = 0; i < 16; i++) {
+        tile    = D_neo_ark_shrine_8018686C[i];
+        cur     = &D_neo_ark_shrine_8018688C[tile];
+        tgt     = &D_neo_ark_shrine_801868CC[tile];
+        cur->x += ((s16)tgt->x - (s16)cur->x) >> 1;
+        cur->y += ((s16)tgt->y - (s16)cur->y) >> 1;
+        if (ABS((s16)cur->x - (s16)tgt->x) < 4 &&
+            ABS((s16)D_neo_ark_shrine_8018688C[tile].y - (s16)D_neo_ark_shrine_801868CC[tile].y) < 4) {
+            D_neo_ark_shrine_8018688C[tile].x = D_neo_ark_shrine_801868CC[tile].x;
+            D_neo_ark_shrine_8018688C[tile].y = D_neo_ark_shrine_801868CC[tile].y;
+        }
+        if (tile != 0) {
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(prim + 1);
+            setPolyFT4(prim);
+            setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y, 0x20, 0x20);
+            prim->tpage = 0x8D;
+            prim->clut  = 0x3FC0;
+            setShadeTex(prim, 1);
+            setXYWH(prim, D_neo_ark_shrine_8018688C[tile].x, D_neo_ark_shrine_8018688C[tile].y, 0x20, 0x20);
+            addPrim(&gGpuCurrentOt[10], prim);
+        }
+    }
+}
+
+s16 func_neo_ark_shrine_8017E254(void)
+{
+    s32 flag;
+
+    if (D_neo_ark_shrine_8018686C[0] == 9 && D_neo_ark_shrine_8018686C[1] == 10 &&
+        D_neo_ark_shrine_8018686C[2] == 11 && D_neo_ark_shrine_8018686C[3] == 12 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 3;
+    }
+    if (D_neo_ark_shrine_8018686C[0] == 12 && D_neo_ark_shrine_8018686C[1] == 11 &&
+        D_neo_ark_shrine_8018686C[2] == 10 && D_neo_ark_shrine_8018686C[3] == 9 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 3;
+    }
+    if (D_neo_ark_shrine_80186868 == 1) {
+        return 4;
+    }
+    if (D_neo_ark_shrine_8018686C[3] == 1 && D_neo_ark_shrine_8018686C[6] == 2 &&
+        D_neo_ark_shrine_8018686C[9] == 3 && D_neo_ark_shrine_8018686C[12] == 4 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 1;
+    }
+    if (D_neo_ark_shrine_8018686C[3] == 4 && D_neo_ark_shrine_8018686C[6] == 3 &&
+        D_neo_ark_shrine_8018686C[9] == 2 && D_neo_ark_shrine_8018686C[12] == 1 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 1;
+    }
+    flag = D_neo_ark_shrine_8018686A;
+    if (flag == 1) {
+        D_neo_ark_shrine_8018686A = 0;
+        if (GameFlag_GetNibble(0xE9) == 0) {
+            D_8007216D                 = flag;
+            gGameSession->at4.loc.room = flag;
+        } else {
+            D_8007216D                 = 4;
+            gGameSession->at4.loc.room = 4;
+        }
+        gGameSession->roomObjsDirty = 1;
+        SndEvt_EnqueueType6(0x5515000A, 0, 0);
+        Gp_SpawnPadLerp(0x28, 0x30, 0x60);
+    }
+    if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&
+        D_neo_ark_shrine_8018686C[8] == 7 && D_neo_ark_shrine_8018686C[12] == 8 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 2;
+    }
+    if (D_neo_ark_shrine_8018686C[0] == 8 && D_neo_ark_shrine_8018686C[4] == 7 &&
+        D_neo_ark_shrine_8018686C[8] == 6 && D_neo_ark_shrine_8018686C[12] == 5 &&
+        D_neo_ark_shrine_8018686C[15] == 0) {
+        return 2;
+    }
+    return 0;
+}
