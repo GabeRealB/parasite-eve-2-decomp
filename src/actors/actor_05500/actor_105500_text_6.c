@@ -48,6 +48,7 @@ void Actor05500_Fn03C54(Actor105500* arg0);
 void Actor05500_Fn03D40(Actor105500* arg0);
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 extern u8 D_801153F4;
 void      Actor05500_Fn03918(Actor105500* arg0)
@@ -104,4 +105,28 @@ void Actor05500_Fn03A70(Actor105500* arg0)
     Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_05500/actor_105500_text_6", Actor05500_Fn03AC8);
+/// Draws the ground quad under the actor. In action 2 its position is cast
+/// down by `func_800EA1A8`, and the quad is drawn there, shaded by
+/// `func_800EA318`, only when that finds ground; in any other action it is
+/// drawn at the root coordinate's world position at shade 0x80.
+void Actor05500_Fn03AC8(Actor105500* arg0)
+{
+    Actor105500Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR3          vec;
+    s16              hit;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_39A == 2) {
+        hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
+        if (hit != 0) {
+            Gp_DrawEffGroundQuad(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
+        }
+    } else {
+        vec.vx = coord->workm.t[0];
+        vec.vy = coord->workm.t[1];
+        vec.vz = coord->workm.t[2];
+        Gp_DrawEffGroundQuad(&vec, 0x200, 0x80);
+    }
+}
