@@ -17,63 +17,35 @@
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
 #include "rooms/room_common.h"
+#include "rooms/mist_parking.h"
 
-extern UiObject*      D_80067634;
-extern UiObjectDesc   D_8010EFA0;
-extern GpItemScan     D_80072724;
-extern RoomShopStock  D_8010E138[];
-extern u8             D_80071072;
-extern u8             RoomsShared8017f938Bp[];
-extern u8             RoomsShared8017f108Msg[];
-extern u8             RoomsShared8017fdb8Msg[];
-extern u8             RoomsShared8017eb5cMode0[];
-extern u8             RoomsShared8017eb5cMode1[];
-extern u8             RoomsShared8017eb5cMode2[];
-extern u8             RoomsShared8017eb5cMode3[];
-extern u8             RoomsShared8017f31cMsg0[];
-extern u8             RoomsShared8017f31cMsg1[];
-extern u8             RoomsShared8017f31cMsg2[];
-extern u8             RoomsShared8017f764Amount[];
-extern u8             RoomsShared8017f938Times[];
-extern u8             D_mist_parking_80186718[];
-extern u16            D_80072174;
-extern s8             D_80072176;
-extern u16            D_80072834;
-extern u16            D_80072836;
-extern u8             D_80072A93;
-extern s32            D_80072A94;
-extern s32            D_80072A98;
-extern u8             D_mist_parking_801866C0[];
-extern u8             D_mist_parking_801866F0[];
-extern u8             D_mist_parking_801866C8[];
-extern u8             D_mist_parking_801866CC[];
-extern u8             D_mist_parking_801866D4[];
-extern u8             D_mist_parking_801866E0[];
-extern u8             D_mist_parking_801866F8[];
-extern u8             D_mist_parking_80186700[];
-extern u8             D_mist_parking_80186708[];
-extern u8             D_mist_parking_80186710[];
-extern u8             D_mist_parking_8018671C[];
-extern u8             D_mist_parking_80186748[];
-extern u8             D_mist_parking_8018676C[];
-extern u8             D_mist_parking_8018679C[];
-extern u8             D_mist_parking_801867D0[];
-extern u8             D_mist_parking_80186804[];
-extern u8             D_mist_parking_8018683C[];
-extern u8             D_mist_parking_80186870[];
-extern u8             D_mist_parking_801868A8[];
-extern UiListItemFunc RoomsShared8017e90cRowFuncs[];
-extern UiList         RoomsShared8017ed7cList;
-extern UiObjectDesc   RoomsShared8017eb5cListDesc;
-extern UiObjectDesc   RoomsShared8017e90cBalanceDesc;
-extern UiObjectDesc   RoomsShared8017ed7cRowsDesc;
-extern UiList         RoomsShared8017fe74List;
-extern UiObjectDesc   RoomsShared8017ff9cDesc;
-extern UiObjectDesc   RoomsShared8017f108NoticeDesc;
-extern UiObjectDesc   RoomsShared8017f108BuyDesc;
-extern char           Gp_StrEmpty[];
-extern s32            RoomsShared8017f49cQty;
-extern GpItemMap*     RoomsShared8017f49cMap;
+extern UiObjectDesc D_8010EFA0;
+extern u16          D_80072174;
+extern s8           D_80072176;
+extern u16          D_80072834;
+extern u16          D_80072836;
+extern u8           D_80072A93;
+extern s32          D_80072A94;
+extern s32          D_80072A98;
+extern u8           D_mist_parking_801866C0[];
+extern u8           D_mist_parking_801866F0[];
+extern u8           D_mist_parking_801866C8[];
+extern u8           D_mist_parking_801866CC[];
+extern u8           D_mist_parking_801866D4[];
+extern u8           D_mist_parking_801866E0[];
+extern u8           D_mist_parking_801866F8[];
+extern u8           D_mist_parking_80186700[];
+extern u8           D_mist_parking_80186708[];
+extern u8           D_mist_parking_80186710[];
+extern u8           D_mist_parking_8018671C[];
+extern u8           D_mist_parking_80186748[];
+extern u8           D_mist_parking_8018676C[];
+extern u8           D_mist_parking_8018679C[];
+extern u8           D_mist_parking_801867D0[];
+extern u8           D_mist_parking_80186804[];
+extern u8           D_mist_parking_8018683C[];
+extern u8           D_mist_parking_80186870[];
+extern u8           D_mist_parking_801868A8[];
 
 void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
 {
@@ -327,7 +299,7 @@ void func_mist_parking_801800D0(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017ef20Title);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D748);
 
 /// One row of the "Play Data" item-usage list: the item's name, its share of
 /// all recorded uses as `NN.NN%` (or a flat `100.0%` once it is the only item
@@ -479,8 +451,8 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017e8b4WeaponTitle);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D75C);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017e8b4PeTitle);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D768);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking_2", D_mist_parking_8017D770);

@@ -14,11 +14,7 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern s16      D_80071076;
-extern s32      D_mist_parking_80195320;
-extern TaskDesc RoomsShared8017e5b8Desc;
-extern Task*    RoomsShared8017ea2cTask;
-extern void     Stage_RequestMidiFromMap(s32 arg0);
+extern s16 D_80071076;
 
 void func_mist_parking_8018357C(Task* arg0)
 {

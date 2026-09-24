@@ -12,8 +12,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s16      D_80071076;
-extern TaskDesc RoomsShared8018397cDesc;
+#include "rooms/mist_parking.h"
+
+extern s16 D_80071076;
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
 typedef struct {
@@ -357,7 +358,7 @@ void func_mist_parking_80184408(s32 arg0)
 
 void func_mist_parking_80184428(s32 arg0)
 {
-    Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, arg0, 0);
+    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 

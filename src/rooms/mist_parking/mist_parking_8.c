@@ -10,11 +10,10 @@
 #include "main/ui.h"
 
 #include "rooms/room_common.h"
+#include "rooms/mist_parking.h"
 
-extern s16      D_80071076;
-extern Task*    D_mist_parking_80195320;
-extern TaskDesc RoomsShared8018397cDesc;
-extern TaskDesc RoomsShared8017e5b8Desc;
+extern s16   D_80071076;
+extern Task* D_mist_parking_80195320;
 
 void func_mist_parking_801830F8(void)
 {
@@ -27,7 +26,7 @@ void func_mist_parking_80183100(s32 arg0)
 
 void func_mist_parking_8018312C(s32 arg0)
 {
-    Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, arg0, 0);
+    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
@@ -58,7 +57,7 @@ void func_mist_parking_801831F0(s32 arg0)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&RoomsShared8017e5b8Desc, arg0, 0, 0);
+        task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
             obj         = (TmdObject*)task->extra;

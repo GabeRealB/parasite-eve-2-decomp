@@ -16,42 +16,11 @@
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
 #include "rooms/room_common.h"
-
-extern UiObject*      D_80067634;
-extern UiObjectDesc   D_8010EFA0;
-extern GpItemScan     D_80072724;
-extern RoomShopStock  D_8010E138[];
-extern u8             D_80071072;
-extern u8             RoomsShared8017f938Bp[];
-extern u8             RoomsShared8017fdb8Msg[];
-extern u8             RoomsShared8017f108Msg[];
-extern u8             RoomsShared8017eb5cMode0[];
-extern u8             RoomsShared8017eb5cMode1[];
-extern u8             RoomsShared8017eb5cMode2[];
-extern u8             RoomsShared8017eb5cMode3[];
-extern u8             RoomsShared8017f31cMsg0[];
-extern u8             RoomsShared8017f31cMsg1[];
-extern u8             RoomsShared8017f31cMsg2[];
-extern u8             RoomsShared8017f764Amount[];
-extern u8             RoomsShared8017f938Times[];
-extern u8             D_mist_parking_80186718[];
-extern UiListItemFunc RoomsShared8017e90cRowFuncs[];
-extern UiList         RoomsShared8017ed7cList;
-extern UiObjectDesc   RoomsShared8017eb5cListDesc;
-extern UiObjectDesc   RoomsShared8017e90cBalanceDesc;
-extern UiObjectDesc   RoomsShared8017ed7cRowsDesc;
-extern UiObjectDesc   RoomsShared8017ff9cDesc;
-extern UiObjectDesc   RoomsShared8017f108NoticeDesc;
-extern UiObjectDesc   RoomsShared8017f108BuyDesc;
-extern char           Gp_StrEmpty[];
-extern s32            RoomsShared8017f49cQty;
-extern GpItemMap*     RoomsShared8017f49cMap;
+#include "rooms/mist_parking.h"
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", jtbl_mist_parking_8017D5C4);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", jtbl_mist_parking_8017D64C);
-
-u16* RoomsShared8017eb5cIdList(s32 arg0);
 
 /// One row of the vending machine's price ladder (`D_mist_parking_801863B0`,
 /// thirteen rows). `spendThreshold` is the running total the player has to have
@@ -65,24 +34,19 @@ typedef struct {
 } MistParkingShopTier;
 
 extern MistParkingShopTier D_mist_parking_801863B0[13];
-extern s32                 RoomsShared8017df68Selected;
 
-/// `main`'s rounded-rect panel fill (`Ui_LayoutWithMode0` / `Ui_LayoutWithMode1`
-/// are the two named wrappers): draws a `w` x `h` box at (`x`, `y`) relative to
-/// the object's base, `mode` selecting the fill style.
 /// Fills `shop` with the ids the vending machine currently offers, then sorts
 /// them by `Gp_ItemSortKey` and caps the visible row count at 9.
 ///
 /// The upper halfword of the owning task's `spawnArg1` picks the machine's
-/// mode, which decides both the fixed id list (`RoomsShared8017eb5cIdList`)
+/// mode, which decides both the fixed id list (`func_mist_parking_8017D8F8`)
 /// and which of a price row's items the machine will stock: mode 0 takes tools
 /// (0x80-0x9F) plus a handful of key items, mode 1 armour (0xA0-0xBF), mode 2
 /// weapon parts (0x60-0x7F) and mode 3 everything up to 0x5F that the other
 /// three modes do not carry. Mode 3 additionally offers the twelve two-bit
 /// stock levels the save keeps in `Mc_SaveData.shopStock`, whose first slot
 /// needs a level of 2 rather than 1.
-
-void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
+void func_mist_parking_8017E540(RoomShopList* shop, UiObject* obj)
 {
     RoomShopList* list;
     u16*          ids;
@@ -102,11 +66,11 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
     u8            count;
 
     mode = obj->owner->spawnArg1;
-    ids  = RoomsShared8017eb5cIdList(mode);
+    ids  = func_mist_parking_8017D8F8(mode);
 
     shop->list.field_4 = 0;
     while (*ids != 0xFFFF) {
-        RoomsShared8017e3f4(shop, obj, *ids);
+        func_mist_parking_8017E3F4(shop, obj, *ids);
         ids++;
     }
 
@@ -127,17 +91,17 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
                                 if (((u32)(item - 0x80) < 0x20U) || (item == 0xC) || (item == 9) ||
                                     (item == 0xA) || (item == 0x46) || (item == 0x45) ||
                                     (item == 0x42) || (item == 0x43) || (item == 0x44)) {
-                                    RoomsShared8017e3f4(shop, obj, item);
+                                    func_mist_parking_8017E3F4(shop, obj, item);
                                 }
                                 break;
                             case 1:
                                 if ((u32)(item - 0xA0) < 0x20U) {
-                                    RoomsShared8017e3f4(shop, obj, item);
+                                    func_mist_parking_8017E3F4(shop, obj, item);
                                 }
                                 break;
                             case 2:
                                 if (((u32)(item - 0x60) < 0x20U) || (item == 0xD)) {
-                                    RoomsShared8017e3f4(shop, obj, item);
+                                    func_mist_parking_8017E3F4(shop, obj, item);
                                 }
                                 break;
                             case 3:
@@ -145,7 +109,7 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
                                     (item != 9) && (item != 0xA) && (item != 0x46) &&
                                     (item != 0x45) && (item != 0x42) && (item != 0x43) &&
                                     (item != 0x44)) {
-                                    RoomsShared8017e3f4(shop, obj, item);
+                                    func_mist_parking_8017E3F4(shop, obj, item);
                                 }
                                 break;
                         }
@@ -160,7 +124,7 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
                 if (slot == 0 ? level >= 2 : level > 0) {
                     /* The assignment keeps `+ 0xE` on the level instead of
                        letting GCC reassociate it onto the row base. */
-                    RoomsShared8017e3f4(shop, obj, slot * 3 + (id = level + 0xE));
+                    func_mist_parking_8017E3F4(shop, obj, slot * 3 + (id = level + 0xE));
                 }
             }
         }
@@ -185,17 +149,17 @@ void RoomsShared8017e90cFillList(RoomShopList* shop, UiObject* obj)
     if ((s8)count >= 0xA) {
         shop->list.field_5 = 9;
     }
-    RoomsShared8017df68Selected = -1;
+    D_mist_parking_8018644C = -1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017e90cTitle);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f938Bp);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6D8);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017ed7cTitle);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6DC);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017ef24Total);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6E4);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f31cNotice);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6EC);
 
-INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", RoomsShared8017f49cCharge);
+INCLUDE_RODATA("rooms/nonmatchings/mist_parking/mist_parking", D_mist_parking_8017D6F4);

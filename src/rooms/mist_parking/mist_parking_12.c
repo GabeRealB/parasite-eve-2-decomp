@@ -4,6 +4,7 @@
 #include "main/tmd.h"
 
 #include "rooms/room_common.h"
+#include "rooms/mist_parking.h"
 
 extern RoomPlacement D_mist_parking_8018FC3C;
 
@@ -13,7 +14,7 @@ void func_mist_parking_801839CC(Task* task)
 
     obj->flags         &= 0xFF7F;
     task->killCountdown = -0x78;
-    Room_Util18(task, 0, &D_mist_parking_8018FC3C, 0);
+    func_mist_parking_80183AC4(task, 0, &D_mist_parking_8018FC3C, 0);
     task->state = task->state + 1;
 }
 
@@ -24,7 +25,7 @@ void func_mist_parking_80183A28(Task* task)
     if (task->killCountdown > 0) {
         placement                      = D_mist_parking_8018FC3C;
         D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
-        Room_Util18(task, 0, &placement, 0);
+        func_mist_parking_80183AC4(task, 0, &placement, 0);
     }
 
     if (task->killCountdown < 0x200) {

@@ -11,10 +11,8 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-extern s16      D_80071076;
-extern s8       D_80073BAE;
-extern Task*    RoomsShared8018459cTask;
-extern TaskDesc RoomsShared8017daf0Desc;
+extern s16 D_80071076;
+extern s8  D_80073BAE;
 
 void func_mist_parking_8018451C(void)
 {

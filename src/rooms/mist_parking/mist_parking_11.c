@@ -14,15 +14,14 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern s16      D_80071076;
-extern s32      D_mist_parking_80195320;
-extern TaskDesc RoomsShared8017e5b8Desc;
-extern Task*    RoomsShared8017ea2cTask;
-extern void     Stage_RequestMidiFromMap(s32 arg0);
+#include "rooms/mist_parking.h"
+
+extern s32  D_mist_parking_80195320;
+extern void Stage_RequestMidiFromMap(s32 arg0);
 
 void func_mist_parking_80183634(s32 arg0)
 {
-    Task* t = RoomsShared8017ea2cTask;
+    Task* t = D_mist_parking_80195324;
 
     if (t == NULL) {
         return;
@@ -36,13 +35,13 @@ void func_mist_parking_80183634(s32 arg0)
     t->spawnArg1 = arg0;
     return;
 kill:
-    taskKill(RoomsShared8017ea2cTask);
-    RoomsShared8017ea2cTask = NULL;
+    taskKill(D_mist_parking_80195324);
+    D_mist_parking_80195324 = NULL;
 }
 
 void func_mist_parking_80183688(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(&RoomsShared8017e5b8Desc, 5U), arg0, 0, 0);
+    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_8018D75C, 5U), arg0, 0, 0);
 }
 
 void func_mist_parking_801836CC(Task* arg0)
@@ -82,7 +81,7 @@ void func_mist_parking_80183780(s32 arg0)
 void func_mist_parking_801837A4(void)
 {
     D_mist_parking_80195320 = 0;
-    RoomsShared8017ea2cTask = 0;
+    D_mist_parking_80195324 = 0;
 }
 
 void func_mist_parking_801837B8(Task* arg0)

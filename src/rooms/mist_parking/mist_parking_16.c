@@ -11,14 +11,11 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-extern s16      D_80071076;
-extern s8       D_80073BAE;
-extern Task*    RoomsShared8018459cTask;
-extern TaskDesc RoomsShared8017daf0Desc;
+#include "rooms/mist_parking.h"
 
 void func_mist_parking_80184624(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(&RoomsShared8017daf0Desc, 2U), arg0, 0, 0);
+    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_80190824, 2U), arg0, 0, 0);
 }
 
 void func_mist_parking_80184668(Task* arg0)
@@ -52,5 +49,5 @@ void func_mist_parking_801846A4(s32 arg0)
 
 void func_mist_parking_8018471C(void)
 {
-    RoomsShared8018459cTask = NULL;
+    D_mist_parking_8019532C = NULL;
 }
