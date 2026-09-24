@@ -3,6 +3,7 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 /// Task table spawned by `func_shelter_b2_laboratory_801801D0` the first time
@@ -37,7 +38,13 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, GpMsg13EF* arg2, 
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_8018025C);
+s32 func_shelter_b2_laboratory_8018025C(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0x63) {
+        SndEvt_EnqueueType6(0x541F0017, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_80180290);
 
