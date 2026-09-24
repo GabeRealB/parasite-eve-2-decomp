@@ -14,6 +14,11 @@ extern s32 D_80165834;
 /// Area records applied once the walkway's scene has started.
 extern GpAreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
 
+/// The walkway's message table, installed as the room task's `msgTable`.
+extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[];
+
+extern void func_8016268C(void);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", func_shelter_b2_north_maintenance_walkway_8017DA88);
 
 s32 func_shelter_b2_north_maintenance_walkway_8017DC44(void)
@@ -51,6 +56,14 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(s32 arg0, s32 arg1, s32 a
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", func_shelter_b2_north_maintenance_walkway_8017DD18);
+void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
+{
+    task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
+    Game_SetPtrSlot(task, 7);
+    if (gGameSession->at4.loc.place == 1) {
+        func_8016268C();
+    }
+    task->state = task->state + 1;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", RoomsShared8017d878Table);
