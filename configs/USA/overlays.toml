@@ -925,15 +925,15 @@ objects = [
 id = 299
 objects = [
   { kind = "packageId" },
-  { lib = true, unit = "rooms_shared_8017d6d0", rodata = "0x4", text = "0x110" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_5", rodata = "0x4", text = "0x110" },
   { unit = "acropolis_fire_escape/acropolis_fire_escape_3", rodata = "0x50", text = "0x27D8" },
   { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x84", text = "0x1ECC" },
   { unit = "acropolis_fire_escape/acropolis_fire_escape_2", rodata = "0xF4", text = "0x2438" },
-  { lib = true, unit = "rooms_shared_80180c98", text = "0xCD8" },
-  { lib = true, unit = "room_util38", text = "0x186C" },
-  { lib = true, unit = "rooms_shared_8017ef20", text = "0x1960" },
-  { lib = true, unit = "rooms_shared_80182628", text = "0x2748" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x2964" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_6", text = "0xCD8" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_7", text = "0x186C" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_8", text = "0x1960" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_9", text = "0x2748" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape_10", text = "0x2964" },
   { unit = "acropolis_fire_escape/acropolis_fire_escape_4", text = "0x29BC" },
   { kind = "data", at = "0x4438" },
 ]

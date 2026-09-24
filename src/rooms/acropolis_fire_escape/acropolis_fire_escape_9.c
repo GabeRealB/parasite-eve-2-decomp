@@ -3,9 +3,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-#include "rooms/rooms_shared_80182628.h"
-
-void RoomsShared80182628(Task* task)
+/// Plays the sound event passed in `spawnArg2` on frames 0 and 0x50 of the
+/// task's life and kills the task at frame 0x78.
+void func_acropolis_fire_escape_8017FD08(Task* task)
 {
     s32 zero;
 

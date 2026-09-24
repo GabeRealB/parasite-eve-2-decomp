@@ -58,4 +58,6 @@ typedef struct AcropolisFireEscapeStatWork {
 } AcropolisFireEscapeStatWork;
 STATIC_ASSERT_SIZEOF(AcropolisFireEscapeStatWork, 0xC4);
 
+void func_acropolis_fire_escape_8017F450(Task* task);
+
 #endif // ROOMS_ACROPOLIS_FIRE_ESCAPE_H

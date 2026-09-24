@@ -18,13 +18,13 @@
 #include "main/unknown_syms.h"
 #include "rooms/acropolis_fire_escape.h"
 
-extern TaskFuncTable3 RoomsShared8017d878Table;
-extern s8             D_8007272D;
-extern TaskDesc       D_acropolis_fire_escape_80181D18;
-extern GpMsgEntry     D_acropolis_fire_escape_80181D3C[];
-extern TaskDesc       D_acropolis_fire_escape_80181D64;
-extern GpObj4A        D_acropolis_fire_escape_801826A8;
-extern s32            D_acropolis_fire_escape_80183040;
+extern const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4;
+extern s8                   D_8007272D;
+extern TaskDesc             D_acropolis_fire_escape_80181D18;
+extern GpMsgEntry           D_acropolis_fire_escape_80181D3C[];
+extern TaskDesc             D_acropolis_fire_escape_80181D64;
+extern GpObj4A              D_acropolis_fire_escape_801826A8;
+extern s32                  D_acropolis_fire_escape_80183040;
 
 s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 arg3)
 {

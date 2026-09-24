@@ -4,16 +4,15 @@
 
 #include "main/text.h"
 
-/// The "%" suffix. Every carrying room has its own copy in `.data`; the sym
-/// maps name each at its room's address so this one body links everywhere.
-extern u8 Room_Util38Percent[];
+/// Suffix appended after a percentage.
+extern u8 D_acropolis_fire_escape_80181A78[];
 
 /// Format `value` as a percentage with `decimals` fractional digits into `buf`:
 /// print the integer with at least `decimals + 1` digits when it is small enough
 /// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
 /// shift the last `decimals` digits right by one and drop a '.' in front of
 /// them. Appends "%" and returns `buf`.
-u8* Room_Util38(u8* buf, s32 value, s32 decimals)
+u8* func_acropolis_fire_escape_8017EE2C(u8* buf, s32 value, s32 decimals)
 {
     s32 limit;
     s32 i;
@@ -51,6 +50,6 @@ u8* Room_Util38(u8* buf, s32 value, s32 decimals)
         p[1] = '.';
     }
 
-    Text_Strcat(buf, Room_Util38Percent);
+    Text_Strcat(buf, D_acropolis_fire_escape_80181A78);
     return buf;
 }

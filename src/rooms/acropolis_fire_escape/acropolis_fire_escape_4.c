@@ -23,15 +23,15 @@
 #include "main/unknown_syms.h"
 #include "rooms/acropolis_fire_escape.h"
 
-extern TaskFuncTable3 RoomsShared8017d878Table;
-extern s8             D_8007272D;
-extern GpMsgEntry     D_acropolis_fire_escape_80181D3C[];
-extern TaskDesc       D_acropolis_fire_escape_80181D64;
-extern GpObj4A        D_acropolis_fire_escape_801826A8;
-extern s32            D_acropolis_fire_escape_80183040;
-extern s16            D_acropolis_fire_escape_80181D7C[];
-extern u32            Gp_LcgState;
-extern s32            D_80070F70;
+extern const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4;
+extern s8                   D_8007272D;
+extern GpMsgEntry           D_acropolis_fire_escape_80181D3C[];
+extern TaskDesc             D_acropolis_fire_escape_80181D64;
+extern GpObj4A              D_acropolis_fire_escape_801826A8;
+extern s32                  D_acropolis_fire_escape_80183040;
+extern s16                  D_acropolis_fire_escape_80181D7C[];
+extern u32                  Gp_LcgState;
+extern s32                  D_80070F70;
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 

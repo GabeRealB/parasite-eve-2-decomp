@@ -1,25 +1,38 @@
 #include "common.h"
-#include "gameplay/268.h"
-#include "main/mc.h"
-#include "main/ui.h"
-#include "rooms/room_common.h"
+
 #include <psyq/libgte.h>
+
+#include "gameplay/268.h"
+#include "gameplay/3688.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "rooms/rooms_shared_8017e8b4.h"
-#include "gameplay/3688.h"
 #include "main/session.h"
 #include "main/sound.h"
-#include "rooms/rooms_shared_8017ea68.h"
-#include "rooms/rooms_shared_8017ed60.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/ui.h"
+#include "rooms/room_common.h"
+#include "rooms/acropolis_fire_escape.h"
 
-void RoomsShared80180c98(UiList* list, UiObject* obj);
-void RoomsShared80180f94(UiList* list, UiObject* obj);
+void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj);
+void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj);
 
 extern UiObject*    D_80067634;
 extern UiObjectDesc D_800611E4;
+
+/// Titles of the usage panel: weapons, then Parasite Energy.
+extern const char D_acropolis_fire_escape_8017D624[];
+extern const char D_acropolis_fire_escape_8017D630[];
+
+/// Title of the telephone menu. The bytes after its terminator are not zero,
+/// so it stays assembly.
+extern const char D_acropolis_fire_escape_8017D638[];
+
+/// List and row descriptor of the usage panel, and the telephone menu's list.
+extern UiList       D_acropolis_fire_escape_80181C6C;
+extern UiObjectDesc D_acropolis_fire_escape_80181C90;
+extern UiList       D_acropolis_fire_escape_80181CF4;
 
 /// Builds the "Play Data" item-usage panel's three parallel arrays from the
 /// save's per-item use counters (`Mc_SaveData.weaponUseCounts`, ids 0x80-0x9F).
@@ -32,7 +45,7 @@ extern UiObjectDesc D_800611E4;
 /// counter as a 12-bit fraction of the top row's. Both are scaled down by
 /// halving until the top counter fits in 17 bits, so the multiply and the
 /// shift cannot overflow.
-void RoomsShared80180c98(UiList* list, UiObject* obj)
+void func_acropolis_fire_escape_8017E298(UiList* list, UiObject* obj)
 {
     RoomItemUsage* work;
     s32            count;
@@ -104,8 +117,9 @@ void RoomsShared80180c98(UiList* list, UiObject* obj)
     list->field_10 = 0;
 }
 
-/// PE twin of `RoomsShared80180c98`: fills the "Play Data" PE-usage panel's
-/// `RoomPeUsage` block from the save's per-slot use counters.
+/// Parasite Energy counterpart of `func_acropolis_fire_escape_8017E298`: fills
+/// the "Play Data" PE-usage panel's `RoomPeUsage` block from the save's
+/// per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
 /// at 0xF, one per level, so slot `i` at level `Mc_SaveData.attachLevels[i]`
@@ -118,7 +132,7 @@ void RoomsShared80180c98(UiList* list, UiObject* obj)
 /// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
-void RoomsShared80180f94(UiList* list, UiObject* obj)
+void func_acropolis_fire_escape_8017E594(UiList* list, UiObject* obj)
 {
     RoomPeUsage* work;
     s16*         p;
@@ -204,7 +218,11 @@ void RoomsShared80180f94(UiList* list, UiObject* obj)
     list->field_10 = 0;
 }
 
-void RoomsShared8017e8b4(Task* task)
+/// Task body of the usage panel: `spawnArg1` 0 lists weapons, anything else
+/// Parasite Energy. On its first frame it allocates the row block, spawns the
+/// row descriptor and fills the list; every frame it updates the list, closes
+/// on cancel, and tears down any child window that has finished.
+void func_acropolis_fire_escape_8017E8B4(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -215,11 +233,11 @@ void RoomsShared8017e8b4(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    list          = &RoomsShared8017e8b4List;
+    list          = &D_acropolis_fire_escape_80181C6C;
     if (task->spawnArg1 == 0) {
-        Ui_DrawText((UiPanel*)obj, RoomsShared8017e8b4WeaponTitle);
+        Ui_DrawText((UiPanel*)obj, D_acropolis_fire_escape_8017D624);
     } else {
-        Ui_DrawText((UiPanel*)obj, RoomsShared8017e8b4PeTitle);
+        Ui_DrawText((UiPanel*)obj, D_acropolis_fire_escape_8017D630);
     }
     if (task->state == 0) {
         work = memCalloc(0xC4, 0);
@@ -227,11 +245,11 @@ void RoomsShared8017e8b4(Task* task)
             return;
         }
         task->work = work;
-        Ui_SpawnFromDesc(&RoomsShared8017e8b4Desc, 0, 0, 1, obj);
+        Ui_SpawnFromDesc(&D_acropolis_fire_escape_80181C90, 0, 0, 1, obj);
         if (task->spawnArg1 == 0) {
-            RoomsShared80180c98(list, obj);
+            func_acropolis_fire_escape_8017E298(list, obj);
         } else {
-            RoomsShared80180f94(list, obj);
+            func_acropolis_fire_escape_8017E594(list, obj);
         }
         Ui_InitList(list, (UiMiniObj*)obj);
         list->field_A = 1;
@@ -256,7 +274,11 @@ void RoomsShared8017e8b4(Task* task)
     }
 }
 
-void RoomsShared8017ea68(Task* task)
+/// Task body of the telephone menu. Until the save has a clear or has reached
+/// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
+/// out and updates the list. When the first child window finishes, the menu
+/// opens the item prompt its selection picks, or closes.
+void func_acropolis_fire_escape_8017EA68(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -271,7 +293,7 @@ void RoomsShared8017ea68(Task* task)
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     ready         = Mc_SaveData.demoScene == 1;
-    list          = &RoomsShared8017ea68List;
+    list          = &D_acropolis_fire_escape_80181CF4;
     one           = 1;
     if (Mc_SaveData.clearCount > 0) {
         ready = one;
@@ -294,9 +316,7 @@ void RoomsShared8017ea68(Task* task)
         Wip_UiHolder = NULL;
         task->state  = task->state + 1;
     } else {
-        /* The literal carries its trailing "\0\1" - the room's rodata has
-         * those two bytes right after the string and nothing else claims them. */
-        Ui_DrawText((UiPanel*)obj, RoomsShared8017ea68Title);
+        Ui_DrawText((UiPanel*)obj, D_acropolis_fire_escape_8017D638);
         Ui_UpdateListNoAnim(list, obj);
     }
     if (obj->field_2E == 6) {
@@ -364,7 +384,10 @@ void RoomsShared8017ea68(Task* task)
     }
 }
 
-void RoomsShared8017ed60(Task* task)
+/// Task body of a prompt window: on its first frame it becomes the UI holder and
+/// installs `func_acropolis_fire_escape_8017F450` as its exit callback; every
+/// frame it draws the prompt lines.
+void func_acropolis_fire_escape_8017ED60(Task* task)
 {
     UiObject* obj;
 
@@ -372,7 +395,7 @@ void RoomsShared8017ed60(Task* task)
     obj->field_2E = 0;
     if (task->state == 0) {
         Wip_UiHolder       = (WipUiHolder*)obj;
-        task->exitCallback = Room_SaveUi01;
+        task->exitCallback = func_acropolis_fire_escape_8017F450;
         task->state       += 1;
     }
     Gp_DrawPromptLines(obj, task);
@@ -381,7 +404,7 @@ void RoomsShared8017ed60(Task* task)
 /// Inserts a '.' into a digit string so `decimals` characters sit after the
 /// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
 /// one to the right to open a slot. No-op when `decimals <= 0`.
-void Room_Util01(u8* str, s32 decimals)
+void func_acropolis_fire_escape_8017EDBC(u8* str, s32 decimals)
 {
     s32 len;
 

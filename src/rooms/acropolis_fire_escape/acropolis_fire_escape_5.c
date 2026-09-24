@@ -1,18 +1,18 @@
 #include "common.h"
+
 #include <psyq/libgte.h>
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "rooms/rooms_shared_8017d6d0.h"
+#include <psyq/libgpu.h>
+
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "main/display.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/text.h"
+#include "main/ui.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017de9c.h"
-#include <psyq/libgpu.h>
-
-extern u8 Room_Util38Percent[];
 
 extern u16 D_80072174;
 extern s8  D_80072176;
@@ -24,11 +24,45 @@ extern s32 D_80072A98;
 
 extern UiObjectDesc D_8010EFA0;
 
-/// The "%" suffix appended to a row's percentage; every carrying room has its
-/// own copy, named at that room's address by the family's symbol maps.
-extern u8 Room_Util38Percent[];
+/// Row captions of the play-data panel, one per row.
+extern u8 D_acropolis_fire_escape_80181A20[];
+extern u8 D_acropolis_fire_escape_80181A50[];
+extern u8 D_acropolis_fire_escape_80181A28[];
+extern u8 D_acropolis_fire_escape_80181A2C[];
+extern u8 D_acropolis_fire_escape_80181A34[];
+extern u8 D_acropolis_fire_escape_80181A40[];
+extern u8 D_acropolis_fire_escape_80181A58[];
+extern u8 D_acropolis_fire_escape_80181A60[];
+extern u8 D_acropolis_fire_escape_80181A68[];
 
-void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
+/// Suffix appended after a plain count on rows 1, 2, 3 and 6 of the play-data
+/// panel.
+extern u8 D_acropolis_fire_escape_80181A70[];
+
+/// Suffix appended after a percentage.
+extern u8 D_acropolis_fire_escape_80181A78[];
+
+/// Help strings handed to the UI holder while the cursor rests on a row of the
+/// play-data panel, one per row.
+extern u8 D_acropolis_fire_escape_80181A7C[];
+extern u8 D_acropolis_fire_escape_80181AA8[];
+extern u8 D_acropolis_fire_escape_80181ACC[];
+extern u8 D_acropolis_fire_escape_80181AFC[];
+extern u8 D_acropolis_fire_escape_80181B30[];
+extern u8 D_acropolis_fire_escape_80181B64[];
+extern u8 D_acropolis_fire_escape_80181B9C[];
+extern u8 D_acropolis_fire_escape_80181BD0[];
+extern u8 D_acropolis_fire_escape_80181C08[];
+
+/// Drawn in place of a percentage for a row holding every recorded use.
+extern u8 D_acropolis_fire_escape_8017D61C[];
+
+/// Draws one row of the play-data panel, the row picked by
+/// `DialogPrompt::field_8`: a caption followed by a value - play time, one of
+/// several counters with a unit suffix, or a percentage kept in hundredths
+/// whose decimal point is inserted by hand (row 5 also draws a gauge and takes
+/// an extra line). While the cursor is on the row its help string is shown.
+void func_acropolis_fire_escape_8017D6D0(DialogPrompt* arg0, UiObject* arg1)
 {
     u8  buf[0x20];
     u8* p;
@@ -37,15 +71,15 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
     if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             u8* tbl[9] = {
-                RoomsShared8017d6d0Help0,
-                RoomsShared8017d6d0Help1,
-                RoomsShared8017d6d0Help2,
-                RoomsShared8017d6d0Help3,
-                RoomsShared8017d6d0Help4,
-                RoomsShared8017d6d0Help5,
-                RoomsShared8017d6d0Help6,
-                RoomsShared8017d6d0Help7,
-                RoomsShared8017d6d0Help8,
+                D_acropolis_fire_escape_80181A7C,
+                D_acropolis_fire_escape_80181AA8,
+                D_acropolis_fire_escape_80181ACC,
+                D_acropolis_fire_escape_80181AFC,
+                D_acropolis_fire_escape_80181B30,
+                D_acropolis_fire_escape_80181B64,
+                D_acropolis_fire_escape_80181B9C,
+                D_acropolis_fire_escape_80181BD0,
+                D_acropolis_fire_escape_80181C08,
             };
 
             Ui_SetHolderParam((s32)tbl[arg0->field_8], 0, 0);
@@ -65,7 +99,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label0);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A20);
             Text_FormatTime(p, D_80072174);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -82,9 +116,9 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label1);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A50);
             Text_ItoaUnsigned(p, D_80072A93);
-            Text_Strcat(p, RoomsShared8017d6d0Unit);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -100,9 +134,9 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label2);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A28);
             Text_ItoaUnsigned(p, D_80072834);
-            Text_Strcat(p, RoomsShared8017d6d0Unit);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -118,9 +152,9 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label3);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A2C);
             Text_ItoaUnsigned(p, D_80072836);
-            Text_Strcat(p, RoomsShared8017d6d0Unit);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -141,7 +175,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label4);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A34);
             if (Mc_SaveData.field_6CC == 0) {
                 pct = 0;
             } else {
@@ -168,7 +202,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
                 q--;
             }
             q[1] = 0x2E;
-            Text_Strcat(p, Room_Util38Percent);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A78);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -192,7 +226,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label5);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A40);
             cnt   = 326;
             total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
             if (total == 0) {
@@ -221,7 +255,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
                 q--;
             }
             q[1] = 0x2E;
-            Text_Strcat(p, Room_Util38Percent);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A78);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             Ui_DrawHBar((UiPanel*)arg1, arg1->field_1C, (s16)arg1->field_1E, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;
@@ -239,9 +273,9 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label6);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A58);
             Text_ItoaUnsigned(p, D_80072176);
-            Text_Strcat(p, RoomsShared8017d6d0Unit);
+            Text_Strcat(p, D_acropolis_fire_escape_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -257,7 +291,7 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label7);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A60);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A94), arg0->field_1C, 3, 2);
             break;
         }
@@ -273,14 +307,19 @@ void RoomsShared8017d6d0(DialogPrompt* arg0, UiObject* arg1)
             req.glyphTable = 0;
             req.centerMode = 0;
             req.field_E    = 1;
-            func_8002E53C(&req, RoomsShared8017d6d0Label8);
+            func_8002E53C(&req, D_acropolis_fire_escape_80181A68);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, D_80072A98), arg0->field_1C, 3, 2);
             break;
         }
     }
 }
 
-void RoomsShared8017de9c(DialogPrompt* arg0, UiObject* arg1)
+/// Draws one row of an item-usage panel from the `RoomItemUsage` block in the
+/// owning task's work area: the item's name, its share of all recorded uses as
+/// a percentage with two decimals, and a gauge scaled by the row's
+/// `barWidths` entry. Highlighting the row previews the item; pressing the
+/// detail button on the selected row opens the item's detail window.
+void func_acropolis_fire_escape_8017DE9C(DialogPrompt* arg0, UiObject* arg1)
 {
     u8             buf[0x20];
     TextDrawReq    req;
@@ -330,7 +369,7 @@ void RoomsShared8017de9c(DialogPrompt* arg0, UiObject* arg1)
     }
     limit = 1;
     if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, RoomsShared8017de9cHundred, arg0->field_1C, 3, 2);
+        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, D_acropolis_fire_escape_8017D61C, arg0->field_1C, 3, 2);
     } else {
         for (i = 2; i > 0; i--) {
             limit *= 10;
@@ -356,7 +395,7 @@ void RoomsShared8017de9c(DialogPrompt* arg0, UiObject* arg1)
             q--;
         }
         q[1] = '.';
-        Text_Strcat(p, Room_Util38Percent);
+        Text_Strcat(p, D_acropolis_fire_escape_80181A78);
         Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
     }
 
