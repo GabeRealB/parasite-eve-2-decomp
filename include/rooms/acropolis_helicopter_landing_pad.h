@@ -10,27 +10,6 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// 0x54 work block of the helipad enemy task, hung off the `Task::work`
-/// slot -- it is the `memCalloc(0x54)` block that
-/// `func_acropolis_helicopter_landing_pad_8017D658` allocates, not a
-/// `TaskIdMap`. Reach it with `(AhlpEnemyWork*)task->work`.
-///
-/// `lightMtx` / `colorMtx` are the model's own flat-light matrices:
-/// `func_acropolis_helicopter_landing_pad_8017D7B0` points the `TmdObject`'s
-/// `field_1C` / `field_20` at them and fills them from the three
-/// `D_acropolis_helicopter_landing_pad_80182340` lights.
-typedef struct AhlpEnemyWork {
-    /* 0x00 */ s32    field_0;
-    /* 0x04 */ s32    field_4;
-    /* 0x08 */ s32    field_8;
-    /* 0x0C */ s32    field_C;
-    /* 0x10 */ MATRIX lightMtx;
-    /* 0x30 */ MATRIX colorMtx;
-    /* 0x50 */ s16    field_50;
-    /* 0x52 */ byte   pad_52[0x2];
-} AhlpEnemyWork;
-STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
-
 /// Payload of room msg `0x7D3`, handled by
 /// `func_acropolis_helicopter_landing_pad_8017D824`. `phase` selects which
 /// of the two `RoomPlacement`s the model is moved to (0 / 2 first, 1 second).
@@ -40,56 +19,29 @@ typedef struct AhlpMsg7D3 {
 } AhlpMsg7D3;
 STATIC_ASSERT_SIZEOF(AhlpMsg7D3, 0x8);
 
-/// 0x14 scratch block `func_acropolis_helicopter_landing_pad_8017F010` takes
-/// from `G_SCRATCH_HEAD` for one light. `otz` is `SZ3 >> 2` of the `RTPS`,
-/// `flag` the GTE flag word (bit 31 rejects the light), `outer` / `inner` the
-/// two glow radii `0xC000 / otz` and `0x1800 / otz`, and `sx` / `sy` the
-/// projected centre.
-typedef struct AhlpLightScratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 flag;
-    /* 0x08 */ s32 outer;
-    /* 0x0C */ s32 inner;
-    /* 0x10 */ u16 sx;
-    /* 0x12 */ u16 sy;
-} AhlpLightScratch;
-STATIC_ASSERT_SIZEOF(AhlpLightScratch, 0x14);
+/// Two descriptors that attach no model: entry 0 runs
+/// `func_acropolis_helicopter_landing_pad_8017ED00`, entry 1
+/// `func_acropolis_helicopter_landing_pad_8017EB58`.
+extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68[];
 
-/// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
-/// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
-/// endpoints, rotated by the coord's `workm` and offset by its translation;
-/// `otz` is `SZ3 >> 2` of the second `RTPS`, `flag` the GTE flag word (bit 31
-/// rejects the line), and `x0..y1` the two projected screen points.
-typedef struct AhlpSparkScratch {
-    /* 0x00 */ SVECTOR a;
-    /* 0x08 */ SVECTOR b;
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ u16     x0;
-    /* 0x1A */ u16     y0;
-    /* 0x1C */ u16     x1;
-    /* 0x1E */ u16     y1;
-} AhlpSparkScratch;
-STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
+/// Progress of the helicopter sequence. The msg 0x3EF handler moves it from 0
+/// to 1, the phase tick from 1 to 2, the cap-slot task to 3 and the room
+/// state-machine task to 4. Phase 0 refuses the warp into stage 0xF; phase 2
+/// makes the warp start cap slot 9 and lets
+/// `func_acropolis_helicopter_landing_pad_8017E570` spawn task entry 4.
+extern s32 D_acropolis_helicopter_landing_pad_80184D9C;
 
-/// 0x1C scratch block `func_acropolis_helicopter_landing_pad_80181064` takes
-/// from `G_SCRATCH_HEAD` for one lens-flare sprite. `pos` is the coord's
-/// world translation, `otz` is `SZ3 >> 2` of the `RTPS`, `flag` the GTE flag
-/// word (bit 31 rejects the sprite), `sx` / `sy` the projected centre and
-/// `dx` / `dy` the rotated half-extents of the quad's two diagonals.
-typedef struct AhlpFlareScratch {
-    /* 0x00 */ SVECTOR pos;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ u16     sx;
-    /* 0x1A */ u16     sy;
-} AhlpFlareScratch;
-STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
+/// Raised by the phase tick once the session reaches camera view 5 and
+/// cleared when the script task starts; the msg 0x3EF handler only starts
+/// phase 1 while it is set.
+extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
 
-/// The room's own task table, eight descriptors that attach no model,
-/// spawned by index and closed by an entry whose `flags` is all ones.
-extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
+/// Latched by kind 1 of msg 0x3EF and cleared when the script task starts or
+/// `gGameSession->eventState` is 0; while set, a handler forwards msg 0x3E9
+/// to slot 3.
+extern s32 D_acropolis_helicopter_landing_pad_80187F84;
+
+/// Per-frame phase tick of the room's script task.
+void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task);
 
 #endif
