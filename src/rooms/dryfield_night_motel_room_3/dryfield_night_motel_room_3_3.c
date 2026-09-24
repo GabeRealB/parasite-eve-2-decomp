@@ -3,6 +3,8 @@
 #include <psyq/libgte.h>
 
 #include "main/session.h"
+
+#include "rooms/dryfield_night_motel_room_3.h"
 #include "rooms/room_common.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. Each
@@ -22,17 +24,17 @@ void func_dryfield_night_motel_room_3_8017D9B4(void)
 {
     switch (gGameSession->at4.loc.view) {
         case 3:
-            Room_Draw20(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
+            func_dryfield_night_motel_room_3_8017D738(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
             break;
         case 4:
-            Room_Draw20(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
+            func_dryfield_night_motel_room_3_8017D738(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
             /* fallthrough */
         case 10:
         case 11:
-            Room_Draw20(&D_dryfield_night_motel_room_3_8017DA84, 1, 0x200);
+            func_dryfield_night_motel_room_3_8017D738(&D_dryfield_night_motel_room_3_8017DA84, 1, 0x200);
             break;
         case 8:
-            Room_Draw20(&D_dryfield_night_motel_room_3_8017DA94, 2, 0x180);
+            func_dryfield_night_motel_room_3_8017D738(&D_dryfield_night_motel_room_3_8017DA94, 2, 0x180);
             break;
     }
 }
