@@ -2208,14 +2208,7 @@ id = 424
 text = ["0x10", "0xED4"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock", rodata = "0x4", text = "0x5C" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_4", text = "0x10" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_5", text = "0x18" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_6", text = "0x6C" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_2", text = "0xB0" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_7", text = "0xB8" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_3", text = "0x110" },
-  { unit = "shelter_1f_airlock/shelter_1f_airlock_8", text = "0xB30" },
+  { unit = "shelter_1f_airlock/shelter_1f_airlock", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0xED4" },
 ]
 
