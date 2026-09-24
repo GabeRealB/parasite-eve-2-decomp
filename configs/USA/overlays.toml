@@ -5263,12 +5263,6 @@ id = 278
 objects = [
   { kind = "packageId" },
   { unit = "actor_560800/actor_560800", rodata = "0x4", text = "0x380" },
-  { unit = "actor_560800/actor_560800_4", rodata = "0x2EC", text = "0x4C88" },
-  { unit = "actor_560800/actor_560800_5", text = "0x4460" },
-  { unit = "actor_560800/actor_560800_2", text = "0x4490" },
-  { unit = "actor_560800/actor_560800_6", text = "0x4AF0" },
-  { unit = "actor_560800/actor_560800_3", text = "0x4B10" },
-  { unit = "actor_560800/actor_560800_7", text = "0x4C68" },
   { kind = "model", at = "0x76AC" },
   { kind = "model", at = "0xC434" },
   { kind = "model", at = "0x11C0C" },
