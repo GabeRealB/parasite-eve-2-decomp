@@ -1,43 +1,73 @@
 #include "common.h"
+
 #include <psyq/libgte.h>
+
+#include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/4CC.h"
+#include "main/mc.h"
 #include "main/pad.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
-#include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e90c.h"
-#include "rooms/rooms_shared_8017f938.h"
-#include "rooms/rooms_shared_8017eb5c.h"
-#include "rooms/rooms_shared_8017fdb8.h"
 #include "main/wipsys.h"
-#include "rooms/rooms_shared_8017ed7c.h"
-#include "gameplay/268.h"
-#include "main/mc.h"
-#include "rooms/rooms_shared_8017ef24.h"
-#include "gameplay/4CC.h"
-#include "main/session.h"
-#include "rooms/rooms_shared_8017f108.h"
-#include "rooms/rooms_shared_8017f31c.h"
-#include "rooms/rooms_shared_8017f49c.h"
-#include "rooms/rooms_shared_8017df68.h"
-#include "rooms/rooms_shared_8017f764.h"
-#include "rooms/rooms_shared_8017fe74.h"
+#include "rooms/room_common.h"
+#include "rooms/shelter_1f_heliport.h"
 
 extern char Gp_StrEmpty[];
 
-extern UiObject*    D_80067634;
-extern UiObjectDesc D_8010D80C;
-
-extern GpItemScan D_80072724;
-
-extern u8 D_80071072;
-
+extern UiObject*     D_80067634;
+extern u8            D_80071072;
 extern GpItemScan    D_80072724;
+extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 
-void RoomsShared8017e90c(Task* task)
+/// Titles and captions of the shop's panels.
+extern u8 D_shelter_1f_heliport_8017D6D0[];
+extern u8 D_shelter_1f_heliport_8017D6D8[];
+extern u8 D_shelter_1f_heliport_8017D6DC[];
+extern u8 D_shelter_1f_heliport_8017D6E4[];
+extern u8 D_shelter_1f_heliport_8017D6EC[];
+extern u8 D_shelter_1f_heliport_8017D6F4[];
+
+/// Messages and labels of the shop's panels.
+extern u8 D_shelter_1f_heliport_80180F4C[];
+extern u8 D_shelter_1f_heliport_80180F60[];
+extern u8 D_shelter_1f_heliport_80180FB8[];
+extern u8 D_shelter_1f_heliport_80180FC0[];
+extern u8 D_shelter_1f_heliport_80180FCC[];
+extern u8 D_shelter_1f_heliport_80180FD4[];
+extern u8 D_shelter_1f_heliport_80180FDC[];
+extern u8 D_shelter_1f_heliport_80180FF0[];
+extern u8 D_shelter_1f_heliport_80181000[];
+extern u8 D_shelter_1f_heliport_80181020[];
+extern u8 D_shelter_1f_heliport_8018102C[];
+
+/// Row handlers, lists and panel descriptors of the shop's panels.
+extern UiListItemFunc D_shelter_1f_heliport_80181034[];
+extern UiList         D_shelter_1f_heliport_8018103C;
+extern UiList         D_shelter_1f_heliport_80181068;
+extern UiObjectDesc   D_shelter_1f_heliport_801810A8;
+extern UiObjectDesc   D_shelter_1f_heliport_801810C4;
+extern UiObjectDesc   D_shelter_1f_heliport_801810FC;
+extern UiObjectDesc   D_shelter_1f_heliport_80181150;
+extern UiObjectDesc   D_shelter_1f_heliport_8018116C;
+
+/// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
+/// animated quantity in 24.8 fixed point, and the item map of the slot being
+/// charged.
+extern s32        D_shelter_1f_heliport_80182C98;
+extern GpItemMap* D_shelter_1f_heliport_80182C9C;
+
+/// The shop's "Select" panel. On its first frame it allocates the
+/// `RoomShopList` work block, fills it through `func_shelter_1f_heliport_8017E378`
+/// and opens the balance panel `D_shelter_1f_heliport_80181150` beside it. Every
+/// frame it draws the list and the "BP" caption; menu reports -1 and cancel 6 to
+/// the parent. A child that reports 6 is torn down and the list takes input
+/// again; one that reports -1 passes it up.
+void func_shelter_1f_heliport_8017E744(Task* task)
 {
     TextDrawReq   req;
     UiObject*     obj;
@@ -53,7 +83,7 @@ void RoomsShared8017e90c(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, (char*)RoomsShared8017e90cTitle);
+    Ui_DrawText((UiPanel*)obj, (char*)D_shelter_1f_heliport_8017D6D0);
     if (task->state == 0) {
         mem  = memCalloc(sizeof(RoomShopList), 0);
         shop = mem;
@@ -62,16 +92,16 @@ void RoomsShared8017e90c(Task* task)
                so the null test stays on $v0 and the copy fills its delay slot. */
             SOFT_TOUCH_REG(shop);
             task->work         = (TaskIdMap*)shop;
-            shop->list.funcs   = RoomsShared8017e90cRowFuncs;
+            shop->list.funcs   = D_shelter_1f_heliport_80181034;
             shop->list.field_6 = 0;
             shop->list.field_7 = 0xF;
-            RoomsShared8017e90cFillList(shop, obj);
+            func_shelter_1f_heliport_8017E378(shop, obj);
             Ui_LayoutListPanel(&shop->list, (UiPanel*)obj);
             shop->list.field_A = 1;
             Ui_SetListScrollFlag(&shop->list, 1);
             obj->field_12      += 8;
             shop->list.field_17 = 8;
-            Ui_SpawnFromDesc(&RoomsShared8017e90cBalanceDesc, 0, 0, 0, obj);
+            Ui_SpawnFromDesc(&D_shelter_1f_heliport_80181150, 0, 0, 0, obj);
             task->state += 1;
         }
     }
@@ -87,7 +117,7 @@ void RoomsShared8017e90c(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, RoomsShared8017f938Bp);
+    func_8002E53C(&req, D_shelter_1f_heliport_8017D6D8);
 
     if (obj->status == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
@@ -118,7 +148,12 @@ void RoomsShared8017e90c(Task* task)
     }
 }
 
-void RoomsShared8017eb5c(DialogPrompt* prompt, UiObject* obj)
+/// Row handler of the shop's mode menu. The last row is the exit, which
+/// reports 6 on confirm. Any other row stores its index as the owning task's
+/// mode (the upper halfword of `spawnArg1`) and draws that mode's label; the
+/// row is greyed out and unselectable when the mode's item-id list is empty,
+/// and confirm opens the shop list panel with the mode.
+void func_shelter_1f_heliport_8017E994(DialogPrompt* prompt, UiObject* obj)
 {
     u8* text;
     s32 status;
@@ -127,33 +162,33 @@ void RoomsShared8017eb5c(DialogPrompt* prompt, UiObject* obj)
 
     if ((prompt->field_4 - 1) == prompt->field_8) {
         one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, RoomsShared8017fdb8Msg, prompt->field_1C, one, 0);
+        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_1f_heliport_80180F60, prompt->field_1C, one, 0);
         if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->field_2E = 6;
         }
         return;
     }
 
-    text                  = RoomsShared8017eb5cMode0;
+    text                  = D_shelter_1f_heliport_80180FB8;
     obj->owner->spawnArg1 = (u16)obj->owner->spawnArg1;
     switch (prompt->field_8) {
         case 0:
             break;
         case 1:
-            text                   = RoomsShared8017eb5cMode1;
+            text                   = D_shelter_1f_heliport_80180FC0;
             obj->owner->spawnArg1 |= 0x10000;
             break;
         case 2:
-            text                   = RoomsShared8017eb5cMode2;
+            text                   = D_shelter_1f_heliport_80180FCC;
             obj->owner->spawnArg1 |= 0x20000;
             break;
         case 3:
-            text                   = RoomsShared8017eb5cMode3;
+            text                   = D_shelter_1f_heliport_80180FD4;
             obj->owner->spawnArg1 |= 0x30000;
             break;
     }
 
-    if (*RoomsShared8017eb5cIdList(obj->owner->spawnArg1) == 0xFFFF) {
+    if (*func_shelter_1f_heliport_8017D730(obj->owner->spawnArg1) == 0xFFFF) {
         prompt->field_1C = Ui_LookupTable(obj, 2);
         prompt->field_C  = 0;
     }
@@ -170,12 +205,16 @@ void RoomsShared8017eb5c(DialogPrompt* prompt, UiObject* obj)
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&RoomsShared8017eb5cListDesc, obj->owner->spawnArg1, 1, 1, obj);
+        Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810A8, obj->owner->spawnArg1, 1, 1, obj);
         obj->status = 0;
     }
 }
 
-void RoomsShared8017ed7c(Task* task)
+/// The shop's "List" panel, whose rows are the modes. Its first frame clears
+/// the item previews, opens the list-row panel and the preview panel, and lays
+/// out its five-row list. Cancel or menu reports -1. A child reporting 6 is
+/// torn down; one reporting -1 releases `Wip_UiHolder` and passes the code up.
+void func_shelter_1f_heliport_8017EBB4(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -186,13 +225,13 @@ void RoomsShared8017ed7c(Task* task)
     s32       code;
 
     obj           = task->spawnArg2;
-    list          = &RoomsShared8017ed7cList;
+    list          = &D_shelter_1f_heliport_8018103C;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, (char*)RoomsShared8017ed7cTitle);
+    Ui_DrawText((UiPanel*)obj, (char*)D_shelter_1f_heliport_8017D6DC);
     if (task->state == 0) {
         Gp_ClearPreviewItems();
         D_80067634 = NULL;
-        Ui_SpawnFromDesc(&RoomsShared8017ed7cRowsDesc, task->spawnArg1, 0, 1, obj);
+        Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810C4, task->spawnArg1, 0, 1, obj);
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
         list->field_4 = 5;
         list->field_5 = 5;
@@ -227,7 +266,9 @@ void RoomsShared8017ed7c(Task* task)
     }
 }
 
-void RoomsShared8017ef24(Task* task)
+/// Balance panel: the "BP" caption with the player's BP, and the "TOTAL"
+/// caption with the carried item count over the inventory's row capacity.
+void func_shelter_1f_heliport_8017ED5C(Task* task)
 {
     s8            digits[0x20];
     s8            total[0x20];
@@ -257,7 +298,7 @@ void RoomsShared8017ef24(Task* task)
     req0.glyphTable = 5;
     req0.centerMode = 0;
     req0.field_E    = 1;
-    func_8002E53C(&req0, RoomsShared8017f938Bp);
+    func_8002E53C(&req0, D_shelter_1f_heliport_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
     Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
@@ -270,7 +311,7 @@ void RoomsShared8017ef24(Task* task)
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
-    func_8002E53C(&req1, (char*)RoomsShared8017ef24Total);
+    func_8002E53C(&req1, (char*)D_shelter_1f_heliport_8017D6E4);
 
     p        = total;
     scan     = &Mc_SaveData.carriedItems;
@@ -285,7 +326,12 @@ void RoomsShared8017ef24(Task* task)
     Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, 3, 2);
 }
 
-void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
+/// Row handler of the buy prompt. On confirm it checks the price against the
+/// player's BP (notice 0 when short) and the inventory (notice 2 for a
+/// stackable item already held, 1 otherwise when it cannot be added). When the
+/// owning task's parent runs in mode 1 it opens the quantity picker; otherwise
+/// it takes the price, gives one of the item and reports 6.
+void func_shelter_1f_heliport_8017EF40(DialogPrompt* prompt, UiObject* obj)
 {
     TextDrawReq   req;
     UiObject*     child;
@@ -304,7 +350,7 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, RoomsShared8017f108Msg);
+    func_8002E53C(&req, D_shelter_1f_heliport_80180F4C);
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -315,13 +361,13 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
         if (cfg->bp >= price) {
             if (Gp_CanAddItem(scan, itemId) == 0) {
                 if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
-                    Ui_SpawnFromDesc(&RoomsShared8017f108NoticeDesc, 2, 1, 1, obj);
+                    Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810FC, 2, 1, 1, obj);
                 } else {
-                    Ui_SpawnFromDesc(&RoomsShared8017f108NoticeDesc, 1, 1, 1, obj);
+                    Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810FC, 1, 1, 1, obj);
                 }
                 obj->status = 0;
             } else if (((RoomShopTask*)obj->owner->parent)->mode == mode) {
-                child = Ui_SpawnFromDesc(&RoomsShared8017f108BuyDesc, itemId, 1, 1, obj);
+                child = Ui_SpawnFromDesc(&D_shelter_1f_heliport_8018116C, itemId, 1, 1, obj);
                 if (child != NULL) {
                     Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);
                     obj->status = 0;
@@ -332,13 +378,16 @@ void RoomsShared8017f108(DialogPrompt* prompt, UiObject* obj)
                 obj->field_2E = 6;
             }
         } else {
-            Ui_SpawnFromDesc(&RoomsShared8017f108NoticeDesc, 0, 1, 1, obj);
+            Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810FC, 0, 1, 1, obj);
             obj->status = 0;
         }
     }
 }
 
-void RoomsShared8017f31c(Task* task)
+/// Notice panel: shows one of three messages picked by `spawnArg1`, sized to
+/// the text. Menu reports -1; confirm, cancel or 0xBC frames elapsing tell the
+/// parent panel to close with 6.
+void func_shelter_1f_heliport_8017F154(Task* task)
 {
     UiObject* obj;
     u8*       text;
@@ -348,17 +397,17 @@ void RoomsShared8017f31c(Task* task)
     obj  = task->spawnArg2;
     switch (kind) {
         case 1:
-            text = RoomsShared8017f31cMsg1;
+            text = D_shelter_1f_heliport_80180FF0;
             break;
         case 2:
-            text = RoomsShared8017f31cMsg2;
+            text = D_shelter_1f_heliport_80181000;
             break;
         default:
-            text = RoomsShared8017f31cMsg0;
+            text = D_shelter_1f_heliport_80180FDC;
             break;
     }
 
-    Ui_DrawText((UiPanel*)obj, (char*)RoomsShared8017f31cNotice);
+    Ui_DrawText((UiPanel*)obj, (char*)D_shelter_1f_heliport_8017D6EC);
     obj->field_2E = 0;
     if (task->state == 0) {
         Ui_SizeFromTextPlain((UiPanel*)obj, text);
@@ -379,13 +428,12 @@ void RoomsShared8017f31c(Task* task)
     }
 }
 
-/// The charge station's transfer panel: steps through the mapped item slots,
-/// takes the slot's current level as the bar's starting value and its related
-/// quantity as the target, then animates the bar up to it over 0xBC frames.
-/// Confirm or cancel (or the timer running out) advances to the next slot;
-/// running out of slots reports code 6 to the parent. Seven rooms carry this
-/// body, each with its own "Charge" label and work pair.
-void RoomsShared8017f49c(Task* task)
+/// The charge panel: steps through the mapped item slots, refilling each
+/// slot's ammo or attachment quantity to its related quantity and animating a
+/// bar from the old value up to the new one for at most 0xBC frames. Confirm
+/// or cancel (or the timer running out) moves to the next slot; running out of
+/// slots reports 6 to the parent.
+void func_shelter_1f_heliport_8017F2D4(Task* task)
 {
     UiObject*   obj;
     GpItemMap*  map;
@@ -402,7 +450,7 @@ void RoomsShared8017f49c(Task* task)
 
     obj           = task->spawnArg2;
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, (char*)RoomsShared8017f49cCharge);
+    Ui_DrawText((UiPanel*)obj, (char*)D_shelter_1f_heliport_8017D6F4);
 
     if (task->state == 0) {
         task->spawnArg1 = 0;
@@ -414,44 +462,44 @@ void RoomsShared8017f49c(Task* task)
         if (slotId < 0) {
             obj->field_2E = 6;
         } else {
-            map                    = Gp_GetItemMap(slotId);
-            RoomsShared8017f49cMap = map;
-            itemId                 = map->field_1;
-            slot                   = Gp_GetItemSlot(itemId);
-            if (RoomsShared8017f49cMap->field_0 == 0) {
-                RoomsShared8017f49cQty = slot->ammoQty;
-                slot->ammoQty          = Gp_GetRelatedQty(itemId, 0);
+            map                            = Gp_GetItemMap(slotId);
+            D_shelter_1f_heliport_80182C9C = map;
+            itemId                         = map->field_1;
+            slot                           = Gp_GetItemSlot(itemId);
+            if (D_shelter_1f_heliport_80182C9C->field_0 == 0) {
+                D_shelter_1f_heliport_80182C98 = slot->ammoQty;
+                slot->ammoQty                  = Gp_GetRelatedQty(itemId, 0);
             } else {
-                RoomsShared8017f49cQty = slot->attachQty;
-                slot->attachQty        = Gp_GetRelatedQty(itemId, 1);
+                D_shelter_1f_heliport_80182C98 = slot->attachQty;
+                slot->attachQty                = Gp_GetRelatedQty(itemId, 1);
             }
-            task->killCountdown      = 0xBC;
-            RoomsShared8017f49cQty <<= 8;
-            task->state              = task->state + 1;
+            task->killCountdown              = 0xBC;
+            D_shelter_1f_heliport_80182C98 <<= 8;
+            task->state                      = task->state + 1;
         }
     }
 
-    curItem = RoomsShared8017f49cMap->field_1;
-    relItem = RoomsShared8017f49cMap->field_2;
-    if (RoomsShared8017f49cMap->field_0 == 0) {
+    curItem = D_shelter_1f_heliport_80182C9C->field_1;
+    relItem = D_shelter_1f_heliport_80182C9C->field_2;
+    if (D_shelter_1f_heliport_80182C9C->field_0 == 0) {
         qty = Gp_GetRelatedQty(curItem, 0);
     } else {
         qty = Gp_GetRelatedQty(curItem, 1);
     }
-    qty                   <<= 8;
-    RoomsShared8017f49cQty += 0x40;
-    if (qty < RoomsShared8017f49cQty) {
-        RoomsShared8017f49cQty = qty;
+    qty                           <<= 8;
+    D_shelter_1f_heliport_80182C98 += 0x40;
+    if (qty < D_shelter_1f_heliport_80182C98) {
+        D_shelter_1f_heliport_80182C98 = qty;
     }
 
     y = (s16)obj->field_18;
     Gp_DrawItemLabel(obj, (s16)obj->field_1C + 2, y + 0xF, curItem, 0x606060, 0);
     Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, y + 0x12);
     Gp_DrawItemLabel(obj, (s16)obj->field_1C + 2, y + 0x23, relItem, 0x606060, 0);
-    Gp_DrawQty(obj, (s16)obj->field_1C + 2, y + 0x23, RoomsShared8017f49cQty >> 8, 0x606060);
+    Gp_DrawQty(obj, (s16)obj->field_1C + 2, y + 0x23, D_shelter_1f_heliport_80182C98 >> 8, 0x606060);
     h = (s16)obj->field_1A;
     func_800C0E20((UiPanel*)obj, (s16)obj->field_1C + 2, (s16)obj->field_1E - 2, h - 6, qty,
-                  RoomsShared8017f49cQty, 0x1741F);
+                  D_shelter_1f_heliport_80182C98, 0x1741F);
 
     if (task->state == 2) {
         countdown           = task->killCountdown - 1;
@@ -464,10 +512,10 @@ void RoomsShared8017f49c(Task* task)
     }
 }
 
-/// Shop quantity row: the "Amount" label at the preview slot plus how many of
-/// the previewed item the player already holds. Stackable items (0xA0..0xBF)
-/// ask the scan for their stack quantity; everything else is counted by
-/// walking the item table.
+/// Draws the preview of the item the shop list's cursor rests on and, for an
+/// item id below 0x100, the "Amount" caption with how many of it the player
+/// already holds. Stackable items (0xA0..0xBF) ask the scan for their stack
+/// quantity; everything else is counted by walking the item table.
 ///
 /// `guard` is the register the loop's entry test reads. The target compares a
 /// copy of `count` (`move s4,s3` in the branch delay slot) rather than the
@@ -479,7 +527,7 @@ void RoomsShared8017f49c(Task* task)
 ///    single-use constant init next to its use (into the else block, past the
 ///    label, where the `move` from `count` can no longer be formed), and with
 ///    three it colours after `item` (`$s5`) instead of before (`$s4`).
-void RoomsShared8017f764(Task* task)
+void func_shelter_1f_heliport_8017F59C(Task* task)
 {
     u8          buf[0x10];
     TextDrawReq req;
@@ -493,10 +541,10 @@ void RoomsShared8017f764(Task* task)
     s32         n;
     GpItemRec*  rec;
 
-    item         = RoomsShared8017df68Selected;
+    item         = D_shelter_1f_heliport_80180F48;
     obj          = task->spawnArg2;
     task->status = 0;
-    if ((CdCmd_IsIdle() & 0xFFFF) && RoomsShared8017df68Selected == Gp_GetPreviewItem()) {
+    if ((CdCmd_IsIdle() & 0xFFFF) && D_shelter_1f_heliport_80180F48 == Gp_GetPreviewItem()) {
         func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, 0x20);
     } else {
         func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, 0x120);
@@ -511,7 +559,7 @@ void RoomsShared8017f764(Task* task)
         req.field_8    = 0x606060;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, RoomsShared8017f764Amount);
+        func_8002E53C(&req, D_shelter_1f_heliport_80181020);
         count = 0;
         guard = 0;
         if ((u32)(item - 0xA0) < 0x20U) {
@@ -531,7 +579,13 @@ void RoomsShared8017f764(Task* task)
     }
 }
 
-void RoomsShared8017f938(Task* task)
+/// Quantity picker of the buy prompt. Up and down step the count between 1 and
+/// the most the player can take: for a stackable item, what its stock ceiling
+/// still allows in steps of its per-buy amount; otherwise the free inventory
+/// rows; in both cases no more than the BP affords. It shows the unit and
+/// total price. Confirm takes the total and gives the items; confirm or
+/// cancel tells the parent panel to close with 6.
+void func_shelter_1f_heliport_8017F770(Task* task)
 {
     u8          buf[0x20];
     TextDrawReq req;
@@ -601,7 +655,7 @@ void RoomsShared8017f938(Task* task)
     }
 
     count = task->extraState;
-    Text_DrawPrompt(obj, left + 0x98, y, RoomsShared8017f938Times, 0x606060, 3, 2);
+    Text_DrawPrompt(obj, left + 0x98, y, D_shelter_1f_heliport_8018102C, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar((UiPanel*)obj, left, -x + 2, top + 0x12);
 
@@ -613,7 +667,7 @@ void RoomsShared8017f938(Task* task)
     req.glyphTable = 5;
     req.centerMode = 2;
     req.field_E    = 1;
-    func_8002E53C(&req, RoomsShared8017f938Bp);
+    func_8002E53C(&req, D_shelter_1f_heliport_8017D6D8);
 
     Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
 
@@ -643,7 +697,8 @@ void RoomsShared8017f938(Task* task)
     }
 }
 
-void RoomsShared8017fdb8(DialogPrompt* prompt, UiObject* obj)
+/// Row handler that draws a single message and reports 6 on confirm.
+void func_shelter_1f_heliport_8017FBF0(DialogPrompt* prompt, UiObject* obj)
 {
     TextDrawReq req;
 
@@ -654,7 +709,7 @@ void RoomsShared8017fdb8(DialogPrompt* prompt, UiObject* obj)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, RoomsShared8017fdb8Msg);
+    func_8002E53C(&req, D_shelter_1f_heliport_80180F60);
 
     if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -662,7 +717,9 @@ void RoomsShared8017fdb8(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-void RoomsShared8017fe74(Task* task)
+/// A list panel over `D_shelter_1f_heliport_80181068`. Cancel reports 6 and
+/// menu -1; a child reporting 6 is torn down, one reporting -1 passes it up.
+void func_shelter_1f_heliport_8017FCAC(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -670,7 +727,7 @@ void RoomsShared8017fe74(Task* task)
     UiObject* childObj;
     s16       code;
 
-    list          = &RoomsShared8017fe74List;
+    list          = &D_shelter_1f_heliport_80181068;
     obj           = task->spawnArg2;
     obj->field_2E = 0;
     if (task->state == 0) {

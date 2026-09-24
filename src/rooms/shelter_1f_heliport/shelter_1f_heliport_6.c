@@ -1,26 +1,37 @@
 #include "common.h"
+
 #include <psyq/libgte.h>
+
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
 #include "main/pad.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017df68.h"
-#include "main/task.h"
+#include "rooms/shelter_1f_heliport.h"
 
 extern GpItemScan    D_80072724;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
 extern char          Gp_StrEmpty[];
 
-/* Adds an item id to the room's shop list, keeping one entry per item kind:
-   ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
-   the same kind is overwritten only by a higher level. */
+extern u8           D_shelter_1f_heliport_80180F7C[];
+extern u8           D_shelter_1f_heliport_80180F68[];
+extern UiObjectDesc D_shelter_1f_heliport_80181134;
+extern u8           D_shelter_1f_heliport_80180F78[];
+extern UiObjectDesc D_shelter_1f_heliport_801810E0;
 
-void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
+/// Draws one row of the shop list and handles its input, recording the row's
+/// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
+/// and unselectable unless `Gp_HasMappedItem` answers non-zero, and opens its
+/// own panel; row 0xFFFC is greyed out while the scan holds item 0x8F. Any
+/// other row is an item with its price, greyed out when `func_800B7420`
+/// refuses it; confirm opens the buy panel and button 0x10 the item's detail
+/// panel.
+void func_shelter_1f_heliport_8017DDA0(DialogPrompt* prompt, UiObject* obj)
 {
     TextDrawReq   req;
     u8            buf[0x20];
@@ -42,14 +53,14 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
        instead of being rematerialised at the Gp_SumScanQty call. */
     scan = &D_80072724;
     if (prompt->field_C == 1) {
-        RoomsShared8017df68Selected = itemId;
+        D_shelter_1f_heliport_80180F48 = itemId;
     }
 
     if (itemId == 0xFFFE) {
         status = obj->status;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->field_10 == prompt->field_8) {
-                Ui_SetHolderParam((s32)RoomsShared8017df68HolderText, 0, 0);
+                Ui_SetHolderParam((s32)D_shelter_1f_heliport_80180F7C, 0, 0);
             }
         }
         if (Gp_HasMappedItem() == 0) {
@@ -64,10 +75,10 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
         req.glyphTable = 0;
         req.centerMode = 0;
         req.field_E    = 1;
-        func_8002E53C(&req, RoomsShared8017df68MapMsg);
+        func_8002E53C(&req, D_shelter_1f_heliport_80180F68);
         if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            Ui_SpawnFromDesc(&RoomsShared8017df68MapDesc, 0, 1, 1, obj);
+            Ui_SpawnFromDesc(&D_shelter_1f_heliport_80181134, 0, 1, 1, obj);
             obj->status = 0;
         }
         return;
@@ -84,10 +95,10 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
             blocked          = 1;
             prompt->field_1C = Ui_LookupTable(obj, 2);
         }
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, RoomsShared8017df68RowMsg, prompt->field_1C, 1, 0);
+        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_1f_heliport_80180F78, prompt->field_1C, 1, 0);
         if (prompt->field_C == 1 && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
-            child = Ui_SpawnFromDesc(&RoomsShared8017df68BuyDesc, itemId, 1, 1, obj);
+            child = Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810E0, itemId, 1, 1, obj);
             if (child != NULL) {
                 Ui_ClampDialogRect((UiPanel*)child, (UiPanel*)prompt, (UiPanel*)obj);
                 obj->status = 0;
@@ -112,7 +123,7 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
     }
     if (prompt->field_C == 1) {
         if (blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            child2 = Ui_SpawnFromDesc(&RoomsShared8017df68BuyDesc, itemId, 1, 1, obj);
+            child2 = Ui_SpawnFromDesc(&D_shelter_1f_heliport_801810E0, itemId, 1, 1, obj);
             if (child2 != NULL) {
                 SndEvt_EnqueueType6(0x16, 0, 0);
                 Ui_ClampDialogRect((UiPanel*)child2, (UiPanel*)prompt, (UiPanel*)obj);
@@ -135,7 +146,11 @@ void RoomsShared8017df68(DialogPrompt* prompt, UiObject* obj)
     Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
 }
 
-void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item)
+/// Adds an item id to the room's shop list, keeping one entry per item kind:
+/// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
+/// the same kind is overwritten only by a higher level. In mode 0x10 the ids
+/// 0x9D..0x9F, 0x8A and 0x65 are never added.
+void func_shelter_1f_heliport_8017E22C(RoomShopList* shop, UiObject* obj, s32 item)
 {
     Task*         task = obj->owner;
     s32           mode = task->spawnArg1;

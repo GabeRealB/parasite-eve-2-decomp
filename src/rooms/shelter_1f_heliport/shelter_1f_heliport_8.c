@@ -7,15 +7,19 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-#include "rooms/rooms_shared_8017ff9c.h"
+extern UiObjectDesc D_shelter_1f_heliport_8018108C;
 
-void RoomsShared8017ff9c(Task* task)
+/// Opens the UI object described by `D_shelter_1f_heliport_8018108C` for the
+/// task's `spawnArg1`, waits until the object reports state -1 or 6, tears it
+/// down, and ten frames later restores the frame timing, releases the
+/// primitive buffer and kills the task.
+void func_shelter_1f_heliport_8017FDD4(Task* task)
 {
     UiObject* obj;
 
     if (task->state == 0) {
         Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&RoomsShared8017ff9cDesc, task->spawnArg1, 1, 1, NULL);
+        obj = Ui_SpawnFromDesc(&D_shelter_1f_heliport_8018108C, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
         }

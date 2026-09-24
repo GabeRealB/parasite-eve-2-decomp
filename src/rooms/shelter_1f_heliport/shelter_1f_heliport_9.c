@@ -3,7 +3,11 @@
 #include "gameplay/3CD8.h"
 #include "main/task.h"
 
-void Room_Script23(Task* task)
+/// Runs cap command `spawnArg1` and waits for it to finish. When the cap
+/// reports event key 0xF it sends `Gp_MsgPlayerWeapon(1)`, undoing the
+/// `Gp_MsgPlayerWeapon(0)` its spawner sent, and kills itself; any other key
+/// runs the command again.
+void func_shelter_1f_heliport_80180594(Task* task)
 {
     switch (task->state) {
         case 0:
