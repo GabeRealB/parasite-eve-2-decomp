@@ -1,11 +1,16 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_400100.h"
 #include "actors/actor_400100_facing.h"
-#include "actors/actors_shared_80132808.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "psyq/abs.h"
-#include "gte.h"
 
 static __inline__ s16 Actor00100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {

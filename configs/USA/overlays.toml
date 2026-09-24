@@ -2718,7 +2718,7 @@ objects = [
   { unit = "actor_00100/actor_400100_update", rodata = "0x18C", text = "0xA288" },
   { kind = "rodata", at = "0x1A0" },
   { unit = "actor_00100/actor_400100_tail", rodata = "0x1B4", text = "0xB134" },
-  { lib = true, unit = "actors_shared_fn00430", text = "0x508" },
+  { unit = "actor_00100/actor_00100_3", text = "0x508" },
   { unit = "actor_00100/actor_00100_2", rodata = "0x24", text = "0xA54" },
   { unit = "actor_00100/actor_400100_text", text = "0x4270" },
   { kind = "data", at = "0xBD90" },
