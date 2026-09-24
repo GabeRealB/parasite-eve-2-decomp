@@ -2937,10 +2937,13 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_power_plant_2]
+label = "code starts at 0x10: the first function is a leaf returning 0, so the span detector, which keys on a stack prologue, begins at 0x18 and left it as rodata words"
 id = 435
+text = ["0x10", "0x2830"]
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2", rodata = "0x4", text = "0x5C" },
+  { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2_5", text = "0x10" },
   { lib = true, unit = "room_util03", text = "0x18" },
   { lib = true, unit = "room_util06", text = "0xD4" },
   { lib = true, unit = "room_util07", text = "0xDC" },
