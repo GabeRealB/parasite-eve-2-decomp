@@ -5,6 +5,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/dryfield_cellar.h"
 
 extern SVECTOR D_dryfield_cellar_8017DBBC[2];
 extern SVECTOR D_dryfield_cellar_8017DBCC[2];
@@ -21,11 +22,11 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     if (GameFlag_GetNibble(0x52) == 1) {
         if (gGameSession->at4.loc.view == 2) {
-            Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
-            Room_Draw35(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
+            func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
+            func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
         } else if (gGameSession->at4.loc.view == 3) {
-            Room_Draw35(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
-            Room_Draw35(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
+            func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
+            func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
         }
     }
 }

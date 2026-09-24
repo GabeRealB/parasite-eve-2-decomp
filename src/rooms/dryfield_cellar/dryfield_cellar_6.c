@@ -1,13 +1,13 @@
 #include "common.h"
 
 #include "main/gameflag.h"
-
 #include "rooms/room_common.h"
 
-/// Message 0x26: copies the incoming record onto the outgoing one and, when
-/// not a report-only query (`field_5 == 0`), answers in `field_3` from nibbles
-/// 0xC9 / 0x53 / 0x51. Always returns 1 (not consumed).
-s32 Room_Script09(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Message-table handler for message 0x13EE. Copies the incoming record onto
+/// the outgoing one; for a query 0x26 without `field_5` set it answers in
+/// `field_3` from event nibbles 0xC9, 0x53 and 0x51 (1 to 4 while 0xC9 is set,
+/// 5 or 6 otherwise). Always answers 1.
+s32 func_dryfield_cellar_8017D634(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->msgId == 0x26 && in->field_5 == 0) {

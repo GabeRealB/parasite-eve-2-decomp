@@ -1354,13 +1354,13 @@ id = 337
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_cellar/dryfield_cellar", rodata = "0x4", text = "0x6C" },
-  { lib = true, unit = "room_script17", text = "0x10" },
-  { lib = true, unit = "room_script09", text = "0x74" },
+  { unit = "dryfield_cellar/dryfield_cellar_5", text = "0x10" },
+  { unit = "dryfield_cellar/dryfield_cellar_6", text = "0x74" },
   { unit = "dryfield_cellar/dryfield_cellar_2", text = "0x134" },
-  { lib = true, unit = "rooms_shared_8017d730", text = "0x170" },
+  { unit = "dryfield_cellar/dryfield_cellar_7", text = "0x170" },
   { unit = "dryfield_cellar/dryfield_cellar_3", text = "0x1BC" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x1C4" },
-  { lib = true, unit = "room_draw35", text = "0x21C" },
+  { unit = "dryfield_cellar/dryfield_cellar_8", text = "0x1C4" },
+  { unit = "dryfield_cellar/dryfield_cellar_9", text = "0x21C" },
   { unit = "dryfield_cellar/dryfield_cellar_4", text = "0x52C" },
   { kind = "data", at = "0x5CC" },
 ]
