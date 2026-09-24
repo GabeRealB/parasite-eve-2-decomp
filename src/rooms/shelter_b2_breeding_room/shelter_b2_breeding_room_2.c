@@ -61,5 +61,3 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
         taskKill(arg0);
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room_2", jtbl_shelter_b2_breeding_room_8017D5D0);
