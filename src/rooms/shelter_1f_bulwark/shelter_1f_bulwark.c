@@ -69,7 +69,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSa
     return 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", D_shelter_1f_bulwark_8017D5D8);
 
 void func_shelter_1f_bulwark_8017DA60(Task* arg0)
 {

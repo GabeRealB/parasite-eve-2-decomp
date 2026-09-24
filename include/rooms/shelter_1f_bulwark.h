@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/1A8.h"
 #include "gameplay/gameplay.h"
 #include "main/task.h"
@@ -19,6 +23,11 @@ typedef struct BulwarkEvent {
 STATIC_ASSERT_SIZEOF(BulwarkEvent, 0xC);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_1f_bulwark_8017E630(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_1f_bulwark_8017EA5C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_shelter_1f_bulwark_8017F960(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 extern TaskDesc     D_shelter_1f_bulwark_80180320;
 extern TaskDesc     D_shelter_1f_bulwark_80180354;
