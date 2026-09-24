@@ -1,8 +1,4 @@
 // Overlay-local symbols for actor_403600.
-ActorsShared80131e24 = 0x80141180; // shared body, see src/lib/
-ActorsShared80131e24Sub0 = 0x80138EF8; // shared body's overlay-local callee, see src/lib/
-ActorsShared80131e24Sub1 = 0x8013938C; // shared body's overlay-local callee, see src/lib/
-ActorsShared80131fc8 = 0x801320F8; // shared body, see src/lib/
 
 // Referenced in another actor load slot, resident beside this one.
 D_80162E98 = 0x80162E98; // absolute:True

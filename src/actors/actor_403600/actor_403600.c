@@ -2,8 +2,6 @@
 
 INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
 
-#include "actors/actors_shared_80131fc8.h"
-
 #include "actors/actor_403600.h"
 #include "main/sound.h"
 #include "main/fs.h"
@@ -576,7 +574,7 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* ar
         draw_mode->tag                        = (draw_mode->tag & mask_hi) | (((POLY_FT4*)(gGpuCurrentOt - 1))->tag & mask);
         ((POLY_FT4*)mode_ot)->tag             = (((POLY_FT4*)mode_ot)->tag & mask_hi) | ((u32)draw_mode & mask);
     }
-    ActorsShared80131fc8(0);
+    func_actor_403600_801320F8(0);
     *(s32*)0x1F8003FC = *(s32*)0x1F8003FC + 0x1C;
 }
 
@@ -1824,7 +1822,7 @@ void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg
         } while (i < 16);
         j++;
     } while (j < 12);
-    ActorsShared80131fc8(scratch->maxOtz + 1);
+    func_actor_403600_801320F8(scratch->maxOtz + 1);
     *(u8**)0x1F8003FC = *(u8**)0x1F8003FC + 0x78;
 }
 
@@ -3463,7 +3461,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    ActorsShared80131fc8(block->otz);
+    func_actor_403600_801320F8(block->otz);
     actor_403600_load_scratch_head(restore);
     actor_403600_restore_scratch_head(restore);
     return restore;
@@ -3483,7 +3481,7 @@ u8* func_actor_403600_80138DCC(Actor403600* arg0)
 /// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
 /// `ratan2` / `RotMatrix`, and the display task is spawned from
 /// `D_actor_403600_801421A0` and reparented.
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
 {
     SVECTOR rot;
     s16     temp_a0_2;
@@ -3638,7 +3636,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     task->state                            = (s32)(task->state + 1);
 }
 
-void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1)
+void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1)
 {
     s16              temp_a1;
     s16              temp_v0;

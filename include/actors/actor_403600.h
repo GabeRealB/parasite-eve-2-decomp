@@ -357,7 +357,9 @@ extern const SVECTOR     D_actor_403600_80131E24;
 extern GpU16Pair         D_actor_403600_801420F0;
 extern s32               D_actor_403600_80142120[];
 
-void ActorsShared80131e24Sub1(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_801320F8(s32 otz);
+void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
+void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1);
 void func_actor_403600_80134398(Task* arg0);
 void func_actor_403600_80138C68(Task* arg0);
 void func_8004BFF8(s32 angle, MATRIX* matrix);
