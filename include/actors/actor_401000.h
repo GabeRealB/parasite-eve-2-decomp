@@ -128,13 +128,13 @@ typedef struct Actor401000Work {
     /* 0x8C0 */ SVECTOR field_8C0;
     /* 0x8C8 */ byte    pad_8C8[8];
     /* 0x8D0 */ GpObj   field_8D0;
-    /// The two obstacle-record tables `func_actor_401000_801323EC` slides the
-    /// root coordinate against; the same pair `Actor01900Work` keeps at
-    /// +0x8E8 / +0xA28 and `func_actor_401300_801323B0` walks at +0x990/+0xAD0.
-    /* 0x8F0 */ byte  field_8F0[0x120];
-    /* 0xA10 */ GpObj field_A10;
-    /* 0xA30 */ byte  field_A30[0x120];
-    /* 0xB50 */ GpObj field_B50;
+    /// Contact records of the `field_8D0` node, also the enemy's `recs`;
+    /// the movement helpers walk them twelve at a time.
+    /* 0x8F0 */ GpRec18 field_8F0[12];
+    /* 0xA10 */ GpObj   field_A10;
+    /// Contact records of the `field_A10` node.
+    /* 0xA30 */ GpRec18 field_A30[12];
+    /* 0xB50 */ GpObj   field_B50;
     /// The single obstacle record the `field_B50` node is registered against.
     /* 0xB70 */ GpRec18 field_B70;
     /// Light matrix `func_actor_401000_80133274` binds to the model's
@@ -335,6 +335,27 @@ typedef struct Actor401000Delta {
     /* 0x1C */ s32            moved;
 } Actor401000Delta;
 STATIC_ASSERT_SIZEOF(Actor401000Delta, 0x20);
+
+/// Scratch block `func_actor_401000_801323EC` takes from `G_SCRATCH_HEAD`: the
+/// `GpDeltaScratch` filled by `func_800E0C10`, and `moved`, the value it
+/// returns.
+typedef struct Actor401000DeltaFlag {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ s32            moved;
+} Actor401000DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor401000DeltaFlag, 0x14);
+
+/// Scratch block `func_actor_401000_80132824` takes from `G_SCRATCH_HEAD`:
+/// `local` holds a root translation raised by 1000, which is rotated into `out`
+/// for the player and into `from` for this actor; `hit` is the result of
+/// `func_800E0308` on the two.
+typedef struct Actor401000SightScratch {
+    /* 0x00 */ SVECTOR out;
+    /* 0x08 */ SVECTOR from;
+    /* 0x10 */ SVECTOR local;
+    /* 0x18 */ s32     hit;
+} Actor401000SightScratch;
+STATIC_ASSERT_SIZEOF(Actor401000SightScratch, 0x1C);
 
 typedef struct Actor401000PushScratch {
     /* 0x00 */ SVECTOR offset;
@@ -545,20 +566,16 @@ void func_actor_401000_80132EF0(Actor401000* arg0);
 /// Runs the actor's `field_BE8` idle countdown out into its movement chase.
 void func_actor_401000_80133D50(Actor401000* arg0);
 
-/// Range probe `func_actor_401000_801385B0` runs against the actor root: the
-/// same helper as `func_actor_401300_8013267C`, with the step amount in the
-/// third argument instead of the second.
-s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 arg1, s16 arg2);
+/// Whether stepping `coord` by `step` along its facing leaves the player at
+/// least `range` + 0x96 away, or the player is not on that side at all.
+s32 func_actor_401000_80132590(GsCOORDINATE2* coord, s16 range, s16 step);
 
-/// Returns the actor's current animation/clip kind, matched against
-/// `GpEnemy.node.targeted` by `func_actor_401000_801385B0`.
+/// Line-of-sight test between the player's and this actor's raised roots.
 s32 func_actor_401000_80132824(Actor401000* arg0);
 
-/// Walk a `GpRec18` table and push `coord` back out of the obstacles it
-/// overlaps, returning the record's `at10.normal.vx`. The same helper as
-/// `func_actor_401300_801323B0`, whose second argument is the sibling's
-/// `field_990` run.
-s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+/// Moves `coord` by the delta the first `count` contact records resolve to;
+/// returns whether it moved in X or Z.
+s32 func_actor_401000_801323EC(GsCOORDINATE2* coord, GpRec18* recs, s16 count);
 
 s32 func_actor_401000_8013D694(Actor401000* arg0, s32 arg1, Actor401000Msg* arg2);
 
