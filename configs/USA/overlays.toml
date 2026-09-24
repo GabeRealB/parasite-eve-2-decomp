@@ -3459,14 +3459,11 @@ objects = [
 slot = 1
 id = 255
 objects = [
-  # No packageId object: the rodata after the id is a compiler-generated jump
-  # table whose `.align 3` pads four bytes after the id word. That padding
-  # exists only while the two share an object - split the id out and the table
-  # starts its own section already aligned, and the image comes out short.
-  { unit = "actor_403600/actor_403600", rodata = "0x0", text = "0x980" },
-  { unit = "actor_403600/actor_403600_3", text = "0x2D8" },
-  { unit = "actor_403600/actor_403600_4", text = "0xF360" },
-  { unit = "actor_403600/actor_403600_2", text = "0xF3B4" },
+  # No packageId object: every compiled jump table in the rodata sits at an
+  # 8-aligned offset counted from the id word (the first at 0x28), so the id
+  # opens the code object's rodata. Split the id out and the object's rodata
+  # starts at 0x4, its tables misalign, and the image comes out 4 bytes short.
+  { unit = "actor_403600/actor_403600", rodata = "0x0", text = "0x2D8" },
   { kind = "data", at = "0x102B4" },
   { kind = "model", at = "0x103B0" },
   { kind = "model", at = "0x17A1C" },

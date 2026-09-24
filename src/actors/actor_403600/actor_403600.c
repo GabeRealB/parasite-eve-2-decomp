@@ -1,19 +1,404 @@
 #include "common.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
-
-#include "actors/actor_403600.h"
-#include "main/sound.h"
-#include "main/fs.h"
-#include "main/gameflow.h"
-#include "main/wipsys.h"
-#include "main/gfx.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/gameplay.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
+#include "psyq/rand.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
+
+#include "actors/actors_shared_80131fc8.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/wipsys.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
+
+/// Work block of the `actor_403600` task, parked in the task's `Task::work`
+/// slot (that slot is not a `TaskIdMap` here). The display node at +0x108 is
+/// the one the exit callback `func_actor_403600_80138C68` hands back to
+/// `Gp_UnlinkObj`.
+typedef struct Actor403600Work {
+    /* 0x000 */ byte                 pad_0[0x108];
+    /* 0x108 */ GpObj                obj;
+    /* 0x128 */ byte                 pad_128[0x34C];
+    /* 0x474 */ MATRIX               field_474;
+    /* 0x494 */ MATRIX               field_494;
+    /* 0x4B4 */ struct Actor403600** field_4B4;
+    /* 0x4B8 */ GsCOORDINATE2        field_4B8;
+    /* 0x508 */ GpObj                field_508;
+    /* 0x528 */ GpRec18              field_528[4];
+    /* 0x588 */ GpObj                field_588;
+    /* 0x5A8 */ GpRec18              field_5A8[1];
+    /* 0x5C0 */ GpObj                field_5C0;
+    /* 0x5E0 */ byte                 pad_5E0[0x18];
+    /* 0x5F8 */ GpRec18              field_5F8[4];
+    /* 0x658 */ GpEffArg             field_658;
+    /* 0x660 */ byte                 pad_660[0x50];
+    /* 0x6B0 */ VECTOR               field_6B0;
+    /* 0x6C0 */ GsCOORDINATE2*       field_6C0;
+    /* 0x6C4 */ s16                  field_6C4;
+    /* 0x6C6 */ s16                  field_6C6;
+    /* 0x6C8 */ byte                 pad_6C8[0x20];
+    /* 0x6E8 */ SVECTOR              field_6E8;
+    /* 0x6F0 */ VECTOR               field_6F0;
+    /* 0x700 */ s16                  field_700;
+    /* 0x702 */ byte                 pad_702[6];
+    /* 0x708 */ s16                  field_708;
+    /* 0x70A */ s16                  field_70A;
+    /* 0x70C */ byte                 pad_70C[4];
+    /* 0x710 */ Task*                field_710;
+    /* 0x714 */ byte                 pad_714[0x1C];
+    /* 0x730 */ s16                  field_730;
+    /* 0x732 */ s16                  field_732;
+    /* 0x734 */ s16                  field_734;
+    /* 0x736 */ s16                  field_736;
+    /* 0x738 */ s16                  field_738;
+    /* 0x73A */ s16                  field_73A;
+    /* 0x73C */ s16                  field_73C;
+    /* 0x73E */ s16                  field_73E;
+    /* 0x740 */ byte                 pad_740[2];
+    /* 0x742 */ s16                  field_742;
+    /* 0x744 */ u16                  field_744;
+    /* 0x746 */ s16                  field_746;
+    /* 0x748 */ u16                  field_748;
+    /* 0x74A */ s16                  field_74A;
+    /* 0x74C */ u16                  field_74C;
+    /* 0x74E */ u16                  field_74E;
+    /* 0x750 */ u16                  field_750;
+    /* 0x752 */ byte                 pad_752[2];
+    /* 0x754 */ s16                  field_754;
+    /* 0x756 */ s16                  field_756;
+    /* 0x758 */ s16                  field_758;
+    /* 0x75A */ s16                  field_75A;
+    /* 0x75C */ byte                 pad_75C[2];
+    /* 0x75E */ s16                  field_75E;
+    /* 0x760 */ u16                  field_760;
+    /* 0x762 */ s16                  field_762;
+    /* 0x764 */ s16                  field_764;
+    /* 0x766 */ s16                  field_766;
+    /* 0x768 */ s16                  field_768;
+    /* 0x76A */ s16                  field_76A;
+    /* 0x76C */ s16                  field_76C;
+    /* 0x76E */ s16                  field_76E;
+    /* 0x770 */ u16                  field_770;
+    /* 0x772 */ s16                  field_772;
+    /* 0x774 */ s16                  field_774;
+    /* 0x776 */ s16                  field_776;
+    /* 0x778 */ s16                  field_778;
+    /* 0x77A */ s16                  field_77A;
+    /* 0x77C */ s16                  field_77C;
+    /* 0x77E */ byte                 pad_77E[2];
+    /* 0x780 */ s16                  field_780;
+    /* 0x782 */ s16                  field_782;
+    /* 0x784 */ s16                  field_784;
+    /* 0x786 */ s16                  field_786;
+    /* 0x788 */ byte                 pad_788[2];
+    /* 0x78A */ u16                  field_78A;
+    /* 0x78C */ s16                  field_78C;
+    /* 0x78E */ byte                 pad_78E[2];
+    /* 0x790 */ s16                  field_790;
+    /* 0x792 */ s16                  field_792;
+    /* 0x794 */ s16                  field_794;
+    /* 0x796 */ s16                  field_796;
+    /* 0x798 */ s16                  field_798;
+    /* 0x79A */ s16                  field_79A;
+    /* 0x79C */ s16                  field_79C;
+    /* 0x79E */ u16                  field_79E;
+    /* 0x7A0 */ u16                  field_7A0;
+    /* 0x7A2 */ s16                  field_7A2;
+    /* 0x7A4 */ s16                  field_7A4;
+    /* 0x7A6 */ s16                  field_7A6;
+    /* 0x7A8 */ s16                  field_7A8;
+    /* 0x7AA */ byte                 pad_7AA[2];
+    /* 0x7AC */ s16                  field_7AC;
+    /* 0x7AE */ s16                  field_7AE;
+    /* 0x7B0 */ s16                  field_7B0;
+    /* 0x7B2 */ u16                  field_7B2;
+    /* 0x7B4 */ s16                  field_7B4;
+    /* 0x7B6 */ byte                 pad_7B6[2];
+} Actor403600Work;
+STATIC_ASSERT_SIZEOF(Actor403600Work, 0x7B8);
+
+typedef struct Actor403600DamageRow {
+    /* 0x0 */ s16 threshold;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 pad_6;
+} Actor403600DamageRow;
+STATIC_ASSERT_SIZEOF(Actor403600DamageRow, 0x8);
+
+typedef struct Actor403600DamageScratch {
+    /* 0x00 */ u8             pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ u8             pad_30[0x18];
+} Actor403600DamageScratch;
+STATIC_ASSERT_SIZEOF(Actor403600DamageScratch, 0x48);
+
+typedef struct Actor403600MotionState {
+    /* 0x00 */ s16  field_0[0x40];
+    /* 0x80 */ s32  field_80;
+    /* 0x84 */ s32  field_84;
+    /* 0x88 */ s32  field_88;
+    /* 0x8C */ s16  field_8C;
+    /* 0x8E */ s16  field_8E;
+    /* 0x90 */ byte pad_90[0x50];
+    /* 0xE0 */ s32  field_E0;
+} Actor403600MotionState;
+STATIC_ASSERT_SIZEOF(Actor403600MotionState, 0xE4);
+
+typedef struct Actor403600EffectState {
+    /* 0x00 */ s16           field_0[0x20];
+    /* 0x40 */ s16           field_40[0x20];
+    /* 0x80 */ s32           field_80;
+    /* 0x84 */ s32           field_84;
+    /* 0x88 */ s32           field_88;
+    /* 0x8C */ s16           field_8C;
+    /* 0x8E */ s16           field_8E;
+    /* 0x90 */ GsCOORDINATE2 field_90;
+    /* 0xE0 */ s32           field_E0;
+    /* 0xE4 */ s32           field_E4;
+} Actor403600EffectState;
+STATIC_ASSERT_SIZEOF(Actor403600EffectState, 0xE8);
+
+typedef struct Actor403600 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor403600Work* field_1C;
+    /* 0x20 */ struct GpEnemy*  field_20;
+    /* 0x24 */ byte             pad_24[6];
+    /* 0x2A */ s16              field_2A;
+    /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ s32              field_30;
+} Actor403600;
+
+typedef struct Actor403600Pattern {
+    u8 values[9];
+} __attribute__((packed)) Actor403600Pattern;
+STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
+
+typedef struct Actor403600Msg {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ s32   field_4;
+} Actor403600Msg;
+STATIC_ASSERT_SIZEOF(Actor403600Msg, 0x8);
+
+/// Incoming scripted message; field_2 selects the actor's transition.
+typedef struct Actor403600MsgArg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor403600MsgArg;
+STATIC_ASSERT_SIZEOF(Actor403600MsgArg, 0x4);
+
+/// Position and rotation sent to the player with message 0x3E9.
+typedef struct Actor403600MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor403600MsgPos;
+STATIC_ASSERT_SIZEOF(Actor403600MsgPos, 0x18);
+
+/// Payload sent to the view task with message 0x7DB.
+typedef struct Actor403600Msg7DB {
+    /* 0x0 */ s8  field_0;
+    /* 0x1 */ s8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor403600Msg7DB;
+STATIC_ASSERT_SIZEOF(Actor403600Msg7DB, 0x4);
+
+/// Coordinate frame with a word view of its rotation matrix.
+typedef union Actor403600ViewFrame {
+    GsCOORDINATE2 view;
+    struct {
+        /* 0x00 */ u32        flags;
+        /* 0x04 */ GpMtxWords words;
+    } matrix;
+} Actor403600ViewFrame;
+STATIC_ASSERT_SIZEOF(Actor403600ViewFrame, 0x50);
+
+/// 0x18-byte block temporarily taken from `G_SCRATCH_HEAD` while projecting
+/// an actor's origin and calculating its ordering-table depth.
+typedef struct Actor403600ProjectScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     sxy;
+    /* 0x0C */ s32     dp;
+    /* 0x10 */ s32     flag;
+    /* 0x14 */ s32     otz;
+} Actor403600ProjectScratch;
+STATIC_ASSERT_SIZEOF(Actor403600ProjectScratch, 0x18);
+
+/// 0x24-byte scratch block used to hold seven planar distances while selecting
+/// the nearest point from D_actor_403600_801605F4.
+typedef struct Actor403600DistanceScratch {
+    /* 0x00 */ s32 x;
+    /* 0x04 */ s32 z;
+    /* 0x08 */ s32 distances[7];
+} Actor403600DistanceScratch;
+STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
+
+typedef struct Actor403600FacingScratch {
+    /* 0x00 */ VECTOR  delta;
+    /* 0x10 */ SVECTOR rot;
+} Actor403600FacingScratch;
+STATIC_ASSERT_SIZEOF(Actor403600FacingScratch, 0x18);
+
+typedef struct Actor403600TurnMatrix {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 pad_12;
+    /* 0x14 */ s32 field_14;
+    /* 0x18 */ s32 field_18;
+    /* 0x1C */ s32 field_1C;
+} Actor403600TurnMatrix;
+STATIC_ASSERT_SIZEOF(Actor403600TurnMatrix, 0x20);
+
+typedef struct Actor403600TurnScratch {
+    /* 0x00 */ u16                   angles[4];
+    /* 0x08 */ s16                   vector[4];
+    /* 0x10 */ Actor403600TurnMatrix matrix;
+} Actor403600TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
+
+/// Scratch vector, rotation matrix and yaw used by func_actor_403600_8013C864.
+typedef struct Actor403600TargetScratch {
+    /* 0x00 */ SVECTOR               vector;
+    /* 0x08 */ Actor403600TurnMatrix matrix;
+    /* 0x28 */ s32                   angle;
+} Actor403600TargetScratch;
+STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
+
+typedef struct Actor403600MatrixRef {
+    /* 0x00 */ MATRIX* matrix;
+} Actor403600MatrixRef;
+STATIC_ASSERT_SIZEOF(Actor403600MatrixRef, 0x4);
+
+/// 0x1C-byte scratch block used while building the screen transition grid.
+typedef struct Actor403600ScreenScratch {
+    /* 0x00 */ u8      pad_0[0x10];
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ SVECTOR offset;
+} Actor403600ScreenScratch;
+STATIC_ASSERT_SIZEOF(Actor403600ScreenScratch, 0x1C);
+
+/// 0x78-byte scratch block used to project the radial effect grid.
+typedef struct Actor403600EffectScratch {
+    /* 0x00 */ s32     dp;
+    /* 0x04 */ s32     flag;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     nclip;
+    /* 0x10 */ s32     sxy;
+    /* 0x14 */ SVECTOR projected;
+    /* 0x1C */ SVECTOR vec;
+    /* 0x24 */ s32     maxOtz;
+    /* 0x28 */ MATRIX  matrix;
+    /* 0x48 */ SVECTOR points[3];
+    /* 0x60 */ s32     pad_60[2];
+    /* 0x68 */ s32     sxy3[3];
+    /* 0x74 */ s32     pad_74;
+} Actor403600EffectScratch;
+STATIC_ASSERT_SIZEOF(Actor403600EffectScratch, 0x78);
+
+typedef struct Actor403600Point {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 pad_2;
+    /* 0x4 */ s16 z;
+    /* 0x6 */ s16 pad_6;
+} Actor403600Point;
+STATIC_ASSERT_SIZEOF(Actor403600Point, 0x8);
+
+/// The two `s16` halves of `D_actor_403600_801606B8`, zeroed together when the
+/// actor is spawned. The indexed view records the two most recent action choices.
+typedef union {
+    struct {
+        /* 0x0 */ s16 field_0;
+        /* 0x2 */ s16 field_2;
+    } fields;
+    u16 values[2];
+} Actor403600Pair;
+STATIC_ASSERT_SIZEOF(Actor403600Pair, 0x4);
+
+typedef struct Actor403600TargetPair {
+    /* 0x00 */ s16 x0;
+    /* 0x02 */ s16 y0;
+    /* 0x04 */ s16 z0;
+    /* 0x06 */ s16 pad_6;
+    /* 0x08 */ s16 x1;
+    /* 0x0A */ s16 y1;
+    /* 0x0C */ s16 z1;
+    /* 0x0E */ s16 pad_E;
+} Actor403600TargetPair;
+STATIC_ASSERT_SIZEOF(Actor403600TargetPair, 0x10);
+
+extern Actor403600TargetPair D_actor_403600_8016063C;
+extern Actor403600TargetPair D_actor_403600_8016064C;
+extern u8                    D_actor_403600_80160694;
+extern u8                    D_actor_403600_80160695;
+
+typedef struct Actor403600Ctx {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8   field_14;
+} Actor403600Ctx;
+
+extern SVECTOR           D_actor_403600_801605D4;
+extern SVECTOR           D_actor_403600_801605DC;
+extern s16               D_actor_403600_801605DE;
+extern SVECTOR           D_actor_403600_801605E4;
+extern SVECTOR           D_actor_403600_801605EC;
+extern s16               D_actor_403600_801606F2;
+extern TaskDesc          D_actor_403600_80160514;
+extern Task*             D_actor_403600_801606B0;
+extern Actor403600MsgPos D_actor_403600_801606E0;
+extern GpU16Pair         D_8016A408[];
+extern u16               D_8016AEF8[];
+extern u16               D_8016E450;
+extern SVECTOR           D_actor_403600_8016065C;
+extern SVECTOR           D_actor_403600_80160664;
+extern u16               D_actor_403600_80150EA4;
+extern u16               D_actor_403600_80150EAC;
+extern s32               D_actor_403600_80160700[9];
+extern const SVECTOR     D_actor_403600_80131E24;
+extern GpU16Pair         D_actor_403600_801420F0;
+extern s32               D_actor_403600_80142120[];
+
+void func_actor_403600_801320F8(s32 otz);
+void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
+void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_80134398(Task* arg0);
+void func_actor_403600_80138C68(Task* arg0);
+void func_8004BFF8(s32 angle, MATRIX* matrix);
+void func_actor_403600_8013C864(Actor403600* arg0);
+void func_actor_403600_80138C9C(Actor403600MotionState* arg0);
+u8*  func_actor_403600_80138DCC(Actor403600* arg0);
+void func_actor_403600_8013CCEC(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_8013D9A8(Actor403600* arg0);
+void func_actor_403600_8013DAF4(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_8013DDF4(Actor403600* arg0, s16 arg1);
+s32  func_actor_403600_8013DFE0(Actor403600* arg0);
+void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2);
+s16  func_actor_403600_8013E66C(GsCOORDINATE2* arg0);
+s32  func_actor_403600_8013E7D4(s32 arg0, s32 arg1);
+void func_actor_403600_8013EA04(Actor403600* arg0);
+void func_actor_403600_8013F608(Actor403600* arg0);
+void func_actor_403600_801417A8(Actor403600* arg0, s32 arg1);
+s32  func_actor_403600_80141840(Actor403600* arg0);
+void func_actor_403600_80141B60(Actor403600* arg0);
+void D_80181A48(Actor403600* arg0);
+s32  func_actor_403600_801406A4(Actor403600* arg0, s32 arg1, Actor403600MsgArg* arg2);
+void func_actor_403600_80140B4C(struct GpEnemy* arg0, Actor403600* arg1);
+
+void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1);
+
+INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_80131E20);
 
 #define ACTOR403600_RNG_VALUE(base) (*(u32*)((u8*)(base) + 0xF60))
 
@@ -265,8 +650,7 @@ extern s32                  D_actor_403600_801606BC;
 #define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
 
 void func_actor_403600_80141598(Task* arg0);
-void func_actor_403600_8014174C(Task* arg0);
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_403600_8014174C(Actor403600* arg0);
 void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
@@ -289,6 +673,164 @@ void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Actor403600* arg0);
 void func_actor_403600_80141B24(Actor403600* arg0);
 void func_actor_403600_80141C3C(Actor403600* arg0);
+
+#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
+    __asm__ volatile(                                      \
+        "lhu $12, 0(%0);"                                  \
+        "lhu $13, 2(%0);"                                  \
+        "lhu $14, 4(%0);"                                  \
+        "sh $12, %2(%1);"                                  \
+        "sh $13, %3(%1);"                                  \
+        "sh $14, %4(%1)"                                   \
+        :                                                  \
+        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
+        : "$12", "$13", "$14", "memory")
+
+void func_actor_403600_801400BC(Actor403600* arg0);
+void func_actor_403600_80141F28(Actor403600* arg0);
+void func_actor_403600_80140488(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1);
+void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1);
+
+/// Links, at ordering-table depth `otz`, the primitives that copy the frame
+/// drawn so far into the 320x240 VRAM rectangle at (0x1C0, 0x100). Linked at
+/// one slot they run in reverse: the draw area and offset move to that
+/// rectangle, the mask bit is set, a near-black tile clears it and the current
+/// draw buffer is copied over it as two 160-pixel 15-bit sprites; then the
+/// mask bit is cleared and the draw offset and area return to the draw buffer,
+/// clipped to the view's sprite rectangle when its depth lies in front of
+/// `otz`. A 0x14-byte block on the scratch stack holds the area and offset for
+/// the duration of the call.
+void func_actor_403600_801320F8(s32 otz)
+{
+    u8*                head;
+    u8*                allocated;
+    ActorsDrawScratch* scratch;
+    GpDrawAreaRec*     extra;
+    DR_AREA*           area;
+    DR_STP*            stp;
+    DR_OFFSET*         off;
+    SPRT*              sprt;
+    DR_TPAGE*          tpage;
+    TILE*              tile;
+    RECT*              clip;
+    u_short*           ofs;
+    s32                val;
+    s32                z;
+
+    extra                   = Gp_GetViewSprtExtra();
+    head                    = *(u8**)G_SCRATCH_HEAD;
+    area                    = (DR_AREA*)gGpuPrimCursor;
+    allocated               = head - 0x14;
+    *(void**)G_SCRATCH_HEAD = allocated;
+    gGpuPrimCursor          = (DR_TPAGE*)(area + 1);
+    USE_REG(allocated);
+    scratch      = (ActorsDrawScratch*)allocated;
+    scratch->otz = otz;
+    if (extra != NULL) {
+        val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
+        z   = otz;
+        SOFT_TOUCH_REG(z);
+        if ((val >> 4) < z) {
+            scratch->rect   = extra->rect;
+            scratch->rect.y = (u16)scratch->rect.y + gDisplayState.drawBuffer * 0x110;
+        } else {
+            goto block_4;
+        }
+    } else {
+    block_4:
+        scratch->rect.x = 0;
+        scratch->rect.y = D_80070F87[0] * 0x110;
+        scratch->rect.w = 0x140;
+        scratch->rect.h = 0xF0;
+    }
+    clip = &scratch->rect;
+    SetDrawArea(area, clip);
+    addPrim(&gGpuCurrentOt[scratch->otz], area);
+
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 0);
+    addPrim(&gGpuCurrentOt[scratch->otz], stp);
+
+    ofs             = scratch->ofs;
+    off             = (DR_OFFSET*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    scratch->ofs[0] = 0xA0;
+    scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
+    SetDrawOffset(off, ofs);
+    addPrim(&gGpuCurrentOt[scratch->otz], off);
+
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt->x0       = -0xA0;
+    sprt->y0       = -0x78;
+    sprt->w        = 0xA0;
+    sprt->h        = 0xF0;
+    sprt->u0       = 0;
+    sprt->v0       = gDisplayState.drawBuffer * 0x10;
+    setlen(sprt, 4);
+    setcode(sprt, 0x65);
+    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
+
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
+    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
+
+    sprt           = (SPRT*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(sprt + 1);
+    sprt->x0       = 0;
+    sprt->y0       = -0x78;
+    sprt->w        = 0xA0;
+    sprt->h        = 0xF0;
+    sprt->u0       = 0x20;
+    sprt->v0       = gDisplayState.drawBuffer * 0x10;
+    setlen(sprt, 4);
+    setcode(sprt, 0x65);
+    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
+
+    tpage          = gGpuPrimCursor;
+    gGpuPrimCursor = tpage + 1;
+    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
+    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
+
+    tile           = (TILE*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x60);
+    tile->b0 = 2;
+    tile->g0 = 2;
+    tile->r0 = 2;
+    tile->x0 = -0xA0;
+    tile->y0 = -0x78;
+    tile->w  = 0x140;
+    tile->h  = 0xF0;
+    addPrim(&gGpuCurrentOt[scratch->otz], tile);
+
+    stp            = (DR_STP*)gGpuPrimCursor;
+    gGpuPrimCursor = (DR_TPAGE*)(stp + 1);
+    SetDrawStp(stp, 1);
+    addPrim(&gGpuCurrentOt[scratch->otz], stp);
+
+    off             = (DR_OFFSET*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(off + 1);
+    scratch->ofs[0] = 0x260;
+    scratch->ofs[1] = 0x178;
+    SetDrawOffset(off, ofs);
+    addPrim(&gGpuCurrentOt[scratch->otz], off);
+
+    area            = (DR_AREA*)gGpuPrimCursor;
+    gGpuPrimCursor  = (DR_TPAGE*)(area + 1);
+    scratch->rect.x = 0x1C0;
+    scratch->rect.y = 0x100;
+    scratch->rect.w = 0x140;
+    scratch->rect.h = 0xF0;
+    SetDrawArea(area, clip);
+    addPrim(&gGpuCurrentOt[scratch->otz], area);
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
 
 void func_actor_403600_801327A0(POLY_FT4* arg0)
 {
@@ -3625,7 +4167,7 @@ void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     ACTOR_FIELD(temp_v0, s16*, 0x796) = 0;
     ACTOR_FIELD(temp_v0, s16*, 0x7A0) = 0;
     ACTOR_FIELD(temp_v0, s16*, 0x7AE) = 0;
-    func_actor_403600_8014174C(task);
+    func_actor_403600_8014174C((Actor403600*)task);
     D_actor_403600_8016056C                = 0;
     D_actor_403600_801606B8.fields.field_2 = 0;
     D_actor_403600_801606B8.fields.field_0 = 0;
@@ -7517,7 +8059,14 @@ end:
     return;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320A0);
+/// Handlers for states 0-2 of the task `func_actor_403600_80141BE0` dispatches,
+/// indexed by `Task::state`. The state-0 handler sets the task up and
+/// advances it.
+const GpEnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
+    func_actor_403600_8013F7B8,
+    (GpEnemyTaskFunc)func_actor_403600_8013FC2C,
+    (GpEnemyTaskFunc)func_actor_403600_80140488,
+} };
 
 void func_actor_403600_801400BC(Actor403600* arg0)
 {
@@ -8176,4 +8725,603 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Actor403600* actor)
     work->field_73A = (u16)(work->field_73A + 1);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_403600/actor_403600", D_actor_403600_801320EC);
+/// The actor's task entry: runs the handler for `task->state` from a two-entry
+/// table built on the stack, passing the enemy the task was spawned for and
+/// the task. State 0 is the spawn (`func_actor_403600_80138EF8`, which
+/// advances the state), state 1 the per-frame update.
+void func_actor_403600_80141180(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_403600_80138EF8,
+        (void (*)(GpEnemy*, Task*))func_actor_403600_8013938C,
+    };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1)
+{
+    Actor403600Work* work;
+    s32              i;
+    s32              masked1;
+    s32              masked2;
+    s32              limit1;
+    s32              limit2;
+    u8*              anim;
+
+    work = arg0->field_1C;
+    if (D_actor_403600_8016057C[(s16)work->field_736] != 0) {
+        i = 1;
+        if ((s16)work->field_736 != work->field_738) {
+            masked1         = arg1 & 0xFF;
+            work->field_738 = work->field_736;
+            work->field_73A = 0;
+            if (i < masked1) {
+                limit1 = masked1;
+                do {
+                    func_800B4114((GpAnimCtx*)work, i, work->field_736, 0, work->field_756);
+                    i++;
+                } while (i < limit1);
+            }
+        } else {
+            TOUCH_REG(i);
+            masked2          = arg1 & 0xFF;
+            work->field_73A += i;
+            if (i < masked2) {
+                limit2 = masked2;
+                anim   = &work->pad_0[0x28];
+                do {
+                    anim[0x1D] = (u8)work->field_778;
+                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                    i++;
+                    anim += 0x28;
+                } while (i < limit2);
+            }
+        }
+    }
+}
+
+void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    Actor403600Work* work;
+    VECTOR*          head;
+    VECTOR*          block;
+
+    work                      = arg1->field_1C;
+    head                      = *(VECTOR**)G_SCRATCH_HEAD;
+    head[-1].vx               = work->field_4B8.workm.t[0];
+    block                     = (VECTOR*)((u8*)head - 0x10);
+    block->vy                 = work->field_4B8.workm.t[1];
+    *(VECTOR**)G_SCRATCH_HEAD = block;
+    block->vz                 = work->field_4B8.workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg0, block, 0, 0);
+    *(VECTOR**)G_SCRATCH_HEAD = (VECTOR*)((u8*)*(VECTOR**)G_SCRATCH_HEAD + 0x10);
+}
+
+void func_actor_403600_80141338(Actor403600* arg0)
+{
+    Actor403600Work*      work;
+    GsCOORDINATE2*        coord;
+    MATRIX*               block;
+    MATRIX*               head;
+    s16                   value;
+    s16                   decrement;
+    s16                   increment;
+    register Actor403600* actor asm("v1");
+    register MATRIX*      matrixArg asm("a1");
+
+    head = *(MATRIX**)G_SCRATCH_HEAD;
+    SOFT_BARRIER();
+    block                     = (MATRIX*)((u8*)head - 0x20);
+    *(MATRIX**)G_SCRATCH_HEAD = block;
+    matrixArg                 = block;
+    actor                     = arg0;
+    SOFT_USE_REG2(block, block);
+    work  = actor->field_1C;
+    coord = actor->field_2C->coords;
+    RotMatrix((SVECTOR*)&work->field_700, matrixArg);
+
+    gte_SetRotMatrix((u8*)coord + 0xA4);
+    gte_ldclmv(block);
+    gte_rtir();
+    gte_stclmv((u8*)coord + 0xA4);
+
+    gte_ldclmv((u8*)block + 2);
+    gte_rtir();
+    gte_stclmv((u8*)coord + 0xA6);
+
+    gte_ldclmv((u8*)block + 4);
+    gte_rtir();
+    gte_stclmv((u8*)coord + 0xA8);
+
+    value = work->field_700;
+    if (value != 0) {
+        if (value >= 0x20) {
+            decrement       = (u16)work->field_700 - 0x20;
+            work->field_700 = decrement;
+            if ((decrement << 0x10) <= 0) {
+                work->field_700 = 0;
+            }
+        }
+        if (work->field_700 < 0x21) {
+            increment       = (u16)work->field_700 + 0x20;
+            work->field_700 = increment;
+            if ((increment << 0x10) >= 0) {
+                work->field_700 = 0;
+            }
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+}
+
+void func_actor_403600_801414FC(Actor403600* arg0)
+{
+    Actor403600Work* work;
+    s16              value;
+    s16              countdown;
+    s32              brightness;
+
+    work  = arg0->field_1C;
+    value = work->field_766;
+    if (value != 0) {
+        if (value < work->field_764) {
+            brightness = rsin(D_80070F70 << 9) << 0xD;
+        } else {
+            brightness = rsin(D_80070F70 << 9) << 0xC;
+        }
+        Display_ClampField126((s8)(brightness >> 0x18));
+        countdown       = (u16)work->field_764 - 1;
+        work->field_764 = countdown;
+        if ((countdown << 0x10) <= 0) {
+            work->field_766 = 0;
+            Display_ClampField126(0);
+        }
+    }
+}
+
+void func_actor_403600_80141598(Task* task)
+{
+    Actor403600Work* work;
+    GpEnemy*         enemy;
+
+    enemy                                  = task->spawnArg2;
+    work                                   = (Actor403600Work*)task->work;
+    ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
+    enemy->recs                            = 0;
+    Gp_UnlinkNode(&enemy->node);
+    Gp_UnlinkObj(&work->field_508);
+    Gp_UnlinkObj(&work->field_588);
+    if (task == D_actor_403600_801606A8) {
+        Gp_UnlinkObj(&work->field_5C0);
+    }
+    Gp_EnemyTaskExit(task);
+}
+
+void func_actor_403600_8014161C(Actor403600* arg0)
+{
+    Actor403600Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (*(s16*)((u8*)work + 0x78C) == 1) {
+        if (((*(u16*)((u8*)work + 0x79E) & 3) == 3) &&
+            ((work->field_73E != 0x28) || (work->field_732 != 5))) {
+            Gp_SpawnEff(0x60055, arg0->field_2C->coords + 1, 0x12800, NULL);
+        }
+        *(u16*)((u8*)work + 0x79E)  = (u16)(*(u16*)((u8*)work + 0x79E) + 1);
+        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+        if (((s16) * (u16*)((u8*)work + 0x78A) / 10 < enemy->hp) &&
+            (*(u16*)((u8*)work + 0x79E) >= 0x385) && (work->field_73E == 0)) {
+            work->field_730 = 6;
+        }
+    }
+}
+
+void func_actor_403600_8014174C(Actor403600* arg0)
+{
+    Actor403600Work* work;
+
+    work            = arg0->field_1C;
+    work->field_756 = 8;
+    work->field_778 = 0x10;
+    work->field_776 = 0xA;
+    work->field_742 = 0;
+    work->field_746 = 0;
+    work->field_774 = 0;
+    work->field_77A = 0;
+    work->field_784 = 0;
+    work->field_73C = 0;
+    work->field_73E = 0;
+    work->field_74A = 0;
+    work->field_73A = 0;
+    work->field_76E = 0x40;
+    work->field_75E = 0;
+    work->field_7A4 = 0;
+    work->field_7A6 = 0;
+    work->field_7AC = 0;
+}
+
+void func_actor_403600_801417A8(Actor403600* arg0, s32 arg1)
+{
+    SVECTOR          rotation;
+    MATRIX*          matrix;
+    Actor403600Work* work;
+    s16              angle;
+    s32              absAngle;
+    u16              wrapped;
+
+    work  = arg0->field_1C;
+    angle = work->field_75E + (arg1 & 0xFF);
+    SOFT_TOUCH_REG(angle);
+    SOFT_TOUCH_REG(angle);
+    absAngle = angle;
+    if (angle < 0) {
+        SOFT_TOUCH_REG(absAngle);
+        absAngle = -absAngle;
+    }
+    work->field_75E = angle;
+    if (absAngle >= 0x801) {
+        wrapped = angle - 0x1000;
+        if (angle <= 0) {
+            wrapped = 0x1000 - angle;
+        }
+        work->field_75E = wrapped;
+    }
+    matrix = &work->field_4B8.coord;
+    Gfx_MatrixToEuler(matrix, &rotation);
+    rotation.vz += work->field_75E;
+    RotMatrix(&rotation, matrix);
+}
+
+s32 func_actor_403600_80141840(Actor403600* arg0)
+{
+    s32              targetY;
+    s32              currentY;
+    s32              count;
+    s32              deltaX;
+    s32              deltaY;
+    s32              deltaZ;
+    register s32     left asm("v0");
+    register s32     right asm("v1");
+    s16              amount;
+    Actor403600Work* work;
+
+    count = 0;
+    left  = 1;
+    SOFT_BARRIER();
+    work            = arg0->field_1C;
+    work->field_746 = left;
+    func_actor_403600_8013DDF4(arg0, 0xA0);
+
+    left   = work->field_6F0.vx;
+    right  = work->field_4B8.coord.t[0];
+    amount = 0x12C;
+    deltaX = left - right;
+    SOFT_BARRIER();
+    if (deltaX < 0) {
+        deltaX = -deltaX;
+    }
+    work->field_73C = amount;
+    if (deltaX < 0x1F5) {
+        count                      = 1;
+        work->field_4B8.coord.t[0] = work->field_6B0.vx;
+    }
+
+    targetY  = work->field_6F0.vy;
+    currentY = work->field_4B8.coord.t[1];
+    deltaY   = targetY - currentY;
+    if (deltaY < 0) {
+        deltaY = -deltaY;
+    }
+    if (deltaY < 0x1F5) {
+        count                     += 1;
+        work->field_4B8.coord.t[1] = work->field_6B0.vy;
+    } else if (targetY < currentY) {
+        *(s16*)((u8*)work + 0x74A)  = -0x12C;
+        work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
+    } else {
+        work->field_74A = amount;
+    }
+
+    left   = work->field_6F0.vz;
+    right  = work->field_4B8.coord.t[2];
+    deltaZ = left - right;
+    if (deltaZ < 0) {
+        deltaZ = -deltaZ;
+    }
+    if (deltaZ < 0x1F5) {
+        work->field_4B8.coord.t[2] = work->field_6B0.vz;
+        count                     += 1;
+    }
+    return count & 0xFF;
+}
+
+void func_actor_403600_80141954(s32 arg0)
+{
+    RECT rect;
+
+    rect.y = 0x80;
+    rect.h = 0x80;
+    rect.w = 0x80;
+    if (arg0 == 1) {
+        rect.x = 0x180;
+    } else {
+        rect.x = 0x1C0;
+    }
+    MoveImage(&rect, 0x180, 0x180);
+    rect.w = 0x100;
+    rect.h = 1;
+    rect.x = 0;
+    if (arg0 == 1) {
+        rect.y = 0xFD;
+    } else {
+        rect.y = 0xFE;
+    }
+    MoveImage(&rect, 0, 0xF9);
+}
+
+void func_actor_403600_801419E8(Actor403600* arg0)
+{
+    TmdObject* obj;
+
+    obj               = arg0->field_2C;
+    *(s8*)&obj->tpage = -0xF;
+    obj->clut         = 2;
+    if (obj->buffer != NULL) {
+        tmdProcessStream(obj);
+        tmdProcessStream(obj);
+    }
+}
+
+void func_actor_403600_80141A34(Actor403600* arg0)
+{
+    RECT             rect;
+    Actor403600Work* work;
+    s16              value;
+
+    work  = arg0->field_1C;
+    value = work->field_784;
+    if (work->field_7A8 != value) {
+        if (value == 1) {
+            s16 width;
+
+            rect.x = 0x162;
+            rect.y = 0x162;
+            width  = 0x15;
+            rect.w = width;
+            rect.h = 0xA;
+            MoveImage(&rect, 0x141, 0x152);
+            rect.x = 0x16F;
+            rect.y = 0x102;
+            rect.w = 0x17;
+            rect.h = width;
+            MoveImage(&rect, 0x141, 0x164);
+        } else {
+            s16 width;
+
+            rect.x = 0x141;
+            rect.y = 0x1F3;
+            width  = 0x15;
+            rect.w = width;
+            rect.h = 0xA;
+            MoveImage(&rect, 0x141, 0x152);
+            rect.x = 0x17F;
+            rect.y = 0x1AB;
+            rect.w = 0x17;
+            rect.h = width;
+            MoveImage(&rect, 0x141, 0x164);
+        }
+        work->field_7A8 = (u16)work->field_784;
+    }
+}
+
+void func_actor_403600_80141B24(Actor403600* arg0)
+{
+    Actor403600Work* work = arg0->field_1C;
+
+    Gp_HaltPadScripts();
+    SndEvt_EnqueueType7(0x54160001, 1);
+    work->field_708 = 0;
+}
+
+void func_actor_403600_80141B60(Actor403600* arg0)
+{
+    s16              nextCountdown;
+    u16              countdown;
+    u16              currentMp;
+    Actor403600Work* work;
+    PlayerStatus*    config;
+
+    work            = arg0->field_1C;
+    countdown       = (u16)work->field_792 - 1;
+    work->field_792 = countdown;
+    if ((countdown << 0x10) <= 0) {
+        config     = &Player_Status;
+        currentMp  = config->mp + 1;
+        config->mp = currentMp;
+        if ((s16)currentMp >= config->mpMax) {
+            config->mp = config->mpMax;
+        }
+        if (work->field_794 <= 0) {
+            work->field_792 = 1;
+            return;
+        }
+        nextCountdown   = (u16)work->field_794 - 1;
+        work->field_794 = nextCountdown;
+        work->field_792 = nextCountdown;
+    }
+}
+
+void func_actor_403600_80141BE0(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_403600_801320A0;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+
+void func_actor_403600_80141C3C(Actor403600* arg0)
+{
+    s16 value;
+
+    value = arg0->field_1C->field_730;
+    if (value < 0) {
+        return;
+    }
+    if (value < 2) {
+        func_actor_403600_801400BC(arg0);
+    }
+}
+
+void func_actor_403600_80141C7C(Actor403600* arg0, s32 arg1)
+{
+    GpEnemy*         enemy;
+    Actor403600Work* work;
+
+    enemy     = arg0->field_20;
+    work      = arg0->field_1C;
+    enemy->hp = *(u16*)&enemy->hp - arg1;
+    func_800DA6E8(&enemy->node, arg1, 0);
+    if (enemy->hp <= 0) {
+        work->field_742 = 1;
+    }
+}
+
+/// Handlers for states 0-2 of the task `func_actor_403600_80141CD4` dispatches,
+/// indexed by `Task::state`. The state-0 handler sets the task up and
+/// advances it.
+const GpEnemyTaskFuncTable3 D_actor_403600_801320EC = { {
+    func_actor_403600_80141D30,
+    (GpEnemyTaskFunc)func_actor_403600_80141E78,
+    (GpEnemyTaskFunc)func_actor_403600_80140B4C,
+} };
+
+void func_actor_403600_80141CD4(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_403600_801320EC;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
+
+void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
+{
+    GsCOORDINATE2*   workCoord;
+    GsCOORDINATE2*   coord;
+    Actor403600Work* work;
+    MATRIX*          matrix;
+    MATRIX*          matrix2;
+
+    coord = ((TmdObject*)arg1->extra)->coords;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        Gp_DestroyEnemy(arg0, arg1);
+        return;
+    }
+
+    arg1->work                 = (TaskIdMap*)work;
+    work->field_4B8.sub        = &gGfxViewCoord;
+    matrix                     = &work->field_4B8.coord;
+    *(s32*)&matrix->m[0][0]    = 0x1000;
+    *(s32*)&matrix->m[0][2]    = 0;
+    *(s32*)&matrix->m[1][1]    = 0x1000;
+    *(s32*)&matrix->m[2][0]    = 0;
+    matrix->m[2][2]            = 0x1000;
+    work->field_4B8.coord.t[0] = coord->coord.t[0];
+    work->field_4B8.coord.t[1] = coord->coord.t[1];
+    workCoord                  = &work->field_4B8;
+    work->field_4B8.coord.t[2] = coord->coord.t[2];
+    matrix2                    = &coord->coord;
+    coord->sub                 = workCoord;
+    *(s32*)&matrix2->m[0][0]   = 0x1000;
+    *(s32*)&matrix2->m[0][2]   = 0;
+    *(s32*)&matrix2->m[1][1]   = 0x1000;
+    *(s32*)&matrix2->m[2][0]   = 0;
+    matrix2->m[2][2]           = 0x1000;
+    coord->coord.t[1]          = 0x690;
+    coord->coord.t[0]          = 0;
+    coord->coord.t[2]          = 0x5DC;
+    work->field_4B8.flg        = 0;
+    Gp_UpdateCoord(workCoord);
+    coord->flg = 0;
+    Gp_UpdateCoord(coord);
+    work->field_4B8.coord.t[0] = 0;
+    work->field_4B8.coord.t[1] = 0;
+    work->field_4B8.coord.t[2] = 0;
+    work->field_730            = 0;
+    arg1->msgTable             = D_actor_403600_80160504;
+    arg1->exitCallback         = (TaskFunc)func_actor_403600_80141F28;
+    work->field_77A            = 0x2328;
+    work->field_744            = 0;
+    arg1->state               += 1;
+}
+
+void func_actor_403600_80141E78(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    TmdObject*       obj;
+    TmdObject*       obj2;
+    Actor403600Work* work;
+    u16              value;
+
+    work            = arg1->field_1C;
+    value           = work->field_744 + 1;
+    work->field_744 = value;
+    if ((s16)value >= 2) {
+        Tmd_AllocBuffers(arg1->field_2C);
+        obj          = arg1->field_2C;
+        obj->flags  &= 0xFFFB;
+        obj2         = arg1->field_2C;
+        obj2->flags &= 0xFF7F;
+        arg1->field_30++;
+        work->field_73A = 0;
+        work->field_77C = 0;
+        work->field_744 = 0x1000;
+    }
+}
+
+void func_actor_403600_80141F28(Actor403600* arg0)
+{
+    arg0->field_2C->coords->sub = &gGfxViewCoord;
+    Gp_EnemyTaskExit((Task*)arg0);
+}
+
+void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1)
+{
+    void**   scratch;
+    void*    head;
+    SVECTOR* vec;
+    MATRIX*  matrix;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vec      = (SVECTOR*)((u8*)head - 8);
+    *scratch = vec;
+    matrix   = &arg0->coord;
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
+
+    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
+    gte_lddp(arg1);
+    gte_ldsv(vec);
+    gte_gpf12();
+    gte_stsv(vec);
+    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
+
+    head      = *scratch;
+    arg0->flg = 0;
+    *scratch  = (u8*)head + 8;
+}
