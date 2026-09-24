@@ -1154,7 +1154,6 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_main_street/dryfield_main_street", rodata = "0x4", text = "0x40" },
   { unit = "dryfield_main_street/dryfield_main_street_2", rodata = "0x34", text = "0x4AC" },
-  { unit = "dryfield_main_street/dryfield_main_street_6", rodata = "0x1C", text = "0x1D8" },
   { unit = "dryfield_main_street/dryfield_main_street_7", text = "0x8B8" },
   { unit = "dryfield_main_street/dryfield_main_street_8", text = "0xA94" },
   { unit = "dryfield_main_street/dryfield_main_street_3", text = "0xA9C" },
