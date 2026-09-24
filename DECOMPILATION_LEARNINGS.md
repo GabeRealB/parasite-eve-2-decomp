@@ -140157,3 +140157,43 @@ The `s16` parameter makes `integrate.c` emit `copy_to_mode_reg` for the
 `(subreg:HI y)` argument, and the sign extension at the compare later folds back
 to a copy of y. That copy is the target's block-3 `move v1,a0`. With an `s32`
 parameter the second copy disappears.
+
+## An insn with no in-block predecessor sinks to the top of its block; an empty asm reading the chain holds it down (func_shelter_b3_dumping_hole_8018005C, 2026-09-24)
+
+**Symptom.** A value computed from a register set in an *earlier* block (`q = v >> 12`
+after an `if (v < 0) v += 0xFFF;` rounding) belongs, in the target, after an inline
+LCG draw: `addu; sra; sw; srl; andi; beqz; negu`. Wherever the C puts it, sched1
+emits the `sra`/`negu` first in the block, and `sw` takes the branch delay slot.
+
+**Mechanism** (`sched.c`, backward list scheduling). `priority()` is the longest
+path from the block start, so an insn whose operands all come from another block has
+priority 1, while everything after the draw's `lw` has 2 (load latency). Ties go to
+the higher LUID; a `sw` also wins ties through "greater potential hazard". On top of
+that, `adjust_priority` raises an insn to `LAUNCH_PRIORITY` when it becomes ready and
+its destination is a single-set live pseudo (`birthing_insn_p`, which counts
+`REG_N_SETS` over the *whole function*). The target order needs the shift at exactly
+priority 2, unboosted, with a LUID between the final `addu` and the `sw`.
+
+**What does not work.** Reusing a variable the draw already reads (for example the
+`lw` result) as the shift's destination gives the right order, through anti-dependences,
+but that pseudo then has two `REG_DEAD` notes. `local_alloc` only takes pseudos with
+`REG_N_DEATHS == 1`, so it goes to global-alloc, and the block's locals (`%hi`, the
+constant) take its register first. The order matched, but four registers were wrong.
+
+**Fix.**
+```c
+r = Gp_LcgState * 5 + 0x71357911;
+SOFT_TOUCH_REG_USE(v, r);   /* gives the shift a priority-2 predecessor, emits nothing */
+s = v >> 12;                /* s shared by several blocks: multi-set, so not boosted */
+Gp_LcgState = r;
+r >>= 16;                   /* in place: the store must precede it, so sw cannot go last */
+q = -s;
+if (r & 1) w = q - d; else w = q;
+```
+The non-volatile read/write asm depends on `r` and redefines `v`, so the shift inherits
+the chain's priority. `s` is used in three blocks, so it is global but has one short
+life per block, and it lands in the `lw` temp's register after that temp dies. Use a
+fresh single-set destination (plain `q = v >> 12` after `r >>= 16`) where the target
+wants the shift placed immediately before the branch, where reorg moves it into the
+delay slot. Diagnose first: in `.sched`, look for the insn at priority 1 sitting at
+the end of the ready list while everything else is 2 or `7f000001`.

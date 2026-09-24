@@ -1247,7 +1247,249 @@ void func_shelter_b3_dumping_hole_80180034(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8018005C);
+/// Spawn record for a falling shard: where it starts relative to `parent`, its
+/// base velocity, its size, and the downward speed it gains each frame.
+typedef struct {
+    SVECTOR        pos;
+    SVECTOR        vel;
+    GsCOORDINATE2* parent;
+    u16            size;
+    u16            fall;
+} DumpingHoleShardCfg;
+
+/// Work block of a falling shard: its current rotation and spin, its velocity,
+/// the three corners of the triangle it draws, and the per-frame fall speed.
+typedef struct {
+    SVECTOR rot;
+    SVECTOR rotSpeed;
+    SVECTOR vel;
+    SVECTOR verts[3];
+    u16     fall;
+} DumpingHoleShard;
+
+extern u16 D_shelter_b3_dumping_hole_8018F4B0;
+
+/// A shard thrown out of the hole, alive only while the room flag is set. On
+/// its first frame it places itself from the spawn record and randomises its
+/// velocity, spin and triangle shape; afterwards it falls and spins, is dropped
+/// once its origin leaves the screen or passes behind the camera, and otherwise
+/// draws itself as a shaded triangle.
+void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
+{
+    DumpingHoleShard*    work;
+    GsCOORDINATE2*       coord;
+    DumpingHoleShardCfg* cfg;
+    POLY_G3*             prim;
+    SVECTOR              ofs;
+    s16                  x[3];
+    s16                  y[3];
+    SVECTOR              origin;
+    s32                  sxy;
+    s32                  otz;
+    s16                  i;
+    s16                  sx;
+    s16                  sy;
+    s32                  v;
+    u32                  r;
+    s32                  s;
+    s32                  q;
+    s32                  w;
+    s32                  wz;
+    s32                  bx;
+    s32                  by;
+    s32                  bz;
+    s32                  size;
+
+    work  = (DumpingHoleShard*)arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2;
+    if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
+        taskKill(arg0);
+        return;
+    }
+    switch (arg0->state) {
+        case 0:
+            arg0->work = memCalloc(0x34, 0);
+            if (arg0->work == NULL) {
+                goto kill;
+            }
+            work       = (DumpingHoleShard*)arg0->work;
+            coord->sub = &gGfxViewCoord;
+            Mem_Set(arg0->work, 0, 0x34);
+            Gp_ComposeParentWorld(cfg->parent, &coord->coord, &ofs);
+            coord->coord.t[0] = ofs.vx + cfg->pos.vx;
+            coord->coord.t[1] = ofs.vy + cfg->pos.vy;
+            coord->coord.t[2] = ofs.vz + cfg->pos.vz;
+            bx                = cfg->vel.vx;
+            if (DUMPING_HOLE_RAND() & 1) {
+                w = bx + (DUMPING_HOLE_RAND() & 0x1F);
+            } else {
+                w = bx - (DUMPING_HOLE_RAND() & 0x1F);
+            }
+            work->vel.vx = w;
+            by           = cfg->vel.vy;
+            if (DUMPING_HOLE_RAND() & 1) {
+                w = by + (DUMPING_HOLE_RAND() & 0x1F);
+            } else {
+                w = by - (DUMPING_HOLE_RAND() & 0x1F);
+            }
+            work->vel.vy = w;
+            bz           = cfg->vel.vz;
+            if (DUMPING_HOLE_RAND() & 1) {
+                wz = bz + (DUMPING_HOLE_RAND() & 0x1F);
+            } else {
+                wz = bz - (DUMPING_HOLE_RAND() & 0x1F);
+            }
+            work->vel.vz      = wz;
+            work->fall        = cfg->fall;
+            work->rotSpeed.vx = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            work->rotSpeed.vy = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            work->rotSpeed.vz = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            if (work->rotSpeed.vx > 0) {
+                work->rotSpeed.vx += 100;
+            } else {
+                work->rotSpeed.vx -= 100;
+            }
+            if (work->rotSpeed.vy > 0) {
+                work->rotSpeed.vy += 100;
+            } else {
+                work->rotSpeed.vy -= 100;
+            }
+            if (work->rotSpeed.vz > 0) {
+                work->rotSpeed.vz += 100;
+            } else {
+                work->rotSpeed.vz -= 100;
+            }
+            work->verts[0].vx = 0;
+            size              = cfg->size;
+            wz                = (DUMPING_HOLE_RAND() & 1) ? size + (u16)(cfg->size / 10) : size;
+            work->verts[0].vy = wz;
+            work->verts[0].vz = 0;
+            v                 = cfg->size * rsin(0x2AA);
+            if (v < 0) {
+                v += 0xFFF;
+            }
+            r           = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState = r;
+            r         >>= 16;
+            // Matching carrier, not reconstructed source: the empty asm ties
+            // the shift below to the draw, so it is scheduled after the store.
+            SOFT_TOUCH_REG_USE(v, r);
+            q = v >> 12;
+            if (r & 1) {
+                w = q + (u16)(cfg->size / 10);
+            } else {
+                w = q;
+            }
+            work->verts[1].vx = w;
+            v                 = cfg->size * rsin(0x155);
+            if (v < 0) {
+                v += 0xFFF;
+            }
+            r = Gp_LcgState * 5 + 0x71357911;
+            SOFT_TOUCH_REG_USE(v, r);
+            s           = v >> 12;
+            Gp_LcgState = r;
+            r         >>= 16;
+            q           = -s;
+            if (r & 1) {
+                w = q - (u16)(cfg->size / 10);
+            } else {
+                w = q;
+            }
+            work->verts[1].vy = w;
+            work->verts[1].vz = 0;
+            v                 = cfg->size * rsin(0x2AA);
+            if (v < 0) {
+                v += 0xFFF;
+            }
+            r = Gp_LcgState * 5 + 0x71357911;
+            SOFT_TOUCH_REG_USE(v, r);
+            s           = v >> 12;
+            Gp_LcgState = r;
+            r         >>= 16;
+            q           = -s;
+            if (r & 1) {
+                w = q - (u16)(cfg->size / 10);
+            } else {
+                w = q;
+            }
+            work->verts[2].vx = w;
+            v                 = cfg->size * rsin(0x155);
+            if (v < 0) {
+                v += 0xFFF;
+            }
+            r = Gp_LcgState * 5 + 0x71357911;
+            SOFT_TOUCH_REG_USE(v, r);
+            s           = v >> 12;
+            Gp_LcgState = r;
+            r         >>= 16;
+            q           = -s;
+            if (r & 1) {
+                w = q - (u16)(cfg->size / 10);
+            } else {
+                w = q;
+            }
+            work->verts[2].vy = w;
+            work->verts[2].vz = 0;
+            arg0->state++;
+            break;
+        case 1:
+            work->vel.vy      += work->fall;
+            coord->coord.t[0] += work->vel.vx;
+            coord->coord.t[1] += work->vel.vy;
+            coord->coord.t[2] += work->vel.vz;
+            Gp_UpdateCoord(coord);
+            gte_SetTransMatrix(&coord->workm);
+            gte_SetRotMatrix(&coord->workm);
+            origin.vz = 0;
+            origin.vy = 0;
+            origin.vx = 0;
+            gte_ldv0(&origin);
+            gte_rtps_real();
+            gte_stsxy(&sxy);
+            gte_stszotz(&otz);
+            sy = sxy >> 16;
+            sx = sxy;
+            if (sx < -0xA0) {
+                goto kill;
+            }
+            if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
+            kill:
+                taskKill(arg0);
+                break;
+            }
+            for (i = 0; i < 3; i++) {
+                gte_ldv0(&work->verts[i]);
+                gte_rtps_real();
+                gte_stsxy(&sxy);
+                gte_stszotz(&otz);
+                x[i] = sxy;
+                y[i] = sxy >> 16;
+            }
+            prim           = (POLY_G3*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG3(prim);
+            setRGB0(prim, 0x10, 0x10, 0x10);
+            setRGB1(prim, 0x40, 0x40, 0x40);
+            setRGB2(prim, 0x80, 0x80, 0x80);
+            prim->x0 = x[0];
+            prim->y0 = y[0];
+            prim->x1 = x[1];
+            prim->y1 = y[1];
+            prim->x2 = x[2];
+            prim->y2 = y[2];
+            addPrim(&gGpuCurrentOt[otz >> 4], prim);
+            work->rot.vx += work->rotSpeed.vx;
+            work->rot.vy += work->rotSpeed.vy;
+            work->rot.vz += work->rotSpeed.vz;
+            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
+            Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
+            coord->flg = 0;
+            break;
+    }
+}
 
 /// Position and rotation the task hands itself with message 0x7D4.
 typedef struct {
@@ -1298,7 +1540,6 @@ typedef struct {
 } DumpingHoleState4;
 
 extern DumpingHoleState4* D_shelter_b3_dumping_hole_8018F4AC;
-extern s16                D_shelter_b3_dumping_hole_8018F4B0;
 extern DumpingHolePose    D_shelter_b3_dumping_hole_8018966C;
 extern TaskDesc           D_shelter_b3_dumping_hole_80189ADC;
 void                      func_shelter_b3_dumping_hole_80183218(u8 arg0);
