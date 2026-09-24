@@ -258,12 +258,20 @@ typedef struct Actor403200Work {
     /* 0x690 */ GpAnimCtx  anim5;
     /* 0x6A4 */ GpAnimSlot slots5[4];
     /* 0x744 */ byte       aux5[0x40];
-    /* 0x784 */ byte       pad_784[0x20];
+    /// Per-part yaw the fifth escort's model is being driven to, one entry per
+    /// part, and the angle each part is currently at. The escort pose driver
+    /// picks the targets from `field_7A4` and walks every `field_794` toward
+    /// its `field_784` by at most `field_7A6` a call.
+    /* 0x784 */ s16  field_784[7];
+    /* 0x792 */ byte pad_792[0x2];
+    /* 0x794 */ s16  field_794[7];
+    /* 0x7A2 */ byte pad_7A2[0x2];
     /// Escort pose index, written 3 by the re-arm path of the per-frame body
     /// and cleared once the shared countdown below has run out. Same slot and
     /// role as `Actor444000Work::field_7A4`.
-    /* 0x7A4 */ s16  field_7A4;
-    /* 0x7A6 */ byte pad_7A6[0x2];
+    /* 0x7A4 */ s16 field_7A4;
+    /// Most a `field_794` entry may move in one call.
+    /* 0x7A6 */ s16 field_7A6;
     /// The masked `slots0[3].curRec` frame the launch state last saw, so each of its
     /// four one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7A8`.
@@ -274,15 +282,20 @@ typedef struct Actor403200Work {
     /* 0x7AC */ s32 field_7AC;
     /* 0x7B0 */ s8  field_7B0;
     /// Set while the blended animation path runs.
-    /* 0x7B1 */ s8   field_7B1;
-    /* 0x7B2 */ byte pad_7B2;
-    /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ byte pad_7B4[0x2];
+    /* 0x7B1 */ s8 field_7B1;
+    /// Animation id currently playing; the slot reseed latches `field_7B3`
+    /// here once it has reseeded every slot.
+    /* 0x7B2 */ s8 field_7B2;
+    /* 0x7B3 */ s8 field_7B3;
+    /// Frames since the animation block was re-armed.
+    /* 0x7B4 */ u16 field_7B4;
     /// The `GpAnimSlot.rate` the even animation members tick at; the launch
     /// state arms it to 0x40 and then to 0x10.
-    /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ s16  field_7B8;
-    /* 0x7BA */ byte pad_7BA[0x2];
+    /* 0x7B6 */ s16 field_7B6;
+    /* 0x7B8 */ s16 field_7B8;
+    /// Set to 2 to start a blend on the next animation step, which then moves
+    /// it on to 3.
+    /* 0x7BA */ s16 field_7BA;
     /// Animation id the blend seeds the odd members' slots with.
     /* 0x7BC */ s16 field_7BC;
     /// The `GpAnimSlot.rate` the odd members tick at while blending.
@@ -302,7 +315,10 @@ typedef struct Actor403200Work {
     /// animation; the retries in `func_actor_403200_8013FB54` are bounded by
     /// it. Same slot and role as `Actor444000Work::field_7CA`.
     /* 0x7CA */ u16  field_7CA;
-    /* 0x7CC */ byte pad_7CC[0xC];
+    /* 0x7CC */ byte pad_7CC[0x4];
+    /// Start of a 0x20-byte run cleared whenever the animation block is
+    /// re-armed.
+    /* 0x7D0 */ byte field_7D0[0x8];
     /// The masked `slots0[2].curRec` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
@@ -465,21 +481,26 @@ typedef struct Actor403200Work {
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
-/// Work block of the enemy `func_actor_403200_8013669C` stands up: that state
-/// allocates it with `memCalloc(0x1C0, 0)` and parks it in its task's
+/// Work block of the enemies spawned through `D_actor_403200_80131E90`,
+/// `D_actor_403200_80131E9C` and `D_actor_403200_80131F04`: their spawn states
+/// allocate it with `memCalloc(0x1C0, 0)` and park it in the task's
 /// `Task::work` slot, so the size below is the allocation, not a guess.
 ///
-/// The state drops the model onto the view coordinate and hangs two `GpObj`
-/// display nodes off it. `rec0` is the table the first node carries, `rec1`
-/// the second's; the two matrices are handed back out through the task's
-/// `TmdObject::lightMtx` / `field_20`, as the sibling spawn states do.
-/// `field_1AA` is a ninth of the model's height and `field_1AC` the step
-/// counter, both re-read by the states that follow this one.
+/// The spawn states drop the model onto the view coordinate and hang one or two
+/// `GpObj` display nodes off it. `rec0` is the table the first node carries,
+/// `rec1` the second's; the two matrices are handed out through the task's
+/// `TmdObject::lightMtx` / `colorMtx`. `field_1AA` is a ninth of the model's
+/// height and `field_1AC` the step counter, both re-read by the states that
+/// follow the spawn.
 typedef struct Actor403200GrabWork {
     /// Horizontal gap to the player, a fifteenth of which the later states add
     /// to the model each step; only `vx` and `vz` are filled in here.
     /* 0x000 */ VECTOR3 vel;
-    /* 0x00C */ byte    pad_C[0xA4];
+    /* 0x00C */ byte    pad_C[0x54];
+    /// The work block's own coordinate, parented to the view coordinate and
+    /// kept tracking the model's world position so the ground marker under it
+    /// can be drawn from `coord.workm.t`.
+    /* 0x060 */ GsCOORDINATE2 coord;
     /// The two display nodes, linked with `prio` 3 and 2.
     /* 0x0B0 */ GpObj obj0;
     /* 0x0D0 */ GpObj obj1;
@@ -491,7 +512,9 @@ typedef struct Actor403200GrabWork {
     /// handed `lightMtx` and `field_20` `colorMtx`.
     /* 0x150 */ MATRIX colorMtx;
     /* 0x170 */ MATRIX lightMtx;
-    /* 0x190 */ byte   pad_190[0x18];
+    /* 0x190 */ byte   pad_190[0x4];
+    /// Message 0x3FF payload the hold states send the player, by address.
+    /* 0x194 */ GpAnimArg anim;
     /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
     /// model has been stood up on its escort's part 1; the states that follow
     /// re-arm the step counter and the first display node on the tick they see
@@ -499,28 +522,70 @@ typedef struct Actor403200GrabWork {
     /* 0x1A8 */ s16  field_1A8;
     /* 0x1AA */ s16  field_1AA;
     /* 0x1AC */ s16  field_1AC;
-    /* 0x1AE */ byte pad_1AE[0x12];
+    /* 0x1AE */ byte pad_1AE[0x2];
+    /// Radius of the ground marker, in eighths once shifted down.
+    /* 0x1B0 */ u16 field_1B0;
+    /// Set while the player animation this enemy sent is installed, so only
+    /// the state that set it sends the cancel.
+    /* 0x1B2 */ s16 field_1B2;
+    /// The state the dispatcher last ran, so it can spot a change.
+    /* 0x1B4 */ s16  field_1B4;
+    /* 0x1B6 */ byte pad_1B6[0xA];
 } Actor403200GrabWork;
 STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 
 /// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
-/// that rises out of view and slams back down onto the floor. `coord` is the
+/// that rises out of view and slams back down onto the floor. Its spawn state
+/// allocates it with `memCalloc(0x1C0, 0)` and parks it in the task's
+/// `Task::work` slot, so the size is the allocation.
+///
+/// `target` is the landing point the spawn state picks; `coord` is the
 /// coordinate its shadow marker is drawn at, kept on the floor directly under
 /// the model and refreshed every step; `obj` is its collision node, whose
 /// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
 /// the step counter of the current state.
 typedef struct Actor403200DropWork {
-    /* 0x000 */ byte          pad_0[0x10];
+    /* 0x000 */ VECTOR3       target;
+    /* 0x00C */ byte          pad_C[0x4];
     /* 0x010 */ GsCOORDINATE2 coord;
     /* 0x060 */ byte          pad_60[0x50];
     /* 0x0B0 */ GpObj         obj;
     /* 0x0D0 */ byte          pad_D0[0x20];
     /* 0x0F0 */ GpRec18       rec;
-    /* 0x108 */ byte          pad_108[0xA4];
-    /* 0x1AC */ u16           timer;
-    /* 0x1AE */ byte          pad_1AE[0x12];
+    /* 0x108 */ byte          pad_108[0x88];
+    /// The effect the spawn state starts, reparented onto the task so it dies
+    /// with it; the landing state tells it to finish.
+    /* 0x190 */ GpEffWork* eff;
+    /* 0x194 */ byte       pad_194[0x16];
+    /* 0x1AA */ s16        field_1AA;
+    /* 0x1AC */ u16        timer;
+    /// Per-step bias of the rise and fall, rolled off the LCG.
+    /* 0x1AE */ s16  field_1AE;
+    /* 0x1B0 */ byte pad_1B0[0x10];
 } Actor403200DropWork;
 STATIC_ASSERT_SIZEOF(Actor403200DropWork, 0x1C0);
+
+/// Work block of the spinner enemy dispatched through `D_actor_403200_80131F28`:
+/// its spawn state allocates it with `memCalloc(0xA0, 0)` and parks it in the
+/// task's `Task::work` slot. `spin` counts down while the model only yaws in
+/// place and is also the phase that yaw follows; `field_98` is the homing
+/// speed and radius and `field_96` the step count that accelerates it.
+typedef struct Actor403200SpinnerWork {
+    /* 0x00 */ byte   pad_0[0x50];
+    /* 0x50 */ MATRIX colorMtx;
+    /* 0x70 */ MATRIX lightMtx;
+    /// Set when the dispatcher sees the state change, cleared when it has not.
+    /* 0x90 */ s16  field_90;
+    /* 0x92 */ byte pad_92[0x2];
+    /// The state the dispatcher last ran, so it can spot the change.
+    /* 0x94 */ s16  field_94;
+    /* 0x96 */ s16  field_96;
+    /* 0x98 */ s16  field_98;
+    /* 0x9A */ byte pad_9A[0x2];
+    /* 0x9C */ u8   spin;
+    /* 0x9D */ byte pad_9D[0x3];
+} Actor403200SpinnerWork;
+STATIC_ASSERT_SIZEOF(Actor403200SpinnerWork, 0xA0);
 
 s32 func_actor_403200_801344C4(Task* arg0, s16 arg1);
 
@@ -532,6 +597,17 @@ void func_actor_403200_80133DD8(Task* task);
 /// Turn `coord` to its view-space orientation rotated by `yaw` about y,
 /// expressed back in its parent's frame (`actor_403200_11.c`).
 void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw);
+
+void func_actor_403200_801329CC(Task* task);
+void func_actor_403200_80133614(Task* task, s16 arg1);
+void func_actor_403200_801337A0(Task* task, s16 arg1);
+void func_actor_403200_80133920(Task* task);
+void func_actor_403200_801339FC(Task* arg0);
+void func_actor_403200_80133B80(Task* arg0);
+
+/// Step `coord` by the movement the first `arg2` records of `rec` resolve to;
+/// returns whether it moved (`actor_403200.c`).
+s32 func_actor_403200_801324D0(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
 
 /// Exit callback of the boss task (`actor_403200_16.c`).
 void func_actor_403200_80141018(Task* arg0);

@@ -149,9 +149,169 @@ void func_actor_403200_801408D8(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// the caller's `a2` / `a3` are left over from the scan.
 void func_actor_403200_80134044(GsCOORDINATE2* coord, s32 id);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137CCC);
+/// Reads and writes the scratchpad head. Written as inlines because only
+/// inline-expanded code keeps the absolute `lui $at` form of the scratch-head
+/// accesses.
+static __inline__ u8* Actor403200_GetScratchHead(void)
+{
+    return *(u8**)G_SCRATCH_HEAD;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_4", func_actor_403200_80137EB4);
+static __inline__ void Actor403200_SetScratchHead(void* head)
+{
+    *(void**)G_SCRATCH_HEAD = head;
+}
+
+/// Spawn state of the spinner enemy dispatched through
+/// `D_actor_403200_80131F28`: allocate its `Actor403200SpinnerWork`, parent
+/// the model to the view coordinate, give it a random orientation off
+/// `Gp_LcgState` and a countdown picked by `spawnArg1`, point it at its own
+/// light and colour matrices and step the task on. Bails to `Gp_DestroyEnemy`
+/// when the overlay is shutting down or the allocation fails.
+void func_actor_403200_80137CCC(GpEnemy* enemy, Task* task)
+{
+    Actor403200SpinnerWork* work;
+
+    if (D_actor_403200_80141C50 == 1) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    work       = memCalloc(0xA0, 0);
+    task->work = work;
+    if (work == NULL) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
+    ((TmdObject*)task->extra)->flags       = 0;
+
+    switch ((u16)task->spawnArg1) {
+        case 0:
+            work->spin = 0x14;
+            break;
+        case 1:
+            work->spin = 0x28;
+            break;
+        case 2:
+            work->spin = 0x50;
+            break;
+        default:
+            work->spin = 0x50;
+            break;
+    }
+
+    task->msgTable = NULL;
+    work->field_98 = 0;
+    work->field_96 = 0;
+
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+
+    ((TmdObject*)task->extra)->lightMtx    = &work->lightMtx;
+    ((TmdObject*)task->extra)->colorMtx    = &work->colorMtx;
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
+    func_800D7A9C(task->extra, (VECTOR*)((TmdObject*)task->extra)->coords->workm.t, 0, 3);
+    task->state++;
+}
+
+/// Per-tick state of the spinner enemy. While `spin` is counting down the model
+/// only yaws in place -- 0x40 on phase 1 and -0x3C on phase 3 of every four
+/// frames -- and nothing else happens. Once it reaches zero the enemy homes on
+/// `D_actor_403200_8015F8F8`: the offset from the model root to that point is
+/// squared against `field_98` in a `VECTOR3` borrowed off `G_SCRATCH_HEAD`, and
+/// the task steps on when the enemy is inside that radius. `field_96` then ties
+/// the spin rate to the step count (`field_98 += field_96 / 8`), the offset is
+/// normalised and scaled by `field_98` through the GTE's `gpf` interpolator, and
+/// the result is added to the root translation before the three rotations are
+/// rebuilt from `field_98` and `field_96`. Bails to `Gp_DestroyEnemy` while the
+/// overlay is shutting down.
+void func_actor_403200_80137EB4(GpEnemy* enemy, Task* task)
+{
+    Actor403200SpinnerWork* work;
+    SVECTOR                 step;
+    SVECTOR*                stepp;
+    VECTOR3*                sq;
+    u8*                     head;
+    s16                     angle;
+    s32                     spin;
+    s32                     phase;
+    s32                     inside;
+
+    work                                   = (Actor403200SpinnerWork*)task->work;
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
+    func_800D7A9C(task->extra, (VECTOR*)((TmdObject*)task->extra)->coords->workm.t, 0, 3);
+
+    if (D_actor_403200_80141C50 == 1 || D_actor_403200_80141C5A == 0) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    ((TmdObject*)task->extra)->flags = 0;
+
+    spin = work->spin;
+    if (spin != 0) {
+        spin--;
+        work->spin = spin;
+        phase      = work->spin;
+        if ((phase & 3) == 1) {
+            Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0x40, 0);
+        }
+        if ((work->spin & 3) == 3) {
+            Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, -0x3C, 0);
+        }
+        ((TmdObject*)task->extra)->coords->flg = 0;
+        Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
+        return;
+    }
+
+    stepp    = &step;
+    *stepp   = D_actor_403200_8015F8F8;
+    step.vx -= ((TmdObject*)task->extra)->coords->coord.t[0];
+    step.vy -= ((TmdObject*)task->extra)->coords->coord.t[1];
+    step.vz -= ((TmdObject*)task->extra)->coords->coord.t[2];
+
+    head = Actor403200_GetScratchHead();
+    sq   = (VECTOR3*)(head - sizeof(VECTOR3));
+    Actor403200_SetScratchHead(sq);
+    angle  = work->field_98;
+    sq->vx = step.vx;
+    sq->vy = stepp->vz;
+    sq->vz = angle;
+    sq->vx = sq->vx * sq->vx;
+    sq->vy = sq->vy * sq->vy;
+    sq->vz = sq->vz * sq->vz;
+    Actor403200_SetScratchHead(head);
+    inside = sq->vx + sq->vy >= sq->vz;
+    if (!inside) {
+        task->state++;
+    }
+
+    work->field_96++;
+    work->field_98 += work->field_96 / 8;
+    VectorNormalSS(stepp, stepp);
+
+    gte_lddp((u16)work->field_98);
+    gte_ldsv(stepp);
+    gte_gpf12();
+    gte_stsv(stepp);
+
+    ((TmdObject*)task->extra)->coords->coord.t[0] += step.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] += step.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] += step.vz;
+    ((TmdObject*)task->extra)->coords->flg         = 0;
+
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, work->field_98 / 2, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, work->field_98 * 2, 0);
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, work->field_96, 0);
+}
 
 /// Screen-shake driver for the enemy task: `func_actor_403200_8013FB54` writes a
 /// level into `field_EAC`, and a change from the armed level in `field_EAD`

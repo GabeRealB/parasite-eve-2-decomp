@@ -28,6 +28,13 @@ extern s16 D_actor_403200_80141C50;
 /// LCG state the spawn state below rolls a random yaw out of.
 extern u32 Gp_LcgState;
 
+/// Per-animation reset argument, a `[?][0x2D]` table indexed by the id that
+/// was playing before the switch and the id being switched to.
+extern s8 D_actor_403200_8015DC98[][0x2D];
+
+/// Declared here with a signed `arg2`; see the note in `gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
 /// direction vector lives in an `SVECTOR` carved off the scratch head and
@@ -56,4 +63,31 @@ static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
     SCRATCH_SP = (u32)((u8*)SCRATCH_SP + sizeof(SVECTOR));
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403200/actor_403200_3", func_actor_403200_801339FC);
+/// Reseed every slot of the three even animation members from `field_7B3` when
+/// the id it names differs from the latched `field_7B2`, then latch it. Each
+/// slot also has its `rate` seeded from `field_7B6`, and the reset argument
+/// comes from the `[field_7B2][field_7B3]` transition table.
+void func_actor_403200_801339FC(Task* arg0)
+{
+    Actor403200Work* work = (Actor403200Work*)arg0->work;
+    s32              i;
+
+    if (work->field_7B2 != work->field_7B3) {
+        for (i = 1; i < 8; i++) {
+            work->slots0[i].rate = work->field_7B6;
+            func_800B4114(&work->anim0, i, work->field_7B3, 0,
+                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots2[i].rate = work->field_7B6;
+            func_800B4114(&work->anim2, i, work->field_7B3, 0,
+                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
+        }
+        for (i = 0; i < 4; i++) {
+            work->slots4[i].rate = work->field_7B6;
+            func_800B4114(&work->anim4, i, work->field_7B3, 0,
+                          D_actor_403200_8015DC98[work->field_7B2][work->field_7B3]);
+        }
+        work->field_7B2 = work->field_7B3;
+    }
+}
