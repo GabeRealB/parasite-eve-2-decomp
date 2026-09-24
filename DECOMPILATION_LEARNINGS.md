@@ -140356,3 +140356,18 @@ local, the andi is still boosted, and the sext survives. The tempting variant,
 reading an uninitialised `y` as `(y & ~y)`, also keeps the sext. But `y` is then
 live from function entry and becomes a call-crossing global that takes an
 s-register.
+
+## A C `const` right after `INCLUDE_RODATA` lands in `.text` (mist_shooting_gallery, 2026-09-24)
+
+**Symptom.** A table defined in C as `const` builds, but the object comes out
+shifted: the table is in `.text` and everything after it moves by its size.
+
+**Mechanism.** `INCLUDE_RODATA` is inline asm that switches to `.rodata`,
+includes the block and switches back with `.section .text`. GCC never sees
+those directives. If the last thing GCC itself emitted was also `.rodata` (an
+earlier C `const`), it believes it is still in `.rodata` and emits the next
+`const` with no section directive, so the assembler puts it in `.text`.
+
+**Fix.** Do not let a C `const` follow an `INCLUDE_RODATA` with no function in
+between. Defining each table beside its user usually does that; otherwise put
+the `INCLUDE_RODATA` after a function, or define the included data in C too.
