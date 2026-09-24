@@ -1,11 +1,11 @@
 #include "common.h"
 
 #include "actors/actor_300700.h"
-#include "actors/actor_300700_spawn.h"
 #include "actors/actor_300700_spawn2.h"
 #include "actors/actors_shared_80135b58.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -15,10 +15,8 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Each enemy task's three state handlers - spawn/setup, per-frame tick
-/// and teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_300700_80161E24;
-extern GpEnemyTaskFuncTable3 D_actor_300700_80161E30;
+/// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
+extern s16 D_actor_300700_801693E4[];
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void func_actor_300700_801637E4(Actor300700* arg0);
@@ -1072,4 +1070,103 @@ case1:
     work->field_37E = state;
     work->field_38C = 0;
     work->field_394 = state;
+}
+
+/// Records the model's current root position in the work block, then displaces
+/// the root coordinate by the work's step along the rotation's third column
+/// (X and Z only) and by 0x80 on Y.
+void func_actor_300700_801651A0(Actor300700* arg0)
+{
+    Actor300700Work* work;
+    GsCOORDINATE2*   coord;
+
+    coord              = arg0->field_2C->field_8;
+    work               = arg0->field_1C;
+    work->field_360    = coord->coord.t[0];
+    work->field_364    = coord->coord.t[1];
+    work->field_368    = coord->coord.t[2];
+    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_384) >> 0xC;
+    coord->coord.t[1] += 0x80;
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_384) >> 0xC;
+}
+
+void func_actor_300700_80165230(Actor300700* arg0)
+{
+    Actor300700Work* work;
+    s32              i;
+    s32              value;
+
+    work = arg0->field_1C;
+    i    = 1;
+    if ((s16)work->field_37E != work->field_380) {
+        work->field_380 = work->field_37E;
+        work->field_382 = 0;
+        value           = D_actor_300700_801693E4[(s16)work->field_37E];
+        for (; i < 7; i++) {
+            func_800B4114(work, i, (s16)work->field_37E, 0, value);
+        }
+    } else {
+        TOUCH_REG(i);
+        work->field_382 += i;
+        do {
+            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            i++;
+        } while (i < 7);
+    }
+}
+
+/// Updates the actor's lighting colour from the world position of its model
+/// root, with both extra arguments zero.
+void func_actor_300700_801652F4(Actor300700* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg0->field_20, &vec, 0, 0);
+}
+
+void func_actor_300700_8016534C(Actor300700* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR3        vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x1C0, 0x80);
+}
+
+void func_actor_300700_8016539C(Actor300700* arg0)
+{
+    GsCOORDINATE2*              coord;
+    MATRIX*                     head;
+    ActorShared80135b58Scratch* scratch;
+    Actor300700Work*            work;
+
+    head                = *(MATRIX**)0x1F8003FC;
+    work                = arg0->field_1C;
+    scratch             = (ActorShared80135b58Scratch*)((u8*)head - 0x30);
+    *(void**)0x1F8003FC = scratch;
+    coord               = arg0->field_2C->field_8;
+    if (work->field_390 >= 0x201) {
+        work->field_390 = (u16)work->field_390 - 0x50;
+    }
+    scratch->scale.vx          = 0x1000;
+    scratch->scale.vy          = (s32)work->field_390;
+    scratch->scale.vz          = 0x1000;
+    coord->coord               = work->field_340;
+    scratch->mat.ident.m00_m01 = 0x1000;
+    scratch->mat.ident.m02_m10 = 0;
+    scratch->mat.ident.m11_m12 = 0x1000;
+    scratch->mat.ident.m20_m21 = 0;
+    scratch->mat.ident.m22     = 0x1000;
+    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->mat.mat);
+    coord->flg         = 0;
+    *(u8**)0x1F8003FC += 0x30;
 }

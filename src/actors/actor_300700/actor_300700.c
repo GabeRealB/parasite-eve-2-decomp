@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_300700.h"
-#include "actors/actor_300700_spawn.h"
 #include "actors/actor_300700_spawn2.h"
 #include "actors/actors_shared_80135b58.h"
 
@@ -16,12 +15,59 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Each enemy task's three state handlers - spawn/setup, per-frame tick
-/// and teardown - dispatched through by state.
-extern GpEnemyTaskFuncTable3 D_actor_300700_80161E24;
-extern GpEnemyTaskFuncTable3 D_actor_300700_80161E30;
+/// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
+/// `memCalloc` and stores in the task's work slot, then fills with the three
+/// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
+/// tables. `Actor300700Work` is the wider view the tick handlers use of the
+/// same object.
+typedef struct Actor300700SpawnWork {
+    /* 0x000 */ byte    field_0[0x14];
+    /* 0x014 */ byte    field_14[0xA0]; // four GpAnimSlots, `func_800B3F84` arg4
+    /* 0x0B4 */ byte    field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
+    /* 0x0F4 */ MATRIX  field_F4;       // color matrix handed to the stream
+    /* 0x114 */ MATRIX  field_114;      // light matrix handed to the stream
+    /* 0x134 */ GpObj   obj134;
+    /* 0x154 */ GpRec18 rec154;
+    /* 0x16C */ GpObj   obj16C;
+    /* 0x18C */ GpRec18 rec18C[4];
+    /* 0x1EC */ GpObj   obj1EC;
+    /* 0x20C */ GpRec18 rec20C;
+    /* 0x224 */ void*   field_224;
+    /* 0x228 */ u16     field_228;
+    /* 0x22A */ u16     field_22A;
+    /* 0x22C */ byte    pad_22C[0x80];
+    /* 0x2AC */ s32     field_2AC;
+    /* 0x2B0 */ s32     field_2B0;
+    /* 0x2B4 */ s32     field_2B4;
+    /* 0x2B8 */ byte    pad_2B8[0x1E];
+    /* 0x2D6 */ u16     field_2D6;
+    /* 0x2D8 */ byte    pad_2D8[4];
+    /* 0x2DC */ u16     field_2DC;
+    /* 0x2DE */ byte    pad_2DE[0x16];
+} Actor300700SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
+
+/// Four rotated corners and the projected center/depth on the scratchpad.
+typedef struct Actor300700QuadScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     sxy;
+    /* 0x24 */ s32     otz;
+} Actor300700QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor300700QuadScratch, 0x28);
+
+typedef struct Actor300700TexEntry {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 pad_1;
+    /* 0x2 */ u8 v;
+    /* 0x3 */ u8 pad_3;
+} Actor300700TexEntry;
+STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
+
+extern Actor300700TexEntry D_actor_300700_80165B9C[];
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_300700_801648E4(GpEnemy* arg0, Actor300700* arg1);
+void func_actor_300700_80163410(Actor300700* arg0);
 void func_actor_300700_801637E4(Actor300700* arg0);
 void func_actor_300700_80164794(Actor300700* arg0);
 void func_actor_300700_80163D64(Actor300700* arg0);
@@ -681,7 +727,15 @@ void func_actor_300700_80162EFC(Actor300700* arg0)
     addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), prim);
     SCRATCH_SP += 0x28;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E24);
+/// The first variant's state handlers, dispatched by `func_actor_300700_8016335C`
+/// on the task's state: spawn, per-frame update, and the handler for state 2.
+const GpEnemyTaskFuncTable3 D_actor_300700_80161E24 = {
+    {
+        func_actor_300700_80161E80,
+        (GpEnemyTaskFunc)func_actor_300700_80162130,
+        (GpEnemyTaskFunc)func_actor_300700_80162BC8,
+    },
+};
 
 void func_actor_300700_8016335C(Task* arg0)
 {
@@ -831,4 +885,18 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     arg1->state       = 1;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E30);
+/// The second variant's state handlers, in the same order, dispatched by
+/// `func_actor_300700_80164CE0`.
+const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
+    {
+        func_actor_300700_80163510,
+        (GpEnemyTaskFunc)func_actor_300700_80164D3C,
+        (GpEnemyTaskFunc)func_actor_300700_801648E4,
+    },
+};
+
+/// The zero word between the state tables and the next object's rodata, which
+/// opens with an 8-aligned jump table: either a fourth, empty handler slot or
+/// the linker's alignment padding. The generated linker script aligns input
+/// sections to 4 only and cannot insert it, so it stays in assembly.
+INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E3C);

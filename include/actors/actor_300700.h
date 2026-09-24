@@ -4,6 +4,7 @@
 #include "common.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/1BC.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -109,24 +110,6 @@ typedef struct Actor300700RotScratch {
 } Actor300700RotScratch;
 STATIC_ASSERT_SIZEOF(Actor300700RotScratch, 0x18);
 
-/// Four rotated corners and the projected center/depth on the scratchpad.
-typedef struct Actor300700QuadScratch {
-    /* 0x00 */ SVECTOR v[4];
-    /* 0x20 */ s32     sxy;
-    /* 0x24 */ s32     otz;
-} Actor300700QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor300700QuadScratch, 0x28);
-
-typedef struct Actor300700TexEntry {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 pad_1;
-    /* 0x2 */ u8 v;
-    /* 0x3 */ u8 pad_3;
-} Actor300700TexEntry;
-STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
-
-extern Actor300700TexEntry D_actor_300700_80165B9C[];
-
 /// Damage record the actor pushes hits into. Same object family as
 /// `GpObj5C`: `field_4C` carries the generic hit-flag bits, `field_40` the
 /// remaining hit points and `field_10` the anchor `func_800DA6E8` binds a
@@ -153,9 +136,10 @@ typedef struct Actor300700 {
     /* 0x30 */ s32               field_30;
 } Actor300700;
 
-/// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
-extern s16 D_actor_300700_801693E4[];
-
 void func_actor_300700_80164D3C(Actor300700Ctx* arg0, Actor300700* arg1);
+
+/// The second variant's state handlers: spawn, per-frame update and the
+/// handler for state 2.
+extern const GpEnemyTaskFuncTable3 D_actor_300700_80161E30;
 
 #endif
