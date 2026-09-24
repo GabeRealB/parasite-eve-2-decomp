@@ -5,7 +5,8 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 
 s32 func_shelter_b1_sleeping_quarters_8017D668(void)
 {
@@ -29,7 +30,17 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(s32 arg0, s32 arg1, RoomEventMsg*
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D6FC);
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 8) {
+        Gp_MsgPlayerWeapon(0);
+        Task_SpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, 8, 0);
+    }
+    if (arg2 == 3) {
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x16F) == 0 ? 3 : 0xF, 0);
+    }
+    return 0;
+}
 
 s32 func_shelter_b1_sleeping_quarters_8017D770(void)
 {
