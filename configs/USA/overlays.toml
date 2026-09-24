@@ -1047,9 +1047,9 @@ id = 313
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_r08/dryfield_r08", rodata = "0x4", text = "0x38" },
-  { lib = true, unit = "room_draw31", text = "0x1208" },
+  { unit = "dryfield_r08/dryfield_r08_3", text = "0x1208" },
   { unit = "dryfield_r08/dryfield_r08_2", text = "0x15A8" },
-  { lib = true, unit = "rooms_shared_8017f438", text = "0x1E78" },
+  { unit = "dryfield_r08/dryfield_r08_4", text = "0x1E78" },
   { kind = "data", at = "0x1EA4" },
 ]
 

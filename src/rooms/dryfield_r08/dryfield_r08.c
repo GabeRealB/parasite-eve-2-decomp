@@ -1,5 +1,10 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -8,10 +13,7 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/dryfield_r08.h"
 
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -42,14 +44,14 @@ void func_dryfield_r08_8017D5F8(Task* task)
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            Room_Draw31(&q[0], 0x200, 0x444);
-            Room_Draw31(&q[2], 0x200, 0x444);
-            Room_Draw31(&q[3], 0x200, 0x444);
-            Room_Draw31(&q[6], 0x200, 0x444);
-            Room_Draw31(&q[14], 0x200, 0x444);
-            Room_Draw31(&q[15], 0x200, 0x444);
-            Room_Draw31(&q[16], 0x200, 0x444);
-            Room_Draw31(&q[17], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[3], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[6], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[14], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[15], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[16], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[17], 0x200, 0x444);
             break;
         }
         case 3:
@@ -66,29 +68,29 @@ void func_dryfield_r08_8017D5F8(Task* task)
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            Room_Draw31(&q[0], 0x200, 0x444);
-            Room_Draw31(&q[1], 0x200, 0x444);
-            Room_Draw31(&q[2], 0x200, 0x444);
-            Room_Draw31(&q[7], 0x200, 0x444);
-            Room_Draw31(&q[8], 0x200, 0x444);
-            Room_Draw31(&q[21], 0x200, 0x400);
-            Room_Draw31(&q[22], 0x200, 0x400);
-            Room_Draw31(&q[23], 0x200, 0x400);
-            Room_Draw31(&q[29], 0x200, 0x400);
+            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[1], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[7], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[8], 0x200, 0x444);
+            func_dryfield_r08_8017E7C8(&q[21], 0x200, 0x400);
+            func_dryfield_r08_8017E7C8(&q[22], 0x200, 0x400);
+            func_dryfield_r08_8017E7C8(&q[23], 0x200, 0x400);
+            func_dryfield_r08_8017E7C8(&q[29], 0x200, 0x400);
             break;
         }
         case 6: {
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            Room_Draw31(&q[0], 0x200, 0x433);
-            Room_Draw31(&q[2], 0x200, 0x433);
-            Room_Draw31(&q[3], 0x200, 0x433);
-            Room_Draw31(&q[6], 0x200, 0x433);
-            Room_Draw31(&q[14], 0x200, 0x433);
-            Room_Draw31(&q[15], 0x200, 0x433);
-            Room_Draw31(&q[16], 0x200, 0x433);
-            Room_Draw31(&q[17], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[3], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[6], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[14], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[15], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[16], 0x200, 0x433);
+            func_dryfield_r08_8017E7C8(&q[17], 0x200, 0x433);
             break;
         }
     }

@@ -1,23 +1,23 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
-/// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
-/// the projected centre. Same body as `Room_Draw13` except the scratch block
-/// stores `radius` at 0x4 and `flag` at 0x8. Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a glowing disc around the point `arg0`, projected through
+/// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
+/// wedges lit at the projected centre and black at the rim, of screen radius
+/// `(s16)arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels
+/// (0xRGB), brightened slightly on odd frames.
+void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
