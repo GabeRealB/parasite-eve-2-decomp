@@ -11,7 +11,6 @@
 
 #include "rooms/dryfield_night_motel_lobby.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 
 extern s32 D_dryfield_night_motel_lobby_801844D4;
 
@@ -44,7 +43,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         prompt->targetId = 0;
     } else {
         prompt->targetId = 0x80;
-        if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (func_dryfield_night_motel_lobby_80180DE4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
             if (prompt->buttons[0].state == 2) {
                 while (hs->id != -1) {

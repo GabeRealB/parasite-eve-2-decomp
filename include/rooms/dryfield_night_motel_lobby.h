@@ -3,7 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
+#include "main/ui.h"
 #include "rooms/room_common.h"
 
 /// Work block the motel lobby's examine task keeps at `Task::work` (0x1C) --
@@ -75,13 +78,6 @@ extern u8 D_dryfield_night_motel_lobby_801844D8[7];
 /// The lobby's eleven-entry task state table, in the room's leading rodata.
 /// The dispatcher below copies it onto the stack, so the handler runs from the
 /// copy rather than from here.
-///
-/// The same body carries the same-shaped table in `shelter_r47` (eleven
-/// handlers at `0x8017D7DC`) and in `aya/replay_bonus`, which is why the three
-/// copies are one body in the duplicate index. They cannot share an object as
-/// things stand: the shared unit would have to reach each room's own table, and
-/// `tools/overlay_dup_index.py promote` refuses exactly that (`RoomsShared8017d878`
-/// shows the manual per-carrier name this would need).
 extern const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0;
 
 /// Dispatches the room's main task through the table above: the eleven handlers
@@ -115,5 +111,36 @@ void func_dryfield_night_motel_lobby_80180E98(Task* task);
 /// latches the visit flag and starts the scene, otherwise it fills in the cap
 /// script and spawns the cutscene task.
 s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2);
+
+/// The room's three-entry task state table, dispatched the same way by
+/// `func_dryfield_night_motel_lobby_8017FE38`.
+extern const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4;
+
+/// The "%" suffix appended to the percentages the play-data panels print.
+extern u8 D_dryfield_night_motel_lobby_80182508[];
+
+/// UI descriptor the "Play Data" panel and the usage panel spawn when they
+/// first open.
+extern UiObjectDesc D_dryfield_night_motel_lobby_80182720;
+
+/// Exit callback `func_dryfield_night_motel_lobby_8017EDD8` installs.
+void func_dryfield_night_motel_lobby_8017F4C8(Task* task);
+
+/// Moves and draws the action-prompt cursors from the pads.
+void func_dryfield_night_motel_lobby_801807C0(Task* task);
+
+/// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
+/// each entry's `hit` flag, and returns whether any entry was hit.
+s32 func_dryfield_night_motel_lobby_80180DE4(RoomHotspot* table, s16 x, s16 y);
+
+/// Resets both action prompts and steps the task on one state.
+void func_dryfield_night_motel_lobby_80181298(Task* task);
+
+/// Draws a pulsing gouraud marker of two diamonds and two diagonals at the
+/// projection of `pos`.
+void func_dryfield_night_motel_lobby_80181404(SVECTOR* pos, s32 rate, s32 size);
+
+/// Draws a pulsing gouraud glow of wedges at the projection of `pos`.
+void func_dryfield_night_motel_lobby_80181878(SVECTOR* pos, s32 rate, s32 size);
 
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H

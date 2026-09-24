@@ -259,6 +259,6 @@ void func_dryfield_night_motel_lobby_8017F504(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", D_dryfield_night_motel_lobby_8017D6A4);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_lobby/dryfield_night_motel_lobby", D_dryfield_night_motel_lobby_8017D6B0);
