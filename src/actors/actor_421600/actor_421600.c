@@ -21,7 +21,57 @@
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_8013285C);
+/// Step `coord` by the movement the first `arg2` records of `movement` resolve
+/// to, and latch the integer part of that delta in `D_actor_421600_80151260`.
+/// A nonzero fractional X or Z part rounds the coordinate and the latched step
+/// one unit further from zero. Returns 1 when the X or Z delta is nonzero.
+s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
+{
+    void**                scratch;
+    u8*                   head;
+    Actor421600DeltaFlag* s;
+    register void*        p asm("v1");
+    s32                   val;
+
+    scratch     = (void**)G_SCRATCH_HEAD;
+    head        = *scratch;
+    p           = head - 0x14;
+    s           = p;
+    *scratch    = p;
+    s->field_10 = 0;
+    if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
+        coord->coord.t[0]          = coord->coord.t[0] + ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
+        D_actor_421600_80151260.vx = ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_421600_80151260.vy = s->delta.vy.w >> 16;
+        D_actor_421600_80151260.vz = s->delta.vz.w >> 16;
+        val                        = ((Actor421600DeltaFlag*)(head - 0x14))->delta.vx.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[0]++;
+                D_actor_421600_80151260.vx++;
+            } else {
+                coord->coord.t[0]--;
+                D_actor_421600_80151260.vx--;
+            }
+        }
+        val = s->delta.vz.w;
+        if ((val & 0xFFFF) != 0) {
+            if (val > 0) {
+                coord->coord.t[2]++;
+                D_actor_421600_80151260.vz++;
+            } else {
+                coord->coord.t[2]--;
+                D_actor_421600_80151260.vz--;
+            }
+        }
+    }
+    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
+        s->field_10 = 1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    return s->field_10;
+}
 
 s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2)
 {
@@ -174,7 +224,85 @@ s32 func_actor_421600_80132A00(Actor421600* arg0, s32 arg1, Actor421600Msg* arg2
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_421600/actor_421600", func_actor_421600_80132EC0);
+/// Draw a beam between model parts `firstJoint` and `secondJoint`: take both
+/// ends into view space at height `height`, widen them by `width` into a quad
+/// and emit it as a textured `POLY_FT4` shaded `shade`. Nothing is drawn when
+/// the two parts are the same.
+void func_actor_421600_80132EC0(Actor421600* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+{
+    Actor421600BeamScratch* s;
+    s16                     angle;
+    GsCOORDINATE2*          secondCoord;
+    GsCOORDINATE2*          firstCoord;
+    s32                     offset0;
+    s32                     offset1;
+    s32                     offset2;
+    s32                     offset3;
+    s32                     halfX;
+    s32                     halfZ;
+    GsCOORDINATE2*          coords;
+    GsCOORDINATE2*          view;
+    POLY_FT4*               poly;
+
+    coords      = actor->field_2C->coords;
+    firstCoord  = coords + firstJoint;
+    secondCoord = coords + secondJoint;
+    if (firstJoint != secondJoint) {
+        s = (Actor421600BeamScratch*)(*(u8**)G_SCRATCH_HEAD -= sizeof(Actor421600BeamScratch));
+        Gp_UpdateCoord(firstCoord);
+        Gp_UpdateCoord(secondCoord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &s->secondMatrix);
+        s->first.vy   = height;
+        s->second.vy  = height;
+        s->first.vx   = s->firstMatrix.t[0];
+        s->first.vz   = s->firstMatrix.t[2];
+        s->second.vx  = s->secondMatrix.t[0];
+        s->second.vz  = s->secondMatrix.t[2];
+        angle         = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
+        halfX         = (s->first.vx - s->second.vx) / 2;
+        halfZ         = (s->first.vz - s->second.vz) / 2;
+        offset0       = rcos(angle) * width;
+        s->corner0.vy = height;
+        s->corner0.vx = halfX + (s->first.vx - (offset0 >> 0xC));
+        s->corner0.vz = halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1       = rcos(angle) * width;
+        s->corner1.vy = height;
+        s->corner1.vx = halfX + (s->first.vx + (offset1 >> 0xC));
+        s->corner1.vz = halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2       = rcos(angle) * width;
+        s->corner2.vy = height;
+        s->corner2.vx = (s->second.vx - (offset2 >> 0xC)) - halfX;
+        s->corner2.vz = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        offset3       = rcos(angle) * width;
+        s->corner3.vy = height;
+        s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
+        s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        view          = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        view->flg     = 0;
+        Gp_UpdateCoord(view);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
+                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
+        if (s->flags >= 0) {
+            poly           = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)poly + 0x28;
+            setlen(poly, 9);
+            poly->code       = 0x2E;
+            *(s32*)&poly->x0 = s->screen0;
+            *(s32*)&poly->x1 = s->screen1;
+            *(s32*)&poly->x2 = s->screen2;
+            *(s32*)&poly->x3 = s->screen3;
+            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
+            poly->tpage = 0x48;
+            poly->clut  = 0x4283;
+            setRGB0(poly, shade, shade, shade);
+            addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+        }
+        *(u8**)G_SCRATCH_HEAD += sizeof(Actor421600BeamScratch);
+    }
+}
 
 /// Moves an interior coordinate to the nearest padded X or Z edge.
 /// Returns 1 when moved, or 0 when already outside the rectangle.
