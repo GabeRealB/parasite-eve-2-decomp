@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -18,11 +19,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_sterilization_room.h"
-
-/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-/// `rtps` with the two leading `nop`s the original emitted.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32     D_shelter_b1_sterilization_room_80188C94;
 extern s32     D_shelter_b1_sterilization_room_80188E14;
@@ -504,7 +500,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             work->field_2A   = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
             gte_lddp(work->field_28);
             gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1 / 16]);
-            gte_gpf12_real();
+            gte_gpf12();
             vec = &work->field_10;
             gte_stsv(vec);
             work->field_10.vx -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
@@ -559,7 +555,7 @@ void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -630,13 +626,13 @@ void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 ar
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -765,7 +761,7 @@ void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 ar
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -840,7 +836,7 @@ void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 ar
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -935,7 +931,7 @@ void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 ar
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->sx);
     gte_stflg(&((ShelterB1SterilizationRoomGlowScratch*)(head - 0x14))->flag);
     if (block->flag >= 0) {

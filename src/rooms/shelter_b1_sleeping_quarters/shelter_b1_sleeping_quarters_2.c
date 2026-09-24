@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -10,8 +11,6 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 extern s32 D_80115730;
 extern s32 D_80115734;
@@ -136,11 +135,11 @@ void func_shelter_b1_sleeping_quarters_8017DB50(SVECTOR* arg0, s32 arg1, s32 arg
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
@@ -274,7 +273,7 @@ void func_shelter_b1_sleeping_quarters_8017E338(SVECTOR* arg0, s32 arg1, s32 arg
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {

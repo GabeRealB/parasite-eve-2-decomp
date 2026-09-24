@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -14,10 +15,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
 /// and zeroes before use. `vec` is the coordinate's translation, projected
@@ -155,7 +152,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -241,7 +238,7 @@ void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -316,7 +313,7 @@ void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -455,7 +452,7 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -516,7 +513,7 @@ void func_shelter_b1_pod_service_gantry_8017ED3C(GsCOORDINATE2* arg0, u16 arg1, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->sx);
     gte_stflg(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -586,7 +583,7 @@ void func_shelter_b1_pod_service_gantry_8017F160(GsCOORDINATE2* arg0, u16 arg1, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -666,7 +663,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GsCOORDINATE2* arg0, s32 arg1, 
     block->vec.vz                               = 0;
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(block);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(block);
     ((RoomDraw14Scratch*)(head - 0x18))->vec.vx = *(u16*)&((RoomDraw14Scratch*)(head - 0x18))->vec.vx + *(u16*)&arg0->workm.t[0];
     block->vec.vy                               = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
@@ -675,7 +672,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GsCOORDINATE2* arg0, s32 arg1, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {

@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -13,12 +14,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` RTPS, MVMVA and GPF macros assemble to different words
-/// from the ones this code has, so the instructions are spelled out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 typedef struct {
     u8 data[12];
@@ -185,7 +180,7 @@ void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)
         gte_SetRotMatrix(&m);
         gte_ldv0(s);
         s++;
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(d);
         d++;
         i++;
@@ -265,7 +260,7 @@ void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -353,7 +348,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 
         gte_lddp(work->field_2A);
         gte_ldsv(&work->field_10);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&work->field_10);
     }
 
@@ -399,7 +394,7 @@ void func_shelter_b1_golem_freezer_1_8017E254(GsCOORDINATE2* coord, u16 arg1, s1
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

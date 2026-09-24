@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "decomp/common.h"
 #include "gameplay/1A8.h"
@@ -32,8 +33,6 @@
 #include "main/wipsys.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// One row of the shop's unlockable stock: the three item ids the row offers
 /// once its bit in `Mc_SaveData.shopTiers` is set. The leading word is not
@@ -3970,11 +3969,11 @@ void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
@@ -4110,7 +4109,7 @@ void func_shelter_b1_underground_parking_8018543C(SVECTOR* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
@@ -4242,7 +4241,7 @@ void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
@@ -4337,7 +4336,7 @@ void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
     gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
     if (block->flag >= 0) {

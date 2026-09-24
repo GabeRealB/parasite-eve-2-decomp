@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -19,12 +20,6 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/shelter_b1_north_maintenance_walkway.h"
-
-/// The `inline_c.h` GTE commands lack the two leading nops this code has.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// The gameplay-resident light slot the glows write: `mode` becomes 2 and
 /// `data.light` takes the glow's world position and a randomised intensity.
@@ -106,11 +101,11 @@ void func_shelter_b1_north_maintenance_walkway_8017DDE0(SVECTOR* arg0, s32 arg1,
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
@@ -232,7 +227,7 @@ void func_shelter_b1_north_maintenance_walkway_8017E55C(SVECTOR* arg0, s16 arg1)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
@@ -391,7 +386,7 @@ void func_shelter_b1_north_maintenance_walkway_8017EB84(GsCOORDINATE2* arg0, u16
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(block);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -477,7 +472,7 @@ void func_shelter_b1_north_maintenance_walkway_8017EE48(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw09Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw09Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -560,7 +555,7 @@ void func_shelter_b1_north_maintenance_walkway_8017F26C(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -806,7 +801,7 @@ void func_shelter_b1_north_maintenance_walkway_8017FB44(GsCOORDINATE2* coord, s1
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
@@ -913,7 +908,7 @@ void func_shelter_b1_north_maintenance_walkway_80180070(GsCOORDINATE2* arg0, s32
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -925,10 +920,10 @@ void func_shelter_b1_north_maintenance_walkway_80180070(GsCOORDINATE2* arg0, s32
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -1004,7 +999,7 @@ void func_shelter_b1_north_maintenance_walkway_801803E8(GsCOORDINATE2* arg0, s16
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1266,7 +1261,7 @@ void func_shelter_b1_north_maintenance_walkway_80181180(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1348,7 +1343,7 @@ void func_shelter_b1_north_maintenance_walkway_801815AC(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1545,10 +1540,10 @@ void func_shelter_b1_north_maintenance_walkway_80181E30(GsCOORDINATE2* arg0, GsC
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -1708,7 +1703,7 @@ void func_shelter_b1_north_maintenance_walkway_801824B0(GsCOORDINATE2* arg0, s16
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1907,7 +1902,7 @@ void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
                 mem->move.vx = 0;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
             }
             mem->period       += 8;
@@ -1958,11 +1953,11 @@ void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task)
                 work->field_1C = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&work->field_18);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_18);
                 gte_lddp(0xCC);
                 gte_ldsv(&work->field_18);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&work->field_18);
                 task->state = 1;
                 break;
@@ -2019,7 +2014,7 @@ void func_shelter_b1_north_maintenance_walkway_801835EC(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2114,7 +2109,7 @@ void func_shelter_b1_north_maintenance_walkway_80183870(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw07Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw07Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2193,7 +2188,7 @@ void func_shelter_b1_north_maintenance_walkway_80183C94(GsCOORDINATE2* arg0, s32
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw10Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw10Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2346,7 +2341,7 @@ void func_shelter_b1_north_maintenance_walkway_801841D4(GsCOORDINATE2* coord, s1
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
@@ -2453,7 +2448,7 @@ void func_shelter_b1_north_maintenance_walkway_80184700(GsCOORDINATE2* arg0, s32
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -2465,10 +2460,10 @@ void func_shelter_b1_north_maintenance_walkway_80184700(GsCOORDINATE2* arg0, s32
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {

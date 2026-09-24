@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "decomp/common.h"
 #include "gameplay/1A8.h"
@@ -30,8 +31,6 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_b1_sterilization_room.h"
-
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 typedef struct {
     u8 data[12];
@@ -1669,7 +1668,7 @@ void func_shelter_b1_sterilization_room_80180570(GsCOORDINATE2* coord, s16* arg1
         gte_SetRotMatrix(&m);
         gte_ldv0(s);
         s++;
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(d);
         d++;
         i++;

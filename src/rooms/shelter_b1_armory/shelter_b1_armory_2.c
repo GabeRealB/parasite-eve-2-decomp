@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -11,8 +12,6 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The points the room's glows are drawn at, per view.
 extern SVECTOR D_shelter_b1_armory_80182528[];
@@ -104,11 +103,11 @@ void func_shelter_b1_armory_80180934(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
@@ -242,7 +241,7 @@ void func_shelter_b1_armory_8018111C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
@@ -323,7 +322,7 @@ void func_shelter_b1_armory_801814C0(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {

@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -15,10 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-/// The `inline_c.h` GTE commands lack the two leading nops this code has.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -141,11 +138,11 @@ void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s32 arg1
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
     gte_stszotz(&block->otz0);
     gte_ldv0(p1);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx1);
     gte_stszotz(&((RoomDraw11Scratch*)(head - 0x18))->otz1);
     if (block->otz1 >= 0x11) {
@@ -268,7 +265,7 @@ void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s16 arg1
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw25Scratch*)(head - 0xC))->sx);
     gte_stszotz(&block->otz);
     if (((RoomDraw25Scratch*)(head - 0xC))->otz >= 0x11) {
@@ -450,7 +447,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E57C(GsCOORDINATE2* arg0, s3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -533,7 +530,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E9A8(GsCOORDINATE2* arg0, s3
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -729,10 +726,10 @@ void func_shelter_b1_control_room_access_tunnel_8017F22C(GsCOORDINATE2* arg0, Gs
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -891,7 +888,7 @@ void func_shelter_b1_control_room_access_tunnel_8017F8AC(GsCOORDINATE2* arg0, s1
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
