@@ -5,8 +5,8 @@
 #include "psyq/abs.h"
 
 #include "actors/actor_401300.h"
-#include "actors/actors_shared_80132808.h"
 #include "gameplay/1A8.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -790,8 +790,8 @@ void func_actor_401300_80133A3C(Actor401300* arg0)
         if (work->field_8B4 < -0x400) {
             yaw = -0x400;
         }
-        ActorsShared80132808(&arg0->field_2C->coords[5], (yaw * 2) / 3);
-        ActorsShared80132808(&arg0->field_2C->coords[2], yaw / 2);
+        func_actor_401300_801320A4(&arg0->field_2C->coords[5], (yaw * 2) / 3);
+        func_actor_401300_801320A4(&arg0->field_2C->coords[2], yaw / 2);
         arg0->field_2C->coords[5].flg = 0;
         arg0->field_2C->coords[4].flg = 0;
         arg0->field_2C->coords[3].flg = 0;
@@ -4747,4 +4747,4 @@ void func_actor_401300_8014148C(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_401300/actor_401300", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_401300/actor_401300", D_actor_401300_8013201C);

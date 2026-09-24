@@ -469,6 +469,9 @@ void func_actor_401300_80141C88(Actor401300* arg0);
 void func_actor_401300_80141D50(Actor401300* arg0);
 void func_actor_401300_80141DF4(Actor401300* arg0);
 
+/// Turns joint `coord` by `yaw` about the world Y axis.
+void func_actor_401300_801320A4(GsCOORDINATE2* coord, s16 yaw);
+
 /// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.
 static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
