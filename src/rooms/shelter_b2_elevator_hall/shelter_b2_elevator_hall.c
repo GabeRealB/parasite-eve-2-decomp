@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b2_elevator_hall.h"
 
 extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b2_elevator_hall_8018379C;
@@ -16,9 +16,10 @@ extern TaskDesc D_shelter_b2_elevator_hall_8018379C;
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017D8E4);
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179A04`. Messages 0x21 and 0x1C build a request for the gate at
-/// `RoomsShared8017d638` (nibbles 0xAB and 0xA9, the latter with collected bit
-/// 0x121, which it sets when the gate reports the event fired). Message 0x1A
+/// `func_80179A04`. Messages 0x21 and 0x1C build a request for the gate
+/// `func_shelter_b2_elevator_hall_8017D610` (nibble 0xAB with no item, and
+/// nibble 0xA9 with item 0x21, which also sets item-seen bit 0x121 when the
+/// gate reports the event fired). Message 0x1A
 /// answers 0 and, unless `in->field_5` asks for a dry run, either sets the
 /// message's nibble and runs CAP command 4 while nibble 0xBA is clear, or runs
 /// CAP command 5 and spawns the room's task once it is set. Anything else
@@ -37,7 +38,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = 0x541B0005;
         req.flagId  = 0xAB;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b2_elevator_hall_8017D610(&req, out);
     }
     if (in->msgId == 0x1C) {
         req.field_0 = 3;
@@ -46,8 +47,8 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = 0x541B0003;
         req.flagId  = 0xA9;
         req.itemId  = 0x21;
-        ret         = RoomsShared8017d638(&req, out);
-        if (RoomsShared8017d638Flag != 0) {
+        ret         = func_shelter_b2_elevator_hall_8017D610(&req, out);
+        if (D_shelter_b2_elevator_hall_80184D84 != 0) {
             Gp_SetItemSeenBit(0x121, 1);
         }
         return ret;
@@ -92,4 +93,4 @@ s32 func_shelter_b2_elevator_hall_8017DC88(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", D_shelter_b2_elevator_hall_8017D5F0);
