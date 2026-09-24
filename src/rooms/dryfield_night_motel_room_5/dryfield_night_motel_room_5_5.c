@@ -4,10 +4,10 @@
 
 #include "rooms/room_common.h"
 
-/// Message 0x1D: copies the incoming record onto the outgoing one and, when
-/// not a report-only query (`field_5 == 0`), answers 1 or 3 from nibble 0x61.
-/// Always returns 1 (not consumed).
-s32 Room_Script04(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Message-table handler for id 0x13EE: echoes the incoming record into the
+/// reply and, for a message 0x1D that is not report-only (`field_5 == 0`),
+/// answers 1 while game nibble 0x61 is clear and 3 once it is set. Returns 1.
+s32 func_dryfield_night_motel_room_5_8017D5F8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 nib;
 
