@@ -10,4 +10,4 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunne
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E288);
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", D_neo_ark_submarine_tunnel_8017D614);
