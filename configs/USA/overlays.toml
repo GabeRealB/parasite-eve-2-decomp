@@ -3164,26 +3164,7 @@ id = 429
 text = ["0x10", "0x47A8"]
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade", rodata = "0x4", text = "0x18" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_10", text = "0x10" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_11", text = "0xBC" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_2", text = "0x100" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_12", text = "0x108" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_3", text = "0x160" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_13", text = "0x1F0" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_4", text = "0x4BC" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_14", text = "0x780" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_5", text = "0xBA4" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_15", text = "0xF38" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_6", text = "0x147C" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_16", text = "0x19A8" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_7", text = "0x1D20" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_17", text = "0x26E0" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_18", text = "0x2814" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_19", text = "0x2AB8" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_8", text = "0x2EE4" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_20", text = "0x3278" },
-  { unit = "neo_ark_north_promenade/neo_ark_north_promenade_9", text = "0x3DE8" },
+  { unit = "neo_ark_north_promenade/neo_ark_north_promenade", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x47A8" },
 ]
 
