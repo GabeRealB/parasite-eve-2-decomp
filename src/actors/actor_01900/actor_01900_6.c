@@ -1,21 +1,13 @@
 #include "common.h"
 
 #include "actors/actor_101900.h"
-#include "actors/actor_101900_facing.h"
-#include "actors/actors_shared_80132808.h"
-#include "actors/actors_shared_80169f74.h"
 #include "gameplay/1BC.h"
-#include "gameplay/3CD8.h"
-#include "gameplay/3FB8.h"
-#include "gameplay/D4.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "psyq/abs.h"
-#include "rooms/rooms_shared_80182078.h"
 
-void ActorsShared80132a84(Actor01900* arg0)
+/// Advances the actor's animation one tick. Joints 1-10 are sampled from both
+/// the main and the blend animation and passed to `Gp_AnimWritePoseCopy` with
+/// weights `field_8AC` and 0x1000 - `field_8AC`; joints 11-18 tick the main
+/// animation alone. The per-joint rates come from `field_8A2` and `field_8AA`.
+void Actor01900_Fn01950(Actor01900* arg0)
 {
     GpAnimPose          pose;
     GpAnimPose          blendPose;
