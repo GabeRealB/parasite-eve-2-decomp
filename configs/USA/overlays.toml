@@ -2269,20 +2269,6 @@ id = 387
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", rodata = "0x4", text = "0x5C" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_5", text = "0x918" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_2", text = "0x928" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_6", text = "0xDDC" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_7", text = "0xDFC" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_8", text = "0xE3C" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_3", text = "0xE5C" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_9", text = "0x11F4" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_4", text = "0x1214" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_10", text = "0x1334" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_11", text = "0x1B78" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_12", text = "0x1E1C" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_13", text = "0x2248" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_14", text = "0x25DC" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel_15", text = "0x314C" },
   { kind = "data", at = "0x3B0C" },
 ]
 
