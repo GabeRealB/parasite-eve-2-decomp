@@ -13,11 +13,92 @@
 extern u8 D_801153F4[1];
 extern u8 D_80115690;
 
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017D6BC);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017D82C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", func_shelter_b2_main_corridor_8017D9C4);
+s32 func_shelter_b2_main_corridor_8017D9C4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    ShelterB2MainCorridorExit  staged;
+    ShelterB2MainCorridorExit* p;
+    s32                        capCmd;
+    s16                        flag;
+    s32                        sndId;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId == 0x1B && GameFlag_GetNibble(0xAB) == 0) {
+        if (in->field_5 != 0) {
+            return 0;
+        }
+        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_RunCapCmd1(1);
+        return 0;
+    }
+    if (in->msgId == 0x1F && GameFlag_GetNibble(0xB1) == 0) {
+        if (in->field_5 != 0) {
+            return 0;
+        }
+        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_RunCapCmd1(2);
+        return 0;
+    }
+    if ((in->msgId == 0x1F || in->msgId == 0x20 || in->msgId == 0x1B) && GameFlag_GetNibble(0xD1) == 2) {
+        if (in->field_5 != 0) {
+            return 2;
+        }
+        Gp_RunCapCmd1(4);
+        return 2;
+    }
+    if (in->msgId == 0x22) {
+        func_shelter_b2_main_corridor_8017E264(out);
+        sndId        = 0x54210001;
+        capCmd       = 0xA;
+        staged.sndId = sndId;
+        flag         = 0x133;
+    } else if (in->msgId == 0x20) {
+        func_shelter_b2_main_corridor_8017E264(out);
+        sndId        = 0x54210001;
+        capCmd       = 9;
+        staged.sndId = sndId;
+        flag         = 0x134;
+    } else if (in->msgId == 0x1B) {
+        func_shelter_b2_main_corridor_8017E264(out);
+        sndId        = 0x54210001;
+        capCmd       = 0xB;
+        staged.sndId = sndId;
+        flag         = 0x135;
+    } else if (in->msgId == 0x1F) {
+        func_shelter_b2_main_corridor_8017E264(out);
+        sndId        = 0x54210001;
+        capCmd       = 0xC;
+        staged.sndId = sndId;
+        flag         = 0x136;
+    } else {
+        return 1;
+    }
+    p                                   = &staged;
+    staged.capCmd                       = capCmd;
+    staged.flag                         = flag;
+    staged.field_A                      = 0;
+    D_shelter_b2_main_corridor_8018965C = 0;
+    if (GameFlag_GetNibble(p->flag) == 0 || p->flag == 0) {
+        if (out->field_5 != 0) {
+            return 2;
+        }
+        D_shelter_b2_main_corridor_80189654 = *out;
+        D_shelter_b2_main_corridor_80189674 = staged;
+        if (p->flag != 0) {
+            GameFlag_SetNibble(p->flag, 1);
+        }
+        Task_SpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
+        D_shelter_b2_main_corridor_8018965C = 1;
+        return 2;
+    }
+    return 1;
+}
 
 s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
 {

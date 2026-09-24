@@ -42,6 +42,34 @@ extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189664;
 /// Descriptor of the task spawned after the staged block has been copied.
 extern TaskDesc D_shelter_b2_main_corridor_801828E4;
 
-s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
+/// Parameters of a room exit, staged by the room's message handler for the task
+/// spawned from `D_shelter_b2_main_corridor_80182C08`, which runs `capCmd`,
+/// plays `sndId` and then moves the player. `flag` names a game-flag nibble that
+/// is set once the exit has been taken; once set, the handler no longer claims
+/// the message.
+typedef struct ShelterB2MainCorridorExit {
+    s32 capCmd;
+    s32 sndId;
+    s16 flag;
+    u8  field_A;
+} ShelterB2MainCorridorExit;
+STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorExit, 0xC);
+
+/// Descriptor of the task that carries out a staged exit.
+extern TaskDesc D_shelter_b2_main_corridor_80182C08;
+
+/// The outgoing message of the exit being taken; the exit task copies its
+/// destination into the save location.
+extern RoomEventMsg D_shelter_b2_main_corridor_80189654;
+
+/// Cleared whenever the handler considers an exit, set once the exit task has
+/// been spawned. Nothing else in the room reads it.
+extern u8 D_shelter_b2_main_corridor_8018965C;
+
+/// The exit being taken, read by the exit task.
+extern ShelterB2MainCorridorExit D_shelter_b2_main_corridor_80189674;
+
+s32  func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg* out);
+void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
 
 #endif

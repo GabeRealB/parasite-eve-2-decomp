@@ -139827,3 +139827,43 @@ linked image is identical. `func_shelter_b4_upper_sewer_8017E5F8` is the same
 shape. A matched jump table in a later unit still needs the manifest `rodata`
 cut, and its `INCLUDE_RODATA` line must come out of the first unit's `.c` by
 hand.
+
+## An independent `li` between a constant's `ori` and its store needs the constant in a local assigned first (func_shelter_b2_main_corridor_8017D9C4, 2026-09-24)
+
+**Symptom.** Each branch of an if-chain sets two locals that a join block stores
+into a stack struct, plus one field it stores itself:
+`lui v0,0x5421; ori v0,v0,1; li v1,0xA; sw v0,0x14(sp); j join; li v0,0x133`.
+Neither statement order fits: `id = 0xA; s.snd = 0x54210001;` gives
+`li v1` before the `lui`, and `s.snd = 0x54210001; id = 0xA;` gives it after
+the `sw`. 98.6%, `reorder=4`, one per branch.
+
+**Mechanism.** Sched1 and sched2 schedule backward and, with every priority 1
+and every class 3 here, break ties by LUID. `s.snd = C` expands to
+`set r, C` / `sw r` at adjacent LUIDs, so nothing independent can land between
+them. The target puts the `li` there, so its LUID sits between the two, which
+needs the constant loaded by an earlier statement:
+
+```c
+snd    = 0x54210001;   /* lui/ori */
+id     = 0xA;          /* li v1   */
+s.snd  = snd;          /* sw      */
+flag   = 0x133;
+```
+
+The permuter found this for one branch (240 -> 180). Applying it to all four
+gave an exact match.
+
+**Two related traps in the same function.**
+* The pointer `p = &s;` must be set in the join, next to the stores of the
+  branch locals. Writing the fields directly in each branch matches the
+  branches, but jump2 then cross-jumps the identical `sw v1`/`sh v0` tails
+  ahead of the join label, and `addiu s0,sp,0x10` falls after them instead of
+  before.
+* Two `return 2` copies (`if (!f5) Cmd(4); return 2;` and a later
+  `if (!f5) {...} return 2;`) cross-jump in whichever direction jump2 reaches
+  first. When the earlier copy is preceded by a label it takes the later copy.
+  The target keeps the earlier copy, so write the earlier site as
+  `if (f5 != 0) return 2; Cmd(4); return 2;`. That leaves no label before the
+  post-call copy, and the later block jumps back to it.
+
+Inputs: `base_11.i` `8b5b0330…4c1f` (98.64%), `base_18.i` `0e8d6cbf…e258` (100%).
