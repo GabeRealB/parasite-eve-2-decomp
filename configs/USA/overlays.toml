@@ -1202,12 +1202,7 @@ objects = [
 id = 328
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_garage/dryfield_garage", rodata = "0x1C", text = "0x35C" },
-  { unit = "dryfield_garage/dryfield_garage_3", rodata = "0x4", text = "0x28" },
-  { unit = "dryfield_garage/dryfield_garage_4", text = "0x2FC" },
-  { unit = "dryfield_garage/dryfield_garage_5", text = "0x354" },
-  { unit = "dryfield_garage/dryfield_garage_6", text = "0x650" },
-  { unit = "dryfield_garage/dryfield_garage_2", text = "0x6A8" },
+  { unit = "dryfield_garage/dryfield_garage", rodata = "0x4", text = "0x28" },
   { kind = "data", at = "0x6B0" },
 ]
 
