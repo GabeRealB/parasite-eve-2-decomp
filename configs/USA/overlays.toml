@@ -1339,11 +1339,7 @@ id = 344
 text = ["0x10", "0x1270"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_warehouse/dryfield_night_warehouse", rodata = "0x4", text = "0x94" },
-  { unit = "dryfield_night_warehouse/dryfield_night_warehouse_4", text = "0x50" },
-  { unit = "dryfield_night_warehouse/dryfield_night_warehouse_5", text = "0x9C" },
-  { unit = "dryfield_night_warehouse/dryfield_night_warehouse_2", text = "0xF4" },
-  { unit = "dryfield_night_warehouse/dryfield_night_warehouse_3", text = "0x10" },
+  { unit = "dryfield_night_warehouse/dryfield_night_warehouse", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x1270" },
 ]
 
