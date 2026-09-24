@@ -134,7 +134,9 @@ def main() -> None:
 
     def owner_of(image, addr):
         lo, hi = ranges[image]
-        if lo <= addr < hi:
+        # The end address itself is the image's: boundary symbols such as the
+        # end of bss point one past the last byte.
+        if lo <= addr <= hi:
             return image
         cands = sorted(j for j in covering(addr) if j in resident[image])
         if not cands:

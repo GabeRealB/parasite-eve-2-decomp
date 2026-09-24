@@ -2783,6 +2783,11 @@ CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
 CdStream_Channels           = 0x80082870; // type:CdStreamChannels size:0x80
 CdReady_Queue               = 0x800828F0; // type:CdReadyQueue size:0x58
 
+// One past the last bss byte: the startup code zeroes up to here and starts
+// the heap here. The linker script defines it, so the address is computed
+// from the layout rather than asserted.
+main_BSS_END                = 0x80082948; // absolute:True
+
 // Sound / font / OT / async-cb renames (Snd_ / Font_ / Gpu_ / AsyncCb_)
 Snd_Banks                   = 0x8007E0D8; // type:SndBank size:0x200
 Gpu_OrderingTables          = 0x8007A0E8; // type:GameOt size:0x28

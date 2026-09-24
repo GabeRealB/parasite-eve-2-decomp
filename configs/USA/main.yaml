@@ -541,5 +541,10 @@ segments:
       - [0x645c0, o, libmcrd/low, .bss]
       - { start: 0x64880, type: bss, name: "64880", vram: 0x80074080, bss_size: 0x20 }
       - [0x648a0, o, libgs/gs_107, .bss] # GsLIGHTWSMATRIX, _LC
-      - { start: 0x648e0, type: bss, name: "648E0", vram: 0x800740E0 } # remaining .bss / heap
-  - [0x73148]
+      - { start: 0x648e0, type: bss, name: "648E0", vram: 0x800740E0 } # remaining .bss
+  # The file's contents end where bss begins (0x80068F80); the bss subsegments'
+  # start offsets above are placeholders past it. splat places the end of bss at
+  # this offset plus the segment's bss_size, so marking the end any later counts
+  # the bss twice and stretches the last subsegment over the overlay functions
+  # main calls. snmain's own __bss/__bsslen words give 0x80068F80 + 0x199C8.
+  - [0x59780]

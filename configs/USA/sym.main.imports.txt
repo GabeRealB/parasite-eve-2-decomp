@@ -1,5 +1,5 @@
 // Overlay APIs referenced by the main executable (not in main.exe).
-// splat 0.50: addresses sit in the overlay BSS hole, so they must be absolute.
+// They lie outside main's segment, so splat names them only when absolute.
 // Keep in sync with configs/USA/sym.gameplay.txt / sym.title.txt.
 
 Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True
