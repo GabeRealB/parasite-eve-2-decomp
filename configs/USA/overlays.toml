@@ -790,13 +790,6 @@ id = 287
 objects = [
   { kind = "packageId" },
   { unit = "acropolis_patio/acropolis_patio", rodata = "0x4", text = "0x2C" },
-  { unit = "acropolis_patio/acropolis_patio_2", rodata = "0x14", text = "0x78C" },
-  { unit = "acropolis_patio/acropolis_patio_5", text = "0x784" },
-  { unit = "acropolis_patio/acropolis_patio_6", text = "0x9BC" },
-  { unit = "acropolis_patio/acropolis_patio_7", text = "0x9CC" },
-  { unit = "acropolis_patio/acropolis_patio_3", text = "0xA24" },
-  { unit = "acropolis_patio/acropolis_patio_8", text = "0xA64" },
-  { unit = "acropolis_patio/acropolis_patio_4", text = "0xA94" },
   { kind = "data", at = "0x172C" },
 ]
 
