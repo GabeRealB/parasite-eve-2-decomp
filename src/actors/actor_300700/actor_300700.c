@@ -691,7 +691,19 @@ void func_actor_300700_8016335C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_300700/actor_300700", func_actor_300700_801633B8);
+/// Updates the actor's lighting colour from the world position of its model
+/// root, with both extra arguments zero.
+void func_actor_300700_801633B8(Actor300700* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    coord  = arg0->field_2C->field_8;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor((GpEnemy*)arg0->field_20, &vec, 0, 0);
+}
 
 void func_actor_300700_80163410(Actor300700* arg0)
 {
