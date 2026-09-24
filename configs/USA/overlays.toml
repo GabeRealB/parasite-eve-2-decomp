@@ -2265,18 +2265,7 @@ objects = [
 id = 399
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room", rodata = "0x1C", text = "0x33C" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_4", rodata = "0x54", text = "0x173C" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_6", rodata = "0x4", text = "0x68" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_7", text = "0x754" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_2", text = "0x798" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_8", text = "0x7A0" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_3", rodata = "0x3C", text = "0x7F8" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_9", text = "0xB58" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_10", text = "0x139C" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_11", text = "0x1C94" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_5", text = "0x28F4" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room_12", text = "0x2FCC" },
+  { unit = "shelter_b2_operating_room/shelter_b2_operating_room", rodata = "0x4", text = "0x68" },
   { kind = "data", at = "0x3344" },
 ]
 
