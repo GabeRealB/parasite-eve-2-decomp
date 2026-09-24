@@ -184,5 +184,3 @@ s32 func_shelter_1f_heliport_801804BC(s32 arg0, s32 arg1, RoomEventMsg* in)
     }
     return 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", RoomsShared8017eb5cIdList);
