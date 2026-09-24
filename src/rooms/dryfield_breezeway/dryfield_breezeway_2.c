@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3688.h"
@@ -24,10 +25,6 @@
 
 #include "rooms/dryfield_breezeway.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -1625,7 +1622,7 @@ void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
     block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&coord->workm.t[0];
     block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&coord->workm.t[1];
@@ -1634,7 +1631,7 @@ void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
     gte_stszotz(&block->otz);
     if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
@@ -1716,7 +1713,7 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((DbwGlowScratch*)(head - 0x18))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
@@ -1724,7 +1721,7 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((DbwGlowScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((DbwGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&block->otz);
     if (((DbwGlowScratch*)(head - 0x18))->otz > 16) {
@@ -1885,7 +1882,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 work->field_10.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
                 gte_SetRotMatrix(&work->field_8->coord);
                 gte_ldv0(&work->field_10);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_10);
             }
             VectorNormalSS(&work->field_10, &work->field_10);
@@ -1902,7 +1899,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 }
                 gte_lddp(work->field_24);
                 gte_ldsv(&work->field_10);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&delta);
                 coord->coord.t[0] += delta.vx;
                 coord->coord.t[1] += delta.vy;
@@ -1910,7 +1907,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 coord->flg         = 0;
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(&delta);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&dir);
                 pos.vx  = coord->workm.t[0];
                 pos.vy  = coord->workm.t[1];
@@ -1930,7 +1927,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                     work->field_28 = (s16)work->field_28 >> 1;
                     gte_lddp(work->field_24);
                     gte_ldsv(&work->field_10);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&delta);
                     coord->coord.t[0] += delta.vx;
                     coord->coord.t[1] += delta.vy;
@@ -2004,7 +2001,7 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

@@ -20,9 +20,8 @@
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgs.h>
-
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// The factory model's work block as the lighting helper sees it: `light` and
 /// `color` are the model's own matrices, republished onto
@@ -513,7 +512,7 @@ void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTempla
         gte_SetRotMatrix(m);
         gte_ldv0(s);
         s++;
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(d);
         d++;
     }

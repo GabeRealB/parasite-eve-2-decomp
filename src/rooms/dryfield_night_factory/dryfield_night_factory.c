@@ -14,9 +14,8 @@
 #include "rooms/dryfield_night_factory.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
-
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern u8 D_8007216D;
 
@@ -144,7 +143,7 @@ void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAlt
         gte_SetRotMatrix(m);
         gte_ldv0(s);
         s++;
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(d);
         d++;
     }
