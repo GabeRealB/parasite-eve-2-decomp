@@ -6,8 +6,7 @@
 #include "main/tmd.h"
 
 #include "psyq/inline_c.h"
-
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 /// A model-path stream command's handler: the function a command in a model's
 /// stream is resolved to, and the signature every handler of that stream shares.
@@ -613,17 +612,17 @@ void Tmd_SetupDraw(TmdObject* obj)
         gte_SetRotMatrix(light);
 
         gte_ldclmv(m);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(m);
 
         m = (MATRIX*)((u8*)tmp - 0x46);
         gte_ldclmv(m);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(m);
 
         m = (MATRIX*)((u8*)tmp - 0x44);
         gte_ldclmv(m);
-        gte_rtir_real();
+        gte_rtir();
         gte_stclmv(m);
     }
 

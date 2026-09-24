@@ -5,24 +5,8 @@
 #include "main/session.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtv0sf0()   __asm__ volatile("nop; nop; .word 0x4A406012")
-#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-
-#define gte_MulMatrix0_real(r1, r2, r3) \
-    {                                   \
-        gte_SetRotMatrix(r1);           \
-        gte_ldclmv(r2);                 \
-        gte_rtir_real();                \
-        gte_stclmv(r3);                 \
-        gte_ldclmv((char*)(r2) + 2);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 2);    \
-        gte_ldclmv((char*)(r2) + 4);    \
-        gte_rtir_real();                \
-        gte_stclmv((char*)(r3) + 4);    \
-    }
+#include "gte.h"
+#include <psyq/gtemac.h>
 
 typedef struct {
     /* 0x00 */ s32 vx;
@@ -130,7 +114,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     vec = &block->vec;
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         u16          sy;
         register u16 cy asm("v1");
@@ -144,7 +128,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(&block->mat);
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         register u16 cz asm("v0");
         u16          sz;
@@ -159,7 +143,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 
     gte_SetRotMatrix(&block->mat);
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         s16 sz;
         u16 cz;
@@ -172,7 +156,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(&block->mat);
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     col1 = (u8*)head - 0x32;
     gte_stclmv(col1);
 
@@ -183,7 +167,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
         *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
         out->m[2][2]         = block->mat.m[2][2];
     } else {
-        gte_MulMatrix0_real(out, &block->mat, out);
+        gte_MulMatrix0(out, &block->mat, out);
     }
 
     {
@@ -250,7 +234,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     vec = &block->vec;
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         s16 sx;
         u16 cx;
@@ -266,7 +250,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(col1);
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         register u16 cz asm("v0");
         u16          sz;
@@ -281,7 +265,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 
     gte_SetRotMatrix(&block->mat);
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         register s16 sz asm("v0");
         u16          cz;
@@ -295,7 +279,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(&block->mat);
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(col1);
 
     if (flag != 0) {
@@ -305,7 +289,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
         *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
         out->m[2][2]         = block->mat.m[2][2];
     } else {
-        gte_MulMatrix0_real(out, &block->mat, out);
+        gte_MulMatrix0(out, &block->mat, out);
     }
 
     {
@@ -373,7 +357,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     vec = &block->vec;
 
     gte_ldsv(vec);
-    gte_rtir_real();
+    gte_rtir();
     {
         u16          sy;
         register u16 cy asm("v1");
@@ -388,7 +372,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(&block->mat);
 
     gte_ldsv(&block->vec3);
-    gte_rtir_real();
+    gte_rtir();
     {
         register u16 cx asm("v0");
         u16          sx;
@@ -403,7 +387,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 
     gte_SetRotMatrix(&block->mat);
     gte_ldsv(&block->vec2);
-    gte_rtir_real();
+    gte_rtir();
     {
         register s16 sx asm("v0");
         u16          cx;
@@ -418,7 +402,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(col1);
 
     gte_ldsv(&block->vec3);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(col2);
 
     if (flag != 0) {
@@ -428,7 +412,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
         *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
         out->m[2][2]         = block->mat.m[2][2];
     } else {
-        gte_MulMatrix0_real(out, &block->mat, out);
+        gte_MulMatrix0(out, &block->mat, out);
     }
 
     {
@@ -478,7 +462,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
         vmat->m[2][2] = cos2;
     }
 
-    gte_MulMatrix0_real(&block->mat, arg0, &block->mat);
+    gte_MulMatrix0(&block->mat, arg0, &block->mat);
 
     arg1->vy = ratan2(block->mat.m[0][2], block->mat.m[2][2]);
     arg1->vz = ratan2(block->mat.m[1][0], block->mat.m[1][1]);
@@ -612,7 +596,7 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[1][2] = -sin_u;
         vmat->m[2][1] = copy;
 
-        gte_MulMatrix0_real(arg0, p, arg0);
+        gte_MulMatrix0(arg0, p, arg0);
     }
 
     {
@@ -673,7 +657,7 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[2][0] = -neg_s;
         vmat->m[2][2] = cos2;
 
-        gte_MulMatrix0_real(arg0, p, arg0);
+        gte_MulMatrix0(arg0, p, arg0);
     }
 
     {
@@ -735,7 +719,7 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[1][0] = copy;
         vmat->m[1][1] = cos2;
 
-        gte_MulMatrix0_real(arg0, p, arg0);
+        gte_MulMatrix0(arg0, p, arg0);
     }
 
     {
@@ -845,7 +829,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
 
     gte_ldopv1SV(head);
     gte_ldopv2SV(sv1);
-    gte_op12_real();
+    gte_op12();
     gte_stsv(mat);
 
     MatrixNormal_2(mat, mat);
@@ -880,7 +864,7 @@ s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)
 
     gte_ldsvrtrow0(arg0);
     gte_ldv0(arg1);
-    gte_rtv0sf0();
+    gte_rtv0_sf0();
     gte_stlvnl0(&result);
     return result;
 }
