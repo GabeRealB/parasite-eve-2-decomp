@@ -7,10 +7,10 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void Room_Util29(Task* task);
-void        func_8004BFF8(s16 angle, MATRIX* matrix);
+void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 extern u8 D_dryfield_factory_8018A39C[];
 extern u8 D_dryfield_factory_8018A3A8[];
@@ -64,7 +64,7 @@ s32 func_dryfield_factory_8017F08C(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0;
-                Room_Util29(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -84,7 +84,7 @@ s32 func_dryfield_factory_8017F08C(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) & 0xFE;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0;
-        Room_Util29(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -153,7 +153,7 @@ s32 func_dryfield_factory_8017F4BC(Task* task)
                 work->field_0 = GameFlag_GetNibble(0x49) | 1;
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0x4000000;
-                Room_Util29(*(Task**)task->spawnArg2);
+                func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -173,7 +173,7 @@ s32 func_dryfield_factory_8017F4BC(Task* task)
         work->field_0 = GameFlag_GetNibble(0x49) | 1;
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0x4000000;
-        Room_Util29(*(Task**)task->spawnArg2);
+        func_dryfield_factory_801804B0(*(Task**)task->spawnArg2);
         if (gGameSession->at4.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));

@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/room_common.h"
 
 extern TaskDesc* D_dryfield_factory_8018A3C0;
@@ -17,8 +18,6 @@ extern TaskDesc   D_dryfield_factory_80186DE0[];
 extern TaskDesc   D_dryfield_factory_80186E28[];
 extern TaskDesc   D_dryfield_factory_80186E94[];
 extern GpMsgEntry D_dryfield_factory_80186EA0[];
-
-extern void Room_Util16(s32);
 
 /// Room entry task: publishes the room's message table, claims game pointer
 /// slot 7 and parks a fresh one-word slot at `Task::work` (also kept in
@@ -53,10 +52,10 @@ void func_dryfield_factory_8017D9CC(Task* arg0)
     Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 4, 0, (s32)D_dryfield_factory_8018A3C8);
     Task_SpawnFromTable(D_dryfield_factory_8018A3C4, 5, 0, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
+        func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
         SOFT_BARRIER();
     } else {
-        Room_Util16(GameFlag_GetNibble(0x48) & 0xFF);
+        func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     }
     arg0->state++;
 }

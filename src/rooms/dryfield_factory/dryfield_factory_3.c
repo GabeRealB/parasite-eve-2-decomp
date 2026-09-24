@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 
 #include <psyq/inline_c.h>
@@ -24,8 +25,6 @@ extern GpGridParams D_dryfield_factory_80186E04;
 extern GpGridParams D_dryfield_factory_80187BF0;
 extern GpGridParams D_dryfield_factory_80187BF8;
 
-extern void Room_Util20(Task* task);
-extern void Room_Script16(Task* task);
 extern void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate);
@@ -82,14 +81,14 @@ void func_dryfield_factory_8017DFE0(Task* task)
     coord->coord.t[0] = 0xE4C;
     coord->coord.t[1] = work->field_C.part.whole;
     coord->coord.t[2] = 0x1AAE;
-    Room_Util20(task);
+    func_dryfield_factory_80180450(task);
     func_dryfield_factory_8017E140(task, 1, 0);
     if (gGameSession->at4.loc.stage == 2) {
         Task_SpawnFromTable(D_dryfield_factory_80186E28, 7, 0, (s32)task);
     } else {
         Task_SpawnFromTable(D_dryfield_factory_80186DE0, 7, 0, (s32)task);
     }
-    task->exitCallback  = Room_Script16;
+    task->exitCallback  = func_dryfield_factory_80180430;
     task->killCountdown = 0;
     task->state++;
 }

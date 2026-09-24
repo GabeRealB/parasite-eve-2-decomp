@@ -3,9 +3,9 @@
 #include "gameplay/3CD8.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ecb4.h"
 
 extern RoomHotspot D_dryfield_factory_80186EB0[];
 
@@ -31,7 +31,7 @@ void func_dryfield_factory_80180A4C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_dryfield_factory_80181778(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons[0].state == 2) {
             for (; hs->id != -1; hs++) {

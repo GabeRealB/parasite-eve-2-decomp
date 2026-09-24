@@ -6,9 +6,6 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern void Room_Util16(s32);
-extern void Room_Util17(s32);
-
 extern TaskFuncTable3 D_dryfield_factory_8017D61C;
 extern TaskFuncTable3 D_dryfield_factory_8017D628;
 

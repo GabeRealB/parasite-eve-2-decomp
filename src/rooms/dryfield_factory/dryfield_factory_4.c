@@ -9,16 +9,10 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
 
-extern void Room_Util16(s32);
-extern void Room_Util17(s32);
-extern u8   D_8007216D;
-
-extern s32 RoomsShared8017e33c(Task* task);
-extern s32 RoomsShared8017e6bc(Task* task);
-extern s32 RoomsShared8017ea24(Task* task);
-extern s32 RoomsShared8017ed68(Task* task);
+extern u8 D_8007216D;
 
 void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAltTemplate);
 s32  func_dryfield_factory_8017F08C(Task* task);
@@ -32,7 +26,6 @@ extern GpGridParams D_dryfield_factory_80187BF8;
 /// (cutscene) command in `Task::spawnArg1`, then waits for the cap to report
 /// event key 3 before setting the two progress flags and starting the follow-up
 /// cap slot. Any state past 4 restores the weapons and kills the task.
-
 void func_dryfield_factory_8017FC18(Task* task)
 {
     switch (task->state) {
@@ -44,10 +37,10 @@ void func_dryfield_factory_8017FC18(Task* task)
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
                 if (gGameSession->at4.loc.stage == 2) {
-                    Room_Util17(0);
+                    func_dryfield_factory_80181B38(0);
                     SOFT_BARRIER();
                 } else {
-                    Room_Util17(0);
+                    func_dryfield_factory_80181B38(0);
                 }
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
             }
@@ -63,12 +56,12 @@ void func_dryfield_factory_8017FC18(Task* task)
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
                 if (gGameSession->at4.loc.stage == 2) {
-                    Room_Util17(1);
-                    Room_Util16(1);
+                    func_dryfield_factory_80181B38(1);
+                    func_dryfield_factory_80181620(1);
                     SOFT_BARRIER();
                 } else {
-                    Room_Util17(1);
-                    Room_Util16(1);
+                    func_dryfield_factory_80181B38(1);
+                    func_dryfield_factory_80181620(1);
                 }
                 Gp_StartCapSlot(task->spawnArg1, 1, 2);
             }
@@ -255,14 +248,14 @@ void func_dryfield_factory_801802F0(Task* task)
         work->field_14 = 0;
     }
     if (flag & 2) {
-        RoomsShared8017ea24(task);
+        func_dryfield_factory_8017EA24(task);
         if (flag & 1) {
-            RoomsShared8017e33c(task);
+            func_dryfield_factory_8017E33C(task);
         } else {
-            RoomsShared8017e6bc(task);
+            func_dryfield_factory_8017E6BC(task);
         }
     } else {
-        RoomsShared8017ed68(task);
+        func_dryfield_factory_8017ED68(task);
         if (flag & 1) {
             func_dryfield_factory_8017F08C(task);
         } else {
@@ -275,4 +268,4 @@ void func_dryfield_factory_801802F0(Task* task)
     func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", RoomsShared8017fc38Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_factory/dryfield_factory_4", D_dryfield_factory_8017D678);
