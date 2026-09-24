@@ -2513,17 +2513,6 @@ id = 422
 objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_bulwark/shelter_1f_bulwark", rodata = "0x4", text = "0x5C" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_3", rodata = "0x44", text = "0x6B8" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_5", text = "0x614" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_2", text = "0x658" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_6", text = "0x660" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_7", text = "0x940" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_4", text = "0xCE4" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_8", text = "0xDCC" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_9", text = "0x1070" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_10", text = "0x149C" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_11", text = "0x1830" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark_12", text = "0x23A0" },
   { kind = "data", at = "0x2D60" },
 ]
 
