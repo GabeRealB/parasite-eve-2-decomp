@@ -1,65 +1,109 @@
 #include "common.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+#include "psyq/libgs.h"
+#include "psyq/inline_c.h"
+#include "gte.h"
+
+#include "main/gameflag.h"
+#include "main/gfx.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "main/session.h"
+#include "main/wipsys.h"
 
 #include "gameplay/D4.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
-#include "main/gfx.h"
-#include "main/gameflag.h"
-#include "main/wipsys.h"
 #include "gameplay/gameplay.h"
 #include "actors/actor_510900.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+/// 0x24-byte scratch `func_actor_510900_80134284` takes from `G_SCRATCH_HEAD`
+/// to draw one frame of the debris trail. `vec0` is the effect coordinate's
+/// `workm.t[]` before the per-frame drift is added and `vec1` the same after,
+/// so the two `RTPS` projections give the ends of the trail `LINE_F2`.
+/// `otz0` / `otz1` receive `gte_stszotz` for each end and their mean picks the
+/// OT bucket; `flag` is the shared `gte_stflg` the projections are dropped on.
+typedef struct Actor510900TrailScratch {
+    /* 0x00 */ SVECTOR vec0;
+    /* 0x08 */ SVECTOR vec1;
+    /* 0x10 */ s32     otz0;
+    /* 0x14 */ s32     otz1;
+    /* 0x18 */ s32     flag;
+    /* 0x1C */ DVECTOR sxy0;
+    /* 0x20 */ DVECTOR sxy1;
+} Actor510900TrailScratch;
+STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
+
+/// 0x1C-byte scratch `func_actor_510900_80134C90` takes from `G_SCRATCH_HEAD`
+/// to draw one frame of the muzzle flash. `vec` is the effect coordinate's
+/// `workm.t[]` truncated to s16 and pushed through `GsWSMATRIX` by a single
+/// `RTPS`; `flag` is its `gte_stflg`, `otz` its `gte_stszotz` (biased by 1 so
+/// it can also be the divisor) and `sxy` its `gte_stsxy`. `dx` / `dy` are the
+/// rotated half-extents `(size * 39 / otz) * rsin/rcos(angle) >> 12` that
+/// offset `sxy` into the four corners of the billboard `POLY_FT4`.
+typedef struct Actor510900QuadScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy;
+} Actor510900QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor510900QuadScratch, 0x1C);
+
+/// One VRAM CLUT coordinate per frame of the muzzle-flash sprite, packed the
+/// way `getClut` takes them. `D_actor_510900_8013C48C` holds twelve, one for
+/// each frame `D_80111E48` supplies the texture window for.
+typedef struct Actor510900SprClut {
+    /* 0x0 */ u16 clutX;
+    /* 0x2 */ u16 clutY;
+} Actor510900SprClut;
+STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
+
+/// Animation view of `Actor510900Work`'s prefix. `func_800B3F84` is handed the
+/// block as a `GpAnimCtx`, the nineteen `GpAnimSlot`s that live at 0x14 and the
+/// pose buffer that follows them at 0x30C -- the same bytes the child-task
+/// views (`Actor510900ChildAnim`, `Actor510900ChildWork`) label as `GpObj`s,
+/// which is why the handlers reach slot 1 as `&work->obj38.prev`.
+typedef struct Actor510900Anim {
+    /* 0x000 */ GpAnimCtx  context;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       poses[0x130];
+} Actor510900Anim;
+STATIC_ASSERT_SIZEOF(Actor510900Anim, 0x43C);
+
+/// Gameplay-resident block at `D_8011505C` the spawn handler below seeds: a
+/// mode word, then a `GsCOORDINATE2` (set local to `Gfx_ViewWorldMtx`) followed
+/// by a rotation and two distances.
+typedef struct Actor510900CamCoord {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ SVECTOR       rot;
+    /* 0x58 */ s32           field_58;
+    /* 0x5C */ s32           field_5C;
+} Actor510900CamCoord;
+
+typedef struct Actor510900Cam {
+    /* 0x00 */ s32                 field_0;
+    /* 0x04 */ Actor510900CamCoord cam;
+} Actor510900Cam;
+
+extern Actor510900Cam D_8011505C;
+
+void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_actor_510900_80135744(Actor510900* arg0);
-void func_actor_510900_8013864C(Actor510900* arg0);
-void func_actor_510900_801387F4(Actor510900* arg0);
-void func_actor_510900_80138978(Actor510900* arg0);
-void func_actor_510900_80138A9C(Actor510900* arg0);
-void func_actor_510900_80138BF0(Actor510900* arg0);
-void func_actor_510900_80138D38(Actor510900* arg0);
-void func_actor_510900_80138F44(Actor510900* arg0);
-void func_actor_510900_8013B804(Actor510900* arg0);
-void func_actor_510900_8013BB20(Actor510900* arg0);
-void func_actor_510900_8013BC38(Actor510900* arg0, Actor510900Coord* arg1);
-void func_actor_510900_8013BC80(Actor510900* arg0);
 
-extern u8  D_801153F4;
 extern u32 Gp_LcgState;
-extern s16 D_80073BA0;
 extern s32 D_80070F70;
 
 /// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
 
-/// The pair source the context's `field_50` points at; its `hpMax` seeds the
-/// enemy's HP.
-extern GpPairSrcE D_actor_510900_80167980;
-
-/// The block the tick handler reaches through `Task::msgTable`.
-extern u32 D_actor_510900_80167A6C;
-
-/// The animation data `func_800B3F84` builds the work block's clip context
-/// from; the spawn hands it over whole, so it is only ever a byte address here.
-extern u8 D_actor_510900_80167AA4[];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_80180A64(GsCOORDINATE2* arg0);
-
 /// Gameplay-resident camera-shake slot: `field_0` is the frame countdown and
 /// `coord` is set local to `Gfx_ViewWorldMtx` each frame it runs.
 extern GpCoord64 D_80114FF8;
-
-void func_actor_510900_8013B424(s32 arg0);
-void func_actor_510900_8013B524(Actor510900* arg0);
 
 void func_actor_510900_80131F24(Task* arg0)
 {
