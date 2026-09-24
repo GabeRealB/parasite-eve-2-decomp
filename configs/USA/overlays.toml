@@ -2925,7 +2925,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion", rodata = "0x4", text = "0xA0" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_6", rodata = "0x74", text = "0x1B0C" },
-  { unit = "neo_ark_pavilion/neo_ark_pavilion_5", rodata = "0x8C", text = "0x583C" },
+  { unit = "neo_ark_pavilion/neo_ark_pavilion_4", rodata = "0x8C", text = "0x4684" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_7", text = "0x1634" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_8", text = "0x168C" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_9", text = "0x17D8" },
@@ -2936,8 +2936,8 @@ objects = [
   { unit = "neo_ark_pavilion/neo_ark_pavilion_13", text = "0x2DC0" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_14", text = "0x3154" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_15", text = "0x3CC4" },
-  { unit = "neo_ark_pavilion/neo_ark_pavilion_4", text = "0x4684" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_16", text = "0x4BDC" },
+  { unit = "neo_ark_pavilion/neo_ark_pavilion_5", text = "0x583C" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion_17", text = "0x5F14" },
   { kind = "data", at = "0x628C" },
 ]

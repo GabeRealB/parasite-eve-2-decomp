@@ -254,9 +254,9 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges around
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `(s16)arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
+/// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
 {
     void**             scratch;
     u8*                head;
@@ -293,7 +293,7 @@ void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
         gte_stszotz(&((RoomDraw10Scratch*)(head - 0x18))->otz);
         USE_REG(head);
         block->otz++;
-        block->step = ((s16)arg1 * 64) / block->otz;
+        block->step = (arg1 * 64) / block->otz;
         ang         = 0;
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
