@@ -59,7 +59,24 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, Actor503500AnimPreset* msg)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_10", func_actor_503500_80146664);
+/// Message-0x7D4 handler of the effect task's table (the one
+/// `func_actor_503500_8014642C` installs): places the effect's model at `args`
+/// exactly as `func_actor_503500_80132508` places the actor. Returns 0.
+s32 func_actor_503500_80146664(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+{
+    Actor503500Coord* coord;
+
+    coord             = (Actor503500Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
 {

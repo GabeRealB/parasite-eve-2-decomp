@@ -108,7 +108,26 @@ void func_actor_503500_801324EC(Task* arg0)
     ext->colorMtx = &work->color;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_503500/actor_503500_2", func_actor_503500_80132508);
+/// Message-0x7D4 handler of the main task's table (`D_actor_503500_80146888`):
+/// places the actor at `args` - the translation goes straight into the root
+/// coordinate's local matrix, the Euler angles into the coordinate's `rot`
+/// slot, from which the rotation is rebuilt. Clearing `flg` has the world
+/// matrix recomputed. Returns 0.
+s32 func_actor_503500_80132508(Task* task, s32 arg1, Actor503500PlaceArgs* args)
+{
+    Actor503500Coord* coord;
+
+    coord             = (Actor503500Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
 {
