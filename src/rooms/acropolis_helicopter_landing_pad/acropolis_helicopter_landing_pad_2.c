@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -9,13 +11,12 @@
 #include "main/task.h"
 #include "main/unknown_syms.h"
 
-extern s32      D_acropolis_helicopter_landing_pad_80183A34;
-extern s32      D_acropolis_helicopter_landing_pad_80183FA4;
-extern s32      D_acropolis_helicopter_landing_pad_80184D9C;
-extern TaskDesc RoomsShared8017e5b8Desc;
-extern s32      D_acropolis_helicopter_landing_pad_80184E0C;
-extern GpObj4A  D_acropolis_helicopter_landing_pad_80185FAC[];
-extern s32      D_acropolis_helicopter_landing_pad_80187F84;
+extern s32     D_acropolis_helicopter_landing_pad_80183A34;
+extern s32     D_acropolis_helicopter_landing_pad_80183FA4;
+extern s32     D_acropolis_helicopter_landing_pad_80184D9C;
+extern s32     D_acropolis_helicopter_landing_pad_80184E0C;
+extern GpObj4A D_acropolis_helicopter_landing_pad_80185FAC[];
+extern s32     D_acropolis_helicopter_landing_pad_80187F84;
 
 /// Slot-3 msg `0x3EF` handler. On kind 0, once the room session flag
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
@@ -48,7 +49,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg1
 s32 func_acropolis_helicopter_landing_pad_8017E570(s32 arg0, s32 arg1, s32 arg2)
 {
     if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
-        Task_SpawnFromTable(&RoomsShared8017e5b8Desc, 4, 0, 0);
+        Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);
     }
     return 0;
 }

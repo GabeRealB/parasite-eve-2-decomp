@@ -3,11 +3,12 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
@@ -86,5 +87,9 @@ typedef struct AhlpFlareScratch {
     /* 0x1A */ u16     sy;
 } AhlpFlareScratch;
 STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
+
+/// The room's own task table, eight descriptors that attach no model,
+/// spawned by index and closed by an entry whose `flags` is all ones.
+extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[];
 
 #endif

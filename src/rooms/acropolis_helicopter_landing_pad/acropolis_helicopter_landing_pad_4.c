@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -12,7 +14,6 @@
 extern Task*      D_acropolis_helicopter_landing_pad_80187F80;
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[];
 extern s32        D_acropolis_helicopter_landing_pad_80183A04;
-extern TaskDesc   RoomsShared8017e5b8Desc[];
 extern s32        D_acropolis_helicopter_landing_pad_80184D9C;
 extern s32        D_acropolis_helicopter_landing_pad_80184E0C;
 extern GpObj4A    D_acropolis_helicopter_landing_pad_80185FAC[];
@@ -114,7 +115,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
             break;
         case 4:
             D_acropolis_helicopter_landing_pad_80184D9C = 3;
-            Task_SpawnFromTable(RoomsShared8017e5b8Desc, 0, 0, 0);
+            Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 0, 0, 0);
             taskKill(task);
             break;
     }
@@ -128,7 +129,7 @@ void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
     func_800E8614((s32)&D_acropolis_helicopter_landing_pad_80183A04, 1);
-    D_acropolis_helicopter_landing_pad_80187F80              = Task_SpawnFromTable(RoomsShared8017e5b8Desc, 7, 0, 0);
+    D_acropolis_helicopter_landing_pad_80187F80              = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
     D_acropolis_helicopter_landing_pad_80185FAC[0].field_4A &= 0xBF;
 }
 
