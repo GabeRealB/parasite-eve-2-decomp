@@ -3440,12 +3440,15 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_shrine]
+label = "code starts at 0xE4: the first function is a leaf returning 0, so the span detector, which keys on a stack prologue, begins at 0xEC and left it as rodata words"
 id = 440
+text = ["0xE4", "0x4874"]
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_shrine/neo_ark_shrine", rodata = "0x4", text = "0xEC" },
   { lib = true, unit = "rooms_shared_8017ed38", rodata = "0x70", text = "0xF68" },
   { unit = "neo_ark_shrine/neo_ark_shrine_7", rodata = "0xA0", text = "0x22AC" },
+  { unit = "neo_ark_shrine/neo_ark_shrine_8", text = "0xE4" },
   { lib = true, unit = "room_draw26", text = "0x778" },
   { unit = "neo_ark_shrine/neo_ark_shrine_2", text = "0x9BC" },
   { lib = true, unit = "rooms_shared_8017f280", text = "0x14B0" },

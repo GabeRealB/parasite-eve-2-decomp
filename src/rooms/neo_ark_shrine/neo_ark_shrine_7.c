@@ -224,5 +224,3 @@ void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     }
     *scratch = (u8*)*scratch + 0x10;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine_7", D_neo_ark_shrine_8017D6A4);
