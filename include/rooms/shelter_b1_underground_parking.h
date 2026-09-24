@@ -3,7 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
+#include "main/ui.h"
 #include "rooms/room_common.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
@@ -26,6 +29,65 @@ typedef struct SbupExamineWork {
     /* 0x0E */ s8   promptKind;
     /* 0x0F */ byte pad_F[0x1];
 } SbupExamineWork;
+
+/// The record a cutscene task spawned from `D_shelter_b1_underground_parking_8018720C`
+/// receives as `Task::spawnArg2`: `field_0` is the save-data view the scene
+/// runs under (negative only restores it), `field_1` the caption slot,
+/// `field_2` skips straight to the abort path, `field_3` the caption file to
+/// load, and `field_4` / `field_8` / `field_C` the sound events for the start,
+/// the end and the scene. `field_10` is the scene sub-task's spawn argument
+/// and `field_14` / `field_16` the fade lengths.
+typedef struct ShelterParkingSceneRec {
+    /* 0x00 */ s8  field_0;
+    /* 0x01 */ s8  field_1;
+    /* 0x02 */ s8  field_2;
+    /* 0x03 */ s8  field_3;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s16 field_16;
+} ShelterParkingSceneRec;
+
+/// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
+/// is the scene's sub-task.
+extern TaskDesc D_shelter_b1_underground_parking_8018720C[];
+
+/// The "%" suffix appended to the play-data percentages.
+extern u8 D_shelter_b1_underground_parking_8018691C[];
+
+/// Descriptor of the play-data panels' shared frame.
+extern UiObjectDesc D_shelter_b1_underground_parking_80186B34;
+
+/// The item id the shop list's cursor last rested on.
+extern s32 D_shelter_b1_underground_parking_80186FB0;
+
+/// Exit callback of the save prompt: releases `Wip_UiHolder` if the task holds
+/// it, then frees the UI object and kills the task.
+void func_shelter_b1_underground_parking_8017F7D0(Task* task);
+
+/// Returns the 0xFFFF-terminated list of item ids the shop list starts from.
+u16* func_shelter_b1_underground_parking_8017F80C(s32 mode);
+
+/// Fills the shop list from the id list its task's mode selects.
+void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj);
+
+/// Moves both action-prompt cursors from the pads and draws them.
+void func_shelter_b1_underground_parking_80183CEC(Task* task);
+
+/// Resets both action-prompt slots and steps the caller on one state.
+void func_shelter_b1_underground_parking_801848BC(Task* task);
+
+/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
+/// was.
+s32 func_shelter_b1_underground_parking_80184964(RoomHotspot* table, s16 x, s16 y);
+
+/// Glow markers the room's view handler draws at world-space points.
+void func_shelter_b1_underground_parking_80184C54(SVECTOR* pos, s32 size, s32 angle, s32 tint);
+void func_shelter_b1_underground_parking_8018543C(SVECTOR* pos, s32 size, s32 tint);
+void func_shelter_b1_underground_parking_80185A94(SVECTOR* pos, s32 speed, s32 size);
+void func_shelter_b1_underground_parking_80185F08(SVECTOR* pos, s32 speed, s32 size);
 
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
 /// markers: it selects 0x180 or 0x60 as the second argument of their draw

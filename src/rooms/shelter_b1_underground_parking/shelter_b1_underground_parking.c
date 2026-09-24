@@ -2,7 +2,7 @@
 
 #include "main/mc.h"
 
-#include "rooms/rooms_shared_8017eb5c.h"
+#include "rooms/shelter_b1_underground_parking.h"
 
 extern u16 D_shelter_b1_underground_parking_80186BBC[];
 extern u16 D_shelter_b1_underground_parking_80186BC4[];
@@ -76,7 +76,7 @@ extern u16 D_shelter_b1_underground_parking_80187098[];
 /// 0x30-0x33 and 0x40 each have one, every other value shares one) and the
 /// high half the entry within it (0-3). A high half outside 0-3 gets a single
 /// fallback list.
-u16* RoomsShared8017eb5cIdList(s32 mode)
+u16* func_shelter_b1_underground_parking_8017F80C(s32 mode)
 {
     if (Mc_SaveData.gameMode < 2) {
         switch ((u16)mode) {
@@ -272,16 +272,16 @@ u16* RoomsShared8017eb5cIdList(s32 mode)
     return D_shelter_b1_underground_parking_80187098;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017e90cTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D750);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017f938Bp);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D758);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017ed7cTitle);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D75C);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017ef24Total);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D764);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017f31cNotice);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D76C);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", RoomsShared8017f49cCharge);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", D_shelter_b1_underground_parking_8017D774);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking", jtbl_shelter_b1_underground_parking_8017D77C);

@@ -10,25 +10,8 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
-/// Spawn payload handed to `RoomsShared80181228Desc` as
-/// `Task_SpawnFromTable` arg3 by the day-13 branch of
-/// `func_shelter_b1_underground_parking_80182A60`. `field_0` is the script id
-/// and `field_4`..`field_10` are the four cap keys it replays.
-typedef struct {
-    /* 0x00 */ u8   field_0;
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u8   field_2;
-    /* 0x03 */ u8   field_3;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ byte unknown_14[0xC];
-} ShelterParkingSpawnArg;
-
 extern s32                    D_shelter_b1_underground_parking_8018D758;
-extern ShelterParkingSpawnArg D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc               RoomsShared80181228Desc[];
+extern ShelterParkingSceneRec D_shelter_b1_underground_parking_8018D75C;
 extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
 extern u8                     D_80071075;
@@ -114,7 +97,7 @@ void func_shelter_b1_underground_parking_801826C0(void)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_4", D_shelter_b1_underground_parking_8017D7F4);
 
 /// Room event handler keyed on `msg->field_2`: 1 calls `func_80131E38` in
 /// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
@@ -179,7 +162,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
 
 s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    ShelterParkingSpawnArg* st;
+    ShelterParkingSceneRec* st;
 
     switch (arg2) {
         case 1:
@@ -266,14 +249,14 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
                     st->field_1 = 1;
                     st->field_3 = 1;
                     st->field_2 = 0;
-                    Task_SpawnFromTable(RoomsShared80181228Desc, 0, 9, (s32)st);
+                    Task_SpawnFromTable(D_shelter_b1_underground_parking_8018720C, 0, 9, (s32)st);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
                 st->field_1                               = 0x1F;
                 st->field_3                               = 0;
                 st->field_2                               = 1;
-                Task_SpawnFromTable(RoomsShared80181228Desc, 0, arg2, (s32)st);
+                Task_SpawnFromTable(D_shelter_b1_underground_parking_8018720C, 0, arg2, (s32)st);
             }
             break;
         case 22:
