@@ -15,6 +15,10 @@
 
 extern u16 D_801153F6;
 
+/// State handlers of the first arming sequence's entry task
+/// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
+extern const TaskFuncTable4 D_neo_ark_woodland_path_8017D638;
+
 void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
 {
     s16 i;
@@ -262,7 +266,7 @@ void func_neo_ark_woodland_path_80180C6C(Task* task)
 /// spawn slots back into game flags 0x167 and 0x10A. When a spawn point has
 /// been requested it hands the first pending slot to a waiting slot-4 task,
 /// sends it the 0x7DB message and places it at one of five fixed points.
-void func_neo_ark_woodland_path_80180DDC(void)
+void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
     s16                    i;
     s16                    count;
@@ -393,19 +397,58 @@ void func_neo_ark_woodland_path_80180DDC(void)
     D_neo_ark_woodland_path_80184992 = 0;
 }
 
+void func_neo_ark_woodland_path_801815C0(Task* arg0);
+
+/// State handlers of the second arming sequence's entry task
+/// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.
+const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
+    { func_neo_ark_woodland_path_80180C6C, func_neo_ark_woodland_path_80180DDC,
+      func_neo_ark_woodland_path_801815C0, taskKill }
+};
+
 s32 func_neo_ark_woodland_path_80181474(void)
 {
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_8018147C);
+/// 0x13EF handler of the first sequence: records the message's third byte as the
+/// requested spawn point, unless it repeats the previous request or the
+/// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
+/// which case any pending request is cleared. Always answers 1.
+s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg)
+{
+    s16 counter;
+
+    if (msg[2] != D_neo_ark_woodland_path_80184994) {
+        counter = D_neo_ark_woodland_path_8018498E;
+        if (counter == 0) {
+            D_neo_ark_woodland_path_80184992 = msg[2];
+        } else {
+            goto L_clear;
+        }
+    } else {
+    L_clear:
+        D_neo_ark_woodland_path_80184992 = 0;
+    }
+    D_neo_ark_woodland_path_80184994 = msg[2];
+    return 1;
+}
 
 void func_neo_ark_woodland_path_801814D4(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_801814E8);
+/// Entry task of the first arming sequence: runs the state handler
+/// `D_neo_ark_woodland_path_8017D638` holds for the task's state, copying the table
+/// to the stack first.
+void func_neo_ark_woodland_path_801814E8(Task* task)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_neo_ark_woodland_path_8017D638;
+    sp.funcs[task->state](task);
+}
 
 s32 func_neo_ark_woodland_path_8018154C(void)
 {
@@ -413,11 +456,41 @@ s32 func_neo_ark_woodland_path_8018154C(void)
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_80181568);
+/// 0x13EF handler of the second sequence: records the message's third byte as the
+/// requested spawn point, unless it repeats the previous request or the
+/// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
+/// which case any pending request is cleared. Always answers 1.
+s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg)
+{
+    s16 counter;
+
+    if (msg[2] != D_neo_ark_woodland_path_80184994) {
+        counter = D_neo_ark_woodland_path_8018498E;
+        if (counter == 0) {
+            D_neo_ark_woodland_path_80184992 = msg[2];
+        } else {
+            goto L_clear;
+        }
+    } else {
+    L_clear:
+        D_neo_ark_woodland_path_80184992 = 0;
+    }
+    D_neo_ark_woodland_path_80184994 = msg[2];
+    return 1;
+}
 
 void func_neo_ark_woodland_path_801815C0(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_woodland_path/neo_ark_woodland_path_6", func_neo_ark_woodland_path_801815D4);
+/// Entry task of the second arming sequence: runs the state handler
+/// `D_neo_ark_woodland_path_8017D684` holds for the task's state, copying the table
+/// to the stack first.
+void func_neo_ark_woodland_path_801815D4(Task* task)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_neo_ark_woodland_path_8017D684;
+    sp.funcs[task->state](task);
+}

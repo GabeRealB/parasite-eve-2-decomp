@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "gameplay/D4.h"
 #include "main/task.h"
 
 /// State handlers of the room's entry task, indexed by its state through
@@ -102,11 +103,11 @@ extern s16 D_neo_ark_woodland_path_80184990;
 /// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
 extern u8 D_neo_ark_woodland_path_80184970[];
 
-/// The room's 0x7DB message-handler table - id/handler pairs, 0x7FFFFFFF
-/// terminated - which `func_neo_ark_woodland_path_80180C6C` parks in
-/// `Task::msgTable` for the task's message dispatch to walk. Same shape, and
-/// the same three handlers, as the table in `D_...84998` next to it.
-extern s32 D_neo_ark_woodland_path_801849F4[];
+/// The message-handler table `func_neo_ark_woodland_path_80180C6C` parks in
+/// `Task::msgTable`: a placement request (0x13EF,
+/// `func_neo_ark_woodland_path_80181568`), a countdown bump (0x13F4) and the
+/// 0x7DB command handler `func_neo_ark_woodland_path_80180B18`.
+extern GpMsgEntry D_neo_ark_woodland_path_801849F4[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
 /// it against zero and `func_...801806D8` reads the slot's count from it. One
@@ -114,18 +115,26 @@ extern s32 D_neo_ark_woodland_path_801849F4[];
 /// `D_...84970` above.
 extern u8 D_neo_ark_woodland_path_80184980[];
 
-/// `func_...80180568`'s own 0x7DB handler table, parked in `Task::msgTable`
-/// exactly as `D_...849F4` is by `func_...80180C6C`.
-extern s32 D_neo_ark_woodland_path_80184998[];
+/// `func_...80180568`'s own message-handler table, parked in `Task::msgTable`
+/// as `D_...849F4` is by `func_...80180C6C`: the same three ids, answered by
+/// the placement request `func_neo_ark_woodland_path_8018147C`, the spawn-slot
+/// filler `func_neo_ark_woodland_path_8018046C` and a 0x7DB handler that
+/// ignores the message.
+extern GpMsgEntry D_neo_ark_woodland_path_80184998[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 D_neo_ark_woodland_path_80184996;
 
-/// Spawn point requested by the room's 0x7DB handlers (the message's third
-/// byte, taken only while `D_...8498E` has run out). One-based index into
-/// `D_...849B8`; zero means no request, and `func_...801806D8` clears it every
-/// frame whether or not it placed a spawn.
+/// Spawn point requested by the room's 0x13EF handlers (the message's third
+/// byte, taken only while `D_...8498E` has run out and the byte differs from
+/// the previous request). One-based index into the placement table of the
+/// running sequence; zero means no request, and the per-frame states clear it
+/// every frame whether or not they placed a spawn.
 extern s16 D_neo_ark_woodland_path_80184992;
+
+/// The byte the last 0x13EF message carried, kept so that a repeated request
+/// is dropped rather than placed again.
+extern s16 D_neo_ark_woodland_path_80184994;
 
 /// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
 /// into the task's coordinate translation (y is always zero) and the Y
