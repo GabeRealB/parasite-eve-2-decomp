@@ -1,13 +1,13 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
+#include "rooms/mine_tunnel.h"
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
@@ -16,10 +16,9 @@
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
 /// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
-/// byte `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0x10 scratch
-/// layout as `Room_Draw13`. Shared body, linked into every room overlay that
-/// uses it.
-void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// byte `((animFrame & 1) * 16) + 0x20` on all three channels. The room's
+/// effect tick draws its light anchors with it.
+void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

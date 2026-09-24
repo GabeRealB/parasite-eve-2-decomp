@@ -4,6 +4,7 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "rooms/mine_tunnel.h"
 #include "rooms/room_common.h"
 
 /// The tunnel's per-view light anchors, one SVECTOR each and all in one run:
@@ -27,22 +28,22 @@ void func_mine_tunnel_8017D7D4(void)
 
     switch (idx) {
         case 2:
-            Room_Draw17(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
             break;
         case 3:
-            Room_Draw17(&D_mine_tunnel_8017E12C[0], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[3], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[0], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[4], 1, 0x300);
             break;
         case 4:
-            Room_Draw17(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[3], 1, 0x300);
             break;
         case 5:
-            Room_Draw17(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            Room_Draw17(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[1], 1, 0x300);
+            func_mine_tunnel_8017D8CC(&D_mine_tunnel_8017E12C[4], 1, 0x300);
             break;
         case 6:
             break;

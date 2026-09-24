@@ -1699,10 +1699,10 @@ objects = [
   { unit = "mine_tunnel/mine_tunnel_3", rodata = "0x10", text = "0x214" },
   { unit = "mine_tunnel/mine_tunnel_4", text = "0x24" },
   { unit = "mine_tunnel/mine_tunnel_2", text = "0x12C" },
-  { lib = true, unit = "room_util02", text = "0x2C" },
-  { lib = true, unit = "room_util36", text = "0x120" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x1BC" },
-  { lib = true, unit = "room_draw17", text = "0x30C" },
+  { unit = "mine_tunnel/mine_tunnel_5", text = "0x2C" },
+  { unit = "mine_tunnel/mine_tunnel_6", text = "0x120" },
+  { unit = "mine_tunnel/mine_tunnel_7", text = "0x1BC" },
+  { unit = "mine_tunnel/mine_tunnel_8", text = "0x30C" },
   { kind = "data", at = "0x594" },
 ]
 
