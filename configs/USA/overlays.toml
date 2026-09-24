@@ -1738,13 +1738,13 @@ id = 370
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_underpass/dryfield_night_underpass", rodata = "0x4", text = "0x2A8" },
-  { lib = true, unit = "room_script01", text = "0x10" },
-  { lib = true, unit = "room_snd04", text = "0x30C" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass_5", text = "0x10" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass_6", text = "0x30C" },
   { unit = "dryfield_night_underpass/dryfield_night_underpass_2", text = "0x340" },
-  { lib = true, unit = "rooms_shared_8017db84", text = "0x350" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass_7", text = "0x350" },
   { unit = "dryfield_night_underpass/dryfield_night_underpass_3", text = "0x394" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x39C" },
-  { lib = true, unit = "room_draw17", text = "0x3F4" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass_8", text = "0x39C" },
+  { unit = "dryfield_night_underpass/dryfield_night_underpass_9", text = "0x3F4" },
   { unit = "dryfield_night_underpass/dryfield_night_underpass_4", text = "0x67C" },
   { kind = "data", at = "0x718" },
 ]

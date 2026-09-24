@@ -2,6 +2,8 @@
 
 #include "main/gameflag.h"
 #include "main/session.h"
+
+#include "rooms/dryfield_night_underpass.h"
 #include "rooms/room_common.h"
 
 extern SVECTOR D_dryfield_night_underpass_8017DD20[8];
@@ -25,7 +27,7 @@ void func_dryfield_night_underpass_8017DC3C(void)
         flags = D_dryfield_night_underpass_8017DD60;
         do {
             if (mask & *flags) {
-                Room_Draw17(vec, 0, 0x280);
+                func_dryfield_night_underpass_8017D9B4(vec, 0, 0x280);
             }
             vec++;
             i++;
