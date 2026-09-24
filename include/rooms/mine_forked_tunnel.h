@@ -9,7 +9,7 @@
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
 /// `func_mine_forked_tunnel_8017D8EC` compose into the `RoomPlacement` they
-/// hand `Room_Util18` (entry 0 of each) and that
+/// hand `func_mine_forked_tunnel_8017DC8C` (entry 0 of each) and that
 /// `func_mine_forked_tunnel_8017D724` walks one entry per step of
 /// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
 /// position table starts where the rotation table ends, and the pitch table
@@ -59,8 +59,9 @@ STATIC_ASSERT_SIZEOF(MineForkedTunnelMsg7DB, 0x4);
 /// (`spawnArg1` and `killCountdown` cleared on both) and drops it back on the
 /// placement `func_mine_forked_tunnel_8017D5E8` uses while flag 0x75 is clear;
 /// 1 starts only the child's pitch walk, 2 starts the enemy's own, and 3 puts
-/// the enemy on `D_mine_forked_tunnel_80181BBC` - the `Room_Util18` elsewhere
-/// room's flag-set variant - then refreshes the flag-dependent state through
+/// the enemy on `D_mine_forked_tunnel_80181BBC` - the placement
+/// `func_mine_forked_tunnel_8017D5E8` uses while the flag is set - then
+/// refreshes the flag-dependent state through
 /// `func_mine_forked_tunnel_8017DF34` and rewinds the enemy again. `arg1` is
 /// the message id, which nothing here reads.
 ///
@@ -155,5 +156,8 @@ typedef struct MineForkedTunnelLayout {
 } MineForkedTunnelLayout;
 extern MineForkedTunnelLayout D_mine_forked_tunnel_80181C5C;
 extern MineForkedTunnelLayout D_mine_forked_tunnel_80183D70;
+
+s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3);
+void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_MINE_FORKED_TUNNEL_H

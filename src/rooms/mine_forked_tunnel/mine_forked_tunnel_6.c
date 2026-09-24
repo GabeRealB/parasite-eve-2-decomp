@@ -1,12 +1,13 @@
 #include "common.h"
 
 #include "rooms/room_common.h"
+#include "rooms/mine_forked_tunnel.h"
 
-/// Copies `placement` onto the task's `TmdObject` coordinate frame: the
-/// three longs become the translation and the Euler angles are copied onto
-/// the coordinate's rotation, then `RotMatrixZYX` rebuilds the matrix and
-/// the coordinate is marked dirty.
-s32 Room_Util18(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
+/// Puts the task's model at `placement`: the position becomes the translation
+/// of the `TmdObject`'s coordinate frame and the angles its rotation, rebuilt
+/// with `RotMatrixZYX` and marked dirty. Shaped as a message handler; the room
+/// calls it directly with id 0x7D4 in `arg1`, which it does not read.
+s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, RoomPlacement* placement, s32 arg3)
 {
     RoomCoord* coord;
 

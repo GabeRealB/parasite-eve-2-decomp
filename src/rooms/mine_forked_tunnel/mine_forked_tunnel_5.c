@@ -5,11 +5,12 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "rooms/room_common.h"
+#include "rooms/mine_forked_tunnel.h"
 
 /// The tunnel's per-view effect anchors, projected by
-/// `func_mine_forked_tunnel_8017E78C` with `Room_Draw17` (half-extent 0x300).
-/// Views 2 and 3 share the first anchor, view 4 draws the second and third
-/// (the tunnel fork's two arms) and view 5 the fourth.
+/// `func_mine_forked_tunnel_8017E78C` with `func_mine_forked_tunnel_8017E504`
+/// (half-extent 0x300). Views 2 and 3 share the first anchor, view 4 draws the
+/// second and third (the tunnel fork's two arms) and view 5 the fourth.
 extern SVECTOR D_mine_forked_tunnel_80183614[];
 extern SVECTOR D_mine_forked_tunnel_8018361C[];
 extern SVECTOR D_mine_forked_tunnel_8018362C[];
@@ -28,14 +29,14 @@ void func_mine_forked_tunnel_8017E78C(void)
     switch (idx) {
         case 2:
         case 3:
-            Room_Draw17(D_mine_forked_tunnel_80183614, 1, 0x300);
+            func_mine_forked_tunnel_8017E504(D_mine_forked_tunnel_80183614, 1, 0x300);
             break;
         case 4:
-            Room_Draw17(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
-            Room_Draw17(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
+            func_mine_forked_tunnel_8017E504(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
+            func_mine_forked_tunnel_8017E504(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
             break;
         case 5:
-            Room_Draw17(D_mine_forked_tunnel_8018362C, 1, 0x300);
+            func_mine_forked_tunnel_8017E504(D_mine_forked_tunnel_8018362C, 1, 0x300);
             break;
         default:
             return;

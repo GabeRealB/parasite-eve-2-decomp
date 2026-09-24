@@ -36,9 +36,9 @@ void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
-        Room_Util18(arg0, 0x7D4, &placement, 0);
+        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &placement, 0);
     } else {
-        Room_Util18(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
+        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
     func_mine_forked_tunnel_8017DD08(arg0, 0x7D5, 1, 0);
@@ -66,7 +66,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vz;
 
-        Room_Util18(arg0, 0x7D4, &placement, 0);
+        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &placement, 0);
         arg0->killCountdown++;
     }
 
@@ -199,4 +199,4 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5D0);
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_forked_tunnel/mine_forked_tunnel", D_mine_forked_tunnel_8017D5DC);
