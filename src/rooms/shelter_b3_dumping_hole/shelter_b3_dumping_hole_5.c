@@ -30,6 +30,19 @@ extern void func_shelter_b3_dumping_hole_80181C8C(void);
 s32         func_shelter_b3_dumping_hole_80181F80(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void        func_shelter_b3_dumping_hole_80182AA0(void);
 
+/// One entry of the room's caption schedule: while the scene clock lies in
+/// `(lower * 30, upper * 30]` the caption `script` is started at line `key`.
+/// An `upper` of -1 ends the table, which is ordered by descending `upper`.
+typedef struct {
+    s32 upper;
+    s32 lower;
+    s32 script;
+    s32 key;
+} DumpingHoleCapWindow;
+
+extern DumpingHoleCapWindow D_shelter_b3_dumping_hole_8018B5A0[];
+extern u8                   D_801153F4;
+
 typedef struct {
     u8  pad_00[0x2A];
     u16 field_2A;
@@ -73,7 +86,45 @@ void func_shelter_b3_dumping_hole_80181B44(void)
     func_shelter_b3_dumping_hole_8017FE10();
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_5", func_shelter_b3_dumping_hole_80181B64);
+/// Drives the room's timed captions: state 0 arms the task, and each later
+/// tick scans `D_shelter_b3_dumping_hole_8018B5A0` for the first window
+/// holding `gGameSession->sceneClock` and, on a hit, starts that window's
+/// caption at its line key, with the low half of the task's `spawnArg1` as
+/// the line delay, and shows its current line. The clock then counts down one, unless a
+/// caption is running or `D_801153F4` is set.
+void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
+{
+    s32 i;
+    s32 script;
+    s32 key;
+    s32 time;
+
+    switch (task->state) {
+        case 0:
+            task->state = 1;
+            break;
+        case 1:
+            script = 0;
+            key    = arg1;
+            for (i = 0; D_shelter_b3_dumping_hole_8018B5A0[i].upper != -1; i++) {
+                time = gGameSession->sceneClock;
+                if ((D_shelter_b3_dumping_hole_8018B5A0[i].upper * 30 >= time) &&
+                    (D_shelter_b3_dumping_hole_8018B5A0[i].lower * 30 < time)) {
+                    script = D_shelter_b3_dumping_hole_8018B5A0[i].script;
+                    key    = D_shelter_b3_dumping_hole_8018B5A0[i].key;
+                    break;
+                }
+            }
+            if (script != 0) {
+                func_shelter_b3_dumping_hole_80181E70(script, key, (s16)task->spawnArg1);
+                func_shelter_b3_dumping_hole_80181C8C();
+            }
+            if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
+                gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
+            }
+            break;
+    }
+}
 
 void func_shelter_b3_dumping_hole_80181C8C(void)
 {
