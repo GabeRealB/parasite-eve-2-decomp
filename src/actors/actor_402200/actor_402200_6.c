@@ -11,7 +11,6 @@
 #include "gameplay/3FB8.h"
 
 #include "actors/actor_402200.h"
-#include "actors/actors_shared_80136184.h"
 
 #include "psyq/inline_c.h"
 
@@ -34,7 +33,7 @@ extern u8                 D_actor_402200_80154194[];
 
 void      func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void      ActorsShared8013820c(GsCOORDINATE2* arg0, s32 arg1);
+void      func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1);
 void      func_actor_402200_80134968(Actor402200* arg0);
 extern u8 D_801153F4;
 
@@ -65,7 +64,7 @@ static inline void Actor402200_ReseedAnim(Actor402200* arg0)
     }
 }
 
-/// Inlined copy of `ActorsShared80137fb0`: relights the actor from its root
+/// Inlined copy of `func_actor_402200_80137FB0`: relights the actor from its root
 /// coordinate and consumes a pending `field_6EA` tint request.
 static inline void Actor402200_UpdateTint(Actor402200* arg0)
 {
@@ -103,7 +102,7 @@ static inline void Actor402200_UpdateTint(Actor402200* arg0)
     }
 }
 
-/// Inlined copy of `ActorsShared8013806c`: draws the ground shadow quad.
+/// Inlined copy of `func_actor_402200_8013806C`: draws the ground shadow quad.
 static inline void Actor402200_DrawShadow(Actor402200* arg0)
 {
     Actor402200Work* work;
@@ -188,7 +187,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Actor402200* arg1)
             }
             break;
         case 2:
-            ActorsShared8013820c(&arg1->field_2C->field_8->field_F0, 0xC);
+            func_actor_402200_80138208(&arg1->field_2C->field_8->field_F0, 0xC);
             func_actor_402200_80134968(arg1);
             func_8009EA50(work->field_6D8);
             work->field_6CE = 3;

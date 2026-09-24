@@ -14,7 +14,7 @@
 /// display object's 0x08 slot (`TmdObject::coords`, the trailing per-part
 /// `GsCOORDINATE2` array). This overlay's code reaches the root and the fourth
 /// part: `func_actor_402200_80137444` parks `&field_F0` in the work block's
-/// 0x65C slot, and the shared ground-quad body `ActorsShared8013806c` takes the
+/// 0x65C slot, and the ground-quad body `func_actor_402200_8013806C` takes the
 /// shadow quad's horizontal position from `field_F0` and its height from
 /// `field_0`.
 typedef struct Actor402200Coord {
@@ -37,9 +37,10 @@ typedef struct Actor402200Obj2C {
     /* 0x2C */ s32               field_2C;
 } Actor402200Obj2C;
 
-/// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`, the same
-/// entry the shared scan `ActorsShared80132d78` walks as its own
-/// `ActorShared80132d78Region`.
+/// One 0x10-byte entry of the box table `Actor402200Work::field_6B4`: the
+/// entry's kind at `field_0` (0 a circle of radius `field_2` round
+/// `field_4`, `field_6`; 1 a box, x from `field_8` to `field_C` and z from
+/// `field_E` to `field_A`).
 typedef struct Actor402200Region {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
@@ -79,15 +80,16 @@ typedef struct Actor402200MatrixWords {
 /// allocates with `memCalloc(0x71C)` and parks in the 0x1C slot below (the
 /// task's `Task::work`, which is not a `TaskIdMap` here).
 ///
-/// `field_6E2` is the ground-shadow shade the shared ground-quad body
-/// `ActorsShared8013806c` hands to `Gp_DrawEffGroundQuad`, which draws nothing
-/// for a negative value: the frame code turns the calloc'd zero into -1 the
-/// first time it runs, so an actor that never raises the shade casts no shadow.
+/// `field_6E2` is the ground-shadow shade the ground-quad body
+/// `func_actor_402200_8013806C` hands to `Gp_DrawEffGroundQuad`, which draws
+/// nothing for a negative value: the body turns the calloc'd zero into -1 the
+/// first time it runs, so an actor that never raises the shade casts no
+/// shadow.
 ///
 /// `field_6F4` is the actor's phase, written and read as a signed halfword:
-/// the frame handler clears it on entry, `ActorsShared801381e0` raises it to 1
-/// while the remaining-enemy count is positive, and the handler branches on
-/// 0 / 1 thereafter.
+/// the frame handler clears it on entry, `func_actor_402200_801381E0` raises
+/// it to 1 while the remaining-enemy count is positive, and the handler
+/// branches on 0 / 1 thereafter.
 ///
 /// `field_6EA` is a pending tint request: `func_actor_402200_80137FB0` reads it
 /// once a frame and, while it is 1 or 2, hands the display object the matching
@@ -134,10 +136,10 @@ typedef struct Actor402200Work {
     /// Halfword the attack sequences arm to 0x15E next to `field_490`.
     /* 0x498 */ s16 field_498;
     /// Hit-pending flags, raised together with `field_494`: bit 0x8000 is the
-    /// flag the hit handler clears when it consumes the descriptor. The shared
-    /// body `ActorsShared80137a20` tests the same bit through its own work
-    /// block, and `func_actor_402200_80131F54` clears `field_6C6` as it raises
-    /// it.
+    /// flag the hit handler clears when it consumes the descriptor. The frame
+    /// handler `func_actor_402200_80137A1C` makes the enemy lockable only while
+    /// it is set, and `func_actor_402200_80131F54` clears `field_6C6` as it
+    /// raises it.
     /* 0x49A */ u16      field_49A;
     /* 0x49C */ GpRec18  field_49C[3];
     /* 0x4E4 */ byte     field_4E4[8];
@@ -242,8 +244,9 @@ typedef struct Actor402200Work {
     /* 0x6A8 */ s32    field_6A8;
     /* 0x6AC */ s32    field_6AC;
     /* 0x6B0 */ byte   pad_6B0[4];
-    /// Box table the shared scan `ActorsShared80132d78` walks, `field_6FA`
-    /// entries of 0x10 bytes each.
+    /// Box table the scans `func_actor_402200_80132D78` and
+    /// `func_actor_402200_80132688` walk, `field_6FA` entries of 0x10 bytes
+    /// each.
     /* 0x6B4 */ Actor402200Region* field_6B4;
     /* 0x6B8 */ s32                field_6B8;
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
@@ -368,7 +371,7 @@ typedef struct Actor402200 {
     /* 0x30 */ s32 field_30;
 } Actor402200;
 
-/// 0x18-byte block `ActorsShared8013820c` takes from `G_SCRATCH_HEAD`
+/// 0x18-byte block `func_actor_402200_80138208` takes from `G_SCRATCH_HEAD`
 /// while projecting the actor's origin through its attach coordinate and
 /// working out the ordering-table depth. `vec` is the zeroed origin the GTE
 /// reads; the rest are the projection's results, and their order is the one
@@ -480,5 +483,19 @@ void func_actor_402200_80135D5C(Actor402200* arg0);
 
 /// Parks the actor's target position off the player; see its definition.
 void func_actor_402200_80132E34(Actor402200* arg0);
+
+/// Reports whether the player stands in one of the kind-1 boxes; see its
+/// definition.
+s32 func_actor_402200_80132D78(Actor402200* arg0);
+
+/// Draws the red trail between the two projected points; see its definition.
+void func_actor_402200_80136184(Actor402200* arg0);
+
+/// Rebuilds the root part's scaled rotation; see its definition.
+void func_actor_402200_80137CA4(Actor402200* arg0);
+
+/// Projects a coordinate and queues the frame-buffer pass at its depth; see
+/// its definition.
+void func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1);
 
 #endif

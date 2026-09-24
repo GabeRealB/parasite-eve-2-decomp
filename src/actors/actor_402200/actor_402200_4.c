@@ -10,7 +10,6 @@
 #include "gameplay/3CD8.h"
 
 #include "actors/actor_402200.h"
-#include "actors/actors_shared_80137ca4.h"
 
 #include "psyq/inline_c.h"
 #include "gte.h"
@@ -876,7 +875,7 @@ void func_actor_402200_80134968(Actor402200* arg0)
                     }
                     break;
             }
-            ActorsShared80137ca4((ActorShared80137ca4*)arg0);
+            func_actor_402200_80137CA4(arg0);
             t               = work->field_6D8 + 0xFF / work->field_6DC;
             work->field_6D8 = t;
             if (t >= 0xFF) {
