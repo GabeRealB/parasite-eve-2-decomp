@@ -2415,20 +2415,10 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_observatory]
-label = "the 0x14 cut exists so neo_ark_observatory_2 owns the leading rodata from its first function's generated switch table; func_neo_ark_observatory_8017F588's table sits behind it at 0xC4"
 id = 426
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_observatory/neo_ark_observatory", rodata = "0x4", text = "0x2E8" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_2", rodata = "0x14", text = "0x1E8C" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_3", rodata = "0xE4", text = "0x2628" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_6", text = "0x134" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_7", text = "0x1C6C" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_8", text = "0x2620" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_9", text = "0x281C" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_4", text = "0x2874" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_10", text = "0x344C" },
-  { unit = "neo_ark_observatory/neo_ark_observatory_5", text = "0x37EC" },
+  { unit = "neo_ark_observatory/neo_ark_observatory", rodata = "0x4", text = "0x134" },
   { kind = "data", at = "0x37F8" },
 ]
 
