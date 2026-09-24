@@ -975,10 +975,7 @@ id = 305
 text = ["0x1C", "0x1B0"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_r21/mist_r21", rodata = "0x4", text = "0x5C" },
-  { unit = "mist_r21/mist_r21_2", text = "0x1C" },
-  { unit = "mist_r21/mist_r21_3", text = "0x148" },
-  { unit = "mist_r21/mist_r21_4", text = "0x1A0" },
+  { unit = "mist_r21/mist_r21", rodata = "0x4", text = "0x1C" },
   { kind = "data", at = "0x1B0" },
 ]
 
