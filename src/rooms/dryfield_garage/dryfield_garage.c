@@ -7,7 +7,7 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_garage/dryfield_garage", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_garage/dryfield_garage", D_dryfield_garage_8017D5DC);
 
 extern TaskDesc D_dryfield_garage_8017DCAC;
 
