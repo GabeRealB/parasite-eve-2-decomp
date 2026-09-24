@@ -2370,9 +2370,9 @@ id = 450
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_r31/neo_ark_r31", rodata = "0x4", text = "0x10" },
-  { lib = true, unit = "room_util03", text = "0x2F8" },
+  { unit = "neo_ark_r31/neo_ark_r31_3", text = "0x2F8" },
   { unit = "neo_ark_r31/neo_ark_r31_2", text = "0x33C" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x3D0" },
+  { unit = "neo_ark_r31/neo_ark_r31_4", text = "0x3D0" },
   { kind = "data", at = "0x428" },
 ]
 
