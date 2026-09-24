@@ -5,6 +5,10 @@
 #include "main/gameflag.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Task table spawned by `func_shelter_b2_laboratory_801801D0` the first time
 /// the laboratory console is used.
@@ -16,7 +20,29 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017e8b4PeTitle);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", RoomsShared8017ea68Title);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_801800FC);
+s32 func_shelter_b2_laboratory_801800FC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    RoomEventReq req;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (GameFlag_GetNibble(0xD0) == 2) {
+        if (in->field_5 == 0) {
+            Gp_RunCapCmd1(5);
+        }
+        return 2;
+    }
+    if (in->msgId != 0x21) {
+        return 1;
+    }
+    req.field_0 = 1;
+    req.field_4 = 1;
+    req.field_8 = 0x541F0014;
+    req.field_C = 0x541F0003;
+    req.flagId  = 0xB1;
+    req.itemId  = 0;
+    return RoomsShared8017d638(&req, out);
+}
 
 /// Handler for slot-7 msg `0x13EF` in `RoomsShared8017db84Msgs`: the
 /// directed action on the laboratory console (`field_2` 1). Runs the scripted
