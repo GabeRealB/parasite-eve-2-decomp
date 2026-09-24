@@ -15,12 +15,13 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
+#include "rooms/acropolis_west_elevator_hall.h"
+
 extern SVECTOR    D_acropolis_west_elevator_hall_8017D5EC;
 extern SVECTOR    D_acropolis_west_elevator_hall_8017D5F4;
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
 extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
-extern Task*      RoomsShared8017f470Cars[];
 /// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
 /// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
 /// `...80184E04` the blended result that `...80185004` uploads to VRAM.
@@ -39,9 +40,9 @@ void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
 {
     arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
     Game_SetPtrSlot(arg0, 7);
-    RoomsShared8017f470Cars[0] =
+    D_acropolis_west_elevator_hall_80186AE4[0] =
         Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
-    RoomsShared8017f470Cars[1] =
+    D_acropolis_west_elevator_hall_80186AE4[1] =
         Task_SpawnFromTable(D_acropolis_west_elevator_hall_80184568, 1, 0, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
