@@ -848,10 +848,10 @@ objects = [
   { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58" },
   { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x10", text = "0x3E8" },
   { unit = "acropolis_observatory/acropolis_observatory_4", rodata = "0x3C", text = "0xBDC" },
-  { lib = true, unit = "room_util06", text = "0x1FC" },
+  { unit = "acropolis_observatory/acropolis_observatory_5", text = "0x1FC" },
   { unit = "acropolis_observatory/acropolis_observatory_2", text = "0x204" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x390" },
-  { lib = true, unit = "room_script08", text = "0xB14" },
+  { unit = "acropolis_observatory/acropolis_observatory_6", text = "0x390" },
+  { unit = "acropolis_observatory/acropolis_observatory_7", text = "0xB14" },
   { kind = "data", at = "0x11F8" },
 ]
 

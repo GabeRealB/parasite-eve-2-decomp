@@ -31,9 +31,9 @@ extern u8 D_8007216D;
 extern s8 D_8007218A;
 extern s8 D_80114C12;
 
-/// One byte of gameplay state shared with the field actors; `Room_Util31` and
-/// `func_acropolis_observatory_8017D834` write it, and state 3 of the scene
-/// task below waits for it to reach 2.
+/// One byte of gameplay state shared with the field actors, which write it too;
+/// `func_acropolis_observatory_8017D834` sets it, and state 3 of the scene task
+/// below waits for it to reach 2.
 extern s8 D_8011540A;
 
 /// Payloads the observatory scene task sends: `..._8017FE60` is the record

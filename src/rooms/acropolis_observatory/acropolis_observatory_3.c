@@ -13,7 +13,7 @@
 
 /// One byte of gameplay state shared with the field actors, latched here when
 /// the observatory task first runs during session phase 2 with nibble 0xCA
-/// still clear. See `Room_Util31`, which writes the same byte.
+/// still clear. Field-actor code in other overlays writes the same byte.
 extern s8 D_8011540A;
 
 extern GpMsgEntry D_acropolis_observatory_8017E7B8[];

@@ -29,8 +29,9 @@ STATIC_ASSERT_SIZEOF(AobSceneWork, 8);
 /// task walks its translation along `D_acropolis_observatory_8017F16C` once per
 /// frame while the stream runs. `target` is the slot-3 task every message the
 /// scene sends is addressed to, captured once from `gameGetPtrSlot(3)`.
-/// `child` is the prompt task spawned from `D_acropolis_observatory_8017E7DC`
-/// entry 2 and polled with `Task_PollKill`; `spawned` records that it exists,
+/// `child` is the fade-out task spawned from `D_acropolis_observatory_8017E7DC`
+/// entry 2 when the pad skips the ride, polled with `Task_PollKill`; `spawned`
+/// records that it exists,
 /// since the calloc leaves it at 0. `script` is the scene's script task, which
 /// the observatory task reparents itself under.
 typedef struct AobStreamWork {
