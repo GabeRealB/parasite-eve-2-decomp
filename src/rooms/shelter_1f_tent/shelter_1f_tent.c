@@ -239,4 +239,4 @@ void func_shelter_1f_tent_8017F484(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent", D_shelter_1f_tent_8017D6A4);

@@ -17,11 +17,11 @@ extern GpAreaApplyRec D_shelter_1f_tent_801843B8[];
 extern s32            D_801362B8;
 extern s32            D_80137890;
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", D_shelter_1f_tent_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", D_shelter_1f_tent_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", D_shelter_1f_tent_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", D_shelter_1f_tent_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_1f_tent/shelter_1f_tent_2", D_shelter_1f_tent_8017D638);
 
 void func_shelter_1f_tent_8017F9F0(Task* task)
 {

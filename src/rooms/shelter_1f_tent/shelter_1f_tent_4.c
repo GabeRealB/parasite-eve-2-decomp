@@ -3,7 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/D4.h"
-#include "rooms/room_common.h"
+#include "rooms/shelter_1f_tent.h"
 
 extern SVECTOR D_shelter_1f_tent_80181D04[];
 extern SVECTOR D_shelter_1f_tent_80181D0C[];
@@ -19,42 +19,42 @@ void func_shelter_1f_tent_8017FE10(void)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_tent_80181D2C;
-            Room_Draw01(&p[0], 0x200, 0x111);
-            Room_Draw13(&p[-5], 0x280, 0x40);
-            Room_Draw13(&p[-4], 0x280, 0x444);
-            Room_Draw13(&p[-3], 0x180, 0x22);
-            Room_Draw13(&p[-2], 0x280, 0x444);
-            Room_Draw13(&p[-1], 0x180, 0x22);
-            Room_Draw32(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            func_shelter_1f_tent_8017FFAC(&p[0], 0x200, 0x111);
+            func_shelter_1f_tent_801807F0(&p[-5], 0x280, 0x40);
+            func_shelter_1f_tent_801807F0(&p[-4], 0x280, 0x444);
+            func_shelter_1f_tent_801807F0(&p[-3], 0x180, 0x22);
+            func_shelter_1f_tent_801807F0(&p[-2], 0x280, 0x444);
+            func_shelter_1f_tent_801807F0(&p[-1], 0x180, 0x22);
+            func_shelter_1f_tent_80180B90(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
             break;
         }
         case 3: {
             SVECTOR* p = D_shelter_1f_tent_80181D04;
-            Room_Draw13(&p[0], 0x280, 0x40);
-            Room_Draw13(&p[1], 0x280, 0x444);
-            Room_Draw13(&p[2], 0x180, 0x22);
-            Room_Draw32(&p[7], 0x60, 0x80);
+            func_shelter_1f_tent_801807F0(&p[0], 0x280, 0x40);
+            func_shelter_1f_tent_801807F0(&p[1], 0x280, 0x444);
+            func_shelter_1f_tent_801807F0(&p[2], 0x180, 0x22);
+            func_shelter_1f_tent_80180B90(&p[7], 0x60, 0x80);
             break;
         }
         case 5: {
             SVECTOR* p = D_shelter_1f_tent_80181D0C;
-            Room_Draw13(&p[0], 0x280, 0x444);
-            Room_Draw05(&p[6], 0x60, 0x80);
+            func_shelter_1f_tent_801807F0(&p[0], 0x280, 0x444);
+            func_shelter_1f_tent_80181010(&p[6], 0x60, 0x80);
             break;
         }
         case 4:
         case 6: {
             SVECTOR* p = D_shelter_1f_tent_80181D1C;
-            Room_Draw13(&p[0], 0x280, 0x444);
-            Room_Draw13(&p[1], 0x180, 0x22);
+            func_shelter_1f_tent_801807F0(&p[0], 0x280, 0x444);
+            func_shelter_1f_tent_801807F0(&p[1], 0x180, 0x22);
             break;
         }
         case 7: {
             SVECTOR* p = D_shelter_1f_tent_80181D04;
-            Room_Draw13(&p[0], 0x280, 0x40);
-            Room_Draw13(&p[1], 0x280, 0x444);
-            Room_Draw13(&p[2], 0x180, 0x22);
-            Room_Draw32(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            func_shelter_1f_tent_801807F0(&p[0], 0x280, 0x40);
+            func_shelter_1f_tent_801807F0(&p[1], 0x280, 0x444);
+            func_shelter_1f_tent_801807F0(&p[2], 0x180, 0x22);
+            func_shelter_1f_tent_80180B90(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
             break;
         }
     }

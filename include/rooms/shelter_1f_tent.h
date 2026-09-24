@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "main/task.h"
+
 /// `Task::spawnArg2` of the cap (cutscene) task this room family spawns.
 /// `field_0` is the area id forced for the duration of the scene (negative =
 /// keep the current one); `field_1` selects the cap slot / command;
@@ -25,5 +29,11 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Shelter1fTentCapScript, 0x18);
 
 extern Shelter1fTentCapScript D_shelter_1f_tent_801843C4;
+
+void func_shelter_1f_tent_8017F448(Task* task);
+void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_1f_tent_80181010(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_SHELTER_1F_TENT_H
