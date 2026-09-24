@@ -43,5 +43,3 @@ s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_main_corridor/shelter_b1_main_corridor", jtbl_shelter_b1_main_corridor_8017D5FC);
