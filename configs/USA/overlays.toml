@@ -1943,19 +1943,6 @@ id = 368
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_water_hole/dryfield_night_water_hole", rodata = "0x4", text = "0xEC" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_5", rodata = "0xD4", text = "0x211C" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_6", text = "0x514" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_7", text = "0x51C" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_2", text = "0x668" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_8", text = "0x860" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_9", text = "0x870" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_3", text = "0x8C8" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_10", text = "0x10D0" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_4", text = "0x1110" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_11", text = "0x14AC" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_12", text = "0x1C94" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_13", text = "0x1DE8" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole_14", text = "0x25D8" },
   { kind = "data", at = "0x2C60" },
 ]
 
