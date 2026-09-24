@@ -30,6 +30,9 @@ extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C;
 
+/// State table of the shrine's second falling prop, indexed by `Task::state`.
+extern TaskFuncTable3 D_neo_ark_shrine_8017D620;
+
 extern TaskDesc D_neo_ark_shrine_80182508;
 
 /// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
@@ -130,10 +133,26 @@ void func_neo_ark_shrine_8017D8F4(Task* task)
     task->state++;
 }
 
-void func_neo_ark_shrine_8017D940(void)
+/// Second state of the room task: nothing left to do but idle.
+void func_neo_ark_shrine_8017D940(Task* task)
 {
 }
-INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D948);
+
+/// State handlers of the room task `func_neo_ark_shrine_8017D948`, indexed by
+/// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
+const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
+    { func_neo_ark_shrine_8017D8F4, func_neo_ark_shrine_8017D940, taskKill },
+};
+
+/// Room task: runs the state handler `D_neo_ark_shrine_8017D5C4` names for
+/// `Task::state`, through a copy of the table taken onto the stack.
+void func_neo_ark_shrine_8017D948(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_shrine_8017D5C4;
+    sp.funcs[task->state](task);
+}
 
 /// Argument-less helper, called by this room's cap script every frame. Declared
 /// without a parameter list because this state passes `task` to it: the extra
