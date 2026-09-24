@@ -1479,11 +1479,6 @@ id = 357
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_water_tank/dryfield_night_water_tank", rodata = "0x4", text = "0x10" },
-  { unit = "dryfield_night_water_tank/dryfield_night_water_tank_4", text = "0x14C" },
-  { unit = "dryfield_night_water_tank/dryfield_night_water_tank_5", text = "0x154" },
-  { unit = "dryfield_night_water_tank/dryfield_night_water_tank_2", text = "0x17C" },
-  { unit = "dryfield_night_water_tank/dryfield_night_water_tank_6", text = "0x3C4" },
-  { unit = "dryfield_night_water_tank/dryfield_night_water_tank_3", text = "0x41C" },
   { kind = "data", at = "0x7D4" },
   { kind = "model", at = "0xAF0" },
   { kind = "data", at = "0x1868" },
