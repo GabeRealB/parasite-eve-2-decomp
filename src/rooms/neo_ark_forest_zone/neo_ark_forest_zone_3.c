@@ -1,15 +1,15 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017f10c.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 /// `rtps` / `rtpt` / `mvmva`. The `inline_c.h` macros of those names assemble
 /// to different words, so spell the instructions out.
@@ -21,7 +21,14 @@ extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
 
-void RoomsShared8017f10cSub(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
+/// Draws the drifting flake as one textured quad lying in the coordinate's
+/// local XZ plane: the unit quad `D_80111E38`, scaled by `arg1`, is turned by
+/// the coordinate's world matrix, moved to its translation and projected
+/// through `GsWSMATRIX`. Unless the GTE flags the projection a `POLY_FT4`
+/// (tpage 0x2B, clut 0x4390, an 8x8 texel cell at (0, 0x28)) is queued, raw
+/// textured when `arg2` is zero and otherwise semi-transparent at grey level
+/// `arg2`.
+void func_neo_ark_forest_zone_8017E074(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;

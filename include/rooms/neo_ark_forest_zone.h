@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 
 /// Four-byte payload the room hands `Gp_DispatchMsg` with message 0x7DB: two
@@ -68,5 +72,10 @@ extern NeoArkForestZoneMsg7DB D_neo_ark_forest_zone_80182E44;
 
 /// Spawn placements, indexed by the placement request minus one.
 extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
+
+void func_neo_ark_forest_zone_8017E074(GsCOORDINATE2* arg0, s32 arg1, s16 arg2);
+void func_neo_ark_forest_zone_8017E6C4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_neo_ark_forest_zone_8017EAF0(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_neo_ark_forest_zone_8017F9F4(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif
