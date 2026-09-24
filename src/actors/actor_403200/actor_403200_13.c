@@ -1,16 +1,21 @@
 #include "common.h"
-#include "actors/actor_444000.h"
-#include "actors/actors_shared_80132808.h"
+
+#include <psyq/libgte.h>
+#include <psyq/abs.h>
+
+#include "actors/actor_403200.h"
 #include "gameplay/1BC.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "actors/actors_shared_80133de4.h"
-#include "actors/actors_shared_80133f64.h"
 
-void ActorsShared80133614(Actor444000* task, s16 arg1)
+/// Walk the yaw `field_7C8` toward `arg1` (clamped to +/-0x200) by at most 0x71
+/// per call, turn model part 3 by it through `func_actor_403200_801321C4`, and
+/// refresh part 3, the root of the fifth escort's model and part 4.
+void func_actor_403200_80133614(Task* task, s16 arg1)
 {
-    Actor444000Work* work = task->field_1C;
+    Actor403200Work* work = (Actor403200Work*)task->work;
     s16              value;
 
     value = arg1;
@@ -37,7 +42,7 @@ void ActorsShared80133614(Actor444000* task, s16 arg1)
 
     ((TmdObject*)task->extra)->coords[3].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
-    ActorsShared80132808(&((TmdObject*)task->extra)->coords[3], work->field_7C8);
+    func_actor_403200_801321C4(&((TmdObject*)task->extra)->coords[3], work->field_7C8);
     ((TmdObject*)task->extra)->coords[3].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
     ((TmdObject*)work->field_ECC[4]->task->extra)->coords[0].flg = 0;
@@ -46,12 +51,15 @@ void ActorsShared80133614(Actor444000* task, s16 arg1)
     Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[4]);
 }
 
-void ActorsShared80133de4(Task* task, s16 arg1)
+/// Walk the pitch `field_F00` toward `arg1` (clamped to 0..0x500) by at most
+/// 0x10 per call, then pitch model parts 3 and 4 about x: part 3 to half of
+/// it, part 4 against it, each net of the pitch its matrix already carries.
+void func_actor_403200_801337A0(Task* task, s16 arg1)
 {
-    ActorsShared80133de4Work* work = (ActorsShared80133de4Work*)task->work;
-    s16                       value;
-    s16                       pitch4;
-    s16                       pitch3;
+    Actor403200Work* work = (Actor403200Work*)task->work;
+    s16              value;
+    s16              pitch4;
+    s16              pitch3;
 
     value = arg1;
     if (arg1 > 0x500) {
@@ -86,12 +94,15 @@ void ActorsShared80133de4(Task* task, s16 arg1)
     ((TmdObject*)task->extra)->coords[4].flg = 0;
 }
 
-void ActorsShared80133f64(Task* task)
+/// Start a blend: `field_7BE` to 0x30 and `field_7C0` to 0x800. Slots 1 and up
+/// of the even member of each of the three animation pairs take that rate, and
+/// the same slots of the odd member are reset to animation `field_7BC`.
+void func_actor_403200_80133920(Task* task)
 {
-    ActorsShared80133f64Work* work;
-    s32                       i;
+    Actor403200Work* work;
+    s32              i;
 
-    work            = (ActorsShared80133f64Work*)task->work;
+    work            = (Actor403200Work*)task->work;
     work->field_7BE = 0x30;
     work->field_7C0 = 0x800;
     i               = 1;

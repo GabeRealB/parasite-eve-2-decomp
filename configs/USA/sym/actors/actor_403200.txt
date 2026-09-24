@@ -1,21 +1,4 @@
 // Overlay-local symbols for actor_403200.
-ActorsShared80135990 = 0x801419C4; // shared body, see src/lib/
-ActorsShared80164904 = 0x80141974; // shared body, see src/lib/
-ActorsShared80143374 = 0x80140FD4; // shared body, see src/lib/
-ActorsShared80143798 = 0x8014139C; // shared body, see src/lib/
-ActorsShared801433b8 = 0x80141018; // shared body, see src/lib/
-ActorsShared801436cc = 0x801412D0; // shared body, see src/lib/
-ActorsShared80133f64 = 0x80133920; // shared body, see src/lib/
-ActorsShared80133de4 = 0x801337A0; // shared body, see src/lib/
-ActorsShared80139ee4 = 0x801379EC; // shared body, see src/lib/
-ActorsShared80132cb8 = 0x80132674; // shared body, see src/lib/
-ActorsShared80132808 = 0x801321C4; // shared body, see src/lib/
-ActorsShared80133614 = 0x80133614; // shared body, see src/lib/
-func_actor_403200_80133614 = 0x80133614; // type:func absolute:True
-ActorsShared80133b80 = 0x80133B80; // shared body, see src/lib/
-func_actor_403200_80133B80 = 0x80133B80; // type:func absolute:True
-ActorsShared80134044 = 0x80134044; // shared body, see src/lib/
-func_actor_403200_80134044 = 0x80134044; // type:func absolute:True
 
 // Referenced in another actor load slot, resident beside this one.
 D_80174D58 = 0x80174D58; // absolute:True

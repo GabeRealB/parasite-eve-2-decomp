@@ -1,42 +1,43 @@
 #include "common.h"
 
-#include "actors/actors_shared_80139ee4.h"
-
+#include "actors/actor_403200.h"
 #include "gameplay/3A34.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
+#include "main/tmd.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-/// Hover state of the enemy that rises out of view and slams back down: once a
-/// step, rebuild the model's Y rotation from its own yaw (`ratan2` of
-/// `-m[2][0]` over `m[2][2]`) and rescale it through a 0x34-byte block borrowed
-/// from the scratchpad -- wide and flat (`0x4000, 0x66, 0x4000`) for the first
-/// 0xA steps, then taller (`0x4C00, 0x199, 0x4C00`). The shadow marker's size
-/// follows the step counter until it is pinned at `0x380`. After 0xC steps the
-/// collision node is unlinked and the task steps on; either way the work
-/// block's coordinate keeps tracking the model.
+/// Landing state of the dropped enemy, the one after its descent in
+/// `D_actor_403200_80131F14`: each step rebuild the model's rotation about y
+/// from its own yaw and flatten it through a 0x34-byte frame borrowed from the
+/// scratchpad -- scaled (`0x4000, 0x66, 0x4000`) for the first 0xA steps, then
+/// (`0x4C00, 0x199, 0x4C00`). The collision node's radius grows with the step
+/// counter over those first steps and is then held at 0x380. After 0xC steps
+/// the node is unlinked and the task steps on; either way the shadow
+/// coordinate keeps tracking the model.
 ///
 /// The absolute `G_SCRATCH_HEAD` accesses are written out: at `-O2` the
 /// expander forces a constant address into a register (`explow.c`
 /// `memory_address`), so the `lui $at` assembler-macro form the original
 /// carries cannot come from plain C here.
-void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
+void func_actor_403200_801379EC(GpEnemy* enemy, Task* task)
 {
-    ActorsShared80139ee4Work*    work;
-    TmdObject*                   extra;
-    GsCOORDINATE2*               coord;
-    ActorsShared80139ee4Scratch* blk;
-    u8*                          head;
-    s16                          ang;
+    Actor403200DropWork*   work;
+    TmdObject*             extra;
+    GsCOORDINATE2*         coord;
+    Actor403200RotScratch* blk;
+    u8*                    head;
+    s16                    ang;
 
-    work = task->field_1C;
+    work = (Actor403200DropWork*)task->work;
     work->timer++;
     if ((s16)work->timer < 0xA) {
         u8* tail;
         s16 spin;
         u16 m22;
 
-        extra = task->extra;
+        extra = (TmdObject*)task->extra;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         head  = *(u8**)(head + 0x3FC);
         coord = extra->coords;
@@ -51,9 +52,9 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         blk->scale.vx = 0x4000;
         blk->scale.vy = 0x66;
         blk->scale.vz = 0x4000;
-        ScaleMatrix(&blk->m, &((ActorsShared80139ee4Scratch*)(head - 0x34))->scale);
+        ScaleMatrix(&blk->m, &((Actor403200RotScratch*)(head - 0x34))->scale);
 
-        coord->coord.m[0][0] = *(u16*)&((ActorsShared80139ee4Scratch*)(head - 0x34))->m.m[0][0];
+        coord->coord.m[0][0] = *(u16*)&((Actor403200RotScratch*)(head - 0x34))->m.m[0][0];
         coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
         coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
         coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -75,7 +76,7 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         u8* tail;
         u16 m22;
 
-        extra = task->extra;
+        extra = (TmdObject*)task->extra;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         head  = *(u8**)(head + 0x3FC);
         coord = extra->coords;
@@ -90,9 +91,9 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         blk->scale.vx = 0x4C00;
         blk->scale.vy = 0x199;
         blk->scale.vz = 0x4C00;
-        ScaleMatrix(&blk->m, &((ActorsShared80139ee4Scratch*)(head - 0x34))->scale);
+        ScaleMatrix(&blk->m, &((Actor403200RotScratch*)(head - 0x34))->scale);
 
-        coord->coord.m[0][0] = *(u16*)&((ActorsShared80139ee4Scratch*)(head - 0x34))->m.m[0][0];
+        coord->coord.m[0][0] = *(u16*)&((Actor403200RotScratch*)(head - 0x34))->m.m[0][0];
         coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
         coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
         coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -116,9 +117,9 @@ void ActorsShared80139ee4(GpEnemy* enemy, ActorsShared80139ee4Task* task)
         task->state++;
     }
 
-    work->coord.coord.t[0] = task->extra->coords->coord.t[0];
-    work->coord.coord.t[1] = task->extra->coords->coord.t[1];
-    work->coord.coord.t[2] = task->extra->coords->coord.t[2];
+    work->coord.coord.t[0] = ((TmdObject*)task->extra)->coords->coord.t[0];
+    work->coord.coord.t[1] = ((TmdObject*)task->extra)->coords->coord.t[1];
+    work->coord.coord.t[2] = ((TmdObject*)task->extra)->coords->coord.t[2];
     work->coord.flg        = 0;
     Gp_UpdateCoord(&work->coord);
 }

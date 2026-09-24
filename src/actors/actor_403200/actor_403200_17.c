@@ -1,12 +1,17 @@
 #include "common.h"
-#include "actors/actors_shared_801436cc.h"
+
 #include "gameplay/1BC.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/session.h"
+#include "main/task.h"
 #include "main/tmd.h"
-#include "actors/actors_shared_80143798.h"
 
-void ActorsShared801436cc(void* arg0, Task* task)
+/// Setup state of the handler table `D_actor_403200_80131E84`: look up the
+/// area placement the parent's spawn record names (its top nibble) under the
+/// current session location, give the model that placement's texture page and
+/// CLUT, run its stream twice when it has one, and step the task on.
+void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
 {
     GpAreaKey    key;
     GpAreaKey*   sessionKey;
@@ -40,7 +45,9 @@ void ActorsShared801436cc(void* arg0, Task* task)
     task->state++;
 }
 
-void ActorsShared80143798(void* arg0, Task* arg1)
+/// Per-frame state of the same table: refresh the model's root coordinate. The
+/// world position it then copies into a local is never used.
+void func_actor_403200_8014139C(GpEnemy* enemy, Task* arg1)
 {
     VECTOR sp10;
 

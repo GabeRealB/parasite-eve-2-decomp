@@ -199,6 +199,15 @@ typedef struct Actor403200RotScratch {
 } Actor403200RotScratch;
 STATIC_ASSERT_SIZEOF(Actor403200RotScratch, 0x34);
 
+/// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
+/// off `SCRATCH_SP` to hand `func_800FDB18` an effect rotation together with
+/// the `GpEffArg` naming the coordinate the effect hangs off.
+typedef struct Actor403200EffScratch {
+    /* 0x0 */ SVECTOR  rot; // effect rotation, chosen from the attack's param 0
+    /* 0x8 */ GpEffArg eff; // coordinate, 0x500, 3
+} Actor403200EffScratch;
+STATIC_ASSERT_SIZEOF(Actor403200EffScratch, 0x10);
+
 /// Per-actor state block for the `actor_403200` overlay.
 ///
 /// `func_actor_403200_80138AFC` allocates it with `memCalloc(0xF24, 0)` and
@@ -224,49 +233,64 @@ typedef struct Actor403200Work {
     /// (saturating at 0x7FFF). State handlers fire one-shot cues on the ticks
     /// it reaches a given value.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x42];
-    /// The animation frame the stand-up state latches its swipe cue on, masked
-    /// to 10 bits against the frame armed last tick in `field_7AC`. Same slot
-    /// as `Actor444000Work::slots0[1].field_2`.
-    /* 0x04A */ u16  field_4A;
-    /* 0x04C */ byte pad_4C[0xC];
-    /// The trailing halfword of the animation slot the per-frame body tests for
-    /// the `field_0 = 0xA` re-arm. Same slot as
-    /// `Actor444000Work::slots0[1].field_10`.
-    /* 0x058 */ u16  field_58;
-    /* 0x05A */ byte pad_5A[0x18];
-    /// The animation frame the per-frame body's two one-shot sound cues are
-    /// latched on, masked to 10 bits, and the same value it publishes to
-    /// `field_7D8`. Same slot as `Actor444000Work::slots0[2].field_2`.
-    /* 0x072 */ u16  field_72;
-    /* 0x074 */ byte pad_74[0x26];
-    /// The animation frame the launch state latches its four one-shot cues on,
-    /// masked to 10 bits against the frame armed last tick in `field_7A8`.
-    /// The third animation slot's frame halfword, the same slot family as
-    /// `field_72`.
-    /* 0x09A */ u16  field_9A;
-    /* 0x09C */ byte pad_9C[0x708];
+    /* 0x008 */ byte pad_8[0x4];
+    /// Six back-to-back animation blocks, each a `GpAnimCtx` followed by its
+    /// own `GpAnimSlot[N]` and an N-entry 0x10-byte pose table -- the three
+    /// argument groups the spawn state hands `func_800B3F84`. They pair up
+    /// (0/1, 2/3, 4/5), eight slots in the first pair and four in the others;
+    /// the even member drives the model and the odd one is the pose blended
+    /// into it. The states latch their one-shot cues on `slots0[n].curRec`.
+    /* 0x00C */ GpAnimCtx  anim0;
+    /* 0x020 */ GpAnimSlot slots0[8];
+    /* 0x160 */ byte       aux0[0x80];
+    /* 0x1E0 */ GpAnimCtx  anim1;
+    /* 0x1F4 */ GpAnimSlot slots1[8];
+    /* 0x334 */ byte       aux1[0x80];
+    /* 0x3B4 */ GpAnimCtx  anim2;
+    /* 0x3C8 */ GpAnimSlot slots2[4];
+    /* 0x468 */ byte       aux2[0x40];
+    /* 0x4A8 */ GpAnimCtx  anim3;
+    /* 0x4BC */ GpAnimSlot slots3[4];
+    /* 0x55C */ byte       aux3[0x40];
+    /* 0x59C */ GpAnimCtx  anim4;
+    /* 0x5B0 */ GpAnimSlot slots4[4];
+    /* 0x650 */ byte       aux4[0x40];
+    /* 0x690 */ GpAnimCtx  anim5;
+    /* 0x6A4 */ GpAnimSlot slots5[4];
+    /* 0x744 */ byte       aux5[0x40];
+    /* 0x784 */ byte       pad_784[0x20];
     /// Escort pose index, written 3 by the re-arm path of the per-frame body
     /// and cleared once the shared countdown below has run out. Same slot and
     /// role as `Actor444000Work::field_7A4`.
     /* 0x7A4 */ s16  field_7A4;
     /* 0x7A6 */ byte pad_7A6[0x2];
-    /// The masked `field_9A` frame the launch state last saw, so each of its
+    /// The masked `slots0[3].curRec` frame the launch state last saw, so each of its
     /// four one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7A8`.
     /* 0x7A8 */ s32 field_7A8;
-    /// The masked `field_4A` / `field_72` frame the stand-up tick last saw, so
+    /// The masked `slots0[1]` / `slots0[2]` frame the stand-up tick last saw, so
     /// each of its one-shot cues only fires on the step the animation first
     /// reaches that frame. Same slot and role as `Actor444000Work::field_7AC`.
-    /* 0x7AC */ s32  field_7AC;
-    /* 0x7B0 */ s8   field_7B0;
-    /* 0x7B1 */ byte pad_7B1[0x2];
+    /* 0x7AC */ s32 field_7AC;
+    /* 0x7B0 */ s8  field_7B0;
+    /// Set while the blended animation path runs.
+    /* 0x7B1 */ s8   field_7B1;
+    /* 0x7B2 */ byte pad_7B2;
     /* 0x7B3 */ s8   field_7B3;
     /* 0x7B4 */ byte pad_7B4[0x2];
-    /// The animation slot selector the launch state arms to 0x40 and then to
-    /// 0x10. Same slot and role as `Actor444000Work::field_7B6`.
+    /// The `GpAnimSlot.rate` the even animation members tick at; the launch
+    /// state arms it to 0x40 and then to 0x10.
     /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ byte pad_7B8[0xC];
+    /* 0x7B8 */ s16  field_7B8;
+    /* 0x7BA */ byte pad_7BA[0x2];
+    /// Animation id the blend seeds the odd members' slots with.
+    /* 0x7BC */ s16 field_7BC;
+    /// The `GpAnimSlot.rate` the odd members tick at while blending.
+    /* 0x7BE */ s16 field_7BE;
+    /// Blend weight of the odd member in the pose written to the even one, out
+    /// of 0x1000.
+    /* 0x7C0 */ s16  field_7C0;
+    /* 0x7C2 */ byte pad_7C2[0x2];
     /// Cleared alongside `field_7C8` by the group-0 hit handler, the same pair
     /// `Actor444000Work::field_7C4` is.
     /* 0x7C4 */ s16  field_7C4;
@@ -279,7 +303,7 @@ typedef struct Actor403200Work {
     /// it. Same slot and role as `Actor444000Work::field_7CA`.
     /* 0x7CA */ u16  field_7CA;
     /* 0x7CC */ byte pad_7CC[0xC];
-    /// The masked `field_72` frame the per-frame body last saw, so each of its
+    /// The masked `slots0[2].curRec` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame. Same slot and role as `Actor444000Work::field_7D8`.
     /* 0x7D8 */ s32  field_7D8;
@@ -297,18 +321,21 @@ typedef struct Actor403200Work {
     /// The tenth collision object, the one the swipe tick raises `flags` bit
     /// 0x8000 on while the swipe is live. Same slot and role as
     /// `Actor444000Work::obj`.
-    /* 0xD4C */ GpObj obj;
-    /* 0xD6C */ byte  pad_D6C[0x18];
+    /* 0xD4C */ GpObj        obj;
+    /* 0xD6C */ GpActorD4Rec d4rec;
     /// The five records the tenth collision object carries, walked by the swipe
     /// tick for the one whose high half is 0x10000. Same slots and role as
     /// `Actor444000Work::recs2`.
     /* 0xD84 */ GpRec18 recs2[5];
-    /* 0xDFC */ byte    pad_DFC[0x40];
+    /// The light and colour matrices the spawn state points the host model
+    /// and its escorts at (`TmdObject::lightMtx` / `field_20`).
+    /* 0xDFC */ MATRIX lightMtx;
+    /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the swipe tick clears and pushes through
     /// `Gp_UpdateCoord` every step; `coord` is the matrix `Gfx_RotMatrixY`
-    /// rebuilds from `field_7C8`. Same slot and role as
-    /// `Actor444000Work::field_E3C`.
-    /* 0xE3C */ GsCOORDINATE2 field_E3C;
+    /// rebuilds from `field_7C8`. The spawn state seeds it with the identity
+    /// through the word view.
+    /* 0xE3C */ Actor403200DropCoord field_E3C;
     /// `Gp_GetIdParam2` of the hit the group-0 handler took this frame; the
     /// sibling slots carry the other groups' ids. Same slots and role as
     /// `Actor444000Work::field_E8C`.
@@ -374,8 +401,9 @@ typedef struct Actor403200Work {
     /* 0xEFC */ s16 field_EFC;
     /// Cleared by the per-frame body's re-arm path. Same slot and role as
     /// `Actor444000Work::field_EFE`.
-    /* 0xEFE */ s16  field_EFE;
-    /* 0xF00 */ byte pad_F00[0x2];
+    /* 0xEFE */ s16 field_EFE;
+    /// Pitch the head tracker walks toward its request, clamped to 0..0x500.
+    /* 0xF00 */ s16 field_F00;
     /// Raised to 1 with the message 0x3F4 the launch tick sends the player
     /// once the hold has been taken. Same slot as `Actor444000Work::field_F02`.
     /* 0xF02 */ s16 field_F02;
@@ -475,12 +503,38 @@ typedef struct Actor403200GrabWork {
 } Actor403200GrabWork;
 STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 
+/// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
+/// that rises out of view and slams back down onto the floor. `coord` is the
+/// coordinate its shadow marker is drawn at, kept on the floor directly under
+/// the model and refreshed every step; `obj` is its collision node, whose
+/// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
+/// the step counter of the current state.
+typedef struct Actor403200DropWork {
+    /* 0x000 */ byte          pad_0[0x10];
+    /* 0x010 */ GsCOORDINATE2 coord;
+    /* 0x060 */ byte          pad_60[0x50];
+    /* 0x0B0 */ GpObj         obj;
+    /* 0x0D0 */ byte          pad_D0[0x20];
+    /* 0x0F0 */ GpRec18       rec;
+    /* 0x108 */ byte          pad_108[0xA4];
+    /* 0x1AC */ u16           timer;
+    /* 0x1AE */ byte          pad_1AE[0x12];
+} Actor403200DropWork;
+STATIC_ASSERT_SIZEOF(Actor403200DropWork, 0x1C0);
+
 s32 func_actor_403200_801344C4(Task* arg0, s16 arg1);
 
 /// The actor's per-frame body: runs the animation resets and the collision /
 /// damage ticks. Takes the task, and reaches the work block through its
 /// `work` slot, as `func_actor_403200_8014123C` does.
 void func_actor_403200_80133DD8(Task* task);
+
+/// Turn `coord` to its view-space orientation rotated by `yaw` about y,
+/// expressed back in its parent's frame (`actor_403200_11.c`).
+void func_actor_403200_801321C4(GsCOORDINATE2* coord, s16 yaw);
+
+/// Exit callback of the boss task (`actor_403200_16.c`).
+void func_actor_403200_80141018(Task* arg0);
 
 extern MATRIX* D_80073B8C;
 

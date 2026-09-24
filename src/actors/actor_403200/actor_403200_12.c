@@ -1,16 +1,21 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-
-#include "actors/actors_shared_80132cb8.h"
 
 #include "gameplay/3A34.h"
 #include "main/gfx.h"
 #include "main/session.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared80132cb8(Task* task, s16 scale, s16 drop, s16 index)
+/// Rebuild quad `index` of the collision grid as a wall across the front of
+/// the task's model: the edge runs 0x1388 either way along the model's x axis,
+/// `scale` out along its z axis, with vertices 0 and 1 sitting `drop` below 2
+/// and 3. The quad's grid normal becomes the model's unit z axis, and the face
+/// record takes flag 3 in area 0x27 and 2 elsewhere.
+void func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index)
 {
     SVECTOR     dir;
     GpGridFace  face;

@@ -605,7 +605,7 @@ void func_actor_403200_80134D40(Task* arg0)
     SCRATCH_SP -= 0xC;
     func_actor_403200_80133DD8(arg0);
 
-    frame = work->field_72 & 0x3FF;
+    frame = work->slots0[2].curRec & 0x3FF;
     if (frame == 0x12 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -618,7 +618,7 @@ void func_actor_403200_80134D40(Task* arg0)
                             (s8)(gpGetObjDepth(((TmdObject*)arg0->extra)->coords) / 2));
     }
 
-    frame = work->field_72 & 0x3FF;
+    frame = work->slots0[2].curRec & 0x3FF;
     if (frame == 0x18 && work->field_7D8 != frame) {
         s32 id;
         s32 pan;
@@ -631,7 +631,7 @@ void func_actor_403200_80134D40(Task* arg0)
                             (s8)(gpGetObjDepth(((TmdObject*)arg0->extra)->coords) / 2));
     }
 
-    work->field_7D8 = work->field_72 & 0x3FF;
+    work->field_7D8 = work->slots0[2].curRec & 0x3FF;
 
     model = ((TmdObject*)arg0->extra)->coords;
     if (D_80072729 != 1) {
