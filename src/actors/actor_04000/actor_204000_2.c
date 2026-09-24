@@ -9,7 +9,6 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "actors/actors_shared_8014adfc.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 
@@ -1508,7 +1507,7 @@ void Actor04000_Fn05AE8(Actor104000Ctx* arg0, Actor104000* arg1)
     arg1->field_2C->field_8->flg = 0;
 }
 
-void ActorsShared8015087c(GpEnemy* enemy, Task* task);
+void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task);
 void Actor04000_Fn06BC8(Actor104000Ctx* arg0, Actor104000* arg1);
 void Actor04000_Fn06C80(Actor104000Ctx* arg0, Actor104000* arg1);
 void Actor04000_Fn028F0(Actor104000Ctx* arg0, Actor104000* arg1);
@@ -1528,7 +1527,7 @@ void Actor04000_Fn05AE8(Actor104000Ctx* arg0, Actor104000* arg1);
 
 const Actor104000StateTable Actor04000_D001F4 = {
     {
-        (Actor104000StateFn)ActorsShared8015087c,
+        (Actor104000StateFn)Actor04000_Fn06A5C,
         Actor04000_Fn06BC8,
         Actor04000_Fn026FC,
         Actor04000_Fn06C80,
@@ -1637,7 +1636,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Actor104000* arg1)
     Gp_ClearRec18Occupied(work->rec1B0);
     Gp_ClearRec18Occupied(work->hits);
     Gp_ClearRec18Occupied(&work->rec370);
-    id = ActorsShared8014adfc(work);
+    id = Actor04000_Fn00FDC(work);
     if (id != 0) {
         snd = id | ((arg0->placeKey >> 12) << 8);
         pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)arg1->field_2C->field_8);
@@ -1711,4 +1710,4 @@ void Actor04000_Fn06380(Actor204000Task* arg0)
     }
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_04000/actor_204000_2", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_04000/actor_204000_2", Actor04000_D00240);

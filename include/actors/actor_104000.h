@@ -218,9 +218,8 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
-/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `ActorsShared80131f58`
-/// (and the same walk in `func_actor_204000_8014A06C`) to push a coordinate
-/// away from the obstacles in a `GpRec18` table. `angle`/`ok` hold up to eight
+/// 0x54-byte scratch from `G_SCRATCH_HEAD` used by `Actor04000_Fn0024C` to
+/// push a coordinate away from the obstacles in a `GpRec18` table. `angle`/`ok` hold up to eight
 /// bearings collected from the records, `i`/`j` are the loop cursors, and
 /// `blocked` is set when any record's kind is 0x10000.
 typedef struct Actor104000AvoidScratch {
@@ -250,8 +249,7 @@ typedef struct Actor104000AvoidDelta {
 } Actor104000AvoidDelta;
 STATIC_ASSERT_SIZEOF(Actor104000AvoidDelta, 0x10);
 
-void func_actor_104000_80132C8C(Actor104000* arg0);
-void func_actor_104000_80138698(Actor104000Ctx* arg0, Actor104000* arg1);
-void func_actor_104000_80138AA0(Actor104000Ctx* arg0, Actor104000* arg1);
+void Actor04000_Fn00E6C(Actor104000* arg0);
+s32  Actor04000_Fn00FDC(Actor104000Work* arg0);
 
 #endif

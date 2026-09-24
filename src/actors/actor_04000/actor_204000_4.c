@@ -2,8 +2,6 @@
 
 #include "actors/actor_104000.h"
 
-void Actor04000_Fn00E6C(Actor104000* arg0);
-
 void Actor04000_Fn06878(Actor104000Ctx* arg0, Actor104000* arg1)
 {
     Actor104000Work*  work;

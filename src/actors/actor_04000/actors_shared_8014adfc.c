@@ -1,8 +1,13 @@
 #include "common.h"
 
-#include "actors/actors_shared_8014adfc.h"
+#include "actors/actor_104000.h"
 
-s32 ActorsShared8014adfc(Actor104000Work* arg0)
+/// Reaction check keyed on the requested animation in `field_174`: for 2 and
+/// 3, answers 0x40280001 the first time the playing animation id in `field_4A`
+/// reaches one of that animation's trigger ids (latched in `field_474`, which
+/// clears on any other id); for 5, answers 0x400C0005 while bit 2 of
+/// `field_58` is set. Answers 0 otherwise.
+s32 Actor04000_Fn00FDC(Actor104000Work* arg0)
 {
     u16 id;
     s32 v;

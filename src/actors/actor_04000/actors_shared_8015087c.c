@@ -5,15 +5,11 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// State 0 of the actor's 19-entry `GpEnemyTaskFuncTable` dispatch: the
-/// leave/despawn teardown. When the work block's `field_4` latch is set it
-/// raises the enemy's list-node flag, sets the display object's visibility bit
-/// and clears the gate bits on four records of the 0x38-stride flag table.
-///
-/// Shared: the three actor slots (`actor_104000` / `204000` / `304000`) carry
-/// the same body byte for byte, so one object serves every overlay that lists
-/// this unit in `configs/USA/overlays.toml`.
-void ActorsShared8015087c(GpEnemy* enemy, Task* task)
+/// State 0 of the actor's per-frame dispatch: on the frame the state is
+/// entered (`field_4` latch) it raises the enemy's list-node flag and the
+/// display object's 0x80 bit, and clears the gate bits of the work block's
+/// four collision objects (the high bit on three, 0x4000 on `obj270`).
+void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task)
 {
     Actor104000Work* work;
     TmdObject*       obj;
