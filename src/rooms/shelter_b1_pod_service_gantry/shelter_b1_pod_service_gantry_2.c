@@ -29,7 +29,3 @@ void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
     SetDispMask(0);
     arg0->state += 1;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", jtbl_shelter_b1_pod_service_gantry_8017D5F0);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", jtbl_shelter_b1_pod_service_gantry_8017D610);

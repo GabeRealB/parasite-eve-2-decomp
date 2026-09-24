@@ -1,24 +1,187 @@
 #include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
+#include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
-#include "gameplay/gameplay.h"
-#include "gameplay/3CD8.h"
+#include "main/task.h"
+#include "main/tmd.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_pod_service_gantry.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern void D_shelter_b1_pod_service_gantry_8017FAF4;
 extern s32  D_801752EC;
 extern s8   D_shelter_b1_pod_service_gantry_8018256C[];
+extern u32  Gp_LcgState;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017D8F4);
+void func_shelter_b1_pod_service_gantry_8017DF70(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_pod_service_gantry_8017ED3C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_shelter_b1_pod_service_gantry_8017F160(GsCOORDINATE2* arg0, u16 arg1, s16 arg2);
+
+/// Per-frame driver of an animated sprite effect, a `Gp_State1C` effect task
+/// drawn through `func_shelter_b1_pod_service_gantry_8017DF70` (state 1) or,
+/// when the spawn argument is negative,
+/// `func_shelter_b1_pod_service_gantry_8017E400` (state 2). The first tick
+/// unpacks the spawn argument: the low 12 bits are the sprite size, bits
+/// 12-14 the ticks per animation cell (1 when zero) and bits 28-30 the CLUT
+/// selector passed to the drawer above the cell index; the spin angle is
+/// rolled from `Gp_LcgState`. When the work block arrives without a velocity,
+/// bits 24-27 choose how one is rolled (0 leaves the sprite still, 5 takes the
+/// block's stored direction) and it is scaled to the speed in bits 16-23
+/// (0x40 when zero). Each later tick draws the current cell, moves the
+/// coordinate by the velocity, bends the vertical velocity (kind 7 by the tick
+/// count / 10, otherwise upwards by a constant) and releases the work block
+/// after the drawer's last cell (12 cells in state 1, 10 in state 2). During
+/// an event it only draws, and releases once the event state reaches 4.
+void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            step;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        if (task->state < 2) {
+            func_shelter_b1_pod_service_gantry_8017DF70(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+        } else {
+            func_shelter_b1_pod_service_gantry_8017E400(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+        }
+        if (Gp_State1C->eventState >= 4) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+        return;
+    }
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = task->spawnArg1 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 7;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            task->state    = 1;
+            task->state    = task->spawnArg1 < 0 ? 2 : 1;
+            work->field_18 = (task->spawnArg1 >> 16) & 0x7000;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                switch ((task->spawnArg1 >> 24) & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                    case 6:
+                        work->field_10.vy = 0;
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            break;
+        case 1:
+            func_shelter_b1_pod_service_gantry_8017DF70(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                    work->field_10.vy += (s16)work->field_22 / 10;
+                } else {
+                    work->field_10.vy -= 2;
+                }
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 12) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+        case 2:
+            func_shelter_b1_pod_service_gantry_8017E400(coord, work->field_20 | work->field_18, work->field_24, work->field_26);
+            if ((s16)work->field_2A != 0) {
+                coord->coord.t[0] += (s16)work->field_10.vx;
+                coord->coord.t[1] += (s16)work->field_10.vy;
+                coord->coord.t[2] += (s16)work->field_10.vz;
+                coord->flg         = 0;
+                if (((task->spawnArg1 >> 24) & 0xF) == 7) {
+                    work->field_10.vy += (s16)work->field_22 / 10;
+                } else {
+                    work->field_10.vy -= 1;
+                }
+            }
+            if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+                work->field_20++;
+                if ((s16)work->field_20 >= 10) {
+                    Gp_ReleaseState1CMem(work, task);
+                }
+            }
+            break;
+    }
+}
 
 /// Draws a camera-facing sprite at `arg0`'s world position: the point is
 /// projected through `GsWSMATRIX` into a zeroed scratch block popped from
@@ -169,7 +332,137 @@ void func_shelter_b1_pod_service_gantry_8017E400(GsCOORDINATE2* arg0, u16 arg1, 
     *(u8**)G_SCRATCH_HEAD += 0x1C;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", func_shelter_b1_pod_service_gantry_8017E880);
+/// Per-frame driver of a particle effect, a `Gp_State1C` effect task drawn
+/// through `func_shelter_b1_pod_service_gantry_8017ED3C` (state 1) or, when
+/// the spawn argument's top nibble is set,
+/// `func_shelter_b1_pod_service_gantry_8017F160` (state 2). The first tick
+/// takes the size from the argument's low 12 bits, a random spin angle, and
+/// the ticks per animation frame from bits 12-15 (1 when zero). Unless the
+/// work block already carries a velocity, it picks one by the kind in bits
+/// 24-27 (0 none, 1-3 random directions, 5 the block's stored direction),
+/// scaled to the speed in bits 16-23 (0x40 when zero). Every later tick
+/// refreshes the coordinate, draws, moves it by the velocity with 6 added to
+/// the vertical component, and releases the block after animation frame 7.
+/// During an event it only draws, releasing the block once the event state
+/// reaches 4.
+void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vec;
+    s32            kind;
+    s32            step;
+    s32            state;
+    s32            level;
+
+    work  = task->spawnArg2;
+    coord = ((TmdObject*)task->extra)->coords;
+    if (Gp_State1C->eventState != 0) {
+        if (Gp_State1C->eventState < 4) {
+            if (task->state < 2) {
+                func_shelter_b1_pod_service_gantry_8017ED3C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            } else {
+                func_shelter_b1_pod_service_gantry_8017F160(coord, work->field_20, (s16)work->field_24);
+            }
+            return;
+        }
+        Gp_ReleaseState1CMem(work, task);
+        return;
+    }
+    Gp_UpdateCoord(coord);
+    work->field_22++;
+    switch (task->state) {
+        case 0:
+            work->field_24 = ((GpEffSpawnArg*)&task->spawnArg1)->field_0 & 0xFFF;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            work->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            if (task->spawnArg1 & 0xF000) {
+                step = (task->spawnArg1 >> 12) & 0xF;
+            } else {
+                step = 1;
+            }
+            work->field_28 = step;
+            work->field_22 = 0;
+            state          = 1;
+            if (task->spawnArg1 & 0xF0000000) {
+                state = 2;
+            }
+            task->state = state;
+            if (((u16)work->field_10.vx | (u16)work->field_10.vy | (u16)work->field_10.vz) == 0) {
+                if (task->spawnArg1 & 0xFF0000) {
+                    level = (task->spawnArg1 >> 16) & 0xFF;
+                } else {
+                    level = 0x40;
+                }
+                work->field_2A = level;
+                kind           = ((GpEffSpawnArgHi*)&task->spawnArg1)->field_3;
+                switch (kind & 0xF) {
+                    case 0:
+                        work->field_2A = 0;
+                        break;
+                    case 1:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 2:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        break;
+                    case 3:
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
+                        Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+                        work->field_10.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        break;
+                    case 5:
+                        work->field_10.vx = work->field_18;
+                        work->field_10.vy = work->field_1A;
+                        work->field_10.vz = work->field_1C;
+                        break;
+                }
+                vec = &work->field_10;
+                VectorNormalSS(vec, vec);
+                gte_lddp(work->field_2A);
+                gte_ldsv(vec);
+                gte_gpf12_real();
+                gte_stsv(vec);
+            } else {
+                work->field_2A = 0x40;
+            }
+            return;
+        case 1:
+            func_shelter_b1_pod_service_gantry_8017ED3C(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            break;
+        case 2:
+            func_shelter_b1_pod_service_gantry_8017F160(coord, work->field_20, (s16)work->field_24);
+            break;
+        default:
+            return;
+    }
+    if ((s16)work->field_2A != 0) {
+        coord->coord.t[0] += work->field_10.vx;
+        coord->coord.t[1] += work->field_10.vy;
+        coord->coord.t[2] += work->field_10.vz;
+        coord->flg         = 0;
+        work->field_10.vy += 6;
+    }
+    if (((s16)work->field_22 % (s16)work->field_28) == 0) {
+        work->field_20++;
+        if ((s16)work->field_20 >= 8) {
+            Gp_ReleaseState1CMem(work, task);
+        }
+    }
+}
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
 /// the GTE flag is non-negative, queues one semi-transparent raw-tex
