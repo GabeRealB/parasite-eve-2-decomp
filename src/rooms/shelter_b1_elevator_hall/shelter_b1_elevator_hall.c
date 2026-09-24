@@ -4,6 +4,7 @@
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
+#include "main/sound.h"
 #include "main/task.h"
 
 #include "rooms/room_common.h"
@@ -33,7 +34,18 @@ s32 func_shelter_b1_elevator_hall_8017DB64(void)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB6C);
+s32 func_shelter_b1_elevator_hall_8017DB6C(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 6:
+            SndEvt_EnqueueType6(0x16, 0, 0);
+            break;
+        case 8:
+            SndEvt_EnqueueType6(0x54090008, 0, 0);
+            break;
+    }
+    return 0;
+}
 
 void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
 {
