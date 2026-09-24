@@ -22,14 +22,14 @@ extern SVECTOR D_shelter_1f_airlock_8017E4D4[];
 
 void func_shelter_1f_airlock_8017D8A8(SVECTOR* pos, s32 arg1, s32 arg2);
 
-void Room_Draw29(SVECTOR* pos, s32 arg1, s32 arg2);
+void func_shelter_1f_airlock_8017E0F0(SVECTOR* pos, s32 arg1, s32 arg2);
 
 void func_shelter_1f_airlock_8017D6D0(void)
 {
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
-            Room_Draw29(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
-            Room_Draw29(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
+            func_shelter_1f_airlock_8017E0F0(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
+            func_shelter_1f_airlock_8017E0F0(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4C4[3], 0x180, 0x1011);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4C4[5], 0x180, 0x1011);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4C4[7], 0x180, 0x1011);
@@ -38,8 +38,8 @@ void func_shelter_1f_airlock_8017D6D0(void)
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4C4[17], 0x180, 0x1011);
             break;
         case 4:
-            Room_Draw29(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
-            Room_Draw29(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
+            func_shelter_1f_airlock_8017E0F0(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
+            func_shelter_1f_airlock_8017E0F0(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4BC[4], 0x180, 0x1011);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4BC[6], 0x180, 0x1011);
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4BC[8], 0x180, 0x1011);
@@ -54,7 +54,7 @@ void func_shelter_1f_airlock_8017D6D0(void)
             func_shelter_1f_airlock_8017D8A8(&D_shelter_1f_airlock_8017E4BC[26], 0x180, 0x1011);
             break;
         case 5:
-            Room_Draw29(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);
+            func_shelter_1f_airlock_8017E0F0(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);
             break;
     }
 }

@@ -1,4 +1,7 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "gameplay/3CD8.h"
 #include "main/display.h"
@@ -6,24 +9,16 @@
 #include "main/mem.h"
 #include "rooms/room_common.h"
 
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgte.h>
-
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
-/// the resulting OTZ is at least 0x11, queues four gouraud `POLY_G4` wedges
-/// around the projected centre. `arg1` is a signed half-extent; the on-screen
-/// radius is `(s16)arg1 * 64 / otz`. `arg2` scales the inner vertex by the
-/// frame-counter blend byte `((field_8 & 1) * 8 | 0x20)`: red is
-/// `blend * ((arg2 << 16) >> 24)`, green `blend * (((arg2 << 16) >> 20) & 3)`,
-/// blue `blend * (arg2 & 3)`. Same 0xC scratch layout as `Room_Draw25`.
-/// Same body as `Room_Draw30` except those green/blue masks are `& 3` rather
-/// than `& 1`.
-///
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw29(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a glow at a world-space point: projects `arg0` through
+/// `Gfx_ViewWorldMtx` and, when the resulting OTZ is at least 0x11, queues
+/// four gouraud `POLY_G4` wedges around the projected centre, dark at the rim
+/// and coloured at the centre. The on-screen radius is `(s16)arg1 * 64 / otz`.
+/// The centre colour takes red from bits 8..15 of `arg2` and green and blue
+/// from two-bit fields at bits 4 and 0, each scaled by a brightness that
+/// alternates with the frame counter.
+void func_shelter_1f_airlock_8017E0F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
     RoomDraw25Scratch* block;
