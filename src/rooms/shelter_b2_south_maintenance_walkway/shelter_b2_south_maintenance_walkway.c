@@ -5,7 +5,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/shelter_b2_south_maintenance_walkway.h"
 
 /// Parameters of the event the walkway's message handler starts, latched into
 /// the room's pending copy when it fires. `flagId` is the game-flag nibble that
@@ -66,7 +66,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(s32 arg0, s32 arg1, RoomE
         req.field_C = 0x541C0001;
         req.flagId  = 0xAA;
         req.itemId  = 0;
-        return RoomsShared8017d638(&req, out);
+        return func_shelter_b2_south_maintenance_walkway_8017D610(&req, out);
     }
     if (in->msgId != 0x1B) {
         return 1;
@@ -93,4 +93,4 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DC18(void)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", D_shelter_b2_south_maintenance_walkway_8017D5F0);
