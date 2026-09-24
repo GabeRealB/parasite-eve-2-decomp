@@ -1,5 +1,4 @@
 // Overlay-local symbols for actor_110600.
-D_actor_110600_80131F1C = 0x80131F1C; // force_not_migration:True effect offset vector, read from C
 
 // Referenced in another actor load slot, resident beside this one.
 D_8015BD7C = 0x8015BD7C; // absolute:True
