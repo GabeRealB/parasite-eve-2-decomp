@@ -2700,13 +2700,15 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b4_lower_sewer]
-label = "no map pool names this room"
+label = "no map pool names this room; code starts at 0x48: the first function is a leaf returning 0, so the span detector, which keys on a stack prologue, begins at 0x50 and left it as rodata words"
 id = 413
+text = ["0x48", "0x4884"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer", rodata = "0x4", text = "0x94" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_3", rodata = "0x10", text = "0xDBC" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_4", rodata = "0x30", text = "0x1DAC" },
+  { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_5", text = "0x48" },
   { lib = true, unit = "room_util02", text = "0x50" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x114" },
   { unit = "shelter_b4_lower_sewer/shelter_b4_lower_sewer_2", text = "0x16C" },
