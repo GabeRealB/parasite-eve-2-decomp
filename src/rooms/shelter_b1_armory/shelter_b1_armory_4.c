@@ -47,5 +47,3 @@ void func_shelter_b1_armory_801807E4(void)
             break;
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_4", RoomsShared8017eb5cIdList);
