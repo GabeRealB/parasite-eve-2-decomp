@@ -159,7 +159,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_main_corridor/shelter_b2_main_corridor", D_shelter_b2_main_corridor_8017D5F0);
 
 void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 {

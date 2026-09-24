@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "rooms/room_common.h"
 
@@ -106,5 +110,34 @@ extern s16 D_shelter_b2_main_corridor_80182E28;
 extern u8* D_shelter_b2_main_corridor_80189660;
 
 void func_shelter_b2_main_corridor_8017E390(void);
+
+/// The three-state table the room task driver
+/// `func_shelter_b2_main_corridor_8017E338` dispatches through.
+extern const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0;
+
+/// Draws a flat textured quad of size `arg1` and brightness `arg2` at a
+/// coordinate.
+void func_shelter_b2_main_corridor_8017F078(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+
+/// Draws a spinning sprite at a coordinate.
+void func_shelter_b2_main_corridor_8017F860(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Draws an upright sprite at a coordinate.
+void func_shelter_b2_main_corridor_8017FC4C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+
+/// Draws a flickering light beam between two points.
+void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Draws a flickering glow sprite at a point.
+void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+/// Draws a ring around a coordinate.
+void func_shelter_b2_main_corridor_80180BF0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+
+/// Draws a round glow at a coordinate.
+void func_shelter_b2_main_corridor_8018101C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+
+/// Draws a star-shaped flare at a coordinate.
+void func_shelter_b2_main_corridor_80181F20(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif

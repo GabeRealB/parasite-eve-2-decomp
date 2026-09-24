@@ -5,6 +5,7 @@
 #include "gameplay/D4.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b2_main_corridor.h"
 
 extern s32     D_8011572C;
 extern s32     D_80115738;
@@ -33,62 +34,62 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
             switch (Gp_GetViewIndex() & 0xFF) {
                 case 2: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F7C;
-                    Room_Draw12(&p[0], 0x200, 0, 0x111);
-                    Room_Draw12(&p[2], 0x200, 0, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0, 0x111);
                     break;
                 }
                 case 3: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    Room_Draw12(&p[0], 0x200, 0x800, 0x10);
-                    Room_Draw12(&p[2], 0x200, 0, 0x10);
-                    Room_Draw12(&p[4], 0x200, 0, 0x10);
-                    Room_Draw12(&p[6], 0x200, 0x800, 0x100);
-                    Room_Draw20(&p[14], 1, 0x300);
-                    Room_Draw20(&p[21], 1, 0x300);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[6], 0x200, 0x800, 0x100);
+                    func_shelter_b2_main_corridor_801806D0(&p[14], 1, 0x300);
+                    func_shelter_b2_main_corridor_801806D0(&p[21], 1, 0x300);
                     break;
                 }
                 case 4: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182F9C;
-                    Room_Draw12(&p[0], 0x200, 0x800, 0x10);
-                    Room_Draw12(&p[24], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[28], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[32], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[24], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[28], 0x200, -0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 5:
-                    Room_Draw12(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
                     break;
                 case 6:
-                    Room_Draw12(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
                 case 7: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FCC;
-                    Room_Draw12(&p[0], 0x200, 0, 0x10);
-                    Room_Draw12(&p[2], 0x200, 0x800, 0x100);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[2], 0x200, 0x800, 0x100);
                     break;
                 }
                 case 8: {
                     SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    Room_Draw12(&p[0], 0x200, 0x800, 0x10);
-                    Room_Draw12(&p[24], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[28], 0x200, -0x400, 0x111);
-                    Room_Draw12(&p[32], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x800, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[24], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[28], 0x200, -0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[32], 0x200, 0x800, 0x111);
                     break;
                 }
                 case 9:
-                    Room_Draw12(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
+                    func_shelter_b2_main_corridor_8017FEE8(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
                     break;
                 case 10: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018305C;
-                    Room_Draw12(&p[0], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[4], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[8], 0x200, 0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
                 case 11: {
                     SVECTOR* p = D_shelter_b2_main_corridor_8018306C;
-                    Room_Draw12(&p[0], 0x200, 0x400, 0x111);
-                    Room_Draw12(&p[4], 0x200, 0x800, 0x111);
-                    Room_Draw12(&p[8], 0x200, 0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[0], 0x200, 0x400, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[4], 0x200, 0x800, 0x111);
+                    func_shelter_b2_main_corridor_8017FEE8(&p[8], 0x200, 0x400, 0x111);
                     break;
                 }
             }

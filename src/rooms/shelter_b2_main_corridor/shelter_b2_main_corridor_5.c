@@ -1,5 +1,10 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -8,10 +13,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
+#include "rooms/shelter_b2_main_corridor.h"
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -33,9 +35,9 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
-                Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+                func_shelter_b2_main_corridor_8017F860(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             } else {
-                Room_Draw23(coord, work->field_20, (s16)work->field_24);
+                func_shelter_b2_main_corridor_8017FC4C(coord, work->field_20, (s16)work->field_24);
             }
             return;
         }
@@ -113,10 +115,10 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
             }
             return;
         case 1:
-            Room_Draw19(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_shelter_b2_main_corridor_8017F860(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw23(coord, work->field_20, (s16)work->field_24);
+            func_shelter_b2_main_corridor_8017FC4C(coord, work->field_20, (s16)work->field_24);
             break;
         default:
             return;
