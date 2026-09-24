@@ -1,6 +1,1 @@
 // Overlay-local symbols for neo_ark_altar.
-Room_Util03 = 0x8017D8C4; // shared body, see src/lib/
-RoomsShared8018397c = 0x8017DBF0; // shared body, see src/lib/
-RoomsShared8018397cDesc = 0x8017EFC0; // shared body data, see src/lib/
-RoomsShared8017d878 = 0x8017D9E8; // shared body, see src/lib/
-RoomsShared8017d878Table = 0x8017D5C4; // shared body data, see src/lib/

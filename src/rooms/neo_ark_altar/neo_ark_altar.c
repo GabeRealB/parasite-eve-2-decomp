@@ -13,16 +13,12 @@ extern u8 D_8007216C;
 extern s8 D_801153F4;
 
 /// Spawn table for the task started once the altar choice is committed.
-extern TaskDesc RoomsShared8018397cDesc;
+extern TaskDesc D_neo_ark_altar_8017EFC0[];
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
 extern GpAreaApplyRec D_neo_ark_altar_801800A0;
 
 void func_neo_ark_altar_8017DC40(s32 arg0);
-
-/// Altar cutscene driver: silences the player's weapon, runs cap command 2,
-/// then branches on the cap event key to record the altar choice in game flag
-/// 0xD9 before spawning the follow-up task and restoring control.
 
 /// Altar cutscene driver: silences the player's weapon, runs cap command 2,
 /// then branches on the cap event key to record the altar choice in game flag
@@ -85,9 +81,9 @@ void func_neo_ark_altar_8017D668(Task* task)
             break;
         case 7:
             if (GameFlag_GetNibble(0xD9) != 0) {
-                Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 0, 0);
+                Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 0, 0);
             } else {
-                Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 1, 0);
+                Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 1, 0);
             }
             task->state++;
             break;

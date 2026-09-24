@@ -2392,10 +2392,10 @@ objects = [
   { unit = "neo_ark_altar/neo_ark_altar_4", rodata = "0x40", text = "0x480" },
   { unit = "neo_ark_altar/neo_ark_altar_5", rodata = "0x58", text = "0x680" },
   { unit = "neo_ark_altar/neo_ark_altar_2", text = "0x2FC" },
-  { lib = true, unit = "room_util03", text = "0x304" },
+  { unit = "neo_ark_altar/neo_ark_altar_6", text = "0x304" },
   { unit = "neo_ark_altar/neo_ark_altar_3", text = "0x348" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x428" },
-  { lib = true, unit = "rooms_shared_8018397c", text = "0x630" },
+  { unit = "neo_ark_altar/neo_ark_altar_7", text = "0x428" },
+  { unit = "neo_ark_altar/neo_ark_altar_8", text = "0x630" },
   { kind = "data", at = "0x19CC" },
 ]
 

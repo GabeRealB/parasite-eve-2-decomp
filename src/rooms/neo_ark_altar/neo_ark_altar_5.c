@@ -16,7 +16,7 @@
 
 #include <psyq/inline_c.h>
 
-extern TaskDesc RoomsShared8018397cDesc;
+extern TaskDesc D_neo_ark_altar_8017EFC0[];
 
 extern u8 D_8007216D;
 
@@ -684,7 +684,7 @@ void func_neo_ark_altar_8017EE90(Task* arg0)
     temp_s1 = arg0->work;
     Gp_MsgPlayer3F3(0);
     gGameSession->hideHud = 1;
-    *temp_s1              = Task_SpawnFromTable(&RoomsShared8018397cDesc, 0, 2, 0);
+    *temp_s1              = Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
     arg0->state           = (s32)(arg0->state + 1);
 }
 
