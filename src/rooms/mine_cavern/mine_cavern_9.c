@@ -1020,7 +1020,7 @@ const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", D_mine_cavern_8017D7F8);
 
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", RoomsShared80183c10Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern_9", D_mine_cavern_8017D80C);
 
 /// Fourth state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
 /// dispatches it). It parks the model hidden (`field_C = 0x80`) and walks

@@ -29,24 +29,25 @@ extern s32              D_80070F70;
 extern u32              Gp_LcgState;
 
 /// Glow at a coordinate: two camera-facing textured quads, an inner one of
-/// half-extent `size` and an outer one of `size * 3 / 2`, plus a `Room_Draw06`
+/// half-extent `size` and an outer one of `size * 3 / 2`, plus a `func_mine_cavern_801809F8`
 /// mark on the ground under it. Also feeds the gameplay light slot a flickering
 /// intensity at the coordinate's position. Draws nothing when the point fails
 /// to project.
 extern void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size);
 
-/// Sixteen-wedge gouraud ring, declared locally the way
-/// `dryfield_motel_balcony_5.c` does.
-extern void Room_Draw09(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+/// Sixteen-wedge gouraud ring.
+extern void func_mine_cavern_8017F7D0(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+extern void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+extern void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1);
 
 /// Frame callback for one of the cavern's expanding-ring effects. `Gp_State1C`'s
 /// `field_4` gates the whole room-effect family: 1-3 park the effect for the
 /// frame and 4 or more tear its work block down, so a task that sees them either
 /// returns or releases. Otherwise the effect ticks its lifetime counter, stages
 /// `field_24` into an RGB triple, advances the coordinate, and draws the
-/// eight-wedge `Room_Draw04` ring at twice `field_26` plus the cavern's own
+/// eight-wedge `func_mine_cavern_8017FBF4` ring at twice `field_26` plus the cavern's own
 /// glow quads at half-extent `field_26`. Once `field_28` reaches 0x19 the
-/// two ramps swap roles - a `Room_Draw09` ring is drawn at `field_2A * 3 / 2` and
+/// two ramps swap roles - a `func_mine_cavern_8017F7D0` ring is drawn at `field_2A * 3 / 2` and
 /// then `field_28` shrinks by 0x18 and `field_2A` grows by 0x30 - and the effect
 /// otherwise fades `field_24` by 0x18 a frame until it drops under 0x18 and the
 /// work block is handed back with `Gp_ReleaseState1CMem`.
@@ -79,7 +80,7 @@ void func_mine_cavern_80180320(Task* task)
         sp10[2]        = (u8)(work->field_24 >> 2);
         temp           = work->field_26 + 0x10;
         work->field_26 = temp;
-        Room_Draw04(coord, (s16)(temp * 2), sp10);
+        func_mine_cavern_8017FBF4(coord, (s16)(temp * 2), sp10);
         func_mine_cavern_801804CC(coord, (s16)work->field_26);
         if ((s16)work->field_28 >= 0x19) {
             u32 temp_a1;
@@ -87,7 +88,7 @@ void func_mine_cavern_80180320(Task* task)
             sp10[1] = (u8)(work->field_28 >> 1);
             sp10[2] = (u8)(work->field_28 >> 2);
             temp_a1 = (s16)work->field_2A * 3;
-            Room_Draw09(coord, (s32)((temp_a1 + (temp_a1 >> 0x1F)) << 0xF) >> 0x10, 0x60, sp10);
+            func_mine_cavern_8017F7D0(coord, (s32)((temp_a1 + (temp_a1 >> 0x1F)) << 0xF) >> 0x10, 0x60, sp10);
             work->field_28 -= 0x18;
             work->field_2A += 0x30;
             return;
@@ -217,7 +218,7 @@ void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size)
                       (s32)gGpuCurrentOt),
             prim);
         if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-            Room_Draw06(&ground, outerSize);
+            func_mine_cavern_801809F8(&ground, outerSize);
         }
     }
     *(void**)G_SCRATCH_HEAD =

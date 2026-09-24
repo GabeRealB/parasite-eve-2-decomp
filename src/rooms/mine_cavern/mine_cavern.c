@@ -112,4 +112,4 @@ rest:
     }
     return 0;
 }
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D5C4);

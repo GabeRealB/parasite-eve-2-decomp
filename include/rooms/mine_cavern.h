@@ -3,6 +3,11 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "main/task.h"
 
@@ -113,5 +118,20 @@ typedef struct MineCavernSprtRec {
     /* 0x118 */ MineCavernSprtView24* field_118;
 } MineCavernSprtRec;
 STATIC_ASSERT_SIZEOF(MineCavernSprtRec, 0x11C);
+
+/// The room task's three state handlers: setup (`func_mine_cavern_8017DDFC`),
+/// per-frame tick (`func_mine_cavern_8017DEE4`) and `taskKill`.
+extern const TaskFuncTable3 D_mine_cavern_8017D5C4;
+
+/// The state handlers of one of the room's enemies: setup
+/// (`func_mine_cavern_801836D0`), per-frame tick (`func_mine_cavern_80183AD4`)
+/// and `Gp_DestroyEnemy`.
+extern GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C;
+
+void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1);
+void func_mine_cavern_80180D70(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif

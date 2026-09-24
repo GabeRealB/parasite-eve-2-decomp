@@ -18,7 +18,7 @@
 /// `extent * 23 / (otz + 1)`. The low byte of `arg3` is the grey level on all
 /// three channels and its top nibble picks the CLUT on row 0x10B: column
 /// `nibble * 16 + 0xF0`, or 0xB0 when the nibble is zero.
-void RoomsShared8017dcb8Draw(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     void**             scratch;
     u8*                head;

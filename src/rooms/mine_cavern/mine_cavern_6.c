@@ -111,72 +111,72 @@ void func_mine_cavern_8017E474(Task* arg0)
         case 3:
         case 9: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[2], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[5], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[5], 1, 0x300);
             break;
         }
         case 5:
-            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
         case 23: {
             SVECTOR* p = D_mine_cavern_80188F64;
-            Room_Draw01(&p[0], 0x180, 0x222);
-            Room_Draw01(&p[1], 0x180, 0x222);
-            Room_Draw17(&p[3], 1, 0x300);
+            func_mine_cavern_8017E774(&p[0], 0x180, 0x222);
+            func_mine_cavern_8017E774(&p[1], 0x180, 0x222);
+            func_mine_cavern_8017EFB8(&p[3], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_cavern_80188F8C;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[2], 1, 0x300);
-            Room_Draw17(&p[4], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[4], 1, 0x300);
             break;
         }
         case 7: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[2], 1, 0x300);
-            Room_Draw17(&p[3], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[3], 1, 0x300);
             break;
         }
         case 8:
         case 20:
-            Room_Draw17(D_mine_cavern_80188F94, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F94, 1, 0x300);
             break;
         case 10:
-            Room_Draw17(D_mine_cavern_80188FB4, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188FB4, 1, 0x300);
             break;
         case 11:
-            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
         case 13: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[5], 1, 0x300);
-            Room_Draw17(&p[6], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[5], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[6], 1, 0x300);
             break;
         }
         case 14:
         case 16:
         case 21:
-            Room_Draw17(D_mine_cavern_80188F8C, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
             break;
         case 17:
-            Room_Draw17(D_mine_cavern_80188F9C, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F9C, 1, 0x300);
             break;
         case 24:
-            Room_Draw17(D_mine_cavern_80188FC4, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188FC4, 1, 0x300);
         case 22:
-            Room_Draw17(D_mine_cavern_80188F7C, 1, 0x300);
+            func_mine_cavern_8017EFB8(D_mine_cavern_80188F7C, 1, 0x300);
             break;
         case 25: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            Room_Draw17(&p[0], 1, 0x300);
-            Room_Draw17(&p[2], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
+            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
             break;
         }
     }
