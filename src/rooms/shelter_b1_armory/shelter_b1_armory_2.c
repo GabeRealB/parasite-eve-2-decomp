@@ -3,7 +3,12 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
 
+#include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/room_common.h"
+#include "rooms/rooms_shared_8017d638.h"
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
@@ -15,7 +20,33 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_she
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180468);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_801805A8);
+s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    RoomEventReq req;
+
+    *out = *in;
+    func_80179A04(in, out);
+    if (in->msgId == 0xB) {
+        req.field_0 = 4;
+        req.field_4 = 1;
+        req.field_8 = 0x540D0005;
+        req.field_C = 0x540D0001;
+        req.flagId  = 0xA6;
+        req.itemId  = 0;
+        return RoomsShared8017d638(&req, out);
+    }
+    if (in->msgId != 0xD) {
+        return 1;
+    }
+    if (GameFlag_GetNibble(0xF0) != 0) {
+        return 1;
+    }
+    if (in->field_5 == 0) {
+        Gp_SetNibbleIf(in->field_6, 2);
+        Gp_RunCapCmd1(0xD);
+    }
+    return 0;
+}
 
 s32 func_shelter_b1_armory_80180698(s32 arg0, s32 arg1, s32 arg2)
 {
