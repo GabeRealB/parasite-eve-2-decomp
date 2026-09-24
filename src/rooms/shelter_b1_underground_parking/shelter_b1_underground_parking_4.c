@@ -27,24 +27,9 @@ typedef struct {
     /* 0x2 */ s16 field_2;
 } _ShelterParkingKeySpawnArg;
 
-/// 12-byte record published to `D_shelter_b1_underground_parking_8018D77C`
-/// before entry 0 of `D_shelter_b1_underground_parking_80187200` is spawned.
-/// `field_1`..`field_3` are handed to
-/// `func_shelter_b1_underground_parking_80183124` as a message's `msgId`,
-/// `field_2` and `field_3`, and read back from its answer.
-typedef struct {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ s16 field_4;
-    /* 0x8 */ s32 field_8;
-} _ShelterParkingKeyRecord;
-
 extern s8                         D_8007272D;
 extern TaskDesc                   D_shelter_b1_underground_parking_80187200;
 extern _ShelterParkingKeySpawnArg D_shelter_b1_underground_parking_8018D750;
-extern _ShelterParkingKeyRecord   D_shelter_b1_underground_parking_8018D77C;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
@@ -278,10 +263,10 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 /// weapon and ends the task.
 void func_shelter_b1_underground_parking_80182DB4(Task* task)
 {
-    _ShelterParkingKeyRecord  rec;
-    RoomEventMsg              msg;
-    _ShelterParkingKeyRecord* p;
-    s32                       (*handler)(RoomEventMsg*, RoomEventMsg*);
+    ShelterParkingDeparture  rec;
+    RoomEventMsg             msg;
+    ShelterParkingDeparture* p;
+    s32                      (*handler)(RoomEventMsg*, RoomEventMsg*);
 
     switch (task->state) {
         case 0:

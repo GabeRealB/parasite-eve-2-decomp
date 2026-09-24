@@ -11,7 +11,29 @@ extern s32 D_shelter_b1_underground_parking_801872D8;
 extern s32 D_shelter_b1_underground_parking_801873DC;
 extern s32 D_shelter_b1_underground_parking_80187544;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_6", func_shelter_b1_underground_parking_801834D4);
+/// The task spawned from `D_shelter_b1_underground_parking_80187670`, and its
+/// descriptor.
+extern Task*    D_shelter_b1_underground_parking_8018D74C;
+extern TaskDesc D_shelter_b1_underground_parking_80187670;
+
+/// Spawns entry 0 of `D_shelter_b1_underground_parking_80187670` and kills
+/// itself once that task has gone.
+void func_shelter_b1_underground_parking_801834D4(Task* task)
+{
+    s32 poll;
+
+    switch (task->state) {
+        case 0:
+            D_shelter_b1_underground_parking_8018D74C = Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187670, 0, 0, 0);
+            task->state++;
+            return;
+        case 1:
+            if (Task_PollKill(D_shelter_b1_underground_parking_8018D74C, &poll) != 0) {
+                taskKill(task);
+            }
+            return;
+    }
+}
 
 void func_shelter_b1_underground_parking_80183560(Task* arg0)
 {

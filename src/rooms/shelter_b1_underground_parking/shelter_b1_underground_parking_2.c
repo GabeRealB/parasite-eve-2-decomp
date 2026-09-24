@@ -1,3 +1,135 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_2", func_shelter_b1_underground_parking_80180454);
+#include "gameplay/268.h"
+#include "gameplay/4CC.h"
+#include "main/mc.h"
+#include "main/task.h"
+#include "main/ui.h"
+#include "rooms/room_common.h"
+#include "rooms/shelter_b1_underground_parking.h"
+
+/// One row of the shop's unlockable stock: the three item ids the row offers
+/// once its bit in `Mc_SaveData.shopTiers` is set. The leading word is not
+/// read here.
+typedef struct {
+    /* 0x0 */ s32  field_0;
+    /* 0x4 */ s16  items[3];
+    /* 0xA */ byte pad_A[2];
+} _ShelterParkingShopTier;
+
+extern _ShelterParkingShopTier D_shelter_b1_underground_parking_80186F14[13];
+
+/// Fills `shop` with the ids the shop currently offers, then sorts them by
+/// `Gp_ItemSortKey` and caps the visible row count at 9.
+///
+/// The upper halfword of the owning task's `spawnArg1` is the shop's mode. It
+/// picks the fixed id list and which items of each unlocked price row are
+/// stocked: mode 0 takes 0x80-0x9F plus a handful of other ids, mode 1
+/// 0xA0-0xBF, mode 2 0x60-0x7F and 0xD, and mode 3 everything from 1 to 0x5F
+/// the other modes do not take, plus the twelve two-bit stock levels of
+/// `Mc_SaveData.shopStock`. A demo save unlocks every row and every level.
+void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj)
+{
+    RoomShopList* list;
+    u16*          ids;
+    s32           mode;
+    s32           tier;
+    s32           slot;
+    s32           level;
+    s32           id;
+    s32           item;
+    s32           unlocked;
+    s32           i;
+    s32           j;
+    s32           k;
+    s32           key;
+    s32           otherKey;
+    u16           tmp;
+    u8            count;
+
+    mode = obj->owner->spawnArg1;
+    ids  = func_shelter_b1_underground_parking_8017F80C(mode);
+
+    shop->list.field_4 = 0;
+    while (*ids != 0xFFFF) {
+        func_shelter_b1_underground_parking_80180308(shop, obj, *ids);
+        ids++;
+    }
+
+    if (Mc_SaveData.demoScene == 1) {
+        Mc_SaveData.shopTiers = 0x1FFF;
+        Mc_SaveData.shopStock = -1;
+    }
+
+    if (Mc_SaveData.gameMode == 0) {
+        if (Mc_SaveData.shopTiers != 0) {
+            for (tier = 0; tier < 13; tier++) {
+                unlocked = Mc_SaveData.shopTiers & (1 << tier);
+                if (unlocked != 0) {
+                    for (j = 0; j < 3; j++) {
+                        item = D_shelter_b1_underground_parking_80186F14[tier].items[j];
+                        switch (mode >> 16) {
+                            case 0:
+                                if (((u32)(item - 0x80) < 0x20U) || (item == 0xC) || (item == 9) ||
+                                    (item == 0xA) || (item == 0x46) || (item == 0x45) ||
+                                    (item == 0x42) || (item == 0x43) || (item == 0x44)) {
+                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
+                                }
+                                break;
+                            case 1:
+                                if ((u32)(item - 0xA0) < 0x20U) {
+                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
+                                }
+                                break;
+                            case 2:
+                                if (((u32)(item - 0x60) < 0x20U) || (item == 0xD)) {
+                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
+                                }
+                                break;
+                            case 3:
+                                if (((u32)(item - 1) < 0x5FU) && (item != 0xD) && (item != 0xC) &&
+                                    (item != 9) && (item != 0xA) && (item != 0x46) &&
+                                    (item != 0x45) && (item != 0x42) && (item != 0x43) &&
+                                    (item != 0x44)) {
+                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ((mode >> 16) == 3) {
+            for (slot = 0; slot < 0xC; slot++) {
+                level = (Mc_SaveData.shopStock >> (slot * 2)) & 3;
+                if (slot == 0 ? level >= 2 : level > 0) {
+                    /* The assignment keeps `+ 0xE` on the level instead of
+                       letting GCC reassociate it onto the row base. */
+                    func_shelter_b1_underground_parking_80180308(shop, obj, slot * 3 + (id = level + 0xE));
+                }
+            }
+        }
+    }
+
+    list = (RoomShopList*)obj->owner->work;
+    for (i = 0; i < shop->list.field_4 - 1; i++) {
+        key = Gp_ItemSortKey(list->items[i]);
+        for (k = i + 1; k < shop->list.field_4; k++) {
+            otherKey = Gp_ItemSortKey(list->items[k]);
+            if (otherKey < key) {
+                tmp            = list->items[i];
+                key            = otherKey;
+                list->items[i] = list->items[k];
+                list->items[k] = tmp;
+            }
+        }
+    }
+
+    count              = shop->list.field_4;
+    shop->list.field_5 = count;
+    if ((s8)count >= 0xA) {
+        shop->list.field_5 = 9;
+    }
+    D_shelter_b1_underground_parking_80186FB0 = -1;
+}

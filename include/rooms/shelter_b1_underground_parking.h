@@ -50,6 +50,24 @@ typedef struct ShelterParkingSceneRec {
     /* 0x16 */ s16 field_16;
 } ShelterParkingSceneRec;
 
+/// A staged departure from the room. The departure task forwards `field_4` as
+/// message 0x3EE to the slot-3 game pointer (0xFFFF skips the message), plays
+/// `field_8` as a sound event and waits for it to finish (0 skips it), then
+/// commits `field_0`..`field_3` as the save location's stage, area, warp and
+/// room and restarts the player task.
+typedef struct ShelterParkingDeparture {
+    /* 0x0 */ u8   field_0;
+    /* 0x1 */ u8   field_1;
+    /* 0x2 */ u8   field_2;
+    /* 0x3 */ u8   field_3;
+    /* 0x4 */ s16  field_4;
+    /* 0x6 */ byte pad_6[0x2];
+    /* 0x8 */ s32  field_8;
+} ShelterParkingDeparture;
+
+/// The departure the departure task carries out.
+extern ShelterParkingDeparture D_shelter_b1_underground_parking_8018D77C;
+
 /// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
 /// is the scene's sub-task.
 extern TaskDesc D_shelter_b1_underground_parking_8018720C[];
@@ -72,6 +90,9 @@ u16* func_shelter_b1_underground_parking_8017F80C(s32 mode);
 
 /// Fills the shop list from the id list its task's mode selects.
 void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj);
+
+/// Adds `item` to the shop list, keeping one entry per item kind.
+void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item);
 
 /// Moves both action-prompt cursors from the pads and draws them.
 void func_shelter_b1_underground_parking_80183CEC(Task* task);

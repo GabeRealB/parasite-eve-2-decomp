@@ -16,7 +16,18 @@ extern s16         D_80114D08;
 extern TaskDesc    D_shelter_b1_underground_parking_80187664[];
 extern RoomHotspot D_shelter_b1_underground_parking_8018767C[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_10", func_shelter_b1_underground_parking_80184284);
+/// The examine task's eight state handlers, from setup to the closing fade.
+extern const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4;
+
+/// The examine task: dispatches through its eight state handlers, copied onto
+/// the stack first.
+void func_shelter_b1_underground_parking_80184284(Task* task)
+{
+    TaskFuncTable8 fns;
+
+    fns = D_shelter_b1_underground_parking_8017D9A4;
+    fns.funcs[task->state](task);
+}
 
 void func_shelter_b1_underground_parking_80184304(Task* task)
 {
