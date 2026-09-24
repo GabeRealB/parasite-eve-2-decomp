@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/gameplay.h"
 #include "main/task.h"
 
 /// Event parameters copied to the room's pending event. The controller
@@ -21,6 +22,8 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern TaskDesc     D_shelter_1f_bulwark_80180320;
 extern TaskDesc     D_shelter_1f_bulwark_80180354;
+extern TaskDesc     D_shelter_1f_bulwark_80180360;
+extern GpStateBD8   D_shelter_1f_bulwark_80180EC0;
 extern GpSaveLoc    D_shelter_1f_bulwark_80180EC4;
 extern s8           D_shelter_1f_bulwark_80180ECC;
 extern BulwarkEvent D_shelter_1f_bulwark_80180ED0;
