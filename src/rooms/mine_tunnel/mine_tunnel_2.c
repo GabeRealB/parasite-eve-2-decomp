@@ -32,5 +32,3 @@ void func_mine_tunnel_8017D6EC(Task* arg0)
 void func_mine_tunnel_8017D774(void)
 {
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel/mine_tunnel_2", D_mine_tunnel_8017D5E4);

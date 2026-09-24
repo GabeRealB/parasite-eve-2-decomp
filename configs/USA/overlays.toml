@@ -1690,12 +1690,15 @@ objects = [
 ]
 
 [rooms.overlays.mine_tunnel]
+label = "code starts at 0x24: the handler the room's message table at 0xA04 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x2C and left it as rodata words"
 id = 374
+text = ["0x24", "0x594"]
 objects = [
   { kind = "packageId" },
   { unit = "mine_tunnel/mine_tunnel", rodata = "0x4", text = "0x70" },
   { unit = "mine_tunnel/mine_tunnel_3", rodata = "0x10", text = "0x214" },
-  { unit = "mine_tunnel/mine_tunnel_2", rodata = "0x24", text = "0x12C" },
+  { unit = "mine_tunnel/mine_tunnel_4", text = "0x24" },
+  { unit = "mine_tunnel/mine_tunnel_2", text = "0x12C" },
   { lib = true, unit = "room_util02", text = "0x2C" },
   { lib = true, unit = "room_util36", text = "0x120" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x1BC" },
