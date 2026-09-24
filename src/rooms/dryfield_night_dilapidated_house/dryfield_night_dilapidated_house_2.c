@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -19,13 +20,6 @@
 #include "rooms/dryfield_night_dilapidated_house.h"
 
 extern s8 D_8007106B;
-
-/// `rtps` / `rtpt`. The `inline_c.h` macros of those names assemble to
-/// different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-/// `mvmva` rotating V0 by the rotation matrix with no translation.
-#define gte_mvmva_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// Scratch block one quad is built in: the GTE depth of its last three
 /// corners, then the four corners after they are placed in world space.
@@ -176,7 +170,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
     for (i = 0; i < 4; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + i]);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&blk->v[0]);
         blk->v[0].vx += coord->workm.t[0];
         blk->v[0].vy += coord->workm.t[1];
@@ -184,7 +178,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
         gte_SetRotMatrix(&coord->workm);
         next = (i + 1) & 3;
         gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + next]);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&blk->v[1]);
         blk->v[1].vx += coord->workm.t[0];
         blk->v[1].vy += coord->workm.t[1];
@@ -192,7 +186,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
         gte_SetRotMatrix(&coord->workm);
         far = i + 4;
         gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + far]);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&blk->v[2]);
         blk->v[2].vx += coord->workm.t[0];
         blk->v[2].vy += coord->workm.t[1];
@@ -200,20 +194,20 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
         gte_SetRotMatrix(&coord->workm);
         farNext = next + 4;
         gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + farNext]);
-        gte_mvmva_real();
+        gte_rtv0();
         gte_stsv(&blk->v[3]);
         blk->v[3].vx += coord->workm.t[0];
         blk->v[3].vy += coord->workm.t[1];
         blk->v[3].vz += coord->workm.t[2];
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_G4*)gGpuPrimCursor;
         gGpuPrimCursor = (u8*)(prim + 1);
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
         gte_stszotz(&blk->otz);
         setRGB0(prim, red, green, blue);
@@ -227,41 +221,41 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
     }
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1]);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&blk->v[0]);
     blk->v[0].vx += coord->workm.t[0];
     blk->v[0].vy += coord->workm.t[1];
     blk->v[0].vz += coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + 1]);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&blk->v[1]);
     blk->v[1].vx += coord->workm.t[0];
     blk->v[1].vy += coord->workm.t[1];
     blk->v[1].vz += coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + 3]);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&blk->v[2]);
     blk->v[2].vx += coord->workm.t[0];
     blk->v[2].vy += coord->workm.t[1];
     blk->v[2].vz += coord->workm.t[2];
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_night_dilapidated_house_801872CC[arg1 + 2]);
-    gte_mvmva_real();
+    gte_rtv0();
     gte_stsv(&blk->v[3]);
     blk->v[3].vx += coord->workm.t[0];
     blk->v[3].vy += coord->workm.t[1];
     blk->v[3].vz += coord->workm.t[2];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_G4*)gGpuPrimCursor;
     gGpuPrimCursor = (u8*)(prim + 1);
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
     setRGB0(prim, red, green, blue);
