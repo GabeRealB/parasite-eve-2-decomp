@@ -1,7 +1,10 @@
 #include "common.h"
 
 #include "main/display.h"
+#include "main/task.h"
 #include "rooms/mist_r18.h"
+
+extern TaskFuncTable3 D_mist_r18_8017D5C4;
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
@@ -44,4 +47,13 @@ void func_mist_r18_8017E144(s16 shade)
     func_mist_r18_8017E994(0x280, 0x100);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_2", func_mist_r18_8017E2C8);
+/// Per-frame entry point of the attached-model task: run the handler its state
+/// selects from `D_mist_r18_8017D5C4` (attach to the parent's part, an empty
+/// idle state, then `taskKill`), copied onto the stack each frame.
+void func_mist_r18_8017E2C8(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_r18_8017D5C4;
+    sp.funcs[task->state](task);
+}

@@ -10,12 +10,13 @@ void      func_80179FC8(s32 arg0, s32 arg1);
 extern s8 D_80071090;
 extern s8 D_801156F9;
 /// Set by `func_mist_r18_8017D960` when the alternate cutscene branch ran.
-extern s32 D_mist_r18_80186EA0;
-extern s32 D_mist_r18_8018522C;
-extern s32 D_mist_r18_8018639C;
-extern s32 D_mist_r18_80186E90;
-extern s32 D_mist_r18_80186E94;
-extern s32 D_mist_r18_80186E9C;
+extern s32            D_mist_r18_80186EA0;
+extern s32            D_mist_r18_8018522C;
+extern s32            D_mist_r18_8018639C;
+extern s32            D_mist_r18_80186E90;
+extern s32            D_mist_r18_80186E94;
+extern s32            D_mist_r18_80186E9C;
+extern TaskFuncTable3 D_mist_r18_8017D5D0;
 
 void func_mist_r18_8017EC98(void)
 {
@@ -45,4 +46,14 @@ void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E9C = 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18_6", func_mist_r18_8017ED64);
+/// Per-frame entry point of the room's cutscene task: run the handler its state
+/// selects from `D_mist_r18_8017D5D0` (set-up, the cutscene step
+/// `func_mist_r18_8017D960`, then `taskKill`), copied onto the stack each
+/// frame.
+void func_mist_r18_8017ED64(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mist_r18_8017D5D0;
+    sp.funcs[task->state](task);
+}
