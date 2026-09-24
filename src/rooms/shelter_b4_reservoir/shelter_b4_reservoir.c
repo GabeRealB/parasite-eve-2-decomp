@@ -7,6 +7,8 @@
 #include "main/task.h"
 #include "main/mc.h"
 #include "gameplay/gameplay.h"
+#include "main/fs.h"
+#include "actors/actors_shared_80149e54.h"
 #include "rooms/shelter_b4_reservoir.h"
 extern s16 D_shelter_b4_reservoir_80184F82;
 
@@ -32,6 +34,13 @@ extern TaskDesc       D_shelter_b4_reservoir_801848EC;
 extern GpSaveLoc      D_shelter_b4_reservoir_80187508;
 extern GpStateBD8     D_shelter_b4_reservoir_80187500;
 extern s16            D_80071076;
+
+/// Spawn table of the screen-wave task, and the context it is spawned with.
+/// The context's mode word is written through its own symbol, which is how the
+/// original reached it.
+extern TaskDesc     D_shelter_b4_reservoir_80184724;
+extern ActorWaveCtx D_shelter_b4_reservoir_80187624;
+extern s16          D_shelter_b4_reservoir_80187628;
 
 extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", D_shelter_b4_reservoir_8017D5C4);
@@ -264,7 +273,28 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E610);
+/// Event callback that runs the screen wave. Called with zero or less, it sets
+/// the MDEC decode mode to 2, fills the wave's context (peak 0x60 reached in
+/// one step, tinted 0x40/0x80/0x80) and spawns the wave task with it; called
+/// with a positive value, it stores that value as the running wave's mode, so
+/// 1 fades it out and 2 ends it.
+void func_shelter_b4_reservoir_8017E610(s32 arg0)
+{
+    CdCmdQueue* queue = &CdCmd_Queue;
+
+    if (arg0 <= 0) {
+        queue->field_22A                        = 2;
+        D_shelter_b4_reservoir_80187624.field_0 = 1;
+        D_shelter_b4_reservoir_80187624.field_2 = 0x60;
+        D_shelter_b4_reservoir_80187624.field_9 = 0x40;
+        D_shelter_b4_reservoir_80187624.field_8 = 1;
+        D_shelter_b4_reservoir_80187624.field_A = 0x80;
+        D_shelter_b4_reservoir_80187624.field_B = 0x80;
+        Task_SpawnFromTable(&D_shelter_b4_reservoir_80184724, 0, 0, (s32)&D_shelter_b4_reservoir_80187624);
+        return;
+    }
+    D_shelter_b4_reservoir_80187628 = arg0;
+}
 
 void func_shelter_b4_reservoir_8017E690(s32 arg0)
 {
