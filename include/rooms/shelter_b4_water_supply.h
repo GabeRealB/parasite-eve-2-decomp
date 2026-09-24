@@ -40,22 +40,27 @@ typedef struct ShelterB4WaterSupplySurface {
     s16 x;
     s16 z;
     s16 width;
-    u16 depth;
+    s16 depth;
     s16 end;
 } ShelterB4WaterSupplySurface;
 
-/// Per-surface values the water drawer keeps in a block taken from the
-/// scratchpad stack at `0x1F8003FC` rather than in registers.
+/// Per-surface values the water drawers keep in a block taken from the
+/// scratchpad stack at `0x1F8003FC` rather than in registers. `dx` and `dz`
+/// are the spacing between vertices along X and Z, and `wave` the height the
+/// sine wave adds to the vertex being placed.
 typedef struct ShelterB4WaterSupplyWaterWork {
     s16 y;
-    s16 step;
+    s16 dx;
     s16 wave;
-    s16 half;
+    s16 dz;
     s16 x;
     s16 z;
 } ShelterB4WaterSupplyWaterWork;
 
-/// The room's water surfaces.
+/// The room's water surfaces whose strips run along Z.
+extern ShelterB4WaterSupplySurface D_shelter_b4_water_supply_80182648[];
+
+/// The room's water surfaces whose strips run along X.
 extern ShelterB4WaterSupplySurface D_shelter_b4_water_supply_8018265C[];
 
 /// Height of the water surfaces.
@@ -64,6 +69,7 @@ extern s16 D_shelter_b4_water_supply_80182638;
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b4_water_supply_80184E50;
 
+void func_shelter_b4_water_supply_8017DE74(s32 arg0);
 void func_shelter_b4_water_supply_8017E5D8(s32 arg0);
 
 #endif // ROOMS_SHELTER_B4_WATER_SUPPLY_H
