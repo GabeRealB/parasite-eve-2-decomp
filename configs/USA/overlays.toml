@@ -1985,10 +1985,10 @@ id = 360
 text = ["0x194", "0x4038"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_garage/dryfield_night_garage", rodata = "0x4", text = "0xDDC" },
+  { unit = "dryfield_night_garage/dryfield_night_garage_8", rodata = "0x4", text = "0x194" },
+  { unit = "dryfield_night_garage/dryfield_night_garage", rodata = "0x110", text = "0xDDC" },
   { unit = "dryfield_night_garage/dryfield_night_garage_6", rodata = "0x148", text = "0x33E4" },
   { unit = "dryfield_night_garage/dryfield_night_garage_7", rodata = "0x160", text = "0x3F58" },
-  { unit = "dryfield_night_garage/dryfield_night_garage_8", text = "0x194" },
   { unit = "dryfield_night_garage/dryfield_night_garage_9", text = "0x804" },
   { unit = "dryfield_night_garage/dryfield_night_garage_10", text = "0x11A8" },
   { unit = "dryfield_night_garage/dryfield_night_garage_11", text = "0x2838" },
