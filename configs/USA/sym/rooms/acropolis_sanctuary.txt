@@ -1,1 +1,3 @@
 // Overlay-local symbols for acropolis_sanctuary.
+D_acropolis_sanctuary_8017D5D8 = 0x8017D5D8; // force_not_migration:True three-byte level table padded to a word, read from C
+D_acropolis_sanctuary_8017D5DC = 0x8017D5DC; // force_not_migration:True three-byte level table with a non-zero byte after it, read from C
