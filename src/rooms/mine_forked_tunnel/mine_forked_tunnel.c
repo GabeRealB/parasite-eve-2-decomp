@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -18,8 +19,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
@@ -756,7 +755,7 @@ void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {

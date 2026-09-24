@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -45,10 +46,6 @@ typedef struct AobFlareScratch {
     /* 0x16 */ u16     sy;
 } AobFlareScratch;
 STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -225,7 +222,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(v);
     }
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&blk->sx);
     gte_stflg(&blk->flag);
     if (blk->flag >= 0) {

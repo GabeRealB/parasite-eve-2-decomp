@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -23,12 +24,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "rooms/room_common.h"
-
-/// `rtps`, `rtpt` and `rtv0`. The `inline_c.h` macros of those names assemble
-/// to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// 0x14 work block the forked road's streamed-scene task
 /// (`func_acropolis_forked_road_8017DA24`) keeps at `Task::work`
@@ -446,7 +441,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -639,7 +634,7 @@ void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         sv->vz = tbl[i].y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
         *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
@@ -650,14 +645,14 @@ void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     setUV4(prim, 0, 0xE8, 7, 0xE8, 0, 0xEF, 7, 0xEF);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
@@ -788,7 +783,7 @@ void func_acropolis_forked_road_8017F224(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -870,7 +865,7 @@ void func_acropolis_forked_road_8017F650(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1067,10 +1062,10 @@ void func_acropolis_forked_road_8017FED4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -1230,7 +1225,7 @@ void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {

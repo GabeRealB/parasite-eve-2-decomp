@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -22,8 +23,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Spawn argument of the room's cutscene task (`func_mine_refuge_8017F49C`,
 /// spawned from `D_mine_refuge_80181860`). A positive `field_0` is the view
@@ -1654,7 +1653,7 @@ void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
@@ -1747,7 +1746,7 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -1838,7 +1837,7 @@ void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((MineRefugeGlowScratch*)(head - 0x1C))->sx);
     gte_stflg(&((MineRefugeGlowScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1973,7 +1972,7 @@ void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
     gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
