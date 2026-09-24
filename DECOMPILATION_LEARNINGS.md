@@ -140320,3 +140320,39 @@ the block is recorded invalid. The `+0x100` value then validates to
 `rnd` still has one death and local-alloc ties the chain into one register. The
 emitted code has no trace of the `(u16)`. `rnd >>= 16; rnd = (u16)rnd;` produces
 the same object.
+
+## A call-argument move sinks to the top only if every competing set is single-set; keep the extension with a folded-away earlier life (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
+
+**Symptom.** The previous entry's in-place chain matched everything except one
+`move a0,s1` per call: the target puts the `rcos` argument move right after the
+angle's `andi`, before the second LCG draw; ours sat just before the `jal`.
+
+**Mechanism.** In `sched1` the argument move and every chain insn have priority 2
+(all rooted at the one `lw`). Ties go to the higher LUID, which is the move,
+since argument moves are emitted just before the call. The chain only wins when
+each of its sets is launched to `LAUNCH_PRIORITY`, i.e. `birthing_insn_p`:
+the destination is `REG_N_SETS == 1`. An in-place `rnd` is multi-set, so it
+never wins. Temps (`radius = ((st2 >> 16) & 0x1FF) + 0x100`) win, but then
+combine bounds the `+0x100` and drops the `sll/sra`.
+
+**Fix.** Make the and-result a variable whose *earlier* life combine records
+and then folds away:
+
+```c
+hi      = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16; /* P */
+hiShift = hi << 16;          /* M: (ashift (lshiftrt st 16) 16) is no insn  */
+angle   = hiShift >> 16;     /* U: merges to (and hi 0xffff), then with P    */
+angle  &= 0xFFF;             /*    to (lshiftrt st 16): P is gone            */
+rnd = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState = rnd;
+hi = (rnd >> 16) & 0x1FF;    /* hi's only set left: reg_last_set_invalid     */
+radius = hi + 0x100;         /* value validates to (clobber)+256: sext stays */
+```
+
+M can't merge with P when it is processed, so combine records M's value, which
+ticks `hi`. U then absorbs M and P. Each merge decrements `REG_N_SETS` and
+`REG_N_DEATHS`, so `hi` ends with one set, one death and one block. It is still
+local, the andi is still boosted, and the sext survives. The tempting variant,
+reading an uninitialised `y` as `(y & ~y)`, also keeps the sext. But `y` is then
+live from function entry and becomes a call-crossing global that takes an
+s-register.

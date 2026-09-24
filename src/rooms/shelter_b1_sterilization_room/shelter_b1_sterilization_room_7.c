@@ -11,6 +11,7 @@
 #include "gameplay/3FB8.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_sterilization_room.h"
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -31,6 +32,7 @@ extern s32  D_shelter_b1_sterilization_room_8018873C;
 extern s32  D_shelter_b1_sterilization_room_80188AB4;
 
 extern u32     Gp_LcgState;
+extern SVECTOR D_shelter_b1_sterilization_room_8018909C[];
 extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
 
 void func_shelter_b1_sterilization_room_801826F0(GsCOORDINATE2* coord, s16 frame, s16 arg2, s16 arg3);
@@ -199,7 +201,281 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_7", func_shelter_b1_sterilization_room_8018188C);
+/// Per-frame task for the room's view-dependent effects. In state 0 it switches
+/// on the camera view: some views draw glows at fixed points of the position
+/// table, view 6 pulses `Gp_State1C` once, view 14 moves the task to state 1,
+/// and views 20-24 set `spawnArg1` and, while no event runs, place one or two
+/// points on a random circle (12-bit angle, radius 0x100-0x2FF) around fixed
+/// centres and spawn effect 0x60070 at each. In state 1 it spawns effect
+/// 0x6017D at random entries of the position table, the entries and the
+/// argument depending on the view.
+///
+/// Three constructs exist only to reproduce the original code generation: the
+/// `do { } while (0)` around the view cases, the `(s16)` cast on the `rsin`
+/// argument, and the high-half round trip through `hi` / `hiShift` in the
+/// angle draw. The last gives `hi` a first life that combine folds away after
+/// recording a use of it, so its reuse for the radius draw is a value combine
+/// cannot bound and the radius keeps its `s16` sign extension.
+void func_shelter_b1_sterilization_room_8018188C(Task* task)
+{
+    GsCOORDINATE2* coord;
+
+    s32 angle;
+    s32 i;
+    s32 j;
+    s32 idx;
+
+    coord = ((TmdObject*)task->extra)->coords;
+
+    if (task->state == 0) {
+        switch (Gp_GetViewIndex() & 0xFF) {
+            case 2:
+                Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                break;
+            case 3:
+                Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                break;
+                do {
+                    case 6:
+                        if (task->spawnArg1 != 0) {
+                            Gp_PulseState1C();
+                            task->spawnArg1 = 0;
+                        }
+                        break;
+                    case 8:
+                        Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        Room_Draw18(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        break;
+                    case 14:
+                        task->state = 1;
+                        break;
+                    case 19:
+                        Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        func_shelter_b1_sterilization_room_80183B8C(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        break;
+                    case 20:
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
+                        task->spawnArg1 = 1;
+                        if (Gp_State1C->eventState == 0) {
+                            u32      rnd;
+                            u32      hi;
+                            u32      hiShift;
+                            s16      radius;
+                            SVECTOR* vec0;
+                            SVECTOR* vec1;
+                            vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
+                            vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
+
+                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                            hiShift     = hi << 16;
+                            angle       = hiShift >> 16;
+                            angle      &= 0xFFF;
+                            rnd         = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState = rnd;
+                            hi          = (rnd >> 16) & 0x1FF;
+                            radius      = hi + 0x100;
+                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy    = 0;
+                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy    = 0;
+                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                        }
+                        break;
+                    case 21:
+                        task->spawnArg1 = 1;
+                        if (Gp_State1C->eventState == 0) {
+                            u32      rnd;
+                            u32      hi;
+                            u32      hiShift;
+                            s16      radius;
+                            SVECTOR* vec1;
+                            vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
+
+                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                            hiShift     = hi << 16;
+                            angle       = hiShift >> 16;
+                            angle      &= 0xFFF;
+                            rnd         = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState = rnd;
+                            hi          = (rnd >> 16) & 0x1FF;
+                            radius      = hi + 0x100;
+                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy    = 0;
+                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                        }
+                        break;
+                    case 22:
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        task->spawnArg1 = 1;
+                        if (Gp_State1C->eventState == 0) {
+                            u32      rnd;
+                            u32      hi;
+                            u32      hiShift;
+                            s16      radius;
+                            SVECTOR* vec1;
+                            vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
+
+                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                            hiShift     = hi << 16;
+                            angle       = hiShift >> 16;
+                            angle      &= 0xFFF;
+                            rnd         = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState = rnd;
+                            hi          = (rnd >> 16) & 0x1FF;
+                            radius      = hi + 0x100;
+                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy    = 0;
+                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                        }
+                        break;
+                    case 23:
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        task->spawnArg1 = 1;
+                        if (Gp_State1C->eventState == 0) {
+                            u32      rnd;
+                            u32      hi;
+                            u32      hiShift;
+                            s16      radius;
+                            SVECTOR* vec0;
+                            SVECTOR* vec1;
+                            vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
+                            vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
+
+                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                            hiShift     = hi << 16;
+                            angle       = hiShift >> 16;
+                            angle      &= 0xFFF;
+                            rnd         = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState = rnd;
+                            hi          = (rnd >> 16) & 0x1FF;
+                            radius      = hi + 0x100;
+                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy    = 0;
+                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy    = 0;
+                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                        }
+                        break;
+                    case 24:
+                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        task->spawnArg1 = 1;
+                        if (Gp_State1C->eventState == 0) {
+                            u32      rnd;
+                            u32      hi;
+                            u32      hiShift;
+                            s16      radius;
+                            SVECTOR* vec0;
+                            SVECTOR* vec1;
+                            vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
+                            vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
+
+                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                            hiShift     = hi << 16;
+                            angle       = hiShift >> 16;
+                            angle      &= 0xFFF;
+                            rnd         = Gp_LcgState * 5 + 0x71357911;
+                            Gp_LcgState = rnd;
+                            hi          = (rnd >> 16) & 0x1FF;
+                            radius      = hi + 0x100;
+                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy    = 0;
+                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy    = 0;
+                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                        }
+                        break;
+                } while (0);
+        }
+    } else {
+        switch (Gp_GetViewIndex() & 0xFF) {
+            case 14:
+                if (Gp_State1C->eventState == 0) {
+                    for (i = 8; i < 0x10; i += 4) {
+                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        Gp_SpawnEff(0x6017D, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                    }
+                }
+                break;
+            case 15:
+                if (Gp_State1C->eventState == 0) {
+                    for (i = 4; i < 0x10; i += 4) {
+                        if (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) {
+                            idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                            Gp_SpawnEff(0x6017D, coord, idx - 0x800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                        }
+                    }
+                }
+                break;
+            case 16:
+                if (Gp_State1C->eventState == 0) {
+                    for (i = 0; i < 0x40; i += 4) {
+                        if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
+                            idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                            Gp_SpawnEff(0x6017D, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                        }
+                    }
+                }
+                break;
+            case 11:
+                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
+                if (Gp_State1C->eventState == 0) {
+                    for (j = 0; j < 0x40; j += 0x10) {
+                        for (i = 4; i < 0x10; i += 4) {
+                            if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
+                                idx = j + i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                                Gp_SpawnEff(0x6017D, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                            }
+                        }
+                    }
+                }
+                break;
+            case 10:
+                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
+                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
+                if (Gp_State1C->eventState == 0) {
+                    for (j = 0; j < 0x40; j += 0x10) {
+                        for (i = 0; i < 0xC; i += 4) {
+                            if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
+                                idx = j + i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                                Gp_SpawnEff(0x6017D, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                            }
+                        }
+                    }
+                }
+                break;
+            case 17:
+                if (Gp_State1C->eventState == 0) {
+                    for (i = 0xC; i < 0x40; i += 0x10) {
+                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        Gp_SpawnEff(0x6017D, coord, idx + 0x1800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                    }
+                }
+                break;
+            case 18:
+                if (Gp_State1C->eventState == 0) {
+                    for (i = 0xC; i < 0x40; i += 0x10) {
+                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        Gp_SpawnEff(0x6017D, coord, idx + 0x1000000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                    }
+                }
+                break;
+        }
+    }
+}
 
 /// Per-frame update of a drifting effect drawn by
 /// `func_shelter_b1_sterilization_room_801826F0`. State 0 seeds the work block
