@@ -139806,3 +139806,24 @@ where the target has them after the draw's final `addu`.
 **Symptom:** 90%. `if (arg2 == 4) { …calls…; p.field_1 = 4; … }` saved `arg2` in `$s0` across every call and stored it with `sb s0,1(a3)`. The target has `li v0,4; sb v0,1(a3)` and no saved register. cse records `arg2 == 4` on the fall-through path, and its wider-mode constant lookup finds that SImode register for the QImode store of `4`. That works for as long as the extended basic block continues.
 
 The target also had `li a0,0xA2` in the delay slot of the `beqz` for a later `x ? 0x28 : 0x29` argument (entry: "A call's `a0` setup in the delay slot of the *preceding* `if` branch…"). Writing the call once in each arm, `if (f(0x83)) g(0xA2, 0x28); else g(0xA2, 0x29);`, gave 100%, and it fixed the `$s0` store too. With constant arms, the first jump pass turns a ternary or an `if`/`else` into "default, then conditional set", and deletes the `j` and the barrier (`base_3.i.jump`). With a call in each arm, the barrier survives into cse and ends the extended basic block, so the equivalence never reaches the store. When a constant store takes a register the function tested against that constant, look for an earlier `if`/`else` that should keep its `j` over the else arm.
+
+### `j L+4; nop` into a case whose first `lui` is duplicated at `L`: the shared tail's address is written off another array (func_shelter_b1_elevator_hall_8017DC80, 2026-09-24)
+
+**Symptom.** A view switch where one case draws array A then address B, and a
+later case draws only B. Target: the first case keeps A in `$s0`
+(`lui s0; addiu s0,s0; move a0,s0`) even though nothing reads it after the call,
+then `j L+4` with a `nop` slot, and `L` (the later case's jump-table label)
+holds `lui a0,0x8018` followed by the same `lui a0,%hi(B)`. Writing `B` by its
+own symbol gives `lui a0` straight into `$a0`, a lui stolen into the `j` slot,
+and 98.0%. Writing the first case's second draw as `&p[26]` keeps `$s0` but
+emits `addiu a0,s0,0xd0` and breaks the shared tail (97.8%).
+
+**Fix.** Spell B as an element of A in *both* cases, with no pointer local:
+`Room_Draw01(&A[0], ...); Room_Draw01(&A[26], ...);` and `Room_Draw01(&A[26], ...)`
+in the other case. The two tails become the same RTL (`%hi(A+0xd0)`), so jump2
+cross-jumps them, and the code keeps the shape above. The unlinked object
+differs from the target only in relocation addends (`A+0xd0` against `B`); the
+linked image is identical. `func_shelter_b4_upper_sewer_8017E5F8` is the same
+shape. A matched jump table in a later unit still needs the manifest `rodata`
+cut, and its `INCLUDE_RODATA` line must come out of the first unit's `.c` by
+hand.

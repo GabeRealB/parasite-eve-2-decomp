@@ -2619,7 +2619,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall", rodata = "0x4", text = "0x60" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x668" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", text = "0x6C0" },
+  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", rodata = "0x40", text = "0x6C0" },
   { lib = true, unit = "room_draw01", text = "0x8F0" },
   { lib = true, unit = "rooms_shared_8017dcb8", text = "0x1134" },
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_3", text = "0x1400" },
