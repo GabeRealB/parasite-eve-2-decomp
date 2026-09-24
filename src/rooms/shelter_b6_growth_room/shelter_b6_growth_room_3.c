@@ -102,7 +102,72 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room_3", func_shelter_b6_growth_room_8017E7F0);
+void func_shelter_b6_growth_room_8017E7F0(GsCOORDINATE2* coord, u16 arg1, s16 arg2, u16 arg3)
+{
+    void**             scratch;
+    u8*                head;
+    RoomDraw27Scratch* block;
+    POLY_FT4*          prim;
+    SVECTOR*           vec;
+    s32                u0;
+    s32                v0;
+    s32                u1;
+    s32                v1;
+    s16                xy;
+    u16                vz;
+
+    scratch                                     = (void**)G_SCRATCH_HEAD;
+    head                                        = *scratch;
+    ((RoomDraw27Scratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block                                       = (RoomDraw27Scratch*)(head - 0x1C);
+    block->vec.vy                               = *(u16*)&coord->workm.t[1];
+    vz                                          = *(u16*)&coord->workm.t[2];
+    *scratch                                    = block;
+    block->vec.vz                               = vz;
+    vec                                         = &block->vec;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw27Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw27Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw27Scratch*)(head - 0x1C))->otz);
+        if (block->otz >= 0x41) {
+            prim           = (POLY_FT4*)gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2C);
+            prim->tpage = 0x2C;
+            prim->clut  = 0x4386;
+            u0          = (arg1 & 1) << 7;
+            v0          = (arg1 >> 1) << 5;
+            u1          = u0 + 0x7F;
+            v1          = v0 + 0x1F;
+            setRGB0(prim, arg3, arg3, arg3);
+            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
+            setSemiTrans(prim, 1);
+            block->dx = (arg2 * 127) / block->otz;
+            block->dy = (arg2 * 31) / block->otz;
+            xy        = *(u16*)&block->sx - *(u16*)&block->dx;
+            prim->x2  = xy;
+            prim->x0  = xy;
+            xy        = *(u16*)&block->sx + *(u16*)&block->dx;
+            prim->x3  = xy;
+            prim->x1  = xy;
+            xy        = *(u16*)&block->sy - *(u16*)&block->dy;
+            prim->y1  = xy;
+            prim->y0  = xy;
+            xy        = *(u16*)&block->sy + *(u16*)&block->dy;
+            prim->y3  = xy;
+            prim->y2  = xy;
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                              (s32)gGpuCurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
