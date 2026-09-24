@@ -139899,3 +139899,24 @@ same 10 insns, so global.c's `floor_log2(refs) * refs / live_length` gives
 is held by the local 9 constant, and `id` falls to `a0`. The `.lreg`
 "used N times across M insns" lines are enough to check the ranking before
 building.
+
+### `move a1,zero` ahead of a load into `a0`: the call was not the last insn of its block (func_shelter_b1_armory_80180214, 2026-09-24)
+
+**Symptom.** 98.4%, `branch=1 reorder=2`. A switch case ended
+`Gp_StartCapSlot(task->spawnArg1 >> 16, 0, 0)` and then fell through into
+`case 1: case 2: task->state++;`. Ours set up the call as `lh a0; move a1,zero`.
+The target has `move a1,zero` first, and reorg then copies it into the delay slot
+of the preceding `bne` and moves the branch label past it.
+
+**Cause.** The argument sets tie at priority 1 in `.sched`/`.sched2`, and a tie
+goes to original insn order, so `a0` comes first. When the call is *not* the last
+insn of the block, `schedule_select` also compares function-unit hazards. The
+`.sched` dump then prints `insn N has a greater potential hazard`, and the load is
+launched after the constant. The fall-through into a jump-table label ended the
+block at the call.
+
+**Fix.** Give the case its own tail (`task->state++; break;`) instead of falling
+through. The block then runs on past the call, and the cross-jump pass after
+`sched2` merges the duplicated `state++` with the other cases' copy. So the
+final code is the fall-through shape, except for the argument order. Where a sibling does the same
+thing, look for that hazard line in its `.sched` dump.

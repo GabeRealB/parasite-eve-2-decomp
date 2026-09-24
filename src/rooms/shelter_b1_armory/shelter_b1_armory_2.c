@@ -1,11 +1,15 @@
 #include "common.h"
 
 #include "gameplay/1A8.h"
+#include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 
+#include "main/display.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d638.h"
@@ -22,7 +26,43 @@ extern u8 D_8007216C;
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180214);
+void func_shelter_b1_armory_80180214(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Display_AcquireRef();
+            D_80115768 = 1;
+            task->state++;
+            break;
+        case 3:
+            Display_ReleaseRef();
+            D_80115768 = 0;
+            Gp_MsgPlayerWeapon(0);
+            if ((u16)task->spawnArg1 == 1) {
+                SndEvt_EnqueueType6(0x540D0008, 0, 0);
+            }
+            if ((u16)task->spawnArg1 == 2) {
+                SndEvt_EnqueueType6(0x540D0009, 0, 0);
+            }
+            Gp_StartCapSlot(task->spawnArg1 >> 16, 0, 0);
+            task->state++;
+            break;
+        case 1:
+        case 2:
+            task->state++;
+            break;
+        case 4:
+            if (Gp_CapBusy() == 0) {
+                if ((u16)task->spawnArg1 == 2) {
+                    Gp_SetItemSeenBit(0x105, 1);
+                }
+                Gp_MsgPlayerWeapon(1);
+                gGameSession->eventState = 0;
+                taskKill(task);
+            }
+            break;
+    }
+}
 
 void func_shelter_b1_armory_8018034C(Task* task)
 {
