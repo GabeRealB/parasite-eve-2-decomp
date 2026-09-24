@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -26,7 +27,6 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
-#include "gte.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
 /// 0x14 scratch block `func_acropolis_helicopter_landing_pad_8017F010` takes

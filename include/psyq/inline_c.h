@@ -9,6 +9,11 @@
  *	All rights reserved.
  */
 
+/* Guarded (the SDK copy is not) so that a second include cannot restore the
+ * DMPSX placeholders over the real encodings gte.h substitutes. */
+#ifndef _INLINE_C_H_
+#define _INLINE_C_H_
+
 /*
  * Type 1 functions
  */
@@ -1448,3 +1453,5 @@
 	:							\
 	:							\
 	: "$12" )
+
+#endif /* _INLINE_C_H_ */

@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/abs.h>
 
 #include "gameplay/268.h"
@@ -29,7 +30,6 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
-#include "gte.h"
 
 /// Copies the third column of a rotation matrix into an `SVECTOR`.
 #define COPY_MATRIX_COLUMN2(src, dst)     \
