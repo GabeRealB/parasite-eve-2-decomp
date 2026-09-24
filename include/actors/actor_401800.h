@@ -634,7 +634,7 @@ extern u8 D_80072729;
 /// Each survivor becomes a 10-unit step added to `pos` and to the coordinate's
 /// translation.
 s32 func_actor_401800_8013271C(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2);
+s32 func_actor_401800_80132C68(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2);
 /// Nudges a coordinate frame `push` units away from the obstacles recorded in
 /// a `GpRec18` table, judged by their bearings relative to the frame's facing.
 /// Returns 1 when a push was applied.
