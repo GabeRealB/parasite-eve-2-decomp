@@ -13,9 +13,6 @@
 #include "rooms/dryfield_night_motel_room_6.h"
 #include "rooms/room_common.h"
 
-/// Task descriptor of the held-object reflections the mirror spawns.
-extern TaskDesc D_dryfield_night_motel_room_6_80182E74;
-
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
 /// `RoomMirrorWork` block the reflection's coordinate frame and matrices live
