@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b4_upper_sewer.h"
 
 extern s32 D_80115720;
 extern s32 D_80115728;
@@ -44,8 +45,9 @@ void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 }
 
 /// Publishes the sewer's effect ids on the task's first tick - two extra ids
-/// only while `GameFlag_GetNibble(0xB7)` is 1 - then draws the `Room_Draw01`
-/// placements the current camera view shows. Views 4 and 13 both end on
+/// only while `GameFlag_GetNibble(0xB7)` is 1 - then draws the
+/// `func_shelter_b4_upper_sewer_8017F8CC` capsules the current camera view
+/// shows. Views 4 and 13 both end on
 /// `D_shelter_b4_upper_sewer_801864F0[12]`, and writing that address off the
 /// array (rather than through its own symbol) is what keeps view 4's array
 /// base live across the first call while the shared tail is cross-jumped.
@@ -71,50 +73,50 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
-            Room_Draw01(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
             break;
         case 4:
-            Room_Draw01(&D_shelter_b4_upper_sewer_801864F0[0], 0x200, 0x222);
-            Room_Draw01(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            func_shelter_b4_upper_sewer_8017F8CC(&D_shelter_b4_upper_sewer_801864F0[0], 0x200, 0x222);
+            func_shelter_b4_upper_sewer_8017F8CC(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
             break;
         case 8: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw01(&p[2], 0x200, 0x444);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x444);
-            Room_Draw01(&p[16], 0x200, 0x124);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[0], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[2], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[4], 0x200, 0x222);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[6], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[16], 0x200, 0x124);
             break;
         }
         case 9: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw01(&p[2], 0x200, 0x444);
-            Room_Draw01(&p[4], 0x200, 0x222);
-            Room_Draw01(&p[6], 0x200, 0x444);
-            Room_Draw01(&p[16], 0x200, 0x124);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[0], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[2], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[4], 0x200, 0x222);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[6], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[16], 0x200, 0x124);
             break;
         }
         case 10: {
             SVECTOR* p = D_shelter_b4_upper_sewer_801864B0;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw01(&p[2], 0x200, 0x444);
-            Room_Draw01(&p[18], 0x200, 0x343);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[0], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[2], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[18], 0x200, 0x343);
             break;
         }
         case 11: {
             SVECTOR* p = D_shelter_b4_upper_sewer_80186490;
-            Room_Draw01(&p[0], 0x200, 0x444);
-            Room_Draw01(&p[6], 0x200, 0x444);
-            Room_Draw01(&p[18], 0x200, 0x444);
-            Room_Draw01(&p[20], 0x200, 0x343);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[0], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[6], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[18], 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(&p[20], 0x200, 0x343);
             break;
         }
         case 12:
-            Room_Draw01(D_shelter_b4_upper_sewer_80186520, 0x200, 0x444);
+            func_shelter_b4_upper_sewer_8017F8CC(D_shelter_b4_upper_sewer_80186520, 0x200, 0x444);
             break;
         case 13:
-            Room_Draw01(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            func_shelter_b4_upper_sewer_8017F8CC(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
             break;
     }
 }

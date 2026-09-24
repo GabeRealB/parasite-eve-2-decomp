@@ -6,7 +6,7 @@
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017e890.h"
+#include "rooms/shelter_b4_upper_sewer.h"
 
 #include <psyq/inline_c.h>
 
@@ -27,10 +27,14 @@ extern _ShelterB4UpperSewerLight D_80114FF8;
 extern s32                       D_80070F70;
 extern u32                       Gp_LcgState;
 
-/// This room's own copy of the `Room_Draw06` ground mark, defined below.
+/// The ground mark drawn under the glow below, defined after it.
 void func_shelter_b4_upper_sewer_801818C8(GsCOORDINATE2* arg0, s32 arg1);
 
-void RoomsShared8017e890Draw(GsCOORDINATE2* coord, s16 size)
+/// Glow at a coordinate: two camera-facing textured quads, an inner one of
+/// half-extent `size` and an outer one of `size * 3 / 2`, plus a ground mark
+/// under it. Also feeds the gameplay light slot a flickering intensity at the
+/// coordinate's position. Draws nothing when the point fails to project.
+void func_shelter_b4_upper_sewer_8018139C(GsCOORDINATE2* coord, s16 size)
 {
     GsCOORDINATE2  ground;
     POLY_FT4*      prim;
@@ -156,4 +160,4 @@ void RoomsShared8017e890Draw(GsCOORDINATE2* coord, s16 size)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer_7", func_shelter_b4_upper_sewer_801818C8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer_7", RoomsShared8017e4f8Fade);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer_7", func_shelter_b4_upper_sewer_80181C40);
