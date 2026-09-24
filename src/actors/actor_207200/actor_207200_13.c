@@ -1,26 +1,28 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
-#include "actors/actors_shared_80136614.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "psyq/inline_c.h"
-#include "gte.h"
 
-/// `base` and `vec` hold the same address on purpose: the sibling at
-/// `func_actor_403100_8013B5E0` matches the identical `addiu`/`addu` pair the
-/// same way, with an explicit `move`, and the head-relative spelling of the
-/// vector copy and of the reloaded x keeps the scratch pointer in `head`'s
-/// register. `COMPILER_BARRIER` is load-bearing: without it cse forwards the
-/// reload of x from the store just above it and the block compiles to a shift
-/// pair instead of the load.
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+
+#include "actors/actor_207200.h"
+
+/// Measures the model held in pointer slot 3 from coordinate `arg0`: returns
+/// the heading to it in `arg0`'s own frame, folded into -0x800..0x800, and
+/// stores the horizontal world distance in `*arg1`. The offset is staged in
+/// 0x40 bytes of the scratch stack.
 ///
-/// Carried by three slots - `actor_107000`, `actor_207000` and `actor_207200` -
-/// so the body takes the coordinate rather than any carrier's own context type;
-/// the shared span is in `configs/USA/overlays.toml`.
-s32 ActorsShared80136614(GsCOORDINATE2* arg0, u32* arg1)
+/// `base` and `vec` hold the same address on purpose: the explicit `move`
+/// reproduces the original's `addiu`/`addu` pair, and the head-relative
+/// spelling of the vector copy and of the reloaded x keeps the scratch
+/// pointer in `head`'s register. `COMPILER_BARRIER` stops cse from forwarding
+/// the reload of x from the store just above it.
+s32 func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1)
 {
     SVECTOR        local;
     GsCOORDINATE2* coord;

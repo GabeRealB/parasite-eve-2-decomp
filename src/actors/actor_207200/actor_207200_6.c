@@ -9,8 +9,6 @@
 #include "gameplay/3CD8.h"
 
 #include "actors/actor_207200.h"
-#include "actors/actors_shared_80134700.h"
-#include "actors/actors_shared_8013851c.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -38,7 +36,7 @@ void func_actor_207200_8014CFEC(Actor207200* arg0)
     D_80062730 = (s32)&D_actor_207200_801517F8;
     effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0, NULL);
     if (effect != NULL) {
-        ActorsShared8013851c(effect->task, (Task*)arg0);
+        func_actor_207200_8014DAF8(effect->task, (Task*)arg0);
     }
     effArg = &work->field_3F4;
     func_800FDB18(5, (*(TmdObject**)&arg0->field_2C)->coords + 3, &D_actor_207200_80153F18, effArg);
@@ -66,21 +64,21 @@ void func_actor_207200_8014D128(Actor207200* arg0)
             D_80062730 = (s32)&D_actor_207200_801517F8;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 3, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, (Task*)arg0);
+                func_actor_207200_8014DAF8(effect->task, (Task*)arg0);
             }
             break;
         case 2:
             D_80062730 = (s32)&D_actor_207200_80151074;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 5, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, (Task*)arg0);
+                func_actor_207200_8014DAF8(effect->task, (Task*)arg0);
             }
             break;
         case 3:
             D_80062730 = (s32)&D_actor_207200_80150BCC;
             effect     = Gp_SpawnEff(0x80005, (*(TmdObject**)&arg0->field_2C)->coords + 2, 0, NULL);
             if (effect != NULL) {
-                ActorsShared8013851c(effect->task, (Task*)arg0);
+                func_actor_207200_8014DAF8(effect->task, (Task*)arg0);
             }
             break;
     }
@@ -165,7 +163,7 @@ default_body:
     Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
     func_actor_207200_8014D70C(arg0, arg1);
-    ActorsShared80134700(arg1);
+    func_actor_207200_8014D77C(arg1);
 }
 
 /// Consumes the pending flag bits on the actor's spawn object once the actor

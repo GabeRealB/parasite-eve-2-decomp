@@ -10,9 +10,6 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 
-#include "actors/actors_shared_80135d50.h"
-#include "actors/actors_shared_8014ae08.h"
-#include "actors/actors_shared_8014af2c.h"
 #include "actors/actors_shared_8014df20.h"
 #include "actors/actor_207200.h"
 
@@ -148,4 +145,3 @@ void func_actor_207200_8014A588(Task* arg0)
 }
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void ActorsShared8014b128(Task* arg0, GsCOORDINATE2* arg1);

@@ -3,8 +3,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actors_shared_80136614.h"
-
 #include "actors/actor_207200.h"
 #include "actors/actors_shared_80135b58.h"
 
@@ -64,7 +62,7 @@ void func_actor_207200_8014D8DC(Actor207200* arg0)
     if (work->field_4A6 != 0) {
         coord = (*(TmdObject**)&arg0->field_2C)->coords + 1;
     } else {
-        angle = ActorsShared80136614((*(TmdObject**)&arg0->field_2C)->coords, &dist);
+        angle = func_actor_207200_8014CE20((*(TmdObject**)&arg0->field_2C)->coords, &dist);
         if (angle < 0) {
             angle = -angle;
         }

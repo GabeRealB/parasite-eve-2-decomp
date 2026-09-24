@@ -7,6 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/3A34.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
 /// `GpObj` list node with 0x18 bytes of trailing state; five of them live in
@@ -37,9 +38,12 @@ typedef struct Actor207200Work {
     /* 0x28C */ s16            field_28C; // animation id the work is playing
     /* 0x28E */ u16            field_28E; // id the three helper slots last saw
     /* 0x290 */ u16            field_290; // frames spent on the current id
-    /* 0x292 */ byte           pad_292[0xE];
+    /* 0x292 */ s16            field_292;
+    /* 0x294 */ byte           pad_294[0xC];
     /* 0x2A0 */ s16            field_2A0; // angle the transform is scaled by
-    /* 0x2A2 */ byte           pad_2A2[0x22];
+    /* 0x2A2 */ byte           pad_2A2[4];
+    /* 0x2A6 */ s16            field_2A6;
+    /* 0x2A8 */ byte           pad_2A8[0x1C];
     /* 0x2C4 */ Actor207200Obj field_2C4;
     /* 0x2FC */ byte           pad_2FC[0x78];
     /* 0x374 */ Actor207200Obj field_374;
@@ -201,7 +205,15 @@ void func_actor_207200_8014DB4C(Actor207200* arg0);
 void func_actor_207200_8014CFEC(Actor207200* arg0);
 void func_actor_207200_8014C870(Actor207200* arg0, s32 arg1);
 void func_actor_207200_8014D128(Actor207200* arg0);
-/// Angle from `coord` to the player, plus the horizontal distance between them
-/// written through `dist`; the result is a 4096-unit circle angle.
+void func_actor_207200_8014A1C4(Task* arg0);
+void func_actor_207200_8014AE08(Task* arg0);
+void func_actor_207200_8014AE70(Task* task);
+void func_actor_207200_8014AF2C(Task* arg0);
+void func_actor_207200_8014B04C(Task* task);
+void func_actor_207200_8014B128(Task* arg0);
+void func_actor_207200_8014B21C(Task* task);
+s32  func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1);
+void func_actor_207200_8014D77C(Task* task);
+void func_actor_207200_8014DAF8(Task* dst, Task* src);
 
 #endif

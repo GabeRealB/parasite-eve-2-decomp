@@ -11,9 +11,6 @@
 #include "gameplay/3CD8.h"
 
 #include "actors/actor_207200.h"
-#include "actors/actors_shared_80134700.h"
-#include "actors/actors_shared_80136614.h"
-#include "actors/actors_shared_8013851c.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -252,7 +249,7 @@ void func_actor_207200_8014B87C(Task* arg0)
             }
             break;
         case 1:
-            angle = ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &dist);
+            angle = func_actor_207200_8014CE20(((TmdObject*)arg0->extra)->coords, &dist);
             if (work->field_4A6 == 0 && dist < 0x385 && ABS(angle) < 0x200) {
                 work->field_492            = 0;
                 work->field_49A            = 4;
@@ -299,7 +296,7 @@ void func_actor_207200_8014B87C(Task* arg0)
                     work->field_486 = 0;
                     work->field_48C = 1;
                 } else {
-                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &dist);
+                    angle = func_actor_207200_8014CE20(((TmdObject*)arg0->extra)->coords, &dist);
                     if (ABS(angle) < 0x200 || work->field_494 != 0) {
                         work->field_49A = 1;
                         work->field_494 = 0;
@@ -334,7 +331,7 @@ void func_actor_207200_8014B87C(Task* arg0)
                     work->field_486 = 0;
                     work->field_48C = 1;
                 } else {
-                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &dist);
+                    angle = func_actor_207200_8014CE20(((TmdObject*)arg0->extra)->coords, &dist);
                     if (ABS(angle) < 0x200 || work->field_494 != 0) {
                         work->field_49A = 1;
                         work->field_494 = 0;
@@ -503,7 +500,7 @@ void func_actor_207200_8014BEF4(Task* arg0)
         switch ((u32)((Actor207200HitView*)work)->rec2[i].hit.kind) {
             case 1:
                 if (work->field_4A6 == 0 && (u16)work->field_49A - 1U < 3) {
-                    angle = ActorsShared80136614(((TmdObject*)arg0->extra)->coords, &dist);
+                    angle = func_actor_207200_8014CE20(((TmdObject*)arg0->extra)->coords, &dist);
                     if (abs(angle) > 0x200 && dist < 2000) {
                         work->field_48C = angle < 0 ? 7 : 6;
                         work->field_490 = 0;
