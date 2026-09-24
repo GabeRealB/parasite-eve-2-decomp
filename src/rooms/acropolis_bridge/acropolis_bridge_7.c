@@ -9,12 +9,9 @@
 #include "main/task.h"
 #include "rooms/acropolis_bridge.h"
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017ed38.h"
 
 extern s16            D_80114D08;
 extern TaskFuncTable9 D_acropolis_bridge_8017D614;
-
-s32 RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 
 /// Repaints the two bridge sprites that game flag nibble 0x10 governs: one
 /// sprite command in view 2 of this room's sprite record and one in view 5.
@@ -160,7 +157,7 @@ void func_acropolis_bridge_8017F544(Task* task)
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->field_4, 0);
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;

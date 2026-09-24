@@ -113,15 +113,15 @@ void func_acropolis_bridge_8017F868(Task* task)
     work->field_22 = work->field_22 + 1;
     switch (view) {
         case 6:
-            Room_Draw21(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            func_acropolis_bridge_80183654(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
             break;
         case 7:
-            Room_Draw21(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            func_acropolis_bridge_80183654(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
             break;
         case 3:
         case 4:
         case 9:
-            Room_Draw21(&D_acropolis_bridge_80189A4C, 0x100, 0x50C2);
+            func_acropolis_bridge_80183654(&D_acropolis_bridge_80189A4C, 0x100, 0x50C2);
             break;
     }
 

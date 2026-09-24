@@ -82,6 +82,6 @@ INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropol
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", func_acropolis_bridge_8017D878);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", RoomsShared8017d8d0States);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D5DC);
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_bridge/acropolis_bridge", D_acropolis_bridge_8017D614);

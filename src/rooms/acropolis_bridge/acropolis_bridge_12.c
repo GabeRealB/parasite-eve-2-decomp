@@ -15,10 +15,9 @@
 #include "main/wipsys.h"
 #include "rooms/acropolis_bridge.h"
 
-extern s16                   D_acropolis_bridge_801915E4[][6];
-extern char                  D_acropolis_bridge_8017D6CC[];
-extern GpEnemyTaskFuncTable3 RoomsShared80183c10Table;
-extern u16                   D_acropolis_bridge_80190C60;
+extern s16  D_acropolis_bridge_801915E4[][6];
+extern char D_acropolis_bridge_8017D6CC[];
+extern u16  D_acropolis_bridge_80190C60;
 /// State handler table the per-frame tick dispatches through on
 /// `AcropolisBridgeEnemyWork::field_0`.
 extern void (*D_acropolis_bridge_8019175C[])(Task*);

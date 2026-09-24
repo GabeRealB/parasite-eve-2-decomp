@@ -3,9 +3,13 @@
 
 #include "common.h"
 
-#include "rooms/room_common.h"
-
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
+#include "gameplay/1BC.h"
+#include "main/task.h"
+#include "rooms/room_common.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -168,5 +172,43 @@ typedef struct AcropolisBridgeTurnScratch {
     /* 0x1A */ byte pad_1A[0x2];
 } AcropolisBridgeTurnScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeTurnScratch, 0x1C);
+
+/// 0x14-byte scratch block the room's glow-sprite task
+/// (`func_acropolis_bridge_80181D28`) takes from `G_SCRATCH_HEAD`. `pos` is the
+/// task coordinate's translation, projected through `GsWSMATRIX` into `sxy`;
+/// `otz` is the resulting depth and `half` the half-extent (`0x6180 / otz`)
+/// the camera-facing quad is drawn at.
+typedef struct AcropolisBridgeGlowScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     half;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ DVECTOR sxy;
+} AcropolisBridgeGlowScratch;
+STATIC_ASSERT_SIZEOF(AcropolisBridgeGlowScratch, 0x14);
+
+/// The fourteen state handlers of the room's cutscene task, run by
+/// `func_acropolis_bridge_8017D8D0`.
+extern TaskFuncTable14 D_acropolis_bridge_8017D5DC;
+
+/// The bridge enemy's three state handlers, run by
+/// `func_acropolis_bridge_80187D80`.
+extern GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8;
+
+/// State 1 of the prompt script task: moves and draws the action-prompt
+/// cursors.
+void func_acropolis_bridge_8017ED38(Task* task);
+
+/// State 0 of the prompt script task: resets both action-prompt slots - cursor
+/// cleared, speed 0x100, double-press window 0xF frames, mode 1 - and steps the
+/// task on one state.
+void func_acropolis_bridge_8017F808(Task* task);
+
+/// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by an
+/// `id` of -1: raises `hit` on every entry whose rectangle contains the point
+/// and clears it on the others, and answers whether any entry was hit.
+s32 func_acropolis_bridge_8017F6D4(RoomHotspot* table, s16 x, s16 y);
+
+/// Draws a flickering star-shaped glow at a world-space point.
+void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif

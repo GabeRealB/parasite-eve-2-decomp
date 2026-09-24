@@ -31,7 +31,6 @@ extern s32 D_acropolis_bridge_80190BA4;
 
 void func_acropolis_bridge_8017F2D0(s32 arg0);
 void func_acropolis_bridge_8017E81C(void);
-s32  RoomsShared8017ecb4(RoomHotspot* table, s16 x, s16 y);
 
 void func_acropolis_bridge_8017DD9C(Task* arg0)
 {
@@ -183,7 +182,7 @@ void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->targetId = 0;
     } else {
         prompt->targetId = 0x80;
-        if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
             if (prompt->buttons[0].state == 2) {
                 while (hs->id != -1) {
@@ -266,7 +265,7 @@ reset:
     work->field_8++;
 
 after:
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -306,7 +305,7 @@ void func_acropolis_bridge_8017E4FC(Task* task)
         work->field_8++;
     }
 
-    if (RoomsShared8017ecb4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
