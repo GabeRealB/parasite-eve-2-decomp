@@ -1436,12 +1436,7 @@ objects = [
 id = 352
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet", rodata = "0x4", text = "0xB8" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet_3", text = "0x10" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet_4", text = "0x84" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet_5", text = "0x164" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet_6", text = "0x1BC" },
-  { unit = "dryfield_night_toilet/dryfield_night_toilet_2", text = "0x438" },
+  { unit = "dryfield_night_toilet/dryfield_night_toilet", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0x4B0" },
 ]
 
