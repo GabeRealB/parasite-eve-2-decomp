@@ -15,7 +15,7 @@
 #include "main/wipsys.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d5f0.h"
+#include "rooms/neo_ark_observatory.h"
 
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -126,19 +126,20 @@ static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
     gte_stsv(out);
 }
 
-/// Per-frame update of a room mirror, the task `RoomsShared8017d5f0` sets up.
+/// Per-frame update of the room's mirror, the task
+/// `func_neo_ark_observatory_8017D6F4` sets up.
 ///
 /// When the player's equipped weapon changes it spawns reflection tasks for
 /// the player's two held-object tasks. When the view moves it rebuilds the
 /// reflection's coordinate frame. Mirror 0 copies the view matrix with its
-/// second row negated and applies per-room corrections. The other mirrors
-/// reflect through a per-room plane. On the frame after mirror 0 rebuilds,
-/// it queues packets that copy the frame buffer into the off-screen strip at
-/// x = `width`. In stages 1 and 5 it projects the reflected body to find its
+/// second row negated and applies location-specific corrections. The other
+/// mirror reflects through a plane chosen by the current stage, area and view.
+/// On the frame after mirror 0 rebuilds, it queues packets that copy the frame
+/// buffer into the off-screen strip at x = `width`. In stages 1 and 5 it projects the reflected body to find its
 /// screen rectangle and, where that overlaps the mirror's clip rectangle,
 /// draws quads sampling that strip. Otherwise the reflection is hidden. Every
 /// frame it copies the player's pose and light matrices onto the reflection.
-void RoomsShared8017d7a4(Task* task)
+void func_neo_ark_observatory_8017D8A8(Task* task)
 {
     RoomMirrorWork*       work;
     PlayerStatus*         status;
@@ -187,7 +188,7 @@ void RoomsShared8017d7a4(Task* task)
         for (i = 0; i < 2; i++) {
             child = (&actor->field_918)[i];
             if (child != NULL) {
-                spawned = Task_SpawnFromTable(&RoomsShared8017d5f0Desc, 1, i + 2, (s32)task);
+                spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i + 2, (s32)task);
                 if (spawned != NULL) {
                     Task_Reparent(child, spawned);
                 }
@@ -665,4 +666,4 @@ void RoomsShared8017d7a4(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", RoomsShared8017f128Scale);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_observatory/neo_ark_observatory", D_neo_ark_observatory_8017D5C4);

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 
 /// Record inspected by `func_neo_ark_observatory_8017F44C`: `field_0` is the
@@ -57,5 +59,15 @@ extern s32                        D_neo_ark_observatory_80187A38; // D_neo_ark_o
 /// come back clear and for the departure sound to go quiet, then commits the
 /// save location above and re-spawns the player task as type 0x11.
 void func_neo_ark_observatory_8017F588(Task* arg0);
+
+/// The mirror's task descriptors: entry 0 runs the mirror task itself, entry 1
+/// the held-object reflections it spawns.
+extern TaskDesc D_neo_ark_observatory_80180DBC[];
+
+/// Set-up and per-frame states of the room's mirror task.
+void func_neo_ark_observatory_8017D6F4(Task* task);
+void func_neo_ark_observatory_8017D8A8(Task* task);
+
+void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_NEO_ARK_OBSERVATORY_H
