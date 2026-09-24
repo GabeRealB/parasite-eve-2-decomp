@@ -1,23 +1,21 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "main/display.h"
 #include "main/mem.h"
 #include "rooms/room_common.h"
-#include <psyq/inline_c.h>
-#include <psyq/libgpu.h>
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when the
-/// GTE flag is non-negative, queues one semi-transparent raw-tex `POLY_FT4`
-/// (tpage 0x2C, clut 0x43D3) rotated about the projected centre. `arg1` selects
-/// a 32-texel UV column on the 0xE0..0xFF texture row: u = `arg1 * 32`.
-/// `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`. Shared body, linked into every room
-/// overlay that uses it.
-void Room_Draw40(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a spinning textured sprite at the world position of `arg0`,
+/// projected through `GsWSMATRIX`: one semi-transparent `POLY_FT4` whose
+/// corners lie `(s16)arg2 * 31` over the depth from the centre, at the angle
+/// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
+/// in a row of the texture page. Nothing is drawn when the projection flags
+/// an error.
+void func_shelter_b3_garbage_incinerator_801837F8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**             scratch;
     u8*                head;
@@ -79,16 +77,13 @@ void Room_Draw40(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent shade-tex
-/// `POLY_FT4` (tpage 0x2B, clut 0x4393). `arg1` selects a 56-texel UV tile in
-/// a 4-wide 2-row grid: u = `(arg1 & 3) * 56`, v = `((arg1 & 7) >> 2) * 56`.
-/// `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 55 / otz`. The quad is axis-aligned and 2*radius on a side,
-/// shifted up so the projected point sits at three-quarters height
-/// (`y0 = sy - r - r/2`, `y2 = sy + r/2`). Shared body, linked into every
-/// room overlay that uses it.
-void Room_Draw41(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
+/// Draws a textured billboard at the world position of `arg0`, projected
+/// through `GsWSMATRIX`: one semi-transparent axis-aligned `POLY_FT4`, a
+/// square of half-side `(s16)arg2 * 55` over the depth, raised so the
+/// projected point sits three quarters of the way down it. `arg1` picks the
+/// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
+/// drawn when the projection flags an error.
+void func_shelter_b3_garbage_incinerator_80183BE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;

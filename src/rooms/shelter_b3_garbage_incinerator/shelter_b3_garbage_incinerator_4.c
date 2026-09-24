@@ -13,6 +13,8 @@
 #include "main/fs.h"
 #include "main/gameflow.h"
 #include "main/mem.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
+
 #include "main/text.h"
 #include "actors/actor_342100.h"
 #include "psyq/libgpu.h"
@@ -108,7 +110,6 @@ extern u8                          D_80114CF8;
 
 /// Task table entry spawned once when the controller starts.
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
-void            RoomsShared801830f0Sub(s16 arg0, s16 arg1, s32 arg2);
 void            func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte
@@ -501,7 +502,7 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
                 }
             }
             if (script != 0) {
-                RoomsShared801830f0Sub(script, key, (s16)task->spawnArg1);
+                func_shelter_b3_garbage_incinerator_8017FD64(script, key, (s16)task->spawnArg1);
                 func_shelter_b3_garbage_incinerator_8017FB80();
             }
             if ((Gp_CapBusy() == 0) && (D_801153F4 == 0)) {
@@ -515,7 +516,7 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FC5C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", RoomsShared801830f0Sub);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_4", func_shelter_b3_garbage_incinerator_8017FD64);
 
 s32 func_shelter_b3_garbage_incinerator_8017FE74(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {

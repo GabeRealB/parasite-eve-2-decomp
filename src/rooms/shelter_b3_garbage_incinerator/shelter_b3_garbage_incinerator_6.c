@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 #include <psyq/inline_c.h>
 #include <psyq/libgpu.h>
@@ -672,7 +673,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState != 0) {
-        Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+        func_shelter_b3_garbage_incinerator_801837F8(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
         }
@@ -749,10 +750,10 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
             }
             return;
         case 1:
-            Room_Draw40(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+            func_shelter_b3_garbage_incinerator_801837F8(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
             break;
         case 2:
-            Room_Draw41(coord, work->field_20, (s16)work->field_24);
+            func_shelter_b3_garbage_incinerator_80183BE4(coord, work->field_20, (s16)work->field_24);
             break;
         default:
             return;

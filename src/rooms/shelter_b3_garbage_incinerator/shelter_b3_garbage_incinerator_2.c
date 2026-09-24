@@ -10,6 +10,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 extern u8       D_80071075;
 extern s8       D_8007218A;
@@ -54,7 +55,6 @@ extern _Pose          D_shelter_b3_garbage_incinerator_80185B88;
 extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
-void RoomsShared801830f0(s16 arg0, s16 arg1, s16 arg2);
 void func_shelter_b3_garbage_incinerator_8018507C(void);
 void func_shelter_b3_garbage_incinerator_80185220(void);
 void func_shelter_b3_garbage_incinerator_801853C4(void);
@@ -295,7 +295,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                     gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
                     gGameSession->field_133      = 1;
                 }
-                RoomsShared801830f0(5, 0, 0x3C);
+                func_shelter_b3_garbage_incinerator_80180FE4(5, 0, 0x3C);
                 gGameSession->field_132 = 1;
                 task->state++;
             }

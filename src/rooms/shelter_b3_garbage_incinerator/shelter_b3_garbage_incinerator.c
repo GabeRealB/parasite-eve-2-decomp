@@ -7,6 +7,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 extern u16          D_shelter_b3_garbage_incinerator_801855DC;
 extern TaskDesc     D_shelter_b3_garbage_incinerator_801855E0;
@@ -24,10 +25,9 @@ extern s16          D_80071076;
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-void RoomsShared801830f0(s16 arg0, s16 arg1, s16 arg2);
 void func_shelter_b3_garbage_incinerator_8018108C(s32 arg0, s32 arg1, s32 arg2);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", D_shelter_b3_garbage_incinerator_8017D5C4);
 
 void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
 {
@@ -119,7 +119,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(s32 arg0, s32 arg1, RoomEventMs
             gGameSession->field_135 = 1;
         } else if (D_shelter_b3_garbage_incinerator_801855DC >= 0x3D) {
             SndEvt_EnqueueType6(0x5428000D, 0, 0);
-            RoomsShared801830f0(0x16, 0, 0x3C);
+            func_shelter_b3_garbage_incinerator_80180FE4(0x16, 0, 0x3C);
             D_shelter_b3_garbage_incinerator_801855DC = 0;
         }
     }

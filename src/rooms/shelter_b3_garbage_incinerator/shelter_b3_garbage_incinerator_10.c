@@ -2,10 +2,10 @@
 
 #include "rooms/room_common.h"
 
-/// Writes the draw/alloc bits of the task's `TmdObject` extra (`field_C`):
-/// mode 0 hides the model (set 0x80) and allows buffer alloc (clear 0x4);
-/// mode 1 shows it and allows alloc; mode 2 hides it and skips alloc.
-void Room_Util19(Task* task, s32 arg1, s32 arg2)
+/// Sets how the task's model is treated from `arg2`: 0 hides it and leaves its
+/// primitive buffer to be allocated on demand, 1 shows it with the same
+/// allocation, 2 hides it and exempts it from that allocation.
+void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
