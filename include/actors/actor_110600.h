@@ -793,4 +793,17 @@ extern SVECTOR  D_actor_110600_80131F1C;
 /// `recs` slot, clear the screen shake, then `Gp_DestroyEnemy`.
 void func_actor_110600_801387F4(Task* task);
 
+/// Turns a joint of the model by a yaw about the world Y axis.
+void func_actor_110600_80131FC0(GsCOORDINATE2* coord, s16 yaw);
+
+/// Rebuilds a coordinate's rotation as its current yaw scaled by `scale`.
+void func_actor_110600_80138568(GsCOORDINATE2* coord, s16 scale);
+
+/// The enemy task's three state handlers: spawn, per-frame tick, teardown.
+extern GpEnemyTaskFuncTable3 D_actor_110600_80131FA0;
+
+/// The enemy task's update: dispatches on `Task::state` through
+/// `D_actor_110600_80131FA0`.
+void func_actor_110600_80138EA8(Task* task);
+
 #endif

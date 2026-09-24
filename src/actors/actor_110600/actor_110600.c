@@ -761,8 +761,8 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// three longs become its translation, the Euler angles go through
 /// `Gfx_RotMatrixX` / `Y` / `Z`), then rebuilds and rescales that coordinate
 /// from the actor's own heading and caches the resulting yaw in the work
-/// block's `field_8`. Same placement as `ActorsShared80169f74`, with the
-/// rescale of `ActorsShared80135a60` folded in behind it.
+/// block's `field_8`. The rescale `func_actor_110600_80138568` performs is
+/// inlined behind the placement.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorShared8013411cPlacement* placement)
 {
     Actor110600Work* work;
@@ -1132,8 +1132,8 @@ void func_actor_110600_80134728(Actor110600* arg0)
         if (turnNow < -0x400) {
             turn = -0x400;
         }
-        ActorsShared80132808(&arg0->field_2C->coords[5], (s16)turn);
-        ActorsShared80132808(&arg0->field_2C->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
+        func_actor_110600_80131FC0(&arg0->field_2C->coords[5], (s16)turn);
+        func_actor_110600_80131FC0(&arg0->field_2C->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {
@@ -2830,7 +2830,7 @@ const Actor110600StateTable D_actor_110600_80131F3C = {
     func_actor_110600_80137DB0,
 };
 
-/// The actor's enemy tick, the middle entry of the `ActorsShared80135df4Table`
+/// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
 /// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
@@ -2946,7 +2946,7 @@ void func_actor_110600_80138394(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_110600/actor_110600", D_actor_110600_80131FA0);
 
 /// The `0x7D3` handler of the display-opcode table `D_actor_110600_80148624`:
 /// maps the requested state onto the work block's `field_892` (0x22..0x28) and
@@ -2994,8 +2994,7 @@ s32 func_actor_110600_8013839C(Actor110600* arg0, s32 arg1, Actor110600Msg7D3* a
     return 0;
 }
 
-/// Display-object handler, the same shape as `ActorsShared8013d268` one overlay
-/// over: `arg2` selects the mode and `GpEnemy.spawnState` -- the occupancy tag
+/// Display-object handler: `arg2` selects the mode and `GpEnemy.spawnState` -- the occupancy tag
 /// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
 /// Mode 0 hides it (bit 0x80 of `TmdObject.flags`) and reinstates its buffers;
 /// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
