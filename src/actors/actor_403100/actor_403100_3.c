@@ -367,7 +367,17 @@ void func_actor_403100_8013E0A4(Task* task)
     sp.funcs[task->state](task);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403100/actor_403100_3", func_actor_403100_8013E0FC);
+/// The actor's six top-level state handlers, indexed by `Task::state`.
+extern TaskFuncTable6 D_actor_403100_80131F1C;
+
+/// Runs the handler for the task's current top-level state.
+void func_actor_403100_8013E0FC(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_actor_403100_80131F1C;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_actor_403100_8013E16C(void)
 {
