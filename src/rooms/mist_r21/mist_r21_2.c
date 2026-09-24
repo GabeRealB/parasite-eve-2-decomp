@@ -1,9 +1,30 @@
 #include "common.h"
+#include "gameplay/1A8.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r21/mist_r21_2", func_mist_r21_8017D5DC);
+#include "main/task.h"
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r21/mist_r21_2", func_mist_r21_8017D5E4);
+/// Message-table handler for id 0x13F1: accepts the message and does nothing.
+s32 func_mist_r21_8017D5DC(void)
+{
+    return 0;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r21/mist_r21_2", func_mist_r21_8017D60C);
+/// Message-table handler for id 0x13EE: copies the location record it is given
+/// onto the reply record unchanged and answers 1.
+s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    return 1;
+}
 
-INCLUDE_ASM("rooms/nonmatchings/mist_r21/mist_r21_2", func_mist_r21_8017D614);
+/// Message-table handler for id 0x13F0: accepts the message and does nothing.
+s32 func_mist_r21_8017D60C(void)
+{
+    return 0;
+}
+
+/// Message-table handler for id 0x13EF: accepts the message and does nothing.
+s32 func_mist_r21_8017D614(void)
+{
+    return 0;
+}
