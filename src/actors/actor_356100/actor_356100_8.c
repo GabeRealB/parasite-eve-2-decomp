@@ -1,22 +1,22 @@
 #include "common.h"
 
+#include "actors/actor_356100.h"
 #include "actors/actors_shared_80169f74.h"
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Seeds the task's `TmdObject` coordinate frame from `placement` the same way
-/// `ActorsShared80135990` does (X then Y then Z, re-fetching the coordinate
-/// for every field), then stores the resulting heading -- `ratan2` of the
-/// rotation matrix's Z-axis — in the work block's `yaw`.
-s32 ActorsShared80169f74(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+/// Places the model's root coordinate from `placement` (translation, then the
+/// X, Y and Z rotations in turn) and stores the resulting heading, `ratan2`
+/// of the rotation's Z axis, in the work block's `yaw`.
+s32 func_actor_356100_80169F74(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
 {
-    GsCOORDINATE2*            coord;
-    s32                       mx;
-    s32                       mz;
-    ActorsShared80169f74Work* work;
+    GsCOORDINATE2*   coord;
+    s32              mx;
+    s32              mz;
+    Actor356100Work* work;
 
-    work                                          = (ActorsShared80169f74Work*)task->work;
+    work                                          = (Actor356100Work*)task->work;
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;

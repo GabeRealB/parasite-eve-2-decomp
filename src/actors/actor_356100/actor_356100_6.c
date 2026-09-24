@@ -1,16 +1,20 @@
 #include "common.h"
 
+#include "actors/actor_356100.h"
+#include "main/task.h"
 #include "main/tmd.h"
 
-#include "actors/actors_shared_80169e64.h"
-
-s32 ActorsShared80169e64(Task* task, s32 arg1, s32 arg2)
+/// Applies a model-visibility request to the actor: 0 hides the model and
+/// rebuilds its buffers, 1 shows it and rebuilds them with the state set to
+/// 0x18, 2 sets model flag 4 on top of the current flags, and 3 clears every
+/// other flag before setting 4. All but 1 reset the state to 0.
+s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject*                obj;
-    ActorsShared80169e64Work* work;
+    TmdObject*       obj;
+    Actor356100Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (ActorsShared80169e64Work*)task->work;
+    work = (Actor356100Work*)task->work;
     switch (arg2) {
         case 0:
             obj->flags = 0x80;

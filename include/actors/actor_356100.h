@@ -83,8 +83,11 @@ typedef struct Actor356100Work {
     /* 0x00C */ Actor356100Waypoint field_C[2];
     /// Zeroed on the same entry, next to the pair above; same slot as
     /// `Actor01900Work.field_14`.
-    /* 0x014 */ s16  field_14;
-    /* 0x016 */ byte pad_16[0x44];
+    /* 0x014 */ s16 field_14;
+    /// Heading the placement handler derives from the root coordinate's
+    /// Z axis (`ratan2` of its X and Z terms) once the spawn rotations are in.
+    /* 0x016 */ s16  yaw;
+    /* 0x018 */ byte pad_18[0x42];
     /* 0x05A */ u16  field_5A;
     /* 0x05C */ byte pad_5C[0xC];
     /* 0x068 */ u16  field_68;
@@ -414,6 +417,62 @@ typedef struct Actor356100GroundCoord {
     /* 0x60 */ SVECTOR       v;
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
+
+/// Turns joint `coord` by `yaw` about the world Y axis, keeping the result
+/// expressed in the joint's parent frame.
+void func_actor_356100_80161F4C(GsCOORDINATE2* coord, s16 yaw);
+
+/// 0x88-byte `G_SCRATCH_HEAD` block `func_actor_356100_80162258` takes while it
+/// works out the push that moves a coordinate out of the contact records:
+/// `pos` is the coordinate's world translation, `offset` the latest push
+/// (scaled down to length 0x100 when longer), `last` its XZ copy, `i` the
+/// record cursor and `hit` the result. `dist` gets 0x7FFE at the terminating
+/// record.
+typedef struct Actor356100RepelScratch {
+    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x20 */ SVECTOR offset;
+    /* 0x28 */ SVECTOR last;
+    /* 0x30 */ SVECTOR pos;
+    /* 0x38 */ s32     kind;
+    /* 0x3C */ u32     len;
+    /* 0x40 */ s16     dist[32];
+    /* 0x80 */ s16     i;
+    /* 0x82 */ byte    pad_82[4];
+    /* 0x86 */ s16     hit;
+} Actor356100RepelScratch;
+STATIC_ASSERT_SIZEOF(Actor356100RepelScratch, 0x88);
+
+/// 0x54-byte `G_SCRATCH_HEAD` block `func_actor_356100_801625A0` takes while it
+/// steers a coordinate away from the contact records: `angle` / `ok` hold up
+/// to eight obstacle bearings and whether each still counts, `dir` the facing
+/// column and later each step, `eye` the coordinate's world position, `face`
+/// its heading, `i` / `j` the loop cursors and `blocked` the result.
+typedef struct Actor356100AvoidScratch {
+    /* 0x00 */ MATRIX   m;
+    /* 0x20 */ SVECTOR  dir;
+    /* 0x28 */ SVECTOR3 eye;
+    /* 0x2E */ byte     pad_2E[0x2];
+    /* 0x30 */ s32      kind;
+    /* 0x34 */ s16      angle[8];
+    /* 0x44 */ s8       ok[8];
+    /* 0x4C */ s16      face;
+    /* 0x4E */ s16      diff;
+    /* 0x50 */ u8       i;
+    /* 0x51 */ u8       j;
+    /* 0x52 */ u8       count;
+    /* 0x53 */ u8       blocked;
+} Actor356100AvoidScratch;
+STATIC_ASSERT_SIZEOF(Actor356100AvoidScratch, 0x54);
+
+/// 0x10-byte block the bearing helpers of `func_actor_356100_801625A0` carve
+/// below the scratch head: an obstacle's offset from the eye, widened to words.
+typedef struct Actor356100AvoidDelta {
+    /* 0x0 */ s32  vx;
+    /* 0x4 */ s32  vy;
+    /* 0x8 */ s32  vz;
+    /* 0xC */ byte pad_C[0x4];
+} Actor356100AvoidDelta;
+STATIC_ASSERT_SIZEOF(Actor356100AvoidDelta, 0x10);
 
 /// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
 /// coordinate; `out` is left unchanged if the chain ends before the view.

@@ -5,7 +5,7 @@
 
 extern u32 Gp_LcgState;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_356100/actor_356100_2", D_actor_356100_80161F40);
 
 s32 func_actor_356100_8016A0B8(Actor356100* arg0, s32 arg1, Actor356100Event* arg2)
 {
