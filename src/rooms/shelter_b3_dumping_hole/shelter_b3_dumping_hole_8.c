@@ -3,13 +3,20 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/display.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 #include <psyq/inline_c.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+
+/// `rtps` spelled as its raw word, with the two leading nops the original carries.
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word.
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
@@ -18,7 +25,72 @@ extern s32 Gp_LcgState;
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", func_shelter_b3_dumping_hole_8018521C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", func_shelter_b3_dumping_hole_8018596C);
+void func_shelter_b3_dumping_hole_8018596C(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+{
+    u8*                head;
+    RoomDraw19Scratch* block;
+    POLY_FT4*          prim;
+    u16                col;
+    u16                row;
+    s32                u0;
+    s32                v0;
+    s32                ang;
+    s32                ang2;
+    u16                bank;
+    u32                idx;
+
+    head                                        = *(u8**)G_SCRATCH_HEAD;
+    ((RoomDraw19Scratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
+    *(void**)G_SCRATCH_HEAD                     = head - 0x1C;
+    block                                       = *(RoomDraw19Scratch**)G_SCRATCH_HEAD;
+    block->vec.vy                               = arg0->workm.t[1];
+    block->vec.vz                               = arg0->workm.t[2];
+    idx                                         = arg1;
+    idx                                        &= 0xFFF;
+    bank                                        = arg1 >> 12;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(block);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw19Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw19Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((RoomDraw19Scratch*)(head - 0x1C))->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2F);
+        prim->tpage = 0x2B;
+        if (bank >= 2) {
+            prim->clut = 0x428F;
+        } else {
+            prim->clut = ((bank + 0x10E) << 6) | (idx & 0x3F);
+        }
+        col = (u16)idx % 5;
+        row = (u16)idx / 5;
+        ang = arg3;
+        u0  = col * 0x30;
+        v0  = row * 0x30;
+        setUV4(prim, u0, v0 + 0x68, u0 + 0x2F, v0 + 0x68, u0, v0 - 0x69, u0 + 0x2F, v0 - 0x69);
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
+        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        ang2      = ang + 0x400;
+        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
+        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
+        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x1C;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", func_shelter_b3_dumping_hole_80185DCC);
 
