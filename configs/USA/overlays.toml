@@ -2440,8 +2440,7 @@ label = "no map pool names this room; the 0x1A2C cut exists so neo_ark_submarine
 id = 449
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery", rodata = "0x64", text = "0xB8" },
+  { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery", rodata = "0x4", text = "0xB8" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_2", rodata = "0x88", text = "0x1A2C" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_3", rodata = "0xA0", text = "0x2150" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_5", text = "0x1CC8" },
