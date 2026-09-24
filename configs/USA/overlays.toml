@@ -2387,15 +2387,8 @@ objects = [
 id = 439
 objects = [
   { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { unit = "neo_ark_altar/neo_ark_altar", rodata = "0x14", text = "0xA8" },
-  { unit = "neo_ark_altar/neo_ark_altar_4", rodata = "0x40", text = "0x480" },
-  { unit = "neo_ark_altar/neo_ark_altar_5", rodata = "0x58", text = "0x680" },
-  { unit = "neo_ark_altar/neo_ark_altar_2", text = "0x2FC" },
-  { unit = "neo_ark_altar/neo_ark_altar_6", text = "0x304" },
-  { unit = "neo_ark_altar/neo_ark_altar_3", text = "0x348" },
-  { unit = "neo_ark_altar/neo_ark_altar_7", text = "0x428" },
-  { unit = "neo_ark_altar/neo_ark_altar_8", text = "0x630" },
+  { unit = "neo_ark_altar/neo_ark_altar", rodata = "0x4", text = "0xA8" },
+  { unit = "neo_ark_altar/neo_ark_altar_2", rodata = "0x40", text = "0x480" },
   { kind = "data", at = "0x19CC" },
 ]
 
