@@ -1,3 +1,7 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_room_2/dryfield_night_motel_room_2_4", func_dryfield_night_motel_room_2_8017D5D0);
+/// The room's handler for message 0x13F1: does nothing and returns 0.
+s32 func_dryfield_night_motel_room_2_8017D5D0(void)
+{
+    return 0;
+}
