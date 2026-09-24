@@ -7,8 +7,7 @@
 
 extern u32 Gp_LcgState;
 
-/// Per-frame driver for a rising sprite effect, a `Gp_State1C` effect task
-/// carried by the pod bottom and the pod service gantry.
+/// Per-frame driver of a rising sprite effect, a `Gp_State1C` effect task.
 ///
 /// On its first frame it seeds the rise speed (`field_10.vy`, 0x10-0x4F from
 /// the LCG, negated when bit 16 of `Task::spawnArg1` is set), a random spin
@@ -18,7 +17,7 @@ extern u32 Gp_LcgState;
 /// every fourth tick, releasing the effect after frame 7. During an event of
 /// state 1-3 it keeps drawing without moving or animating; state 4 or above
 /// releases it. Each draw picks one of six sprite CLUTs at random.
-void RoomsShared80180898(Task* task)
+void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
     RoomEffWork*   work;
     GsCOORDINATE2* coord;

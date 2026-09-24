@@ -5,6 +5,8 @@
 
 #include <psyq/libgte.h>
 
+#include "main/task.h"
+
 /// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
 /// and zeroes before use. `vec` is the coordinate's translation, projected
 /// through `GsWSMATRIX` with one `RTPS`: `sx`/`sy` receive the screen
@@ -21,5 +23,9 @@ typedef struct ShelterB1PodServiceGantrySpinScratch {
     s16     sy;
 } ShelterB1PodServiceGantrySpinScratch;
 STATIC_ASSERT_SIZEOF(ShelterB1PodServiceGantrySpinScratch, 0x1C);
+
+/// The room task's three states, dispatched by
+/// `func_shelter_b1_pod_service_gantry_8017D89C`.
+extern const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4;
 
 #endif

@@ -1892,10 +1892,10 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", rodata = "0x4", text = "0x68" },
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", rodata = "0x30", text = "0x24C" },
-  { lib = true, unit = "room_util02", text = "0x208" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x2DC" },
+  { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_5", text = "0x208" },
+  { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_6", text = "0x2DC" },
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_3", text = "0x334" },
-  { lib = true, unit = "rooms_shared_80180898", text = "0x2308" },
+  { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_7", text = "0x2308" },
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_4", text = "0x24BC" },
   { kind = "data", at = "0x2534" },
 ]

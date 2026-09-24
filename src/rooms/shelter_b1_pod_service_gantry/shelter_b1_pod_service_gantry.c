@@ -19,7 +19,7 @@ extern TaskDesc       D_8013FB50;
 extern TaskDesc       D_8016EA28;
 extern TaskDesc       D_801718F0;
 extern GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540;
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", D_shelter_b1_pod_service_gantry_8017D5C4);
 
 void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 {

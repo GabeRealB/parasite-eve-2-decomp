@@ -238,11 +238,11 @@ void func_shelter_b1_pod_service_gantry_8017ED3C(GsCOORDINATE2* arg0, u16 arg1, 
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-/// Same body as `Room_Draw41` except that the 0x18-byte scratch block is
-/// zeroed with `Mem_Set` before use: projects the coordinate's world position
-/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues one
-/// shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393) with a 56-texel UV tile
-/// picked by `arg1` and an on-screen radius of `arg2 * 55 / otz`.
+/// Projects the coordinate's world position through `GsWSMATRIX` into a
+/// 0x18-byte scratch block zeroed with `Mem_Set` and, when the GTE flag is
+/// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
+/// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
+/// `arg2 * 55 / otz`.
 void func_shelter_b1_pod_service_gantry_8017F160(GsCOORDINATE2* arg0, u16 arg1, s16 arg2)
 {
     void**             scratch;
