@@ -2092,12 +2092,8 @@ id = 419
 text = ["0x2C", "0x418"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_r49/shelter_r49", rodata = "0x4", text = "0x78" },
+  { unit = "shelter_r49/shelter_r49", rodata = "0x4", text = "0x2C" },
   { unit = "shelter_r49/shelter_r49_2", rodata = "0x10", text = "0x15C" },
-  { unit = "shelter_r49/shelter_r49_3", text = "0x2C" },
-  { unit = "shelter_r49/shelter_r49_4", text = "0x34" },
-  { unit = "shelter_r49/shelter_r49_5", text = "0xF4" },
-  { unit = "shelter_r49/shelter_r49_6", text = "0x104" },
   { kind = "data", at = "0x418" },
 ]
 
