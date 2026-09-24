@@ -9,6 +9,7 @@
 #include "gameplay/1A8.h"
 #include "main/gameflag.h"
 #include "rooms/rooms_shared_80181228.h"
+#include "rooms/shelter_b1_sterilization_room.h"
 
 extern void                   func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern TaskDesc               D_shelter_b1_sterilization_room_80188504[];
@@ -28,7 +29,7 @@ extern RoomsShared80181228Rec D_shelter_b1_sterilization_room_8018C344;
 
 void func_shelter_b1_sterilization_room_80180340(s32 arg0);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", D_shelter_b1_sterilization_room_8017D6A4);
 
 void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 {
@@ -180,7 +181,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         D_shelter_b1_sterilization_room_8018C344.field_8  = 0x5410000F;
         D_shelter_b1_sterilization_room_8018C344.field_10 = 0x5410000D;
         D_shelter_b1_sterilization_room_8018C344.field_C  = 0x5410000E;
-        Task_SpawnFromTable(&RoomsShared80181228Desc, 0, 6, (s32)&D_shelter_b1_sterilization_room_8018C344);
+        Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80184E1C, 0, 6, (s32)&D_shelter_b1_sterilization_room_8018C344);
     }
     if (arg2 == 0x15) {
         Gp_RunCapCmd1(arg2);
@@ -261,4 +262,4 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", RoomsShared80181e70Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room", D_shelter_b1_sterilization_room_8017D700);

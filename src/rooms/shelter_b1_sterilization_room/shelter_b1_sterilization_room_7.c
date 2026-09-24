@@ -230,10 +230,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     if (task->state == 0) {
         switch (Gp_GetViewIndex() & 0xFF) {
             case 2:
-                Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                 break;
             case 3:
-                Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                 break;
                 do {
                     case 6:
@@ -243,21 +243,21 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 8:
-                        Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
-                        Room_Draw18(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        func_shelter_b1_sterilization_room_80183718(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 14:
                         task->state = 1;
                         break;
                     case 19:
-                        Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
+                        func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
                         func_shelter_b1_sterilization_room_80183B8C(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 20:
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x48], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x4A], 0x200, 0x222);
                         task->spawnArg1 = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
@@ -312,7 +312,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 22:
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1 = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
@@ -337,7 +337,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 23:
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
                         task->spawnArg1 = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
@@ -368,7 +368,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         }
                         break;
                     case 24:
-                        Room_Draw01(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
+                        func_shelter_b1_sterilization_room_80182B34(&D_shelter_b1_sterilization_room_8018909C[0x46], 0x200, 0x222);
                         task->spawnArg1 = 1;
                         if (Gp_State1C->eventState == 0) {
                             u32      rnd;
@@ -431,7 +431,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 11:
-                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
+                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4C], 0x300, 0x800);
                 if (Gp_State1C->eventState == 0) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 4; i < 0x10; i += 4) {
@@ -444,8 +444,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 }
                 break;
             case 10:
-                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
-                Room_Draw13(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
+                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4D], 0x300, 0x800);
+                func_shelter_b1_sterilization_room_80183378(&D_shelter_b1_sterilization_room_8018909C[0x4E], 0x300, 0x800);
                 if (Gp_State1C->eventState == 0) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 0; i < 0xC; i += 4) {

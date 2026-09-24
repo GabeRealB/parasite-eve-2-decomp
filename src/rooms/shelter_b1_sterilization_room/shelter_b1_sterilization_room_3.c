@@ -6,11 +6,11 @@
 
 void func_shelter_b1_sterilization_room_8018049C(void);
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", D_shelter_b1_sterilization_room_8017D638);
 
 s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
 {

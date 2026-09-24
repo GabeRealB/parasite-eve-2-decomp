@@ -11,6 +11,8 @@
 #include "main/gameflow.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
+#include "rooms/shelter_b1_sterilization_room.h"
+
 extern TaskDesc  D_shelter_b1_sterilization_room_80188504;
 extern s32       D_shelter_b1_sterilization_room_8018C340;
 extern s16       D_80073BA0;
@@ -38,7 +40,7 @@ extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[
 
 /// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
 /// slot 8, tinting both with `shade`, then append each half's tpage.
-void RoomsShared8017e144(s32 shade)
+void func_shelter_b1_sterilization_room_80180BF0(s32 shade)
 {
     SPRT* p;
 
@@ -57,7 +59,7 @@ void RoomsShared8017e144(s32 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0x340, 0);
+    func_shelter_b1_sterilization_room_80181308(0x340, 0);
 
     p              = (SPRT*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -74,7 +76,7 @@ void RoomsShared8017e144(s32 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    Room_Draw42(0x180, 0x100);
+    func_shelter_b1_sterilization_room_80181308(0x180, 0x100);
 }
 
 void func_shelter_b1_sterilization_room_80180D74(Task* task)
