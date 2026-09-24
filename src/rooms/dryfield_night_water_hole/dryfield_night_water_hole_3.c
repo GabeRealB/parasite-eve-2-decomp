@@ -8,7 +8,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "rooms/dryfield_night_water_hole.h"
-#include "rooms/rooms_shared_8017e690.h"
 
 extern s8 D_8007217B;
 extern u8 D_801153F4;
@@ -171,7 +170,7 @@ void func_dryfield_night_water_hole_8017DF28(Task* task)
 
 void func_dryfield_night_water_hole_8017E630(Task* task)
 {
-    TaskFunc states[2] = { RoomsShared8017e690, func_dryfield_night_water_hole_8017DF28 };
+    TaskFunc states[2] = { func_dryfield_night_water_hole_8017E690, func_dryfield_night_water_hole_8017DF28 };
 
     states[task->state](task);
     gGameSession->waterY = -0x1A4;

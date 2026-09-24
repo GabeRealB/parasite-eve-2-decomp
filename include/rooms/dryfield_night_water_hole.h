@@ -2,6 +2,9 @@
 #define ROOMS_DRYFIELD_NIGHT_WATER_HOLE_H
 
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/3A34.h"
 #include "main/task.h"
@@ -115,5 +118,21 @@ extern s16 D_dryfield_night_water_hole_8018362C;
 /// State 1 of the room's water task: draws the room's water surfaces into the
 /// current ordering table.
 void func_dryfield_night_water_hole_8017DF28(Task* task);
+
+/// The room task's three-state table, run from a stack copy by
+/// `func_dryfield_night_water_hole_8017DE30`: the entry tick
+/// `func_dryfield_night_water_hole_8017D958`, the idle state
+/// `func_dryfield_night_water_hole_8017DE20`, then `taskKill`.
+extern const TaskFuncTable3 D_dryfield_night_water_hole_8017D688;
+
+/// The water task's first state: clears the session halfword it selects and
+/// advances to the drawing state.
+void func_dryfield_night_water_hole_8017E690(Task* task);
+
+/// Draws a glowing beam of radius `arg1` between `arg0[0]` and `arg0[1]`.
+void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
+
+/// Draws a flat textured quad at `arg0`, sized `arg1` and of brightness `arg2`.
+void func_dryfield_night_water_hole_8017F3A8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_DRYFIELD_NIGHT_WATER_HOLE_H

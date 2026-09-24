@@ -69,4 +69,4 @@ void func_dryfield_night_water_hole_8017D958(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_water_hole/dryfield_night_water_hole", D_dryfield_night_water_hole_8017D688);

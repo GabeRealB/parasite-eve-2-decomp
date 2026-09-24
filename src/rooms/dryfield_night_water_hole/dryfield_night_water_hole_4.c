@@ -7,6 +7,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/dryfield_night_water_hole.h"
 #include "rooms/room_common.h"
 
 #include <psyq/abs.h>
@@ -36,8 +37,9 @@ extern SVECTOR D_dryfield_night_water_hole_801809F4[];
 /// State 1, while nibble 0xB8 is clear, no event is running and `waterY` is
 /// below that model's root, spawns each effect at water level under each part
 /// with odds that grow with how far the part moved since last frame, then, once
-/// game-flag nibble 0x51 is 1, draws the `Room_Draw08` segment pairs the
-/// current view selects.
+/// game-flag nibble 0x51 is 1, draws the glowing beams
+/// `func_dryfield_night_water_hole_8017EA6C` renders between the point pairs
+/// the current view selects.
 void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 {
     Task*                          ctl;
@@ -99,16 +101,16 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             if (GameFlag_GetNibble(0x51) == 1) {
                 if (mask & 0x18) {
-                    Room_Draw08(&D_dryfield_night_water_hole_80180994[0], 0x100);
-                    Room_Draw08(&D_dryfield_night_water_hole_80180994[2], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_80180994[0], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_80180994[2], 0x100);
                 }
                 if (mask & 0xA50) {
-                    Room_Draw08(&D_dryfield_night_water_hole_801809B4[0], 0x100);
-                    Room_Draw08(&D_dryfield_night_water_hole_801809B4[2], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_801809B4[0], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_801809B4[2], 0x100);
                 }
                 if (mask & 0x80) {
-                    Room_Draw08(&D_dryfield_night_water_hole_801809D4[0], 0x100);
-                    Room_Draw08(&D_dryfield_night_water_hole_801809D4[2], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_801809D4[0], 0x100);
+                    func_dryfield_night_water_hole_8017EA6C(&D_dryfield_night_water_hole_801809D4[2], 0x100);
                 }
             }
             break;
