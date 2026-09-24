@@ -1980,12 +1980,15 @@ objects = [
 ]
 
 [rooms.overlays.dryfield_night_garage]
+label = "code starts at 0x194: the first function is a leaf (a switch returning item-id lists, jump table at 0x4), so the span detector, which keys on a stack prologue, begins at 0x804 and left it as rodata words"
 id = 360
+text = ["0x194", "0x4038"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_garage/dryfield_night_garage", rodata = "0x4", text = "0xDDC" },
   { unit = "dryfield_night_garage/dryfield_night_garage_6", rodata = "0x148", text = "0x33E4" },
   { unit = "dryfield_night_garage/dryfield_night_garage_7", rodata = "0x160", text = "0x3F58" },
+  { unit = "dryfield_night_garage/dryfield_night_garage_8", text = "0x194" },
   { lib = true, unit = "rooms_shared_8017df68", text = "0x804" },
   { lib = true, unit = "rooms_shared_8017e90c", text = "0x11A8" },
   { lib = true, unit = "rooms_shared_8017ff9c", text = "0x2838" },
