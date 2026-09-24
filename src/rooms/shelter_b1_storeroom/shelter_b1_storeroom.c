@@ -1,13 +1,34 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 
+extern u8 D_80115598;
+
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
+/// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
+/// to the room's handlers, closed by id 0x7FFFFFFF.
+extern GpMsgEntry D_shelter_b1_storeroom_80184968[];
+
+void func_shelter_b1_storeroom_8017D740(Task* task);
+void func_shelter_b1_storeroom_8017D78C(Task* task);
+
+/// The room task's three states, dispatched by
+/// `func_shelter_b1_storeroom_8017D794`: install the message table, idle, end.
+const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
+    { func_shelter_b1_storeroom_8017D740, func_shelter_b1_storeroom_8017D78C, taskKill }
+};
+
+s32 func_shelter_b1_storeroom_8017D5FC(void)
+{
+    return 0;
+}
 
 s32 func_shelter_b1_storeroom_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -57,4 +78,25 @@ s32 func_shelter_b1_storeroom_8017D6F0(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_storeroom/shelter_b1_storeroom", D_shelter_b1_storeroom_8017D5C4);
+/// Installs the room's message table on `task`, registers the task in pointer
+/// slot 7, sets `D_80115598` and advances to the idle state.
+void func_shelter_b1_storeroom_8017D740(Task* task)
+{
+    task->msgTable = D_shelter_b1_storeroom_80184968;
+    Game_SetPtrSlot(task, 7);
+    task->state = (s32)(task->state + 1);
+    D_80115598  = 1;
+}
+
+void func_shelter_b1_storeroom_8017D78C(Task* task)
+{
+}
+
+/// Runs the handler for the task's state from the room's state table.
+void func_shelter_b1_storeroom_8017D794(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_shelter_b1_storeroom_8017D5C4;
+    sp.funcs[task->state](task);
+}
