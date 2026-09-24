@@ -1,2 +1,1 @@
 // Overlay-local symbols for actor_105100.
-D_actor_105100_80131EB0 = 0x80131EB0; // force_not_migration:True enemy state table, read from C
