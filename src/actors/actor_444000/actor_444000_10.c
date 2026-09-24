@@ -17,14 +17,10 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include <psyq/abs.h>
-#include <psyq/inline_c.h>
+#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
-
-/// GPF with `sf = 1`, which `psyq/inline_c.h` spells without the COP2 prefix
-/// the retail build used. Same form as `src/pe/energyball/energyball.c`.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s16 D_actor_444000_80144A68;
 extern s32 D_actor_444000_80144A74;
@@ -88,7 +84,7 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
     VectorNormalSS(dir, dir);
     gte_lddp(0x32);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     coord->coord.t[0] += dir->vx;
@@ -234,7 +230,7 @@ void func_actor_444000_8013482C(Actor444000* task)
                 VectorNormalSS(&sc->dir, &sc->dir);
                 gte_lddp(0xBEA);
                 gte_ldsv(&sc->dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&sc->dir);
 
                 sc->m.mat.t[0] += sc->dir.vx;
@@ -248,7 +244,7 @@ void func_actor_444000_8013482C(Actor444000* task)
                 VectorNormalSS(&sc->dir, &sc->dir);
                 gte_lddp(-0xBB8);
                 gte_ldsv(&sc->dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&sc->dir);
 
                 ((TmdObject*)task->extra)->coords->coord.t[0] += sc->dir.vx;
@@ -991,7 +987,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Actor444000Grab* task)
         VectorNormalSS(dir, dir);
         gte_lddp(0x89);
         gte_ldsv(gteDir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(gteDir);
 
         task->extra->coords->coord.t[0] += dir->vx;

@@ -8,12 +8,10 @@
 #include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 s32  func_8010BC70(GsCOORDINATE2* arg0);
 s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
@@ -1629,10 +1627,10 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
     gte_SetTransMatrix(&arg0->workm);
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(&blk->origin);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&blk->sxy0);
     gte_ldv0(&blk->tip);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&blk->sxy1);
     gte_stszotz(&blk->otz);
 
@@ -1708,7 +1706,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
 
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
@@ -1717,7 +1715,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     gte_stsxy2(&blk->sxy[0]);
 
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim->tpage = 0x27;
     prim->clut  = 0x3CCE;
     setUV4(prim, 0x20, 0x80, 0x3F, 0x80, 0x20, 0x9F, 0x3F, 0x9F);

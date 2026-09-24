@@ -8,7 +8,7 @@
 #include "main/gfx.h"
 #include "main/sound.h"
 #include "main/tmd.h"
-#include <psyq/inline_c.h>
+#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -39,7 +39,7 @@ static __inline__ void Actor403200_StepForward(GsCOORDINATE2* coord)
     VectorNormalSS(dir, dir);
     gte_lddp(0x19);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     coord->coord.t[0] += dir->vx;

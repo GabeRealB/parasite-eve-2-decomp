@@ -362,9 +362,6 @@ typedef struct Actor01600YawScratch {
 } Actor01600YawScratch;
 STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
 
-/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 /// `GsCOORDINATE2.coord.t[]` seen as three unsigned halfwords, so
 /// `Actor01600_Fn052C4` loads each world coordinate with `lhu`. The same
 /// narrowing `GpCoordXZ` does for X and Z, extended to Y.

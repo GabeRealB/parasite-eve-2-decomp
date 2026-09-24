@@ -9,6 +9,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "gte.h"
 
 extern Task* D_actor_341300_80165A2C;
 
@@ -272,7 +273,7 @@ void func_actor_341300_80162878(Task* arg0)
             gte_SetRotMatrix(&coord->workm);
             for (i = 0; i < 3; i++) {
                 gte_ldv0(&work->verts[i]);
-                gte_rtps_real();
+                gte_rtps();
                 gte_stsxy(&sxy);
                 gte_stszotz(&otz);
                 x[i] = sxy;
@@ -434,7 +435,7 @@ void func_actor_341300_801631D4(Task* arg0)
             gte_SetRotMatrix(&coord->workm);
             for (i = 0; i < 3; i++) {
                 gte_ldv0(&work->verts[i]);
-                gte_rtps_real();
+                gte_rtps();
                 gte_stsxy(&sxy);
                 gte_stszotz(&otz);
                 x[i] = sxy;

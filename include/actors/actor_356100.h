@@ -12,11 +12,7 @@
 #include "main/wipsys.h"
 
 #include <psyq/inline_c.h>
-
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+#include "gte.h"
 
 /// One XZ pair of `Actor356100Work::field_C`; same shape as
 /// `Actor01900Waypoint`.
@@ -440,7 +436,7 @@ loop:
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
             gte_ldv0(svp);
-            gte_rtv0tr_real();
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             sv.vx = vec.vx;

@@ -14,9 +14,6 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 /// Push-out of contact record `rec`: how far `pos` sits inside the record's
 /// radius (`depth`) along the direction from the record's centre, carried
 /// into grid space. Same body as `Actor01900_CalcPush`.

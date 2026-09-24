@@ -18,6 +18,7 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 void                         Actor00100_Fn001FC(GsCOORDINATE2*, s16);
 void                         Actor00100_Fn01D74(Actor00100*);
@@ -26,8 +27,6 @@ void                         Gp_UpdateCoord(GsCOORDINATE2*);
 void                         func_800B4114(s8*, s32, s16, s32, s32);
 extern s8                    Actor00100_D1B6D0;
 extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
-
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern s8 D_80114C12;
 extern u8 D_80071075;
@@ -129,7 +128,7 @@ void Actor00100_Fn04270(Actor00100* argx)
                 gte_SetTransMatrix(&p->coord);
                 gte_SetRotMatrix(&p->coord);
                 gte_ldv0(svp);
-                gte_rtv0tr_real();
+                gte_rtv0tr();
                 gte_stlvnl(vecp);
                 gte_stflg(fp);
                 sv.vx = vec.vx;
@@ -164,7 +163,7 @@ void Actor00100_Fn04270(Actor00100* argx)
                 gte_SetTransMatrix(&p->coord);
                 gte_SetRotMatrix(&p->coord);
                 gte_ldv0(svp);
-                gte_rtv0tr_real();
+                gte_rtv0tr();
                 gte_stlvnl(vecp);
                 gte_stflg(fp);
                 sv.vx = vec.vx;

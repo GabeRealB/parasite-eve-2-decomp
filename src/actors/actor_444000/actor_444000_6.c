@@ -20,11 +20,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include <psyq/inline_c.h>
-
-/// `gpf 1`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -284,7 +280,7 @@ void func_actor_444000_8013A3AC(GpEnemy* enemy, Actor444000Spinner* task)
 
     gte_lddp((u16)work->field_98);
     gte_ldsv(stepp);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(stepp);
 
     task->extra->coords->coord.t[0] += step.vx;
@@ -734,7 +730,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Actor444000* task)
     VectorNormalSS(gteDir, gteDir);
     gte_lddp(0x1388);
     gte_ldsv(gteDir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(gteDir);
 
     work->anim.field_0  = NULL;
@@ -2022,14 +2018,14 @@ void func_actor_444000_8013E058(Actor444000* task)
         case 9:
             gte_lddp(-(sc->pull + 0x19) / 4);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x180;
             break;
         case 10:
             gte_lddp(-(sc->pull + 0x19) / 2);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             break;
         case 11:
@@ -2037,7 +2033,7 @@ void func_actor_444000_8013E058(Actor444000* task)
         case 15:
             gte_lddp(-(sc->pull + 0x19));
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x2B2;
             break;
@@ -2045,14 +2041,14 @@ void func_actor_444000_8013E058(Actor444000* task)
         case 14:
             gte_lddp(-((sc->pull + 0x19) * 3) / 2);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x500;
             break;
         case 16:
             gte_lddp(-(sc->pull + 0x19) / 3);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x100;
             break;
@@ -2060,7 +2056,7 @@ void func_actor_444000_8013E058(Actor444000* task)
         case 18:
             gte_lddp(-(sc->pull + 0x19) / 3);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x400;
             break;
@@ -2070,7 +2066,7 @@ void func_actor_444000_8013E058(Actor444000* task)
             sc->dir.vx = 0;
             gte_lddp(-(sc->pull + 0x19) / 6);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0;
             break;
@@ -2213,7 +2209,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Actor444000* task, Actor4440
     VectorNormalSS(&sc->dir, &sc->dir);
     gte_lddp(0x384);
     gte_ldsv(&sc->dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&sc->dir);
 
     D_actor_444000_80161908.pos.vx = sc->pos.vx + sc->dir.vx;
@@ -2311,7 +2307,7 @@ void func_actor_444000_8013EC84(Actor444000* arg0)
             VectorNormalSS(&sc->dir, &sc->dir);
             gte_lddp(0xCE4);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             ((TmdObject*)player->extra)->coords->coord.t[0] =
                 ((TmdObject*)arg0->extra)->coords->coord.t[0] + sc->dir.vx;
@@ -2795,7 +2791,7 @@ void func_actor_444000_801404C0(Actor444000* arg0)
 
             gte_lddp(0x320);
             gte_ldsv(posp);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(posp);
 
             coord              = &D_actor_444000_80161948[D_actor_444000_80161850];

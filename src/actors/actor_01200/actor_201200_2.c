@@ -9,7 +9,7 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "psyq/inline_c.h"
+#include "gte.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
@@ -172,7 +172,7 @@ void Actor01200_Fn00A6C(GpEnemy* arg0, Actor201200* arg1)
     VectorNormalSS(q, q);
     gte_lddp(1000);
     gte_ldsv(q);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(q);
     work->patrol[0].vx = arg1->field_2C->coords->coord.t[0] + sv.vx;
     work->patrol[0].vy = arg1->field_2C->coords->coord.t[1];
@@ -443,7 +443,7 @@ void Actor01200_Fn017DC(Actor201200Ctx* arg0, Actor201200* arg1)
             ScaleMatrix(&work->colorMtx, &scale);
             gte_lddp(0);
             gte_ldlvl(work->colorMtx.t);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stlvl(work->colorMtx.t);
             Actor201200_FaceScale(arg1->field_2C->coords, 0x1000);
         } else {
@@ -452,7 +452,7 @@ void Actor01200_Fn017DC(Actor201200Ctx* arg0, Actor201200* arg1)
             ScaleMatrix(&work->colorMtx, &scale);
             gte_lddp(s);
             gte_ldlvl(work->colorMtx.t);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stlvl(work->colorMtx.t);
             s = ((s16)work->field_6 - 0x28) * 0x400 + 0x1000;
             if (s > 0x2000) {
@@ -573,7 +573,7 @@ void Actor01200_Fn01FDC(Actor201200Ctx* arg0, Actor201200* arg1)
         ScaleMatrix(&work->colorMtx, &scale);
         gte_lddp(s);
         gte_ldlvl(work->colorMtx.t);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stlvl(work->colorMtx.t);
         s = (s16)work->field_6 * 0xB4 + 0x1000;
         if (s > 0x2000) {

@@ -223,9 +223,6 @@ typedef struct Actor00100DeltaFlag {
 } Actor00100DeltaFlag;
 STATIC_ASSERT_SIZEOF(Actor00100DeltaFlag, 0x14);
 
-/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Actor00100_Fn00BF8`: `local`
 /// takes each actor's root translation raised by 1000, rotated into `out` (the
 /// slot-3 player) and `from` (the actor), and `hit` is `func_800E0308`'s result.

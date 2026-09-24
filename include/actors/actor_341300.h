@@ -6,10 +6,6 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 
-/// `gte_rtps` as the retail build emits it: the full `rtps` word, where the
-/// `inline_c.h` macro of that name assembles to `0x7F`.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 #define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 

@@ -12,6 +12,7 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 /// XZ patrol point in `Actor401800Work.field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -415,11 +416,6 @@ typedef struct Actor401800BisectorScratch {
 } Actor401800BisectorScratch;
 STATIC_ASSERT_SIZEOF(Actor401800BisectorScratch, 0xE4);
 
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-
 /// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
 /// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
 static __inline__ void Actor401800_BisectorToWorld(GsCOORDINATE2* coord, SVECTOR* v)
@@ -445,7 +441,7 @@ static __inline__ void Actor401800_BisectorToWorld(GsCOORDINATE2* coord, SVECTOR
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
         blk->vec.vx = *(u16*)&blk->out[0];
@@ -478,7 +474,7 @@ static __inline__ void Actor401800_BisectorToWorld2(GsCOORDINATE2* coord, SVECTO
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(blk->out);
         gte_stflg(&blk->flag);
         blk->vec.vx = *(u16*)&blk->out[0];

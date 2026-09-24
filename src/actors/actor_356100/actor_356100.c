@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include "actors/actor_356100.h"
 #include "actors/actors_shared_80132808.h"
 #include "main/mc.h"
 #include "gameplay/1A8.h"
@@ -13,8 +12,8 @@
 
 #include "rooms/rooms_shared_80182078.h"
 
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "actors/actor_356100.h"
+#include "gte.h"
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -151,7 +150,7 @@ s32 func_actor_356100_80162C90(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;
@@ -343,7 +342,7 @@ void func_actor_356100_8016382C(GpEnemy* enemy, Actor356100* actor)
     VectorNormalSS(v, v);
     gte_lddp(2000);
     gte_ldsv(v);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(v);
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
@@ -525,7 +524,7 @@ static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += vec->vx;
         coord->coord.t[1]          += vec->vy;
@@ -649,7 +648,7 @@ static __inline__ void Actor356100_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -1048,12 +1047,12 @@ void func_actor_356100_80165B30(Actor356100* arg0)
     if (work->field_97A == 0) {
         gte_lddp(work->field_B52);
         gte_ldsv(&work->field_B40);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     } else {
         gte_lddp((s16)work->field_B52 >> 1);
         gte_ldsv(&work->field_B40);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     }
     if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
@@ -1147,7 +1146,7 @@ void func_actor_356100_80166018(Actor356100* arg0)
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(p);
             coord                       = arg0->field_2C->coords;
             coord->coord.t[0]          += pos.vx;
@@ -1190,7 +1189,7 @@ void func_actor_356100_801666B4(Actor356100* arg0)
         VectorNormalSS(vecp, vecp);
         gte_lddp(0x3E8);
         gte_ldsv(vecp);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vecp);
         arg0->field_2C->coords->coord.t[0] = ((TmdObject*)player->extra)->coords->coord.t[0] + vec.vx;
         arg0->field_2C->coords->coord.t[2] = ((TmdObject*)player->extra)->coords->coord.t[2] + vec.vz;
@@ -1259,7 +1258,7 @@ void func_actor_356100_801668FC(Actor356100* arg0)
             VectorNormalSS(v, v);
             gte_lddp(-0x78);
             gte_ldsv(v);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(v);
             coord->coord.t[0]         += ((SVECTOR*)(slot - 8))->vx;
             coord->coord.t[1]         += v->vy;
@@ -1618,7 +1617,7 @@ static __inline__ void Actor356100_MoveForward(GsCOORDINATE2* coord, s16 amount)
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(vec);
             coord->coord.t[0] += head->vx;
             coord->coord.t[1] += vec->vy;
@@ -1766,7 +1765,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINAT
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += vec->vx;
         coord->coord.t[1]          += vec->vy;

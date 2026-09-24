@@ -14,9 +14,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// Binds the work block's light and color matrices onto the model object.
 /// Same body as `Actor01900_BindMatrices` / `Actor401300_BindMatrices`.
@@ -243,7 +241,7 @@ void func_actor_401800_8013423C(GpEnemy* enemy, Actor401800* actor)
     VectorNormalSS(v, v);
     gte_lddp(2000);
     gte_ldsv(v);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(v);
     work->field_C[1].x = actor->field_2C->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->field_2C->coords->coord.t[2] + dir.vz;
@@ -489,12 +487,12 @@ void func_actor_401800_80134C94(Actor401800* arg0)
                 if ((s16)work->field_BE4 > 0) {
                     gte_lddp(-0x19);
                     gte_ldsv(dir);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(dir);
                 } else {
                     gte_lddp(-0x64);
                     gte_ldsv(dir);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(dir);
                 }
                 arg0->field_2C->coords->coord.t[0] += s->dir.vx;
@@ -973,7 +971,7 @@ static __inline__ void Actor401800_StepForward(GsCOORDINATE2* coord, s16 amount)
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(vec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -1044,7 +1042,7 @@ static __inline__ void Actor401800_MoveForwardNonzero(GsCOORDINATE2* coord, s16 
             VectorNormalSS(vec, vec);
             gte_lddp(amount);
             gte_ldsv(gteVec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gteVec);
             coord->coord.t[0] += head[-1].vx;
             coord->coord.t[1] += vec->vy;
@@ -1480,12 +1478,12 @@ void func_actor_401800_80137DDC(Actor401800* arg0)
     if (work->field_89A == 0) {
         gte_lddp(work->field_C02);
         gte_ldsv(&work->field_BE8);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     } else {
         gte_lddp(work->field_C02 >> 1);
         gte_ldsv(&work->field_BE8);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(aim);
     }
     if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
@@ -1663,7 +1661,7 @@ void func_actor_401800_801381E4(Actor401800* arg0)
             VectorNormalSS(&dir, &dir);
             gte_lddp(0xA);
             gte_ldsv(&dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&dir);
             arg0->field_2C->coords->coord.t[0] += dir.vx;
             arg0->field_2C->coords->coord.t[2] += dir.vz;
@@ -1711,7 +1709,7 @@ void func_actor_401800_80138C28(Actor401800* arg0)
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(pdir);
         arg0->field_2C->coords->coord.t[0]  = ((TmdObject*)player->extra)->coords->coord.t[0] + dir.vx;
         arg0->field_2C->coords->coord.t[2]  = ((TmdObject*)player->extra)->coords->coord.t[2] + dir.vz;

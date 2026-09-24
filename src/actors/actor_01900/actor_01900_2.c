@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "psyq/abs.h"
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 
 /// Bearing of `p` from `eye` in the XZ plane, staged in a scratch block of its
 /// own that is released before `ratan2` runs.
@@ -230,7 +231,7 @@ s32 Actor01900_Fn00FA4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;
@@ -267,7 +268,7 @@ s32 Actor01900_Fn016F0(Actor01900* arg0)
     v = local;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&s->out);
     s->out.vx += gGfxViewCoord.workm.t[0];
     s->out.vy += gGfxViewCoord.workm.t[1];
@@ -280,7 +281,7 @@ s32 Actor01900_Fn016F0(Actor01900* arg0)
     out = (SVECTOR*)(head - 0x14);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(out);
     s->from.vx           += gGfxViewCoord.workm.t[0];
     s->from.vy           += gGfxViewCoord.workm.t[1];

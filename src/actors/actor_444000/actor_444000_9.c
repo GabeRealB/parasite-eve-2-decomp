@@ -17,14 +17,9 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include <psyq/abs.h>
-#include <psyq/inline_c.h>
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
-
-/// GPF with `sf = 1`, which `psyq/inline_c.h` spells without the COP2 prefix
-/// the retail build used. Same form as `src/pe/energyball/energyball.c`.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s16 D_actor_444000_80144A68;
 extern s32 D_actor_444000_80144A74;

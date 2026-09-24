@@ -15,7 +15,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include <psyq/inline_c.h>
+#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -649,7 +649,7 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     VectorNormalSS(gteDir, gteDir);
     gte_lddp(0x1388);
     gte_ldsv(gteDir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(gteDir);
 
     work->field_EB0.field_0  = NULL;
@@ -2078,14 +2078,14 @@ void func_actor_403200_8013B8C4(Task* arg0)
         case 9:
             gte_lddp(-(sc->pull + 0x19) / 4);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x180;
             break;
         case 10:
             gte_lddp(-(sc->pull + 0x19) / 2);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             break;
         case 11:
@@ -2093,7 +2093,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
         case 15:
             gte_lddp(-(sc->pull + 0x19));
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x2B2;
             break;
@@ -2101,14 +2101,14 @@ void func_actor_403200_8013B8C4(Task* arg0)
         case 14:
             gte_lddp(-((sc->pull + 0x19) * 3) / 2);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x500;
             break;
         case 16:
             gte_lddp(-(sc->pull + 0x19) / 3);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x100;
             break;
@@ -2116,7 +2116,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
         case 18:
             gte_lddp(-(sc->pull + 0x19) / 3);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0x400;
             break;
@@ -2126,7 +2126,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
             sc->dir.vx = 0;
             gte_lddp(-(sc->pull + 0x19) / 6);
             gte_ldsv(&sc->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&sc->dir);
             work->field_EFE = 0;
             break;
@@ -2176,7 +2176,7 @@ void func_actor_403200_8013B8C4(Task* arg0)
         VectorNormalSS(dirp, dirp);
         gte_lddp(0x384);
         gte_ldsv(dirp);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(dirp);
 
         D_actor_403200_8015F9C0.pos.vx = sc->pos.vx + sc->dir.vx;
@@ -2963,7 +2963,7 @@ void func_actor_403200_8013DC3C(Task* arg0)
 
             gte_lddp(0x320);
             gte_ldsv(posp);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(posp);
 
             D_actor_403200_8015F920.coord.t[0] += pos.vx;
@@ -4222,11 +4222,11 @@ void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
     VectorNormalSS(&normal, &normal);
     gte_lddp(scale);
     gte_ldsv(&normal);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&normal);
     gte_lddp(0xBB8);
     gte_ldsv(d);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(d);
 
     verts[index * 4].vx = verts[index * 4 + 2].vx =
@@ -4259,7 +4259,7 @@ void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
 
     gte_lddp(0x3E8);
     gte_ldsv(&normal);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&normal);
 
     verts[index * 4].vx = verts[index * 4 + 2].vx += normal.vx;

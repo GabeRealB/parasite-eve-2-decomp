@@ -5,6 +5,7 @@
 #include "gameplay/1BC.h"
 #include "main/mem.h"
 #include "psyq/abs.h"
+#include "gte.h"
 
 static __inline__ s16 Actor00100_BearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
@@ -112,7 +113,7 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     v = local;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&s->out);
     s->out.vx += gGfxViewCoord.workm.t[0];
     s->out.vy += gGfxViewCoord.workm.t[1];
@@ -125,7 +126,7 @@ s32 Actor00100_Fn00BF8(Actor00100* arg0)
     out = (SVECTOR*)(head - 0x14);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(v);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(out);
     s->from.vx           += gGfxViewCoord.workm.t[0];
     s->from.vy           += gGfxViewCoord.workm.t[1];

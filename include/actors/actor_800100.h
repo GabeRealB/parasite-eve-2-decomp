@@ -32,16 +32,6 @@ void func_actor_800100_80163A58(GpActorWork* arg0);
 void func_actor_800100_80165528(GpActorWork* arg0);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
-/// `gte_rtps` as the retail build emits it: the full `rtps` word, where the
-/// `inline_c.h` macro of that name assembles to `0x7F`.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-
-/// `gte_rtpt` as the retail build emits it: the full `rtpt` word.
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-
 /// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched
 /// projectile's object plus its one-entry collision table, whose `field_0` is

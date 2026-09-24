@@ -8,6 +8,7 @@
 #include "main/sound.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 void Actor01600_Fn00480(Actor01600* arg0);
 void Actor01600_Fn00A4C(Actor01600* arg0);
@@ -754,7 +755,7 @@ s32 Actor01600_Fn04C64(Actor01600* arg0, s32 distance, s32 angle)
     out = &scratch->out;
     gte_SetRotMatrix(m);
     gte_ldv0(&scratch->vec);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(out);
     work->field_42C = (s16)scratch->out.vx;
     work->field_430 = (s16)scratch->out.vz;

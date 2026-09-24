@@ -169,9 +169,6 @@ typedef struct Actor361100HeadAim {
 } Actor361100HeadAim;
 STATIC_ASSERT_SIZEOF(Actor361100HeadAim, 0xC);
 
-/// `gte_rtv0` as the retail build emits it: the full `mvmva 1,0,0,3,0` word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 /// Scratch record `func_actor_361100_80161FF8` carves off `G_SCRATCH_HEAD` for
 /// the duration of one call and hands back before returning. `mtx` is the
 /// transpose of the view's world matrix, loaded as the GTE rotation for every

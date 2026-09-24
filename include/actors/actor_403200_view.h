@@ -7,16 +7,7 @@
 #include "main/gfx.h"
 
 #include <psyq/inline_c.h>
-
-/// `MVMVA` with `sf = 1` reading the rotation matrix and V0 -- the operation
-/// `gte_RotTrans` performs -- spelled with the COP2 prefix the retail build
-/// used, which `psyq/inline_c.h` omits. Same form as
-/// `include/actors/actor_444000_view.h`.
-#define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-
-/// GPF with `sf = 1`, which `psyq/inline_c.h` spells without the COP2 prefix
-/// the retail build used. Same form as `include/actors/actor_444000_view.h`.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// Accumulated world rotation of `coord`: `mat` starts as the coordinate's own
 /// rotation and is multiplied by each parent's in turn, renormalised at every
@@ -65,7 +56,7 @@ static __inline__ void Actor403200_LocalToView(GsCOORDINATE2* coord, SVECTOR* ou
             gte_SetTransMatrix(&coord->coord);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&acc);
-            gte_rt_real();
+            gte_rt();
             gte_stlvnl(&v);
             gte_stflg(&flag);
             acc.vx = v.vx;

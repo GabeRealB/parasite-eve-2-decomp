@@ -14,9 +14,6 @@
 #include "main/sound.h"
 #include "main/wipsys.h"
 
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 INCLUDE_ASM("actors/nonmatchings/actor_401800/actor_401800_6", func_actor_401800_80133918);
 
 /// Animation-event dispatcher: picks the `0x400A00xx` event the state in

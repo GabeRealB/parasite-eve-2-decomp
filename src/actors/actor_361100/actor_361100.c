@@ -4,6 +4,7 @@ INCLUDE_RODATA("actors/nonmatchings/actor_361100/actor_361100", D_actor_361100_8
 INCLUDE_RODATA("actors/nonmatchings/actor_361100/actor_361100", D_actor_361100_80161E30);
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_361100.h"
 
@@ -115,7 +116,7 @@ static inline void _actor361100RotTrans(MATRIX* m, SVECTOR* v)
     tmp = *v;
     gte_SetRotMatrix(m);
     gte_ldv0(&tmp);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(v);
 }
 
@@ -232,7 +233,7 @@ void func_actor_361100_80161FF8(Task* arg0)
             yTop         = y - 0x78;
             block->in.vy = yTop;
             gte_ldv0(&block->in);
-            gte_rtv0_real();
+            gte_rtv0();
             x0     = xMin;
             x1     = xMax;
             nprims = 1;

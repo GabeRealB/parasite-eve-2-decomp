@@ -15,8 +15,7 @@
 #include "main/wipsys.h"
 #include "main/fs.h"
 #include <psyq/inline_c.h>
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 s32 Actor00100_Fn01EEC(Actor00100* arg0, Actor00100Work* arg1)
 {
@@ -648,7 +647,7 @@ void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     VectorNormalSS(dir, dir);
     gte_lddp(5000);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
     work->field_10  = ((TmdObject*)arg1->extra)->coords[0].coord.t[0] + vec.vx;
     work->field_12  = ((TmdObject*)arg1->extra)->coords[0].coord.t[2] + vec.vz;

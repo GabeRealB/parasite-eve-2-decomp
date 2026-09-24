@@ -2,6 +2,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -166,7 +167,7 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -273,7 +274,7 @@ void func_actor_800100_801624F0(Task* task)
             work->move.vz      = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&work->move);
             work->scale        = (u16)task->spawnArg1 + 0x180;
             ang1               = Gp_LcgState * 5 + 0x71357911;
@@ -384,7 +385,7 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     idx = frame % 12;
     gte_stsxy(&((Actor800100SpinScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((Actor800100SpinScratch*)(head - 0x1C))->flag);
@@ -457,7 +458,7 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
         block->vec[i].vz = tbl[i].y * width;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&block->vec[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->vec[i]);
         *(u16*)&block->vec[i].vx = *(u16*)&block->vec[i].vx + *(u16*)&pos->vx;
         *(u16*)&block->vec[i].vy = *(u16*)&block->vec[i].vy + *(u16*)&pos->vy;
@@ -467,10 +468,10 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy[0]);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy[1], &block->sxy[2], &block->sxy[3]);
     gte_stflg(&flag);
     if (flag >= 0) {

@@ -7,11 +7,7 @@
 #include "main/gfx.h"
 
 #include <psyq/inline_c.h>
-
-/// `MVMVA` with `sf = 1` reading the rotation matrix and V0 -- the operation
-/// `gte_RotTrans` performs -- spelled with the COP2 prefix the retail build
-/// used, which `psyq/inline_c.h` omits.
-#define gte_rt_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+#include "gte.h"
 
 /// World position of `coord` as seen from `gGfxViewCoord`: `out` starts as the
 /// point in `coord`'s own space and is walked up the coordinate hierarchy, one
@@ -35,7 +31,7 @@ static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* ou
             gte_SetTransMatrix(&coord->coord);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&acc);
-            gte_rt_real();
+            gte_rt();
             gte_stlvnl(&v);
             gte_stflg(&flag);
             acc.vx = v.vx;

@@ -24,8 +24,6 @@ void                         func_800B4114(s8*, s32, s16, s32, s32);
 extern s8                    Actor00100_D1B6D0;
 extern GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-
 extern s8 D_80114C12;
 extern u8 D_80071075;
 

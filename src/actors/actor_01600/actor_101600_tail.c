@@ -6,8 +6,7 @@
 #include "main/sound.h"
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 void           Actor01600_Fn00480(Actor01600* arg0);
 s32            Actor01600_Fn05558(Actor01600* arg0);
@@ -827,13 +826,13 @@ void Actor01600_Fn06A84(Actor01600* arg0)
     RotMatrix((SVECTOR*)&work->field_4CC, scratch);
     gte_SetRotMatrix(&coord[1].coord);
     gte_ldclmv(scratch);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[1].coord);
     gte_ldclmv(&scratch->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[1].coord.m[0][1]);
     gte_ldclmv(&scratch->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[1].coord.m[0][2]);
     value = work->field_4CC;
     if (value != 0) {

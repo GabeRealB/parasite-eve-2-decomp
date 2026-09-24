@@ -9,7 +9,6 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
-#include "psyq/inline_c.h"
 
 extern MATRIX* D_80073B8C;
 extern u32     Gp_LcgState;
