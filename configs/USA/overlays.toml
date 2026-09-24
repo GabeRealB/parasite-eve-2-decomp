@@ -1097,10 +1097,7 @@ id = 318
 text = ["0x10", "0xF4"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_motel_room_4/dryfield_motel_room_4", rodata = "0x4", text = "0x94" },
-  { unit = "dryfield_motel_room_4/dryfield_motel_room_4_2", text = "0x10" },
-  { unit = "dryfield_motel_room_4/dryfield_motel_room_4_3", text = "0x50" },
-  { unit = "dryfield_motel_room_4/dryfield_motel_room_4_4", text = "0x9C" },
+  { unit = "dryfield_motel_room_4/dryfield_motel_room_4", rodata = "0x4", text = "0x10" },
   { kind = "data", at = "0xF4" },
 ]
 
