@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3688.h"
@@ -28,13 +29,6 @@
 #include "main/wipsys.h"
 #include "rooms/acropolis_bridge.h"
 #include "rooms/room_common.h"
-
-/// `rtps` / `rtpt` / `mvmva 1, 0, 0, 3, 0` / `gpf 1`. The `inline_c.h` macros
-/// of those names assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s8  D_8007216C;
 extern s32 D_80070F70;
@@ -2158,7 +2152,7 @@ void func_acropolis_bridge_801812F4(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -2268,7 +2262,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         v->vz            = tbl[i].y * 0x300;
         gte_SetRotMatrix(m);
         gte_ldv0(&block->vec[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->vec[i]);
         *(u16*)&block->vec[i].vx = *(u16*)&coord->workm.t[0];
         i++;
@@ -2279,14 +2273,14 @@ void func_acropolis_bridge_801819C8(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     setUV4(prim, 0, 0x10, 0x27, 0x10, 0, 0x37, 0x27, 0x37);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&block->otz);
@@ -2345,7 +2339,7 @@ void func_acropolis_bridge_80181D28(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -2480,7 +2474,7 @@ void func_acropolis_bridge_80182394(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisBridgeMoteScratch*)(head - 0xC))->vec);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (TILE_1*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
@@ -2574,7 +2568,7 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         sv->vz       = tbl[i].y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
         *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
@@ -2584,14 +2578,14 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     setUV4(prim, 0, 0x38, 0x37, 0x38, 0, 0x6F, 0x37, 0x6F);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stflg(&blk->flag);
@@ -2715,7 +2709,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(work->field_2A);
                 gte_ldsv(vec);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(vec);
             } else {
                 work->field_2A = 0x40;
@@ -2779,7 +2773,7 @@ void func_acropolis_bridge_80182F8C(GsCOORDINATE2* coord, u16 frame, s16 size, s
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisBridgeSpriteScratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
@@ -2857,7 +2851,7 @@ void func_acropolis_bridge_801833A0(GsCOORDINATE2* coord, u16 frame, s16 size)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
@@ -2942,7 +2936,7 @@ void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -3612,7 +3606,7 @@ void func_acropolis_bridge_80184B94(AcropolisBridgeWalkerWork* work)
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&s->dir);
             work->push.vx           += s->dir.vx;
             work->push.vz           += s->dir.vz;
@@ -3799,7 +3793,7 @@ static __inline__ void walkerStep(AcropolisBridgeWalkerWork* walker, u8* head,
             VectorNormalSS(sv, sv);
             gte_lddp(speed);
             gte_ldsv(gsv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gsv);
             coord->coord.t[0] += ((SVECTOR*)(head2 - 8))->vx;
             coord->coord.t[1] += sv->vy;
@@ -4751,7 +4745,7 @@ void func_acropolis_bridge_80187078(Task* task)
         VectorNormalSS(d, d);
         gte_lddp(-0x10);
         gte_ldsv(d);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(d);
         ((TmdObject*)task->extra)->coords->coord.t[0] += dir.vx;
         ((TmdObject*)task->extra)->coords->coord.t[2] += dir.vz;

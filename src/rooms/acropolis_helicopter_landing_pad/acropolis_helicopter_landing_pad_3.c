@@ -26,6 +26,7 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
 /// 0x14 scratch block `func_acropolis_helicopter_landing_pad_8017F010` takes
@@ -75,13 +76,6 @@ typedef struct AhlpFlareScratch {
     /* 0x1A */ u16     sy;
 } AhlpFlareScratch;
 STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
-/// vector added. Same reason as above for spelling out the word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s8        D_8007106B;
 extern s32       D_80070F70;
@@ -316,7 +310,7 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(pos);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((AhlpLightScratch*)(head - 0x14))->sx);
         gte_stflg(&((AhlpLightScratch*)(head - 0x14))->flag);
         if (blk->flag >= 0) {
@@ -506,7 +500,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->pos);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((AhlpFlareScratch*)(head - 0x1C))->sx);
         gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
         if (blk->flag >= 0) {
@@ -710,7 +704,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
     __asm__("" : "+r"(vec));
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(vec);
     blk->a.vx   = (u16)blk->a.vx + (u16)coord->workm.t[0];
     blk->a.vy   = (u16)blk->a.vy + (u16)coord->workm.t[1];
@@ -723,7 +717,7 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
     blk->b.vz   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0x40;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
     blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
     blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
@@ -731,10 +725,10 @@ void func_acropolis_helicopter_landing_pad_80180664(GsCOORDINATE2* coord)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
-    gte_rtps_real();
+    gte_rtps();
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
     lvl         = tmp;
@@ -785,7 +779,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
     __asm__("" : "+r"(vec));
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(vec);
     blk->a.vx   = (u16)blk->a.vx + (u16)coord->workm.t[0];
     blk->a.vy   = (u16)blk->a.vy + (u16)coord->workm.t[1];
@@ -798,7 +792,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
     blk->b.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
     blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
     blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
@@ -806,10 +800,10 @@ void func_acropolis_helicopter_landing_pad_80180A64(GsCOORDINATE2* coord)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
-    gte_rtps_real();
+    gte_rtps();
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
     lvl         = tmp;
@@ -952,7 +946,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->pos);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((AhlpFlareScratch*)(head - 0x1C))->sx);
         gte_stflg(&((AhlpFlareScratch*)(head - 0x1C))->flag);
         if (blk->flag >= 0) {
@@ -1252,7 +1246,7 @@ s32 func_acropolis_helicopter_landing_pad_80181B64(GsCOORDINATE2* coord, GpRec18
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

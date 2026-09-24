@@ -29,9 +29,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#include "gte.h"
 
 /// Copies the third column of a rotation matrix into an `SVECTOR`.
 #define COPY_MATRIX_COLUMN2(src, dst)     \
@@ -344,7 +342,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&((AcropolisCafeteriaBillboardScratch*)(head - 0x18))->vec);
-            gte_rtps_real();
+            gte_rtps();
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setcode(prim, 0x2C);
@@ -686,7 +684,7 @@ void func_acropolis_cafeteria_8017FBEC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw02Scratch*)(head - 0x1C))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw02Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw02Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -769,7 +767,7 @@ void func_acropolis_cafeteria_80180018(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw04Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw04Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -960,10 +958,10 @@ void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
         blk->v[3].vy = *(u16*)&b->workm.t[1];
         blk->v[3].vz = *(u16*)&b->workm.t[2];
         gte_ldv0(&blk->v[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&blk->sx0);
         gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&blk->sx1, &blk->sx2, &blk->sx3);
         gte_stflg(&blk->flag);
         if (blk->flag >= 0) {
@@ -1119,7 +1117,7 @@ void func_acropolis_cafeteria_80180F1C(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomBillboardScratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomBillboardScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1558,7 +1556,7 @@ s32 func_acropolis_cafeteria_80182078(GsCOORDINATE2* coord, GpRec18* recs, s16 c
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

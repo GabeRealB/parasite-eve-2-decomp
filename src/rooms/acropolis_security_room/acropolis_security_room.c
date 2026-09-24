@@ -32,15 +32,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
-
-/// `rtps`. The `inline_c.h` macro of that name assembles to a different word,
-/// so spell the instruction out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-/// Three-vertex projection with the target's RTPT opcode.
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-/// `mvmva 1, 0, 0, 3, 0`: rotate V0 by the rotation matrix with no translation
-/// vector added. Same reason as above for spelling out the word.
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -2106,7 +2098,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         blk->a.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&((AsrBeamScratch*)(head - 0x14))->a);
         blk->a.vx = *(u16*)&blk->a.vx + *(u16*)&coord->workm.t[0];
         blk->a.vy = *(u16*)&blk->a.vy + *(u16*)&coord->workm.t[1];
@@ -2116,7 +2108,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         blk->b.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&((AsrBeamScratch*)(head - 0x14))->b);
         blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
         blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
@@ -2124,13 +2116,13 @@ void func_acropolis_security_room_80180A78(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (LINE_F2*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         gte_stsxy(&prim->x0);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
-        gte_rtps_real();
+        gte_rtps();
         prim->code |= 2;
         gte_stsxy(&prim->x1);
         gte_stszotz(&blk->otz);
@@ -2240,7 +2232,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         sv->vz       = D_acropolis_security_room_801839C0[i].z * mem->scale;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
         sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
@@ -2250,14 +2242,14 @@ void func_acropolis_security_room_80181108(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
 
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim->u0 = 0;
     prim->v0 = 0;
     prim->u1 = 7;
@@ -2386,7 +2378,7 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((AsrFlashScratch*)(head - 0x14))->v);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((AsrFlashScratch*)(head - 0x14))->x);
     gte_stszotz(&scratch->otz);
     if (((AsrFlashScratch*)(head - 0x14))->otz >= 0x11) {
@@ -2661,7 +2653,7 @@ s32 func_acropolis_security_room_80181E28(GsCOORDINATE2* coord, GpRec18* recs, s
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

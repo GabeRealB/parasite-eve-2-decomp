@@ -19,12 +19,10 @@
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 #define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
 
@@ -541,7 +539,7 @@ void func_acropolis_patio_8017E324(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -646,7 +644,7 @@ void func_acropolis_patio_8017E730(Task* task)
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x20);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
             }
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
@@ -681,7 +679,7 @@ void func_acropolis_patio_8017E730(Task* task)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&sc->pos);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (TILE_1*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setTile1(prim);

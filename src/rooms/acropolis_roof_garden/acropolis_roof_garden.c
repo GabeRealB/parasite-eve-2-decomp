@@ -24,6 +24,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
@@ -42,12 +43,6 @@ typedef struct RgFlareScratch {
     /* 0x14 */ u16     sx;
     /* 0x16 */ u16     sy;
 } RgFlareScratch;
-
-/// `rtps` / `rtpt` / `mvmva`. The `inline_c.h` macros of those names assemble
-/// to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 extern s32 Gp_LcgState;
 
@@ -418,7 +413,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&blk->vec);
-            gte_rtps_real();
+            gte_rtps();
             prim           = (POLY_FT4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -503,7 +498,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RgFlareScratch*)(head - 0x18))->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RgFlareScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
     if (((RgFlareScratch*)(head - 0x18))->otz >= 0x11) {
@@ -811,7 +806,7 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         sv->vz = tbl[i].y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
         *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
@@ -822,14 +817,14 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     setUV4(prim, 0, 0xE8, 7, 0xE8, 0, 0xEF, 7, 0xEF);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
@@ -1036,7 +1031,7 @@ s32 func_acropolis_roof_garden_8017FA14(GsCOORDINATE2* coord, GpRec18* recs, s16
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

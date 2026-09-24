@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -25,12 +26,6 @@
 
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181d28.h"
-
-/// `rtps` / `rtpt` / `rtv0`. The `inline_c.h` macros of those names assemble
-/// to different words, so spell the instructions out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// 0x14 work block the promenade's streamed-scene task
 /// (`func_acropolis_promenade_8017DB9C`) keeps at `Task::work`
@@ -671,7 +666,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -787,7 +782,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
         sv->vz = D_acropolis_promenade_80181AE4[i].y * 0x300;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         blk->v[i].vx += coord->workm.t[0];
         sv->vy       += coord->workm.t[1];
@@ -796,14 +791,14 @@ void func_acropolis_promenade_8017ED44(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim->u0 = 0;
     prim->v0 = 0x10;
     prim->u1 = 0x27;
@@ -875,7 +870,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->pos);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
@@ -962,7 +957,7 @@ void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {

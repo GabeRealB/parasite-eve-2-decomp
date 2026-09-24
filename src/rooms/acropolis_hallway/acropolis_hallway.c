@@ -20,6 +20,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;
@@ -303,7 +304,7 @@ s32 func_acropolis_hallway_8017D9D4(GsCOORDINATE2* coord, GpRec18* recs, s16 cou
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;

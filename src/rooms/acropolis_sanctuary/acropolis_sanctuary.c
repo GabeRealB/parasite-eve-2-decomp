@@ -23,6 +23,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 #include "rooms/rooms_shared_80182078.h"
+#include "gte.h"
 
 /// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -195,13 +196,6 @@ STATIC_ASSERT_SIZEOF(AcsTileScratch, 0x28);
 typedef struct AcsSpriteLevels {
     /* 0x0 */ u8 v[3];
 } AcsSpriteLevels;
-
-/// `rtps` / `rtpt` / `mvmva` / `gpf`. The `inline_c.h` macros of those names
-/// assemble to different words, so spell the instructions out.
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -762,7 +756,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         sv->vz = D_acropolis_sanctuary_80182710[quad].corner[i].vz;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         blk->v[i].vx += coord->workm.t[0];
         sv->vy       += coord->workm.t[1];
@@ -770,14 +764,14 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&blk->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
     gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
@@ -981,11 +975,11 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         sv->vz = corner[i].vz;
         gte_lddp(mem->angle);
         gte_ldsv(&blk->v[i]);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&blk->v[i]);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&blk->v[i]);
         blk->v[i].vx += coord->workm.t[0];
         sv->vy       += coord->workm.t[1];
@@ -993,7 +987,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
-    gte_rtpt_real();
+    gte_rtpt();
     prim           = (POLY_FT3*)gGpuPrimCursor;
     gGpuPrimCursor = (LINE_G3*)prim + 1;
     setlen(prim, 7);
@@ -1106,7 +1100,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->pos);
-        gte_rtps_real();
+        gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
@@ -1348,7 +1342,7 @@ s32 func_acropolis_sanctuary_8017FB18(GsCOORDINATE2* coord, GpRec18* recs, s16 c
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);
             gte_ldsv(&st->aim);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&st->delta);
             coord->coord.t[0] += st->delta.vx;
             coord->coord.t[2] += st->delta.vz;
