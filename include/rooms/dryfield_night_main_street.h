@@ -21,9 +21,10 @@ s32  func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* m
 void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1);
 void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_main_street_8017F608(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_dryfield_night_main_street_8017FD34(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_night_main_street_8017FD34(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3);
 void func_dryfield_night_main_street_8017FFF8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_dryfield_night_main_street_8018041C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_dryfield_night_main_street_80181220(GsCOORDINATE2* arg0, s32 arg1);
 void func_dryfield_night_main_street_80181598(GsCOORDINATE2* arg0, s16 arg1, u8* rgb);
 
 #endif
