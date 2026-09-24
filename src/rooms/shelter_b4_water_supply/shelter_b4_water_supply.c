@@ -5,10 +5,12 @@
 #include "gameplay/D4.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "gameplay/gameplay.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b4_water_supply.h"
 
@@ -27,7 +29,65 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", RoomsShared8017d878Table);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017D7C0);
+/// Spawn argument for the task `func_shelter_b4_water_supply_8017D7C0` starts
+/// with `Task_Spawn(1, 0x31, ...)`.
+extern GpStateBD8 D_shelter_b4_water_supply_80184E34;
+extern u8         D_801153F4;
+extern s16        D_80114D08;
+extern s16        D_80071076;
+
+void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(arg0->spawnArg1, 0);
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (Gp_GetCapEventKey() != 0xA) {
+                taskKill(arg0);
+                Gp_MsgPlayerWeapon(1);
+                D_801153F4 = 0;
+                D_80114D08 = 0xA;
+                break;
+            }
+            D_801153F4 = 1;
+            Gp_TriggerPeIfArmed();
+            D_shelter_b4_water_supply_80184E34.field_0 = 0;
+            D_shelter_b4_water_supply_80184E34.field_1 = 0;
+            D_shelter_b4_water_supply_80184E34.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b4_water_supply_80184E34);
+            arg0->killCountdown = 0x1E;
+            arg0->state++;
+            break;
+        case 3:
+            if (--arg0->killCountdown == 0) {
+                SndEvt_EnqueueType6(0x542E0005, 0, 0);
+                arg0->state++;
+            }
+            break;
+        case 4:
+            if (SndVoice_HasActiveId(0x542E0005) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 5:
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
+            Mc_SaveData.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
+            Mc_SaveData.at4.loc.room = D_shelter_b4_water_supply_80184E3C.field_1;
+            Task_Spawn(0, 0x11, 0x10, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_shelter_b4_water_supply_8017D970(void)
 {
