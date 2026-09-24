@@ -1,8 +1,12 @@
 #include "common.h"
+
 #include "gameplay/1A8.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -14,12 +18,29 @@ extern GpSaveLoc D_mine_secret_passage_80183448;
 
 extern TaskDesc D_mine_secret_passage_80180EBC;
 
+extern u8  D_80062735;
 extern s16 D_80071076;
 extern s8  D_801153F4;
+
+/// The passage's message table, which the room task answers messages with.
+extern GpMsgEntry D_mine_secret_passage_80180E8C[];
 
 /// 0x1E pair this room hands `Task_Spawn` for the helper it raises in state 4,
 /// the same shape `D_mine_mesa_80189B38` has.
 extern GpStateBD8 D_mine_secret_passage_80183440;
+
+void func_mine_secret_passage_8017D8C8(Task* arg0);
+void func_mine_secret_passage_8017D914(Task* arg0);
+void func_mine_secret_passage_8017D968(Task* task);
+
+/// State handlers of the room task `func_mine_secret_passage_8017D970` drives:
+/// set-up, the one-shot state, the idle state and `taskKill`.
+const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
+    func_mine_secret_passage_8017D8C8,
+    func_mine_secret_passage_8017D914,
+    func_mine_secret_passage_8017D968,
+    taskKill,
+};
 
 /// Runs the room's save sequence. State 0 asks for the caption, state 1 waits
 /// for it and drops the periscope overlay, state 2 takes the confirm key or
@@ -136,4 +157,43 @@ s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         SndEvt_EnqueueType6(0x16, 0, 0);
     }
     return 0;
+}
+
+/// Set-up state of the room task: points the task at the passage's message
+/// table, publishes it in pointer slot 7, sets the `D_80062735` mode byte and
+/// advances to the next state.
+void func_mine_secret_passage_8017D8C8(Task* arg0)
+{
+    arg0->msgTable = &D_mine_secret_passage_80180E8C;
+    Game_SetPtrSlot(arg0, 7);
+    arg0->state = (s32)(arg0->state + 1);
+    D_80062735  = 1;
+}
+
+/// One-shot state of the room task: the first time through (game flag nibble
+/// 0x172 still clear) it sets the flag and calls `Gp_SpawnIfCapIdle(3, 1)`;
+/// either way it advances to the idle state.
+void func_mine_secret_passage_8017D914(Task* arg0)
+{
+    if (GameFlag_GetNibble(0x172) == 0) {
+        GameFlag_SetNibble(0x172, 1);
+        Gp_SpawnIfCapIdle(3, 1);
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
+
+/// Idle state of the room task.
+void func_mine_secret_passage_8017D968(Task* task)
+{
+}
+
+/// Per-frame entry point of the room task: runs the handler of
+/// `D_mine_secret_passage_8017D5C4` its state selects. The table is a local
+/// copy, so it is copied from `.rodata` onto the stack every frame.
+void func_mine_secret_passage_8017D970(Task* task)
+{
+    TaskFuncTable4 states;
+
+    states = D_mine_secret_passage_8017D5C4;
+    states.funcs[task->state](task);
 }
