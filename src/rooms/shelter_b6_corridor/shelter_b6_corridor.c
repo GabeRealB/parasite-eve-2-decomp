@@ -4,18 +4,41 @@
 #include "gameplay/3CD8.h"
 
 #include "main/gameflag.h"
+#include "rooms/room_common.h"
 
 extern s16 D_800691CA;
 
 extern s32 D_shelter_b6_corridor_8017F354;
 extern s32 D_shelter_b6_corridor_8017F684;
 
+extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
+
 s32 func_shelter_b6_corridor_8017DEA8(void)
 {
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b6_corridor/shelter_b6_corridor", func_shelter_b6_corridor_8017DEB0);
+s32 func_shelter_b6_corridor_8017DEB0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    u16 id;
+    s32 k;
+
+    *out = *in;
+    func_80179B14(in, out);
+    k  = in->msgId;
+    id = k;
+    k  = 0x19;
+    if (id == 9) {
+        if (in->field_5 == 0) {
+            Gp_RunCapCmd1(1);
+        }
+        return 0;
+    }
+    if (id == k) {
+        return Gp_StateF0.field_0 != 1;
+    }
+    return 1;
+}
 
 s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
 {

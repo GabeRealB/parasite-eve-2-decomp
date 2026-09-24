@@ -139881,3 +139881,21 @@ and with `&&` the first two also merge into one masked `lw` (see the
 `GpAreaKey* k = &gGameSession->at4.loc;` while the third stays spelled from
 `gGameSession`. The separate address computation survives because `k` is a
 distinct pseudo that CSE does not fold back into the base.
+
+### Swapped registers between a value and a compare constant: reuse the constant's local for the load to raise its global-alloc priority (func_shelter_b6_corridor_8017DEB0, 2026-09-24)
+
+**Symptom.** A `u16` read after a call is compared with 9, and then with 0x19
+on the other path. The target holds the value in `a0` and 0x19 in `v1`. The
+natural `if (id == 9) ... if (id == 0x19)` gives `v1` for the value and `v0`
+for the constant; everything else matches (99.34%). Hoisting the constant into
+a local (`k = 0x19;` before the first test) makes it a global pseudo. Its
+2 refs over 10 insns still rank below the value's 3 refs over 4, so the value
+still takes `v1` first and the constant gets `a0`.
+
+**Fix (permuter).** Load through the constant's local and reuse it:
+`k = in->msgId; id = k; k = 0x19;`. The one pseudo now has 4 refs over the
+same 10 insns, so global.c's `floor_log2(refs) * refs / live_length` gives
+0.8 against `id`'s 0.75. `k` is allocated first and takes `v1`, since `v0`
+is held by the local 9 constant, and `id` falls to `a0`. The `.lreg`
+"used N times across M insns" lines are enough to check the ranking before
+building.
