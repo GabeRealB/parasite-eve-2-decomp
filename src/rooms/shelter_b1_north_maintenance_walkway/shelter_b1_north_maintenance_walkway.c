@@ -84,5 +84,3 @@ void func_shelter_b1_north_maintenance_walkway_8017DAF4(void)
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", RoomsShared8017d878Table);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", jtbl_shelter_b1_north_maintenance_walkway_8017D5E4);

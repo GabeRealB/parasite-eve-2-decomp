@@ -2696,7 +2696,7 @@ objects = [
   { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", rodata = "0x4", text = "0x4C" },
   { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_7", rodata = "0x38", text = "0x4EF0" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x53C" },
-  { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_2", text = "0x594" },
+  { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_2", rodata = "0x24", text = "0x594" },
   { lib = true, unit = "room_draw11", text = "0x820" },
   { lib = true, unit = "room_draw25", text = "0xF9C" },
   { lib = true, unit = "rooms_shared_8017dcb8", text = "0x12F8" },
