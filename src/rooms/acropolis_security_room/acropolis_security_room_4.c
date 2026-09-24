@@ -37,27 +37,27 @@ s32  func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
 s32  func_acropolis_security_room_8017FCB0(RoomHotspot* table, s16 x, s16 y);
 void func_acropolis_security_room_8017EDE4(Task* task);
 
-/// Per-frame cursor driver of the security-room action prompt, run as state 1
-/// of `func_acropolis_security_room_8017E9D8`. Byte-for-byte the same body as
-/// `func_acropolis_security_room_8017F480` in the cap script.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (pad status 0x12 reads it linearly, 0x73 squares it for a dead-zone
-/// curve) and then the d-pad -- whose four bits select one of eight
-/// 1/16-of-a-turn headings fed to `rsin`/`rcos` -- into the prompt's
-/// 1/512-pixel position, clamps that to the screen, classifies the confirm
-/// (0x40) and cancel (0xA0) buttons into the prompt's two button slots, and
-/// finally hands the rounded position to `func_acropolis_security_room_8017E8F0`
-/// to draw the cursor. `RoomActionPrompt::targetId` doubles as the cursor speed
-/// here and `field_E` as the double-press window: a second press inside that
-/// many frames without the cursor having moved reports state 4 instead of 2.
-///
-/// `step` carries the analog delta first and the d-pad heading afterwards, and
-/// `idx` indexes the button slots in `u16` units so that `i` survives as the
-/// loop counter.
+/// Resets both action-prompt slots before the cursor driver's first frame and
+/// steps the caller on one state: clears each slot's leading words and its two
+/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
+/// marks the slot as highlighted (`mode` 1). The room carries a second copy of
+/// this body at `func_acropolis_security_room_80180308`.
+void func_acropolis_security_room_8017EDE4(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+    s32               i;
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_4", func_acropolis_security_room_8017EDE4);
+    for (i = 0; i < 2; i++, prompt++) {
+        prompt->field_0               = 0;
+        prompt->field_4               = 0;
+        prompt->targetId              = 0x100;
+        prompt->field_E               = 0xF;
+        prompt->buttons[0].heldFrames = 0;
+        prompt->buttons[1].heldFrames = 0;
+        prompt->mode                  = 1;
+    }
+    task->state = task->state + 1;
+}
 
 /// Idle state of the security room's cap script: the same hotspot scan
 /// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against

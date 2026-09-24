@@ -190,7 +190,49 @@ void func_acropolis_security_room_8017E490(Task* task)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", func_acropolis_security_room_8017E8F0);
+/// Queues the security monitor's 16x24 cursor/highlight quad at (`x`, `y`)
+/// into the current OT. `variant` picks the palette -- 0x3C87 when it is 2,
+/// and 0x3C88 otherwise -- and 0 draws nothing at all. The room carries a
+/// second copy of this body at `func_acropolis_security_room_8017F8E0`.
+void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant)
+{
+    POLY_FT4* prim;
+    s16       px;
+    s16       py;
+
+    if (variant == 0) {
+        return;
+    }
+
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+
+    px       = x - 2;
+    prim->x2 = px;
+    prim->x0 = px;
+    px       = x + 0xE;
+    prim->x3 = px;
+    prim->x1 = px;
+    py       = y - 2;
+    prim->y1 = py;
+    prim->y0 = py;
+    py       = y + 0x15;
+    prim->y3 = py;
+    prim->y2 = py;
+
+    prim->tpage = 0x1E;
+    if (variant == 2) {
+        prim->clut = 0x3C87;
+    } else {
+        prim->clut = 0x3C88;
+    }
+
+    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
+    setlen(prim, 9);
+    setcode(prim, 0x2D);
+
+    addPrim(gGpuCurrentOt, prim);
+}
 
 /// Two-state dispatcher whose handler table is built on the stack rather than
 /// read from `.data`: state 0 runs `func_acropolis_security_room_8017EDE4` and
@@ -205,7 +247,21 @@ void func_acropolis_security_room_8017E9D8(Task* task)
     funcs[task->state](task);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", func_acropolis_security_room_8017EA28);
+/// Arms the action prompt for the monitor's hotspot and steps the caller on one
+/// state: highlights (`mode` 1) the fixed target id 0x80 and clears the
+/// prompt's on-screen position, which `func_800D4E78` fills in again when the
+/// prompt is actually spawned. The room carries a second copy of this body at
+/// `func_acropolis_security_room_8017FB20`.
+void func_acropolis_security_room_8017EA28(Task* task)
+{
+    RoomActionPrompt* prompt = &D_80114D28;
+
+    prompt->targetId    = 0x80;
+    prompt->mode        = 1;
+    prompt->screen.xy.x = 0;
+    prompt->screen.xy.y = 0;
+    task->state         = task->state + 1;
+}
 
 /// Confirms the camera the player picked on the security monitor: clears the
 /// action prompt, redraws the panel for the selected camera plus its cursor
