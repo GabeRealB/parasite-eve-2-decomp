@@ -20,9 +20,13 @@ extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186448[];
 extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186454[];
 extern u8*                        D_shelter_b4_upper_sewer_80188D30;
 
-void func_shelter_b4_upper_sewer_8017DD98(s32 arg0, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
+void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
 
-void func_shelter_b4_upper_sewer_8017DC88(s32 arg0)
+/// Water state of the room's water task: clamps the water level
+/// `D_shelter_b4_upper_sewer_80186438` to -0x640..0, publishes it as the
+/// session's water height, and draws the surfaces of the current camera view at
+/// that height, in a blue that brightens as the level moves away from 0.
+void func_shelter_b4_upper_sewer_8017DC88(Task* task)
 {
     s16 w;
     u8  c;
@@ -43,9 +47,9 @@ void func_shelter_b4_upper_sewer_8017DC88(s32 arg0)
     h                    = w;
     c                    = (-h * 16) / 225;
     if (gGameSession->at4.loc.view != 0xC) {
-        func_shelter_b4_upper_sewer_8017DD98(arg0, D_shelter_b4_upper_sewer_80186448, h, c);
+        func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186448, h, c);
     } else {
-        func_shelter_b4_upper_sewer_8017DD98(arg0, D_shelter_b4_upper_sewer_80186454, h, c);
+        func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186454, h, c);
     }
 }
 
@@ -55,8 +59,8 @@ void func_shelter_b4_upper_sewer_8017DC88(s32 arg0)
 /// Quads are linked 0x60 deeper in the ordering table than their projected
 /// depth, and those the projection flags as invalid are skipped. The
 /// per-surface values live in a work block pushed on the scratchpad stack for
-/// the duration of the call. `arg0` is unused.
-void func_shelter_b4_upper_sewer_8017DD98(s32 arg0, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
+/// the duration of the call. `task` is unused.
+void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
 {
     SVECTOR                       v0, v1, v2, v3;
     s32                           sxy0, sxy1, sxy2, sxy3;
@@ -168,4 +172,13 @@ void func_shelter_b4_upper_sewer_8017DD98(s32 arg0, ShelterB4UpperSewerSurface* 
     *(u8**)0x1F8003FC += 0xC;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b4_upper_sewer/shelter_b4_upper_sewer_2", func_shelter_b4_upper_sewer_8017E4F4);
+/// The room's water task: runs its state (`func_shelter_b4_upper_sewer_8017E55C`
+/// once, then `func_shelter_b4_upper_sewer_8017DC88` every frame) and publishes
+/// the water level as the session's water height.
+void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
+{
+    TaskFunc states[2] = { func_shelter_b4_upper_sewer_8017E55C, func_shelter_b4_upper_sewer_8017DC88 };
+
+    states[task->state](task);
+    gGameSession->waterY = D_shelter_b4_upper_sewer_80186438;
+}

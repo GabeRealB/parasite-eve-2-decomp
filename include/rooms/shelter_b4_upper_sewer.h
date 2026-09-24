@@ -44,12 +44,17 @@ typedef struct ShelterB4UpperSewerWaterWork {
 extern const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4;
 
 void func_shelter_b4_upper_sewer_8017DC30(Task* task);
+void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
 void func_shelter_b4_upper_sewer_8017EA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+void func_shelter_b4_upper_sewer_8017F1FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_shelter_b4_upper_sewer_8017F5E8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2);
 void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b4_upper_sewer_80180AC4(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b4_upper_sewer_8018139C(GsCOORDINATE2* coord, s16 size);
 void func_shelter_b4_upper_sewer_80181C40(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b4_upper_sewer_80182E04(GsCOORDINATE2* coord, s16 frame, u8* rgb);
 void func_shelter_b4_upper_sewer_80183D08(GsCOORDINATE2* coord, s16 frame, u8* rgb);
+void func_shelter_b4_upper_sewer_801850C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b4_upper_sewer_801854EC(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
 
 #endif // ROOMS_SHELTER_B4_UPPER_SEWER_H
