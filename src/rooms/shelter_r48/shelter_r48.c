@@ -431,4 +431,4 @@ s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)
     return ret;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_r48/shelter_r48", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_r48/shelter_r48", D_shelter_r48_8017D608);
