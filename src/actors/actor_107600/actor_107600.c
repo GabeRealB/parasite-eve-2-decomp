@@ -4,13 +4,13 @@
 #include "main/gfx.h"
 #include "main/task.h"
 #include "main/session.h"
+#include "main/sound.h"
 
 #include "gameplay/gameplay.h"
 #include "gameplay/1BC.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
-
-#include "actors/actor_107600.h"
 
 /* The controller task this actor is reparented to is the Mist shooting
  * gallery's, so the counter at +0xE of its work block is that room's. */
@@ -20,25 +20,177 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-/* Leading-rodata state table. A local initializer would emit the pool at this
- * function's .rodata instead of at D_actor_107600_80131E24. */
-extern const TaskFuncTable4 D_actor_107600_80131E24;
+/// Work block this overlay hangs off `Actor107600.field_1C` (the task's
+/// `Task::work` slot, which is not a `TaskIdMap` here). The display node at
+/// +0x60 is the one the exit callback `func_actor_107600_80134920` hands back
+/// to `Gp_UnlinkObj`. The state pair at +0x158/+0x15A is what
+/// `func_actor_107600_80134B98` writes: the new state in `field_158` and its
+/// sub-state counter cleared. `field_13E` is a free-running counter that
+/// `func_actor_107600_80132CB8` bumps by one, and `field_144` is the phase the
+/// destroy callback `func_actor_107600_80132AC0` tests against 2. The three
+/// angles at +0x40 are what `func_actor_107600_80132B7C` rebuilds the model
+/// root's rotation from.
+/// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
+/// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
+///
+/// `rec18` is the collision table `obj.ctx.recs` points at and
+/// `func_actor_107600_80134958` hands to `Gp_InitRec18Table` with count 8, so
+/// it really runs to +0x140 and `field_13E` sits inside its last record.
+/// `field_162` is the spawn variant `func_actor_107600_80132ED0` takes from
+/// the low nibble of the task's own `Task::spawnArg1` high halfword
+/// (`lhu 0x36` then `andi 0xF`): `func_actor_107600_80134958` picks the
+/// display node's `field_1C` from it and `func_actor_107600_80134C54`
+/// switches on it.
+typedef struct Actor107600Work {
+    /// Colour / light matrix pair `func_actor_107600_80132ED0` hangs off the
+    /// display object's `TmdObject.colorMtx` / `field_1C` so the actor draws
+    /// with its own light instead of `Gp_BindDefaultMtx`'s.
+    /* 0x000 */ MATRIX  matrix_0;  // color matrix for the child models
+    /* 0x020 */ MATRIX  matrix_20; // light matrix for the child models
+    /* 0x040 */ u16     pitch;     // fed to RotMatrixX
+    /* 0x042 */ s16     yaw;       // fed to func_8004BFF8
+    /* 0x044 */ u16     roll;      // fed to RotMatrixZ
+    /* 0x046 */ byte    pad_46[0x2];
+    /* 0x048 */ u16     field_48;  // spawn position x
+    /* 0x04A */ u16     field_4A;  // spawn position y
+    /* 0x04C */ u16     field_4C;  // spawn position z
+    /* 0x04E */ byte    pad_4E[0x2];
+    /* 0x050 */ u16     field_50;  // fed to Gfx_RotMatrixX
+    /* 0x052 */ u16     field_52;  // fed to Gfx_RotMatrixY
+    /* 0x054 */ u16     field_54;  // fed to Gfx_RotMatrixZ
+    /* 0x056 */ byte    pad_56[0x2];
+    /* 0x058 */ s16     field_58;  // spin velocity added to field_50 while tumbling
+    /* 0x05A */ s16     field_5A;  // spin velocity added to field_52
+    /* 0x05C */ s16     field_5C;  // spin velocity added to field_54
+    /* 0x05E */ byte    pad_5E[0x2];
+    /* 0x060 */ GpObj   obj;
+    /* 0x080 */ GpRec18 rec18[1];  // collision table; count 8 passed to Gp_InitRec18Table
+    /* 0x098 */ byte    pad_98[0xA2];
+    /* 0x13A */ u16     field_13A; // frame counter / countdown of func_actor_107600_80132160
+    /* 0x13C */ byte    pad_13C[0x2];
+    /* 0x13E */ u16     field_13E;
+    /// The spawn state stores the model root here as a word, while
+    /// `func_actor_107600_80132D54` counts its sub-phase in the low halfword.
+    /* 0x140 */ union {
+        GsCOORDINATE2* coord; // model root, stored by the spawn state
+        s16            step;  // sub-phase of func_actor_107600_80132D54
+    } field_140;
+    /* 0x144 */ s16  field_144;
+    /* 0x146 */ s16  field_146; // written 2 beside field_144 by the spawn state
+    /* 0x148 */ s16  field_148; // waypoint index into the D_actor_107600_80135624 path
+    /* 0x14A */ u8   field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
+    /* 0x14B */ s8   field_14B; // scale percent applied to the model root coord.m[1][1]
+    /* 0x14C */ s32  field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
+    /* 0x150 */ s16  field_150; // Gp_GetIdParam2 of the last hit's id
+    /* 0x152 */ byte pad_152[0x2];
+    /* 0x154 */ u16  field_154; // countdown before the sub-state's sound cue
+    /* 0x156 */ s16  field_156;
+    /* 0x158 */ s16  field_158;
+    /* 0x15A */ s16  field_15A;
+    /* 0x15C */ s16  field_15C;
+    /* 0x15E */ u16  field_15E;
+    /* 0x160 */ s16  field_160; // damage of the last hit
+    /* 0x162 */ s16  field_162; // spawn variant; 1 selects the 0x220 obj.radius
+    /* 0x164 */ byte pad_164[0x2];
+    /* 0x166 */ u16  field_166; // frame counter of the post-death light cycle
+    /* 0x168 */ u8   field_168; // percent scale applied to coord.m[0][0]
+    /* 0x169 */ u8   field_169; // percent scale applied to coord.m[2][1]
+    /* 0x16A */ u8   field_16A; // rolled 0..7 alongside field_168
+    /* 0x16B */ u8   field_16B;
+} Actor107600Work;
 
-/* Second table out of the same leading-rodata block, run by
- * `func_actor_107600_801348A0`. */
-extern const TaskFuncTable4 D_actor_107600_80131E74;
+/// The hit position `func_actor_107600_80133DC4` copies out of a collision
+/// record as three words over `Actor107600Work.pitch`/`yaw`/`roll`: the same
+/// 0x40 slot read as `s32`s, sign-extended from the record's halfwords.
+typedef struct Actor107600HitPos {
+    /* 0x0 */ s32 vx;
+    /* 0x4 */ s32 vy;
+    /* 0x8 */ s32 vz;
+} Actor107600HitPos;
 
-/* Third table out of that block, run by `func_actor_107600_80132CD4` and
- * holding one entry per `Actor107600Work.field_144` phase. */
-extern const TaskFuncTable3 D_actor_107600_80131E34;
+/// One waypoint of the paths in `D_actor_107600_80135624`: the X/Z target the
+/// model root steps towards at `step` units per frame; an `x` of -1 ends the path.
+typedef struct Actor107600Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+    /* 0x4 */ s16 step;
+} Actor107600Waypoint;
+
+/// Entry of the effect-offset table `func_actor_107600_80133024` copies into
+/// an `SVECTOR`'s `vx`/`vy`.
+typedef struct Actor107600Pair {
+    /* 0x0 */ u16 vx;
+    /* 0x2 */ u16 vy;
+} Actor107600Pair;
+
+/// 0x34-byte scratch block `func_actor_107600_80134248` takes from
+/// `G_SCRATCH_HEAD` to draw one `POLY_FT4`. `v` holds the four corners
+/// (the offset table plus the coordinate's translation and the caller's
+/// position), projected through `workm` by one `RTPS` and one `RTPT` into
+/// `sxy` (each a packed `gte_stsxy` word, x low and y high). `otz` is the
+/// `gte_stszotz` less 0x40, which picks the OT bucket.
+typedef struct Actor107600QuadScratch {
+    /* 0x00 */ s32     sxy[4];
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ SVECTOR v[4];
+} Actor107600QuadScratch;
+
+typedef struct Actor107600 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor107600Work* field_1C;
+} Actor107600;
+
+/// LCG shared by the actor overlays (`state = state * 5 + 0x71357911`); this
+/// overlay rolls its low 3 bits of the high half into `Actor107600Work.field_16A`.
+extern u32 Gp_LcgState;
+
+/// Global scene mode the actor updates switch on: 0 runs the full update, 1 only
+/// refreshes the colour, 2 hides the model (`TmdObject.flags` bit 0x80).
+extern u8 D_801153F4;
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+void func_actor_107600_801328CC(Task* arg0);
+void func_actor_107600_80132A7C(Task* arg0);
+void func_actor_107600_80132AC0(Task* arg0);
+void func_actor_107600_80132B0C(Task* arg0);
+void func_actor_107600_80132B7C(Task* arg0);
+void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
+void func_actor_107600_80132CB8(Actor107600* arg0);
+void func_actor_107600_80132CD4(Task* arg0);
+void func_actor_107600_80132D54(Task* arg0);
+void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
+void func_actor_107600_80132ED0(Task* arg0);
+void func_actor_107600_80133024(Task* arg0);
+void func_actor_107600_801332D4(Task* arg0);
+void func_actor_107600_80133668(Actor107600* arg0);
+void func_actor_107600_801337FC(Task* arg0);
+void func_actor_107600_801339A4(Task* arg0);
+void func_actor_107600_80133FA8(GsCOORDINATE2* arg0, SVECTOR* arg1);
+void func_actor_107600_80134248(GsCOORDINATE2* arg0, SVECTOR* arg1);
+void func_actor_107600_80134608(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_actor_107600_801348A0(Task* arg0);
+void func_actor_107600_80134904(Task* arg0);
+void func_actor_107600_80134920(Task* arg0);
+void func_actor_107600_80134958(Task* arg0);
+void func_actor_107600_801349E0(Task* arg0);
+void func_actor_107600_80134A50(Task* arg0);
+void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst);
+void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1);
+s32  func_actor_107600_80134BAC(Actor107600* arg0);
+void func_actor_107600_80134C54(Task* arg0);
+void func_actor_107600_80134D10(Actor107600* arg0);
+void func_actor_107600_80134D30(Actor107600* arg0);
+void func_actor_107600_80134D50(Actor107600* arg0);
+void func_actor_107600_80134D70(Actor107600* arg0);
+void func_actor_107600_80134D9C(Task* arg0);
+void func_actor_107600_80134E5C(GsCOORDINATE2* arg0);
+void func_actor_107600_80134EF4(Task* arg0);
 
 /* Per-variant waypoint paths `func_actor_107600_80132160` walks, indexed by
  * `Actor107600Work.field_146`; trailing-blob data. */
 extern Actor107600Waypoint* D_actor_107600_80135624[];
-
-/* Fourth table out of that block, run by `func_actor_107600_80133024` on
- * `Actor107600Work.field_158`. */
-extern const TaskFuncTable10 D_actor_107600_80131E84;
 
 /* Eight effect offsets `func_actor_107600_80133024` cycles through from
  * `Actor107600Work.field_16A`. */
@@ -61,6 +213,29 @@ extern u16        D_actor_107600_80135750[];
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
 extern s16   D_80073BA0;
 extern Task* D_8018E0C4;
+
+void func_actor_107600_80131F10(Task* arg0);
+void func_actor_107600_80132160(Task* arg0);
+void func_actor_107600_80132514(Task* arg0);
+void func_actor_107600_80132930(Task* arg0);
+void func_actor_107600_80133DC4(Task* arg0);
+
+/// The actor's top-level task states, which `func_actor_107600_801328CC` runs:
+/// spawn, update, drop and destroy.
+const TaskFuncTable4 D_actor_107600_80131E24 = { {
+    func_actor_107600_80131F10,
+    func_actor_107600_80132930,
+    func_actor_107600_80132A7C,
+    func_actor_107600_80132AC0,
+} };
+
+/// One entry per `Actor107600Work.field_144` phase, run by
+/// `func_actor_107600_80132CD4`.
+const TaskFuncTable3 D_actor_107600_80131E34 = { {
+    func_actor_107600_80132160,
+    func_actor_107600_80132514,
+    func_actor_107600_80132D54,
+} };
 
 /// Spawn state of the `D_actor_107600_80131E24` table. The target is dropped
 /// (and the gallery's live count given back) when the player is within 0x400 on
@@ -352,9 +527,8 @@ void func_actor_107600_80132514(Task* arg0)
     }
 }
 
-/* The two tables follow the jump tables of `func_actor_107600_80132160` and
- * `func_actor_107600_80132514` in this unit's .rodata, so they are defined
- * here, in address order, rather than included from assembly. */
+/// Task states run by `func_actor_107600_801348A0`, indexed by its
+/// `Task::state`.
 const TaskFuncTable4 D_actor_107600_80131E74 = { {
     func_actor_107600_80132ED0,
     func_actor_107600_80133024,
@@ -362,6 +536,8 @@ const TaskFuncTable4 D_actor_107600_80131E74 = { {
     func_actor_107600_80134920,
 } };
 
+/// Behaviour states indexed by `Actor107600Work.field_158`, run by
+/// `func_actor_107600_80133024`.
 const TaskFuncTable10 D_actor_107600_80131E84 = { {
     func_actor_107600_80134C54,
     func_actor_107600_801332D4,
@@ -1457,4 +1633,187 @@ void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
 
     work->field_158 = arg1;
     work->field_15A = 0;
+}
+
+/// Applies the transition `work->field_15E` queues once `field_156` is 1:
+/// requests 1..5 open states 2, 3, 4, 6 and 5 through the same stores as
+/// `func_actor_107600_80134B98` (written out, since the setter is not
+/// inlined). The request is always consumed; returns whether one was pending.
+s32 func_actor_107600_80134BAC(Actor107600* arg0)
+{
+    Actor107600Work* work = arg0->field_1C;
+
+    if (work->field_156 == 1) {
+        switch ((s16)(work->field_15E - 1)) {
+            case 0: {
+                Actor107600Work* w = arg0->field_1C;
+
+                w->field_158 = 2;
+                w->field_15A = 0;
+                break;
+            }
+            case 1: {
+                Actor107600Work* w = arg0->field_1C;
+
+                w->field_158 = 3;
+                w->field_15A = 0;
+                break;
+            }
+            case 2: {
+                Actor107600Work* w = arg0->field_1C;
+
+                w->field_158 = 4;
+                w->field_15A = 0;
+                break;
+            }
+            case 3: {
+                Actor107600Work* w = arg0->field_1C;
+
+                w->field_158 = 6;
+                w->field_15A = 0;
+                break;
+            }
+            case 4: {
+                Actor107600Work* w = arg0->field_1C;
+
+                w->field_158 = 5;
+                w->field_15A = 0;
+                break;
+            }
+        }
+        work->field_15E = 0;
+        return 1;
+    }
+    return 0;
+}
+
+/// First entry of the `D_actor_107600_80131E84` state table. Variants
+/// (0 and 1) start the state at 1, kick the +0x50 rotation trio off at 0x400,
+/// roll `Gp_LcgState` into `field_16A` beside the 10 percent scale pair
+/// `func_actor_107600_80134EF4` divides the model root's rotation by, rebuild
+/// that rotation through `func_actor_107600_80134A50`, and put the spawned
+/// object's light into mode 2 with its blend timer cleared. Variant 2 only
+/// starts the state at 8 and leaves the scale pair at 100 percent.
+void func_actor_107600_80134C54(Task* arg0)
+{
+    Actor107600Work* work = (Actor107600Work*)arg0->work;
+    GpObj4C*         obj  = arg0->spawnArg2;
+
+    switch (work->field_162) {
+        case 0:
+        case 1:
+            work->field_158 = 1;
+            work->field_50  = 0x400;
+            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            work->field_16A = (Gp_LcgState >> 16) & 7;
+            work->field_168 = 10;
+            work->field_169 = 10;
+            func_actor_107600_80134A50(arg0);
+            Gp_SetLightMode(obj, 2);
+            obj->field_4F = 0;
+            break;
+        case 2:
+            work->field_158 = 8;
+            work->field_168 = 100;
+            work->field_169 = 100;
+            break;
+    }
+}
+
+void func_actor_107600_80134D10(Actor107600* arg0)
+{
+    func_actor_107600_80134B98(arg0, 1);
+}
+
+void func_actor_107600_80134D30(Actor107600* arg0)
+{
+    func_actor_107600_80134B98(arg0, 1);
+}
+
+void func_actor_107600_80134D50(Actor107600* arg0)
+{
+    func_actor_107600_80134B98(arg0, 1);
+}
+
+void func_actor_107600_80134D70(Actor107600* arg0)
+{
+    arg0->field_1C->field_16B = 3;
+    func_actor_107600_80134B98(arg0, 7);
+}
+
+/// Measures the XZ offset from this model's own attach coordinate to the one on
+/// the `Gp_ActorSlots[0]` actor's model, in a 0x10-byte `VECTOR` carved off
+/// `G_SCRATCH_HEAD` the way `func_actor_107600_80134E5C` carves its block, and
+/// leaves the distance in `Actor107600Work.field_14C`. With no slot-0 actor the
+/// carve is undone and nothing is measured. The distance is only stored once the
+/// scratch block has been handed back, which is the order the original compiled
+/// in - moving the store up costs a nop after the reload.
+void func_actor_107600_80134D9C(Task* arg0)
+{
+    Actor107600Work* work;
+    GsCOORDINATE2*   self;
+    GsCOORDINATE2*   target;
+    void**           scratch;
+    u8*              head;
+    VECTOR*          block;
+    s32              dist;
+
+    work     = (Actor107600Work*)arg0->work;
+    self     = ((TmdObject*)arg0->extra)->coords;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (VECTOR*)(head - 0x10);
+    *scratch = block;
+    if (Gp_ActorSlots[0] == NULL) {
+        *scratch = head;
+        return;
+    }
+    target          = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+    block->vx       = target->coord.t[0] - self->coord.t[0];
+    block->vy       = target->coord.t[1] - self->coord.t[1];
+    block->vz       = target->coord.t[2] - self->coord.t[2];
+    dist            = func_80103D8C(block->vx, block->vz);
+    *scratch        = (u8*)*scratch + 0x10;
+    work->field_14C = dist;
+}
+
+/// Rotates a fixed 0x10-byte offset by the coordinate's own `coord` matrix and
+/// leaves the result in that matrix's translation row. The offset is carved off
+/// `G_SCRATCH_HEAD` the way `func_actor_107600_80132B0C` carves its VECTOR, but
+/// is filled with (0, -0x180, 0) and rotated in place by `ApplyMatrixLV`, which
+/// also folds in the matrix's existing translation. `func_actor_107600_80132ED0`
+/// calls this on the coordinate it then hands to `Gp_UpdateCoord`.
+void func_actor_107600_80134E5C(GsCOORDINATE2* arg0)
+{
+    void**  scratch;
+    u8*     head;
+    VECTOR* block;
+
+    scratch   = (void**)G_SCRATCH_HEAD;
+    head      = *scratch;
+    block     = (VECTOR*)(head - 0x10);
+    *scratch  = block;
+    block->vx = 0;
+    block->vy = -0x180;
+    block->vz = 0;
+    ApplyMatrixLV(&arg0->coord, block, block);
+    arg0->coord.t[0] = block->vx;
+    arg0->coord.t[1] = block->vy;
+    *scratch         = (u8*)*scratch + 0x10;
+    arg0->coord.t[2] = block->vz;
+}
+
+/// Scales the model root's rotation by the two percent factors
+/// `func_actor_107600_80134C54` rolls into the work block: the diagonal
+/// `coord.m[0][0]` and `coord.m[2][1]` halves, each read as a raw 16-bit value
+/// and re-signed before the divide so the scale stays signed.
+void func_actor_107600_80134EF4(Task* arg0)
+{
+    Actor107600Work* work  = (Actor107600Work*)arg0->work;
+    GsCOORDINATE2*   coord = ((TmdObject*)arg0->extra)->coords;
+    u16              x     = coord->coord.m[0][0];
+    u16              y     = coord->coord.m[2][1];
+
+    coord->coord.m[0][0] = (s16)x / 100 * work->field_168;
+    coord->coord.m[2][1] = (s16)y / 100 * work->field_169;
 }
