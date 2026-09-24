@@ -143,7 +143,11 @@ typedef struct {
     s16 field_4;
     u8  pad_6[0x2];
     s16 field_8;
-    u8  pad_A[0xA];
+    u8  pad_A[0x2];
+    s16 field_C;
+    s16 field_E;
+    s16 field_10;
+    u8  pad_12[0x2];
     s16 field_14;
     s16 field_16;
     s16 field_18;
@@ -238,7 +242,131 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8017DF90);
+extern s16 D_shelter_b3_dumping_hole_8018816C[];
+
+/// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
+/// screen centred on the origin, 0 when it is on screen.
+static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
+{
+    if (x < -0xA0) {
+        return 1;
+    }
+    if (x > 0xA0) {
+        return 1;
+    }
+    if (y < -0x78) {
+        return 1;
+    }
+    if (y > 0x78) {
+        return 1;
+    }
+    return 0;
+}
+
+void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
+{
+    DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
+    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->coords;
+    SVECTOR              vec;
+    SVECTOR              pos;
+    DVECTOR              sxy;
+    POLY_FT4*            prim;
+    u16                  offscreen;
+    u16                  hw;
+    u16                  hh;
+    s16                  sx;
+    s16                  sy;
+    s32                  y;
+    s16                  w;
+    s16                  h;
+    s16                  u;
+    s16                  v;
+    s16                  tx;
+    s16                  ty;
+    s16                  scale = 0x1000;
+    s32                  otz   = 0x3E8;
+
+    if (*(u16*)&D_shelter_b3_dumping_hole_8018F4A8->field_1C->field_44 == 1) {
+        taskKill(arg0);
+        return;
+    }
+
+    switch (arg0->state) {
+        case 0:
+            coord->sub = &gGfxViewCoord;
+            Gp_ComposeParentWorld((GsCOORDINATE2*)arg0->spawnArg2, &coord->coord, &vec);
+            coord->coord.t[0] = vec.vx + W->field_C;
+            coord->coord.t[1] = vec.vy + W->field_E;
+            coord->coord.t[2] = vec.vz + W->field_10;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            W->field_16       = 0xFFF6 - ((Gp_LcgState >> 16) & 7);
+            W->field_14       = 0;
+            W->field_18       = 0;
+            W->field_1C       = 0;
+            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
+            W->field_20       = ((Gp_LcgState >> 16) & 7) + 0x14;
+            arg0->state++;
+            return;
+        case 1:
+            if (W->field_20 == 0) {
+                arg0->state = 2;
+            } else {
+                W->field_20--;
+            }
+            return;
+        case 2: {
+            s32 t1e     = W->field_1E + 1;
+            W->field_1E = t1e;
+            if (D_shelter_b3_dumping_hole_8018816C[W->field_1C] < (s16)t1e) {
+                *(u16*)&W->field_1C = *(u16*)&W->field_1C + 1;
+                W->field_1E         = 0;
+                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                    taskKill(arg0);
+                    return;
+                }
+            }
+            break;
+        }
+        default:
+            return;
+    }
+
+    coord->coord.t[1] += W->field_16;
+    w                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_8;
+    h                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_A;
+    u                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_2;
+    v                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_6;
+    tx                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0;
+    ty                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4;
+    Gp_UpdateCoord(coord);
+    gte_SetTransMatrix(&coord->workm);
+    gte_SetRotMatrix(&coord->workm);
+    pos.vx = pos.vy = pos.vz = 0;
+    gte_ldv0(&pos);
+    gte_rtps_real();
+    gte_stsxy(&sxy);
+    sx        = sxy.vx;
+    y         = sxy.vy;
+    sy        = y;
+    offscreen = _shelterB3DumpingHoleIsOffscreen(sx, y);
+    if (offscreen) {
+        taskKill(arg0);
+        return;
+    }
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = (u8*)(prim + 1);
+    setPolyFT4(prim);
+    setSemiTrans(prim, 1);
+    prim->r0 = prim->g0 = prim->b0 = 0x20;
+    hw                             = w * scale / 4096;
+    hh                             = h * scale / 4096;
+    setXY4(prim, sx - hw / 2, sy - hh / 2, sx + hw / 2, sy - hh / 2, sx - hw / 2, sy + hh / 2, sx + hw / 2, sy + hh / 2);
+    setUV4(prim, u, v, u + w - 1, v, u, v + h - 1, u + w - 1, v + h - 1);
+    prim->clut  = 0x43C0;
+    prim->tpage = getTPage(0, 1, (tx / 64) * 64, (ty / 256) * 256);
+    addPrim(&gGpuCurrentOt[otz >> 4], prim);
+    coord->flg = 0;
+}
 
 extern s16 D_shelter_b3_dumping_hole_80188184[];
 

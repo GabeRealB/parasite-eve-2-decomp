@@ -140126,3 +140126,34 @@ Putting the same latch on a use inside an inner loop (`i`-loop) changed loop.c's
 invariant hoisting there, so pick a use outside nested loops. To size the ref
 count, compute `floor_log2(n) * n / live_length` for the neighbours from the
 `.lreg` "Register N used X times across Y insns" lines.
+
+### Load in a short-lived register, long-lived variable a copy of it: give the copy a narrower mode (func_shelter_b3_dumping_hole_8017DF90, 2026-09-24)
+
+**Symptom.** The target loads a value (`lh a0,0x22(sp)`), copies it right away
+to the register the later arithmetic uses (`move t2,a0`), and the original
+register lives on only as far as an inlined range check, where a second copy
+feeds the compares (`move v1,a0`). With `s32 y = sxy.vy; s32 sy = y;` the
+function reached 99.16% and kept failing: sy itself was the load, and the
+`move t2,a0` never appeared.
+
+**Cause (observed in `.cse`).** Because sy and y have the same mode, they end
+up in one cse equivalence class. `make_regs_eqv` makes the copy's destination
+the class canonical because its last use is later, rewrites the inline
+parameter's `subreg` to read sy, and combine then folds the load into sy's
+copy. Putting a statement between the load and the copy changes nothing.
+
+**Fix.** Declare the long-lived variable `s16` and keep the loaded one `s32`,
+and give the inline `s16` parameters:
+
+```c
+s16 sx, sy;  s32 y;
+sx = sxy.vx;
+y  = sxy.vy;          /* lh -> y (s32) */
+sy = y;               /* HImode copy: a different class, so y stays canonical */
+if (isOffscreen(sx, y)) { ... }   /* static inline u16 isOffscreen(s16 x, s16 y) */
+```
+
+The `s16` parameter makes `integrate.c` emit `copy_to_mode_reg` for the
+`(subreg:HI y)` argument, and the sign extension at the compare later folds back
+to a copy of y. That copy is the target's block-3 `move v1,a0`. With an `s32`
+parameter the second copy disappears.
