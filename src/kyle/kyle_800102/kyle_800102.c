@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -15,11 +16,6 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// `mvmva 1, 0, 0, 0, 0`: rotate V0 by the rotation matrix and add the
-/// translation vector. The `inline_c.h` macro of that name assembles to a
-/// different word, so spell the instruction out.
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 /// Spawn state: allocates the work block, seeds the thrown object at the
 /// muzzle coordinate and links its two `GpObj` nodes.
@@ -66,7 +62,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     gte_SetRotMatrix(&muzzle->workm);
     gte_SetTransMatrix(&muzzle->workm);
     gte_ldv0(vec);
-    gte_rtv0tr_real();
+    gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
