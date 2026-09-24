@@ -11573,7 +11573,13 @@ MIPS `lwc2`/`ctc2`/`swc2` and match as-is. Command macros (`gte_rtv0`,
 `gte_mvmva`, …) emit DMPSX placeholder `.word 0x00000xxx` values that this
 toolchain never rewrites — they assemble to the wrong instruction.
 
-For GTE *commands*, emit the real COP2 word:
+For GTE *commands*, `#include "gte.h"` (`include/decomp/gte.h`) after
+`inline_c.h` and call the SDK names: it redefines every `inline_c.h` command
+(`gte_rtps()`, `gte_rtv0()`, `gte_gpf12()`, …) with the real COP2 word DMPSX
+would have produced, adds `gte_rtv0_sf0()`/`gte_rtv1_sf0()`/`gte_rtv2_sf0()`,
+and makes the `gtemac.h` compound macros emit real instructions too. Do not
+add new local `gte_*_real` defines; existing ones are equivalent and can go
+when their file is next worked on. The encodings, for reference:
 
 ```c
 /* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A406012 */
