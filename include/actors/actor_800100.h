@@ -157,6 +157,9 @@ extern GpCoord64 D_8011505C;
 
 extern u32 Gp_LcgState;
 
+/// State handlers of the actor's main task, indexed by its state.
+extern TaskFuncTable4 D_actor_800100_80161E3C;
+
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
 

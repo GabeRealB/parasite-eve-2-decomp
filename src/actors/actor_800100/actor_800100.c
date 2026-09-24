@@ -872,4 +872,4 @@ void func_actor_800100_80163C04(GpActorWork* arg0)
     taskKill((Task*)arg0);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100", ActorsShared801328ccTable);
+INCLUDE_RODATA("actors/nonmatchings/actor_800100/actor_800100", D_actor_800100_80161E3C);
