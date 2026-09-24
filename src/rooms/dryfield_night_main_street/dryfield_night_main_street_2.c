@@ -8,7 +8,7 @@
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017d638.h"
+#include "rooms/dryfield_night_main_street.h"
 
 /// Event record the room's own gate latches for its event task, next to the
 /// message that triggered it. `flagId` is the game-flag nibble the event sets
@@ -118,11 +118,11 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x52020005);
         req.flagId  = 0x41;
         req.itemId  = 0x13;
-        ret         = RoomsShared8017d638(&req, out);
+        ret         = func_dryfield_night_main_street_8017D798(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (RoomsShared8017d638Flag != 0) {
+        if (D_dryfield_night_main_street_80188BC4 != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -138,11 +138,11 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x52020005);
         req.flagId  = 0x42;
         req.itemId  = 0x13;
-        ret         = RoomsShared8017d638(&req, out);
+        ret         = func_dryfield_night_main_street_8017D798(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (RoomsShared8017d638Flag != 0) {
+        if (D_dryfield_night_main_street_80188BC4 != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -155,4 +155,4 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
     return 1;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_main_street/dryfield_night_main_street_2", D_dryfield_night_main_street_8017D5F4);

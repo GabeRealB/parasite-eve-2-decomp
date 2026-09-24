@@ -1,12 +1,13 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 
-#include "rooms/room_common.h"
-
-#include <psyq/libgs.h>
-
 #include "gameplay/3CD8.h"
+#include "rooms/room_common.h"
+#include "rooms/dryfield_night_main_street.h"
 
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -59,7 +60,7 @@ void func_dryfield_night_main_street_8017F3B0(Task* task)
         gte_stsv(&work->field_10);
     }
 
-    Room_Draw39(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
+    func_dryfield_night_main_street_8017F608(coord, work->field_20, (s16)work->field_24, (s16)work->field_26);
 
     coord->coord.t[0] += work->field_10.vx;
     coord->coord.t[1] += work->field_10.vy;

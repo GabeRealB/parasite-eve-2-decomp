@@ -5,6 +5,7 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
+#include "rooms/dryfield_night_main_street.h"
 
 /// Advances the shared LCG and yields the high half of the new state.
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
@@ -94,23 +95,23 @@ void func_dryfield_night_main_street_8017E484(Task* task)
         D_dryfield_night_main_street_80182230[2] = 0;
     }
     if (mask & D_dryfield_night_main_street_80182230[0]) {
-        Room_Draw08(D_dryfield_night_main_street_801821A8, 0x180);
+        func_dryfield_night_main_street_8017E940(D_dryfield_night_main_street_801821A8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[2]) {
-        Room_Draw08(&D_dryfield_night_main_street_801821B8, 0x180);
+        func_dryfield_night_main_street_8017E940(&D_dryfield_night_main_street_801821B8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[4]) {
-        Room_Draw08(&D_dryfield_night_main_street_801821C8, 0x180);
+        func_dryfield_night_main_street_8017E940(&D_dryfield_night_main_street_801821C8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[6]) {
-        Room_Draw08(&D_dryfield_night_main_street_801821D8, 0x180);
+        func_dryfield_night_main_street_8017E940(&D_dryfield_night_main_street_801821D8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[8]) {
-        Room_Draw08(&D_dryfield_night_main_street_801821E8, 0x180);
+        func_dryfield_night_main_street_8017E940(&D_dryfield_night_main_street_801821E8, 0x180);
     }
     for (i = 10; i < 16; i++) {
         if (mask & D_dryfield_night_main_street_80182230[i]) {
-            Room_Draw17(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
+            func_dryfield_night_main_street_8017F128(&D_dryfield_night_main_street_801821A8[i], 1, 0x380);
         }
     }
     Gp_State1C->roomEffectMode = D_dryfield_night_main_street_80182178[(Gp_GetViewIndex() & 0xFF) - 1];
