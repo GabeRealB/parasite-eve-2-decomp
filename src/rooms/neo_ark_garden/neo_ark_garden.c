@@ -832,4 +832,24 @@ void func_neo_ark_garden_8017E9B4(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_garden/neo_ark_garden", D_neo_ark_garden_8017D614);
+/// Idle state of the room's entry task: does nothing. The unused 0x10-byte
+/// local reproduces the stack frame the retail code reserves.
+void func_neo_ark_garden_8017EA34(Task* task)
+{
+    char pad[0x10];
+}
+
+/// State handlers of the room's entry task: set-up, idle, then kill.
+const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
+    { func_neo_ark_garden_8017E9B4, func_neo_ark_garden_8017EA34, taskKill }
+};
+
+/// Tick of the room's entry task: copies its state table to the stack and
+/// calls the handler for the task's state.
+void func_neo_ark_garden_8017EA44(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_garden_8017D614;
+    sp.funcs[task->state](task);
+}
