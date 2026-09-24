@@ -700,5 +700,3 @@ void func_acropolis_security_room_80180218(Task* task)
     gGameSession->cutsceneHold = 0;
     gGameSession->eventState   = 0;
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_5", D_acropolis_security_room_8017D6AC);

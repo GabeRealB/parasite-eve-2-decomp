@@ -808,10 +808,12 @@ objects = [
 ]
 
 [rooms.overlays.acropolis_security_room]
+label = "code starts at 0xEC: the first two handlers of the room's message table are there, a frameless record copy and a forwarder whose lui/lw of its target task GCC hoisted above the addiu $sp prologue, so the span detector - which looks for the first stack-frame prologue - starts at 0x11C"
 id = 290
+text = ["0xEC", "0x501C"]
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_security_room/acropolis_security_room", rodata = "0x4", text = "0x11C" },
+  { unit = "acropolis_security_room/acropolis_security_room", rodata = "0x4", text = "0xEC" },
   { unit = "acropolis_security_room/acropolis_security_room_3", rodata = "0x4C", text = "0xED0" },
   { unit = "acropolis_security_room/acropolis_security_room_5", rodata = "0xBC", text = "0x1BFC" },
   { lib = true, unit = "rooms_shared_8017d878", text = "0x3C4" },

@@ -40,14 +40,27 @@ extern s8 D_8007216C;
 
 s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y);
 
-s32 func_acropolis_security_room_8017D6DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Message 0x13EE handler: copies the incoming location record onto the
+/// outgoing one and answers 1.
+s32 func_acropolis_security_room_8017D6AC(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
-    s32 ret;
+    *dst = *src;
+    return 1;
+}
 
-    if (arg0 == NULL) {
+/// Message 0x13F1 handler: forwards the message unchanged to the task
+/// `func_acropolis_security_room_8017D834` spawns and keeps in
+/// `D_acropolis_security_room_801855AC`, answering 0 while it is not alive.
+s32 func_acropolis_security_room_8017D6D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+{
+    Task* target;
+    s32   ret;
+
+    target = D_acropolis_security_room_801855AC;
+    if (target == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(arg0, arg1, arg2, arg3);
+        ret = Gp_DispatchMsg(target, msgId, arg2, arg3);
     }
     return ret;
 }
