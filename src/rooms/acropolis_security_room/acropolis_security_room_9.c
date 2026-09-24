@@ -1,16 +1,15 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "main/display.h"
 #include "rooms/room_common.h"
-
-#include <psyq/libgpu.h>
 
 /// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
 /// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
 /// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-///
-/// Shared body, linked into every room overlay that uses it.
-void Room_Draw26(RoomRect* rect, u8 r, u8 g, u8 b)
+void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 

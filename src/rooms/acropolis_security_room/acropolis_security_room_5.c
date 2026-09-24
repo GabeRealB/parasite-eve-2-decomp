@@ -420,8 +420,8 @@ void func_acropolis_security_room_8017FA18(Task* task)
 /// Arms the action prompt for the script's hotspot and steps the caller on one
 /// state: highlights (`mode` 1) the fixed target id 0x80 and clears the prompt's
 /// on-screen position, which `func_800D4E78` fills in again when the prompt is
-/// actually spawned. Same body as the shared `Room_Util14`, which this overlay
-/// cannot link because it carries a second copy at `func_acropolis_security_room_8017EA28`.
+/// actually spawned. The room carries a second copy of this body at
+/// `func_acropolis_security_room_8017EA28`.
 void func_acropolis_security_room_8017FB20(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;

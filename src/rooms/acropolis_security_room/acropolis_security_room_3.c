@@ -27,7 +27,7 @@ extern s16 D_80114D08;
 /// States of the security-monitor task, dispatched by
 /// `func_acropolis_security_room_8017ED68`. Defined in the previous unit,
 /// which owns the `.rodata` it sits in.
-extern const AsrMonitorStateTable RoomsShared8017fc38Table;
+extern const AsrMonitorStateTable D_acropolis_security_room_8017D5EC;
 
 void func_acropolis_security_room_8017E0C4(s16 id);
 void func_acropolis_security_room_8017E37C(Task* task);
@@ -321,4 +321,4 @@ s32 func_acropolis_security_room_8017ECB4(RoomHotspot* table, s16 x, s16 y)
     return hit;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", RoomsShared80180294States);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_3", D_acropolis_security_room_8017D63C);

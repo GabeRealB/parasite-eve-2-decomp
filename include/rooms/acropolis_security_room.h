@@ -3,11 +3,12 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-#include <psyq/libgs.h>
-#include <psyq/libgte.h>
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the

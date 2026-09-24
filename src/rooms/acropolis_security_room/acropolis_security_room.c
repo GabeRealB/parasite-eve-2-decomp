@@ -79,7 +79,7 @@ void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, GpMsg13EF* arg2
         Task_SpawnFromTable(&D_acropolis_security_room_80182618, 0, 0, 0);
     }
 }
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", D_acropolis_security_room_8017D5C4);
 
 void func_acropolis_security_room_8017D77C(Task* arg0)
 {
@@ -158,7 +158,7 @@ void func_acropolis_security_room_8017EB9C(Task* task);
 /// States of the security-monitor task, dispatched by
 /// `func_acropolis_security_room_8017ED68`: set up the work block, run the
 /// camera list, redraw the panel, confirm a camera, and leave the monitor.
-const AsrMonitorStateTable RoomsShared8017fc38Table = {
+const AsrMonitorStateTable D_acropolis_security_room_8017D5EC = {
     { {
         func_acropolis_security_room_8017D9DC,
         func_acropolis_security_room_8017EA28,
