@@ -4,7 +4,10 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
+#include "main/task.h"
 #include "rooms/room_common.h"
 
 /// Two-`s16` pair shared by units 7 and 8 of the overlay.
@@ -41,5 +44,15 @@ typedef struct ShelterB6NurseryEvt {
 STATIC_ASSERT_SIZEOF(ShelterB6NurseryEvt, 0x18);
 
 extern ShelterB6NurseryEvt D_shelter_b6_nursery_80187980;
+
+/// States of the room's message task: install the message table, idle, die.
+extern const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4;
+
+void func_shelter_b6_nursery_8017F4AC(Task* task);
+void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_shelter_b6_nursery_80182FCC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
+void func_shelter_b6_nursery_801833F8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
+void func_shelter_b6_nursery_801842FC(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 #endif // ROOMS_SHELTER_B6_NURSERY_H

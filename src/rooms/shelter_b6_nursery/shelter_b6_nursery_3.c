@@ -17,11 +17,11 @@ extern s32  D_8013A84C;
 extern s32  D_8013A8DC;
 extern s32  D_shelter_b6_nursery_8018500C;
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", RoomsShared8017ef20Title);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", RoomsShared8017de9cHundred);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", RoomsShared8017e8b4WeaponTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", RoomsShared8017e8b4PeTitle);
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", RoomsShared8017ea68Title);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D610);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D61C);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D624);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D630);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery_3", D_shelter_b6_nursery_8017D638);
 
 s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {

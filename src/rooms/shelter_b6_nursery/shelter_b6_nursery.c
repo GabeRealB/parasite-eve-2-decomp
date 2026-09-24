@@ -259,4 +259,4 @@ void func_shelter_b6_nursery_8017F4E8(Task* task)
     }
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", RoomsShared8017d878Table);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_nursery/shelter_b6_nursery", D_shelter_b6_nursery_8017D6A4);
