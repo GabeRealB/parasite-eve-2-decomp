@@ -1,40 +1,244 @@
 #include "common.h"
 
-#include "main/sound.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
+#include <psyq/libgte.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+#include <psyq/abs.h>
 
+#include "actors/actor_521100.h"
+#include "actors/actors_shared_80132074.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
-
-#include "actors/actor_521100.h"
-
-#include <psyq/abs.h>
-#include <psyq/inline_c.h>
-#include "gte.h"
+#include "main/sound.h"
+#include "main/fs.h"
+#include "main/session.h"
+#include "main/task.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by the yaw-facing body
+/// `func_actor_521100_80134C38`: only the `SVECTOR` at +0x10 is written, and it
+/// is the pure-yaw rotation `RotMatrix` builds into the attach coordinate. The
+/// rotation the function aims is the coordinate's own Z axis read back through
+/// `ratan2`, and the scratch below it goes unused. Same shape as
+/// `Actor02500RotScratch` / `Actor300700RotScratch`.
+typedef struct Actor521100RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor521100RotScratch;
+STATIC_ASSERT_SIZEOF(Actor521100RotScratch, 0x18);
+
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by the aim body
+/// `func_actor_521100_80134EDC`: `view` is the player-relative position
+/// `Gp_WorldToLocal` produces for the head coordinate's `workm`, `delta` the
+/// player position with the 0x600 head offset applied, and `local` the same
+/// delta rotated into the body's frame by `ApplyTransposeMatrixLV` and then
+/// clamped. Same shape as `Actor510900AimScratch`.
+typedef struct Actor521100AimScratch {
+    /* 0x00 */ MATRIX view;
+    /* 0x20 */ VECTOR delta;
+    /* 0x30 */ VECTOR local;
+} Actor521100AimScratch;
+STATIC_ASSERT_SIZEOF(Actor521100AimScratch, 0x40);
+
+/// The scratch-pad stack head at 0x1F8003FC, named rather than written as a
+/// plain `u32` dereference because the untwist body
+/// `func_actor_521100_80135024` reads it through a member: a component access
+/// is an in-struct memory reference (`MEM_IN_STRUCT_P`), which keeps the
+/// scheduler from treating that load and store as aliases of every other
+/// memory operation in the block. Written as a scalar, the block gains false
+/// dependences, the `work` / `coord` chains lose a priority step and the
+/// prologue is scheduled in the wrong order. Same shape as
+/// `Actor02000ScratchStack` / `Actor510900ScratchStack`.
+typedef struct {
+    u32 sp;
+} Actor521100ScratchStack;
+
+typedef struct Actor521100HitScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ byte           pad_30[0x18];
+} Actor521100HitScratch;
+STATIC_ASSERT_SIZEOF(Actor521100HitScratch, 0x48);
+
+/// Payload of the 0x3F8 query `func_actor_521100_80132C70` sends the player
+/// before it takes the hold; `field_14` is the range it asks for. The same
+/// shape as `Actor103700Msg3F8`, `Actor510900Msg3F8` and `Actor400600Msg3F8`.
+typedef struct Actor521100Msg3F8 {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} Actor521100Msg3F8;
+STATIC_ASSERT_SIZEOF(Actor521100Msg3F8, 0x18);
+
+typedef struct Actor521100Ctx {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ u8   field_14;
+} Actor521100Ctx;
+
+/// Argument block of the "start animation" script opcode 0x7D3, whose handler
+/// is `func_actor_521100_80135C14`. `field_0` is the animation bank and picks
+/// the clip the bank starts at (`0` maps to 0x14, every other bank to 0x1D);
+/// `field_4` is the offset of the clip inside that bank; `field_8`, when
+/// non-zero, blends to it over `field_C` frames instead of snapping. Same
+/// four-word shape as `Actor361100AnimPreset` and `Actor503500AnimPreset`.
+typedef struct Actor521100AnimPreset {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[2];
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ s32  field_C;
+} Actor521100AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor521100AnimPreset, 0x10);
+
+typedef struct Actor521100FireRow {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor521100FireRow;
+
+extern Actor521100FireRow D_actor_521100_8015F80C[][17];
+
+typedef struct Actor521100FireMsg {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} Actor521100FireMsg;
+
+typedef struct Actor521100FireAim {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor521100FireAim;
+
+typedef struct Actor521100FireScratch {
+    /* 0x00 */ VECTOR             pos;
+    /* 0x10 */ VECTOR             delta;
+    /* 0x20 */ SVECTOR            vec;
+    /* 0x28 */ Actor521100FireMsg msg;
+    /* 0x3C */ Actor521100FireAim aim;
+} Actor521100FireScratch;
+STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
+
+extern MATRIX*  D_80073B8C;
+extern u8       D_8011541B;
+extern s16      D_actor_521100_8015F570[];
+extern u16      D_actor_521100_8015F564;
+extern u8       D_actor_521100_8015F7CC[];
+extern GpEffArg D_actor_521100_8015F804;
+
+/// Blend length in frames `func_actor_521100_80135964` seeds the slot walk
+/// with when the clip changes, indexed by the incoming clip id; ids from 0x15
+/// up keep the zero `val` starts at.
+extern s16 D_actor_521100_8015F894[];
+extern s16 D_actor_521100_8015F684[];
+
+/// The three waypoints the state-6 body `func_actor_521100_80134774` walks the
+/// actor to, one per phase `field_6A0` it switches on: `(-4000, 0, -2000)` for
+/// phases 0 and 2, and `(-5250, 0, -1200)` for phase 1. Only `vx` and `vz` are
+/// read, and only when the actor is too far from the player for that phase to
+/// aim at it; the y of all three is zero, as the positions are on the floor.
+extern VECTOR D_actor_521100_8015F654[];
+
+/// Sixteen frames of the burn-out effect the state bodies at `field_6A0 == 1`
+/// pick between on their last frame, indexed by the 4 bits under the top half
+/// of an LCG draw (`(rng >> 16) & 0xF`). The sibling state body
+/// `func_actor_521100_801357F0` reads the table one slot down at 0x8015F5F4.
+extern u16 D_actor_521100_8015F634[];
+
+/// The other sixteen-frame burn-out table, read by the state-5 body
+/// `func_actor_521100_801357F0` off the same LCG draw bits the state-3 body
+/// `func_actor_521100_8013570C` indexes `D_actor_521100_8015F634` with.
+extern u16 D_actor_521100_8015F5F4[];
+
+/// The burn-out effect table the sequence resets read, one 0x20-byte table
+/// below `D_actor_521100_8015F5F4`: the state-1 body
+/// `func_actor_521100_801335B4` draws from it both on the frame the actor
+/// catches alight and on the frame the reset latch `field_6AA` has run out.
+extern u16 D_actor_521100_8015F5D4[];
+
+/// The 4-byte pair `func_actor_521100_801335B4` packs a type-2 record into and
+/// copies onto both `obj57C` / `obj59C` at `field_18`, where the sibling
+/// overlays' burn-out bodies put the same pair. Same shape as
+/// `D_actor_510900_80167968` and `D_actor_400100_*`.
+extern GpU16Pair D_actor_521100_8015F550;
+
+/// One signed halfword choice in a three-row, two-choice transition table.
+/// The selector combines the row and random-column byte offsets before
+/// accessing this member. The member access also keeps GCC's structure-memory
+/// annotation, allowing the independent RNG write to retain its schedule.
+typedef struct Actor521100StateChoice {
+    s16 state;
+} Actor521100StateChoice;
+STATIC_ASSERT_SIZEOF(Actor521100StateChoice, 2);
+
+extern s8                     D_80114C12;
+extern s16                    D_actor_521100_8015F57C[16];
+extern Actor521100StateChoice D_actor_521100_8015F59C[6];
+extern s16                    D_actor_521100_8015F5A8[16];
+extern Actor521100StateChoice D_actor_521100_8015F5C8[6];
+
+/// Frames between the burn-out effects `func_actor_521100_80135230` drops on
+/// the attach coordinate, indexed by the sequence state `field_68C`: every
+/// frame in state 0, then 7 / 0xE / 0x1C as the body burns out.
+extern s16 D_actor_521100_8015F8CC[];
+
+/// Coordinate slots the burn-out effects splash across when the sequence is in
+/// state 1, chosen by the top 3 bits of an LCG draw.
+extern s16 D_actor_521100_8015F8BC[];
+
+extern u16 D_actor_521100_8015F614[];
+
+/// Main-executable global with no module header yet: the remaining-enemy count.
 extern s16 D_80073BA0;
+extern u8  D_801153F4;
 
 extern GpPairSrcE D_actor_521100_8015F560;
 extern TaskDesc   D_actor_521100_8015F6E4[];
 extern u8         D_actor_521100_8015F6FC[];
 extern u8         D_actor_521100_8015F73C[];
 
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
 void func_actor_521100_801322F8(Actor521100* arg0, Actor521100Obj2C* arg1, s32 arg2);
+void func_actor_521100_80132958(Actor521100* arg0);
+s32  func_actor_521100_80132C70(Actor521100* arg0);
+void func_actor_521100_80132DE8(Actor521100* arg0);
+void func_actor_521100_80133104(Actor521100* arg0);
+void func_actor_521100_8013334C(Actor521100* arg0);
+void func_actor_521100_801335B4(Actor521100* arg0);
+void func_actor_521100_801339B0(Actor521100* arg0);
+void func_actor_521100_80134658(Actor521100* arg0);
+void func_actor_521100_80134774(Actor521100* arg0);
 void func_actor_521100_80134C38(Actor521100* arg0);
 void func_actor_521100_80134D88(Actor521100* arg0);
 void func_actor_521100_80134EDC(Actor521100* arg0);
 void func_actor_521100_80135024(Actor521100* arg0);
-void func_actor_521100_80134658(Actor521100* arg0);
-/* Reads the caller's `Actor521100*` from $a0; the call passes no argument. */
-void func_actor_521100_80134774();
+void func_actor_521100_80135230(Actor521100* arg0);
+void func_actor_521100_801353CC(Actor521100Ctx* arg0, Actor521100* arg1);
+void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1);
+void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1);
+void func_actor_521100_801355C8(Actor521100* arg0);
+void func_actor_521100_80135680(Actor521100* arg0);
+void func_actor_521100_8013570C(Actor521100* arg0);
+void func_actor_521100_801357F0(Actor521100* arg0);
+void func_actor_521100_801358D4(Actor521100* arg0);
+void func_actor_521100_80135964(Actor521100* arg0);
+void func_actor_521100_80135A34(Actor521100* arg0);
+void func_actor_521100_80135A90(Actor521100* arg0);
+void func_actor_521100_80135B40(GpEnemy* enemy, Task* task);
+void func_actor_521100_80135B80(GpEnemy* arg0, Task* task);
+
+/// Declared locally with a signed `arg2`, as `include/gameplay/1BC.h` explains:
+/// the definition takes `u16` so that its own body matches, but this caller
+/// passes a sign-extended `s16` clip id.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Spawn state of the actor: allocates its 0x6C0 work block, registers the
 /// enemy on the lock-on list with its parameter record, contact table and body
@@ -1757,4 +1961,448 @@ void func_actor_521100_80135230(Actor521100* arg0)
         work->field_68C = 0;
     }
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_521100/actor_521100", D_actor_521100_80131E40);
+
+/// State handlers of the actor's second part, which `func_actor_521100_80135AE4`
+/// dispatches through: the setup `func_actor_521100_80135B40`, the per-frame
+/// tick `func_actor_521100_80135B80` and `Gp_DestroyEnemy`.
+const GpEnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
+    func_actor_521100_80135B40,
+    func_actor_521100_80135B80,
+    Gp_DestroyEnemy,
+} };
+
+/// The actor's task body: runs the handler for `Task::state` out of a two-entry
+/// table built on the stack - the spawn state `func_actor_521100_80131E8C`,
+/// then the per-frame state `func_actor_521100_801353CC` - passing the task's
+/// `GpEnemy` along with the task.
+void func_actor_521100_80135378(Task* task)
+{
+    void (*fns[2])(GpEnemy*, Task*) = {
+        func_actor_521100_80131E8C,
+        (void (*)(GpEnemy*, Task*))func_actor_521100_801353CC,
+    };
+
+    fns[task->state](task->spawnArg2, task);
+}
+
+void func_actor_521100_801353CC(Actor521100Ctx* arg0, Actor521100* arg1)
+{
+    Actor521100Work* work;
+
+    work = arg1->field_1C;
+    if (gGameSession->eventState != 0) {
+        work->field_682 = 1;
+        func_actor_521100_80135414(arg0, arg1);
+        return;
+    }
+    work->field_682 = 0;
+    func_actor_521100_80135478(arg0, arg1);
+}
+
+void func_actor_521100_80135414(Actor521100Ctx* arg0, Actor521100* arg1)
+{
+    Actor521100Work* temp_s0;
+
+    temp_s0        = arg1->field_1C;
+    arg0->field_14 = 1;
+    func_actor_521100_80135964(arg1);
+    func_actor_521100_80135A34(arg1);
+    func_actor_521100_80135A90(arg1);
+    if (temp_s0->field_68C != 0) {
+        func_actor_521100_80135230(arg1);
+    }
+}
+
+void func_actor_521100_80135478(Actor521100Ctx* arg0, Actor521100* arg1)
+{
+    GsCOORDINATE2*    temp_s2;
+    Actor521100Obj2C* temp_a1;
+    Actor521100Work*  temp_s1;
+    s32               state;
+    s32               one;
+
+    temp_a1 = arg1->field_2C;
+    state   = D_801153F4;
+    temp_s1 = arg1->field_1C;
+    temp_s2 = temp_a1->field_8;
+    one     = 1;
+    if (state == one) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    temp_a1->field_C                      = 0;
+    temp_s1->field_654->field_2C->field_C = 0;
+    arg0->field_14                        = 8;
+    goto default_body;
+case2:
+    temp_a1->field_C                      = 0x80;
+    temp_s1->field_654->field_2C->field_C = 0x80;
+    arg0->field_14                        = one;
+    return;
+default_body:
+    if (temp_s1->field_6B0 == 0) {
+        arg0->field_14 = 1;
+        return;
+    }
+    func_actor_521100_801322F8(arg1, temp_a1, one);
+    func_actor_521100_801355C8(arg1);
+    func_actor_521100_80134C38(arg1);
+    func_actor_521100_801358D4(arg1);
+    func_actor_521100_80134D88(arg1);
+    func_actor_521100_80135964(arg1);
+    func_actor_521100_80134EDC(arg1);
+    if (temp_s1->field_680 != 0) {
+        func_actor_521100_80135024(arg1);
+    }
+    temp_s2->flg                   = 0;
+    arg1->field_2C->field_8[1].flg = 0;
+    Gp_UpdateCoord(temp_s2);
+case1:
+    func_actor_521100_80135A34(arg1);
+    func_actor_521100_80135A90(arg1);
+}
+
+void func_actor_521100_801355C8(Actor521100* arg0)
+{
+    s16 temp_v1;
+
+    temp_v1 = arg0->field_1C->field_69E;
+    switch (temp_v1) {
+        case 0:
+            func_actor_521100_80132958(arg0);
+            return;
+        case 1:
+            func_actor_521100_80132DE8(arg0);
+            return;
+        case 2:
+            func_actor_521100_801339B0(arg0);
+            return;
+        case 3:
+            func_actor_521100_8013570C(arg0);
+            return;
+        case 4:
+            func_actor_521100_80134658(arg0);
+            return;
+        case 5:
+            func_actor_521100_801357F0(arg0);
+            return;
+        case 6:
+            func_actor_521100_80134774(arg0);
+        default:
+            return;
+    }
+}
+
+/// Steps the actor into state 1 once its facing has come within 45 degrees of
+/// the angle at `field_696`, then stops it: both speeds are zeroed.
+void func_actor_521100_80135680(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    s16              delta;
+    s16              angle;
+    s16              wrapped;
+    s32              magnitude;
+
+    work      = arg0->field_1C;
+    delta     = work->field_698 - work->field_696;
+    magnitude = abs(delta);
+    if (magnitude < 0x800) {
+        angle = magnitude;
+    } else {
+        if (delta > 0) {
+            wrapped = 0x1000 - delta;
+        } else {
+            wrapped = delta + 0x1000;
+        }
+        angle = wrapped;
+    }
+    if ((angle < 0x200) && (work->field_6AA < 0xDAC)) {
+        work->field_69E = 1;
+        work->field_6A0 = 0;
+        work->field_69A = 0;
+        work->field_69C = 0;
+    }
+}
+
+/// Step-3 body of the burn-out sequence, the third of the three the dispatcher
+/// `func_actor_521100_801355C8` runs off `field_69E`. `field_6A0` is its own
+/// two-phase latch: phase 0 hands the record flags at 0x59A / 0x5BA back and
+/// asks the slot blend for clip 0x10, phase 1 waits out 0x37 blended frames and
+/// then either drops the actor to the idle state or, when `field_6BA` asks for
+/// it, on to state 6 at sub-state `field_6BC`. Either way it latches clip 1 for
+/// the blend and picks this frame's effect out of `D_actor_521100_8015F634`.
+void func_actor_521100_8013570C(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    u16*             tbl;
+    u32              rng;
+
+    work = arg0->field_1C;
+    switch (work->field_6A0) {
+        case 0:
+            work->field_686     = 0x10;
+            work->field_6A0     = 1;
+            work->field_69A     = 0;
+            work->field_69C     = 0;
+            work->obj57C.flags &= 0x7FFF;
+            work->obj59C.flags &= 0x7FFF;
+            return;
+        case 1:
+            if ((s16)work->field_68A >= 0x37) {
+                if (work->field_6BA == 0) {
+                    work->field_69E = 0;
+                    work->field_6A0 = 0;
+                } else {
+                    work->field_69E = 6;
+                    work->field_6A0 = work->field_6BC;
+                }
+                work->field_686 = 1;
+                tbl             = D_actor_521100_8015F634;
+                rng             = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_68E = tbl[(rng >> 16) & 0xF];
+            }
+            return;
+    }
+}
+/// Step-5 body of the burn-out sequence, the same two-phase `field_6A0` latch
+/// `func_actor_521100_8013570C` runs with the longer timing: phase 0 hands the
+/// record flags at 0x59A / 0x5BA back and asks the slot blend for clip 0x11,
+/// phase 1 waits out 0x48 blended frames and then either drops the actor to the
+/// idle state or, when `field_6BA` asks for it, on to state 6 at sub-state
+/// `field_6BC`. Either way it latches clip 1 for the blend and picks this
+/// frame's effect out of `D_actor_521100_8015F5F4`.
+void func_actor_521100_801357F0(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    u16*             tbl;
+    u32              rng;
+
+    work = arg0->field_1C;
+    switch (work->field_6A0) {
+        case 0:
+            work->field_686     = 0x11;
+            work->field_6A0     = 1;
+            work->field_69A     = 0;
+            work->field_69C     = 0;
+            work->obj57C.flags &= 0x7FFF;
+            work->obj59C.flags &= 0x7FFF;
+            return;
+        case 1:
+            if ((s16)work->field_68A >= 0x48) {
+                if (work->field_6BA == 0) {
+                    work->field_69E = 0;
+                    work->field_6A0 = 0;
+                } else {
+                    work->field_69E = 6;
+                    work->field_6A0 = work->field_6BC;
+                }
+                work->field_686 = 1;
+                tbl             = D_actor_521100_8015F5F4;
+                rng             = Gp_LcgState * 5 + 0x71357911;
+                Gp_LcgState     = rng;
+                work->field_68E = tbl[(rng >> 16) & 0xF];
+            }
+            return;
+    }
+}
+/// Snapshots the attach coordinate's translation into the work block, then
+/// walks the coordinate forward: 0x80 up, and along its own facing axis
+/// (`m[0][2]` / `m[2][2]`) scaled by the work block's speed in 12-bit fixed
+/// point.
+void func_actor_521100_801358D4(Actor521100* arg0)
+{
+    GsCOORDINATE2*   coord;
+    Actor521100Work* work;
+
+    coord = arg0->field_2C->field_8;
+    work  = arg0->field_1C;
+
+    work->field_64C    = coord->coord.t[0];
+    work->field_64E    = coord->coord.t[1];
+    work->field_650    = coord->coord.t[2];
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_69A) >> 12;
+    coord->coord.t[1] += 0x80;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_69A) >> 12;
+}
+
+/// Blends every animation slot towards the clip latched in `field_686` while
+/// it differs from the clip the slots carry, then ticks them once they agree:
+/// the blend runs the nineteen slots through `func_800B4114` with the length
+/// `D_actor_521100_8015F894` gives the incoming clip, and the tick counts the
+/// agreeing frames in `field_68A`.
+void func_actor_521100_80135964(Actor521100* arg0)
+{
+    Actor521100Work* work;
+    s32              i;
+    s32              val;
+
+    work = arg0->field_1C;
+    val  = 0;
+    if (work->field_686 != work->field_688) {
+        work->field_688 = work->field_686;
+        work->field_68A = 0;
+        if (work->field_686 < 0x15) {
+            val = D_actor_521100_8015F894[work->field_686];
+        }
+        i = 1;
+        do {
+            func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, val);
+            i++;
+        } while (i < 0x13);
+        return;
+    }
+    i                = 1;
+    work->field_68A += i;
+    do {
+        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        i++;
+    } while (i < 0x13);
+}
+
+/// Colours the actor from the world position of its second model coordinate,
+/// handing it to `Gp_UpdateActorColor` with no blend parameters.
+void func_actor_521100_80135A34(Actor521100* arg0)
+{
+    GsCOORDINATE2* coord;
+    VECTOR         vec;
+
+    coord  = &arg0->field_2C->field_8[1];
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+}
+
+/// Draws the actor's ground shadow: a quad at the second model coordinate's
+/// x/z and the first's y, so it lies on the ground under the actor.
+void func_actor_521100_80135A90(Actor521100* arg0)
+{
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* sub;
+    VECTOR3        vec;
+
+    coord  = &arg0->field_2C->field_8[0];
+    sub    = &arg0->field_2C->field_8[1];
+    vec.vx = sub->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = sub->workm.t[2];
+    Gp_DrawEffGroundQuad(&vec, 0x300, 0x80);
+}
+
+/// Task body of the actor's second part: copies `D_actor_521100_80131E40`
+/// onto the stack and runs the handler for `Task::state` on the task's
+/// `GpEnemy`.
+void func_actor_521100_80135AE4(Task* task)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_521100_80131E40;
+    sp.funcs[task->state](task->spawnArg2, task);
+}
+
+/// Setup state of the actor's second part: hangs its model coordinate under
+/// the parent model's ninth coordinate, draws it under the parent work block's
+/// light and colour matrices, shows it and moves the task on to its tick.
+void func_actor_521100_80135B40(GpEnemy* enemy, Task* task)
+{
+    Task*            parent;
+    TmdObject*       obj;
+    Actor521100Work* work;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   parentCoords;
+
+    parent       = task->parent;
+    obj          = (TmdObject*)task->extra;
+    parentCoords = ((TmdObject*)parent->extra)->coords;
+    coord        = obj->coords;
+    work         = (Actor521100Work*)parent->work;
+
+    coord->sub    = &parentCoords[8];
+    obj->lightMtx = &work->light;
+    obj->flags    = 0;
+    obj->colorMtx = &work->color;
+    task->state   = 1;
+}
+
+void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
+{
+    Actor521100Obj2C* obj;
+    Actor521100Work*  work;
+    s16               mode;
+
+    work = (Actor521100Work*)task->parent->work;
+    obj  = (Actor521100Obj2C*)task->extra;
+    if (work->field_682 != 0) {
+        mode         = ((work->field_692 & 1) == 0) << 7;
+        obj->field_C = mode;
+        if (work->field_692 & 2) {
+            obj->field_C = mode | 4;
+        }
+        if (work->field_694 != 0) {
+            obj->field_C = 0x80;
+        }
+    }
+}
+
+s32 func_actor_521100_80135BEC(Actor521100* arg0)
+{
+    if (D_80073BA0 > 0) {
+        arg0->field_1C->field_6A8 = 1;
+    }
+    return 0;
+}
+
+s32 func_actor_521100_80135C14(Actor521100* arg0, s32 arg1, Actor521100AnimPreset* args)
+{
+    Actor521100Work* work;
+    s32              i;
+    s32              frames;
+    s16              clip;
+    s16              base;
+
+    frames = 0;
+    work   = arg0->field_1C;
+    base   = 0x1D;
+    if (args->field_0 == 0) {
+        base = 0x14;
+    }
+    clip            = args->field_4 + base;
+    work->field_686 = clip;
+    work->field_688 = clip;
+    if (args->field_8 != 0) {
+        frames = args->field_C;
+    }
+    for (i = 1; i < 0x13; i++) {
+        func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, frames);
+    }
+    return 0;
+}
+
+/// Message 0x7D4 handler in `D_actor_521100_8015F6FC`, placing the actor: builds the root coordinate's
+/// matrix from the argument block's angles, stores its translation and clears
+/// `flg` so the world matrix is recomputed.
+s32 func_actor_521100_80135CAC(Task* task, s32 arg1, ActorsShared80132074Args* args)
+{
+    TmdObject*     ext   = task->extra;
+    GsCOORDINATE2* coord = ext->coords;
+
+    RotMatrix(&args->rot, &coord->coord);
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->flg        = 0;
+    return 0;
+}
