@@ -755,16 +755,7 @@ objects = [
 id = 286
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall", rodata = "0x4", text = "0x1E4" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_5", text = "0x30" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_6", text = "0x1B68" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_7", text = "0x1D88" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_8", text = "0x1DB0" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_2", text = "0x1DB8" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_9", text = "0x1F9C" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_3", text = "0x1FF4" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_10", text = "0x21BC" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall_4", text = "0x24EC" },
+  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall", rodata = "0x4", text = "0x30" },
   { kind = "data", at = "0x26CC" },
 ]
 

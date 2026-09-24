@@ -8,8 +8,10 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3688.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -18,7 +20,6 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "rooms/room_common.h"
-#include "rooms/acropolis_east_elevator_hall.h"
 
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -115,9 +116,57 @@ typedef struct {
     s32     bottom;
 } _MirrorExtentScratch;
 
+/// 0xC-byte scratch block the hall's dust-mote task takes from
+/// `G_SCRATCH_HEAD`. `vec` is the mote's world position copied out of the
+/// task's `GsCOORDINATE2` (`workm.t`) and projected with a single `RTPS`
+/// through `GsWSMATRIX`; `otz` is the `gte_stszotz` depth the resulting `TILE_1`
+/// is linked into the OT at. Depths below 0x11 are dropped rather than drawn,
+/// so a mote that ends up in front of the near plane costs nothing.
+typedef struct _AeehMoteScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ SVECTOR vec;
+} AeehMoteScratch;
+STATIC_ASSERT_SIZEOF(AeehMoteScratch, 0xC);
+
 /// The save's location key read as one word, so its view and area bytes are
 /// tested together.
 extern s32 D_8007216C;
+
+extern s32 D_80070F70;
+
+extern void func_807245E4(void*);
+extern void func_80724608(void*, s32, s32, void*);
+
+/// Part of the mirrored player model each held-object reflection hangs off,
+/// indexed by `Task::spawnArg1`.
+extern u8 D_acropolis_east_elevator_hall_8017FC8C[];
+
+extern s32        D_acropolis_east_elevator_hall_80185C8C;
+extern s32        D_acropolis_east_elevator_hall_80185D54;
+extern s32        D_acropolis_east_elevator_hall_801860B4;
+extern s32        D_acropolis_east_elevator_hall_8018621C;
+extern GpMsgEntry D_acropolis_east_elevator_hall_801862F4[];
+extern s32        D_acropolis_east_elevator_hall_8018631C;
+
+/// Name word handed to `func_80724608`: `"Player"`, followed by one stray
+/// non-zero byte C cannot reproduce, so it stays assembly.
+extern char D_acropolis_east_elevator_hall_8017D5E0[];
+
+/// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
+/// one reflection of a held object.
+extern TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
+
+void func_acropolis_east_elevator_hall_8017D7A4(Task* task);
+void func_acropolis_east_elevator_hall_8017F478(Task* task);
+void func_acropolis_east_elevator_hall_8017F4E8(Task* task);
+
+/// Scale handed to `ScaleMatrix` to flip the reflection across X.
+const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+
+/// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
+const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
+    { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
+};
 
 /// Rotates `out` in place by `m` through the GTE.
 static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
@@ -129,6 +178,74 @@ static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
     gte_ldv0(&v);
     gte_rtv0_real();
     gte_stsv(out);
+}
+
+/// State 0 of the hall's mirror task. Re-attaches the player's own TMD source
+/// to this task so the reflection draws the same model, allocates the
+/// `RoomMirrorWork` block holding the reflection's coordinate frame and
+/// matrices, and reparents the task under the player task so it dies with it.
+/// `spawnArg1` must be 0 or 1, otherwise the task kills itself; 0 also raises
+/// `GameSession::field_4E`. For each held-object task the player has
+/// (`GameActor::field_920` / `field_924`) it spawns a reflection task and
+/// hangs it under that held object, then runs the first per-frame update.
+void func_acropolis_east_elevator_hall_8017D5F0(Task* task)
+{
+    Task*           owner;
+    GameActor*      actor;
+    TmdObject*      extra;
+    GsCOORDINATE2*  parts;
+    RoomMirrorWork* work;
+    Task*           child;
+    Task*           spawned;
+    s32             i;
+
+    owner = gameGetPtrSlot(3);
+    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
+        taskKill(task);
+        return;
+    }
+    extra = task->extra;
+    parts = extra->coords;
+    if ((u32)task->spawnArg1 >= 2U) {
+        taskKill(task);
+        return;
+    }
+    work = memCalloc(sizeof(RoomMirrorWork), 0);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work   = (TaskIdMap*)work;
+    extra->tpage = 6;
+    tmdProcessStream(extra);
+    tmdProcessStream(extra);
+    extra->flags    = 0x10;
+    extra->otOffset = 0x1F;
+    if (task->spawnArg1 == 0) {
+        gGameSession->field_4E = 1;
+    }
+    parts->sub      = &work->coord;
+    extra->lightMtx = &work->light;
+    extra->colorMtx = &work->color;
+    Task_Reparent(owner, task);
+    task->state++;
+    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
+    work->field_4   = 1;
+    work->configRev = -1;
+    extra->flags   |= 0x80;
+    work->field_4   = 0;
+    work->viewFlg   = -1;
+    actor           = (GameActor*)owner->work;
+    for (i = 0; i < 2; i++) {
+        child = (&actor->field_920)[i];
+        if (child != NULL) {
+            spawned = Task_SpawnFromTable(D_acropolis_east_elevator_hall_8017FC90, 1, i, (s32)task);
+            if (spawned != NULL) {
+                Task_Reparent(child, spawned);
+            }
+        }
+    }
+    func_acropolis_east_elevator_hall_8017D7A4(task);
 }
 
 /// State 1 of the hall's mirror task, run every frame after
@@ -672,11 +789,311 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
     }
 }
 
-/// Scale handed to `ScaleMatrix` to flip the reflection across X.
-const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000, 0 };
+/// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
+/// hall's mirror task and the parent is the held-object task being reflected.
+/// On the first frame it clones the parent's TMD source, parents the clone's
+/// root coordinate to the mirrored player's corresponding part, points the
+/// clone at the mirror's light and color matrices and negates the X
+/// translation, flipping the clone across X when `spawnArg1` is 2 or more;
+/// every frame it copies the mirror model's draw flags onto the clone.
+void func_acropolis_east_elevator_hall_8017F128(Task* task)
+{
+    Task*           mirror;
+    TmdObject*      mirrorExtra;
+    RoomMirrorWork* work;
+    GsCOORDINATE2*  mirrorPart;
+    TmdObject*      src;
+    GsCOORDINATE2*  srcParts;
+    TmdObject*      extra;
+    GsCOORDINATE2*  parts;
+    VECTOR          scale;
+    u16             flags;
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5D4);
+    if (task->parent == NULL) {
+        Task_CallExit(task);
+    }
+    mirror      = (Task*)task->spawnArg2;
+    mirrorPart  = &((TmdObject*)mirror->extra)->coords[D_acropolis_east_elevator_hall_8017FC8C[task->spawnArg1]];
+    work        = (RoomMirrorWork*)mirror->work;
+    mirrorExtra = mirror->extra;
+    if (task->state == 0) {
+        src      = task->parent->extra;
+        srcParts = src->coords;
+        if (Gp_AttachTmd(task, src->source) == NULL) {
+            Task_CallExit(task);
+            return;
+        }
+        extra        = task->extra;
+        parts        = extra->coords;
+        extra->tpage = src->tpage;
+        tmdProcessStream(extra);
+        tmdProcessStream(extra);
+        extra->flags    = 0x10;
+        extra->otOffset = 0x1F;
+        parts->sub      = mirrorPart;
+        extra->lightMtx = &work->light;
+        extra->colorMtx = &work->color;
+        if (task->spawnArg1 >= 2) {
+            scale = D_acropolis_east_elevator_hall_8017D5C4;
+            ScaleMatrix(&parts->coord, &scale);
+        }
+        parts->coord.t[0] = -srcParts->coord.t[0];
+        parts->coord.t[1] = srcParts->coord.t[1];
+        parts->coord.t[2] = srcParts->coord.t[2];
+        parts->flg        = 0;
+        task->state++;
+    }
+    extra        = task->extra;
+    flags        = mirrorExtra->flags;
+    extra->flags = flags;
+    if (task->spawnArg1 >= 2) {
+        extra->flags = flags & 0xFFEF;
+    }
+}
+
+/// Runs the hall's mirror task: state 0 sets the mirror up, state 1 is its
+/// per-frame update.
+void func_acropolis_east_elevator_hall_8017F2F8(Task* task)
+{
+    TaskFunc states[2] = {
+        func_acropolis_east_elevator_hall_8017D5F0,
+        func_acropolis_east_elevator_hall_8017D7A4,
+    };
+
+    states[task->state](task);
+}
+
+/// Message handler that copies the incoming location record onto the
+/// outgoing one and answers 1.
+s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+{
+    *dst = *src;
+    return 1;
+}
+
+/// Message handler that accepts the message and does nothing else.
+s32 func_acropolis_east_elevator_hall_8017F370(void)
+{
+    return 0;
+}
+
+s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+{
+    if (arg2->field_2 == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
+        func_800E8634((s32)&D_acropolis_east_elevator_hall_80185D54, 0, (s32)&D_acropolis_east_elevator_hall_801860B4);
+        D_acropolis_east_elevator_hall_8018631C = 1;
+        GameFlag_SetNibble(0, 1);
+        GameFlag_SetNibble(3, 0);
+        GameFlag_SetNibble(0x155, 3);
+        GameFlag_SetNibble(8, 2);
+        func_800E3FAC(0xA2, 2);
+    }
+    return 0;
+}
+
+s32 func_acropolis_east_elevator_hall_8017F420(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 2) {
+        func_800E8614((s32)&D_acropolis_east_elevator_hall_8018621C, 0);
+    }
+    return 0;
+}
+
+void func_acropolis_east_elevator_hall_8017F450(void)
+{
+    Gp_StartCapSlot(0x10, 1, 0);
+}
+
+void func_acropolis_east_elevator_hall_8017F478(Task* task)
+{
+    task->msgTable = D_acropolis_east_elevator_hall_801862F4;
+    Game_SetPtrSlot(task, 7);
+    Gp_MsgSlot4Chain(0, 1);
+    Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D3, (s32)&D_acropolis_east_elevator_hall_80185C8C, 0);
+    task->state++;
+}
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E0);
 
-INCLUDE_RODATA("rooms/nonmatchings/acropolis_east_elevator_hall/acropolis_east_elevator_hall", D_acropolis_east_elevator_hall_8017D5E8);
+void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
+{
+    if (gDisplayState.field_112 != 0) {
+        func_807245E4(gameGetPtrSlot(3));
+        if (gDisplayState.field_112 != 0) {
+            func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
+        }
+    }
+}
+
+/// Runs the room task's current state through a stack copy of the room's
+/// three-entry state table.
+void func_acropolis_east_elevator_hall_8017F55C(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_acropolis_east_elevator_hall_8017D5D4;
+    sp.funcs[task->state](task);
+}
+
+/// Position of the first of the six effects
+/// `func_acropolis_east_elevator_hall_8017F5B4` spawns in view 2; the other
+/// five positions are written into the local copy in turn.
+const SVECTOR D_acropolis_east_elevator_hall_8017D5E8 = { 0x1600, -0x964, 0x540, 0 };
+
+void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
+{
+    GsCOORDINATE2* coord;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    switch (task->state) {
+        case 0:
+            Task_Spawn(1, 0x25, 0, 0);
+            Task_Spawn(1, 0x25, 1, 0);
+            task->state++;
+            /* fallthrough */
+        case 1:
+            if ((u8)gGameSession->at4.loc.view == 2) {
+                SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
+
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x985;
+                vec.vz = 0x55;
+                Gp_SpawnEff(0x60022, coord, 0xC03, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA81;
+                vec.vz = -0x1CA;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0xA93;
+                vec.vz = -0x61C;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x460;
+                vec.vz = -0x1A1;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+                vec.vx = 0x1600;
+                vec.vy = -0x449;
+                vec.vz = -0x635;
+                Gp_SpawnEff(0x60022, coord, 0x1204, &vec);
+            }
+            break;
+    }
+}
+
+/// Draws a pulsing light shaft at the task's coordinate origin. The origin is
+/// projected once through `GsWSMATRIX` (`RTPS`) into a 0x14-byte
+/// `G_SCRATCH_HEAD` block; anything with `otz` below 0x11 is dropped.
+/// `spawnArg1`'s low byte scales the frame counter `D_80070F70`, and the
+/// product's low byte is folded into a 0..0x80 triangle wave that drives the
+/// red channel of one corner; its high byte is the shaft length, divided by
+/// `otz` so the two `POLY_G4` halves narrow with distance.
+void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
+{
+    u8*               head;
+    u8*               raw;
+    RoomShaftScratch* block;
+    POLY_G4*          prim;
+    GsCOORDINATE2*    coord;
+    void*             mem;
+    u16               vz;
+    s32               i;
+    s32               red;
+    s32               pulse;
+    s32               level;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    mem   = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    head = *(void**)G_SCRATCH_HEAD;
+    raw  = head - 0x14;
+    /* `raw` and `block` have to stay separate registers: the ROM computes the
+       block address into a scratch register and copies it into the callee-saved
+       one the rest of the function uses. */
+    SOFT_TOUCH_REG(raw);
+    block                   = (RoomShaftScratch*)raw;
+    block->vec.vx           = *(u16*)&coord->workm.t[0];
+    block->vec.vy           = *(u16*)&coord->workm.t[1];
+    vz                      = *(u16*)&coord->workm.t[2];
+    *(void**)G_SCRATCH_HEAD = block;
+    block->vec.vz           = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_rtps_real();
+    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stszotz(&block->otz);
+    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
+        pulse = D_80070F70 * ((RoomShaftArg*)&arg0->spawnArg1)->phase;
+        if (pulse & 0x80) {
+            level = 0x80 - (pulse & 0x7F);
+        } else {
+            level = pulse & 0x7F;
+        }
+        /* Same split for the ramp: the ROM keeps the triangle result in a
+           scratch register and copies it into the callee-saved `red`. */
+        red              = level;
+        block->halfWidth = (((RoomShaftArg*)&arg0->spawnArg1)->height << 9) / block->otz;
+        for (i = 0; i < 2; i++) {
+            prim           = (POLY_G4*)gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, red, 0, 0);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = block->sx - block->halfWidth;
+            prim->x1 = prim->x2 = block->sx;
+            prim->x3            = block->sx + block->halfWidth;
+            prim->y0 = prim->y2 = prim->y3 = block->sy;
+            prim->y1                       = (block->sy - block->halfWidth) + block->halfWidth * (i + i);
+            addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+
+void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
+{
+    void**                    scratch;
+    u8*                       head;
+    register AeehMoteScratch* block asm("v1");
+    TILE_1*                   prim;
+    GsCOORDINATE2*            coord;
+    void*                     mem;
+    u16                       vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    coord   = ((TmdObject*)arg0->extra)->coords;
+    mem     = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    head          = *scratch;
+    block         = (AeehMoteScratch*)(head - 0xC);
+    block->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((AeehMoteScratch*)(head - 0xC))->vec);
+    gte_rtps_real();
+    prim           = (TILE_1*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setTile1(prim);
+    gte_stsxy(&prim->x0);
+    gte_stszotz(&block->otz);
+    if (((AeehMoteScratch*)(head - 0xC))->otz >= 0x11) {
+        setRGB0(prim, 0x80, 0x80, 0x80);
+        addPrim((u_long*)(((((u32)((AeehMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, ((AeehMoteScratch*)(head - 0xC))->otz);
+    }
+    *scratch = (u8*)*scratch + 0xC;
+    Gp_ReleaseState1CMem(mem, arg0);
+}

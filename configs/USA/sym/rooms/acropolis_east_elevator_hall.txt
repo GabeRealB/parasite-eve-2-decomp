@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_east_elevator_hall.
+D_acropolis_east_elevator_hall_8017D5E0 = 0x8017D5E0; // force_not_migration:True string with a non-zero byte after its terminator, read from C
