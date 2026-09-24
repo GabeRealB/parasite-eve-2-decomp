@@ -6,15 +6,69 @@
 #include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/shelter_1f_bulwark.h"
 
-extern s8 D_801153F4;
-extern u8 D_80115690;
+extern s8  D_801153F4;
+extern u8  D_80115690;
+extern s16 D_80071076;
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_bulwark/shelter_1f_bulwark", func_shelter_1f_bulwark_8017D61C);
+extern GpStateBD8 D_shelter_1f_bulwark_80180EBC;
+
+/// The room's event task, spawned by its message handler for a latched event.
+/// State 0 runs the event's CAP command; state 1 waits for it to finish and,
+/// when the event asks for it, starts helper task 0x31; states 2 and 3 play
+/// the event's stage sound, if any, and wait for it to end; state 4 moves the
+/// save location to the latched message's area, warp and room and hands over
+/// to task type 0x11.
+void func_shelter_1f_bulwark_8017D61C(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_shelter_1f_bulwark_80180ED0.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_shelter_1f_bulwark_80180ED0.field_A != 0) {
+                    D_shelter_1f_bulwark_80180EBC.field_0 = 0;
+                    D_shelter_1f_bulwark_80180EBC.field_1 = 0;
+                    D_shelter_1f_bulwark_80180EBC.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_1f_bulwark_80180EBC);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_shelter_1f_bulwark_80180ED0.field_4 != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_1f_bulwark_80180ED0.field_4, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_bulwark_80180ED0.field_4)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_1f_bulwark_80180EC4.field_0;
+            Mc_SaveData.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
+            Mc_SaveData.at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, BulwarkEvent* event)
 {
