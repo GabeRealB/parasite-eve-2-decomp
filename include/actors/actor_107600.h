@@ -16,7 +16,7 @@
 /// `func_actor_107600_80132CB8` bumps by one, and `field_144` is the phase the
 /// destroy callback `func_actor_107600_80132AC0` tests against 2. The three
 /// angles at +0x40 are what `func_actor_107600_80132B7C` rebuilds the model
-/// root's rotation from, the same trio `ActorsShared80139948` reads at +0x80.
+/// root's rotation from.
 /// The trio at +0x50 is a second rotation set: `func_actor_107600_80134A50`
 /// wraps each to 12 bits and feeds them to `Gfx_RotMatrixX/Y/Z` in turn.
 ///

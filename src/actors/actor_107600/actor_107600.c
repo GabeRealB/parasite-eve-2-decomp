@@ -471,8 +471,7 @@ void func_actor_107600_80132B0C(Task* arg0)
 /// Rebuilds the model root's rotation from the work block's three angles: wrap
 /// each to 12 bits, build the rotation in a scratch matrix carved off
 /// `G_SCRATCH_HEAD`, then copy its 3x3 into the part's `GsCOORDINATE2::coord`.
-/// The same body as `ActorsShared80139948`, with the copy left as a call to
-/// `func_actor_107600_80132C4C`.
+/// The copy is a call to `func_actor_107600_80132C4C`.
 void func_actor_107600_80132B7C(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
@@ -1436,7 +1435,21 @@ void func_actor_107600_80134A50(Task* arg0)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x20;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_107600/actor_107600", func_actor_107600_80134B2C);
+/// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
+/// alone. The actor carries this body twice; the other copy is
+/// `func_actor_107600_80132C4C`.
+void func_actor_107600_80134B2C(MATRIX* src, MATRIX* dst)
+{
+    dst->m[0][0] = src->m[0][0];
+    dst->m[0][1] = src->m[0][1];
+    dst->m[0][2] = src->m[0][2];
+    dst->m[1][0] = src->m[1][0];
+    dst->m[1][1] = src->m[1][1];
+    dst->m[1][2] = src->m[1][2];
+    dst->m[2][0] = src->m[2][0];
+    dst->m[2][1] = src->m[2][1];
+    dst->m[2][2] = src->m[2][2];
+}
 
 void func_actor_107600_80134B98(Actor107600* arg0, s16 arg1)
 {
