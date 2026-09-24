@@ -2,6 +2,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -14,11 +15,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-
-#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern TaskFuncTable3 D_80097678;
 extern s32            Gp_LcgState;
@@ -177,7 +173,7 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(dir);
     block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
     block->dir.vy += block->pos.vy;
@@ -220,7 +216,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(dir);
     block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
     block->dir.vy += block->pos.vy;
@@ -338,7 +334,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
             gte_SetRotMatrix(&arg1->coord);
             gte_SetTransMatrix(&arg1->coord);
             gte_ldv0(arg3);
-            gte_rtv0tr_real();
+            gte_rtv0tr();
             gte_stlvnl(coord->coord.t);
         } else {
             Gp_UpdateCoord(arg1);
@@ -346,7 +342,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
             gte_SetRotMatrix(&arg1->workm);
             gte_SetTransMatrix(&arg1->workm);
             gte_ldv0(arg3);
-            gte_rtv0tr_real();
+            gte_rtv0tr();
             gte_stlvnl(coord->workm.t);
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
         }
@@ -370,7 +366,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(arg3);
-        gte_rtv0tr_real();
+        gte_rtv0tr();
         gte_stlvnl(coord->coord.t);
         coord->sub = &gGfxViewCoord;
         coord->flg = 0;
@@ -462,7 +458,7 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -538,7 +534,7 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -607,7 +603,7 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     clutIdx = arg3 >> 12;
     USE_REG(clutIdx);
     arg3 &= 0xFFF;
@@ -671,7 +667,7 @@ void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     bank = arg2 >> 12;
     SCHED_BARRIER();
     arg2   &= 0xFFF;
@@ -734,7 +730,7 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
         block->inner[i].vz = 0x100;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -745,7 +741,7 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
         op->vz             = 0;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -754,11 +750,11 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -824,7 +820,7 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
         block->inner[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->inner[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->inner[i]);
         block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
         block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
@@ -835,7 +831,7 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
         op->vz             = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
         gte_ldv0(&block->outer[i]);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&block->outer[i]);
         block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
         op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
@@ -844,11 +840,11 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         gte_ldv0(&block->inner[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         next = (i + 1) & 0xF;
         gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {

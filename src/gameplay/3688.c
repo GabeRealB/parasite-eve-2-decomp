@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/memory.h>
 
 #include "gameplay/268.h"
@@ -26,8 +27,6 @@ void Stage_SetFadeMax(s32 arg0);
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32            Gp_PreviewItems[5];
 extern u16            Gp_ItemCountShow;
@@ -4712,13 +4711,13 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         scale = 0xA00;
         gte_lddp(scale);
         gte_ldsv(&vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&vec);
     } else if ((arg3 & 0xF0) == 0x20) {
         scale = 0xAA0;
         gte_lddp(scale);
         gte_ldsv(&vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&vec);
     }
     if (!(arg3 & 0x100)) {

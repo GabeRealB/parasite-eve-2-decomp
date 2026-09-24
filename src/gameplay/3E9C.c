@@ -11,15 +11,11 @@
 #include "main/task.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 #include <psyq/memory.h>
-
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32     Gp_LcgState;
 extern SVECTOR D_801124DC[];
@@ -419,7 +415,7 @@ void func_800ED42C(Task* arg0)
                             gte_SetRotMatrix(&coord->coord);
                             vec = &mem->move;
                             gte_ldv0(vec);
-                            gte_rtv0_real();
+                            gte_rtv0();
                             gte_stsv(vec);
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x200, vec);
                             i = 0;
@@ -439,7 +435,7 @@ void func_800ED42C(Task* arg0)
                             gte_SetRotMatrix(&coord->coord);
                             vec = &mem->move;
                             gte_ldv0(vec);
-                            gte_rtv0_real();
+                            gte_rtv0();
                             gte_stsv(vec);
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, vec);
                             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -620,7 +616,7 @@ void Gp_EffSprTask34(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -706,7 +702,7 @@ void Gp_EffSprTask72(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -795,15 +791,15 @@ void Gp_EffLineTaskA3(Task* arg0)
         vecp                                        = block;
         gte_SetRotMatrix(&mem->parent->coord);
         gte_ldv0(&mem->move);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
         gte_lddp((mem->age << 11) + 0x1000);
         gte_ldsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
         *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&((GpEffLineScratch*)(head - 0x20))->vec0.vx;
         *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&block->vec0.vy;
@@ -811,12 +807,12 @@ void Gp_EffLineTaskA3(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec0);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy0);
         gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
         if (block->flag >= 0) {
             gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
-            gte_rtps_real();
+            gte_rtps();
             gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy1);
             gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
             if (block->flag >= 0) {
@@ -879,7 +875,7 @@ void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -976,7 +972,7 @@ void Gp_EffSprTask35(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -1068,7 +1064,7 @@ void Gp_EffSprTask6F(Task* arg0)
             mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
             gte_SetRotMatrix(&mem->parent->coord);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
             arg0->state = 1;
         }
@@ -1084,7 +1080,7 @@ void Gp_EffSprTask6F(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -1184,7 +1180,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 2:
@@ -1198,7 +1194,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 3:
@@ -1212,7 +1208,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 30:
@@ -1228,7 +1224,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 5:
@@ -1243,7 +1239,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 9:
@@ -1258,7 +1254,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->scale   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 16:
@@ -1279,7 +1275,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 17:
@@ -1293,7 +1289,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = 0xFF80 - (((u32)Gp_LcgState >> 16) & 0x3F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 13:
@@ -1309,7 +1305,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 23:
@@ -1342,7 +1338,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = ((((u32)Gp_LcgState >> 16) & 0x1F) + 0x10);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 12:
@@ -1356,7 +1352,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x3F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 37:
@@ -1370,7 +1366,7 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x1F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
         }
@@ -1391,7 +1387,7 @@ void Gp_EffModelTask(Task* arg0)
     gte_lddp(*(u16*)&mem->scale);
     vel = &mem->move;
     gte_ldsv(vel);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&delta);
     coord->coord.t[0] += delta.vx;
     coord->coord.t[1] += delta.vy;
@@ -1400,7 +1396,7 @@ void Gp_EffModelTask(Task* arg0)
     coord->coord.t[2]  = t2;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&delta);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&dir);
     tx             = *(u16*)&coord->workm.t[0];
     pos.vx         = tx;
@@ -1442,7 +1438,7 @@ void Gp_EffModelTask(Task* arg0)
         mem->scale = scale;
         gte_lddp(scale);
         gte_ldsv(vel);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&delta);
         coord->coord.t[0] += delta.vx;
         coord->coord.t[1] += delta.vy;
@@ -1567,7 +1563,7 @@ void Gp_EffTileTaskA4(Task* arg0)
 
             gte_SetRotMatrix(&mem->parent->coord);
             gte_ldv0(&mem->move);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&mem->move);
 
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1587,7 +1583,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -1680,7 +1676,7 @@ void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -1776,15 +1772,15 @@ void Gp_EffSprTask5C(Task* arg0)
                 mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
                 gte_lddp(mem->scale << 3);
                 gte_ldsv(&mem->move);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&mem->move);
                 gte_lddp(mem->index << 12);
                 gte_ldsv(&mem->move);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&mem->move);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
             } else if (!(arg0->spawnArg1 & 0xF0000000)) {
                 n = gDisplayState.animFrame & 3;
@@ -1818,7 +1814,7 @@ void Gp_EffSprTask5C(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -1942,16 +1938,16 @@ void func_800F289C(Task* arg0)
                     mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
                     gte_lddp((mem->scale << 3));
                     gte_ldsv(&mem->move);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&mem->move);
                     gte_lddp((mem->index << 11));
                     gte_ldsv(&mem->move);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(&mem->move);
                 }
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
             } else {
                 switch (mem->step) {
@@ -1978,7 +1974,7 @@ void func_800F289C(Task* arg0)
                         mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
                         gte_lddp((mem->scale << 2));
                         gte_ldsv(&mem->move);
-                        gte_gpf12_real();
+                        gte_gpf12();
                         gte_stsv(&mem->move);
                         break;
                 }
@@ -2013,7 +2009,7 @@ void func_800F289C(Task* arg0)
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -2095,7 +2091,7 @@ void Gp_EffSprTask76(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2221,7 +2217,7 @@ void Gp_EffSprTask7C(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2599,12 +2595,12 @@ void Gp_EffLineTask92(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_ldv0(&block->vec1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy1);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -2708,7 +2704,7 @@ void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -2839,7 +2835,7 @@ void Gp_EffSprTask9E(Task* arg0)
         v->vz = tbl->y * *(u16*)&mem->scale;
         gte_SetRotMatrix(m);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&coord->workm.t[0];
         tbl++;
@@ -2852,12 +2848,12 @@ void Gp_EffSprTask9E(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     shade = -0x80 - (mem->age >> 3);
     col   = shade;
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -2960,7 +2956,7 @@ void Gp_EffSprTask54(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -3037,7 +3033,7 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -3049,10 +3045,10 @@ void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
@@ -3115,7 +3111,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
             v->vz = tbl->y * arg1;
             gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(v);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(v);
             *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->vx;
             tbl++;
@@ -3127,10 +3123,10 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
 
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec[0]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&block->sxy0);
         gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-        gte_rtpt_real();
+        gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
@@ -3271,7 +3267,7 @@ void Gp_EffAttachTask37(Task* arg0)
             MatrixNormal(mtx, mtx);
             gte_lddp(*(u16*)&mem->scale);
             gte_ldsv(&mem->move);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&delta);
             coord->coord.t[0] += delta.vx;
             coord->coord.t[1] += delta.vy;
@@ -3279,7 +3275,7 @@ void Gp_EffAttachTask37(Task* arg0)
             coord->flg         = 0;
             gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(&delta);
-            gte_rtv0_real();
+            gte_rtv0();
             gte_stsv(&dir);
             tx             = *(u16*)&coord->workm.t[0];
             pos.vx         = tx;
@@ -3322,7 +3318,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 mem->scale = (s32)(*(u16*)&mem->scale << 16) >> 17;
                 gte_lddp(mem->scale);
                 gte_ldsv(vel);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&delta);
                 coord->coord.t[0] += delta.vx;
                 coord->coord.t[1] += delta.vy;
@@ -3335,7 +3331,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 Gp_SpawnEff(0x60055, coord, mem->angle + 0x12200, 0);
                 gte_lddp(0x800);
                 gte_ldsv(rot);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(rot);
                 if (((s16)mem->age - mem->step) < 8 && mem->scale < 0x20) {
                     extra->flags |= 2;

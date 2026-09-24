@@ -25,8 +25,6 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-
 extern TaskFuncTable3 D_800974C8;
 extern char           Gp_StrCapMagic[];
 extern char           Gp_StrEvsFmt[];

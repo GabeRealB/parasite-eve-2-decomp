@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/memory.h>
 
 #include "gameplay/1A8.h"
@@ -27,8 +28,6 @@ void Stage_SetFadeMax(s32 arg0);
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32            Gp_PreviewItems[5];
 extern u16            Gp_ItemCountShow;
@@ -4634,7 +4633,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     gGpuPrimCursor = p4 + 1;
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p4->x0 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4643,7 +4642,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p4->x1 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4652,7 +4651,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p4->x2 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4661,7 +4660,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     vert = (SVECTOR*)(verts + (((u16*)cur)[3] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p4->x3 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4738,13 +4737,13 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     gGpuPrimCursor = p3 + 1;
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p3->x0 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4753,7 +4752,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p3->x1 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;
@@ -4762,7 +4761,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                     vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(scratch);
                     p3->x2 = scratch->vx + scratch->offX;
                     vz     = scratch->vz;

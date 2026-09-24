@@ -10,13 +10,10 @@
 #include "main/task.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
 
 extern s32 Gp_LcgState;
 
@@ -54,7 +51,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -132,7 +129,7 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&coord->workm.t[0];
         tbl++;
@@ -145,10 +142,10 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
