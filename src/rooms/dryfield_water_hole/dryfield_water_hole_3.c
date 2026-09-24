@@ -19,8 +19,8 @@ extern u8 D_801153F4;
 /// advances while `D_801153F4` is clear. The outer edges are coloured
 /// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
-/// invalid are skipped.
-void func_dryfield_water_hole_8017D898(void)
+/// invalid are skipped. `task` is unused.
+void func_dryfield_water_hole_8017D898(Task* task)
 {
     SVECTOR                   v0, v1, v2, v3;
     s32                       sxy0, sxy1, sxy2, sxy3;
@@ -149,4 +149,14 @@ void func_dryfield_water_hole_8017D898(void)
     }
 }
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole_3", func_dryfield_water_hole_8017DFA0);
+/// The room's water task: runs its current state -
+/// `func_dryfield_water_hole_8017E000` once, then
+/// `func_dryfield_water_hole_8017D898`, which draws the surfaces - and each
+/// tick sets the session's water height to -0x1A4.
+void func_dryfield_water_hole_8017DFA0(Task* task)
+{
+    TaskFunc states[2] = { func_dryfield_water_hole_8017E000, func_dryfield_water_hole_8017D898 };
+
+    states[task->state](task);
+    gGameSession->waterY = -0x1A4;
+}

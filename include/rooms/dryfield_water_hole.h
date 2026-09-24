@@ -36,13 +36,21 @@ extern s16 D_dryfield_water_hole_801828D0;
 /// `taskKill`.
 extern const TaskFuncTable3 D_dryfield_water_hole_8017D5C4;
 
-/// Draws the room's water surfaces into the current ordering table.
-void func_dryfield_water_hole_8017D898(void);
+/// The water task's drawing state: draws the room's water surfaces into the
+/// current ordering table.
+void func_dryfield_water_hole_8017D898(Task* task);
+
+/// The water task's first state.
+void func_dryfield_water_hole_8017E000(Task* arg0);
 
 /// Draws a glowing beam between two points of a coordinate's local space.
 void func_dryfield_water_hole_8017E410(GsCOORDINATE2* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 /// Draws the flat textured flash quad of the room's flash effect.
 void func_dryfield_water_hole_8017EDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
+
+/// Draw a spinning and an upright sprite of the room's particle effect.
+void func_dryfield_water_hole_8017F5D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_dryfield_water_hole_8017F9C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2);
 
 #endif
