@@ -1,17 +1,23 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflow.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/wipsys.h"
-#include "psyq/libgpu.h"
 
-extern void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1);
-
+/// The balcony movie task. It blanks the display, allocates the movie
+/// buffers and plays two streams keyed on the current location - view 0x65
+/// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.field_0` is 2 - either of
+/// which the pad can skip, then restores the stream state, resets the display
+/// heap and kills itself.
 void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
 {
     u8          slotParam[4];
@@ -107,5 +113,19 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             taskKill(task);
             Display_ResetHeapWrapper();
             return;
+    }
+}
+
+/// Draws a white fade overlay (mode 2) each tick while `killCountdown`
+/// climbs by 4, and kills the task once it reaches 0x100.
+void func_dryfield_night_motel_balcony_8017E068(Task* arg0)
+{
+    u16 temp_v0;
+
+    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    temp_v0             = arg0->killCountdown + 4;
+    arg0->killCountdown = temp_v0;
+    if ((s16)temp_v0 >= 0x100) {
+        taskKill(arg0);
     }
 }

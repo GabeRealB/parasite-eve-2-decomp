@@ -1,25 +1,26 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stream.h"
+#include "main/task.h"
 #include "main/wipsys.h"
-#include "psyq/libgpu.h"
+#include "rooms/dryfield_night_motel_balcony.h"
 
 extern s8       D_8007106B;
 extern TaskDesc D_dryfield_night_motel_balcony_80182834;
 
 extern u8** D_dryfield_night_motel_balcony_80182C3C[];
-
-extern void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1);
 
 void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 {

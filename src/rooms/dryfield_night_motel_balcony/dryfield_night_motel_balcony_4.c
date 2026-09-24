@@ -1,26 +1,44 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
-
-#include "rooms/room_common.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room_common.h"
 
-extern s32 Gp_LcgState;
+/// The `inline_c.h` GTE commands lack the two leading nops this code has.
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
+extern u32 Gp_LcgState;
+
+extern SVECTOR D_dryfield_night_motel_balcony_80182C60[];
+extern SVECTOR D_dryfield_night_motel_balcony_80182C70;
+extern SVECTOR D_dryfield_night_motel_balcony_80182C80;
+extern SVECTOR D_dryfield_night_motel_balcony_80182C90;
+extern SVECTOR D_dryfield_night_motel_balcony_80182CA0;
+extern SVECTOR D_dryfield_night_motel_balcony_80182CF0;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D00;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D08;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D10;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D18;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D28;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D30;
+extern SVECTOR D_dryfield_night_motel_balcony_80182D38;
+extern s32     D_dryfield_night_motel_balcony_80182D40[2][20];
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
-
-/// Declared without a prototype because the effect task calls it with a third
-/// argument, always 0, that the definition does not take.
-void func_dryfield_night_motel_balcony_80180C60();
 
 /// One row of the sprite table `func_dryfield_night_motel_balcony_8017FF78`
 /// indexes by `Task::spawnArg1`: `tpageX` selects the texture page, `w` is the
@@ -44,13 +62,380 @@ typedef struct {
 
 extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
 
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-
+void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1);
+void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg);
+void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused);
 void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
+
+/// The room's ambient effect task. Each tick it draws the glows whose bit for
+/// the current view is set in the per-view mask table, turns two of them off
+/// for good once flag nibble 0x7F is set (spawning effect 0x60094 the first
+/// time), and runs the current view's timed effect bursts off the work
+/// block's two counters.
+void func_dryfield_night_motel_balcony_8017E554(Task* task)
+{
+    RoomEffWork*   work;
+    GsCOORDINATE2* coord;
+    s32            hi;
+    s32            mask;
+    s32            i;
+    s32            n;
+    s16            cnt;
+    SVECTOR        pos;
+    SVECTOR        ofs;
+
+    work                    = task->spawnArg2;
+    coord                   = ((TmdObject*)task->extra)->coords;
+    Gp_State1C->groundShade = 0xFF;
+    hi                      = 0;
+    if (gGameSession->at4.loc.view < 0x20) {
+        mask = 1 << gGameSession->at4.loc.view;
+    } else {
+        mask = 1 << (gGameSession->at4.loc.view - 0x20);
+        hi   = 1;
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][2]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C70, 0x180);
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][4]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C80, 0x180);
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][6]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182C90, 0x180);
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][8]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
+    }
+    for (i = 10; i < 18; i++) {
+        if (mask & D_dryfield_night_motel_balcony_80182D40[hi][i]) {
+            func_dryfield_night_motel_balcony_8017F440(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
+        }
+    }
+    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
+        func_dryfield_night_motel_balcony_8017EC58(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
+    }
+    if (GameFlag_GetNibble(0x7F) == 1) {
+        D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
+        D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
+        D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
+        D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+        Gp_SpawnEff(0x60094, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
+        GameFlag_SetNibble(0x7F, 2);
+    } else if (GameFlag_GetNibble(0x7F) == 2) {
+        D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
+        D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
+        D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
+        D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+    }
+    switch (gGameSession->at4.loc.view) {
+        case 17:
+            if ((s16)++work->field_26 == 0x5C) {
+                Gp_SpawnEff(0x60095, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
+                Gp_SpawnEff(0x60095, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
+                for (i = 0; i < 3; i++) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0xFF) | 0x80010100,
+                                &D_dryfield_night_motel_balcony_80182D28);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0x7F) | 0x80000080,
+                                &D_dryfield_night_motel_balcony_80182D28);
+                }
+            }
+            break;
+        case 18:
+            if ((s16)++work->field_24 == 0x3F) {
+                Gp_SpawnEff(0x60050, coord, 3, &D_dryfield_night_motel_balcony_80182D08);
+                work->field_26 = 0;
+            }
+            break;
+        case 21:
+            cnt = ++work->field_26;
+            if (cnt >= 0x47) {
+                n = cnt - 0x46;
+                if ((s16)(cnt % 6) == 0) {
+                    memset(&ofs, 0, sizeof(ofs));
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    ofs.vx      = -((s32)(Gp_LcgState >> 16) % (n * 10));
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    ofs.vy      = (s32)(Gp_LcgState >> 16) % (n * 10);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    ofs.vz      = (s32)(Gp_LcgState >> 16) % (n * 10);
+                    pos         = ofs;
+                    pos.vx     += D_dryfield_night_motel_balcony_80182D30.vx;
+                    pos.vy     += D_dryfield_night_motel_balcony_80182D30.vy;
+                    pos.vz     += D_dryfield_night_motel_balcony_80182D30.vz;
+                    Gp_SpawnEff(0x6007E, coord, n * 0x28 + 0x40000600, &pos);
+                }
+                work->field_24 = 0;
+            }
+            break;
+        case 19:
+            if ((s16)++work->field_24 == 0x2B) {
+                Gp_SpawnEff(0x60050, coord, 4, &D_dryfield_night_motel_balcony_80182D10);
+            }
+            break;
+        case 20:
+            if ((s16)++work->field_24 == 0xC) {
+                Gp_SpawnEff(0x60050, coord, 2, &D_dryfield_night_motel_balcony_80182D00);
+            }
+            break;
+        case 23:
+            if ((s16)++work->field_24 == 0xC) {
+                Gp_SpawnEff(0x60050, coord, 2, &D_dryfield_night_motel_balcony_80182D38);
+            }
+            break;
+        case 29:
+            if ((s16)++work->field_24 == 0x41) {
+                for (i = 0; i < 3; i++) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0x7F) | 0x80000080,
+                                &D_dryfield_night_motel_balcony_80182D18);
+                }
+            }
+            break;
+        default:
+            work->field_24 = 0;
+            work->field_26 = 0;
+            break;
+    }
+}
+
+/// Projects the world-space points `arg0[0]` and `arg0[1]` through
+/// `Gfx_ViewWorldMtx` and, when both project, joins them with a glowing
+/// capsule of gouraud `POLY_G4`s: a wedge fan around each projected centre and
+/// a strip between them, three quads per 0x400 step across half a turn
+/// anchored to the screen-space angle between the two centres. `arg1` is a
+/// half-extent scaled by depth (`arg1 * 64 / otz`); the lit vertices take the
+/// grey `((animFrame & 1) * 16) | 0x20`, flickering with the frame counter,
+/// and the rim is black.
+void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
+{
+    void**             scratch;
+    u8*                head;
+    SVECTOR*           p1;
+    RoomDraw08Scratch* block;
+    POLY_G4*           prim;
+    DisplayState*      ds;
+    s32                raw;
+    s32                ang;
+    s32                angEnd;
+    s32                limit;
+    s32                angStart;
+    s32                t;
+    s32                t2;
+    s32                t3;
+    s32                conn;
+    s32                scaled;
+    s32                blend;
+
+    p1      = arg0 + 1;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* tmp asm("v0");
+        tmp      = head - 0x1C;
+        block    = (RoomDraw08Scratch*)tmp;
+        *scratch = tmp;
+    }
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
+    gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz0);
+        gte_ldv0(p1);
+        gte_rtps_real();
+        gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
+        gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&((RoomDraw08Scratch*)(head - 0x1C))->otz1);
+            scaled    = (s16)arg1 * 64;
+            block->r0 = scaled / ((RoomDraw08Scratch*)(head - 0x1C))->otz0;
+            block->r1 = scaled / block->otz1;
+            raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+            ds        = &gDisplayState;
+            ang       = (s16)raw;
+            blend     = ((*(u8*)&ds->animFrame & 1) * 0x10) | 0x20;
+            SOFT_BARRIER();
+            angEnd = ang + 0x800;
+            if (ang < angEnd) {
+                angStart = ang;
+                limit    = angEnd;
+                do {
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
+                    t        = ang + 0x200;
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
+                    prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
+                    prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
+                    t2       = ang + 0x400;
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
+                    prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+
+                    conn           = angStart + ((ang - angStart) * 2);
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, blend, blend, blend);
+                    prim->x0 = block->sx0 + ((block->r0 * rsin(conn)) >> 12);
+                    prim->y0 = block->sy0 + ((block->r0 * rcos(conn)) >> 12);
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(conn)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(conn)) >> 12);
+                    prim->x2 = block->sx0;
+                    prim->y2 = block->sy0;
+                    prim->x3 = block->sx1;
+                    prim->y3 = block->sy1;
+                    addPrim((u_long*)(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
+                                      (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
+                    SCHED_BARRIER();
+
+                    prim           = (POLY_G4*)gGpuPrimCursor;
+                    t3             = ang + 0x800;
+                    t              = t3;
+                    gGpuPrimCursor = prim + 1;
+                    setPolyG4(prim);
+                    setRGB0(prim, 0, 0, 0);
+                    setRGB1(prim, 0, 0, 0);
+                    setRGB2(prim, blend, blend, blend);
+                    setRGB3(prim, 0, 0, 0);
+                    prim->x0 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y0 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    t        = ang + 0xA00;
+                    prim->x1 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y1 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    t        = ang + 0xC00;
+                    prim->x2 = block->sx1;
+                    prim->y2 = block->sy1;
+                    prim->x3 = block->sx1 + ((block->r1 * rsin(t)) >> 12);
+                    prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
+                    addPrim((u_long*)(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                            prim);
+                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    ang = t2;
+                } while (ang < limit);
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
+
+/// Projects the point `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag
+/// is non-negative, queues one semi-transparent `POLY_FT4` sprite centred on
+/// it: tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, UV column `(s16)arg1 * 40`,
+/// on-screen half-extent `(s16)arg2 * 39 / otz`, and a grey that alternates
+/// between 0x20 and 0x30 with `animFrame`.
+void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg2)
+{
+    void**             scratch;
+    u8*                head;
+    u8*                tmp;
+    RoomDraw13Scratch* block;
+    POLY_FT4*          prim;
+    DisplayState*      ds;
+    s32                tex;
+    s32                idx;
+    s32                u0;
+    s32                u1;
+    register s32       sarg asm("v1");
+    s32                t;
+    s32                field8;
+    s32                blend;
+    s32                v;
+    u8                 code;
+    s16                xy;
+
+    tex = arg1;
+    CLOBBER_REG(a1);
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    tmp     = head - 0x10;
+    block   = (RoomDraw13Scratch*)tmp;
+    SOFT_TOUCH_REG(block);
+    *scratch = tmp;
+
+    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_ldv0(arg0);
+    gte_rtps_real();
+    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
+    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
+        gte_stszotz(&block->otz);
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        ds             = &gDisplayState;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        idx         = (s16)tex;
+        field8      = (u8)ds->animFrame;
+        prim->tpage = 0x2B;
+        prim->clut  = (idx & 0x3F) | 0x4380;
+        u0          = idx * 40;
+        u1          = u0 + 0x27;
+        prim->u0    = u0;
+        prim->u2    = u0;
+        SOFT_USE_REG(u0);
+        v        = 0x27;
+        prim->u1 = u1;
+        prim->u3 = u1;
+        SOFT_USE_REG(u1);
+        sarg     = arg2 << 16;
+        prim->v2 = v;
+        prim->v3 = v;
+        SCHED_BARRIER();
+        code     = prim->code;
+        sarg     = sarg >> 16;
+        prim->v0 = 0;
+        prim->v1 = 0;
+        blend    = ((field8 & 1) * 16) + 0x20;
+        COMPILER_BARRIER();
+        prim->code = code | 2;
+        t          = sarg * 40;
+        setRGB0(prim, blend, blend, blend);
+        ((RoomDraw13Scratch*)tmp)->radius =
+            (t - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x2 = xy;
+        prim->x0 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sx + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->x3 = xy;
+        prim->x1 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy - *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y1 = xy;
+        prim->y0 = xy;
+        xy       = *(u16*)&((RoomDraw13Scratch*)tmp)->sy + *(u16*)&((RoomDraw13Scratch*)tmp)->radius;
+        prim->y3 = xy;
+        prim->y2 = xy;
+        addPrim((u_long*)(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
+                          (s32)gGpuCurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x10;
+}
 
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
 /// screen position `arg0` (x in the low half, y in the high half). `arg1` is
@@ -516,8 +901,8 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// `color` modulates the texture and makes the quad semi-transparent; NULL
 /// draws the texture raw and opaque. The block pointer goes through the same
 /// `asm` move as `func_dryfield_night_motel_balcony_8018221C`, for the same
-/// reason.
-void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color)
+/// reason. The third argument is never read; every caller passes 0.
+void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
     RoomEffWork*       work;
     GsCOORDINATE2*     coord;
