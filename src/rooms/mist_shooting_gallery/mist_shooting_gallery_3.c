@@ -30,30 +30,24 @@ extern u8 D_80062737;
 /// load, so a plain `extern s8` here lets the scheduler hoist the following
 /// `arg0->state` load above the store. Indexing an array makes the store a
 /// struct reference and keeps the two in order.
-extern s8  D_80071068[];
-extern s8  D_8007106B;
-extern s16 D_8007A396;
-extern s8  D_80072176;
-extern s8  D_80072177;
-/// "SELECT" — the panel title, owned by `mist_shooting_gallery.c`'s rodata.
-extern char         RoomsShared8017e28cTitle[];
-extern UiObjectDesc RoomsShared8017ff9cDesc;
-extern UiList       RoomsShared8017e28cMenu;
-extern TaskDesc     D_mist_shooting_gallery_80185378;
-extern TaskDesc     D_mist_shooting_gallery_80185384;
-extern SVECTOR      D_mist_shooting_gallery_80185550[];
-extern SVECTOR      D_mist_shooting_gallery_80185570[];
-extern SVECTOR      D_mist_shooting_gallery_801855C0[];
-extern SVECTOR      D_mist_shooting_gallery_801855F0[];
-extern SVECTOR      D_mist_shooting_gallery_80185610[];
-extern SVECTOR      D_mist_shooting_gallery_80185670[];
-extern SVECTOR      D_mist_shooting_gallery_80185678[];
-extern SVECTOR      D_mist_shooting_gallery_80185680[];
-extern SVECTOR      D_mist_shooting_gallery_80185688[];
-extern SVECTOR      D_mist_shooting_gallery_80185690[];
-extern SVECTOR      D_mist_shooting_gallery_801856B0[];
-void                Room_Draw01(SVECTOR* v, s32 arg1, s32 arg2);
-void                Room_Draw31(SVECTOR* v, s32 arg1, s32 arg2);
+extern s8       D_80071068[];
+extern s8       D_8007106B;
+extern s16      D_8007A396;
+extern s8       D_80072176;
+extern s8       D_80072177;
+extern TaskDesc D_mist_shooting_gallery_80185378;
+extern TaskDesc D_mist_shooting_gallery_80185384;
+extern SVECTOR  D_mist_shooting_gallery_80185550[];
+extern SVECTOR  D_mist_shooting_gallery_80185570[];
+extern SVECTOR  D_mist_shooting_gallery_801855C0[];
+extern SVECTOR  D_mist_shooting_gallery_801855F0[];
+extern SVECTOR  D_mist_shooting_gallery_80185610[];
+extern SVECTOR  D_mist_shooting_gallery_80185670[];
+extern SVECTOR  D_mist_shooting_gallery_80185678[];
+extern SVECTOR  D_mist_shooting_gallery_80185680[];
+extern SVECTOR  D_mist_shooting_gallery_80185688[];
+extern SVECTOR  D_mist_shooting_gallery_80185690[];
+extern SVECTOR  D_mist_shooting_gallery_801856B0[];
 
 s32 func_mist_shooting_gallery_80180B34(void)
 {

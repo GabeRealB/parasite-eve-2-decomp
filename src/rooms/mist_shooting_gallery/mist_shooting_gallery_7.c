@@ -1,24 +1,41 @@
 #include "common.h"
+
 #include "gameplay/268.h"
+#include "gameplay/3CD8.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/pad.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/rooms_shared_8018055c.h"
-#include "gameplay/3CD8.h"
-#include "main/session.h"
-#include "main/stream.h"
-#include "rooms/rooms_shared_8017e28c.h"
 
 extern void func_8002E53C(TextDrawReq* req, u8* text);
 
 extern u8  D_80062737;
 extern s16 D_8007A396;
 
-void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj)
+/// The jukebox's ten track lists: one per game mode, with list 4 standing in
+/// before the first clear, and the second five used outside the debug attach
+/// room.
+extern RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC;
+
+/// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
+/// terminator.
+extern char D_mist_shooting_gallery_8017DB04[];
+
+/// The jukebox's track list, whose row callback is
+/// `func_mist_shooting_gallery_8018055C`.
+extern UiList D_mist_shooting_gallery_80185338;
+
+/// Row callback of the jukebox list: draws the row's track name, and on
+/// confirm, when the row is not the one already chosen, plays the select
+/// sound and, when the track differs from the one playing, fades the music
+/// out and hands the track id to the menu task to load.
+void func_mist_shooting_gallery_8018055C(DialogPrompt* prompt, UiObject* obj)
 {
     RoomsShared8018055cMenu    menu;
     RoomsShared8018055cCourse* course;
@@ -27,7 +44,7 @@ void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj)
     s32                        mode;
 
     row  = prompt->field_8;
-    menu = RoomsShared8018055cCourses;
+    menu = D_mist_shooting_gallery_8017DADC;
 
     list = 4;
     if (Mc_SaveData.clearCount != 0) {
@@ -64,7 +81,14 @@ void RoomsShared8018055c(DialogPrompt* prompt, UiObject* obj)
     }
 }
 
-void RoomsShared8017e28c(Task* task)
+/// The jukebox menu task, the update routine of the panel
+/// `D_mist_shooting_gallery_8018535C` builds. Draws the title and, on its first
+/// tick, lays out the track list (four rows, three in the debug attach room).
+/// While a chosen track is pending it waits for the MIDI player to go idle,
+/// queues the track's CD load, then starts it once the CD is idle and records
+/// it as the current track. The menu or cancel button plays the back sound and
+/// closes the panel.
+void func_mist_shooting_gallery_80180728(Task* task)
 {
     u8        param1[8];
     u8        param2[8];
@@ -76,10 +100,10 @@ void RoomsShared8017e28c(Task* task)
     u8        ready;
 
     obj  = task->spawnArg2;
-    menu = &RoomsShared8017e28cMenu;
+    menu = &D_mist_shooting_gallery_80185338;
 
     obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, RoomsShared8017e28cTitle);
+    Ui_DrawText((UiPanel*)obj, D_mist_shooting_gallery_8017DB04);
     if (task->state == 0) {
         task->spawnArg1 = -1;
         if (Gp_IsDebugAttachRoom() == 0) {

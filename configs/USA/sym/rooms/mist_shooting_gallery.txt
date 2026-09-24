@@ -1,15 +1,1 @@
 // Overlay-local symbols for mist_shooting_gallery.
-Room_Draw01 = 0x80181480; // shared body, see src/lib/
-Room_Draw31 = 0x80181CC4; // shared body, see src/lib/
-Room_Util06 = 0x8017FEB0; // shared body, see src/lib/
-RoomsShared8018055c = 0x8018055C; // shared body, see src/lib/
-RoomsShared8018055cCourses = 0x8017DADC; // shared body data, see src/lib/
-RoomsShared8017f438 = 0x801811C0; // shared body, see src/lib/
-RoomsShared8017f438Sel = 0x801853C0; // shared body data, see src/lib/
-RoomsShared8017f438Bank0 = 0x8018D1B4; // shared body data, see src/lib/
-RoomsShared8017f438Bank1 = 0x8018DF38; // shared body data, see src/lib/
-RoomsShared8017e28c = 0x80180728; // shared body, see src/lib/
-RoomsShared8017e28cTitle = 0x8017DB04; // shared body data, see src/lib/
-RoomsShared8017e28cMenu = 0x80185338; // shared body data, see src/lib/
-RoomsShared8017ff9c = 0x80180A00; // shared body, see src/lib/
-RoomsShared8017ff9cDesc = 0x8018535C; // shared body data, see src/lib/

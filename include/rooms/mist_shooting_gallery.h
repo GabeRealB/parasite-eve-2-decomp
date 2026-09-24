@@ -3,10 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/task.h"
 #include "main/text.h"
-
-#include <psyq/libgte.h>
 
 /// Per-run state of the Mist shooting gallery mini-game: a 0x24-byte
 /// `memCalloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at
@@ -195,5 +195,8 @@ typedef struct _MistShootingGalleryFlashScratch {
 STATIC_ASSERT_SIZEOF(MistShootingGalleryFlashScratch, 0x1C);
 
 extern Task* D_mist_shooting_gallery_8018E0C4;
+
+void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2);
+void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 #endif // ROOMS_MIST_SHOOTING_GALLERY_H
