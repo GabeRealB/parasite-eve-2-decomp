@@ -13,8 +13,8 @@
 /// 16-iteration `Gp_SpawnEff` burst on `field_2` being non-zero, and clears it
 /// again afterwards.
 typedef struct ShelterB6NurseryPair {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
 } ShelterB6NurseryPair;
 STATIC_ASSERT_SIZEOF(ShelterB6NurseryPair, 0x4);
 
