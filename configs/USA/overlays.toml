@@ -2075,25 +2075,7 @@ objects = [
 id = 366
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_8", rodata = "0x4", text = "0x11C" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6", rodata = "0x50", text = "0x208C" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_2", rodata = "0x94", text = "0x3C30" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_3", rodata = "0x104", text = "0x419C" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_9", text = "0xCE4" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_10", text = "0x1878" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_11", text = "0x196C" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_12", text = "0x1ED8" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_13", text = "0x3A10" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_14", text = "0x444C" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_4", text = "0x44DC" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_15", text = "0x45BC" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_5", text = "0x4638" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_16", text = "0x4674" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_6", text = "0x46B8" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_17", text = "0x46C0" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_18", text = "0x4718" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_19", text = "0x4B98" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6_7", text = "0x5520" },
+  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6", rodata = "0x4", text = "0x11C" },
   { kind = "data", at = "0x5590" },
 ]
 
