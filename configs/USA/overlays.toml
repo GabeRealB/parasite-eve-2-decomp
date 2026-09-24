@@ -1758,17 +1758,8 @@ id = 367
 text = ["0x38", "0x12C8"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft", rodata = "0x4", text = "0xBC" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_4", rodata = "0x10", text = "0x3FC" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_3", text = "0x248" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_6", text = "0x38" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_7", text = "0x40" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_8", text = "0xFC" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_2", text = "0x104" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_9", text = "0x22C" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_10", text = "0x3A4" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_11", text = "0x854" },
-  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_5", text = "0xAD0" },
+  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft", rodata = "0x4", text = "0x38" },
+  { unit = "dryfield_night_motel_loft/dryfield_night_motel_loft_2", rodata = "0x10", text = "0x3FC" },
   { kind = "data", at = "0x12C8" },
 ]
 
