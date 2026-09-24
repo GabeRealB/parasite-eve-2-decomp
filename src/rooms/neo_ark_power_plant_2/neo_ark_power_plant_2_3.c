@@ -5,6 +5,7 @@
 
 #include "main/gameflag.h"
 #include "main/task.h"
+#include "rooms/neo_ark_power_plant_2.h"
 #include "rooms/room_common.h"
 
 extern u8 D_80071075;
@@ -47,7 +48,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
                     }
                 }
             } else {
-                Room_Draw31(&D_neo_ark_power_plant_2_80180678, 0x300, 0x334);
+                func_neo_ark_power_plant_2_8017DA54(&D_neo_ark_power_plant_2_80180678, 0x300, 0x334);
             }
             break;
         case 8:
