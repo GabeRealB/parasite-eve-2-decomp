@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -13,6 +14,8 @@ extern void func_80132110(void);
 extern void func_801322A0(void);
 extern void func_80149E38(void);
 extern void func_80149EBC(void);
+
+extern TaskDesc D_shelter_1f_heliport_801811C8;
 
 extern SVECTOR D_shelter_1f_heliport_80181204;
 extern s16     D_shelter_1f_heliport_80181206; // D_shelter_1f_heliport_80181204.vy
@@ -43,7 +46,25 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_80180334);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_1f_heliport/shelter_1f_heliport_2", func_shelter_1f_heliport_8018041C);
+s32 func_shelter_1f_heliport_8018041C(s32 arg0, s32 arg1, s32 arg2)
+{
+    s32 need;
+
+    switch (arg2) {
+        case 0x21:
+            Gp_MsgPlayerWeapon(0);
+            Task_SpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, 0x21, 0);
+            break;
+        case 0x22:
+            need = 1;
+            if (gGameSession->at4.loc.place == 1) {
+                need = 2;
+            }
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x104) >= need ? 0x22 : 0x25, 0);
+            break;
+    }
+    return 0;
+}
 
 s32 func_shelter_1f_heliport_801804BC(s32 arg0, s32 arg1, RoomEventMsg* in)
 {
