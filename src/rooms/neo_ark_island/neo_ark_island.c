@@ -57,6 +57,9 @@ extern TaskDesc D_neo_ark_island_80181B78;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
+void func_neo_ark_island_8017EA94(Task* arg0);
+void func_neo_ark_island_8017EB08(Task* task);
+
 /// Rotates `v` in place by `m` through the GTE, working from a stack copy so
 /// the load and the store can name the same vector.
 static inline void _neoArkIslandRotTrans(MATRIX* m, SVECTOR* v)
@@ -777,7 +780,11 @@ void func_neo_ark_island_8017E2A4(Task* task)
     *(s32*)0x1F8003FC += 0x40;
 }
 
-INCLUDE_RODATA("rooms/nonmatchings/neo_ark_island/neo_ark_island", D_neo_ark_island_8017D614);
+/// State handlers of the room's entry task, indexed by its state through
+/// `func_neo_ark_island_8017EB10`: set-up, idle, then kill.
+const TaskFuncTable3 D_neo_ark_island_8017D614 = {
+    { func_neo_ark_island_8017EA94, func_neo_ark_island_8017EB08, taskKill }
+};
 
 /// Island arrival sequence, advanced one step per call: step 0 asks for the
 /// caption, step 1 waits for the CAP system to go idle, step 2 clears the mode
@@ -893,6 +900,16 @@ void func_neo_ark_island_8017EA94(Task* arg0)
     D_80115598  = 1;
 }
 
-void func_neo_ark_island_8017EB08(void)
+void func_neo_ark_island_8017EB08(Task* task)
 {
+}
+
+/// Task tick that dispatches on the task's state through the three-entry
+/// handler table `D_neo_ark_island_8017D614`, copied to the stack first.
+void func_neo_ark_island_8017EB10(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_neo_ark_island_8017D614;
+    sp.funcs[task->state](task);
 }

@@ -2664,17 +2664,7 @@ id = 433
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_island/neo_ark_island", rodata = "0x4", text = "0x90" },
-  { unit = "neo_ark_island/neo_ark_island_4", rodata = "0x78", text = "0x1A28" },
-  { unit = "neo_ark_island/neo_ark_island_5", text = "0x1550" },
-  { unit = "neo_ark_island/neo_ark_island_6", text = "0x15A8" },
-  { unit = "neo_ark_island/neo_ark_island_7", text = "0x16F4" },
-  { unit = "neo_ark_island/neo_ark_island_8", text = "0x1EE4" },
-  { unit = "neo_ark_island/neo_ark_island_3", text = "0x256C" },
-  { unit = "neo_ark_island/neo_ark_island_9", text = "0x25DC" },
-  { unit = "neo_ark_island/neo_ark_island_10", text = "0x2880" },
-  { unit = "neo_ark_island/neo_ark_island_11", text = "0x2CAC" },
-  { unit = "neo_ark_island/neo_ark_island_12", text = "0x3040" },
-  { unit = "neo_ark_island/neo_ark_island_13", text = "0x3BB0" },
+  { unit = "neo_ark_island/neo_ark_island_2", rodata = "0x78", text = "0x15A8" },
   { kind = "data", at = "0x4570" },
 ]
 
