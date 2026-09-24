@@ -72,6 +72,30 @@ s32 func_shelter_b2_laboratory_8018025C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_80180290);
+extern TaskDesc D_80134564;
+extern Task*    D_shelter_b2_laboratory_80182A68;
+
+void func_shelter_b2_laboratory_80180290(Task* task)
+{
+    s32 result;
+
+    switch (task->state) {
+        case 0:
+            D_shelter_b2_laboratory_80182A68 = Task_SpawnFromTable(&D_80134564, 0, 0, 0);
+            task->state                     += 1;
+            return;
+        case 1:
+            if (Task_PollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
+                D_shelter_b2_laboratory_80182A68 = NULL;
+                if (result != 0) {
+                    GameFlag_SetNibble(0xD0, 1);
+                } else {
+                    Gp_MsgPlayerWeapon(1);
+                }
+                taskKill(task);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_3", func_shelter_b2_laboratory_80180350);
