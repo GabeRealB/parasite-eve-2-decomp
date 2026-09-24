@@ -10,6 +10,7 @@
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -1108,18 +1109,47 @@ void func_shelter_b3_dumping_hole_80180034(void)
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8018005C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", func_shelter_b3_dumping_hole_8018098C);
+/// Position and rotation the task hands itself with message 0x7D4.
+typedef struct {
+    VECTOR  pos;
+    SVECTOR rot;
+} DumpingHolePose;
+
+/// A `MATRIX` plus the word-wise view its rotation is reset to identity
+/// through: five aligned stores instead of nine halfword ones.
+typedef union {
+    MATRIX mat;
+    struct {
+        s32 m00_m01;
+        s32 m02_m10;
+        s32 m11_m12;
+        s32 m20_m21;
+        s16 m22;
+    } ident;
+} DumpingHoleMatWords;
 
 typedef struct {
-    MATRIX lightMtx;
-    MATRIX colorMtx;
-    u8     pad_40[0x40];
-    Task*  field_80;
-    Task*  field_84;
-    Task*  field_88;
-    u8     pad_8C[0x8];
-    s16    field_94;
-    s16    field_96;
+    MATRIX          lightMtx;
+    MATRIX          colorMtx;
+    DumpingHolePose pose;     // Sent to the task itself with message 0x7D4
+    SVECTOR         field_58; // Spawn parameters handed by address to the table spawns
+    SVECTOR         field_60;
+    GsCOORDINATE2*  field_68;
+    s16             field_6C;
+    s16             field_6E;
+    VECTOR          scale; // Per-axis scale applied to the rotation of model part 3
+    Task*           field_80;
+    Task*           field_84;
+    Task*           field_88;
+    u16             state; // One-shot command, cleared once handled
+    u16             step;  // Progress through the sequence the command started
+    u16             timer; // Frames spent in the current step
+    u8              pad_92[0x2];
+    s16             field_94;
+    s16             field_96;
+    s16             field_98; // X rotation of model part 1 once the sequence reaches step 2
+    s16             field_9A;
+    u8              pad_9C[0x4];
 } DumpingHoleEntity4;
 
 typedef struct {
@@ -1127,19 +1157,367 @@ typedef struct {
     DumpingHoleEntity4* field_1C;
 } DumpingHoleState4;
 
-typedef struct {
-    u8  field_0;
-    u8  field_1;
-    s16 field_2;
-} DumpingHoleDesc7DA;
-
 extern DumpingHoleState4* D_shelter_b3_dumping_hole_8018F4AC;
 extern s16                D_shelter_b3_dumping_hole_8018F4B0;
+extern DumpingHolePose    D_shelter_b3_dumping_hole_8018966C;
+extern TaskDesc           D_shelter_b3_dumping_hole_80189ADC;
+void                      func_shelter_b3_dumping_hole_80183218(u8 arg0);
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+
+/// Per-frame handler of the event task: runs the command in `state`, which is
+/// cleared once handled unless it is a multi-frame sequence.
+///
+/// - 1 sends the slot-3 task its animation and the slot-4 task message 0x7DA
+///   for the current stage and area.
+/// - 2 is a sequence stepped by `step`. Step 0 sends the opening messages,
+///   overrides the view vector and places the task at its starting pose.
+///   Step 1 spawns a burst of table tasks every 16 frames and moves model
+///   part 2; from frame 0x3D it also shrinks part 3 along X and Z, rebuilding
+///   its rotation from identity each frame, and at frame 0x5B it spawns the
+///   closing effects and advances. Until then the pose rotation alternates
+///   either side of its starting value each frame. Step 2 keeps moving part 2
+///   and, after six frames, tips part 1 about X. Every frame of the sequence
+///   also shakes the screen by one unit.
+/// - 3 and 5 undo the sequence's overrides and send the slot-4 task message
+///   0x7DA; 5 also restores the saved view, resets the slot-3 animation and
+///   ends the task in `field_88`.
+/// - 4 sends the task in `field_84` message 0x7D5.
+/// - 6 is a second sequence that alternates `func_shelter_b3_dumping_hole_80183218`
+///   calls, then spawns the task kept in `field_88`.
+///
+/// The message buffers are unions because the cases share their stack slots.
+void func_shelter_b3_dumping_hole_8018098C(Task* task)
+{
+    register short       t4 asm("t4");
+    register short       t5 asm("t5");
+    register short       t6 asm("t6");
+    DumpingHoleEntity4*  work;
+    DumpingHoleMatWords* mtx;
+    DumpingHoleMatWords* ident;
+    DumpingHoleMatWords* ident2;
+    VECTOR*              sc;
+    GsCOORDINATE2*       coords;
+    TmdObject*           obj;
+    u8*                  head;
+    u32                  scratch;
+    SVECTOR*             sv;
+    u8*                  head2;
+    u32                  scratch2;
+    u16                  i;
+    DumpingHoleMsg7DA*   loc3;
+    DumpingHoleMsg7DA*   loc5;
+    s32*                 p;
+    union {
+        s32               words[5];
+        DumpingHoleMsg7DA loc;
+        SVECTOR           vec[4];
+    } buf;
+    union {
+        SVECTOR           vec;
+        DumpingHoleMsg7DA loc;
+    } buf2;
+    s32 words[5];
+
+    work = task->work;
+    switch (work->state) {
+        case 1:
+            Gp_PulseState1C();
+            Gp_StateC08.field_6 |= 1;
+            buf.words[0]         = D_80073BA9 + (D_8007218A == 1 ? 1 : 0x22);
+            buf.words[1]         = 9;
+            buf.words[2]         = 1;
+            buf.words[3]         = 0xA;
+            buf.words[4]         = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)buf.words, 0);
+            buf.loc.stage   = gGameSession->at4.loc.stage;
+            buf.loc.area    = gGameSession->at4.loc.area;
+            buf.loc.field_2 = 0xA;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&buf.loc, 0x7DB);
+            work->state = 0;
+            return;
+        case 2:
+            switch (work->step) {
+                case 0:
+                    Gp_DispatchMsg(work->field_80, 0x3F3, 2, 0);
+                    buf.vec[0].vx = 0x800;
+                    buf.vec[0].vy = 0x800;
+                    buf.vec[0].vz = 0x800;
+                    Gp_SetOverrideVec(&buf.vec[0]);
+                    Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
+                    Gp_DispatchMsg(task, 0x7D5, 1, 0);
+                    work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
+                    work->pose.pos.vy = D_shelter_b3_dumping_hole_8018966C.pos.vy;
+                    work->pose.pos.vz = D_shelter_b3_dumping_hole_8018966C.pos.vz;
+                    work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx;
+                    work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
+                    work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
+                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    work->field_58.vx                  = 0;
+                    work->field_58.vy                  = 0;
+                    work->field_58.vz                  = 0;
+                    D_shelter_b3_dumping_hole_8018F4B0 = 1;
+                    work->field_68                     = &((TmdObject*)task->extra)->coords[2];
+                    work->field_6C                     = 0x14;
+                    work->scale.vx                     = 0x1000;
+                    work->scale.vy                     = 0x1000;
+                    work->scale.vz                     = 0x1000;
+                    work->timer                        = 0;
+                    work->step++;
+                    break;
+                case 1:
+                    work->timer++;
+                    if (!(gDisplayState.animFrame & 0xF)) {
+                        work->field_60.vx = 0;
+                        work->field_60.vy = 0;
+                        work->field_60.vz = 0;
+                        work->field_6E    = 4;
+                        for (i = 0; i < 10; i++) {
+                            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80189ADC, 1, 0, (s32)&work->field_58);
+                        }
+                    }
+                    if (work->timer >= 0x5B) {
+                        buf.vec[2].vx = 0xC8;
+                        buf.vec[2].vy = 0x190;
+                        buf.vec[2].vz = -0xC8;
+                        ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[2], &buf.vec[3]);
+                        Gp_SpawnEff(0x60070, ((TmdObject*)task->extra)->coords, 0x608, &buf.vec[3]);
+                        buf.vec[2].vx = 0xC8;
+                        buf.vec[2].vy = 0x190;
+                        buf.vec[2].vz = -0x320;
+                        ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[2], &buf.vec[3]);
+                        Gp_SpawnEff(0x60070, ((TmdObject*)task->extra)->coords, 0x608, &buf.vec[3]);
+                        work->timer    = 0;
+                        work->field_98 = 0;
+                        work->field_9A = 0x80;
+                        work->step++;
+                        break;
+                    }
+                    if (work->timer >= 0x1F) {
+                        if (work->timer >= 0x3D) {
+                            ((TmdObject*)task->extra)->coords[2].coord.t[1] += 8;
+                            work->scale.vx                                  -= 10;
+                            work->scale.vz                                  -= 10;
+                            ident                                            = (DumpingHoleMatWords*)&((TmdObject*)task->extra)->coords[3].coord;
+                            sc                                               = &work->scale;
+
+                            ident->ident.m00_m01 = 0x1000;
+                            ident->ident.m02_m10 = 0;
+                            ident->ident.m11_m12 = 0x1000;
+                            ident->ident.m20_m21 = 0;
+                            ident->ident.m22     = 0x1000;
+
+                            // Scale each column of the rotation through a
+                            // scratchpad SVECTOR and the GTE.
+                            obj = task->extra;
+                            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
+                            scratch                = *(u32*)(head + 0x3FC);
+                            coords                 = obj->coords;
+                            sv                     = (SVECTOR*)(scratch - 8);
+                            *(SVECTOR**)0x1F8003FC = sv;
+                            TOUCH_REG(sv);
+                            mtx = (DumpingHoleMatWords*)&coords[3].coord;
+                            TOUCH_REG(mtx);
+
+                            COMPILER_BARRIER();
+                            t4     = mtx->mat.m[0][0];
+                            t5     = mtx->mat.m[1][0];
+                            t6     = mtx->mat.m[2][0];
+                            sv->vx = t4;
+                            sv->vy = t5;
+                            sv->vz = t6;
+                            gte_lddp(sc->vx);
+                            gte_ldsv(sv);
+                            gte_gpf12_real();
+                            gte_stsv(sv);
+                            t4               = sv->vx;
+                            t5               = sv->vy;
+                            t6               = sv->vz;
+                            mtx->mat.m[0][0] = t4;
+                            mtx->mat.m[1][0] = t5;
+                            mtx->mat.m[2][0] = t6;
+
+                            COMPILER_BARRIER();
+                            t4     = mtx->mat.m[0][1];
+                            t5     = mtx->mat.m[1][1];
+                            t6     = mtx->mat.m[2][1];
+                            sv->vx = t4;
+                            sv->vy = t5;
+                            sv->vz = t6;
+                            gte_lddp(sc->vy);
+                            gte_ldsv(sv);
+                            gte_gpf12_real();
+                            gte_stsv(sv);
+                            t4               = sv->vx;
+                            t5               = sv->vy;
+                            t6               = sv->vz;
+                            mtx->mat.m[0][1] = t4;
+                            mtx->mat.m[1][1] = t5;
+                            mtx->mat.m[2][1] = t6;
+
+                            COMPILER_BARRIER();
+                            t4     = mtx->mat.m[0][2];
+                            t5     = mtx->mat.m[1][2];
+                            t6     = mtx->mat.m[2][2];
+                            sv->vx = t4;
+                            sv->vy = t5;
+                            sv->vz = t6;
+                            gte_lddp(sc->vz);
+                            gte_ldsv(sv);
+                            gte_gpf12_real();
+                            gte_stsv(sv);
+                            t4               = sv->vx;
+                            t5               = sv->vy;
+                            t6               = sv->vz;
+                            mtx->mat.m[0][2] = t4;
+                            mtx->mat.m[1][2] = t5;
+                            mtx->mat.m[2][2] = t6;
+
+                            __asm__ volatile("lui %0, 0x1F80" : "=r"(head2));
+                            scratch2  = *(u32*)(head2 + 0x3FC);
+                            scratch2 += 8;
+                            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2) : "memory");
+                        } else if (work->timer < 0x20) {
+                            ((TmdObject*)task->extra)->coords[2].coord.t[1] += 0x20;
+                            ident2                                           = (DumpingHoleMatWords*)&((TmdObject*)task->extra)->coords[3].coord;
+
+                            ident2->ident.m00_m01 = 0x1000;
+                            ident2->ident.m02_m10 = 0;
+                            ident2->ident.m11_m12 = 0x1000;
+                            ident2->ident.m20_m21 = 0;
+                            ident2->ident.m22     = 0x1000;
+                        }
+                        if (!(gDisplayState.animFrame & 0xF)) {
+                            buf.vec[1].vx = 0xC8;
+                            buf.vec[1].vy = 0x190;
+                            buf.vec[1].vz = -0xC8;
+                            ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[1], &buf2.vec);
+                            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords, 0x200, &buf2.vec);
+                            buf.vec[1].vx = 0xC8;
+                            buf.vec[1].vy = 0x190;
+                            buf.vec[1].vz = -0x320;
+                            ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[1], &buf2.vec);
+                            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords, 0x200, &buf2.vec);
+                        }
+                    }
+                    if (gDisplayState.animFrame & 1) {
+                        work->field_98 = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx + 0x10;
+                    } else {
+                        work->field_98 = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx - 0x10;
+                    }
+                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    break;
+                case 2:
+                    if (!(gDisplayState.animFrame & 0xF)) {
+                        buf2.vec.vx = -0x190;
+                        buf2.vec.vy = 0x190;
+                        buf2.vec.vz = 0x190;
+                        Gp_SpawnEff(0x600E0, &((TmdObject*)task->extra)->coords[1], 0x200, &buf2.vec);
+                    }
+                    if (++work->timer >= 6) {
+                        if (work->field_98 < -0x154) {
+                            work->field_98 -= 1;
+                        } else {
+                            work->field_98 -= 8;
+                        }
+                        Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, work->field_98, 1);
+                    }
+                    ((TmdObject*)task->extra)->coords[2].coord.t[1] += 0x190;
+                    Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
+                    break;
+            }
+            if (gDisplayState.animFrame & 1) {
+                Display_ClampField126(1);
+            } else {
+                Display_ClampField126(-1);
+            }
+            return;
+        case 3:
+            Gp_SetOverrideVec(NULL);
+            Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
+            Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
+            Gp_DispatchMsg(task, 0x7D5, 2, 0);
+            D_shelter_b3_dumping_hole_8018F4B0 = 0;
+            work->field_96                     = 1;
+            Gp_PulseState1C();
+            buf2.loc.stage = gGameSession->at4.loc.stage;
+            buf2.loc.area  = gGameSession->at4.loc.area;
+            loc3           = &buf2.loc;
+            loc3->field_2  = 0xB;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)loc3, 0x7DB);
+            Display_ClampField126(0);
+            work->state = 0;
+            return;
+        case 4:
+            Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
+            break;
+        case 5:
+            Mc_SaveData.at4.loc.view = work->field_94;
+            Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
+            Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
+            work->field_96 = 1;
+            Gp_PulseState1C();
+            buf2.loc.stage = gGameSession->at4.loc.stage;
+            buf2.loc.area  = gGameSession->at4.loc.area;
+            loc5           = &buf2.loc;
+            loc5->field_2  = 0xC;
+            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)loc5, 0x7DB);
+            p        = words;
+            words[0] = D_80073BA9 + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
+            p[1]     = 1;
+            p[2]     = 1;
+            p[3]     = 0xA;
+            words[4] = 0;
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)words, 0);
+            if (work->field_88 != NULL) {
+                Task_CallExit(work->field_88);
+                work->field_88 = NULL;
+            }
+            break;
+        case 0:
+            break;
+        case 6:
+            switch (work->step) {
+                case 1:
+                case 3:
+                case 5:
+                    func_shelter_b3_dumping_hole_80183218(0);
+                    work->timer = 0;
+                    work->step++;
+                    return;
+                case 0:
+                case 2:
+                case 4:
+                    func_shelter_b3_dumping_hole_80183218(1);
+                    work->timer = 0;
+                    work->step++;
+                    return;
+                case 6:
+                    if (++work->timer >= 0xB) {
+                        work->field_88 = Task_Spawn(1, 0x2D, 0x10, 0);
+                        work->timer    = 0;
+                        work->step++;
+                    }
+                    return;
+                case 7:
+                    if (++work->timer >= 6) {
+                        func_shelter_b3_dumping_hole_80183218(1);
+                        func_shelter_b3_dumping_hole_80183218(2);
+                        break;
+                    }
+                    return;
+                default:
+                    return;
+            }
+            break;
+    }
+    work->state = 0;
+}
 
 void func_shelter_b3_dumping_hole_80181430(void)
 {
     DumpingHoleEntity4* ent;
-    DumpingHoleDesc7DA  desc;
+    DumpingHoleMsg7DA   desc;
     s32                 desc3[5];
     s32*                p3;
 
@@ -1153,8 +1531,8 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0 = 0;
-    desc.field_0                       = gGameSession->at4.loc.stage;
-    desc.field_1                       = gGameSession->at4.loc.area;
+    desc.stage                         = gGameSession->at4.loc.stage;
+    desc.area                          = gGameSession->at4.loc.area;
     desc.field_2                       = 0x13;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&desc, 0x7DB);
 
@@ -1178,8 +1556,6 @@ extern s32 D_shelter_b3_dumping_hole_8018F4D8;
 extern s32 D_shelter_b3_dumping_hole_8018965C;
 extern s32 D_shelter_b3_dumping_hole_8018968C;
 extern s32 D_shelter_b3_dumping_hole_801899A4;
-void       func_shelter_b3_dumping_hole_8018098C(Task* task);
-void       func_shelter_b3_dumping_hole_80183218(s32 arg0);
 
 void func_shelter_b3_dumping_hole_80181560(Task* task)
 {

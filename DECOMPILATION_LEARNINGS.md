@@ -139740,3 +139740,37 @@ emits the identical object but carries extra jump insns through sched1, where
 live lengths are recomputed; jump2 threads them away after allocation. It also
 makes the right-nesting unnecessary, since `sx < -0xA0` and `sx > 0xA0` are no
 longer operands of one `||`.
+
+### A scratchpad scale block whose loads straddle the head store wants a C store, not `asm("sw …")` (func_shelter_b3_dumping_hole_8018098C, 2026-09-24)
+
+**Symptom.** The `actor_342000` scale-matrix idiom (scratch `SVECTOR`, three
+`gpf12` columns) reproduced everything but one slot: the target loads the
+matrix's parent pointer *between* `lw 0x3fc` and `addiu -8`, i.e. across the
+head store, where the candidate left a `nop`.
+
+**Mechanism.** Any volatile asm - and an input-only `asm("sw %0, 0x1F8003FC")`
+is implicitly volatile - makes `sched_analyze` (`sched.c`) add a dependence on
+every register and flush memory, so nothing crosses it; and a dependence *into*
+an asm is costed 1 (`insn_cost`: unrecognised `used` → `LINK_COST_FREE`), so a
+load feeding it is ready at once and wins the equal-priority tie on potential
+hazard. Written as C, `*(SVECTOR**)0x1F8003FC = sv;` is the constant address's
+only use in the block, CSE folds it back into the MEM and the assembler emits
+the same `lui $at` / `sw …,0x3fc($at)`; being a real store, it lets the load
+sit in the delay slot. Keep `TOUCH_REG(sv)` after it (the fold of the first
+`sh` onto `-8(scratch)` still needs breaking) and `TOUCH_REG(mtx)` after the
+`+0xF4`.
+
+Three more from the same function:
+
+* `D_80070F70` is `gDisplayState.animFrame`. Declared as a scalar
+  `extern s32`, its load is hoisted above a preceding `work->timer` store (the
+  in-struct/scalar alias heuristic); the member access keeps the target order.
+* GCC 2.8.1 *can* reuse a block-scoped local's slot (`expand_decl` →
+  `assign_stack_temp`, freed at `pop_temp_slots`), but an address-taken slot is
+  moved one binding level outward by `preserve_temp_slots` after every
+  expression statement, so in practice it survives to the enclosing switch
+  body. A frame where several cases' buffers overlap is still a union at
+  function scope.
+* `case 4: call(...); break;` into the switch's shared `work->state = 0;` is
+  not the same block as `call(...); work->state = 0; return;` - the inline
+  store changes sched1's picture and the argument load moved from first to last.
