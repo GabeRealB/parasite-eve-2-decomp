@@ -8,9 +8,11 @@
 #include <psyq/libgs.h>
 
 /// Event parameters latched into the room's pending event when an event
-/// starts. `field_8` is the game flag checked and set as the event starts
-/// (0 for none); the other fields are only copied here, so their roles are
-/// unproven from this room.
+/// starts, and read back by the room's event task. `field_0` is the CAP
+/// command the event runs, `field_4` the stage sound played after it (0 for
+/// none), `field_8` the game flag checked and set as the event starts (0 for
+/// none), and a non-zero `field_A` makes the event task start helper task
+/// 0x31 once the command finishes.
 typedef struct Shelter1fVehicularAirlockEvent {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
