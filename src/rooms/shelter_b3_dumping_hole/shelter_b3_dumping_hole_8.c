@@ -219,5 +219,3 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
         }
     }
 }
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", D_shelter_b3_dumping_hole_8017D758);

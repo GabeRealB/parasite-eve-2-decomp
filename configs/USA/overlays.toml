@@ -2788,14 +2788,16 @@ objects = [
 ]
 
 [rooms.overlays.shelter_b3_dumping_hole]
-label = "no map pool names this room"
+label = "no map pool names this room; code starts at 0x198: the handler the room's message table at 0x9FB4 names there is a frameless two-instruction `return 0` stub, so the span detector - which looks for the first stack-frame prologue - starts at 0x1A0 and left it as rodata words"
 id = 409
+text = ["0x198", "0x99CC"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole", rodata = "0x4", text = "0x1A0" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_3", rodata = "0x10", text = "0x3E8" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_7", rodata = "0xD0", text = "0x66E0" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_8", rodata = "0x160", text = "0x7C5C" },
+  { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_10", text = "0x198" },
   { lib = true, unit = "room_util06", text = "0x2A8" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_2", text = "0x2B0" },
   { lib = true, unit = "room_util05", text = "0x3D8" },
