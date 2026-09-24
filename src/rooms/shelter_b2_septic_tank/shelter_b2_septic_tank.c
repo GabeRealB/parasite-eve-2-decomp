@@ -6,11 +6,13 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 #include "rooms/room_common.h"
 
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
 extern TaskDesc   D_shelter_b2_septic_tank_801832C0[];
+extern s16        D_shelter_b2_septic_tank_80182FFE;
 extern u8         D_shelter_b2_septic_tank_8018310C;
 extern u8         D_shelter_b2_septic_tank_80187045;
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D614);
@@ -48,7 +50,20 @@ void func_shelter_b2_septic_tank_8017D97C(s32 arg0)
     GameFlag_SetNibble(0xEB, arg0);
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D9A0);
+void func_shelter_b2_septic_tank_8017D9A0(void)
+{
+    Task*          target;
+    GsCOORDINATE2* player;
+    GsCOORDINATE2* coords;
+
+    target = (Task*)Gp_LookupSlot4(0);
+    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+    if (target != NULL) {
+        coords = ((TmdObject*)target->extra)->coords;
+        D_shelter_b2_septic_tank_80182FFE =
+            (ratan2(coords->coord.t[0] - player->coord.t[0], coords->coord.t[2] - player->coord.t[2]) + 0x1000) & 0xFFF;
+    }
+}
 
 void func_shelter_b2_septic_tank_8017DA18(Task* arg0)
 {
