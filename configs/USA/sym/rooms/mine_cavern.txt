@@ -1,2 +1,1 @@
 // Overlay-local symbols for mine_cavern.
-D_mine_cavern_8017D7F8 = 0x8017D7F8; // force_not_migration:True enemy state table, read from C

@@ -119,15 +119,13 @@ typedef struct MineCavernSprtRec {
 } MineCavernSprtRec;
 STATIC_ASSERT_SIZEOF(MineCavernSprtRec, 0x11C);
 
-/// The room task's three state handlers: setup (`func_mine_cavern_8017DDFC`),
-/// per-frame tick (`func_mine_cavern_8017DEE4`) and `taskKill`.
-extern const TaskFuncTable3 D_mine_cavern_8017D5C4;
+/// How many of the two steps of game flag nibble 0xE6 (values 1 and 2)
+/// `func_mine_cavern_8017DFAC` has already acted on; `func_mine_cavern_8017E394`
+/// resets it.
+extern s32 D_mine_cavern_8018EB54;
 
-/// The state handlers of one of the room's enemies: setup
-/// (`func_mine_cavern_801836D0`), per-frame tick (`func_mine_cavern_80183AD4`)
-/// and `Gp_DestroyEnemy`.
-extern GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C;
-
+void func_mine_cavern_8017E394(void);
+void func_mine_cavern_8017E3A0(s32 arg0);
 void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);

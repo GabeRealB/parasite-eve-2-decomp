@@ -1,15 +1,38 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/gameflag.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
+#include "rooms/mine_cavern.h"
 #include "rooms/room_common.h"
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern TaskDesc D_mine_cavern_80183CA4[];
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern s32            D_mine_cavern_80183C6C;
+extern s32            D_mine_cavern_80187C74;
+extern s32            D_mine_cavern_8018804C;
+extern s32            D_mine_cavern_80188214;
+extern s32            D_mine_cavern_801887B4;
+extern s32            D_mine_cavern_80188A3C;
+extern s32            D_mine_cavern_80188D24;
+extern TaskDesc       D_mine_cavern_8018E3F4;
+extern s32            D_mine_cavern_8018EB50;
+extern GpAreaApplyRec D_mine_cavern_8018E32C;
+
+extern s8 D_80114C12;
+
+extern s8 D_801153F1;
+
+/// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
+extern s8 D_8007272D;
 
 s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -112,4 +135,200 @@ rest:
     }
     return 0;
 }
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D5C4);
+
+/// Room script callback that does nothing and reports 0.
+s32 func_mine_cavern_8017DC50(void)
+{
+    return 0;
+}
+
+s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
+{
+    if ((arg2->field_2 == 6) && (GameFlag_GetNibble(0xC4) == 1)) {
+        Gp_RunCapCmd1(6);
+    }
+    return 0;
+}
+
+/// Advances the cavern's collapse sequence one step: flag 0xE6 goes 0 -> 1
+/// (bit 0 of `Gp_StateC08.field_6` set) and 1 -> 2 (quake shake, then camera
+/// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
+s32 func_mine_cavern_8017DC9C(void)
+{
+    if (GameFlag_GetNibble(0xE6) == 0) {
+        Gp_StateC08.field_6 |= 1;
+        Gp_PulseState1C();
+        GameFlag_SetNibble(0xE6, 1);
+        D_mine_cavern_8018EB50 = 1;
+    } else if (GameFlag_GetNibble(0xE6) == 1) {
+        func_800E3FAC(0xA2, 0x3D);
+        func_800E8634((s32)&D_mine_cavern_80188A3C, 0, (s32)&D_mine_cavern_80188D24);
+        GameFlag_SetNibble(0xE6, 2);
+    }
+    return 0;
+}
+
+s32 func_mine_cavern_8017DD38(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg2 == 0xD) {
+        SndEvt_EnqueueType6(0x54020000 | 0xD, 0, 0);
+    }
+    return 0;
+}
+
+void func_mine_cavern_8017DD6C(Task* task)
+{
+    if (Gp_CapBusy() == 0) {
+        if (Gp_GetCapEventKey() == 0xB) {
+            GameFlag_SetNibble(0xC4, 1);
+            GameFlag_SetNibble(0xBE, 2);
+            GameFlag_SetNibble(0xC3, 0);
+        }
+        if (Gp_GetCapEventKey() == 0x15) {
+            GameFlag_SetNibble(0xBB, 1);
+            GameFlag_SetNibble(0x1B9, 0);
+        }
+        taskKill(task);
+    }
+}
+
+void func_mine_cavern_8017DDFC(Task* arg0)
+{
+    arg0->msgTable = &D_mine_cavern_80183C6C;
+    Game_SetPtrSlot(arg0, 7);
+    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
+        func_800E8634((s32)&D_mine_cavern_80187C74, 0, (s32)&D_mine_cavern_8018804C);
+        func_mine_cavern_8017E394();
+        GameFlag_SetNibble(0x10F, 1);
+    } else {
+        D_80062735 = 1;
+    }
+    Task_SpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
+    if (GameFlag_GetNibble(0xC7) != 0) {
+        func_mine_cavern_8017E3A0(1);
+    } else {
+        func_mine_cavern_8017E3A0(0);
+    }
+    arg0->state            = arg0->state + 1;
+    D_mine_cavern_8018EB50 = 0;
+}
+
+void func_mine_cavern_8017DEE4(Task* task)
+{
+    s32 flag;
+
+    flag = GameFlag_GetNibble(0xE6);
+    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (D_80114C12 != D_mine_cavern_8018EB50)) {
+        func_800E8634((s32)&D_mine_cavern_80188214, 0, (s32)&D_mine_cavern_801887B4);
+        D_mine_cavern_8018EB50 = 2;
+    }
+}
+
+/// The room task's state handlers, run by `func_mine_cavern_8017DF54`.
+const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
+    { func_mine_cavern_8017DDFC, func_mine_cavern_8017DEE4, taskKill },
+};
+
+/// Runs the room task's current state handler from the room's three-entry
+/// table, copying the table onto the stack before the call.
+void func_mine_cavern_8017DF54(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_mine_cavern_8017D5C4;
+    sp.funcs[task->state](task);
+}
+
+void func_mine_cavern_8017DFAC(s32 arg0)
+{
+    if ((GameFlag_GetNibble(0xE6) == 1 && D_mine_cavern_8018EB54 == 0) ||
+        (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
+        Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
+        D_801153F1               = arg0;
+        gGameSession->flowFlags |= 0x80;
+        D_mine_cavern_8018EB54  += 1;
+        return;
+    }
+    if (arg0 < Gp_StateF0.field_1) {
+        Gp_StateF0.field_1 = arg0;
+    }
+}
+
+void func_mine_cavern_8017E088(s16 arg0)
+{
+    Gp_StartCapSlot(arg0, 1, 1);
+}
+
+void func_mine_cavern_8017E0B4(void)
+{
+    Gp_StateF0.field_0 = 0;
+    if (Gp_StateF0.field_6 == 0) {
+        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    }
+    Gp_ArmStateF0(1);
+}
+
+void func_mine_cavern_8017E0F4(s32 arg0)
+{
+    if (arg0 != 0) {
+        gGameSession->flowFlags &= 0xFD;
+        return;
+    }
+    gGameSession->flowFlags |= 2;
+    gGameSession->flowFlags |= 8;
+}
+
+/// Room script callback: stores its argument into `D_8007272D`.
+void func_mine_cavern_8017E150(s8 arg0)
+{
+    D_8007272D = arg0;
+}
+
+void func_mine_cavern_8017E15C(void)
+{
+    Gp_ApplyAreaRecs(&D_mine_cavern_8018E32C);
+}
+
+/// Room script callback: stores its argument into `D_80062735`.
+void func_mine_cavern_8017E180(u8 arg0)
+{
+    D_80062735 = arg0;
+}
+
+void func_mine_cavern_8017E18C(Task* task)
+{
+    task->killCountdown++;
+    switch (task->killCountdown) {
+        case 0x21:
+        case 0x6:
+        case 0x40:
+        case 0x7C:
+        case 0x60:
+        case 0x8C:
+            SndEvt_EnqueueType6(0x1000003A, 0, 0x30);
+            break;
+        case 0x50:
+        case 0x12:
+        case 0x30:
+        case 0x70:
+        case 0x87:
+        case 0x218:
+            SndEvt_EnqueueType6(0x10000039, 0, 0x30);
+            break;
+    }
+    if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= 0x219)) {
+        taskKill(task);
+    }
+}
+
+void func_mine_cavern_8017E2D8(void)
+{
+    SndEvt_EnqueueType2(0, 0x64);
+}
+
+/// Sets bit 0 of `Gp_StateC08.field_6` and pulses `Gp_State1C`.
+void func_mine_cavern_8017E2FC(void)
+{
+    Gp_StateC08.field_6 |= 1;
+    Gp_PulseState1C();
+}
