@@ -4,7 +4,7 @@
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-void ActorsShared80135048(ActorShared80135048* arg0)
+void Actor02400_Fn03228(ActorShared80135048* arg0)
 {
     GsCOORDINATE2* coord;
     VECTOR3        vec;

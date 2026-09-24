@@ -31,7 +31,7 @@ STATIC_ASSERT_SIZEOF(Actor02400FacingScratch, 0x18);
 /// Work block behind the actor's 0x1C slot. `field_100` is the unscaled
 /// rotation the model coordinate is rebuilt from each frame and
 /// `field_128..field_12C` the per-axis scale; `field_52` and `field_D4` are
-/// derived from the Y and Z scale. `ActorsShared80133d94` shrinks the
+/// derived from the Y and Z scale. `Actor02400_Fn01F74` shrinks the
 /// scale toward its floor, releases the `field_130` task (state 4) and counts
 /// `field_140` up, re-arming it at a random 30..61 once it passes 360.
 typedef struct Actor02400ScaleWork {
@@ -96,7 +96,7 @@ typedef struct Actor02400PushScratch {
 STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
 
 void Actor02400_Fn0208C(Actor02400Scale* arg0);
-void ActorsShared801333b0(Actor02400Scale* arg0);
-void ActorsShared80133d94(Actor02400Scale* arg0);
+void Actor02400_Fn01590(Actor02400Scale* arg0);
+void Actor02400_Fn01F74(Actor02400Scale* arg0);
 
 #endif

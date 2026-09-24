@@ -5,7 +5,7 @@
 
 #include "gameplay/3A34.h"
 
-void ActorsShared801341d4(ActorShared801341d4* arg0)
+void Actor02400_Fn023B4(ActorShared801341d4* arg0)
 {
     GsCOORDINATE2*           object;
     s16                      scale;

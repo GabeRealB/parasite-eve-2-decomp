@@ -5,15 +5,17 @@
 
 extern u8 D_801153F4;
 
+void Actor02400_Fn03278(ActorShared80135098* arg0);
+
 /// Death sequence for the actor. While `D_801153F4` is 1 it only refreshes the
 /// actor colour, and at 2 it holds `field_C` at 0x80. Otherwise sub-state 0
 /// saves the model matrix, unlinks the display nodes and starts the light
 /// fade; sub-state 1 counts frames, spawning effect 0x600A5 at frame 15 and
-/// shrinking the Y scale through `ActorsShared80135098`; sub-state 2 destroys
+/// shrinking the Y scale through `Actor02400_Fn03278`; sub-state 2 destroys
 /// the enemy.
 ///
 /// Shared by `actor_102400` and `actor_202400`.
-void ActorsShared80134318(GpEnemy* arg0, Task* arg1)
+void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
 {
     VECTOR                    pos;
     ActorsShared80134318Work* work;
@@ -72,7 +74,7 @@ void ActorsShared80134318(GpEnemy* arg0, Task* arg1)
                     if (work->field_12A > 0x200) {
                         work->field_12A -= 0x50;
                     }
-                    ActorsShared80135098((ActorShared80135098*)arg1);
+                    Actor02400_Fn03278((ActorShared80135098*)arg1);
                     cur    = ((TmdObject*)arg1->extra)->coords;
                     pos.vx = cur->workm.t[0];
                     pos.vy = cur->workm.t[1];

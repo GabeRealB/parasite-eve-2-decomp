@@ -1,9 +1,11 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_100300.h"
-#include "actors/actors_shared_80132074.h"
-#include "actors/actors_shared_80135b58.h"
-
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -11,14 +13,28 @@
 #include "main/wipsys.h"
 #include "main/gfx.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
+/// Scratchpad block the ground quad is built in: the four corners in world
+/// space, then their projected screen positions.
+typedef struct Actor02400GroundScratch {
+    SVECTOR vec[4];
+    DVECTOR sxy0;
+    DVECTOR sxy1;
+    DVECTOR sxy2;
+    DVECTOR sxy3;
+} Actor02400GroundScratch;
+STATIC_ASSERT_SIZEOF(Actor02400GroundScratch, 0x30);
 
-void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
+/// Draws a flat textured quad on the ground under `arg0`: the corners of the
+/// unit quad `D_80111E38`, scaled by `arg1` and turned into view orientation,
+/// are placed around the coordinate's world translation and projected. When
+/// all four project, a semi-transparent `POLY_FT4` is queued one step behind
+/// their depth, its texture alternating between two frames with the display's
+/// animation frame.
+void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1)
 {
     void**                   scratch;
     u8*                      head;
-    Actor00300GroundScratch* sc;
+    Actor02400GroundScratch* sc;
     POLY_FT4*                prim;
     GpQuadCorner*            tbl;
     SVECTOR*                 v;
@@ -29,11 +45,11 @@ void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
     s32                      prod;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(Actor00300GroundScratch);
+    head    = (u8*)*scratch - sizeof(Actor02400GroundScratch);
 
     SOFT_TOUCH_REG(head);
     *scratch = head;
-    sc       = (Actor00300GroundScratch*)head;
+    sc       = (Actor02400GroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -106,5 +122,5 @@ void ActorsSharedFn005bc(GsCOORDINATE2* arg0, s32 arg1)
                     prim);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor00300GroundScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor02400GroundScratch);
 }

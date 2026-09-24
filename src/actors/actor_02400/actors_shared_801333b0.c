@@ -14,7 +14,7 @@ extern u32 Gp_LcgState;
 /// the `D_80115734` effect is spawned with a random roll and a sound.
 ///
 /// Shared by `actor_102400` and `actor_202400`.
-void ActorsShared801333b0(Actor02400Scale* arg0)
+void Actor02400_Fn01590(Actor02400Scale* arg0)
 {
     Actor02400ScaleWork*     work;
     GsCOORDINATE2*           coord;

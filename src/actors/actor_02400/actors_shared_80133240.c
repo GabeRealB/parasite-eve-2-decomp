@@ -4,11 +4,11 @@
 #include "gameplay/3CD8.h"
 #include "main/wipsys.h"
 
-/// State-0 handler of `ActorsShared80134cfc`: counts `field_140` down,
+/// State-0 handler of `Actor02400_Fn02EDC`: counts `field_140` down,
 /// re-arming it from `Gp_LcgState`, and wakes the actor (pose 1/2, unit scale,
 /// arm state 1) when the player is within 1500 units on XZ or either global
 /// trigger is set.
-void ActorsShared80133240(ActorsShared80133240Actor* arg0)
+void Actor02400_Fn01420(ActorsShared80133240Actor* arg0)
 {
     ActorsShared80133240Work* work;
     GsCOORDINATE2*            coord;

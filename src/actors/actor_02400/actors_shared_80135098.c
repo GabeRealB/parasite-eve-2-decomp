@@ -15,7 +15,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// rebuilt from `coord` next frame.
 ///
 /// Shared verbatim by `actor_102400` and `actor_202400`.
-void ActorsShared80135098(ActorShared80135098* arg0)
+void Actor02400_Fn03278(ActorShared80135098* arg0)
 {
     void**                      scratch;
     void*                       head;

@@ -2,7 +2,7 @@
 
 #include "actors/actors_shared_80134eb8.h"
 
-void ActorsShared80134eb8(ActorShared80134eb8* arg0)
+void Actor02400_Fn03098(ActorShared80134eb8* arg0)
 {
     ActorShared80134eb8Work* work;
     GsCOORDINATE2*           coord;

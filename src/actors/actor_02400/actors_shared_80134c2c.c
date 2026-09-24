@@ -10,11 +10,17 @@
 #include "actors/actors_shared_80135048.h"
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void ActorsShared80134c2c_Fn32A28(ActorShared80134c2c* arg0, ActorShared80134c2cObj2C* arg1, s32 arg2);
+void Actor02400_Fn02EDC(ActorShared80134cfc* arg0);
+void Actor02400_Fn02264(ActorShared80134084* arg0);
+void Actor02400_Fn03140(ActorShared80134f60* arg0);
+void Actor02400_Fn03098(ActorShared80134eb8* arg0);
+void Actor02400_Fn031D0(ActorShared80134ff0* arg0);
+void Actor02400_Fn03228(ActorShared80135048* arg0);
+void Actor02400_Fn00C08(ActorShared80134c2c* arg0, ActorShared80134c2cObj2C* arg1, s32 arg2);
 
 extern u8 D_801153F4;
 
-void ActorsShared80134c2c(ActorShared80134c2cCtx* arg0, ActorShared80134c2c* arg1)
+void Actor02400_Fn02E0C(ActorShared80134c2cCtx* arg0, ActorShared80134c2c* arg1)
 {
     GsCOORDINATE2*            temp_s1;
     ActorShared80134c2cObj2C* temp_a1;
@@ -49,15 +55,15 @@ case2:
     arg0->field_14   = one;
     return;
 default_body:
-    ActorsShared80134c2c_Fn32A28(arg1, temp_a1, one);
-    ActorsShared80134cfc((ActorShared80134cfc*)arg1);
-    ActorsShared80134084((ActorShared80134084*)arg1);
-    ActorsShared80134f60((ActorShared80134f60*)arg1);
-    ActorsShared80134eb8((ActorShared80134eb8*)arg1);
+    Actor02400_Fn00C08(arg1, temp_a1, one);
+    Actor02400_Fn02EDC((ActorShared80134cfc*)arg1);
+    Actor02400_Fn02264((ActorShared80134084*)arg1);
+    Actor02400_Fn03140((ActorShared80134f60*)arg1);
+    Actor02400_Fn03098((ActorShared80134eb8*)arg1);
     Actor02400_Fn0208C((Actor02400Scale*)arg1);
     temp_s1->flg = 0;
     Gp_UpdateCoord(temp_s1);
 case1:
-    ActorsShared80134ff0((ActorShared80134ff0*)arg1);
-    ActorsShared80135048((ActorShared80135048*)arg1);
+    Actor02400_Fn031D0((ActorShared80134ff0*)arg1);
+    Actor02400_Fn03228((ActorShared80135048*)arg1);
 }

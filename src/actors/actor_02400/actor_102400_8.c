@@ -1,24 +1,19 @@
 #include "common.h"
-
-#include "actors/actor_100300.h"
-#include "actors/actors_shared_80132074.h"
-#include "actors/actors_shared_80135b58.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
-#include "main/sound.h"
-#include "main/wipsys.h"
-#include "main/gfx.h"
-
-#include <psyq/inline_c.h>
 
 extern s32 D_80115728;
 extern s32 Gp_LcgState;
 
-extern s32 Actor00300_D16278[][2];
-
-void ActorsShared80135cec(GsCOORDINATE2* arg0, s32 arg1)
+/// While no event is running, one frame in four on average spawns the
+/// `D_80115728` effect at `arg0` with the flags in `arg1`, drifting outward at
+/// a random angle on the ground plane.
+void Actor02400_Fn02CA4(GsCOORDINATE2* arg0, s32 arg1)
 {
     SVECTOR sp10;
     SVECTOR sp18;

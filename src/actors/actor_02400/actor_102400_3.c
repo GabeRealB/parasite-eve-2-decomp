@@ -17,7 +17,7 @@ extern s16 Actor02400_D045D4[];
 /// wobbles around 0x1C00, state 2 spawns the table entry and plays the sound,
 /// and state 3 shrinks the scale back to its floor before re-arming the
 /// 30..61 frame idle wait.
-void ActorsShared80134cfc_Fn339B0(Actor02400Scale* arg0)
+void Actor02400_Fn01B90(Actor02400Scale* arg0)
 {
     Actor02400ScaleWork* work;
     GsCOORDINATE2*       coord;

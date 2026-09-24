@@ -4,7 +4,7 @@
 
 extern u32 Gp_LcgState;
 
-void ActorsShared80134db4(ActorShared80134db4* arg0)
+void Actor02400_Fn02F94(ActorShared80134db4* arg0)
 {
     ActorShared80134db4Work*    work;
     ActorShared80134db4Obj130** detach;

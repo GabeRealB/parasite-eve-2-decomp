@@ -9,7 +9,7 @@
 /// rebuilds the part coordinate's matrix from the result, staging the angle in
 /// a scratchpad `SVECTOR`. The wanted yaw wraps at 0x1000: when the remaining
 /// turn would overshoot through the wrap the actor snaps to it instead.
-void ActorsShared80134084(ActorShared80134084* arg0)
+void Actor02400_Fn02264(ActorShared80134084* arg0)
 {
     ActorShared80134084Work*       work;
     GsCOORDINATE2*                 coord;

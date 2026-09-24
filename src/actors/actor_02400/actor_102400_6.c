@@ -1,9 +1,11 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actor_100300.h"
-#include "actors/actors_shared_80132074.h"
-#include "actors/actors_shared_80135b58.h"
-
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -11,14 +13,16 @@
 #include "main/wipsys.h"
 #include "main/gfx.h"
 
-#include <psyq/inline_c.h>
-#include "gte.h"
-
 extern s32 Gp_LcgState;
 
-void ActorsSharedFn005bc();
+void Actor02400_Fn005BC(GsCOORDINATE2* arg0, s32 arg1);
 
-void ActorsSharedFn00064(GsCOORDINATE2* coord, s16 size)
+/// Draws the glow around `coord`: seeds `D_80114FF8` as a point light there
+/// with a randomly flickering intensity, then projects `coord` and queues two
+/// `POLY_FT4` billboards around it, the outer one half again as large as
+/// `size`. With `Gp_State1C->groundTrace` set it traces the ground below and
+/// draws the ground quad there at twice the outer size.
+void Actor02400_Fn00064(GsCOORDINATE2* coord, s16 size)
 {
     GsCOORDINATE2  ground;
     POLY_FT4*      prim;
@@ -137,7 +141,7 @@ void ActorsSharedFn00064(GsCOORDINATE2* coord, s16 size)
             prim);
         if (Gp_State1C->groundTrace != 0) {
             if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                ActorsSharedFn005bc(&ground, (s32)(s16)(outerSize * 2));
+                Actor02400_Fn005BC(&ground, (s32)(s16)(outerSize * 2));
             }
         }
     }

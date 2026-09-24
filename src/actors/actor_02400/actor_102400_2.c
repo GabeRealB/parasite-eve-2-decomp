@@ -16,7 +16,7 @@ extern s16 Actor02400_D045D8[];
 extern s16 Actor02400_D045DC[];
 extern s16 Actor02400_D0463C[];
 
-void ActorsShared80134c2c_Fn32A28(Actor02400Scale* arg0)
+void Actor02400_Fn00C08(Actor02400Scale* arg0)
 {
     Actor02400PushScratch* scratch;
     GsCOORDINATE2*         coord;

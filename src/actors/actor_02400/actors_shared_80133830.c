@@ -8,7 +8,7 @@
 /// 0x1100.
 ///
 /// Shared by `actor_102400` and `actor_202400`.
-void ActorsShared80133830(ActorsShared80133830Actor* arg0)
+void Actor02400_Fn01A10(ActorsShared80133830Actor* arg0)
 {
     ActorsShared80133830Work* work;
     s32                       state;

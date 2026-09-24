@@ -10,7 +10,7 @@ extern u32 Gp_LcgState;
 /// the bit again.
 ///
 /// Shared by `actor_102400` and `actor_202400`.
-void ActorsShared80133d94(Actor02400Scale* arg0)
+void Actor02400_Fn01F74(Actor02400Scale* arg0)
 {
     Actor02400ScaleWork* work = arg0->field_1C;
 

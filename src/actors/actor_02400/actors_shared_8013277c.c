@@ -8,7 +8,7 @@ extern GpU16Pair  Actor02400_BodyPairs;
 extern GpPairSrcE Actor02400_Params0;
 extern GpPairSrcE Actor02400_Params1;
 
-void ActorsShared8013277c(GpEnemy* enemy, Task* task)
+void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 {
     TmdObject*           obj;
     GsCOORDINATE2*       coord;

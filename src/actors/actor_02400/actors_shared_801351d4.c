@@ -2,7 +2,7 @@
 
 #include "actors/actors_shared_801351d4.h"
 
-void ActorsShared801351d4(GpEnemy* arg0, Task* arg1)
+void Actor02400_Fn033B4(GpEnemy* arg0, Task* arg1)
 {
     ActorsShared801351d4Work* work;
     u16                       temp_v0;
