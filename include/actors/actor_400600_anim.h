@@ -14,7 +14,7 @@ void func_actor_400600_80139A78(Task* arg0);
 void func_actor_400600_80139AE8(Task* arg0);
 s16  func_actor_400600_80139BA0(Task* arg0, s16 arg1);
 
-/// `ActorsShared80139948`'s body, inlined: wrap the three angles to 12 bits and
+/// `func_actor_400600_80139948`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
 /// `G_SCRATCH_HEAD` access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
@@ -81,7 +81,7 @@ static __inline__ void Actor400600_TickAnim(Task* arg0)
     } while (i < 0x12);
 }
 
-/// `ActorsShared8013a2c0`'s body, inlined: push the model's second coordinate's
+/// `func_actor_400600_8013A2C0`'s body, inlined: push the model's second coordinate's
 /// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
 static __inline__ void Actor400600_UpdateColor(Task* arg0)
 {

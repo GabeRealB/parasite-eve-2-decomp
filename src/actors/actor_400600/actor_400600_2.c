@@ -15,10 +15,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400600.h"
-#include "actors/actors_shared_80139948.h"
-#include "actors/actors_shared_80139c00.h"
-#include "actors/actors_shared_80139dcc.h"
-#include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 #include "actors/actor_400600_anim.h"
 
@@ -92,7 +88,6 @@ void func_actor_400600_80136558(Task* arg0);
 void func_actor_400600_80136670(Task* arg0);
 void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade);
 void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2);
-void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4(Task* arg0);
@@ -1038,11 +1033,11 @@ void func_actor_400600_80138C34(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            ActorsShared80139948(arg0);
+            func_actor_400600_80139948(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            ActorsShared8013a2c0(arg0);
+            func_actor_400600_8013A2C0(arg0);
             func_actor_400600_80132704(arg0, work->field_73C, work->field_73A);
             break;
     }
@@ -1064,11 +1059,11 @@ void func_actor_400600_80138D78(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            ActorsShared80139948(arg0);
+            func_actor_400600_80139948(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            ActorsShared8013a2c0(arg0);
+            func_actor_400600_8013A2C0(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -1090,11 +1085,11 @@ void func_actor_400600_80138EA0(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            ActorsShared80139948(arg0);
+            func_actor_400600_80139948(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            ActorsShared8013a2c0(arg0);
+            func_actor_400600_8013A2C0(arg0);
             func_actor_400600_80138224(arg0, 0, (u8)work->field_73A);
             break;
     }
@@ -1116,11 +1111,11 @@ void func_actor_400600_80138FD4(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            ActorsShared80139948(arg0);
+            func_actor_400600_80139948(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            ActorsShared8013a2c0(arg0);
+            func_actor_400600_8013A2C0(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -1237,7 +1232,7 @@ void func_actor_400600_80139560(Task* arg0)
         pos.vx = work->field_A8.x;
         pos.vy = work->field_A8.y;
         pos.vz = work->field_A8.z;
-        ActorsShared80139c00(arg0, &pos, 0x18);
+        func_actor_400600_80139C00(arg0, &pos, 0x18);
         func_actor_400600_80135DDC(arg0);
     }
 }

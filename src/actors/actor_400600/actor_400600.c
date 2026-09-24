@@ -16,10 +16,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400600.h"
-#include "actors/actors_shared_80139948.h"
-#include "actors/actors_shared_80139c00.h"
-#include "actors/actors_shared_80139dcc.h"
-#include "actors/actors_shared_8013a0b0.h"
 #include "actors/actors_shared_8016a538.h"
 #include "actors/actor_400600_anim.h"
 
@@ -108,7 +104,6 @@ void func_actor_400600_801387DC(Task* arg0, s32 arg1);
 s32  func_actor_400600_8013886C(Task* arg0);
 s32  func_actor_400600_8013892C(Task* arg0);
 void func_actor_400600_80138AB8(Task* arg0);
-void ActorsShared8013a2c0(Task* arg0);
 void func_actor_400600_801361AC();
 s32  func_actor_400600_80136FA8();
 s32  func_actor_400600_801370F4();
@@ -345,7 +340,7 @@ void func_actor_400600_801329EC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     work->field_718++;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         sound   = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         sound >>= 0xC;
         sound <<= 8;
@@ -812,7 +807,7 @@ void func_actor_400600_80133CB0(Task* arg0)
     if ((s16)work->field_718 == 0x1C) {
         work->obj_5CC.flags &= 0x7FFF;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         func_actor_400600_80138AF0(arg0, 0x2D);
         func_actor_400600_80138AA4(arg0);
         if (work->field_768 == 0 && work->field_728 < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
@@ -852,7 +847,7 @@ void func_actor_400600_80133E38(Task* arg0)
     if ((s16)work->field_718 == 0x1C) {
         work->obj_594.flags &= 0x7FFF;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         func_actor_400600_80138AF0(arg0, 0x2D);
         func_actor_400600_80138AA4(arg0);
         if (work->field_768 == 0 && work->field_728 < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
@@ -1006,7 +1001,7 @@ void func_actor_400600_80134218(Task* arg0)
         vec.vz = 0;
         Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         work->field_718 = 0;
         work->field_75C.b.field_75C++;
     }
@@ -1177,7 +1172,7 @@ void func_actor_400600_80134B98(Task* arg0)
     work  = (Actor400600Work*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     func_actor_400600_80139E68(arg0, 0xE, &work->field_88);
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         work->field_82   = (work->field_82 + 0x800) & 0xFFF;
         work2            = (Actor400600Work*)arg0->work;
         work2->field_726 = 0x10;
@@ -1187,7 +1182,7 @@ void func_actor_400600_80134B98(Task* arg0)
         Actor400600_TickAnim(arg0);
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
         work->field_769  = 0;
         work3            = (Actor400600Work*)arg0->work;
         work3->field_71C = 2;
@@ -1260,7 +1255,7 @@ void func_actor_400600_801350F4(Task* arg0)
     coord = ((TmdObject*)arg0->extra)->coords;
     work->field_718++;
     if ((s16)work->field_718 < 8) {
-        ActorsShared80139dcc(arg0, 3, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 3, &work->field_88);
         return;
     }
     work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
@@ -1316,7 +1311,7 @@ void func_actor_400600_80135450(Task* arg0)
         work->field_767 = 0;
         work->field_718++;
     }
-    if ((func_actor_400600_801370F4(arg0) << 0x10) == 0 && (ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_801370F4(arg0) << 0x10) == 0 && (func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         rnd                     = ((u32)Gp_LcgState * 5) + 0x71357911;
         Gp_LcgState             = rnd;
         work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
@@ -1349,7 +1344,7 @@ void func_actor_400600_80135578(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
         work->field_718++;
     }
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         if (work->field_730 != 3) {
             work2            = (Actor400600Work*)arg0->work;
             work2->field_720 = 2;
@@ -1523,7 +1518,7 @@ void func_actor_400600_80135998(Task* arg0, s16 arg1)
         work->field_726 = arg1;
     }
     if (work->field_748 == 0) {
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -1546,7 +1541,7 @@ void func_actor_400600_80135998(Task* arg0, s16 arg1)
         }
     }
     if (work->field_748 == start1) {
-        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 8, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -1627,11 +1622,11 @@ void func_actor_400600_80135DDC(Task* arg0)
         tmp2 = (u32)(0x1B00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
     }
     end1 = tmp2;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         work->field_748 = 0;
     }
     if (work->field_748 == start0) {
-        ActorsShared80139dcc(arg0, 8, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 8, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -1648,7 +1643,7 @@ void func_actor_400600_80135DDC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
     }
     if (work->field_748 == start1) {
-        ActorsShared80139dcc(arg0, 0xB, (ActorsShared80139dccPos*)&work->field_88);
+        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1 & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -1716,7 +1711,7 @@ void func_actor_400600_801361AC(Task* arg0)
         tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
     }
     end1 = tmp2;
-    if ((ActorsShared8013a0b0(arg0) << 0x10) != 0) {
+    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
         work->field_748 = 0;
     }
     /* The first window starts at frame 0, and the original compares against it

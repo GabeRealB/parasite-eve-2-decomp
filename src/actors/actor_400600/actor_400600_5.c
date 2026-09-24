@@ -11,7 +11,6 @@
 #include "gameplay/gameplay.h"
 
 #include "actors/actor_400600.h"
-#include "actors/actors_shared_80139dcc.h"
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `D_80115417` is one byte of the run

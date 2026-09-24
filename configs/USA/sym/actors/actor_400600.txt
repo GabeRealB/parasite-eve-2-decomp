@@ -1,8 +1,3 @@
 // Overlay-local symbols for actor_400600.
-ActorsShared80139dcc = 0x80139DCC; // shared body, see src/lib/
-ActorsShared8013a2c0 = 0x8013A2C0; // shared body, see src/lib/
-ActorsShared80139948 = 0x80139948; // shared body, see src/lib/
-ActorsShared8013a0b0 = 0x8013A0B0; // shared body, see src/lib/
-ActorsShared80139c00 = 0x80139C00; // shared body, see src/lib/
 D_actor_400600_80132030 = 0x80132030; // force_not_migration:True actor state table, read from C
 D_actor_400600_80131EEC = 0x80131EEC; // force_not_migration:True actor state table, read from C

@@ -78,9 +78,9 @@ typedef struct Actor400600Work {
     /* 0x040 */ MATRIX             matrix_40; // light matrix for the child models
     /* 0x060 */ byte               pad_60[0x10];
     /* 0x070 */ VECTOR             field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                field_80;  // pitch, see ActorsShared80139948
-    /* 0x082 */ u16                field_82;  // yaw, see ActorsShared80139948
-    /* 0x084 */ u16                field_84;  // roll, see ActorsShared80139948
+    /* 0x080 */ u16                field_80;  // pitch, see func_actor_400600_80139948
+    /* 0x082 */ u16                field_82;  // yaw, see func_actor_400600_80139948
+    /* 0x084 */ u16                field_84;  // roll, see func_actor_400600_80139948
     /* 0x086 */ byte               pad_86[0x2];
     /* 0x088 */ Actor400600ViewPos field_88;
     /* 0x08E */ byte               pad_8E[0x2];
@@ -92,7 +92,7 @@ typedef struct Actor400600Work {
     /* 0x09A */ u16                field_9A; // copy of field_92
     /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte               pad_9E[0xA];
-    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for ActorsShared80139c00
+    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for func_actor_400600_80139C00
     /* 0x0AE */ byte               pad_AE[0x2];
     /* 0x0B0 */ GpAnimCtx          anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
     /* 0x0C4 */ GpAnimSlot         slots[0x12];
@@ -221,6 +221,15 @@ STATIC_ASSERT_SIZEOF(Actor400600Zone, 0xA);
 
 extern Actor400600Zone D_actor_400600_80151B40[];
 
+void func_8004BFF8(s32 angle, MATRIX* matrix);
+
 void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2);
+void func_actor_400600_80139948(Task* arg0);
+void func_actor_400600_80139C00(Task* arg0, SVECTOR* target, s32 step);
+void func_actor_400600_80139DCC(Task* task, s16 index, Actor400600ViewPos* out);
+/// Unprototyped: some callers pass the task and some pass nothing, leaving
+/// their own `Task*` in `$a0`.
+s32  func_actor_400600_8013A0B0();
+void func_actor_400600_8013A2C0(Task* task);
 
 #endif
