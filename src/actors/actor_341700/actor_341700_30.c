@@ -28,4 +28,26 @@ void func_actor_341700_80169AB0(Task* arg0);
  * caller's own `arg0`. */
 s32 func_actor_341700_80168234(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_30", func_actor_341700_80168AC0);
+void func_actor_341700_80168AC0(Task* arg0)
+{
+    Actor341700Work* work;
+
+    work            = (Actor341700Work*)arg0->work;
+    work->field_44F = D_actor_341700_80174D88[work->field_418 - 1];
+    if (work->field_44F == 1) {
+        Actor341700Work* w = (Actor341700Work*)arg0->work;
+
+        w->field_426 = 6;
+        w->field_41C = 0x10;
+        w->field_418 = 6;
+        w->field_414 = 1;
+    } else {
+        Actor341700Work* w = (Actor341700Work*)arg0->work;
+
+        w->field_426 = 6;
+        w->field_41C = 0x10;
+        w->field_418 = 5;
+        w->field_414 = 1;
+    }
+    work->field_422++;
+}

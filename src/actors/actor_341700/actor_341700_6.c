@@ -30,8 +30,21 @@ static __inline__ void update_color(void* enemy, GsCOORDINATE2* coord)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
 }
 
-/// Per-frame callback of the main enemy; the same body as
-/// `func_actor_342400_80165FC0`. `D_801153F4` 2 hides the model, 0 runs the
+/// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
+/// stack before dispatch by `func_actor_341700_80164CDC`.
+const TaskFuncTable9 D_actor_341700_80161F0C = { {
+    func_actor_341700_80169380,
+    func_actor_341700_80169440,
+    func_actor_341700_80169520,
+    func_actor_341700_801695A0,
+    func_actor_341700_8016966C,
+    func_actor_341700_80164E9C,
+    func_actor_341700_801696C8,
+    func_actor_341700_801696E0,
+    func_actor_341700_80169724,
+} };
+
+/// Per-frame callback of the main enemy. `D_801153F4` 2 hides the model, 0 runs the
 /// current state handler (then colours it), 1 only colours it. Unless
 /// `field_451` is set, it then runs `func_actor_341700_80162070` for three part pairs.
 void func_actor_341700_80164CDC(Task* arg0)
@@ -59,3 +72,7 @@ void func_actor_341700_80164CDC(Task* arg0)
             return;
     }
 }
+
+/// Zero word ending this unit's rodata, before the next unit's jump table;
+/// gas does not pad the section out. Nothing reads it.
+const u32 D_actor_341700_80161F30 = 0;

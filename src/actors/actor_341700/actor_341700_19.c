@@ -55,7 +55,29 @@ void func_actor_341700_801696E0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169724);
+void func_actor_341700_80169724(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    TmdObject*       model;
+    GpEnemy*         enemy;
+
+    model = (TmdObject*)arg0->extra;
+    enemy = (GpEnemy*)arg0->spawnArg2;
+    Tmd_FreeBuffers(model);
+    model->flags |= 4;
+    func_actor_341700_801624F8(arg0);
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    enemy->recs = 0;
+    work        = (Actor341700Work*)arg0->work;
+    Gp_UnlinkObj(&work->obj_2AC);
+    Gp_UnlinkObj(&work->obj_2CC);
+    Gp_UnlinkObj(&work->obj_3AC);
+    work2            = (Actor341700Work*)arg0->work;
+    arg0->state      = 5;
+    work2->field_420 = 0;
+    work2->field_422 = 0;
+}
 
 void func_actor_341700_801697B8(Task* arg0)
 {
@@ -82,19 +104,139 @@ void func_actor_341700_801697D4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169888);
+void func_actor_341700_80169888(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    s32              soundId;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_8016999C);
+    work            = (Actor341700Work*)arg0->work;
+    work->field_44F = D_actor_341700_80174D88[work->field_418 - 1];
+    if (work->field_44F == 1) {
+        work2            = (Actor341700Work*)arg0->work;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xB;
+        work2->field_414 = 1;
+        SndEvt_EnqueueType7(0x402C0002, 1);
+    } else {
+        work2            = (Actor341700Work*)arg0->work;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0x11;
+        work2->field_414 = 1;
+    }
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0003;
+    pan     = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    work->field_422++;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169AB0);
+void func_actor_341700_8016999C(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    s32              soundId;
+    s32              pan;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169B40);
+    work            = (Actor341700Work*)arg0->work;
+    work->field_44F = D_actor_341700_80174D88[work->field_418 - 1];
+    if (work->field_44F == 1) {
+        work2            = (Actor341700Work*)arg0->work;
+        work2->field_426 = 2;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0xC;
+        work2->field_414 = 1;
+        SndEvt_EnqueueType7(0x402C0002, 1);
+    } else {
+        work2            = (Actor341700Work*)arg0->work;
+        work2->field_426 = 8;
+        work2->field_41C = 0x10;
+        work2->field_418 = 0x11;
+        work2->field_414 = 1;
+    }
+    soundId = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0003;
+    pan     = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+    SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+    work->field_422++;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169BC8);
+void func_actor_341700_80169AB0(Task* arg0)
+{
+    Actor341700Work* work;
+    s32              cond;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169C50);
+    work = (Actor341700Work*)arg0->work;
+    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        if (work->field_44F == 1) {
+            work            = (Actor341700Work*)arg0->work;
+            work->field_420 = 3;
+            work->field_422 = 0;
+        } else {
+            func_actor_341700_801681C4(arg0, 1);
+            work            = (Actor341700Work*)arg0->work;
+            work->field_420 = 5;
+            work->field_422 = 0;
+        }
+    }
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_19", func_actor_341700_80169CC4);
+void func_actor_341700_80169B40(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor341700Work*)arg0->work;
+    sp   = D_actor_341700_80161F70;
+    if ((func_actor_341700_80168178(arg0) << 0x10) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
+
+void func_actor_341700_80169BC8(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor341700Work*)arg0->work;
+    sp   = D_actor_341700_80161F7C;
+    if ((func_actor_341700_80168178(arg0) << 0x10) == 0) {
+        sp.funcs[(s16)work->field_422](arg0);
+    }
+}
+
+void func_actor_341700_80169C50(Task* arg0)
+{
+    Actor341700Work* work                = (Actor341700Work*)arg0->work;
+    void             (*states[2])(Task*) = {
+        func_actor_341700_8016A058,
+        func_actor_341700_8016A08C,
+    };
+
+    if (func_actor_341700_80168178(arg0) == 0) {
+        states[(s16)work->field_422](arg0);
+    }
+}
+
+void func_actor_341700_80169CC4(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable3   sp;
+
+    work = (Actor341700Work*)arg0->work;
+    sp   = D_actor_341700_80161F88;
+    if ((func_actor_341700_80168178(arg0) << 0x10) != 0) {
+        work->field_438 = 0;
+        return;
+    }
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 /// The four handlers of the actor's final state, dispatched on the same
 /// `field_422` sub-state index the earlier tables use.

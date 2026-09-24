@@ -14,7 +14,7 @@
 
 #include "actors/actor_341700.h"
 
-void func_actor_341700_8016A8EC(void)
+void func_actor_341700_8016A8EC(Task* arg0)
 {
 }
 

@@ -28,7 +28,13 @@ void func_actor_341700_80169AB0(Task* arg0);
  * caller's own `arg0`. */
 s32 func_actor_341700_80168234(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_15", func_actor_341700_801684A8);
+void func_actor_341700_801684A8(Task* arg0)
+{
+    TaskFuncTable10 sp;
+
+    sp = D_actor_341700_80161E3C;
+    sp.funcs[arg0->state](arg0);
+}
 
 /// The actor's six top-level state handlers.
 extern TaskFuncTable6 D_actor_341700_80161E24;

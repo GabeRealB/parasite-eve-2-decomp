@@ -126,9 +126,28 @@ void func_actor_341700_801688C8(Task* arg0)
     states[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_341700_8016891C);
+void func_actor_341700_8016891C(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable3   sp;
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_16", func_actor_341700_801689A0);
+    work = (Actor341700Work*)arg0->work;
+    sp   = D_actor_341700_80161E90;
+    sp.funcs[(s16)work->field_422](arg0);
+    if (work->field_44F == 1) {
+        func_actor_341700_8016AC0C(arg0);
+    }
+}
+
+void func_actor_341700_801689A0(Task* arg0)
+{
+    Actor341700Work* work;
+    TaskFuncTable6   sp;
+
+    work = (Actor341700Work*)arg0->work;
+    sp   = D_actor_341700_80161FCC;
+    sp.funcs[(s16)work->field_422](arg0);
+}
 
 void func_actor_341700_80168A14(Task* arg0)
 {

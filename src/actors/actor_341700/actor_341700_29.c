@@ -28,4 +28,22 @@ void func_actor_341700_80169AB0(Task* arg0);
  * caller's own `arg0`. */
 s32 func_actor_341700_80168234(Task* arg0);
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_29", func_actor_341700_80168C4C);
+void func_actor_341700_80168C4C(Task* arg0)
+{
+    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    s16              angle;
+    s16              speed;
+
+    func_actor_341700_801685F0(arg0, 0x10);
+    speed                                          = func_actor_341700_80168444(arg0, -0x10);
+    angle                                          = work->field_7A;
+    ((TmdObject*)arg0->extra)->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
+    ((TmdObject*)arg0->extra)->coords->flg         = 0;
+    if (func_actor_341700_80168468(arg0)) {
+        Actor341700Work* next = (Actor341700Work*)arg0->work;
+
+        next->field_420 = 4;
+        next->field_422 = 0;
+    }
+}

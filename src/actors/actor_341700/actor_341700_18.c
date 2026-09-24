@@ -38,7 +38,43 @@ void func_actor_341700_80169380(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_18", func_actor_341700_80169440);
+void func_actor_341700_80169440(Task* arg0)
+{
+    Actor341700Work* work;
+    Actor341700Work* work2;
+    Actor341700Work* work3;
+    Actor341700Work* work4;
+    s16              anim;
+    s16              next;
+
+    work = (Actor341700Work*)arg0->work;
+    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    anim = work->field_418;
+    if (anim == 8) {
+        if (work->field_440 == 0) {
+            work2            = (Actor341700Work*)arg0->work;
+            work2->field_426 = 4;
+            work2->field_41C = 0x10;
+            work2->field_418 = 5;
+            work2->field_414 = 1;
+        } else {
+            work3            = (Actor341700Work*)arg0->work;
+            work3->field_426 = 4;
+            work3->field_41C = 0x10;
+            work3->field_418 = 6;
+            work3->field_414 = 1;
+        }
+    } else {
+        next             = D_actor_341700_80174D9C[anim - 1];
+        work4            = (Actor341700Work*)arg0->work;
+        work4->field_426 = 4;
+        work4->field_41C = 0x10;
+        work4->field_418 = next;
+        work4->field_414 = 1;
+    }
+    func_actor_341700_801649DC(arg0);
+    work->field_420++;
+}
 
 void func_actor_341700_80169520(Task* arg0)
 {

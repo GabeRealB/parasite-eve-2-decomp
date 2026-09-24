@@ -163,6 +163,22 @@ typedef union Actor341700Cmd {
 } Actor341700Cmd;
 STATIC_ASSERT_SIZEOF(Actor341700Cmd, 0x4);
 
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// the overlay's 0x7DB handler, `func_actor_341700_801682DC`, reads the
+/// halfword at 0x2.
+typedef struct Actor341700Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor341700Msg;
+STATIC_ASSERT_SIZEOF(Actor341700Msg, 0x4);
+
+extern GpPairSrcE D_actor_341700_8017188C;   // the main enemy's `GpEnemy::param` record
+extern u8         D_actor_341700_80174CEC[]; // animation bank handed to `func_800B3F84`
+extern u8         D_actor_341700_80174D40[]; // stored into `Task::msgTable` by the enemy's init
+extern u8         D_actor_341700_80174D88[]; // per animation id (1-based): value for `field_44F`
+extern u8         D_actor_341700_80174D9C[]; // per animation id (1-based): the animation to follow it
+extern s8         D_80115415;                // absolute; set once CD command 0x21 is queued
+
 /// Global render mode: 2 hides the model, 0 runs the state handler then
 /// colours it, 1 only colours it.
 extern u8 D_801153F4;
@@ -176,10 +192,6 @@ extern SVECTOR D_actor_341700_80175F7C[];
 extern u8      D_actor_341700_801760FC[];
 
 void func_8017FCF4(GsCOORDINATE2* coord, SVECTOR* vec);
-
-/// Nine state handlers, indexed by `Actor341700Work::field_420`; copied onto the
-/// stack before dispatch, as the sibling `D_actor_342400_80161F50` is.
-extern TaskFuncTable9 D_actor_341700_80161F0C;
 
 /// Ten state handlers for `func_actor_341700_80165DDC`, indexed by
 /// `Actor341700Work::field_420`; copied onto the stack before dispatch.
@@ -203,60 +215,144 @@ s32 func_actor_341700_8016CE28(Actor341700* arg0, s32 arg1, s32 arg2);
 
 s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd);
 
+/// State and sub-state handler tables in the overlay's leading rodata, each
+/// copied onto the stack before an indexed call.
+extern TaskFuncTable10 D_actor_341700_80161E3C;
+extern TaskFuncTable3  D_actor_341700_80161E90;
+extern TaskFuncTable3  D_actor_341700_80161F70;
+extern TaskFuncTable3  D_actor_341700_80161F7C;
+extern TaskFuncTable3  D_actor_341700_80161F88;
+extern TaskFuncTable6  D_actor_341700_80161FCC;
+extern TaskFuncTable5  D_actor_341700_80161FE4;
+extern TaskFuncTable7  D_actor_341700_80161FF8;
+
 /// Dispatch table of the controlled enemy's state handlers: spawn/setup,
 /// per-frame tick and teardown (`Gp_DestroyEnemy`).
 extern GpEnemyTaskFuncTable3 D_actor_341700_80162064;
 
 void func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
+void func_actor_341700_801624F8(Task* arg0);
 void func_actor_341700_801626C4(Task* arg0);
+void func_actor_341700_80162974(Task* task);
+void func_actor_341700_80162B8C(Task* task);
+void func_actor_341700_80162DCC(Task* arg0);
 void func_actor_341700_80163268(Task* arg0);
+void func_actor_341700_801633D4(Task* arg0);
+void func_actor_341700_80163600(Task* arg0);
 void func_actor_341700_801639C0(Task* arg0);
 void func_actor_341700_80163AF0(Task* arg0);
+void func_actor_341700_80163C58(Task* arg0);
 void func_actor_341700_80163E58(Task* arg0);
 void func_actor_341700_80163FBC(Task* arg0);
+void func_actor_341700_801640F8(Task* arg0, s16 arg1);
 void func_actor_341700_801649DC(Task* arg0);
 void func_actor_341700_80164B68(Task* task);
+void func_actor_341700_80164CDC(Task* arg0);
 void func_actor_341700_80164E9C(Task* arg0);
 void func_actor_341700_80165008(Task* arg0);
+void func_actor_341700_80165388(Task* arg0);
 void func_actor_341700_8016583C(Task* arg0);
 void func_actor_341700_80165984(Task* arg0);
 void func_actor_341700_80165AF0(Task* arg0);
 void func_actor_341700_80165C70(Task* arg0);
+void func_actor_341700_80165DDC(Task* arg0);
 void func_actor_341700_80166114(Task* arg0);
 void func_actor_341700_801663F0(Task* arg0);
 void func_actor_341700_80166568(Task* arg0);
+void func_actor_341700_801666F0(Task* arg0);
 void func_actor_341700_8016688C(Task* arg0);
 void func_actor_341700_801669F8(Task* arg0);
 void func_actor_341700_80166B94(Task* arg0);
 void func_actor_341700_80166D2C(Task* arg0);
 void func_actor_341700_80166E90(Task* arg0);
+void func_actor_341700_801670B0(Task* arg0);
+void func_actor_341700_8016724C(Task* arg0);
 void func_actor_341700_80167744(Task* arg0);
+void func_actor_341700_80167890(Task* arg0);
+void func_actor_341700_80167C30(Task* arg0);
+void func_actor_341700_80167E18(Task* arg0);
 void func_actor_341700_80168004(void);
+void func_actor_341700_80168124(Task* arg0);
 s16  func_actor_341700_80168178(Task* arg0);
-void func_actor_341700_8016833C(Task* task, s16 part, VECTOR3* pos);
+void func_actor_341700_801681C4(Task* arg0, s32 arg1);
+s32  func_actor_341700_80168234(Task* arg0);
+void func_actor_341700_80168370(Task* arg0, s16 arg1, SVECTOR3* arg2);
+s32  func_actor_341700_80168444(Task* arg0, s16 arg1);
 s16  func_actor_341700_80168468(Task* arg0);
+void func_actor_341700_801684A8(Task* arg0);
+void func_actor_341700_8016852C(Task* arg0);
+void func_actor_341700_8016859C(Task* arg0);
 void func_actor_341700_801685F0(Task* arg0, s32 step);
+void func_actor_341700_80168684(Task* arg0);
+void func_actor_341700_80168698(Task* arg0);
+void func_actor_341700_801686AC(Task* arg0);
+void func_actor_341700_801686C0(Task* arg0);
+void func_actor_341700_80168748(Task* arg0);
+void func_actor_341700_801687B4(Task* arg0);
+void func_actor_341700_80168820(Task* arg0);
+void func_actor_341700_80168874(Task* arg0);
+void func_actor_341700_801688C8(Task* arg0);
+void func_actor_341700_8016891C(Task* arg0);
+void func_actor_341700_801689A0(Task* arg0);
+void func_actor_341700_80168A14(Task* arg0);
 void func_actor_341700_80168A48(Task* arg0);
+void func_actor_341700_80168AC0(Task* arg0);
 void func_actor_341700_80168B40(Task* arg0);
 void func_actor_341700_80168BE0(Task* arg0);
+void func_actor_341700_80168C4C(Task* arg0);
 void func_actor_341700_80168D3C(Task* arg0);
 void func_actor_341700_80168DA0(Task* arg0);
 void func_actor_341700_80168EA0(Task* arg0);
+void func_actor_341700_80168F5C(Task* arg0);
+void func_actor_341700_80168F9C(Task* arg0);
 void func_actor_341700_80169018(Task* arg0);
+void func_actor_341700_8016908C(Task* arg0);
+void func_actor_341700_801691B0(Task* arg0);
+void func_actor_341700_80169218(Task* arg0);
 void func_actor_341700_80169254(Task* arg0);
+void func_actor_341700_80169380(Task* arg0);
+void func_actor_341700_80169440(Task* arg0);
+void func_actor_341700_80169520(Task* arg0);
 void func_actor_341700_801695A0(Task* task);
+void func_actor_341700_8016966C(Task* arg0);
+void func_actor_341700_801696C8(Task* arg0);
+void func_actor_341700_801696E0(Task* arg0);
+void func_actor_341700_80169724(Task* arg0);
+void func_actor_341700_801697B8(Task* arg0);
+void func_actor_341700_801697D4(Task* arg0);
+void func_actor_341700_80169888(Task* arg0);
+void func_actor_341700_8016999C(Task* arg0);
+void func_actor_341700_80169AB0(Task* arg0);
+void func_actor_341700_80169B40(Task* arg0);
+void func_actor_341700_80169BC8(Task* arg0);
+void func_actor_341700_80169C50(Task* arg0);
+void func_actor_341700_80169CC4(Task* arg0);
+void func_actor_341700_80169D54(Task* arg0);
 void func_actor_341700_80169DBC(Task* arg0);
 void func_actor_341700_80169E20(Task* arg0);
 void func_actor_341700_80169EE4(Task* arg0);
 void func_actor_341700_80169F38(Task* arg0);
 void func_actor_341700_80169FB0(Task* arg0);
+void func_actor_341700_8016A058(Task* arg0);
 void func_actor_341700_8016A08C(Task* arg0);
+void func_actor_341700_8016A0E0(Task* arg0);
 void func_actor_341700_8016A130(Task* arg0);
 void func_actor_341700_8016A1A8(Task* arg0);
 void func_actor_341700_8016A21C(Task* arg0);
+void func_actor_341700_8016A2CC(Task* arg0);
+void func_actor_341700_8016A460(Task* arg0);
+void func_actor_341700_8016A568(Task* arg0);
+void func_actor_341700_8016A630(Task* arg0);
+void func_actor_341700_8016A6C0(Task* arg0);
+void func_actor_341700_8016A758(Task* arg0);
+void func_actor_341700_8016A810(Task* arg0);
 void func_actor_341700_8016A890(Task* arg0);
+void func_actor_341700_8016A8EC(Task* arg0);
+void func_actor_341700_8016A8F4(Task* arg0);
 void func_actor_341700_8016A98C(Task* task);
+void func_actor_341700_8016AA58(Task* arg0);
 void func_actor_341700_8016AAB4(Task* arg0);
+void func_actor_341700_8016ABF4(Task* arg0);
 s32  func_actor_341700_8016AC0C(Task* arg0);
 
 #endif

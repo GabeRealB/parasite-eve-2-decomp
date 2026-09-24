@@ -65,7 +65,31 @@ void func_actor_341700_8016A2CC(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016A460);
+void func_actor_341700_8016A460(Task* arg0)
+{
+    Actor341700Work* work;
+    s32              soundId;
+    s32              pan;
+
+    work = (Actor341700Work*)arg0->work;
+    if (D_actor_341700_80174D88[work->field_418 - 1] == 0) {
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = 9;
+        work->field_414 = 1;
+        soundId         = ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x402C0002;
+        pan             = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
+        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
+        work->field_422 = 4;
+        return;
+    }
+    work->field_426 = 8;
+    work->field_41C = 0x10;
+    work->field_418 = 7;
+    work->field_414 = 1;
+    work->field_44F = (u8)work->field_41C * 4;
+    work->field_422++;
+}
 
 void func_actor_341700_8016A568(Task* arg0)
 {
@@ -126,7 +150,36 @@ void func_actor_341700_8016A6C0(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_341700/actor_341700_23", func_actor_341700_8016A758);
+void func_actor_341700_8016A758(Task* arg0)
+{
+    Actor341700Work* work;
+    s16              anim;
+    s16              next;
+
+    work = (Actor341700Work*)arg0->work;
+    anim = work->field_418;
+    if (anim == 8) {
+        if (work->field_440 == 0) {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 5;
+            work->field_414 = 1;
+        } else {
+            work->field_426 = 4;
+            work->field_41C = 0x10;
+            work->field_418 = 6;
+            work->field_414 = 1;
+        }
+    } else {
+        next            = D_actor_341700_80174D9C[anim - 1];
+        work->field_426 = 4;
+        work->field_41C = 0x10;
+        work->field_418 = next;
+        work->field_414 = 1;
+    }
+    func_actor_341700_801649DC(arg0);
+    work->field_420++;
+}
 
 void func_actor_341700_8016A810(Task* arg0)
 {
