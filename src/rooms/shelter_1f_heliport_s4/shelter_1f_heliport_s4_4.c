@@ -1,0 +1,14 @@
+#include "common.h"
+
+#include "rooms/room_common.h"
+
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+
+/// The room's handler for message 0x13EE: copies the incoming record onto the
+/// outgoing one, hands both to `func_80179A04` and returns 1.
+s32 func_shelter_1f_heliport_s4_8017D5D8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+{
+    *out = *in;
+    func_80179A04(in, out);
+    return 1;
+}

@@ -1964,10 +1964,10 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4", rodata = "0x4", text = "0x5C" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_3", text = "0x10" },
-  { lib = true, unit = "room_util02", text = "0x18" },
-  { lib = true, unit = "rooms_shared_8017db84", text = "0x6C" },
+  { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_4", text = "0x18" },
+  { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_5", text = "0x6C" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_2", text = "0xB0" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0xB8" },
+  { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4_6", text = "0xB8" },
   { kind = "data", at = "0x110" },
 ]
 
