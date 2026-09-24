@@ -13,11 +13,10 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 void func_actor_123200_801332E0(Task* task);
 
@@ -79,7 +78,7 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
     VectorNormalSS(dir, dir);
     gte_lddp(0x3E8);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 }
 
@@ -183,7 +182,7 @@ static __inline__ void Actor123200_StepForward(GsCOORDINATE2* coord)
     VectorNormalSS(dir, dir);
     gte_lddp(5);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 
     coord->coord.t[0] += dir->vx;
@@ -249,7 +248,7 @@ static __inline__ void Actor123200_MoveForward(GsCOORDINATE2* coord)
         VectorNormalSS(vec, vec);
         gte_lddp(5);
         gte_ldsv(vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(vec);
         coord->coord.t[0]          += head[-1].vx;
         coord->coord.t[1]          += vec->vy;

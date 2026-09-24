@@ -6,7 +6,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include <psyq/inline_c.h>
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 extern u8 D_801153F4;
 
 #include "main/sound.h"
@@ -54,24 +54,24 @@ static __inline__ void rotate_parts(Task* arg0)
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(scratch);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord);
     gte_ldclmv(&scratch->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][1]);
     gte_ldclmv(&scratch->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[3].coord.m[0][2]);
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[5].coord);
     gte_ldclmv(scratch);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[5].coord);
     gte_ldclmv(&scratch->m[0][1]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[5].coord.m[0][1]);
     gte_ldclmv(&scratch->m[0][2]);
-    gte_rtir_real();
+    gte_rtir();
     gte_stclmv(&coord[5].coord.m[0][2]);
     value = work->rotation.vx;
     if (value != 0) {

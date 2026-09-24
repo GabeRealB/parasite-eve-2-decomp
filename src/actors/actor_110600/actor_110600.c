@@ -17,6 +17,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 #include <psyq/stdio.h>
 
 /// Global freeze flag the walker's turn step bails out on: 1 while the game is
@@ -35,8 +36,6 @@ extern PlayerStatus D_80073B08[];
 /// slot at all. The string is spelled out rather than left a literal so the
 /// re-plan reaches it by name, the way the original object does.
 const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 INCLUDE_ASM("actors/nonmatchings/actor_110600/actor_110600", func_actor_110600_801322CC);
 
@@ -449,7 +448,7 @@ void func_actor_110600_80132FE0(Actor110600Walker* work)
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&s->dir);
             work->push.vx           += s->dir.vx;
             work->push.vz           += s->dir.vz;
@@ -564,7 +563,7 @@ void func_actor_110600_80133778(Actor110600Walker* work, s16 scale, s16 angle)
         Gfx_MatrixCol2(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&blk->v);
         work->nav->nodes[blk->i].x = *(u16*)&work->coord->coord.t[0] + *(u16*)&blk->v.vx;
         work->nav->nodes[blk->i].y = *(u16*)&work->coord->coord.t[1] + *(u16*)&blk->v.vy;
@@ -676,7 +675,7 @@ static __inline__ void Actor110600_WalkerStep(Actor110600Walker* walker, u8* hea
             VectorNormalSS(sv, sv);
             gte_lddp(speed);
             gte_ldsv(gsv);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(gsv);
             coord->coord.t[0] += ((SVECTOR*)(head2 - 8))->vx;
             coord->coord.t[1] += sv->vy;
@@ -2190,7 +2189,7 @@ void func_actor_110600_80136B20(Actor110600* arg0)
         ScaleMatrix(&work->field_AE8, &scale);
         gte_lddp(scale.vz);
         gte_ldlvl(&work->field_AE8.t[0]);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stlvl(&work->field_AE8.t[0]);
     }
     if (work->field_BE0 == 0xFD) {
@@ -2679,31 +2678,31 @@ void func_actor_110600_80137AF4(Actor110600* arg0)
         case 0:
             gte_lddp(0x320);
             gte_ldsv(&vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&vec);
             break;
         case 1:
             gte_lddp(-0x3E8);
             gte_ldsv(&vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&vec);
             break;
         case 2:
             gte_lddp(0x190);
             gte_ldsv(&vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&vec);
             break;
         case 3:
             gte_lddp(-0x190);
             gte_ldsv(&vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&vec);
             break;
         case 4:
             gte_lddp(0xC8);
             gte_ldsv(&vec);
-            gte_gpf12_real();
+            gte_gpf12();
             gte_stsv(&vec);
             break;
         case 5:

@@ -10,8 +10,7 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 /// In motion states 2 and 3, reports 0x400C0001 the first time the animation id
 /// in `field_4A` reaches one of that state's trigger ids (latched in
@@ -69,7 +68,7 @@ static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
     VectorNormalSS(dir, dir);
     gte_lddp(amount);
     gte_ldsv(dir);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(dir);
 }
 
@@ -418,7 +417,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(0x23);
                 gte_ldsv(gte);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(gte);
                 ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
                 ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
@@ -429,7 +428,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                 VectorNormalSS(vec, vec);
                 gte_lddp(-0x14);
                 gte_ldsv(gte);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(gte);
                 ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
                 ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
@@ -443,7 +442,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(gte);
                     ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
                     ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
@@ -452,7 +451,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(gte);
                     switch ((s16)((u16)work->field_6 - 0xF)) {
                         case 0:
@@ -489,7 +488,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(gte);
                     ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
                     ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
@@ -498,7 +497,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);
-                    gte_gpf12_real();
+                    gte_gpf12();
                     gte_stsv(gte);
                     ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
                     ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;

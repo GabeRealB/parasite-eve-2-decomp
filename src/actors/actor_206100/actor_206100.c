@@ -10,10 +10,7 @@
 #include "actors/coord_to_view.h"
 #include "actors/actor_400500.h"
 #include "psyq/inline_c.h"
-
-#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 extern s8 D_8007216C;
 
@@ -101,7 +98,7 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x40);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
                 Gp_SpawnEff(0x600E0, coord, param, dir);
             }
@@ -126,7 +123,7 @@ void func_actor_206100_8014A70C(GsCOORDINATE2* coord, u16 arg1, u16 arg2, u32 ar
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x40);
                 gte_ldsv(dir);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(dir);
                 Gp_SpawnEff(0x600E0, coord, param, dir);
             }
@@ -1041,7 +1038,7 @@ loop:
             gte_SetTransMatrix(&walk->coord);
             gte_SetRotMatrix(&walk->coord);
             gte_ldv0(svp);
-            gte_rtv0tr_real();
+            gte_rtv0tr();
             gte_stlvnl(vecp);
             gte_stflg(flagp);
             scratch.gte.vec.vx = (u16)scratch.gte.m.mac.vx;

@@ -13,9 +13,7 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#include "gte.h"
 
 extern s32 D_80070F70;
 
@@ -173,10 +171,10 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
     b.vz   = src->vz;
     gte_SetRotMatrix(mtx);
     gte_ldv0(&a);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&a);
     gte_ldv0(&b);
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(&b);
     t     = (double)(s16)f;
     b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
@@ -191,13 +189,13 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&a);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&proj[0].sxy);
     gte_stdp(&proj[0].z);
     gte_stflg(arg3);
     gte_stszotz(arg2);
     gte_ldv0(&b);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&proj[1].sxy);
     gte_stdp(&proj[0].z);
     gte_stflg(arg3);
@@ -222,7 +220,7 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
         a.vx = D_actor_141000_80134878[i].vx * scale / *arg2;
         a.vy = D_actor_141000_80134878[i].vy * scale / *arg2;
         gte_ldv0(&a);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&b);
         arg1[i].field_0 = b.vx + x0;
         arg1[i].field_2 = b.vy + y0;
@@ -232,7 +230,7 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
         a.vx = D_actor_141000_801348A8[i].vx * scale / proj[1].z;
         a.vy = D_actor_141000_801348A8[i].vy * scale / proj[1].z;
         gte_ldv0(&a);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&b);
         arg1[i + 6].field_0 = b.vx + x1;
         arg1[i + 6].field_2 = b.vy + y1;
@@ -242,7 +240,7 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
         a.vx = ((D_actor_141000_80134878[i].vx * r) >> 12) * scale / *arg2;
         a.vy = ((D_actor_141000_80134878[i].vy * r) >> 12) * scale / *arg2;
         gte_ldv0(&a);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&b);
         arg1[i + 12].field_0 = b.vx + x0;
         arg1[i + 12].field_2 = b.vy + y0;
@@ -251,7 +249,7 @@ void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* 
         a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / proj[1].z;
         a.vy = ((D_actor_141000_801348A8[i].vy * r) >> 12) * scale / proj[1].z;
         gte_ldv0(&a);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(&b);
         arg1[i + 18].field_0 = b.vx + x1;
         arg1[i + 18].field_2 = b.vy + y1;

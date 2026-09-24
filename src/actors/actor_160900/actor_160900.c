@@ -16,9 +16,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
 #include "psyq/inline_c.h"
-
-/// `rtps` from `inline_c.h` assembles to a different word; spell it out.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#include "gte.h"
 
 extern TaskDesc ActorsShared80136280Desc;
 
@@ -302,12 +300,12 @@ void func_actor_160900_80132E80(Task* task)
     origin.vy = 0;
     origin.vx = 0;
     gte_ldv0(&origin);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&sxy);
     gte_stszotz(&otz);
     for (i = 0; i < 4; i++) {
         gte_ldv0(&verts[i]);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&sxy);
         xs[i] = sxy;
         ys[i] = sxy >> 16;

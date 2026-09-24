@@ -17,8 +17,6 @@
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 void func_actor_123200_801332E0(Task* task);
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);

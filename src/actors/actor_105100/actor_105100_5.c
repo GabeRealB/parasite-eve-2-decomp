@@ -17,9 +17,6 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
-
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
 extern GpEnemyTaskFuncTable3 D_actor_105100_80131E24;

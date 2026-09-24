@@ -16,9 +16,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#include "gte.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by state.
@@ -1433,13 +1431,13 @@ body:
             RotMatrix(&scratch->rot, &scratch->mat);
             gte_SetRotMatrix(&coord->coord);
             gte_ldclmv(&scratch->mat);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv(&coord->coord);
             gte_ldclmv((char*)&scratch->mat + 2);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv((char*)&coord->coord + 2);
             gte_ldclmv((char*)&scratch->mat + 4);
-            gte_rtir_real();
+            gte_rtir();
             gte_stclmv((char*)&coord->coord + 4);
             speed          = work->field_7C * 2;
             work->field_7C = speed;

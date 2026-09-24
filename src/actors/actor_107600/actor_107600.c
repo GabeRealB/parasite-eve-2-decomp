@@ -18,11 +18,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#include "gte.h"
 
 /* Leading-rodata state table. A local initializer would emit the pool at this
  * function's .rodata instead of at D_actor_107600_80131E24. */
@@ -1136,13 +1132,13 @@ void func_actor_107600_80133FA8(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(&s->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     p              = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     gte_stsxy(&s->sxy[0]);
     gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     p->tpage = 0x99;
     p->clut  = 0x3E80;
     setUV4(p, 0x40, 0, 0x67, 0, 0x40, 0x27, 0x67, 0x27);
@@ -1195,13 +1191,13 @@ void func_actor_107600_80134248(GsCOORDINATE2* coord, SVECTOR* pos)
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(&s->v[0]);
-    gte_rtps_real();
+    gte_rtps();
     p              = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyFT4(p);
     gte_stsxy(&s->sxy[0]);
     gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     p->tpage = 0x99;
     p->clut  = 0x3E80;
     setUV4(p, 0x68, 0, 0x77, 0, 0x68, 0xF, 0x77, 0xF);
@@ -1325,10 +1321,10 @@ void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 block->col1.vz = dst->z;
                 gte_lddp(w1);
                 gte_ldsv(col0);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_lddp(w0);
                 gte_ldsv(col1);
-                gte_gpl12_real();
+                gte_gpl12();
                 gte_stsv(col0);
                 src->x = block->col0.vx;
                 dst    = (GpMtxCol*)&dst->_0;

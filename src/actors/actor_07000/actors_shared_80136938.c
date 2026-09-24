@@ -13,9 +13,7 @@
 #include "main/tmd.h"
 
 #include <psyq/inline_c.h>
-
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#include "gte.h"
 
 void ActorsShared80136938(Task* arg0)
 {
@@ -58,12 +56,12 @@ void ActorsShared80136938(Task* arg0)
     rec = &work->rec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)" : : "m"(local) : "$2");
-    gte_rtv0_real();
+    gte_rtv0();
     gte_stsv(vec);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x1E);
     gte_ldsv(vec);
-    gte_gpf12_real();
+    gte_gpf12();
     gte_stsv(&work->vec);
     rot                = (GpMtxWords*)&coord->coord;
     rot->w0            = 0x1000;

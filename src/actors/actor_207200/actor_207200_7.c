@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "actors/actors_shared_80136614.h"
 
@@ -77,9 +78,6 @@ void func_actor_207200_8014D8DC(Actor207200* arg0)
     Gp_LinkNode(&ctx->node);
 }
 
-/// `gpf 12`; the `inline_c.h` macro of that name assembles to a different word.
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-
 /// Reads the matrix column at offsets `o0` / `o1` / `o2` of `r0` into the
 /// `SVECTOR` at `r1`. Same macro as `src/actors/actor_01100/actors_shared_801385e0.c`.
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
@@ -120,21 +118,21 @@ void func_actor_207200_8014D97C(Actor207200* arg0, GsCOORDINATE2* arg1)
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 0, 6, 12);
         gte_lddp(0);
         gte_ldsv(&vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&vec);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 0, 6, 12);
 
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 2, 8, 14);
         gte_lddp(0);
         gte_ldsv(&vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&vec);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 2, 8, 14);
 
         ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 4, 10, 16);
         gte_lddp(0);
         gte_ldsv(&vec);
-        gte_gpf12_real();
+        gte_gpf12();
         gte_stsv(&vec);
         ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 4, 10, 16);
 
