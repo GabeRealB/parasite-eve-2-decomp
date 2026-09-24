@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -25,10 +26,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/room_common.h"
-
-/// GTE `rtps` spelled out: the `inline_c.h` macro of that name assembles to a
-/// different word.
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 /// Spawn argument of the room's cutscene task (`func_shelter_b2_laboratory_8017F4D8`,
 /// spawned from `D_shelter_b2_laboratory_80182A08`). A positive `field_0` is
@@ -1927,13 +1924,13 @@ void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx0);
     gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
         gte_ldv0(p1);
-        gte_rtps_real();
+        gte_rtps();
         gte_stsxy(&((RoomDraw08Scratch*)(head - 0x1C))->sx1);
         gte_stflg(&((RoomDraw08Scratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
@@ -2069,7 +2066,7 @@ void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((_DrawScratch*)(head - 0x18))->sx);
     gte_stflg(&((_DrawScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -2164,7 +2161,7 @@ void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(arg0);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
     gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
     if (block->flag >= 0) {

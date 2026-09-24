@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
+#include "gte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -15,11 +16,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "rooms/room_common.h"
-
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 
 /// The gameplay light slot, whose body is read either as a coordinate or as a
 /// light record; the glow sets `mode` to 2 and fills the light view.
@@ -143,7 +139,7 @@ void func_shelter_b2_breeding_room_8017E774(Task* arg0)
                 mem->move.vx = 0;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&mem->move);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&mem->move);
             }
             mem->period       += 8;
@@ -194,11 +190,11 @@ void func_shelter_b2_breeding_room_8017ECCC(Task* task)
                 work->field_1C = delta.vz;
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&work->field_18);
-                gte_rtv0_real();
+                gte_rtv0();
                 gte_stsv(&work->field_18);
                 gte_lddp(0xCC);
                 gte_ldsv(&work->field_18);
-                gte_gpf12_real();
+                gte_gpf12();
                 gte_stsv(&work->field_18);
                 task->state = 1;
                 break;
@@ -256,7 +252,7 @@ void func_shelter_b2_breeding_room_8017EEF0(GsCOORDINATE2* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw14Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw14Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -350,7 +346,7 @@ void func_shelter_b2_breeding_room_8017F174(GsCOORDINATE2* arg0, s32 arg1, s32 a
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw07Scratch*)(head - 0x1C))->sx);
     gte_stflg(&((RoomDraw07Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
@@ -430,7 +426,7 @@ void func_shelter_b2_breeding_room_8017F598(GsCOORDINATE2* arg0, s32 arg1, u8* r
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&((RoomDraw10Scratch*)(head - 0x18))->sx);
     gte_stflg(&((RoomDraw10Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
@@ -581,7 +577,7 @@ void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size)
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&sc->vec);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sx);
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
@@ -691,7 +687,7 @@ void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1)
         v->vz = tbl->y * arg1;
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
-        gte_rtv0_real();
+        gte_rtv0();
         gte_stsv(v);
         *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
@@ -703,10 +699,10 @@ void func_shelter_b2_breeding_room_80180004(GsCOORDINATE2* arg0, s32 arg1)
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec[0]);
-    gte_rtps_real();
+    gte_rtps();
     gte_stsxy(&block->sxy0);
     gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt_real();
+    gte_rtpt();
     gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
