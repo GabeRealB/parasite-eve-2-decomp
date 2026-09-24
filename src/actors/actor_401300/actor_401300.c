@@ -4,9 +4,12 @@
 #include "gte.h"
 #include "psyq/abs.h"
 
-#include "actors/actor_401300.h"
+#include "actors/actors_shared_80169f74.h"
 #include "gameplay/1A8.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/gfx.h"
@@ -14,8 +17,506 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+/// XZ patrol point in `Actor401300Work::field_C`. Same shape as
+/// `Actor01900Waypoint`.
+typedef struct Actor401300Waypoint {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 z;
+} Actor401300Waypoint;
+
+/// Payload `func_actor_401300_80138B24` sends with message 0x3FF, seeded from
+/// `D_actor_401300_80158914` at init; `field_4` is the sub-code.
+typedef struct Actor401300Msg3FF {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8[3];
+} Actor401300Msg3FF;
+
+/// Private work block of the actor 401300 task, hanging off `Task::work`.
+///
+/// Only the fields the matched code touches are named so far: `yaw` at 0x18
+/// (the heading `func_actor_401300_80141614` reads back from the root
+/// coordinate, one halfword later than `ActorsShared80169f74Work::yaw`), the
+/// three `GpObj` display nodes `func_actor_401300_80141758` hands back to
+/// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword the
+/// teardown-ish `func_actor_401300_80141EF8` tests before it stamps the enemy's
+/// `field_40` with the -999 sentinel. The block is a good deal larger - sibling
+/// `func_actor_401300_80141C88` reads animation state at 0x89C..0xC0E of the
+/// same pointer - so the struct stays open-ended.
+///
+/// The display nodes do *not* sit at the same addresses as the same-shaped
+/// teardown of actor 01900/401800, which keeps its three at 0x8C8/0xA08/0xB48.
+/// Animation halfwords sit 4 bytes later than `Actor01900Work` (0x89C vs
+/// 0x898); the three `GpObj` nodes sit 0xA8 later (0x970/0xAB0/0xBF0).
+typedef struct Actor401300Work {
+    /* 0x000 */ s16  field_0;
+    /* 0x002 */ s16  field_2;
+    /* 0x004 */ s16  field_4;
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ s16  field_8;
+    /* 0x00A */ byte pad_A[2];
+    /// XZ patrol points: the spawn position and one step along its facing.
+    /* 0x00C */ Actor401300Waypoint field_C[2];
+    /// Lunge step length: `func_actor_401300_8013E930`'s clamped player
+    /// distance over 18.
+    /* 0x014 */ s16  field_14;
+    /* 0x016 */ s16  field_16;
+    /* 0x018 */ s16  yaw;
+    /* 0x01A */ byte pad_1A[0x44];
+    /* 0x05E */ u16  field_5E;
+    /* 0x060 */ byte pad_60[0xC];
+    /* 0x06C */ u16  field_6C;
+    /* 0x06E */ byte pad_6E[0x82A];
+    /* 0x898 */ s32  field_898;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ s16  field_89E;
+    /* 0x8A0 */ s16  field_8A0;
+    /* 0x8A2 */ s16  field_8A2;
+    /* 0x8A4 */ s16  field_8A4;
+    /* 0x8A6 */ s16  field_8A6;
+    /* 0x8A8 */ s16  field_8A8;
+    /* 0x8AA */ s16  field_8AA;
+    /* 0x8AC */ s16  field_8AC;
+    /* 0x8AE */ s16  field_8AE;
+    /* 0x8B0 */ s16  field_8B0;
+    /* 0x8B2 */ s16  field_8B2;
+    /* 0x8B4 */ s16  field_8B4;
+    /* 0x8B6 */ s16  field_8B6;
+    /* 0x8B8 */ s16  field_8B8;
+    /* 0x8BA */ s16  field_8BA;
+    /* 0x8BC */ s32  field_8BC;
+    /// Effect anchor `func_actor_401300_80139134` places at the actor's
+    /// view-space position before spawning effect 0x600A5.
+    /* 0x8C0 */ GsCOORDINATE2 field_8C0;
+    /* 0x910 */ GpEffArg      field_910;
+    /* 0x918 */ byte          pad_918[8];
+    /// Fixed pose `func_actor_401300_80134454` anchors above the root
+    /// coordinate (identity rotation, 0x15E up) for the `field_AB0` node.
+    /* 0x920 */ GsCOORDINATE2 field_920;
+    /* 0x970 */ GpObj         field_970;
+    /// Contact records, walked twelve at a time by the movement helpers.
+    /* 0x990 */ GpRec18 field_990[12];
+    /* 0xAB0 */ GpObj   field_AB0;
+    /// Contact records the `field_AB0` node's context points at.
+    /* 0xAD0 */ GpRec18 field_AD0[12];
+    /* 0xBF0 */ GpObj   field_BF0;
+    /* 0xC10 */ byte    pad_C10[0x18];
+    /// Light matrix `func_actor_401300_80134454` binds to the model's
+    /// `TmdObject::lightMtx` (the color matrix is `field_C48`).
+    /* 0xC28 */ MATRIX field_C28;
+    /// Saved at 0xC48 and copied over 0xC68 when
+    /// `func_actor_401300_80139520` enters its state.
+    /* 0xC48 */ MATRIX  field_C48;
+    /* 0xC68 */ MATRIX  field_C68;
+    /* 0xC88 */ s16     field_C88;
+    /* 0xC8A */ s16     field_C8A;
+    /* 0xC8C */ SVECTOR field_C8C;
+    /* 0xC94 */ s16     field_C94;
+    /* 0xC96 */ s16     field_C96;
+    /* 0xC98 */ s16     field_C98;
+    /* 0xC9A */ byte    pad_C9A[2];
+    /* 0xC9C */ s16     field_C9C;
+    /* 0xC9E */ s16     field_C9E;
+    /* 0xCA0 */ u16     field_CA0;
+    /* 0xCA2 */ s16     field_CA2;
+    /* 0xCA4 */ s16     field_CA4;
+    /* 0xCA6 */ byte    pad_CA6[2];
+    /// Copy of the first three bytes of the last event
+    /// `func_actor_401300_80132554` handled.
+    /* 0xCA8 */ u8                field_CA8[3];
+    /* 0xCAB */ byte              pad_CAB;
+    /* 0xCAC */ Actor401300Msg3FF field_CAC;
+    /* 0xCC0 */ s32               field_CC0[3];
+    /* 0xCCC */ byte              pad_CCC[4];
+    /* 0xCD0 */ s16               field_CD0;
+    /* 0xCD2 */ u8                field_CD2;
+    /* 0xCD3 */ byte              pad_CD3;
+    /// Player position and facing sent with message 0x3E9 by
+    /// `func_actor_401300_80138800`.
+    /* 0xCD4 */ VECTOR  field_CD4;
+    /* 0xCE4 */ SVECTOR field_CE4;
+    /// Payload `func_actor_401300_80138160` sends with message 0x3F8.
+    /* 0xCEC */ byte field_CEC[0x14];
+    /* 0xD00 */ s32  field_D00;
+    /// Root position saved by `func_actor_401300_8013F628` on entry.
+    /* 0xD04 */ s16  field_D04;
+    /* 0xD06 */ s16  field_D06;
+    /* 0xD08 */ s16  field_D08;
+    /* 0xD0A */ byte pad_D0A[2];
+    /// The two helper tasks killed before the nodes are unlinked; the same
+    /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
+    /* 0xD0C */ Task*   field_D0C;
+    /* 0xD10 */ Task*   field_D10;
+    /* 0xD14 */ SVECTOR home;
+    /* 0xD1C */ s16     field_D1C;
+    /* 0xD1E */ s16     field_D1E;
+    /* 0xD20 */ s16     field_D20;
+    /* 0xD22 */ s16     field_D22;
+    /* 0xD24 */ byte    pad_D24[4];
+    /// Ring of the last seven view-space positions of coordinate 2, written by
+    /// `func_actor_401300_801405DC`; `field_D78` is the write cursor.
+    /* 0xD28 */ SVECTOR field_D28[7];
+    /* 0xD60 */ byte    pad_D60[0x18];
+    /* 0xD78 */ s16     field_D78;
+    /* 0xD7A */ byte    pad_D7A[2];
+} Actor401300Work;
+STATIC_ASSERT_SIZEOF(Actor401300Work, 0xD7C);
+
+/// The actor's state handlers, indexed by `Actor401300Work::field_0`.
+/// `func_actor_401300_801405DC` copies the table to its frame before
+/// dispatching.
+typedef struct Actor401300StateTable {
+    void (*fn[41])(struct Actor401300*);
+} Actor401300StateTable;
+STATIC_ASSERT_SIZEOF(Actor401300StateTable, 0xA4);
+
+/// 0x18-byte scratch `func_actor_401300_801405DC` takes from
+/// `G_SCRATCH_HEAD`; `pos` receives a model coordinate in view space.
+typedef struct Actor401300ViewScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR pos;
+} Actor401300ViewScratch;
+STATIC_ASSERT_SIZEOF(Actor401300ViewScratch, 0x18);
+
+/// Animation view of the same work block, as `func_actor_401300_80133324`
+/// reads it: the `Actor01900AnimWork` layout shifted 4 bytes later, like the
+/// rest of this overlay's animation fields.
+typedef struct Actor401300AnimWork {
+    /* 0x000 */ byte       pad_0[0x20];
+    /* 0x020 */ GpAnimCtx  anim;
+    /* 0x034 */ GpAnimSlot slots[19];
+    /* 0x32C */ byte       pad_32C[0x130];
+    /* 0x45C */ GpAnimCtx  blendAnim;
+    /* 0x470 */ GpAnimSlot blendSlots[19];
+    /* 0x768 */ byte       pad_768[0x138];
+    /* 0x8A0 */ s16        field_8A0;
+    /* 0x8A2 */ s16        field_8A2;
+    /* 0x8A4 */ byte       pad_8A4[2];
+    /* 0x8A6 */ s16        field_8A6;
+    /* 0x8A8 */ byte       pad_8A8[4];
+    /* 0x8AC */ s16        field_8AC;
+    /* 0x8AE */ s16        field_8AE;
+    /* 0x8B0 */ s16        field_8B0;
+} Actor401300AnimWork;
+
+/// Per-task actor context: `field_1C` is the work block (`Task::work`) and
+/// `field_2C` is the actor's `TmdObject`. Same shape as `Actor01900`.
+typedef struct Actor401300 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor401300Work* field_1C;
+    /* 0x20 */ GpEnemy*         field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ TmdObject*       field_2C;
+    /* 0x30 */ byte             pad_30[6];
+    /// High halfword of `Task::spawnArg1`; `func_actor_401300_8014192C` only
+    /// stamps the -999 sentinel when it is 2.
+    /* 0x36 */ s16 field_36;
+} Actor401300;
+
+/// Payload of the message `func_actor_401300_80141494` handles; `field_4`
+/// selects the animation id written to `Actor401300Work::field_8A2`. Same
+/// shape as `Actor01900Msg7D3`.
+typedef struct Actor401300Msg {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ u32 field_4;
+} Actor401300Msg;
+
+/// Event record `func_actor_401300_80132554` dispatches on: `w[0]` is the
+/// event kind (0x301, 0xB05, 0x1D05) and `w[1]` its sub-code, and the first
+/// three bytes are also copied raw into `Actor401300Work::field_CA8`.
+typedef union Actor401300Event {
+    u8  b[3];
+    u16 w[2];
+} Actor401300Event;
+
+/// Height-clamp row `func_actor_401300_80132BE4` scans: `field_0` / `field_2`
+/// are matched against `GpAreaKey::stage` / `area`, and when a row
+/// matches the coordinate's Y is clamped to [`lo`, `hi`]. Same shape as
+/// `Actor01900HeightClamp`.
+typedef struct Actor401300HeightClamp {
+    /* 0x0 */ s16  field_0;
+    /* 0x2 */ s16  field_2;
+    /* 0x4 */ s16  lo;
+    /* 0x6 */ s16  hi;
+    /* 0x8 */ byte pad_8[8];
+} Actor401300HeightClamp;
+STATIC_ASSERT_SIZEOF(Actor401300HeightClamp, 0x10);
+
+extern Actor401300HeightClamp D_actor_401300_801589C8[];
+
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_actor_401300_80132C78`.
+/// Same shape as `Actor01900Delta`: the `GpDeltaScratch` filled by
+/// `func_800E0C10`, its integer `step` (scaled to length 0xAF when longer),
+/// the XZ length `len`, and `moved`, the return value.
+typedef struct Actor401300Delta {
+    /* 0x00 */ GpDeltaScratch delta;
+    /* 0x10 */ SVECTOR        step;
+    /* 0x18 */ s32            len;
+    /* 0x1C */ s32            moved;
+} Actor401300Delta;
+STATIC_ASSERT_SIZEOF(Actor401300Delta, 0x20);
+
+/// Scratch block `func_actor_401300_801323B0` takes from `G_SCRATCH_HEAD`: the
+/// `GpDeltaScratch` filled by `func_800E0C10`, and `moved`, the value it
+/// returns.
+typedef struct Actor401300DeltaFlag {
+    GpDeltaScratch delta;
+    s32            moved;
+} Actor401300DeltaFlag;
+STATIC_ASSERT_SIZEOF(Actor401300DeltaFlag, 0x14);
+
+/// Scratch block `func_actor_401300_80132FF4` takes from `G_SCRATCH_HEAD`:
+/// `local` holds a root translation raised by 1000, which is rotated into `out`
+/// for the player and into `from` for this actor; `hit` is the result of
+/// `func_800E0308` on the two.
+typedef struct Actor401300SightScratch {
+    SVECTOR out;
+    SVECTOR from;
+    SVECTOR local;
+    s32     hit;
+} Actor401300SightScratch;
+STATIC_ASSERT_SIZEOF(Actor401300SightScratch, 0x1C);
+
+/// Halfword table in the overlay's data; element 0 is the value the 0xB05/0xC
+/// event writes into `GpEnemy::hp`. Declared as an array: a scalar lets
+/// the scheduler hoist its load above the preceding store.
+extern u16 D_actor_401300_80141FA4[];
+
+/// Per-animation reset argument for `func_800B4114`, indexed by the previous
+/// and the new animation id (`field_8A0`, `field_8A2`).
+extern s8 D_actor_401300_8015804C[][45];
+
+/// Two rest/target rotation pairs `func_actor_401300_80133834` blends by
+/// `0x200 - t` (in 1/512ths) into coord 7 and coord 8.
+extern SVECTOR D_actor_401300_801589F8[2];
+extern SVECTOR D_actor_401300_80158A08[2];
+
+/// Data `func_actor_401300_80134454` wires up at init: the enemy parameter
+/// record (`GpEnemy::param`), the three per-variant `field_CA0..CA4`
+/// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
+/// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
+extern GpPairSrcE D_actor_401300_80141FA0;
+extern SVECTOR    D_actor_401300_80141FB0[3];
+extern s32        D_actor_401300_80158838;
+/// Handler table `func_actor_401300_80138160` points `field_CAC.field_0` at.
+extern s32               D_actor_401300_801588F0;
+extern Actor401300Msg3FF D_actor_401300_80158914;
+extern s32               D_actor_401300_80158988;
+
+/// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
+/// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
+/// `pad` is the model coordinate index passed to `func_800FDB18`.
+extern SVECTOR D_actor_401300_80158928[12];
+
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_801397F8` borrows for
+/// its player-in-radius test: the X/Z offset to the camera target and the
+/// radius, each squared in place before `dx + dz < r`. Same shape as
+/// `Actor01900RangeScratch`.
+typedef struct Actor401300RangeScratch {
+    /* 0x0 */ s32 dx;
+    /* 0x4 */ s32 dz;
+    /* 0x8 */ s32 r;
+} Actor401300RangeScratch;
+
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013AAE8` takes: the
+/// offset from the actor to the player, then the clamped turn applied to the
+/// root coordinate. Same shape as `Actor01900AimScratch`.
+typedef struct Actor401300AimScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     angle;
+    /* 0xE */ s16     pad_E;
+} Actor401300AimScratch;
+
+/// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_401300_801376E4` takes: the
+/// offset from the actor to the player, the wrapped turn toward the player
+/// and the facing yaw. Same shape as `Actor01900ChaseScratch`.
+typedef struct Actor401300ChaseScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     pad_8;
+    /* 0xA */ s16     pad_A;
+    /* 0xC */ s16     turn;
+    /* 0xE */ s16     angle;
+} Actor401300ChaseScratch;
+
+/// Offset to the player, distance and turn for the pursuit state.
+typedef struct Actor401300PursuitScratch {
+    /* 0x00 */ s32     dx;
+    /* 0x04 */ s32     dy;
+    /* 0x08 */ s32     dz;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ s32     dist;
+    /* 0x14 */ SVECTOR delta;
+    /* 0x1C */ s32     pad_1C;
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     pad_22;
+} Actor401300PursuitScratch;
+STATIC_ASSERT_SIZEOF(Actor401300PursuitScratch, 0x24);
+
+/// 0x54-byte `G_SCRATCH_HEAD` block `func_actor_401300_80134F90` takes while
+/// applying a hit: the model matrix rotated to the hit yaw, the offset to the
+/// player, the knockback direction and hit position, the hit record id and the
+/// derived damage, distance, yaw, critical flag and effect. Same shape as
+/// `Actor01900HitScratch`.
+typedef struct Actor401300HitScratch {
+    /* 0x00 */ MATRIX  m;
+    /* 0x20 */ s32     dx;
+    /* 0x24 */ s32     dy;
+    /* 0x28 */ s32     dz;
+    /* 0x2C */ s32     pad_2C;
+    /* 0x30 */ SVECTOR dir;
+    /* 0x38 */ SVECTOR hitPos;
+    /* 0x40 */ s32     id;
+    /* 0x44 */ s32     damage;
+    /* 0x48 */ s32     dist;
+    /* 0x4C */ s16     yaw;
+    /* 0x4E */ s16     crit;
+    /* 0x50 */ s16     effect;
+    /* 0x52 */ s16     pad_52;
+} Actor401300HitScratch;
+STATIC_ASSERT_SIZEOF(Actor401300HitScratch, 0x54);
+STATIC_ASSERT_SIZEOF(Actor401300AimScratch, 0x10);
+
+/// 0xC-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013A208` takes: the
+/// offset from the actor to the player, then the clamped turn. Same shape as
+/// `Actor01900TurnScratch`.
+typedef struct Actor401300TurnScratch {
+    /* 0x0 */ SVECTOR delta;
+    /* 0x8 */ s16     angle;
+    /* 0xA */ s16     pad_A;
+} Actor401300TurnScratch;
+STATIC_ASSERT_SIZEOF(Actor401300TurnScratch, 0xC);
+
+/// 0x34-byte `G_SCRATCH_HEAD` block `func_actor_401300_80132910` takes to push
+/// the root coordinate away from kind 0x10000 / 0x30000 records: `pos` is the
+/// world translation, `offset` the push (clamped to length 0x140), `i` the
+/// record cursor and `hit` the return value. Same shape as `Actor01900PushScratch`.
+typedef struct Actor401300PushScratch {
+    /* 0x00 */ SVECTOR offset;
+    /* 0x08 */ SVECTOR pos;
+    /* 0x10 */ s32     kind;
+    /* 0x14 */ s32     len;
+    /* 0x18 */ s16     i;
+    /* 0x1A */ s16     hit;
+    /* 0x1C */ s16     dist[12];
+} Actor401300PushScratch;
+STATIC_ASSERT_SIZEOF(Actor401300PushScratch, 0x34);
+
+/// 0x34-byte `G_SCRATCH_HEAD` block `Actor401300_RescaleYaw` builds its scaled
+/// Y rotation in. Same shape as `Actor01900RotScratch`.
+typedef struct Actor401300RotScratch {
+    /* 0x00 */ MATRIX m;
+    /* 0x20 */ VECTOR scale;
+    /* 0x30 */ s16    angle;
+    /* 0x32 */ s16    pad_32;
+} Actor401300RotScratch;
+STATIC_ASSERT_SIZEOF(Actor401300RotScratch, 0x34);
+
+/// 0x24-byte `G_SCRATCH_HEAD` block `func_actor_401300_8013E930` takes: the
+/// offset to the player (full width for the distance, halfwords for the yaw),
+/// the clamped lunge range and the wrapped turn.
+typedef struct Actor401300LungeScratch {
+    /* 0x00 */ VECTOR  dist;
+    /* 0x10 */ SVECTOR delta;
+    /* 0x18 */ s32     range;
+    /* 0x1C */ s32     pad_1C;
+    /* 0x20 */ s16     angle;
+    /* 0x22 */ s16     pad_22;
+} Actor401300LungeScratch;
+STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
+
+/// 0x18-byte `G_SCRATCH_HEAD` block `Actor401300_ScaleMatrix` scales a matrix
+/// and its translation in. Same shape as `Actor00100ScaleScratch`.
+typedef struct Actor401300ScaleScratch {
+    /* 0x00 */ VECTOR  scale;
+    /* 0x10 */ SVECTOR trans;
+} Actor401300ScaleScratch;
+STATIC_ASSERT_SIZEOF(Actor401300ScaleScratch, 0x18);
+
+/// Word-wise view of a `MATRIX` used to splat an identity rotation: five
+/// aligned stores instead of nine halfword ones, each word holding two adjacent
+/// `m[][]` entries. Same shape as `Actor206100MatrixWords`.
+typedef struct Actor401300MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor401300MatWords;
+
+extern MATRIX* D_80073B8C;
+
+/// Movement freeze flag: `Actor401300_MoveForward` skips its step when it is 1.
+extern u8  D_80072729;
+extern u32 Gp_LcgState;
+
+/// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
+/// each spawn in `func_actor_401300_8013B6E8`.
+extern void* D_80114B78[1];
+
+/// Overlay effect model data `func_actor_401300_8013B6E8` points
+/// `D_80114B78` at before spawning.
+extern char D_actor_401300_80147894;
+extern char D_actor_401300_80148808;
+extern char D_actor_401300_80148A14;
+extern u8   D_801153F2[2];
+
+/// Overlay-data word `func_actor_401300_801397F8` points
+/// `D_actor_401300_80158878` at on entering its state.
+extern s32  D_actor_401300_80152BB8;
+extern s32* D_actor_401300_80158878;
+
+void func_actor_401300_80141758(Task* task);
+void func_actor_401300_8014192C(Actor401300* arg0);
+void func_actor_401300_801419B8(Actor401300* arg0);
+void func_actor_401300_80141A60(Actor401300* arg0);
+void func_actor_401300_80141B0C(Actor401300* arg0);
+void func_actor_401300_80141BC8(Actor401300* arg0);
+void func_actor_401300_80141C80(void);
+void func_actor_401300_80141C88(Actor401300* arg0);
+void func_actor_401300_80141D50(Actor401300* arg0);
+void func_actor_401300_80141DF4(Actor401300* arg0);
+void func_actor_401300_80141EF8(Task* task);
+
+/// Walks `p` up its parent chain to `gGfxViewCoord`, transforming `out` by each
+/// coordinate; `out` is left unchanged if the chain ends before the view.
+static __inline__ void Actor401300_TransformToView(GsCOORDINATE2* p, SVECTOR* out)
+{
+    SVECTOR        sv;
+    VECTOR         vec;
+    s32            flag;
+    SVECTOR*       svp   = &sv;
+    GsCOORDINATE2* view  = &gGfxViewCoord;
+    VECTOR*        vecp  = &vec;
+    s32*           flagp = &flag;
+    sv.vx                = out->vx;
+    sv.vy                = out->vy;
+    sv.vz                = out->vz;
+loop:
+    if (p->sub != NULL) {
+        if (p != view) {
+            gte_SetTransMatrix(&p->coord);
+            gte_SetRotMatrix(&p->coord);
+            gte_ldv0(svp);
+            gte_rtv0tr();
+            gte_stlvnl(vecp);
+            gte_stflg(flagp);
+            sv.vx = vec.vx;
+            sv.vy = vec.vy;
+            sv.vz = vec.vz;
+            p     = p->sub;
+            goto loop;
+        }
+        out->vx = sv.vx;
+        out->vy = sv.vy;
+        out->vz = sv.vz;
+    }
+}
 
 extern u8 D_801153F4;
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
@@ -24,6 +525,111 @@ void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern SVECTOR D_actor_401300_80158A24;
+
+void func_8004BFF8(s16 angle, MATRIX* matrix);
+
+/// Builds `joint`'s absolute rotation in `out`: its own rotation, then each
+/// ancestor pre-multiplied in turn (renormalised after every step) up to but
+/// not including `stop`. Returns whether the walk reached `stop` rather than
+/// the end of the chain.
+static __inline__ s32 Actor401300_AccumulateRotation(GsCOORDINATE2* joint, MATRIX* out, GsCOORDINATE2* stop)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = joint->sub;
+    *out  = joint->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == stop) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(out);
+        MatrixNormal(out, &matrix);
+        *out  = matrix;
+        coord = coord->sub;
+    }
+}
+
+/// Turns the world-space rotation in `rotation` back into one relative to
+/// `joint`'s parent: accumulates the chain above the parent up to the view
+/// coordinate, transposes it and pre-multiplies. Nothing is done when the
+/// parent is the view coordinate itself. Returns `joint`; the caller stores
+/// through the returned pointer, which the matched code needs.
+static __inline__ GsCOORDINATE2* Actor401300_LocalizeRotation(GsCOORDINATE2* joint, MATRIX* rotation)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+
+    coord = joint->sub;
+    if (coord != &gGfxViewCoord) {
+        view   = &gGfxViewCoord;
+        matrix = coord->coord;
+        while (1) {
+            coord = coord->sub;
+            if (coord == NULL) {
+                break;
+            }
+            if (coord == view) {
+                __asm__ volatile(
+                    "lhu $12, 0(%0);"
+                    "lhu $13, 6(%0);"
+                    "lhu $14, 12(%0);"
+                    "sh $12, 0(%1);"
+                    "sh $13, 2(%1);"
+                    "sh $14, 4(%1);"
+                    "lhu $12, 2(%0);"
+                    "lhu $13, 8(%0);"
+                    "lhu $14, 14(%0);"
+                    "sh $12, 6(%1);"
+                    "sh $13, 8(%1);"
+                    "sh $14, 10(%1);"
+                    "lhu $12, 4(%0);"
+                    "lhu $13, 10(%0);"
+                    "lhu $14, 16(%0);"
+                    "sh $12, 12(%1);"
+                    "sh $13, 14(%1);"
+                    "sh $14, 16(%1);"
+                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+                gte_SetRotMatrix(&transposed);
+                MulRotMatrix(rotation);
+                break;
+            }
+            gte_SetRotMatrix(&coord->coord);
+            MulRotMatrix(&matrix);
+            MatrixNormal(&matrix, &normal);
+            matrix = normal;
+        }
+    }
+    return joint;
+}
+
+/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+/// rotation in a matrix carved off the scratchpad head, applies the turn,
+/// converts the result back into the parent's frame, writes the 3x3 into the
+/// joint and refreshes it. The actor turns two joints of its chain with it, by
+/// two thirds and one half of the same clamped angle.
+void func_actor_401300_801320A4(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    Actor401300_AccumulateRotation(coord, rotation, &gGfxViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = Actor401300_LocalizeRotation(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 /// Moves `coord` in X and Z by the delta `func_800E0C10` resolves from the
 /// first `count` records of `recs`, and keeps the integer part of the full
@@ -4842,4 +5448,405 @@ void func_actor_401300_8014148C(void)
 {
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_401300/actor_401300", D_actor_401300_8013201C);
+/// The task's handlers, indexed by `Task::state` in
+/// `func_actor_401300_80141F2C`: the first allocates and sets up the work
+/// block, the second runs the per-state logic every frame, and the third tears
+/// the enemy down.
+const GpEnemyTaskFuncTable3 D_actor_401300_8013201C = { {
+    (GpEnemyTaskFunc)func_actor_401300_80134454,
+    (GpEnemyTaskFunc)func_actor_401300_801405DC,
+    Gp_DestroyEnemy,
+} };
+
+s32 func_actor_401300_80141494(Actor401300* arg0, s32 arg1, Actor401300Msg* arg2)
+{
+    Actor401300Work* work = arg0->field_1C;
+
+    switch (arg2->field_4) {
+        case 0:
+            work->field_8A2 = 0x22;
+            break;
+        case 1:
+            work->field_8A2 = 0x23;
+            break;
+        case 2:
+            work->field_8A2 = 0x24;
+            break;
+        case 3:
+            work->field_8A2 = 0x25;
+            break;
+        case 4:
+            work->field_8A2 = 0x27;
+            break;
+    }
+    work->field_0 = 0x11;
+    work->field_2 = -1;
+    return 0;
+}
+
+/// Applies one of four model settings chosen by `arg2`: 0 sets the model's
+/// flags to 0x80 and reallocates its buffers, 1 clears the flags and
+/// reallocates them, 2 and 3 set bit 2 (3 clearing the rest first). Case 1
+/// moves the actor to state 0x18, the others to state 0. Always returns 0.
+s32 func_actor_401300_80141504(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    obj  = (TmdObject*)task->extra;
+    work = (Actor401300Work*)task->work;
+    switch (arg2) {
+        case 0:
+            obj->flags = 0x80;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0;
+            break;
+        case 1:
+            obj->flags = 0;
+            Tmd_AllocBuffers(obj);
+            work->field_0 = 0x18;
+            break;
+        case 2:
+            obj->flags   |= 4;
+            work->field_0 = 0;
+            break;
+        case 3:
+            obj->flags    = 0;
+            work->field_0 = 0;
+            obj->flags   |= 4;
+            break;
+    }
+    return 0;
+}
+
+/// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
+/// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
+s32 func_actor_401300_801415C4(Task* task)
+{
+    s32 ret;
+    u16 flags;
+    s32 mask2;
+    s32 mask80;
+
+    if (((GpEnemy*)task->spawnArg2)->hp > 0) {
+        return 1;
+    }
+
+    flags   = ((TmdObject*)task->extra)->flags;
+    mask80  = flags;
+    mask80 &= 0x80;
+    mask2   = flags & 2;
+    if (mask80 != 0) {
+        return 0;
+    }
+
+    ret = 0;
+    if (mask2 == 0) {
+        ret = 1;
+        SOFT_BARRIER();
+    }
+    return ret;
+}
+
+/// Places the model's root coordinate from `placement`: sets its translation,
+/// applies the X, Y and Z rotations in turn, and caches the resulting heading
+/// (`ratan2` of the matrix Z axis) in `Actor401300Work::yaw`. Always returns 1.
+s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorShared80169f74Placement* placement)
+{
+    GsCOORDINATE2*   coord;
+    s32              mx;
+    s32              mz;
+    Actor401300Work* work;
+
+    work                                          = (Actor401300Work*)task->work;
+    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
+    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
+    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
+    ((TmdObject*)task->extra)->coords->flg = 0;
+    coord                                  = ((TmdObject*)task->extra)->coords;
+    mx                                     = coord->coord.m[2][0];
+    mz                                     = coord->coord.m[2][2];
+    work->yaw                              = ratan2(-mx, mz);
+    return 1;
+}
+
+/// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
+/// gone. Any other state is left alone.
+s32 func_actor_401300_80141714(Task* task)
+{
+    Actor401300Work* work = (Actor401300Work*)task->work;
+    PlayerStatus*    cfg  = &Player_Status;
+
+    if (work->field_0 == 0xD) {
+        if (cfg->hp > 0) {
+            work->field_0 = 0xE;
+        } else {
+            work->field_0 = 0x16;
+        }
+    }
+    return 1;
+}
+
+void func_actor_401300_80141758(Task* task)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = (Actor401300Work*)task->work;
+    enemy = (GpEnemy*)task->spawnArg2;
+    if (work != NULL) {
+        if (work->field_D0C != NULL) {
+            taskKill(work->field_D0C);
+        }
+        if (work->field_D10 != NULL) {
+            taskKill(work->field_D10);
+        }
+        Gp_UnlinkObj(&work->field_BF0);
+        Gp_UnlinkObj(&work->field_970);
+        Gp_UnlinkObj(&work->field_AB0);
+        enemy->recs = 0;
+    }
+    Gp_DestroyEnemy(enemy, task);
+}
+
+s32 func_actor_401300_801417F0(Actor401300* arg0)
+{
+    SVECTOR out;
+
+    memset(&out, 0, 8);
+    Actor401300_TransformToView(&arg0->field_2C->coords[1], &out);
+    return (u16)(out.vz + 0x12B) < 0xA27;
+}
+
+void func_actor_401300_8014192C(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+    TmdObject*       obj;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        obj                   = arg0->field_2C;
+        enemy->node.flags     = 1;
+        obj->flags            = (u16)(obj->flags | 0x80);
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        return;
+    }
+    if (enemy->hp != -0x3E7 && work->field_C8A == 0 && arg0->field_36 == 2) {
+        enemy->hp = -0x3E7;
+    }
+}
+
+void func_actor_401300_801419B8(Actor401300* arg0)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_89C       = 2;
+        work->field_8A6       = 0x10;
+        work->field_8A2       = 2;
+        work->field_89E       = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        func_actor_401300_80133A3C(arg0);
+    } else {
+        arg0->field_2C->coords->flg = 0;
+        func_actor_401300_80133A3C(arg0);
+    }
+}
+
+void func_actor_401300_80141A60(Actor401300* arg0)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_89C       = 2;
+        work->field_8A6       = 0x10;
+        work->field_8A2       = 3;
+        work->field_89E       = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        func_actor_401300_80133A3C(arg0);
+    } else {
+        arg0->field_2C->coords->flg = 0;
+        func_actor_401300_80133A3C(arg0);
+    }
+}
+
+void func_actor_401300_80141B0C(Actor401300* arg0)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_89C       = 2;
+        work->field_8A6       = 0x10;
+        work->field_8A2       = 0xB;
+        work->field_8B6       = 0x20;
+        work->field_8BA       = 8;
+        work->field_89E       = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+        func_actor_401300_80133A3C(arg0);
+    } else {
+        arg0->field_2C->coords->flg = 0;
+        func_actor_401300_80133A3C(arg0);
+    }
+}
+
+void func_actor_401300_80141BC8(Actor401300* arg0)
+{
+    TmdObject*       obj;
+    Actor401300Work* work;
+
+    work = arg0->field_1C;
+    if (work->field_4 != 0) {
+        obj                        = arg0->field_2C;
+        arg0->field_20->node.flags = 0;
+        obj->flags                 = 0;
+        Tmd_AllocBuffers(obj);
+        work->field_89C       = 2;
+        work->field_8A6       = 0x12;
+        work->field_8A2       = 0xD;
+        work->field_89E       = 0;
+        work->field_BF0.flags = (u16)(work->field_BF0.flags & 0x7FFF);
+        work->field_AB0.flags = (u16)(work->field_AB0.flags & 0xBFFF);
+    }
+    arg0->field_2C->coords->flg = 0;
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6C & 0x100) {
+        work->field_0 = 7;
+    }
+}
+
+void func_actor_401300_80141C80(void)
+{
+}
+
+void func_actor_401300_80141C88(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->flags  = 0;
+        work->field_970.radius = 0x280;
+        work->field_BF0.flags &= 0x7FFF;
+        work->field_AB0.flags |= 0x4000;
+        enemy->node.flags      = 0;
+        work->field_89C        = 2;
+        work->field_8A2        = 8;
+        work->field_8B4        = 0;
+        work->field_8B2        = 0;
+        work->field_8A6        = work->field_8A8;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6C & 0x100) {
+        if ((*(s32*)&gGameSession->at4.loc.view & 0xFFFF0000) == 0x051D0000) {
+            work->field_0 = 8;
+        } else {
+            work->field_0 = 7;
+        }
+    }
+}
+
+void func_actor_401300_80141D50(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        arg0->field_2C->flags  = 0;
+        work->field_970.radius = 0x280;
+        work->field_BF0.flags &= 0x7FFF;
+        work->field_AB0.flags |= 0x4000;
+        enemy->node.flags      = 0;
+        work->field_89C        = 2;
+        work->field_8A2        = 0x16;
+        work->field_8B4        = 0;
+        work->field_8B2        = 0;
+        work->field_8A6        = work->field_8A8;
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (work->field_6C & 0x100) {
+        work->field_0 = 7;
+    }
+}
+
+void func_actor_401300_80141DF4(Actor401300* arg0)
+{
+    Actor401300Work* work;
+    GpEnemy*         enemy;
+
+    work  = arg0->field_1C;
+    enemy = arg0->field_20;
+    if (work->field_4 != 0) {
+        work->field_8B6 = 0x20;
+        work->field_8BA = 8;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        work->field_6   = work->field_CA0 + ((Gp_LcgState >> 16) & 0xF);
+    }
+    func_actor_401300_80133A3C(arg0);
+    if (--work->field_6 < 0) {
+        switch (work->field_8A2) {
+            case 11:
+            case 23:
+                work->field_0 = 0xF;
+                break;
+            case 12:
+            case 24:
+            case 34:
+                work->field_0 = 0x10;
+                break;
+        }
+    }
+    if (enemy->hp <= 0) {
+        work->field_0 = 0x15;
+    }
+}
+
+void func_actor_401300_80141EF8(Task* task)
+{
+    Actor401300Work* work  = (Actor401300Work*)task->work;
+    GpEnemy*         enemy = task->spawnArg2;
+
+    if (enemy->hp != -0x3E7 && work->field_C8A == 0) {
+        enemy->hp = -0x3E7;
+    }
+}
+
+/// Runs the actor's handler for the task's current state, copying the
+/// three-entry table onto the stack first.
+void func_actor_401300_80141F2C(Task* task)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_actor_401300_8013201C;
+    sp.funcs[task->state](task->spawnArg2, task);
+}
