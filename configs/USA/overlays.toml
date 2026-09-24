@@ -1240,13 +1240,13 @@ objects = [
   { kind = "packageId" },
   { kind = "rodata", at = "0x4" },
   { unit = "dryfield_junk_yard/dryfield_junk_yard", rodata = "0x14", text = "0x34" },
-  { lib = true, unit = "rooms_shared_8017d994", text = "0x3D4" },
-  { lib = true, unit = "room_util06", text = "0x484" },
+  { unit = "dryfield_junk_yard/dryfield_junk_yard_4", text = "0x3D4" },
+  { unit = "dryfield_junk_yard/dryfield_junk_yard_5", text = "0x484" },
   { unit = "dryfield_junk_yard/dryfield_junk_yard_2", text = "0x48C" },
-  { lib = true, unit = "room_util35", text = "0x694" },
+  { unit = "dryfield_junk_yard/dryfield_junk_yard_6", text = "0x694" },
   { unit = "dryfield_junk_yard/dryfield_junk_yard_3", text = "0x6A0" },
-  { lib = true, unit = "rooms_shared_8017d878", text = "0x6F4" },
-  { lib = true, unit = "room_effect01", text = "0x74C" },
+  { unit = "dryfield_junk_yard/dryfield_junk_yard_7", text = "0x6F4" },
+  { unit = "dryfield_junk_yard/dryfield_junk_yard_8", text = "0x74C" },
   { kind = "data", at = "0x760" },
 ]
 

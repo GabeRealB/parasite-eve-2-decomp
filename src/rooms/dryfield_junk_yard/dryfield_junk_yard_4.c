@@ -4,7 +4,12 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 
-s32 RoomsShared8017d994(s32 arg0, s32 arg1, s32 arg2)
+/// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
+/// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8
+/// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
+/// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
+/// point's own CAP slot starts. Always returns 0.
+s32 func_dryfield_junk_yard_8017D994(s32 arg0, s32 arg1, s32 arg2)
 {
     switch (arg2) {
         case 6:
