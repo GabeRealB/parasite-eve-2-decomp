@@ -39,7 +39,7 @@ extern u8                 D_actor_402200_80154194[];
 
 void      func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void      Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void      func_actor_402200_80138208(GsCOORDINATE2* arg0, s32 arg1);
+void      ActorsShared8013820c(GsCOORDINATE2* arg0, s32 arg1);
 void      func_actor_402200_80134968(Actor402200* arg0);
 extern u8 D_801153F4;
 
@@ -193,7 +193,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Actor402200* arg1)
             }
             break;
         case 2:
-            func_actor_402200_80138208(&arg1->field_2C->field_8->field_F0, 0xC);
+            ActorsShared8013820c(&arg1->field_2C->field_8->field_F0, 0xC);
             func_actor_402200_80134968(arg1);
             func_8009EA50(work->field_6D8);
             work->field_6CE = 3;

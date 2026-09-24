@@ -18,4 +18,3 @@ RoomsShared80182078 = 0x80132E0C; // shared body, see src/lib/
 func_actor_401800_80132E0C = 0x80132E0C; // type:func absolute:True
 ActorsShared80132a84 = 0x801337EC; // shared body, see src/lib/
 ActorsShared80133eb8_BlendTick = 0x801337EC; // type:func absolute:True
-func_actor_401800_801337EC = 0x801337EC; // type:func absolute:True

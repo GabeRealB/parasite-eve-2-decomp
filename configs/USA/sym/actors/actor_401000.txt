@@ -12,4 +12,3 @@ ActorsShared80133eb8_Sound = 0x80132BB0; // type:func absolute:True
 ActorsShared80133eb8_Transitions = 0x8015465C; // absolute:True
 ActorsShared80132a84 = 0x80132A84; // shared body, see src/lib/
 ActorsShared80133eb8_BlendTick = 0x80132A84; // type:func absolute:True
-func_actor_401000_80132A84 = 0x80132A84; // type:func absolute:True

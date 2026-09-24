@@ -368,7 +368,7 @@ typedef struct Actor402200 {
     /* 0x30 */ s32 field_30;
 } Actor402200;
 
-/// 0x18-byte block `func_actor_402200_80138208` takes from `G_SCRATCH_HEAD`
+/// 0x18-byte block `ActorsShared8013820c` takes from `G_SCRATCH_HEAD`
 /// while projecting the actor's origin through its attach coordinate and
 /// working out the ordering-table depth. `vec` is the zeroed origin the GTE
 /// reads; the rest are the projection's results, and their order is the one

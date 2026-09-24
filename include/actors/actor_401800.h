@@ -304,7 +304,7 @@ STATIC_ASSERT_SIZEOF(Actor401800RangeScratch, 0xC);
 
 /// Animation view of the same task work block: the pose context at 0x1C and
 /// its slot array, then the blend context the actor keeps beside it. The
-/// arrays cover the slot indices `func_actor_401800_801337EC` walks, which is
+/// arrays cover the slot indices `ActorsShared80132a84` walks, which is
 /// the identical body of `Actor01900_Fn01950`; the offsets all match
 /// `Actor01900AnimWork`, and the tail overlays the work block's
 /// `field_8A2` / `field_8A4` (the state the slot writes step down by 3).
