@@ -63,9 +63,7 @@ void Actor05500_Fn03C54(Actor105500* actor)
 /// Folds a uniform 1/16 scale into the model's third coordinate node, through a
 /// 0x30-byte block borrowed from the scratchpad and released again: an identity
 /// rotation is splatted word-wise, `ScaleMatrix` shrinks its diagonal to 0x100,
-/// and `MulMatrix` multiplies the result into `field_8[2].coord`. This is the
-/// body shared as `ActorsShared80135b58`, which this whole-overlay unit is too
-/// coarse to link against.
+/// and `MulMatrix` multiplies the result into `field_8[2].coord`.
 void Actor05500_Fn03D40(Actor105500* actor)
 {
     void**                      scratch;
@@ -102,18 +100,18 @@ void Actor05500_Fn03DD8(Actor105500* arg0)
 
 void Actor05500_Fn03E34(GpEnemy* enemy, Task* task)
 {
-    Task*                           parent;
-    TmdObject*                      parentObj;
-    GsCOORDINATE2*                  coord;
-    ActorsShared80135c4cParentWork* parentWork;
-    GsCOORDINATE2*                  parentCoord;
-    ActorsShared80135c4cObjWork*    work;
-    u16                             pair;
+    Task*                        parent;
+    TmdObject*                   parentObj;
+    GsCOORDINATE2*               coord;
+    Actor105500Work*             parentWork;
+    GsCOORDINATE2*               parentCoord;
+    ActorsShared80135c4cObjWork* work;
+    u16                          pair;
 
     parent      = task->parent;
     parentObj   = parent->extra;
     coord       = ((TmdObject*)task->extra)->coords;
-    parentWork  = (ActorsShared80135c4cParentWork*)parent->work;
+    parentWork  = (Actor105500Work*)parent->work;
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {

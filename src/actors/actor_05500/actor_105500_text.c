@@ -33,12 +33,12 @@ void Actor05500_Fn012E8(Actor105500* arg0);
 void Actor05500_Fn0143C(Actor105500* arg0);
 void Actor05500_Fn01A0C(Actor105500* arg0);
 void Actor05500_Fn01B30(Actor105500* arg0);
-void ActorsSharedFn020d4(Actor105500* arg0);
-void ActorsSharedFn02214(Actor105500* arg0);
+void Actor05500_Fn020D4(Actor105500* arg0);
+void Actor05500_Fn02214(Actor105500* arg0);
 void Actor05500_Fn02954(Actor105500* arg0, s32 arg1);
-void ActorsSharedFn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2);
+void Actor05500_Fn03674(Actor105500* arg0, Actor105500Obj2C* arg1, s32 arg2);
 void Actor05500_Fn0378C(Actor105500* arg0);
-void ActorsShared801355a4_Fn3567C(Actor105500* arg0);
+void Actor05500_Fn03864(Actor105500* arg0);
 void Actor05500_Fn03918(Actor105500* arg0);
 void Actor05500_Fn039AC(Actor105500* arg0);
 void Actor05500_Fn03A70(Actor105500* arg0);
@@ -516,7 +516,7 @@ void Actor05500_Fn00A94(Actor105500* arg0)
             }
             break;
     }
-    ActorsSharedFn02c94(actor);
+    Actor05500_Fn02C94(actor);
     *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(VECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
