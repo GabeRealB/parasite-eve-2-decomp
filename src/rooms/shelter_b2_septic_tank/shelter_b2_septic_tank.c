@@ -2,9 +2,12 @@
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -17,13 +20,17 @@ extern u8         D_shelter_b2_septic_tank_80183004;
 extern u8         D_shelter_b2_septic_tank_8018310C;
 extern u8         D_shelter_b2_septic_tank_80187045;
 extern u8         D_80071075;
+extern s16        D_80071076;
 extern s8         D_80114C12;
+extern u8         D_801153F4;
+extern u8         D_80115690;
 
 /// Parameters of the event this room's message handler starts, latched into
 /// the room's pending copy when it fires. `flagId` is the game-flag nibble that
 /// records the event as done: a set nibble stops it firing again, and starting
-/// it sets the nibble (0 means no flag). What reads the other fields back is
-/// still undecompiled.
+/// it sets the nibble (0 means no flag). The event task runs `field_0` as a CAP
+/// command and then plays `field_4` as a stage sound (0: none); a non-zero
+/// `field_A` makes it start helper task 0x31.
 typedef struct _ShelterB2SepticTankEvent {
     s32 field_0;
     s32 field_4;
@@ -33,6 +40,7 @@ typedef struct _ShelterB2SepticTankEvent {
 
 extern s32                       func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc                  D_shelter_b2_septic_tank_80182F40;
+extern GpStateBD8                D_shelter_b2_septic_tank_80187034;
 extern RoomEventMsg              D_shelter_b2_septic_tank_8018703C;
 extern u8                        D_shelter_b2_septic_tank_80187044;
 extern _ShelterB2SepticTankEvent D_shelter_b2_septic_tank_80187048;
@@ -59,7 +67,57 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, _Shelter
     return 1;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank", func_shelter_b2_septic_tank_8017D614);
+/// The room's event task, spawned by `_shelterB2SepticTankStartEvent` for the
+/// event it latched in `D_shelter_b2_septic_tank_80187048`. State 0 runs the
+/// event's CAP command; state 1 waits for it to finish and, when the event
+/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
+/// sound, if any, and wait for it to end. State 4 copies the latched message's
+/// destination into the save data and spawns the room-load task 0x11.
+void func_shelter_b2_septic_tank_8017D614(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0:
+            D_801153F4 = 1;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd(D_shelter_b2_septic_tank_80187048.field_0, 0);
+            D_80115690 = 1;
+            arg0->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                if (D_shelter_b2_septic_tank_80187048.field_A != 0) {
+                    D_shelter_b2_septic_tank_80187034.field_0 = 0;
+                    D_shelter_b2_septic_tank_80187034.field_1 = 0;
+                    D_shelter_b2_septic_tank_80187034.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, (s32)&D_shelter_b2_septic_tank_80187034);
+                }
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (D_shelter_b2_septic_tank_80187048.field_4 != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_septic_tank_80187048.field_4, 0, 0);
+                arg0->state++;
+            } else {
+                arg0->state = 4;
+            }
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_septic_tank_80187048.field_4)) == 0) {
+                arg0->state++;
+            }
+            break;
+        case 4:
+            SndEvt_EnqueueType7(0x80000000, 0);
+            D_80071076               = 1;
+            Mc_SaveData.at4.loc.area = D_shelter_b2_septic_tank_8018703C.msgId;
+            Mc_SaveData.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.field_2;
+            Mc_SaveData.at4.loc.room = D_shelter_b2_septic_tank_8018703C.field_3;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
+    }
+}
 
 s32 func_shelter_b2_septic_tank_8017D7AC(void)
 {

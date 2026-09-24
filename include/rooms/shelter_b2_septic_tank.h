@@ -4,6 +4,8 @@
 #include "common.h"
 #include <psyq/libgte.h>
 
+#include "main/task.h"
+
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
 /// is not otherwise read.
@@ -38,8 +40,10 @@ extern s16 D_shelter_b2_septic_tank_801832BC;
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b2_septic_tank_80187054;
 
-void func_shelter_b2_septic_tank_8017DB68(void);
-void func_shelter_b2_septic_tank_8017E2DC(void);
+void func_shelter_b2_septic_tank_8017DB68(Task* task);
+void func_shelter_b2_septic_tank_8017E2DC(Task* task);
+void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
+void func_shelter_b2_septic_tank_8017EAF8(Task* task);
 void func_shelter_b2_septic_tank_80180054(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b2_septic_tank_8018083C(SVECTOR* arg0, s32 arg1, s32 arg2);
 

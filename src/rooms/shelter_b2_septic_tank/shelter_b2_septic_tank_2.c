@@ -18,7 +18,7 @@ extern TaskDesc   D_shelter_b2_septic_tank_801832C0[];
 /// `func_shelter_b2_septic_tank_8017E2DC` draws its own list: two strips of 16
 /// wave-lifted semi-transparent Gouraud quads per surface at height
 /// `D_shelter_b2_septic_tank_801832BC`.
-void func_shelter_b2_septic_tank_8017DB68(void)
+void func_shelter_b2_septic_tank_8017DB68(Task* task)
 {
     SVECTOR                       v0, v1, v2, v3;
     s32                           sxy0, sxy1, sxy2, sxy3;
@@ -139,7 +139,7 @@ void func_shelter_b2_septic_tank_8017DB68(void)
 /// selecting blend mode 2. Quads the projection flags as invalid are skipped.
 /// The per-surface values live in a work block pushed on the scratchpad stack
 /// for the duration of the call.
-void func_shelter_b2_septic_tank_8017E2DC(void)
+void func_shelter_b2_septic_tank_8017E2DC(Task* task)
 {
     SVECTOR                       v0, v1, v2, v3;
     s32                           sxy0, sxy1, sxy2, sxy3;
@@ -250,4 +250,13 @@ void func_shelter_b2_septic_tank_8017E2DC(void)
     *(u8**)0x1F8003FC += 0xC;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank_2", func_shelter_b2_septic_tank_8017EA50);
+/// The water task: runs its current state - `func_shelter_b2_septic_tank_8017EAB8`
+/// once, then `func_shelter_b2_septic_tank_8017EAF8`, which draws the surfaces -
+/// and each tick publishes the room's water height to the session.
+void func_shelter_b2_septic_tank_8017EA50(Task* task)
+{
+    TaskFunc states[2] = { func_shelter_b2_septic_tank_8017EAB8, func_shelter_b2_septic_tank_8017EAF8 };
+
+    states[task->state](task);
+    gGameSession->waterY = D_shelter_b2_septic_tank_801832BC;
+}

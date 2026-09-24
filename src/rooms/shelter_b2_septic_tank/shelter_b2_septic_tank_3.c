@@ -3,10 +3,13 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/D4.h"
+#include "main/fs.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b2_septic_tank.h"
 
+extern s32     D_8007107C;
+extern s8      D_8007217B;
 extern s32     D_8011572C;
 extern s32     D_80115738;
 extern s32     D_8011574C;
@@ -19,7 +22,20 @@ extern SVECTOR D_shelter_b2_septic_tank_80183514[];
 extern SVECTOR D_shelter_b2_septic_tank_80183524[];
 extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_septic_tank/shelter_b2_septic_tank_3", func_shelter_b2_septic_tank_8017EAF8);
+/// The water task's drawing state: points the primitive cursor
+/// `D_shelter_b2_septic_tank_80187054` at the current buffer's 0xC000-byte
+/// slice of one of two primitive areas, chosen by `D_8007217B`, then draws both
+/// lists of water surfaces.
+void func_shelter_b2_septic_tank_8017EAF8(Task* task)
+{
+    if (D_8007217B == 0) {
+        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C374 + D_8007107C * 0xC000;
+    } else {
+        D_shelter_b2_septic_tank_80187054 = (u8*)D_8005C370 + D_8007107C * 0xC000;
+    }
+    func_shelter_b2_septic_tank_8017DB68(task);
+    func_shelter_b2_septic_tank_8017E2DC(task);
+}
 
 void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)
 {
