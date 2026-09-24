@@ -17,7 +17,18 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_she
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_801805A8);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory_2", func_shelter_b1_armory_80180698);
+s32 func_shelter_b1_armory_80180698(s32 arg0, s32 arg1, s32 arg2)
+{
+    switch (arg2) {
+        case 12:
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xF0) == 0 ? 0xC : 0x17, 1);
+            break;
+        case 10:
+            Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xF7) != 0 ? 0x10 : 0xA, 1);
+            break;
+    }
+    return 0;
+}
 
 /// Handler for slot-7 msg `0x13EF`: the directed action (`field_2` 1) that
 /// spawns the armory script.
