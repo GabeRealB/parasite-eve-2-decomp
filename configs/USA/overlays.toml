@@ -2101,7 +2101,8 @@ id = 383
 text = ["0x1A8", "0x48DC"]
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_armory/shelter_b1_armory", rodata = "0x4", text = "0xDF0" },
+  { unit = "shelter_b1_armory/shelter_b1_armory_5", rodata = "0x4", text = "0x1A8" },
+  { unit = "shelter_b1_armory/shelter_b1_armory", rodata = "0x110", text = "0xDF0" },
   { unit = "shelter_b1_armory/shelter_b1_armory_2", rodata = "0x154", text = "0x2C54" },
   { unit = "shelter_b1_armory/shelter_b1_armory_6", text = "0x818" },
   { unit = "shelter_b1_armory/shelter_b1_armory_7", text = "0x11BC" },
@@ -2111,7 +2112,6 @@ objects = [
   { unit = "shelter_b1_armory/shelter_b1_armory_3", text = "0x31C4" },
   { unit = "shelter_b1_armory/shelter_b1_armory_11", text = "0x31CC" },
   { unit = "shelter_b1_armory/shelter_b1_armory_4", rodata = "0x178", text = "0x3224" },
-  { unit = "shelter_b1_armory/shelter_b1_armory_5", text = "0x1A8" },
   { unit = "shelter_b1_armory/shelter_b1_armory_12", text = "0x3374" },
   { unit = "shelter_b1_armory/shelter_b1_armory_13", text = "0x3B5C" },
   { unit = "shelter_b1_armory/shelter_b1_armory_14", text = "0x3F00" },
