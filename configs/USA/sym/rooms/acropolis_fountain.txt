@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_fountain.
+D_acropolis_fountain_80183BB1 = 0x80183BB1; // type:u8 size:0x1

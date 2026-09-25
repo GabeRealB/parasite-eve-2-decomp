@@ -1,1 +1,4 @@
 // Overlay-local symbols for acropolis_promenade.
+D_acropolis_promenade_80181B14 = 0x80181B14; // type:SVECTOR size:0x60
+D_acropolis_promenade_80181B76 = 0x80181B76; // type:u16 size:0x2
+D_acropolis_promenade_80181B78 = 0x80181B78; // type:u16 size:0x18

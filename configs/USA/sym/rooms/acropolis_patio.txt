@@ -1,2 +1,4 @@
 // Overlay-local symbols for acropolis_patio.
 D_acropolis_patio_8017D5E8 = 0x8017D5E8; // force_not_migration:True grey levels plus a stray trailing byte no initialiser emits
+D_acropolis_patio_80187064 = 0x80187064; // type:u8 size:0x1
+D_acropolis_patio_80187065 = 0x80187065; // type:u8 size:0x1

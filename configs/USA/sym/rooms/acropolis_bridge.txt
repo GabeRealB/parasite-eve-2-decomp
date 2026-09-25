@@ -1,1 +1,3 @@
 // Overlay-local symbols for acropolis_bridge.
+D_acropolis_bridge_8018998C = 0x8018998C; // type:SVECTOR size:0x60
+D_acropolis_bridge_80189A1C = 0x80189A1C; // type:u16 size:0x18

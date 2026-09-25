@@ -59,12 +59,10 @@ extern u8 D_acropolis_bridge_801898CC[3][16];
 extern GpMsgEntry D_acropolis_bridge_801898FC[];
 extern SVECTOR    D_acropolis_bridge_8018991C[7];
 extern SVECTOR    D_acropolis_bridge_80189954[7];
-extern SVECTOR    D_acropolis_bridge_8018998C[11];
-extern SVECTOR    D_acropolis_bridge_801899E4;
+extern SVECTOR    D_acropolis_bridge_8018998C[12];
 extern u16        D_acropolis_bridge_801899EC[8];
 extern u16        D_acropolis_bridge_801899FC[16];
-extern u16        D_acropolis_bridge_80189A1C[11];
-extern u16        D_acropolis_bridge_80189A32;
+extern u16        D_acropolis_bridge_80189A1C[12];
 extern SVECTOR    D_acropolis_bridge_80189A34[2];
 extern SVECTOR    D_acropolis_bridge_80189A44;
 extern SVECTOR    D_acropolis_bridge_80189A4C;
@@ -1616,8 +1614,8 @@ void func_acropolis_bridge_8017F868(Task* task)
             Gp_SpawnEff(0x600B3, coord, 2, &D_acropolis_bridge_8018998C[i + 2]);
         }
     }
-    if (D_acropolis_bridge_80189A32 & bit) {
-        Gp_SpawnEff(0x600B3, coord, 1, &D_acropolis_bridge_801899E4);
+    if (D_acropolis_bridge_80189A1C[11] & bit) {
+        Gp_SpawnEff(0x600B3, coord, 1, &D_acropolis_bridge_8018998C[11]);
     }
 
     if ((bit & 0x62) && Gp_State1C->eventState == 0 && part->coord.t[1] >= 0x201) {
