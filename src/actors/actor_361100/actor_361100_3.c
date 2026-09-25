@@ -16,6 +16,11 @@ extern Task* D_actor_361100_80171BE0;
 
 extern TaskDesc D_actor_361100_80165C58;
 
+extern u8 D_801153F4;
+
+extern const TaskFuncTable3 D_actor_361100_80161E24;
+extern const TaskFuncTable3 D_actor_361100_80161E30;
+
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -91,7 +96,18 @@ void func_actor_361100_80162B18(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_80162CBC);
+/// State dispatcher: runs `Task::state` through `D_actor_361100_80161E24` --
+/// setup (`func_actor_361100_80162D28`), per-frame tick (`func_actor_361100_80162B18`)
+/// and exit (`func_actor_361100_80162DE4`) -- while `D_801153F4` is clear.
+void func_actor_361100_80162CBC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_361100_80161E24;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_361100_80162D28(Task* arg0)
 {
@@ -329,7 +345,18 @@ void func_actor_361100_801631C4(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_361100/actor_361100_3", func_actor_361100_801633A4);
+/// State dispatcher: runs `Task::state` through `D_actor_361100_80161E30` --
+/// setup (`func_actor_361100_80163410`), per-frame tick (`func_actor_361100_801631C4`)
+/// and exit (`func_actor_361100_80163494`) -- while `D_801153F4` is clear.
+void func_actor_361100_801633A4(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_361100_80161E30;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 extern u8 D_actor_361100_80171BB8[];
 
