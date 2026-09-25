@@ -773,6 +773,8 @@ s32 SndVoice_DriveSlots(void)
     one    = 1;
     offset = i;
     do {
+        /* The slot is reached through a byte offset that every branch advances
+         * on its own, which is the shape the original loop compiled to. */
         p      = (SndScript*)((u8*)SndScript_Slots + offset);
         status = p->field_16;
         if (status == four) {
@@ -1848,6 +1850,8 @@ SndVoice* SndVoice_Alloc(s32 arg0)
     if (voiceIdx < 0) {
         return NULL;
     }
+    /* The voice records are addressed from the bank-slot table's symbol at a
+     * SndVoice stride; which object really lives there is unresolved. */
     ptr          = (SndVoice*)_gSndBankSlots + voiceIdx;
     ptr->field_0 = voiceIdx;
     Spu_SetVoiceCallbacks(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
