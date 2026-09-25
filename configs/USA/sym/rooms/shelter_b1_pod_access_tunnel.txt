@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b1_pod_access_tunnel.
+D_shelter_b1_pod_access_tunnel_80184D10 = 0x80184D10; // size:0xC

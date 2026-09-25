@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_1f_parking_garage.
+D_shelter_1f_parking_garage_80181998 = 0x80181998; // size:0xC

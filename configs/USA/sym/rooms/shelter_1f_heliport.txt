@@ -1,2 +1,4 @@
 // Overlay-local symbols for shelter_1f_heliport.
 D_shelter_1f_heliport_8017D6F4 = 0x8017D6F4; // force_not_migration:True string with a non-zero byte after its terminator, read from C
+D_shelter_1f_heliport_80181204 = 0x80181204; // type:SVECTOR size:0x8
+D_shelter_1f_heliport_80182CB4 = 0x80182CB4; // size:0xC
