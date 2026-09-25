@@ -543,7 +543,10 @@ void Actor03800_Fn00A98(Task* arg0)
     cooldown_done:
         normal = scratch + 1;
     }
-    one         = 1;
+    one = 1;
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
     contactWork = work;
 contact_loop: {
     id   = contactWork->field_1C4[0].key;

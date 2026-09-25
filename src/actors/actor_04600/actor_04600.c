@@ -658,7 +658,10 @@ void Actor04600_Fn00978(Task* arg0)
         delta = (VECTOR*)&scratch->delta;
     }
     damageState = 2;
-    contact     = work;
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
+    contact = work;
 contact_loop:
     do {
         id = contact->rec154[0].key;

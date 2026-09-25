@@ -721,8 +721,10 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s->corner3.vy = height;
         s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
         s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        view          = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
-        view->flg     = 0;
+        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
+           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
+        view      = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        view->flg = 0;
         Gp_UpdateCoord(view);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);

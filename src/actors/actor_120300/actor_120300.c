@@ -397,6 +397,8 @@ void func_actor_120300_80132338(Task* arg0)
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)rec, 0);
             var_a1 = 0x3F2;
             var_a0 = ((Actor120300Work*)arg0->work)->field_4B4;
+            /* `D_actor_120300_80140A6C`, which sits 0x78 before `rec`: the ROM
+               derives it from the address already in the register. */
             var_a2 = (s32)((u8*)rec - 0x78);
             goto dispatch;
         case 3:

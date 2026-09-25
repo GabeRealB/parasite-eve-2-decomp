@@ -370,7 +370,10 @@ move_done:
     }
     frameNormal = &frame->normal;
     normal      = frameNormal;
-    walk        = work;
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
+    walk = work;
     do {
         SOFT_TOUCH_REG2(walk, frame);
         SOFT_TOUCH_REG(frame);

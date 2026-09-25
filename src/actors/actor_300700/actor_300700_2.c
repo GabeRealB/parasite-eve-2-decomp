@@ -159,6 +159,9 @@ move_done:
     USE_REG4(scratch, scratch, scratch, scratch);
     USE_REG4(scratch, scratch, scratch, scratch);
     USE_REG2(scratch, scratch);
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
     contactWork = work;
 contact_loop: {
     USE_REG2(contactWork, contactWork);

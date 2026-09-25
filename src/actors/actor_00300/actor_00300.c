@@ -689,6 +689,9 @@ void Actor00300_Fn00E54(Task* arg0)
         }
     }
     one = 1;
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
     rec = work;
     do {
         SOFT_TOUCH_REG_USE(one, scratch);

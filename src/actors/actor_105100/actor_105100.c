@@ -738,6 +738,9 @@ void func_actor_105100_80132C2C(Task* arg0)
             work->field_58C = 0;
         }
     }
+    /* The contact walk steps a work pointer one table record at a time and
+       reads the record through it, keeping the record's offset in the
+       displacement as the ROM does. */
     rec = work;
     do {
         if ((u16)(rec->field_49C[0].key >> 16) == 2 && work->field_58C == 0) {
