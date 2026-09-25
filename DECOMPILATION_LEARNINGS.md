@@ -141079,3 +141079,24 @@ non-user-variable argument into the formal's own pseudo, cse folds the second
 whose label has several predecessors - the single-predecessor arm is reached
 by cse's jump following and reads the original. Passing a named local instead
 substitutes it directly and the copy disappears.
+## More stack slots than message locals: a block-scope aggregate claims the inline temp it lands on (func_actor_120300_80132338, 2026-09-26)
+
+A request switch sends the same `GpAnimArg` payload from twenty places, and the
+target frame has three 0x18-byte slots: 0x10 for the early cases, 0x28 from
+case 14 on, 0x40 for case 19 alone. The tree reproduced that with three
+function-scope unions, gotos into a shared dispatch and six `SCHED_BARRIER`s.
+It is one `static inline` helper with its own `GpAnimArg` (all its expansions
+share a temp, as the entries above describe) plus two block-scoped `GpAnimArg`
+locals for the weapon records in cases 13 and 18 (here a block macro). Each
+block local takes the released temp it lands on, and later expansions do not
+get that slot back, so every block local makes the frame grow by one slot. The
+expansions that land in a fresh slot address the payload through a register
+(`sw v0,4($a2)`) and not `sp`, so that change of addressing marks the same
+boundary.
+
+Constants passed as inline parameters are materialised before the helper's
+`if`, so `li v1,1` moved above the null test. Fixing `field_8`/`field_C` inside
+two helpers (blend vs. reset) put it back after the test. Which copy of the
+identical dispatch tails survives cross-jumping was set by case 9: written as
+`PlayAnim(7); work->field_4C0 = 0; return;`, not `break`, its copy is the one
+the other cases jump into, as in the target.

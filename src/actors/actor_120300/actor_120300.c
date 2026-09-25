@@ -1,5 +1,6 @@
 #include "common.h"
 #include "gameplay/gameplay.h"
+#include <psyq/abs.h>
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
@@ -299,372 +300,174 @@ void func_actor_120300_801321C8(Task* arg0)
     ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
+/// Records `anim` in `field_4D2` and sends the task at `field_4B4` message
+/// 0x3F4 to blend into animation `anim` of `D_actor_120300_801408CC`. Does
+/// nothing while that task is unset.
+static inline void _actor120300PlayAnim(Task* task, u16 anim)
+{
+    Actor120300Work* work = (Actor120300Work*)task->work;
+    GpAnimArg        msg;
+
+    if (work->field_4B4 != NULL) {
+        msg.animBlock.ptr = D_actor_120300_801408CC;
+        work->field_4D2   = anim;
+        msg.field_4       = anim;
+        msg.field_8       = 1;
+        msg.field_C       = 0xA;
+        msg.field_10      = 1;
+        Gp_DispatchMsg(work->field_4B4, 0x3F4, (s32)&msg, 0);
+    }
+}
+
+/// As `_actor120300PlayAnim`, but with `field_8` zero, so the receiver resets
+/// its animation slots to `anim` instead of blending.
+static inline void _actor120300SetAnim(Task* task, u16 anim)
+{
+    Actor120300Work* work = (Actor120300Work*)task->work;
+    GpAnimArg        msg;
+
+    if (work->field_4B4 != NULL) {
+        msg.animBlock.ptr = D_actor_120300_801408CC;
+        work->field_4D2   = anim;
+        msg.field_4       = anim;
+        msg.field_8       = 0;
+        msg.field_C       = 0;
+        msg.field_10      = 1;
+        Gp_DispatchMsg(work->field_4B4, 0x3F4, (s32)&msg, 0);
+    }
+}
+
+/// Sends `target` message 0x3E8 for the player's equipped weapon: the block
+/// index is `Player_Status.weapon` plus 1 when `Mc_SaveData.characterId` is 1,
+/// plus 0x22 otherwise, and `blend`/`frames` go to `field_8`/`field_C`.
+#define _ACTOR120300_SEND_WEAPON(target, blend, frames)                                           \
+    {                                                                                             \
+        GpAnimArg _msg;                                                                           \
+        s32       _weaponId;                                                                      \
+                                                                                                  \
+        _weaponId            = Player_Status.weapon;                                              \
+        _msg.animBlock.index = (Mc_SaveData.characterId == 1) ? _weaponId + 1 : _weaponId + 0x22; \
+        _msg.field_4         = 1;                                                                 \
+        _msg.field_8         = (blend);                                                           \
+        _msg.field_C         = (frames);                                                          \
+        _msg.field_10        = 0;                                                                 \
+        Gp_DispatchMsg((target), 0x3E8, (s32) & _msg, 0);                                         \
+    }
+
 /// Request handler for the code latched in `field_4C0`. While the session
 /// event state is set, a finished 0x3ED query advances `field_4D2` from
 /// `D_actor_120300_8014095C` and restarts that animation. The switch sends
 /// 0x3F4 animation payloads, 0x3E9 placement records and the 0x3E8 weapon
-/// record (`Player_Status.weapon`, with `Mc_SaveData.characterId` selecting the +1 or +0x22 block),
-/// then clears the request. Cases 20 and 21 step the facing in `field_4DC`
-/// and copy it onto the player's aim yaw.
-///
-/// Cases 13 and 18 keep the weapon-id locals block-scoped. One pseudo shared
-/// by both cases schedules the `Player_Status.weapon` load ahead of the flag load.
+/// record, then clears the request. Request 9 waits 0x10 ticks on
+/// `field_4C4` first; requests 20 and 21 step the facing in `field_4DC` by
+/// 0x30 towards the player's bearing or towards zero, copying it onto the
+/// player's aim yaw each tick.
 void func_actor_120300_80132338(Task* arg0)
 {
-    union {
-        GpAnimArg anim;
-        s32       words[6];
-    } msg;
-    union {
-        GpAnimArg anim;
-        s32       words[6];
-    } msg2;
-    union {
-        GpAnimArg anim;
-        s32       words[6];
-    } msg3;
     Actor120300Work* work;
-    Actor120300Work* w;
-    GpAnimArg*       p;
-    Task*            var_a0;
-    s32              var_a1;
-    s32              var_a2;
-    s32              var_v0;
-    Task*            playerTask;
-    Task*            playerTask2;
     GameActor*       player;
-    GameActor*       player2;
     GpCoord*         actorCoord;
     GpCoord*         playerCoord;
-    s16*             nextp;
-    s16              next;
-    u16              nextu;
-    s32              yaw;
-    s32              absYaw;
-    s16              target;
-    s16              cur;
-    u16              curu;
     s32              dx;
     s32              dz;
     s32              diff;
-    u16              temp;
+    s16              target;
+    s16              cur;
     s32*             rec;
+    Task*            playerTask;
 
     work = (Actor120300Work*)arg0->work;
     if (gGameSession->eventState != 0) {
         if ((work->field_4B4 != NULL) && (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) == 0)) {
             if (D_actor_120300_8014095C[work->field_4D2] >= 0) {
-                nextu = ((u16*)D_actor_120300_8014095C)[work->field_4D2];
-                w     = (Actor120300Work*)arg0->work;
-                if (w->field_4B4 != NULL) {
-                    msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                    w->field_4D2           = nextu;
-                    msg.anim.field_4       = nextu;
-                    msg.anim.field_8       = 1;
-                    msg.anim.field_C       = 0xA;
-                    msg.anim.field_10      = 1;
-                    Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
-                }
+                _actor120300PlayAnim(arg0, D_actor_120300_8014095C[work->field_4D2]);
             }
         }
     }
     switch ((u16)work->field_4C0) {
         case 0:
-            goto clear;
+            break;
         case 1:
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                var_v0                 = 1;
-                w->field_4D2           = 0;
-                msg.anim.field_4       = 0;
-                msg.anim.field_8       = 0;
-                msg.anim.field_C       = 0;
-                SCHED_BARRIER();
-                msg.anim.field_10 = var_v0;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300SetAnim(arg0, 0);
+            break;
         case 2:
             rec = &D_actor_120300_80140AE4;
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)rec, 0);
-            var_a1 = 0x3F2;
-            var_a0 = ((Actor120300Work*)arg0->work)->field_4B4;
             /* `D_actor_120300_80140A6C`, which sits 0x78 before `rec`: the ROM
                derives it from the address already in the register. */
-            var_a2 = (s32)((u8*)rec - 0x78);
-            goto dispatch;
+            Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3F2, (s32)((u8*)rec - 0x78), 0);
+            break;
         case 3:
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140A6C, 0);
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 1;
-                msg.anim.field_4       = 1;
-                msg.anim.field_8       = 0;
-                msg.anim.field_C       = 0;
-                msg.anim.field_10      = 1;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300SetAnim(arg0, 1);
+            break;
         case 4:
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 2;
-                msg.anim.field_4       = 2;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300PlayAnim(arg0, 2);
+            break;
         case 5:
             Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140A84, 0);
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 3;
-                msg.anim.field_4       = 3;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300PlayAnim(arg0, 3);
+            break;
         case 7:
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 5;
-                msg.anim.field_4       = 5;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300PlayAnim(arg0, 5);
+            break;
         case 8:
-            w      = (Actor120300Work*)arg0->work;
-            var_a1 = 0x3F4;
-            if (w->field_4B4 != NULL) {
-                var_a2                 = (s32)&msg.anim;
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 6;
-                msg.anim.field_4       = 6;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300PlayAnim(arg0, 6);
+            break;
         case 9:
             switch ((u16)work->field_4C2) {
                 case 0:
                     work->field_4C4 = 0;
-                    work->field_4C2 = (u16)work->field_4C2 + 1;
-                    return;
+                    work->field_4C2++;
+                    break;
                 case 1:
-                    temp            = work->field_4C4 + 1;
-                    work->field_4C4 = temp;
-                    if ((u32)(temp & 0xFFFF) >= 0x10U) {
-                        w      = (Actor120300Work*)arg0->work;
-                        var_a1 = 0x3F4;
-                        if (w->field_4B4 != NULL) {
-                            var_a2                 = (s32)&msg.anim;
-                            msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                            w->field_4D2           = 7;
-                            msg.anim.field_4       = 7;
-                            msg.anim.field_8       = 1;
-                            msg.anim.field_C       = 0xA;
-                            msg.anim.field_10      = 1;
-                            goto dispatch_work;
-                        }
-                        goto clear;
+                    if (++work->field_4C4 >= 0x10) {
+                        _actor120300PlayAnim(arg0, 7);
+                        work->field_4C0 = 0;
                     }
-                    return;
+                    break;
             }
-            return;
-        dispatch_work:
-            var_a0 = w->field_4B4;
-        dispatch:
-            Gp_DispatchMsg(var_a0, var_a1, var_a2, 0);
-            work->field_4C0 = 0;
             return;
         case 10:
-            w = (Actor120300Work*)arg0->work;
-            if (w->field_4B4 != NULL) {
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 8;
-                msg.anim.field_4       = 8;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            var_a2 = 8;
-            goto dispatch;
+            _actor120300PlayAnim(arg0, 8);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
         case 11:
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140A9C, 0);
-            w = (Actor120300Work*)arg0->work;
-            if (w->field_4B4 != NULL) {
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 0xB;
-                msg.anim.field_4       = 0xB;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            SCHED_BARRIER();
-            var_a2 = 8;
-            goto dispatch;
+            _actor120300PlayAnim(arg0, 0xB);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
         case 12:
-            w = (Actor120300Work*)arg0->work;
-            if (w->field_4B4 != NULL) {
-                msg.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2           = 9;
-                msg.anim.field_4       = 9;
-                msg.anim.field_8       = 1;
-                msg.anim.field_C       = 0xA;
-                msg.anim.field_10      = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)&msg.anim, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            var_a2 = 0x18;
-            goto dispatch;
-        case 13: {
-            s32 weaponId;
-            s32 id;
-
+            _actor120300PlayAnim(arg0, 9);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 0x18, 0);
+            break;
+        case 13:
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140ACC, 0);
-            weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            var_a1                   = 0x3E8;
-            msg.anim.animBlock.index = id;
-            msg.anim.field_4         = 1;
-            msg.anim.field_8         = 0;
-            msg.anim.field_C         = 0;
-            msg.anim.field_10        = 0;
-            var_a0                   = work->field_4B4;
-            var_a2                   = (s32)&msg.anim;
-            goto dispatch;
-        }
+            _ACTOR120300_SEND_WEAPON(work->field_4B4, 0, 0);
+            break;
         case 14:
-            w = (Actor120300Work*)arg0->work;
-            p = &msg2.anim;
-            if (w->field_4B4 != NULL) {
-                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2            = 0xF;
-                p->field_4              = 0xF;
-                p->field_8              = 1;
-                p->field_C              = 0xA;
-                p->field_10             = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            SCHED_BARRIER();
-            var_a2 = 8;
-            goto dispatch;
+            _actor120300PlayAnim(arg0, 0xF);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
         case 15:
-            w = (Actor120300Work*)arg0->work;
-            p = &msg2.anim;
-            if (w->field_4B4 != NULL) {
-                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2            = 0xE;
-                p->field_4              = 0xE;
-                p->field_8              = 1;
-                p->field_C              = 0xA;
-                p->field_10             = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            SCHED_BARRIER();
-            var_a2 = 8;
-            goto dispatch;
+            _actor120300PlayAnim(arg0, 0xE);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
         case 16:
-            w = (Actor120300Work*)arg0->work;
-            p = &msg2.anim;
-            if (w->field_4B4 != NULL) {
-                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2            = 0xD;
-                p->field_4              = 0xD;
-                p->field_8              = 1;
-                p->field_C              = 0xA;
-                p->field_10             = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            SCHED_BARRIER();
-            var_a2 = 8;
-            goto dispatch;
+            _actor120300PlayAnim(arg0, 0xD);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
         case 17:
-            w = (Actor120300Work*)arg0->work;
-            p = &msg2.anim;
-            if (w->field_4B4 != NULL) {
-                msg2.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2            = 0xE;
-                p->field_4              = 0xE;
-                p->field_8              = 1;
-                p->field_C              = 0xA;
-                p->field_10             = 1;
-                Gp_DispatchMsg(w->field_4B4, 0x3F4, (s32)p, 0);
-            }
-            var_a0 = work->field_4B4;
-            var_a1 = 0x3FD;
-            SCHED_BARRIER();
-            var_a2 = 8;
-            goto dispatch;
-        case 18: {
-            s32 weaponId;
-            s32 id;
-
-            weaponId                  = Player_Status.weapon;
-            id                        = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            var_a1                    = 0x3E8;
-            msg2.anim.animBlock.index = id;
-            msg2.anim.field_4         = 1;
-            msg2.anim.field_8         = 1;
-            msg2.anim.field_C         = 0xA;
-            msg2.anim.field_10        = 0;
-            var_a0                    = work->field_4B4;
-            var_a2                    = (s32)&msg2.anim;
-            goto dispatch;
-        }
+            _actor120300PlayAnim(arg0, 0xE);
+            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            break;
+        case 18:
+            _ACTOR120300_SEND_WEAPON(work->field_4B4, 1, 0xA);
+            break;
         case 19:
-            w = (Actor120300Work*)arg0->work;
-            p = &msg3.anim;
-            if (w->field_4B4 != NULL) {
-                var_a1                  = 0x3F4;
-                msg3.anim.animBlock.ptr = D_actor_120300_801408CC;
-                w->field_4D2            = 0x10;
-                p->field_4              = 0x10;
-                p->field_8              = 1;
-                p->field_C              = 0xA;
-                p->field_10             = 1;
-                var_a2                  = (s32)p;
-                goto dispatch_work;
-            }
-            goto clear;
+            _actor120300PlayAnim(arg0, 0x10);
+            break;
         case 20:
             playerTask  = work->field_4B4;
             actorCoord  = arg0->extra.tmd->coords;
@@ -673,7 +476,7 @@ void func_actor_120300_80132338(Task* arg0)
             switch ((u16)work->field_4C2) {
                 case 0:
                     work->field_4DC = player->field_6A;
-                    work->field_4C2 = (u16)work->field_4C2 + 1;
+                    work->field_4C2++;
                     /* fallthrough */
                 case 1:
                     if (actorCoord->coord.t[0] > playerCoord->coord.t[0]) {
@@ -690,7 +493,7 @@ void func_actor_120300_80132338(Task* arg0)
                         diff = -diff;
                     }
                     if (diff < 0x31) {
-                        work->field_4C2 = (u16)work->field_4C2 + 1;
+                        work->field_4C2++;
                     } else if (cur < target) {
                         work->field_4DC = cur + 0x30;
                     } else {
@@ -702,32 +505,22 @@ void func_actor_120300_80132338(Task* arg0)
                     return;
             }
             return;
-        case 21:
-            yaw         = work->field_4DC;
-            playerTask2 = work->field_4B4;
-            SOFT_TOUCH_REG(playerTask2);
-            absYaw = yaw;
-            if (yaw < 0) {
-                SOFT_TOUCH_REG(absYaw);
-                absYaw = -absYaw;
-            }
-            __asm__("" : "+m"(work->field_4DC));
-            player2 = (GameActor*)playerTask2->work;
-            curu    = (u16)work->field_4DC;
-            if (absYaw < 0x31) {
+        case 21: {
+            GameActor* aim;
+
+            aim = (GameActor*)work->field_4B4->work;
+            if (ABS(work->field_4DC) < 0x31) {
                 work->field_4DC = 0;
                 work->field_4C0 = 0;
-            } else if (yaw < 0) {
-                work->field_4DC = curu + 0x30;
+            } else if (work->field_4DC < 0) {
+                work->field_4DC += 0x30;
             } else {
-                work->field_4DC = curu - 0x30;
+                work->field_4DC -= 0x30;
             }
-            player2->field_6A = work->field_4DC;
+            aim->field_6A = work->field_4DC;
             return;
-        default:
-            goto clear;
+        }
     }
-clear:
     work->field_4C0 = 0;
 }
 
