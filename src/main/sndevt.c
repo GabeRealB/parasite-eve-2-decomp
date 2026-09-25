@@ -251,7 +251,7 @@ s32 Midi_InitSystem(u32 arg0)
     state->field_A  = 0x10;
     state->field_10 = D_8007F8E0;
     do {
-        bank                       = &Snd_Banks[D_800680BB];
+        bank                       = &Snd_Banks[D_800680AC[15]];
         state->field_40            = bank;
         bank->bankId               = 0xF0FF;
         state->field_40->heapBlock = SndHeap_Malloc(0x582);
@@ -1012,7 +1012,7 @@ void Midi_UpdateVoiceVolumes(MidiSong* arg0)
     }
     if (obj->field_1 == 0x5A) {
         temp  = Midi_GetMasterVolume() & 0xFF;
-        scale = (D_80068A4A * 3) << 5;
+        scale = (D_800689F0[0x5A] * 3) << 5;
     } else {
         temp  = Midi_GetMasterVolume();
         scale = (u16)obj->field_8;
