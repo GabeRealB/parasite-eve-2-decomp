@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/mem.h"
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
@@ -634,17 +635,12 @@ s32 Stage_BeginTransitionKind3(void)
 s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     StageCtx* temp;
-    u8*       ptr;
-    u32       i;
 
     if (gDisplayState.pendingMode != 0) {
         return 0;
     }
 
-    ptr = (u8*)Stage_Ctx;
-    for (i = 0; i < 0x38U; i++) {
-        *ptr++ = 0;
-    }
+    MEM_CLEAR(Stage_Ctx, sizeof(StageCtx));
 
     temp          = Stage_Ctx;
     temp->field_0 = arg0;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/mem.h"
 
 #include <psyq/libapi.h>
 
@@ -698,18 +699,9 @@ void CdReady_ClearCallback(void)
 
 void CdStream_Reset(void)
 {
-    s32* ptr;
-    u32  i;
-
-    ptr = (s32*)&CdReady_Queue;
-    for (i = 0; i < 0x16; i++) {
-        *ptr++ = 0;
-    }
-
-    ptr = (s32*)&CdStream_State;
-    for (i = 0; i < 0x36; i++) {
-        *ptr++ = 0;
-    }
+    MEM_CLEAR_WORDS(&CdReady_Queue, sizeof(CdReady_Queue) / 4);
+    /* The clear runs past CdStream_State into the channel table after it. */
+    MEM_CLEAR_WORDS(&CdStream_State, 0x36);
 
     SetRCnt(RCntCNT2, 0xFFFF, RCntMdNOINTR);
     StartRCnt(RCntCNT2);

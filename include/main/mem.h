@@ -39,6 +39,16 @@ void Mem_Set(void* dest, u32 ch, u32 count);
         }                                                \
     }
 
+/// Clears `count` words at `dst`, in place like `MEM_CLEAR`.
+#define MEM_CLEAR_WORDS(dst, count)                       \
+    {                                                     \
+        s32* _clearPtr = (s32*)(dst);                     \
+        u32  _clearI;                                     \
+        for (_clearI = 0; _clearI < (count); _clearI++) { \
+            *_clearPtr++ = 0;                             \
+        }                                                 \
+    }
+
 /// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);
 
