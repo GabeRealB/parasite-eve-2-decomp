@@ -4,6 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -82,19 +83,6 @@ void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb);
 void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size);
 void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1);
-
-/// Rotates `v` in place by `m` through the GTE, working from a stack copy so
-/// the load and the store can name the same vector.
-static inline void _neoArkPavilionRotTrans(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
 
 /// Draws the water-refraction ripple for the views that have one (views of
 /// areas 27, 14, 15, 13, 30 and 29; every other view returns at once). The
@@ -363,7 +351,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
     scratch->origin.vz = gGfxViewCoord.workm.t[2];
-    _neoArkPavilionRotTrans(&scratch->mtx, &scratch->origin);
+    gfxRotateSv(&scratch->mtx, &scratch->origin);
     scratch->depth  = scratch->origin.vy + zoff;
     scratch->depth *= disp->screenDistance;
     scratch->row.vx = 0;

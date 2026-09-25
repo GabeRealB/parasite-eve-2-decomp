@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 
 #include "actors/actor.h"
 #include "main/fs.h"
@@ -355,36 +356,6 @@ void func_actor_342000_80162158(Task* arg0)
     arg0->exitCallback = func_actor_342000_80163F88;
 }
 
-/// Scales each column of the rotation part of `m` by the matching component
-/// of `scale` (1.12 fixed point) with the GTE's `gpf 12`. Each column is
-/// gathered into an `SVECTOR` borrowed from the scratch-pad stack, scaled and
-/// written back, and the block is returned before leaving.
-static __inline__ void _actor342000ScaleColumns(MATRIX* m, VECTOR* scale)
-{
-    SVECTOR* sv;
-
-    sv = SCRATCH_PUSH(SVECTOR);
-    gte_ReadMatrixColumn(m, 0, sv);
-    gte_lddp(scale->vx);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 0);
-    gte_ReadMatrixColumn(m, 1, sv);
-    gte_lddp(scale->vy);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 1);
-    gte_ReadMatrixColumn(m, 2, sv);
-    gte_lddp(scale->vz);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 2);
-    SCRATCH_POP(SVECTOR);
-}
-
 /// Display handler of the actor's child model. The spawn tick seeds the
 /// model's part coordinate translation from the `D_actor_342000_80164900` entry
 /// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
@@ -421,7 +392,7 @@ void func_actor_342000_801625D8(Task* arg0)
             mtx->ident.m11_m12 = 0x1000;
             mtx->ident.m20_m21 = 0;
             mtx->ident.m22     = 0x1000;
-            _actor342000ScaleColumns(&mtx->mat, sc);
+            gfxScaleMatrixColumns(&mtx->mat, sc);
             work->coord.flg = 0;
             break;
     }
@@ -468,7 +439,7 @@ void func_actor_342000_801628C8(Task* arg0)
             Gfx_RotMatrixY(&mtx->mat, ang[1], 1);
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
-            _actor342000ScaleColumns(&mtx->mat, &work->field_264);
+            gfxScaleMatrixColumns(&mtx->mat, &work->field_264);
             work->coord.flg = 0;
             /* fallthrough */
         default:

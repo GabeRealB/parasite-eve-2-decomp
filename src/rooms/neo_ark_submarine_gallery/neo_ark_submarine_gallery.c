@@ -4,6 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -44,19 +45,6 @@ extern GpFadeWork D_neo_ark_submarine_gallery_8018591C;
 extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
-
-/// Rotates `v` in place by `m` through the GTE, working from a stack copy so
-/// the load and the store can name the same vector.
-static inline void _neoArkSubmarineGalleryRotTrans(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
 
 /// Water-refraction ripple over parts of the screen, drawn only in some views
 /// of areas 27, 14, 15, 13, 30 and 29; every other view returns at once. The
@@ -323,7 +311,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
     scratch->origin.vz = gGfxViewCoord.workm.t[2];
-    _neoArkSubmarineGalleryRotTrans(&scratch->mtx, &scratch->origin);
+    gfxRotateSv(&scratch->mtx, &scratch->origin);
     scratch->depth  = scratch->origin.vy + zoff;
     scratch->depth *= disp->screenDistance;
     scratch->row.vx = 0;

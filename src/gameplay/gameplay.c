@@ -2,6 +2,7 @@
 
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
@@ -6219,15 +6220,6 @@ void func_800A4904(s32 arg0)
     }
 }
 
-static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
-{
-    SVECTOR sv;
-
-    sv = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&sv);
-}
-
 static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang)
 {
     sc->vec.vx = (sc->radius * rcos(ang)) >> 12;
@@ -6292,7 +6284,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;
-        Gp_LoadRotSV(&coord->workm, &sc->vec);
+        gfxLoadRotSv(&coord->workm, &sc->vec);
         gte_rtv0();
         gte_stsv(&sc->vec);
         sc->trans.vx = other->workm.t[0] + sc->vec.vx;
@@ -6306,7 +6298,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         sc->vec.vx = 0;
         sc->vec.vy = 0;
         sc->vec.vz = arg1;
-        Gp_LoadRotSV(&coord->workm, &sc->vec);
+        gfxLoadRotSv(&coord->workm, &sc->vec);
         gte_rtv0();
         gte_stsv(&sc->vec);
         sc->trans.vx = coord->workm.t[0] + sc->vec.vx;

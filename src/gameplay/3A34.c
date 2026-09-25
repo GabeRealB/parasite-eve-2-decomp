@@ -24,6 +24,7 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 #include <psyq/libgte.h>
 
@@ -1069,14 +1070,6 @@ s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
     return result;
 }
 
-static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
-{
-    SVECTOR tmp;
-    tmp = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-}
-
 void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     u8*                          head;
@@ -1105,7 +1098,7 @@ void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     TransposeMatrix(&gGfxViewCoord.workm, mtx);
     gte_MulMatrix0(mtx, &arg1->u.at.parent->workm, mtx);
 
-    solve_loadrot(mtx, (SVECTOR*)(head - 0x2C));
+    gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C));
     gte_rtv0();
     gte_stsv(dir);
 
@@ -1427,7 +1420,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         gte_TransposeMatrix(src, &block->mtx);
     }
 
-    solve_loadrot(&block->mtx, &block->local);
+    gfxLoadRotSv(&block->mtx, &block->local);
     gte_rtv0();
     gte_stsv(&block->local);
 

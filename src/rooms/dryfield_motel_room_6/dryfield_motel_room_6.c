@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 
 #include "gameplay/1A8.h"
@@ -1201,18 +1202,6 @@ void func_dryfield_motel_room_6_8017F47C(Task* task)
     func_dryfield_motel_room_6_8017F630(task);
 }
 
-/// Rotates `out` in place by `m` through the GTE.
-static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
-{
-    SVECTOR v;
-
-    v = *out;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&v);
-    gte_rtv0();
-    gte_stsv(out);
-}
-
 /// Per-frame update of the room's mirror, the task
 /// `func_dryfield_motel_room_6_8017F47C` sets up.
 ///
@@ -1501,7 +1490,7 @@ void func_dryfield_motel_room_6_8017F630(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                _rotateOffset(&plane->reflect, &plane->offset);
+                gfxRotateSv(&plane->reflect, &plane->offset);
                 work->coord.coord.t[0] -= plane->offset.vx;
                 work->coord.coord.t[1] -= plane->offset.vy;
                 work->coord.coord.t[2] -= plane->offset.vz;

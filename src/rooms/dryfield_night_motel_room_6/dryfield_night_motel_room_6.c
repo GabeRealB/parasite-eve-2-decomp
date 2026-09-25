@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 
 #include "gameplay/1A8.h"
@@ -137,18 +138,6 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task);
 s32  func_dryfield_night_motel_room_6_80181A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_dryfield_night_motel_room_6_80181C34(Task* task);
 void func_dryfield_night_motel_room_6_80181C78(Task* task);
-
-/// Rotates `out` in place by `m` through the GTE.
-static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
-{
-    SVECTOR v;
-
-    v = *out;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&v);
-    gte_rtv0();
-    gte_stsv(out);
-}
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
@@ -1500,7 +1489,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                _rotateOffset(&plane->reflect, &plane->offset);
+                gfxRotateSv(&plane->reflect, &plane->offset);
                 work->coord.coord.t[0] -= plane->offset.vx;
                 work->coord.coord.t[1] -= plane->offset.vy;
                 work->coord.coord.t[2] -= plane->offset.vz;

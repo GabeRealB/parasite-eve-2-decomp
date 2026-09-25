@@ -4,6 +4,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/rand.h>
 
 #include "gameplay/1A8.h"
@@ -33,19 +34,6 @@ extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 extern GpMsgEntry D_neo_ark_garden_801813B0[];
 extern s32        D_801334EC;
 extern s32        D_80133954;
-
-/// Rotates `v` in place by `m` through the GTE, working from a stack copy so
-/// the load and the store can name the same vector.
-static inline void _neoArkGardenRotTrans(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row
@@ -314,7 +302,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
     scratch->origin.vz = gGfxViewCoord.workm.t[2];
-    _neoArkGardenRotTrans(&scratch->mtx, &scratch->origin);
+    gfxRotateSv(&scratch->mtx, &scratch->origin);
     scratch->depth  = scratch->origin.vy + zoff;
     scratch->depth *= disp->screenDistance;
     scratch->row.vx = 0;

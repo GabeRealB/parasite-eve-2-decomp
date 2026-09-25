@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 
 #include "gameplay/1A8.h"
@@ -57,18 +58,6 @@ const VECTOR D_acropolis_east_elevator_hall_8017D5C4 = { -0x1000, 0x1000, 0x1000
 const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
     { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
 };
-
-/// Rotates `out` in place by `m` through the GTE.
-static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
-{
-    SVECTOR v;
-
-    v = *out;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&v);
-    gte_rtv0();
-    gte_stsv(out);
-}
 
 /// State 0 of the hall's mirror task. Re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
@@ -426,7 +415,7 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                _rotateOffset(&plane->reflect, &plane->offset);
+                gfxRotateSv(&plane->reflect, &plane->offset);
                 work->coord.coord.t[0] -= plane->offset.vx;
                 work->coord.coord.t[1] -= plane->offset.vy;
                 work->coord.coord.t[2] -= plane->offset.vz;

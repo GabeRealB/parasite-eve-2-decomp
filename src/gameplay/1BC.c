@@ -3,6 +3,7 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 #include <psyq/libcd.h>
 #include <psyq/rand.h>
@@ -3494,15 +3495,6 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
-{
-    SVECTOR sv;
-
-    sv = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&sv);
-}
-
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
     u8*               head;
@@ -3534,7 +3526,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     VectorNormalSS(block, block);
     mtx = (MATRIX*)(head - 0x20);
     TransposeMatrix(&coord->workm, mtx);
-    Gp_LoadRotSV(mtx, (SVECTOR*)(head - 0x28));
+    gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x28));
     gte_rtv0();
     gte_stsv(vec);
     gte_lddp(scale);

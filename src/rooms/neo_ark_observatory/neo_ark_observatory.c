@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/gtemac.h>
 
 #include "gameplay/1A8.h"
@@ -104,18 +105,6 @@ void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
 void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_neo_ark_observatory_80180DAC(s16 arg0);
-
-/// Rotates `out` in place by `m` through the GTE.
-static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
-{
-    SVECTOR v;
-
-    v = *out;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&v);
-    gte_rtv0();
-    gte_stsv(out);
-}
 
 /// Sets up the room's mirror: re-attaches the player's own TMD source
 /// to this task so the reflection draws the same model, allocates the
@@ -472,7 +461,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                _rotateOffset(&plane->reflect, &plane->offset);
+                gfxRotateSv(&plane->reflect, &plane->offset);
                 work->coord.coord.t[0] -= plane->offset.vx;
                 work->coord.coord.t[1] -= plane->offset.vy;
                 work->coord.coord.t[2] -= plane->offset.vz;

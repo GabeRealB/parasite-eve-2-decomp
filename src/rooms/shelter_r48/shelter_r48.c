@@ -3,6 +3,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -49,17 +50,6 @@ void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color);
-
-static inline void _shelterR48RotTrans(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
@@ -184,7 +174,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     block->origin.vx = gGfxViewCoord.workm.t[0];
     block->origin.vy = gGfxViewCoord.workm.t[1];
     block->origin.vz = gGfxViewCoord.workm.t[2];
-    _shelterR48RotTrans(&block->mtx, &block->origin);
+    gfxRotateSv(&block->mtx, &block->origin);
     block->depth  = block->origin.vy + 0xD02;
     block->depth *= disp->screenDistance;
     block->row.vx = 0;

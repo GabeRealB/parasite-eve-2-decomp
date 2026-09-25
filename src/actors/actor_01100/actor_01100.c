@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
@@ -1100,19 +1101,6 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
-/// Scales the columns of `m`'s rotation part by `v`'s three components,
-/// through a vector on the scratch-pad stack.
-static __inline__ void _actor01100ScaleMatrix(MATRIX* m, VECTOR* v)
-{
-    SVECTOR* sv;
-
-    sv = SCRATCH_PUSH(SVECTOR);
-    SCALE_COL(m, sv, 0, v->vx);
-    SCALE_COL(m, sv, 1, v->vy);
-    SCALE_COL(m, sv, 2, v->vz);
-    SCRATCH_POP(SVECTOR);
-}
-
 /// State-0xA pose: clamps the walk at 0xB8E, splits it as Y rotations across
 /// model parts 4 and its two `sub` nodes, then GPF-scales the arm chains at
 /// parts 6 and 10. 0xB9A/0xB98 scale the child then the parent by the
@@ -1162,13 +1150,13 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         arg->pos.vy = scale;
         arg->pos.vx = scale;
         node        = &coords[6];
-        _actor01100ScaleMatrix(&node->sub->coord, &arg->pos);
+        gfxScaleMatrixColumns(&node->sub->coord, &arg->pos);
         node->sub->flg = 0;
         inv            = 0x01000000 / scale;
         arg->pos.vz    = inv;
         arg->pos.vy    = inv;
         arg->pos.vx    = inv;
-        _actor01100ScaleMatrix(&node->coord, &arg->pos);
+        gfxScaleMatrixColumns(&node->coord, &arg->pos);
     }
 
     if (work->field_B98 != 0) {
@@ -1181,13 +1169,13 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         arg->pos.vy = scale;
         arg->pos.vx = scale;
         node        = &coords[10];
-        _actor01100ScaleMatrix(&node->sub->coord, &arg->pos);
+        gfxScaleMatrixColumns(&node->sub->coord, &arg->pos);
         node->sub->flg = 0;
         inv            = 0x01000000 / scale;
         arg->pos.vz    = inv;
         arg->pos.vy    = inv;
         arg->pos.vx    = inv;
-        _actor01100ScaleMatrix(&node->coord, &arg->pos);
+        gfxScaleMatrixColumns(&node->coord, &arg->pos);
     }
 
     if (work->field_B96 != 0) {
@@ -1249,18 +1237,6 @@ const ActorsShared80138efcStateTable Actor01100_D00064 = { {
     Actor01100_Fn05678,
     Actor01100_Fn05CFC,
 } };
-
-/// Rotates `v` in place by the rotation part of `m`, with no translation.
-static __inline__ void _actor01100RotSv(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
 
 /// Per-frame update. Does nothing while `field_BA0` is set. Otherwise it
 /// refreshes model part 3 and, while `Gp_StateF0.field_4` is 0, steps both animation
@@ -1491,14 +1467,14 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 } else if (work->field_BBA == 0xC) {
                     arg->vec.vx = -0x190;
                 }
-                _actor01100RotSv(&part->workm, &arg->vec);
+                gfxRotateSv(&part->workm, &arg->vec);
                 arg->vec.vx += part->workm.t[0];
                 arg->vec.vy += part->workm.t[1];
                 arg->vec.vz += part->workm.t[2];
                 arg->vec.vx -= gGfxViewCoord.workm.t[0];
                 arg->vec.vy -= gGfxViewCoord.workm.t[1];
                 arg->vec.vz -= gGfxViewCoord.workm.t[2];
-                _actor01100RotSv(&arg->mtx, &arg->vec);
+                gfxRotateSv(&arg->mtx, &arg->vec);
                 dy = gGameSession->waterY - arg->vec.vy;
                 if (work->field_BBC * dy < 0) {
                     work->field_BB9 = 5;
@@ -1801,7 +1777,7 @@ static __inline__ s16 _actor01100BearingToPlayer(GpCoord* self)
     blk->delta.vy = other->workm.t[1] - self->workm.t[1];
     blk->delta.vz = other->workm.t[2] - self->workm.t[2];
     TransposeMatrix(&self->workm, &blk->frame);
-    _actor01100RotSv(&blk->frame, &blk->delta);
+    gfxRotateSv(&blk->frame, &blk->delta);
     angle = ratan2(blk->delta.vx, blk->delta.vz);
     if (angle >= 0x801) {
         angle -= 0x1000;

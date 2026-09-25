@@ -5,6 +5,7 @@
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
+#include "main/gfxgte.h"
 
 #include "actors/actor.h"
 #include "main/display.h"
@@ -187,19 +188,6 @@ void func_actor_361100_80161E3C(Task* arg0)
     }
 }
 
-/// Rotates `v` in place by `m` through the GTE, working from a stack copy so
-/// the load and the store can name the same vector.
-static inline void _actor361100RotTrans(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR tmp;
-
-    tmp = *v;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&tmp);
-    gte_rtv0();
-    gte_stsv(v);
-}
-
 /// Draws the refraction ripple over screen rows 0x50..0xEF while more than
 /// 0x6680 bytes of the 0x18000-byte window past `D_8006D868` remain free,
 /// building `POLY_FT4` strips downward from the `D_8005C374` side of it (half
@@ -302,7 +290,7 @@ void func_actor_361100_80161FF8(Task* arg0)
         block->origin.vx = gGfxViewCoord.workm.t[0];
         block->origin.vy = gGfxViewCoord.workm.t[1];
         block->origin.vz = gGfxViewCoord.workm.t[2];
-        _actor361100RotTrans(&block->mtx, &block->origin);
+        gfxRotateSv(&block->mtx, &block->origin);
         block->depth  = block->origin.vy + 0x712;
         block->depth *= disp->screenDistance;
         block->row.vx = 0;

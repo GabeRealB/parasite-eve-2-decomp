@@ -40741,7 +40741,7 @@ Wrapping the copy plus the GTE setup in a `static __inline__` helper does fix
 it — the inlined local gets its address materialized at the `gte_ldv0`:
 
 ```c
-static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
+static __inline__ void gfxLoadRotSv(MATRIX* m, SVECTOR* src)
 {
     SVECTOR sv;
 
@@ -67513,7 +67513,7 @@ statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
 
 **Fix:** route the sequence through the TU's existing inline helper rather than
 writing it out. `func_800D759C` in `src/gameplay/3A34.c` matched at 100.000% with
-zero penalties by calling `solve_loadrot(mtx, (SVECTOR*)(head - 0x2C))`, the same
+zero penalties by calling `gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C))`, the same
 helper `func_800D7A9C` already used; its `SOFT_USE_REG(src)` emits nothing when
 the pointer is already in a register. The general lesson is that this shape -
 copy into a stack local, then hand its address to an asm - is one the original
@@ -123257,7 +123257,7 @@ Three smaller ones from the same function:
 
 **Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
-`static __inline__` helper (`_actor342000ScaleColumns(MATRIX*, VECTOR*)`,
+`static __inline__` helper (`gfxScaleMatrixColumns(MATRIX*, VECTOR*)` in `include/main/gfxgte.h`,
 written with `SCRATCH_PUSH`/`SCRATCH_POP`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
@@ -138238,7 +138238,7 @@ an inline taking `&tmp` all keep the early form. What matches is an inline that
 makes the copy into its own local:
 
 ```c
-static inline void _rotateOffset(MATRIX* m, SVECTOR* out)
+static inline void gfxRotateSv(MATRIX* m, SVECTOR* out)
 {
     SVECTOR v;
     v = *out;
