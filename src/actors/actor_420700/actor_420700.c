@@ -16,11 +16,11 @@ extern u8       D_actor_420700_8013EF8C[];
 extern s32      D_actor_420700_8013EFF0;
 extern s32      D_actor_420700_8013EFF4;
 
-/// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate and publish the
+/// Step 0 of the `func_actor_420700_80132340` dispatcher: allocate and publish the
 /// work block, spawn the two model tasks, texture the first from the placement
 /// the actor was spawned from, then seed the model's matrices and animation
 /// context before running the first step body.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 {
     VECTOR         vec;
     GpAreaKey      key;
@@ -35,11 +35,11 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     GpAreaKey*     sessionKey;
     void*          work;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x5A0, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x5A0, 0);
+    D_actor_420700_8013EFE0 = work;
+    task->work              = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -75,24 +75,24 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    obj->lightMtx           = &ActorsShared80131f9cWork->light;
-    obj->colorMtx           = &ActorsShared80131f9cWork->color;
+    obj->lightMtx           = &D_actor_420700_8013EFE0->light;
+    obj->colorMtx           = &D_actor_420700_8013EFE0->color;
     D_actor_420700_8013EFF0 = 0;
     vec.vx                  = coord->workm.t[0];
     vec.vy                  = coord->workm.t[1] - 0x320;
     D_actor_420700_8013EFF4 = 0x96;
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_420700_8013EF8C, obj,
-                  ActorsShared80131f9cWork->poses, ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->field_4B8 = 5;
-    ActorsShared80131f9cWork->field_4B4 = 2;
-    task->msgTable                      = D_actor_420700_8013EF48;
+    func_800B3F84(&D_actor_420700_8013EFE0->anim, D_actor_420700_8013EF8C, obj,
+                  D_actor_420700_8013EFE0->poses, D_actor_420700_8013EFE0->slots);
+    D_actor_420700_8013EFE0->field_4B8 = 5;
+    D_actor_420700_8013EFE0->field_4B4 = 2;
+    task->msgTable                     = D_actor_420700_8013EF48;
     func_actor_420700_80132478(task);
     task->state++;
 }
 
-/// Step 1 of the `ActorsShared80131f9c` dispatcher: refresh the model's third
+/// Step 1 of the `func_actor_420700_80132340` dispatcher: refresh the model's third
 /// coordinate and colour the actor from its world translation, run
 /// `func_actor_420700_80132478`, then step the `field_4BC` ramp by the mode in
 /// `field_4BA` and pass it as the weight of `func_800B0928` aimed at the
@@ -104,7 +104,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 /// is running. In that mode the animation slots after the first are held
 /// (rate 0) once the ramp is off zero; otherwise they run at one frame per
 /// tick.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
 {
     VECTOR         pos;
     GsCOORDINATE2  target[2];
@@ -128,25 +128,25 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     func_actor_420700_80132478(task);
     rate = 0x10;
-    if (ActorsShared80131f9cWork->field_4BA != 0) {
-        if (ActorsShared80131f9cWork->field_4BA == 1 || ActorsShared80131f9cWork->field_4BA == 3) {
-            ActorsShared80131f9cWork->field_4BC += 0x80;
-            if (ActorsShared80131f9cWork->field_4BC > 0x1000) {
-                ActorsShared80131f9cWork->field_4BC = 0x1000;
+    if (D_actor_420700_8013EFE0->field_4BA != 0) {
+        if (D_actor_420700_8013EFE0->field_4BA == 1 || D_actor_420700_8013EFE0->field_4BA == 3) {
+            D_actor_420700_8013EFE0->field_4BC += 0x80;
+            if (D_actor_420700_8013EFE0->field_4BC > 0x1000) {
+                D_actor_420700_8013EFE0->field_4BC = 0x1000;
             }
         } else {
-            ActorsShared80131f9cWork->field_4BC -= 0x80;
-            if (ActorsShared80131f9cWork->field_4BC < 0) {
-                ActorsShared80131f9cWork->field_4BC = 0;
+            D_actor_420700_8013EFE0->field_4BC -= 0x80;
+            if (D_actor_420700_8013EFE0->field_4BC < 0) {
+                D_actor_420700_8013EFE0->field_4BC = 0;
             }
         }
-        if (ActorsShared80131f9cWork->field_4BA == 3) {
+        if (D_actor_420700_8013EFE0->field_4BA == 3) {
             target[0].coord.t[0] = 0x1173;
             target[0].coord.t[1] = 0;
             target[0].coord.t[2] = -0x733;
-            func_800B0CF4(task, target, 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+            func_800B0CF4(task, target, 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
         } else {
-            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
         }
     } else {
         if (gGameSession->eventState == 0) {
@@ -159,22 +159,22 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
             } else {
                 D_actor_420700_8013EFF0 = -0x80;
             }
-            if (ActorsShared80131f9cWork->field_4BC != 0) {
+            if (D_actor_420700_8013EFE0->field_4BC != 0) {
                 rate = 0;
             }
         } else {
             D_actor_420700_8013EFF0 = -0x80;
         }
-        ActorsShared80131f9cWork->field_4BC += D_actor_420700_8013EFF0;
-        if (ActorsShared80131f9cWork->field_4BC > 0x1000) {
-            ActorsShared80131f9cWork->field_4BC = 0x1000;
+        D_actor_420700_8013EFE0->field_4BC += D_actor_420700_8013EFF0;
+        if (D_actor_420700_8013EFE0->field_4BC > 0x1000) {
+            D_actor_420700_8013EFE0->field_4BC = 0x1000;
         }
-        if (ActorsShared80131f9cWork->field_4BC < 0) {
-            ActorsShared80131f9cWork->field_4BC = 0;
+        if (D_actor_420700_8013EFE0->field_4BC < 0) {
+            D_actor_420700_8013EFE0->field_4BC = 0;
         }
-        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, ActorsShared80131f9cWork->field_4BC);
+        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
     }
     for (i = 1; i < 0x14; i++) {
-        ActorsShared80131f9cWork->slots[i].rate = rate;
+        D_actor_420700_8013EFE0->slots[i].rate = rate;
     }
 }

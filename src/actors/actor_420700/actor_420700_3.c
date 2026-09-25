@@ -15,10 +15,10 @@ void func_actor_420700_801325C8(void)
 
     i = 1;
     do {
-        func_800B4114(&ActorsShared80131f9cWork->anim, i, ActorsShared80131f9cWork->field_4B8, 0, 8);
+        func_800B4114(&D_actor_420700_8013EFE0->anim, i, D_actor_420700_8013EFE0->field_4B8, 0, 8);
         i++;
     } while (i < 0x14);
-    ActorsShared80131f9cWork->field_4B6 = ActorsShared80131f9cWork->field_4B8;
+    D_actor_420700_8013EFE0->field_4B6 = D_actor_420700_8013EFE0->field_4B8;
 }
 
 s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)
@@ -38,14 +38,14 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args)
                 offset = 0;
                 break;
         }
-        work            = ActorsShared80131f9cWork;
+        work            = D_actor_420700_8013EFE0;
         work->field_4B8 = (u16)args->field_4 + offset;
         if (args->field_8 != 0) {
             work->field_4B4 = 1;
         } else {
             work->field_4B4 = 2;
         }
-        ActorsShared80131f9cWork->field_4BE = 0;
+        D_actor_420700_8013EFE0->field_4BE = 0;
         func_actor_420700_80132478(D_actor_420700_8013EFE4);
         return 0;
     }
@@ -84,7 +84,7 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
 }
 
 /// Message 0x7DB handler: records the `field_4BA` mode the ramp
-/// `ActorsShared80131f9cSub1` runs and seeds `field_4BC` at the end that mode
+/// `func_actor_420700_80132064` runs and seeds `field_4BC` at the end that mode
 /// walks away from -- 0 for the rising modes 1 and 3, 0x1000 for the falling
 /// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
 /// 0x1B02 is rejected with -1 without touching the work block.
@@ -99,16 +99,16 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args)
     if (args->id != 0x1B02) {
         return -1;
     }
-    ActorsShared80131f9cWork->field_4BA = args->mode;
+    D_actor_420700_8013EFE0->field_4BA = args->mode;
     switch (args->mode) {
         case 0:
             break;
         case 1:
         case 3:
-            ActorsShared80131f9cWork->field_4BC = 0;
+            D_actor_420700_8013EFE0->field_4BC = 0;
             break;
         case 2:
-            ActorsShared80131f9cWork->field_4BC = 0x1000;
+            D_actor_420700_8013EFE0->field_4BC = 0x1000;
             break;
     }
     return 0;

@@ -6,14 +6,14 @@
 
 /// Per-actor work block for the `actor_420700` overlay.
 ///
-/// The overlay's state-0 handler (`ActorsShared80131f9cSub0`, here at
-/// 0x80131E24) allocates it with `memCalloc(0x5A0, 0)` and stores the pointer
-/// both in `ActorsShared80131f9cWork` and in the task's 0x1C slot, so the size
-/// below is the allocation and not a guess. Every other function in the
-/// overlay reaches the block through the global.
+/// The state-0 handler `func_actor_420700_80131E24` allocates it with
+/// `memCalloc(0x5A0, 0)` and stores the pointer both in
+/// `D_actor_420700_8013EFE0` and in `Task::work`, so the size below is the
+/// allocation. The task dispatcher republishes it in the global every tick,
+/// and every other function in the overlay reaches the block through it.
 ///
-/// `anim` is the animation context `Gp_AnimTickIndex` and friends walk; the
-/// same layout as `Actor143900Work` and `Actor461800Work`.
+/// `anim` is the animation context the tick and reseed loops walk; `slots` and
+/// `poses` are the buffers `func_800B3F84` binds to it.
 typedef struct Actor420700Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
@@ -24,16 +24,18 @@ typedef struct Actor420700Work {
     /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
     /* 0x4BA */ s16        field_4BA; // ramp mode message 0x7DB selected: 1 and 3 rise, 2 falls, 0 leaves it alone
-    /* 0x4BC */ s16        field_4BC; // ramp value `ActorsShared80131f9cSub1` walks by 0x80, clamped to 0..0x1000
+    /* 0x4BC */ s16        field_4BC; // ramp value `func_actor_420700_80132064` walks by 0x80, clamped to 0..0x1000
     /* 0x4BE */ s16        field_4BE;
     /* 0x4C0 */ byte       pad_4C0[0xE0];
 } Actor420700Work;
 STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
 
-extern Actor420700Work* ActorsShared80131f9cWork;
+/// The work block above, published by the task dispatcher
+/// `func_actor_420700_80132340` and by the state-0 handler.
+extern Actor420700Work* D_actor_420700_8013EFE0;
 
-/// The actor's own task, the `arg1` the shared state-0 handler
-/// `ActorsShared80131f9cSub0` is entered with. Its `Task::extra` holds the
+/// The actor's own task, the `task` the state-0 handler
+/// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
 /// `TmdObject` whose trailing coordinate array `func_actor_420700_801323D8`
 /// hangs the model task's own root off, at frame 4.
 extern Task* D_actor_420700_8013EFE4;
@@ -46,9 +48,13 @@ extern Task* D_actor_420700_8013EFE8;
 /// `func_actor_420700_801327EC`.
 extern Task* D_actor_420700_8013EFEC;
 
+void func_actor_420700_80131E24(GpEnemy* enemy, Task* task);
+void func_actor_420700_80132064(GpEnemy* enemy, Task* task);
+void func_actor_420700_80132340(Task* task);
 void func_actor_420700_8013239C(Task* task);
 void func_actor_420700_80132478(Task* task);
 void func_actor_420700_801324EC(void);
+void func_actor_420700_80132538(void);
 void func_actor_420700_801325C8(void);
 
 /// Argument block of message 0x7DB, which arms the `field_4BC` ramp: the ramp
@@ -69,10 +75,5 @@ typedef struct Actor420700Msg7D3 {
 
 s32 func_actor_420700_80132644(Task* task, s32 arg1, Actor420700Msg7D3* args);
 s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args);
-
-/// The shared reset body `src/lib/actors_shared_80132538.c`. Declared
-/// here rather than through `actors_shared_80132538.h` because that header
-/// publishes `ActorsShared80131f9cWork` with its own work type.
-void ActorsShared80132538(void);
 
 #endif

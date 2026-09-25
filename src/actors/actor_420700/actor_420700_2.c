@@ -44,17 +44,17 @@ void func_actor_420700_801323D8(Task* task)
 /// second survives.
 void func_actor_420700_80132478(Task* task)
 {
-    if (ActorsShared80131f9cWork->field_4B4 == 1) {
+    if (D_actor_420700_8013EFE0->field_4B4 == 1) {
         func_actor_420700_801325C8();
-        ActorsShared80131f9cWork->field_4B4 = 3;
+        D_actor_420700_8013EFE0->field_4B4 = 3;
         return;
     }
-    if (ActorsShared80131f9cWork->field_4B4 == 2) {
-        ActorsShared80132538();
-        ActorsShared80131f9cWork->field_4B4 = 3;
+    if (D_actor_420700_8013EFE0->field_4B4 == 2) {
+        func_actor_420700_80132538();
+        D_actor_420700_8013EFE0->field_4B4 = 3;
         return;
     }
-    if (ActorsShared80131f9cWork->field_4B4 == 3) {
+    if (D_actor_420700_8013EFE0->field_4B4 == 3) {
         func_actor_420700_801324EC();
     }
 }
