@@ -359,10 +359,10 @@ void func_neo_ark_pavilion_8017D660(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
-    sinArg                                  = task->killCountdown * 2;
-    cosArg                                  = task->killCountdown;
-    *(OverlayRippleScratch**)G_SCRATCH_HEAD = *(OverlayRippleScratch**)G_SCRATCH_HEAD - 1;
-    scratch                                 = *(OverlayRippleScratch**)G_SCRATCH_HEAD;
+    sinArg = task->killCountdown * 2;
+    cosArg = task->killCountdown;
+    SCRATCH_PUSH(OverlayRippleScratch);
+    scratch = SCRATCH_HEAD(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
@@ -594,7 +594,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(OverlayRippleScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayRippleScratch);
 }
 
 /// Draws a rippling screen-distortion band for certain views of areas 12 and 30
@@ -716,10 +716,10 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
-    sinArg             = task->killCountdown << 5;
-    cosArg             = task->killCountdown << 4;
-    *(s32*)0x1F8003FC -= 0x40;
-    otz                = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    sinArg = task->killCountdown << 5;
+    cosArg = task->killCountdown << 4;
+    SCRATCH_PUSH_BYTES(0x40);
+    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {
@@ -802,7 +802,7 @@ void func_neo_ark_pavilion_8017E2B4(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(s32*)0x1F8003FC += 0x40;
+    SCRATCH_POP_BYTES(0x40);
 }
 
 /// The room's own event task, spawned by its message handler. State 0 runs
@@ -1069,7 +1069,7 @@ void func_neo_ark_pavilion_8017ED98(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// `Gp_State1C` effect task that plays an eight-frame sprite animation. The
@@ -1261,7 +1261,7 @@ void func_neo_ark_pavilion_8017F588(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1355,7 +1355,7 @@ void func_neo_ark_pavilion_8017F974(GsCOORDINATE2* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void func_neo_ark_pavilion_8017FC10(Task* arg0)
@@ -1530,7 +1530,7 @@ void func_neo_ark_pavilion_8017FF54(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1610,7 +1610,7 @@ void func_neo_ark_pavilion_80180380(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// `Gp_State1C` effect task drawing a ribbon between the trails of two points
@@ -1743,9 +1743,9 @@ void func_neo_ark_pavilion_80180C04(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s1
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1821,7 +1821,7 @@ void func_neo_ark_pavilion_80180C04(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s1
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect
@@ -2038,7 +2038,7 @@ void func_neo_ark_pavilion_80181284(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Glowing disc anchored to its parent at the work block's position. State 1
@@ -2296,7 +2296,7 @@ void func_neo_ark_pavilion_801823C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -2389,7 +2389,7 @@ void func_neo_ark_pavilion_80182644(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8*
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -2461,7 +2461,7 @@ void func_neo_ark_pavilion_80182A68(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// `Gp_State1C` effect task for a flickering glow. Each frame it grows a size
@@ -2650,8 +2650,7 @@ void func_neo_ark_pavilion_80182FA8(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_pavilion_801834D4(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it with
@@ -2742,5 +2741,5 @@ void func_neo_ark_pavilion_801834D4(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

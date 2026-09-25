@@ -342,10 +342,10 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
-    sinArg                                  = task->killCountdown * 2;
-    cosArg                                  = task->killCountdown;
-    *(OverlayRippleScratch**)G_SCRATCH_HEAD = *(OverlayRippleScratch**)G_SCRATCH_HEAD - 1;
-    scratch                                 = *(OverlayRippleScratch**)G_SCRATCH_HEAD;
+    sinArg = task->killCountdown * 2;
+    cosArg = task->killCountdown;
+    SCRATCH_PUSH(OverlayRippleScratch);
+    scratch = SCRATCH_HEAD(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
@@ -577,7 +577,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(OverlayRippleScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayRippleScratch);
 }
 
 /// Draws a wavy screen-distortion band for some views of areas 12 and 30 and
@@ -702,10 +702,10 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown++;
     }
-    sinArg             = task->killCountdown << 5;
-    cosArg             = task->killCountdown << 4;
-    *(s32*)0x1F8003FC -= 0x40;
-    otz                = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    sinArg = task->killCountdown << 5;
+    cosArg = task->killCountdown << 4;
+    SCRATCH_PUSH_BYTES(0x40);
+    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {
@@ -788,7 +788,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(s32*)0x1F8003FC += 0x40;
+    SCRATCH_POP_BYTES(0x40);
 }
 
 /// State handlers of the room task `func_neo_ark_submarine_tunnel_8017F434`

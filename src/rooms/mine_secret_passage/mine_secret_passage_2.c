@@ -277,7 +277,7 @@ void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -356,7 +356,7 @@ void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
@@ -521,7 +521,7 @@ void func_mine_secret_passage_8017EB34(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -615,7 +615,7 @@ void func_mine_secret_passage_8017EDF8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, 
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -695,7 +695,7 @@ void func_mine_secret_passage_8017F21C(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Frame callback of an expanding halo. State 0 parks the coordinate on its
@@ -979,8 +979,7 @@ void func_mine_secret_passage_8017FAF4(GsCOORDINATE2* coord, s16 size)
             func_mine_secret_passage_80180020(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
@@ -1071,7 +1070,7 @@ void func_mine_secret_passage_80180020(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1213,7 +1212,7 @@ void func_mine_secret_passage_80180398(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Frame callback of a rising spark: each tick walks its angle on by a random

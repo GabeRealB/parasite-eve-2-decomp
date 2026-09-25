@@ -294,7 +294,7 @@ void func_neo_ark_north_promenade_8017DA7C(GsCOORDINATE2* arg0, u16 arg1, u16 ar
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -388,7 +388,7 @@ void func_neo_ark_north_promenade_8017DD40(GsCOORDINATE2* arg0, s32 arg1, s32 ar
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -467,7 +467,7 @@ void func_neo_ark_north_promenade_8017E164(GsCOORDINATE2* arg0, s32 arg1, u8* rg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Expanding halo: state 0 parks the effect frame on its anchor and derives
@@ -740,8 +740,7 @@ void func_neo_ark_north_promenade_8017EA3C(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_north_promenade_8017EF68(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
@@ -833,7 +832,7 @@ void func_neo_ark_north_promenade_8017EF68(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -973,7 +972,7 @@ void func_neo_ark_north_promenade_8017F2E0(GsCOORDINATE2* arg0, s16 arg1, u8* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Spark emitter: each tick turns the effect's angle on by a random 0x200..0x3FF,
@@ -1178,7 +1177,7 @@ void func_neo_ark_north_promenade_80180078(GsCOORDINATE2* arg0, s32 arg1, s32 ar
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1257,7 +1256,7 @@ void func_neo_ark_north_promenade_801804A4(GsCOORDINATE2* arg0, s32 arg1, u8* rg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Twin smoke trail. State 0 allocates sixteen `GsCOORDINATE2`s, eight per
@@ -1387,9 +1386,9 @@ void func_neo_ark_north_promenade_80180D28(GsCOORDINATE2* arg0, GsCOORDINATE2* a
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1465,7 +1464,7 @@ void func_neo_ark_north_promenade_80180D28(GsCOORDINATE2* arg0, GsCOORDINATE2* a
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -1678,5 +1677,5 @@ void func_neo_ark_north_promenade_801813A8(GsCOORDINATE2* arg0, s16 arg1, u8* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }

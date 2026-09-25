@@ -411,7 +411,7 @@ void func_neo_ark_woodland_path_8017F154(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// `Gp_State1C` effect task drawing a growing, fading quad through
@@ -537,7 +537,7 @@ void func_neo_ark_woodland_path_8017F5F4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame update of an effect task drawn with
@@ -732,7 +732,7 @@ void func_neo_ark_woodland_path_8017FDE4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -826,7 +826,7 @@ void func_neo_ark_woodland_path_801801D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)

@@ -268,7 +268,7 @@ void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The
@@ -353,7 +353,7 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Glow effect task. It does nothing while the event state is 1 to 3 and
@@ -614,7 +614,7 @@ void func_neo_ark_garden_8017FF0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 a
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Draws a gouraud ring at the coordinate's world position: projects it
@@ -707,7 +707,7 @@ void func_neo_ark_garden_80180190(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* r
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws a gouraud glow disc at the coordinate's world position: projects it
@@ -779,7 +779,7 @@ void func_neo_ark_garden_801805B4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Burst effect task. Each tick it grows the burst's size by 0x10 and draws
@@ -969,8 +969,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_garden_80181020(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Draws a flickering flat quad at the coordinate `arg0`: scales the unit quad
@@ -1062,5 +1061,5 @@ void func_neo_ark_garden_80181020(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }

@@ -221,7 +221,7 @@ void func_neo_ark_submarine_gallery_8017F3DC(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Per-frame driver of a particle effect task, drawn as the spinning sprite of
@@ -418,7 +418,7 @@ void func_neo_ark_submarine_gallery_8017FBCC(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -512,7 +512,7 @@ void func_neo_ark_submarine_gallery_8017FFB8(GsCOORDINATE2* arg0, s32 arg1, s32 
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Projects `arg0` and `arg0 + 1` through `Gfx_ViewWorldMtx` and sweeps three
@@ -669,7 +669,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -753,7 +753,7 @@ void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`
@@ -773,8 +773,8 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
     s32                  farNext;
     u8                   shade;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomQuadProjScratch);
-    blk                     = (RoomQuadProjScratch*)*(void**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH_BYTES(sizeof(RoomQuadProjScratch));
+    blk = SCRATCH_HEAD(RoomQuadProjScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
     for (i = 0; i < 4; i++) {
@@ -895,5 +895,5 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomQuadProjScratch);
+    SCRATCH_POP_BYTES(sizeof(RoomQuadProjScratch));
 }

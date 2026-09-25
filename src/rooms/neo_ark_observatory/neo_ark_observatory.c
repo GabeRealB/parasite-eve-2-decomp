@@ -291,7 +291,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
         work->coord.flg   = 0;
         work->field_A0[2] = -0x78;
         work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x70);
+        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
         work->coord.sub   = sub;
         if (task->spawnArg1 == 0) {
             work->field_4     = 1;
@@ -504,8 +504,8 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
                 work->field_8           = 1;
             }
         }
-        work->field_C          = extra->flags;
-        *(u8**)G_SCRATCH_HEAD += 0x70;
+        work->field_C = extra->flags;
+        SCRATCH_POP_BYTES(0x70);
     }
 
     copyPending = work->field_4;
@@ -626,7 +626,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
             }
         }
         if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x34);
+            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
@@ -728,7 +728,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
             } else {
                 extra->flags |= 0x80;
             }
-            *(u8**)G_SCRATCH_HEAD += 0x34;
+            SCRATCH_POP_BYTES(0x34);
         }
     }
 
@@ -1413,8 +1413,8 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
     start       = gDisplayState.animFrame & 0xFFF;
     level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
     if (level >= 0) {
-        *(u8**)G_SCRATCH_HEAD -= sizeof(RoomQuadProjScratch);
-        blk                    = *(RoomQuadProjScratch**)G_SCRATCH_HEAD;
+        SCRATCH_PUSH_BYTES(sizeof(RoomQuadProjScratch));
+        blk = SCRATCH_HEAD(RoomQuadProjScratch);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         for (angle = start; angle < start + step * arg3; angle = next) {
             blk->v[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
@@ -1463,7 +1463,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
-        *(u8**)G_SCRATCH_HEAD += sizeof(RoomQuadProjScratch);
+        SCRATCH_POP_BYTES(sizeof(RoomQuadProjScratch));
     }
 }
 
@@ -1543,7 +1543,7 @@ void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_neo_ark_observatory_80180DAC(s16 arg0)

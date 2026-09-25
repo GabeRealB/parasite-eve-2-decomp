@@ -457,7 +457,7 @@ void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
@@ -552,7 +552,7 @@ void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
@@ -717,7 +717,7 @@ void func_mine_cavern_8017F50C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -811,7 +811,7 @@ void func_mine_cavern_8017F7D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -891,7 +891,7 @@ void func_mine_cavern_8017FBF4(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Frame callback of an expanding halo. State 0 parks the coordinate on its
@@ -1172,8 +1172,7 @@ void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size)
             func_mine_cavern_801809F8(&ground, outerSize);
         }
     }
-    *(void**)G_SCRATCH_HEAD =
-        (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GpRingScratch);
+    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
@@ -1264,7 +1263,7 @@ void func_mine_cavern_801809F8(GsCOORDINATE2* arg0, s32 arg1)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    SCRATCH_POP_BYTES(0x38);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1404,7 +1403,7 @@ void func_mine_cavern_80180D70(GsCOORDINATE2* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Frame callback of a rising spark: each tick walks its angle on by a random
@@ -2141,14 +2140,14 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
             return;
     }
 
-    coords                                   = ((TmdObject*)arg1->extra)->coords;
-    head                                     = *(u8**)G_SCRATCH_HEAD;
-    ((SVECTOR*)(head - 0x18))->vx            = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    d                                        = (SVECTOR*)(head - 0x18);
-    d->vy                                    = Player_Status.coordMtx->t[1] - coords->coord.t[1];
-    *(_MineCavernHitScratch**)G_SCRATCH_HEAD = (_MineCavernHitScratch*)(head - 0x28);
-    d->vz                                    = Player_Status.coordMtx->t[2] - coords->coord.t[2];
-    blk                                      = (_MineCavernHitScratch*)(head - 0x28);
+    coords                              = ((TmdObject*)arg1->extra)->coords;
+    head                                = SCRATCH_HEAD(u8);
+    ((SVECTOR*)(head - 0x18))->vx       = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    d                                   = (SVECTOR*)(head - 0x18);
+    d->vy                               = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    SCRATCH_HEAD(_MineCavernHitScratch) = (_MineCavernHitScratch*)(head - 0x28);
+    d->vz                               = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    blk                                 = (_MineCavernHitScratch*)(head - 0x28);
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.field_0 != 1 ||
         (gGameSession->at4.loc.place != Gp_StateF0.field_0 && gGameSession->at4.loc.place != 4)) {
@@ -2232,7 +2231,7 @@ found:
     }
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->recE0);
-    *(u8**)G_SCRATCH_HEAD += 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// Second state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`

@@ -270,7 +270,7 @@ void func_neo_ark_south_promenade_8017D9C4(GsCOORDINATE2* arg0, s32 arg1, s32 ar
             SOFT_USE_REG2(maskLo, maskHi);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -349,7 +349,7 @@ void func_neo_ark_south_promenade_8017DDF0(GsCOORDINATE2* arg0, s32 arg1, u8* rg
             SOFT_USE_REG(t2);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Twin smoke trail. State 0 allocates sixteen `GsCOORDINATE2`s, eight per
@@ -479,9 +479,9 @@ void func_neo_ark_south_promenade_8017E674(GsCOORDINATE2* arg0, GsCOORDINATE2* a
     {
         register u8* tmp asm("v0");
 
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomDraw03Scratch);
-        blk                     = (RoomDraw03Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
+        tmp                = SCRATCH_HEAD(u8) - sizeof(RoomDraw03Scratch);
+        blk                = (RoomDraw03Scratch*)tmp;
+        SCRATCH_HEAD(void) = tmp;
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -557,7 +557,7 @@ void func_neo_ark_south_promenade_8017E674(GsCOORDINATE2* arg0, GsCOORDINATE2* a
         }
         i += 1;
     } while (i < 7);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomDraw03Scratch);
+    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -770,5 +770,5 @@ void func_neo_ark_south_promenade_8017ECF4(GsCOORDINATE2* arg0, s16 arg1, u8* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
