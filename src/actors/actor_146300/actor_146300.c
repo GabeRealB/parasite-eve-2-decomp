@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
@@ -14,30 +15,16 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block for the `actor_146300` overlay.
-///
-/// The spawn routine, `func_actor_146300_801324AC`, allocates it with
-/// `memCalloc(0x4EC, 0)` and stores the pointer both in
-/// `D_actor_146300_80142828` and in the task's `Task::work` slot, so the size
-/// below is the allocation and not a guess. Every other function in the
-/// overlay reaches the block through the global.
-///
-/// `light` and `color` are the matrices the spawn routine hands the model;
-/// `anim` is the animation context the tick and reseed loops walk, and `slots`
-/// and `pad_374` are what `func_800B3F84` fills in beside it.
+/// Work block of the overlay's actor, allocated zeroed by its spawn routine
+/// and kept both in `D_actor_146300_80142828` and at `Task::work`; every other
+/// function in the overlay reaches it through the global. `light` and `color`
+/// are the matrices the spawn routine hands the model, and `rig` and `st` its
+/// animation rig and state.
 typedef struct Actor146300Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x140];
-    /* 0x4B4 */ s16        field_4B4; // animation reset mode `func_actor_146300_8013299C` latches (1 or 2)
-    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_146300_8013299C` before the reseed
-    /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte       pad_4E8[0x4];
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
 } Actor146300Work;
 STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
 
@@ -341,10 +328,10 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_146300_80142828->anim, D_actor_146300_801427E0, obj,
-                  &D_actor_146300_80142828->pad_374[0], D_actor_146300_80142828->slots);
-    D_actor_146300_80142828->field_4B8 = 0xB;
-    D_actor_146300_80142828->field_4B4 = 2;
+    func_800B3F84(&D_actor_146300_80142828->rig.anim, D_actor_146300_801427E0, obj,
+                  &D_actor_146300_80142828->rig.poses[0], D_actor_146300_80142828->rig.slots);
+    D_actor_146300_80142828->st.animId = 0xB;
+    D_actor_146300_80142828->st.state  = 2;
     task->msgTable                     = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
     SOFT_BARRIER();
@@ -399,17 +386,17 @@ void func_actor_146300_801327A4(Task* task)
 /// the second survives.
 void func_actor_146300_801327CC(Task* task)
 {
-    if (D_actor_146300_80142828->field_4B4 == 1) {
+    if (D_actor_146300_80142828->st.state == 1) {
         func_actor_146300_8013291C();
-        D_actor_146300_80142828->field_4B4 = 3;
+        D_actor_146300_80142828->st.state = 3;
         return;
     }
-    if (D_actor_146300_80142828->field_4B4 == 2) {
+    if (D_actor_146300_80142828->st.state == 2) {
         func_actor_146300_8013288C();
-        D_actor_146300_80142828->field_4B4 = 3;
+        D_actor_146300_80142828->st.state = 3;
         return;
     }
-    if (D_actor_146300_80142828->field_4B4 == 3) {
+    if (D_actor_146300_80142828->st.state == 3) {
         func_actor_146300_80132840();
     }
 }
@@ -421,7 +408,7 @@ void func_actor_146300_80132840(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_146300_80142828->anim, i);
+        Gp_AnimTickIndex(&D_actor_146300_80142828->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -435,11 +422,11 @@ void func_actor_146300_8013288C(void)
 
     i = 1;
     do {
-        D_actor_146300_80142828->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_146300_80142828->anim, i, D_actor_146300_80142828->field_4B8);
+        D_actor_146300_80142828->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_146300_80142828->rig.anim, i, D_actor_146300_80142828->st.animId);
         i++;
     } while (i < 0x14);
-    D_actor_146300_80142828->field_4B6 = D_actor_146300_80142828->field_4B8;
+    D_actor_146300_80142828->st.appliedAnimId = D_actor_146300_80142828->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 of the work block from the current animation
@@ -451,11 +438,11 @@ void func_actor_146300_8013291C(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_146300_80142828->anim, i, D_actor_146300_80142828->field_4B8, 0,
+        func_800B4114(&D_actor_146300_80142828->rig.anim, i, D_actor_146300_80142828->st.animId, 0,
                       D_actor_146300_8014279C);
         i++;
     } while (i < 0x14);
-    D_actor_146300_80142828->field_4B6 = D_actor_146300_80142828->field_4B8;
+    D_actor_146300_80142828->st.appliedAnimId = D_actor_146300_80142828->st.animId;
 }
 
 /// Message 0x7D3 handler: adopts `preset`'s animation id when it is
@@ -465,14 +452,14 @@ void func_actor_146300_8013291C(void)
 s32 func_actor_146300_8013299C(Task* task, s32 arg1, GpAnimArg* preset)
 {
     if (preset->field_4 < 0x11) {
-        D_actor_146300_80142828->field_4B8 = preset->field_4;
+        D_actor_146300_80142828->st.animId = preset->field_4;
         if (preset->field_8 != 0) {
-            D_actor_146300_80142828->field_4B4 = 1;
-            D_actor_146300_8014279C            = preset->field_C;
+            D_actor_146300_80142828->st.state = 1;
+            D_actor_146300_8014279C           = preset->field_C;
         } else {
-            D_actor_146300_80142828->field_4B4 = 2;
+            D_actor_146300_80142828->st.state = 2;
         }
-        D_actor_146300_80142828->field_4BA = 0;
+        D_actor_146300_80142828->st.field_6 = 0;
         func_actor_146300_801327CC(D_actor_146300_8014282C);
         return 0;
     }
@@ -513,8 +500,8 @@ s32 func_actor_146300_80132A98(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                        = ((TmdObject*)task->extra)->coords;
-    D_actor_146300_80142828->yaw = yaw = placement->rot.vy;
+    coord                           = ((TmdObject*)task->extra)->coords;
+    D_actor_146300_80142828->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;

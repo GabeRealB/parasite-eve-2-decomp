@@ -1115,20 +1115,15 @@ typedef struct Actor323000TickScratch {
 STATIC_ASSERT_SIZEOF(Actor323000TickScratch, 0x1C);
 
 /// Work block of the animated actor whose code actor_110300 and actor_110800
-/// both carry, reached through a global the spawn publishes: the animation
-/// context at the front, its slots and pose records, and the step and
-/// animation-id state. actor_110800 also cues sounds by frame, which is the
-/// only use of `field_47C`.
+/// both carry, reached through a global the spawn publishes: the rig at the
+/// front and the animation state after it. `st.field_6` is raised by the
+/// spawn routine and cleared when an animation starts, and `st.field_8` is
+/// the frame slot 19 or 16 last cued a sound for, kept for change detection,
+/// which only actor_110800 uses.
 typedef struct Actor110300Work {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
-    byte       aux[0x140];  // `GpAnimCtx.poses`, one 0x10-byte record per slot
-    s16        field_474;   // actor step: 1 and 2 select the body to run, which then advances it to 3
-    s16        field_476;   // copy of `animId`, kept for change detection
-    u16        animId;      // animation id the slots are seeded with
-    u16        field_47A;   // incremented by the step-0 handler, cleared by the animation-start handler
-    s16        field_47C;   // frame slot 19 or 16 last cued a sound for (actor_110800 only), kept for change detection
-    byte       pad_47E[0xDE];
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
+    byte            pad_4AC[0xB0];
 } Actor110300Work;
 STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 

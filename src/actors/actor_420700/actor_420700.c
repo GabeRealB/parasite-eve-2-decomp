@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
@@ -9,29 +10,20 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block for the `actor_420700` overlay.
-///
-/// The state-0 handler `func_actor_420700_80131E24` allocates it with
-/// `memCalloc(0x5A0, 0)` and stores the pointer both in
-/// `D_actor_420700_8013EFE0` and in `Task::work`, so the size below is the
-/// allocation. The task dispatcher republishes it in the global every tick,
-/// and every other function in the overlay reaches the block through it.
-///
-/// `anim` is the animation context the tick and reseed loops walk; the spawn
-/// handler passes `poses` and `slots` to `func_800B3F84` together with it.
+/// Work block of the overlay's actor, allocated zeroed by its state-0 handler
+/// and kept both in `D_actor_420700_8013EFE0` and at `Task::work`; the task
+/// dispatcher republishes it every tick, and every other function in the
+/// overlay reaches it through the global. `light` and `color` are the model's
+/// matrices and `rig` and `st` its animation rig and state. The actor's own
+/// state fields are a ramp: `st.field_6` is the mode message 0x7DB selects (1
+/// and 3 rise, 2 falls, 0 leaves it alone), and `st.field_8` the value the
+/// ramp walks by 0x80, clamped to 0..0x1000.
 typedef struct Actor420700Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       poses[0x14][0x10];
-    /* 0x4B4 */ s16        field_4B4; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ s16        field_4BA; // ramp mode message 0x7DB selected: 1 and 3 rise, 2 falls, 0 leaves it alone
-    /* 0x4BC */ s16        field_4BC; // ramp value `func_actor_420700_80132064` walks by 0x80, clamped to 0..0x1000
-    /* 0x4BE */ s16        field_4BE;
-    /* 0x4C0 */ byte       pad_4C0[0xE0];
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
+    byte            pad_4EC[0xB4];
 } Actor420700Work;
 STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
 
@@ -136,10 +128,10 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
     D_actor_420700_8013EFF4 = 0x96;
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_420700_8013EFE0->anim, D_actor_420700_8013EF8C, obj,
-                  D_actor_420700_8013EFE0->poses, D_actor_420700_8013EFE0->slots);
-    D_actor_420700_8013EFE0->field_4B8 = 5;
-    D_actor_420700_8013EFE0->field_4B4 = 2;
+    func_800B3F84(&D_actor_420700_8013EFE0->rig.anim, D_actor_420700_8013EF8C, obj,
+                  D_actor_420700_8013EFE0->rig.poses, D_actor_420700_8013EFE0->rig.slots);
+    D_actor_420700_8013EFE0->st.animId = 5;
+    D_actor_420700_8013EFE0->st.state  = 2;
     task->msgTable                     = D_actor_420700_8013EF48;
     func_actor_420700_80132478(task);
     task->state++;
@@ -147,8 +139,8 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 
 /// Step 1 of the `func_actor_420700_80132340` dispatcher: refresh the model's third
 /// coordinate and colour the actor from its world translation, run
-/// `func_actor_420700_80132478`, then step the `field_4BC` ramp by the mode in
-/// `field_4BA` and pass it as the weight of `func_800B0928` aimed at the
+/// `func_actor_420700_80132478`, then step the `st.field_8` ramp by the mode in
+/// `st.field_6` and pass it as the weight of `func_800B0928` aimed at the
 /// slot-3 task (modes 0, 1 and 2) or of `func_800B0CF4` aimed at a fixed
 /// world point (mode 3).
 ///
@@ -181,25 +173,25 @@ void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     func_actor_420700_80132478(task);
     rate = 0x10;
-    if (D_actor_420700_8013EFE0->field_4BA != 0) {
-        if (D_actor_420700_8013EFE0->field_4BA == 1 || D_actor_420700_8013EFE0->field_4BA == 3) {
-            D_actor_420700_8013EFE0->field_4BC += 0x80;
-            if (D_actor_420700_8013EFE0->field_4BC > 0x1000) {
-                D_actor_420700_8013EFE0->field_4BC = 0x1000;
+    if (D_actor_420700_8013EFE0->st.field_6 != 0) {
+        if (D_actor_420700_8013EFE0->st.field_6 == 1 || D_actor_420700_8013EFE0->st.field_6 == 3) {
+            D_actor_420700_8013EFE0->st.field_8 += 0x80;
+            if (D_actor_420700_8013EFE0->st.field_8 > 0x1000) {
+                D_actor_420700_8013EFE0->st.field_8 = 0x1000;
             }
         } else {
-            D_actor_420700_8013EFE0->field_4BC -= 0x80;
-            if (D_actor_420700_8013EFE0->field_4BC < 0) {
-                D_actor_420700_8013EFE0->field_4BC = 0;
+            D_actor_420700_8013EFE0->st.field_8 -= 0x80;
+            if (D_actor_420700_8013EFE0->st.field_8 < 0) {
+                D_actor_420700_8013EFE0->st.field_8 = 0;
             }
         }
-        if (D_actor_420700_8013EFE0->field_4BA == 3) {
+        if (D_actor_420700_8013EFE0->st.field_6 == 3) {
             target[0].coord.t[0] = 0x1173;
             target[0].coord.t[1] = 0;
             target[0].coord.t[2] = -0x733;
-            func_800B0CF4(task, target, 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
+            func_800B0CF4(task, target, 0x200, 0x100, D_actor_420700_8013EFE0->st.field_8);
         } else {
-            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
+            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->st.field_8);
         }
     } else {
         if (gGameSession->eventState == 0) {
@@ -212,23 +204,23 @@ void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
             } else {
                 D_actor_420700_8013EFF0 = -0x80;
             }
-            if (D_actor_420700_8013EFE0->field_4BC != 0) {
+            if (D_actor_420700_8013EFE0->st.field_8 != 0) {
                 rate = 0;
             }
         } else {
             D_actor_420700_8013EFF0 = -0x80;
         }
-        D_actor_420700_8013EFE0->field_4BC += D_actor_420700_8013EFF0;
-        if (D_actor_420700_8013EFE0->field_4BC > 0x1000) {
-            D_actor_420700_8013EFE0->field_4BC = 0x1000;
+        D_actor_420700_8013EFE0->st.field_8 += D_actor_420700_8013EFF0;
+        if (D_actor_420700_8013EFE0->st.field_8 > 0x1000) {
+            D_actor_420700_8013EFE0->st.field_8 = 0x1000;
         }
-        if (D_actor_420700_8013EFE0->field_4BC < 0) {
-            D_actor_420700_8013EFE0->field_4BC = 0;
+        if (D_actor_420700_8013EFE0->st.field_8 < 0) {
+            D_actor_420700_8013EFE0->st.field_8 = 0;
         }
-        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->field_4BC);
+        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, D_actor_420700_8013EFE0->st.field_8);
     }
     for (i = 1; i < 0x14; i++) {
-        D_actor_420700_8013EFE0->slots[i].rate = rate;
+        D_actor_420700_8013EFE0->rig.slots[i].rate = rate;
     }
 }
 
@@ -291,17 +283,17 @@ void func_actor_420700_801323D8(Task* task)
 /// second survives.
 void func_actor_420700_80132478(Task* task)
 {
-    if (D_actor_420700_8013EFE0->field_4B4 == 1) {
+    if (D_actor_420700_8013EFE0->st.state == 1) {
         func_actor_420700_801325C8();
-        D_actor_420700_8013EFE0->field_4B4 = 3;
+        D_actor_420700_8013EFE0->st.state = 3;
         return;
     }
-    if (D_actor_420700_8013EFE0->field_4B4 == 2) {
+    if (D_actor_420700_8013EFE0->st.state == 2) {
         func_actor_420700_80132538();
-        D_actor_420700_8013EFE0->field_4B4 = 3;
+        D_actor_420700_8013EFE0->st.state = 3;
         return;
     }
-    if (D_actor_420700_8013EFE0->field_4B4 == 3) {
+    if (D_actor_420700_8013EFE0->st.state == 3) {
         func_actor_420700_801324EC();
     }
 }
@@ -313,7 +305,7 @@ void func_actor_420700_801324EC(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_420700_8013EFE0->anim, i);
+        Gp_AnimTickIndex(&D_actor_420700_8013EFE0->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -326,11 +318,11 @@ void func_actor_420700_80132538(void)
 
     i = 1;
     do {
-        D_actor_420700_8013EFE0->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_420700_8013EFE0->anim, i, D_actor_420700_8013EFE0->field_4B8);
+        D_actor_420700_8013EFE0->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_420700_8013EFE0->rig.anim, i, D_actor_420700_8013EFE0->st.animId);
         i++;
     } while (i < 0x14);
-    D_actor_420700_8013EFE0->field_4B6 = D_actor_420700_8013EFE0->field_4B8;
+    D_actor_420700_8013EFE0->st.appliedAnimId = D_actor_420700_8013EFE0->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 from the current animation id and records
@@ -341,10 +333,10 @@ void func_actor_420700_801325C8(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_420700_8013EFE0->anim, i, D_actor_420700_8013EFE0->field_4B8, 0, 8);
+        func_800B4114(&D_actor_420700_8013EFE0->rig.anim, i, D_actor_420700_8013EFE0->st.animId, 0, 8);
         i++;
     } while (i < 0x14);
-    D_actor_420700_8013EFE0->field_4B6 = D_actor_420700_8013EFE0->field_4B8;
+    D_actor_420700_8013EFE0->st.appliedAnimId = D_actor_420700_8013EFE0->st.animId;
 }
 
 /// Message 0x7D3 handler: selects animation `field_4` (below 0x15) of the bank
@@ -370,13 +362,13 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, GpAnimArg* args)
                 break;
         }
         work            = D_actor_420700_8013EFE0;
-        work->field_4B8 = (u16)args->field_4 + offset;
+        work->st.animId = (u16)args->field_4 + offset;
         if (args->field_8 != 0) {
-            work->field_4B4 = 1;
+            work->st.state = 1;
         } else {
-            work->field_4B4 = 2;
+            work->st.state = 2;
         }
-        D_actor_420700_8013EFE0->field_4BE = 0;
+        D_actor_420700_8013EFE0->st.field_A = 0;
         func_actor_420700_80132478(D_actor_420700_8013EFE4);
         return 0;
     }
@@ -413,8 +405,8 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Message 0x7DB handler: records the `field_4BA` mode the ramp
-/// `func_actor_420700_80132064` runs and seeds `field_4BC` at the end that mode
+/// Message 0x7DB handler: records the `st.field_6` mode the ramp
+/// `func_actor_420700_80132064` runs and seeds `st.field_8` at the end that mode
 /// walks away from -- 0 for the rising modes 1 and 3, 0x1000 for the falling
 /// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
 /// 0x1B02 is rejected with -1 without touching the work block.
@@ -429,16 +421,16 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, GpCmdArg* args)
     if (args->from.key != 0x1B02) {
         return -1;
     }
-    D_actor_420700_8013EFE0->field_4BA = args->command;
+    D_actor_420700_8013EFE0->st.field_6 = args->command;
     switch (args->command) {
         case 0:
             break;
         case 1:
         case 3:
-            D_actor_420700_8013EFE0->field_4BC = 0;
+            D_actor_420700_8013EFE0->st.field_8 = 0;
             break;
         case 2:
-            D_actor_420700_8013EFE0->field_4BC = 0x1000;
+            D_actor_420700_8013EFE0->st.field_8 = 0x1000;
             break;
     }
     return 0;

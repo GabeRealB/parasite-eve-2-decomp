@@ -80,16 +80,16 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
     coord->flg                   = 0;
     D_actor_110800_80139F14      = task;
     D_actor_110800_80139F18      = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
-    func_800B3F84(&D_actor_110800_80139F10->anim, D_actor_110800_80139EF4, obj,
-                  D_actor_110800_80139F10->aux, D_actor_110800_80139F10->slots);
-    D_actor_110800_80139F10->animId    = 1;
-    D_actor_110800_80139F10->field_474 = 2;
+    func_800B3F84(&D_actor_110800_80139F10->rig.anim, D_actor_110800_80139EF4, obj,
+                  D_actor_110800_80139F10->rig.poses, D_actor_110800_80139F10->rig.slots);
+    D_actor_110800_80139F10->st.animId = 1;
+    D_actor_110800_80139F10->st.state  = 2;
     func_actor_110800_80132368(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    D_actor_110800_80139F10->field_47A++;
+    D_actor_110800_80139F10->st.field_6++;
     task->msgTable = D_actor_110800_80139EC4;
     task->state++;
 }
@@ -103,7 +103,7 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
 ///
 /// The two animation ids this actor plays carry a frame table each: id 4
 /// watches slot 19 alone, id 5 watches slot 19 and then slot 16. An entry
-/// latches the frame it fired for in `field_47C`, so a frame that is held over
+/// latches the frame it fired for in `st.field_8`, so a frame that is held over
 /// several calls only cues once; the mask is the frame index of the slot's
 /// halfword.
 ///
@@ -126,51 +126,51 @@ void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     obj   = (TmdObject*)task->extra;
     func_actor_110800_80132368(task);
-    switch ((s16)D_actor_110800_80139F10->animId) {
+    switch ((s16)D_actor_110800_80139F10->st.animId) {
         case 4:
-            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xC8) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF) == 0xC8) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0011, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF;
             }
-            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xCA) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF) == 0xCA) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000D, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF;
             }
-            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xCD) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF) == 0xCD) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000E, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF;
             }
             break;
         case 5:
-            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0x115) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF) == 0x115) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF;
             }
-            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0x11F) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF) == 0x11F) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].curRec & 0x3FF;
             }
-            if ((D_actor_110800_80139F10->slots[16].curRec & 0x3FF) == 0xCE) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[16].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF) == 0xCE) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[16].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF;
             }
-            if ((D_actor_110800_80139F10->slots[16].curRec & 0x3FF) == 0xD8) {
-                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[16].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF) == 0xD8) {
+                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[16].curRec & 0x3FF;
+                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].curRec & 0x3FF;
             }
             break;
     }
@@ -217,22 +217,22 @@ void func_actor_110800_8013232C(Task* arg0)
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
 
-/// Advances the animation per the work block's `field_474`: step 1 reseeds the
+/// Advances the animation per the work block's `st.state`: step 1 reseeds the
 /// slots through `func_800B4114`, step 2 resets them outright, and either moves
 /// on to step 3, which ticks them. The argument is never read.
 void func_actor_110800_80132368(Task* task)
 {
-    if (D_actor_110800_80139F10->field_474 == 1) {
+    if (D_actor_110800_80139F10->st.state == 1) {
         func_actor_110800_801324AC();
-        D_actor_110800_80139F10->field_474 = 3;
+        D_actor_110800_80139F10->st.state = 3;
         return;
     }
-    if (D_actor_110800_80139F10->field_474 == 2) {
+    if (D_actor_110800_80139F10->st.state == 2) {
         func_actor_110800_80132424();
-        D_actor_110800_80139F10->field_474 = 3;
+        D_actor_110800_80139F10->st.state = 3;
         return;
     }
-    if (D_actor_110800_80139F10->field_474 == 3) {
+    if (D_actor_110800_80139F10->st.state == 3) {
         func_actor_110800_801323DC();
     }
 }
@@ -244,7 +244,7 @@ void func_actor_110800_801323DC(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_110800_80139F10->anim, i);
+        Gp_AnimTickIndex(&D_actor_110800_80139F10->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -257,11 +257,11 @@ void func_actor_110800_80132424(void)
 
     i = 1;
     do {
-        D_actor_110800_80139F10->slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_110800_80139F10->anim, i, (s16)D_actor_110800_80139F10->animId);
+        D_actor_110800_80139F10->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&D_actor_110800_80139F10->rig.anim, i, (s16)D_actor_110800_80139F10->st.animId);
         i++;
     } while (i < 0x14);
-    D_actor_110800_80139F10->field_476 = D_actor_110800_80139F10->animId;
+    D_actor_110800_80139F10->st.appliedAnimId = D_actor_110800_80139F10->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 of the work block's animation context from
@@ -273,28 +273,28 @@ void func_actor_110800_801324AC(void)
 
     i = 1;
     do {
-        func_800B4114(&D_actor_110800_80139F10->anim, i, (s16)D_actor_110800_80139F10->animId, 0, 8);
+        func_800B4114(&D_actor_110800_80139F10->rig.anim, i, (s16)D_actor_110800_80139F10->st.animId, 0, 8);
         i++;
     } while (i < 0x14);
-    D_actor_110800_80139F10->field_476 = D_actor_110800_80139F10->animId;
+    D_actor_110800_80139F10->st.appliedAnimId = D_actor_110800_80139F10->st.animId;
 }
 
 /// Message 0x7D3 handler: starts animation `args->field_4`, rejecting anything
-/// from 6 up, and leaves the actor in step 2 with `field_47A` cleared before
+/// from 6 up, and leaves the actor in step 2 with `st.field_6` cleared before
 /// running the animation step driver.
 ///
 /// The actor is read into a local between the first two stores: that puts the
-/// global's `lui`/`lw` ahead of the `li 2` and leaves the `field_47A` clear
+/// global's `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear
 /// for the call's delay slot.
 s32 func_actor_110800_80132524(Task* task, s32 arg1, GpAnimArg* args)
 {
     Task* actor;
 
     if (args->field_4 < 6) {
-        D_actor_110800_80139F10->animId    = args->field_4;
-        actor                              = D_actor_110800_80139F14;
-        D_actor_110800_80139F10->field_474 = 2;
-        D_actor_110800_80139F10->field_47A = 0;
+        D_actor_110800_80139F10->st.animId  = args->field_4;
+        actor                               = D_actor_110800_80139F14;
+        D_actor_110800_80139F10->st.state   = 2;
+        D_actor_110800_80139F10->st.field_6 = 0;
         func_actor_110800_80132368(actor);
         return 0;
     }

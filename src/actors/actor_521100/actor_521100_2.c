@@ -39,9 +39,7 @@ STATIC_ASSERT_SIZEOF(Actor521100AttachRot, 0x28);
 typedef struct Actor521100Work4B4 {
     /* 0x000 */ MATRIX               light;
     /* 0x020 */ MATRIX               color;
-    /* 0x040 */ GpAnimCtx            anim;
-    /* 0x054 */ GpAnimSlot           slots[0x13];
-    /* 0x34C */ byte                 poses[0x130];
+    /* 0x040 */ ActorAnimRig19       rig;
     /* 0x47C */ s16                  field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
     /* 0x47E */ u16                  field_47E; // animation id currently playing
     /* 0x480 */ u16                  animId;    // animation id the slots are seeded with
@@ -177,7 +175,7 @@ void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
     D_actor_521100_8016A3DC      = task;
     vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->poses);
+    Gp_AnimInitCtx(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
     D_actor_521100_8016A3D8->animId    = 1;
     D_actor_521100_8016A3D8->field_47C = 2;
     task->msgTable                     = &D_actor_521100_8016A358;
@@ -270,7 +268,7 @@ void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i]);
+        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
         i++;
     } while (i < 0x13);
 
@@ -419,7 +417,7 @@ void func_actor_521100_80136724(void)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i]);
+        Gp_AnimTickSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
         i++;
     } while (i < 0x13);
 }
@@ -433,8 +431,8 @@ void func_actor_521100_8013677C(void)
 
     i = 1;
     do {
-        D_actor_521100_8016A3D8->slots[i].rate = 1;
-        Gp_AnimInitSlot(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i], i,
+        D_actor_521100_8016A3D8->rig.slots[i].rate = 1;
+        Gp_AnimInitSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
                         (s16)D_actor_521100_8016A3D8->animId);
         i++;
     } while (i < 0x13);
@@ -449,7 +447,7 @@ void func_actor_521100_80136820(void)
 
     i = 1;
     do {
-        func_800B3AA4(&D_actor_521100_8016A3D8->anim, &D_actor_521100_8016A3D8->slots[i], i,
+        func_800B3AA4(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
                       (s16)D_actor_521100_8016A3D8->animId, 0, 8);
         i++;
     } while (i < 0x13);

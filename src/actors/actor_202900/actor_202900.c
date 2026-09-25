@@ -1,4 +1,5 @@
 #include "common.h"
+#include "actors/actor.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -11,27 +12,20 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block, allocated at 0x564 bytes by the setup handler
-/// `func_actor_202900_80149E24` and reached through the global
-/// `D_actor_202900_80156E54`, which the actor's update
-/// `func_actor_202900_8014A02C` refreshes from the task every frame.
-///
-/// It opens with the light and colour matrices the actor's model is drawn
-/// under, then the animation context with one slot and one 0x10-byte pose
-/// record for each of the nineteen parts `func_actor_202900_8014A208` ticks.
-/// Only the fields the functions reach are reconstructed after that.
+/// Work block of the overlay's actor, allocated zeroed by its setup handler
+/// and reached through `D_actor_202900_80156E54`, which the actor's update
+/// refreshes from the task every frame: the light and colour matrices the
+/// model is drawn under, its nineteen-part rig and its animation state, in
+/// which `st.field_8` latches the second slot's record once it reaches 0x15,
+/// so the overlay reacts to that record once.
 typedef struct Actor202900Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x13];
-    /* 0x34C */ byte       poses[0x13][0x10];
-    /* 0x47C */ s16        field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ u16        field_47E; // animation id currently playing
-    /* 0x480 */ u16        animId;    // animation id the slots are seeded with
-    /* 0x482 */ s16        field_482; // cleared when a step body is started
-    /* 0x484 */ s16        field_484; // frame the second slot last held when it was 0x15, kept for change detection
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig19  rig;
+    ActorEnemyState st;
+    byte            pad_4B4[0xB0];
 } Actor202900Work;
+STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
 
 extern u8       D_actor_202900_80156E0C[];
 extern TaskDesc D_actor_202900_80156E24[];
@@ -123,12 +117,12 @@ void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gp_AnimInitCtx(&D_actor_202900_80156E54->anim, D_actor_202900_80156E3C, obj,
-                   D_actor_202900_80156E54->poses);
-    D_actor_202900_80156E54->animId    = 4;
-    D_actor_202900_80156E54->field_47C = 2;
-    D_actor_202900_80156E54->field_484 = 0;
-    task->msgTable                     = D_actor_202900_80156E0C;
+    Gp_AnimInitCtx(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
+                   D_actor_202900_80156E54->rig.poses);
+    D_actor_202900_80156E54->st.animId  = 4;
+    D_actor_202900_80156E54->st.state   = 2;
+    D_actor_202900_80156E54->st.field_8 = 0;
+    task->msgTable                      = D_actor_202900_80156E0C;
     func_actor_202900_8014A194(task);
     task->state++;
 }
@@ -183,7 +177,7 @@ void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_202900_8014A194(task);
-    if ((s16)D_actor_202900_80156E54->animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
+    if ((s16)D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
         SndEvt_EnqueueType6(0x5104000D, 0, 0);
     }
 }
@@ -203,17 +197,17 @@ void func_actor_202900_8014A158(Task* arg0)
 /// functions.
 void func_actor_202900_8014A194(Task* arg0)
 {
-    if (D_actor_202900_80156E54->field_47C == 1) {
+    if (D_actor_202900_80156E54->st.state == 1) {
         func_actor_202900_8014A304();
-        D_actor_202900_80156E54->field_47C = 3;
+        D_actor_202900_80156E54->st.state = 3;
         return;
     }
-    if (D_actor_202900_80156E54->field_47C == 2) {
+    if (D_actor_202900_80156E54->st.state == 2) {
         func_actor_202900_8014A260();
-        D_actor_202900_80156E54->field_47C = 3;
+        D_actor_202900_80156E54->st.state = 3;
         return;
     }
-    if (D_actor_202900_80156E54->field_47C == 3) {
+    if (D_actor_202900_80156E54->st.state == 3) {
         func_actor_202900_8014A208();
     }
 }
@@ -225,13 +219,13 @@ void func_actor_202900_8014A208(void)
 
     i = 1;
     do {
-        Gp_AnimTickSlot(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i]);
+        Gp_AnimTickSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i]);
         i++;
     } while (i < 0x13);
 }
 
 /// Reseeds animation slots 1..0x12 from `animId`, forcing each slot's set
-/// index to 1 first, and latches that id into `field_47E` as the one now
+/// index to 1 first, and latches that id into `st.appliedAnimId` as the one now
 /// playing.
 ///
 /// The third argument is the loop counter itself, and the two scaled induction variables are the
@@ -242,16 +236,16 @@ void func_actor_202900_8014A260(void)
 
     i = 1;
     do {
-        D_actor_202900_80156E54->slots[i].rate = 1;
-        Gp_AnimInitSlot(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i], i,
-                        (s16)D_actor_202900_80156E54->animId);
+        D_actor_202900_80156E54->rig.slots[i].rate = 1;
+        Gp_AnimInitSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
+                        (s16)D_actor_202900_80156E54->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_202900_80156E54->field_47E = D_actor_202900_80156E54->animId;
+    D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
 }
 
 /// Reseeds animation slots 1..0x12 from `animId` and latches that id into
-/// `field_47E` as the one now playing.
+/// `st.appliedAnimId` as the one now playing.
 ///
 /// The third argument is the loop counter itself. Giving the call its own
 /// counter copy (as m2c does) makes the preheader's `a2` initialisation a
@@ -263,15 +257,15 @@ void func_actor_202900_8014A304(void)
 
     i = 1;
     do {
-        func_800B3AA4(&D_actor_202900_80156E54->anim, &D_actor_202900_80156E54->slots[i], i,
-                      (s16)D_actor_202900_80156E54->animId, 0, 8);
+        func_800B3AA4(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
+                      (s16)D_actor_202900_80156E54->st.animId, 0, 8);
         i++;
     } while (i < 0x13);
-    D_actor_202900_80156E54->field_47E = D_actor_202900_80156E54->animId;
+    D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
 }
 
 /// Watches the second animation slot for the frame the overlay reacts to:
-/// while it holds 0x15, records it in `field_484` and reports whether that is
+/// while it holds 0x15, records it in `st.field_8` and reports whether that is
 /// a change.
 ///
 /// The mask is written at each use rather than hoisted into a `u16` local.
@@ -282,34 +276,34 @@ s32 func_actor_202900_8014A394(void)
 {
     u16 frame;
 
-    frame = D_actor_202900_80156E54->slots[1].curRec;
+    frame = D_actor_202900_80156E54->rig.slots[1].curRec;
     if ((frame & 0x3FF) == 0x15) {
-        if (D_actor_202900_80156E54->field_484 != (frame & 0x3FF)) {
-            D_actor_202900_80156E54->field_484 = frame & 0x3FF;
+        if (D_actor_202900_80156E54->st.field_8 != (frame & 0x3FF)) {
+            D_actor_202900_80156E54->st.field_8 = frame & 0x3FF;
             return 1;
         }
-        D_actor_202900_80156E54->field_484 = frame & 0x3FF;
+        D_actor_202900_80156E54->st.field_8 = frame & 0x3FF;
     }
     return 0;
 }
 
 /// Message 0x7D3 handler, animation start: seeds the work block's `animId` with the requested
 /// one, rejecting anything from 5 up, and leaves the actor in step 2 with
-/// `field_482` cleared before running the step dispatcher.
+/// `st.field_6` cleared before running the step dispatcher.
 ///
 /// The actor is read into a local between the first two stores on purpose: that
 /// is where the original evaluates it, and it is what puts the global's
-/// `lui`/`lw` ahead of the `li 2` and leaves the `field_482` clear for the
+/// `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear for the
 /// call's delay slot.
 s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, GpAnimArg* args)
 {
     Task* actor;
 
     if (args->field_4 < 5) {
-        D_actor_202900_80156E54->animId    = args->field_4;
-        actor                              = D_actor_202900_80156E58;
-        D_actor_202900_80156E54->field_47C = 2;
-        D_actor_202900_80156E54->field_482 = 0;
+        D_actor_202900_80156E54->st.animId  = args->field_4;
+        actor                               = D_actor_202900_80156E58;
+        D_actor_202900_80156E54->st.state   = 2;
+        D_actor_202900_80156E54->st.field_6 = 0;
         func_actor_202900_8014A194(actor);
         return 0;
     }
