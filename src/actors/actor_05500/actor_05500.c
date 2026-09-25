@@ -45,7 +45,7 @@ extern s16           Actor05500_D08A1E;
 extern s16           Actor05500_D08A20;
 extern s16           Actor05500_D08A38[][2];
 extern s16           Actor05500_D08A5C[][2];
-extern Actor105500Uv Actor05500_D08A80[];
+extern ActorSpriteUv Actor05500_D08A80[];
 extern s16           Actor05500_D08AA0[];
 extern TaskDesc      Actor05500_D08ABC;
 extern u8            Actor05500_D08AD4[];
@@ -1359,7 +1359,7 @@ void Actor05500_Fn02954(Task* actor, s32 frame)
     ActorQuadScratch* scratchEnd;
     ActorQuadScratch* s;
     TmdObject*        texture;
-    Actor105500Uv*    uv;
+    ActorSpriteUv*    uv;
     SVECTOR*          projection;
 
     scratchEnd                     = (ActorQuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);

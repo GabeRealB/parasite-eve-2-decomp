@@ -24,7 +24,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-extern Actor105500Uv Actor02600_D08A78[];
+extern ActorSpriteUv Actor02600_D08A78[];
 extern s16           Actor02600_D08A98[];
 
 extern GpPairSrcE Actor02600_D08968;
@@ -1365,7 +1365,7 @@ void Actor02600_Fn02954(Task* actor, s32 frame)
     ActorQuadScratch* scratchEnd;
     ActorQuadScratch* s;
     TmdObject*        texture;
-    Actor105500Uv*    uv;
+    ActorSpriteUv*    uv;
     SVECTOR*          projection;
 
     scratchEnd                     = (ActorQuadScratch*)*(u8**)PSX_SCRATCH_ADDR(0x3FC);

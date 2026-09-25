@@ -49,15 +49,7 @@ typedef struct Actor300700SpawnWork {
 } Actor300700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 
-typedef struct Actor300700TexEntry {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 pad_1;
-    /* 0x2 */ u8 v;
-    /* 0x3 */ u8 pad_3;
-} Actor300700TexEntry;
-STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
-
-extern Actor300700TexEntry D_actor_300700_80165B9C[];
+extern ActorSpriteUv D_actor_300700_80165B9C[];
 
 void func_actor_300700_80163410(Task* arg0);
 void func_actor_300700_801637E4(Task* arg0);
@@ -629,15 +621,15 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
 
 void func_actor_300700_80162EFC(Task* arg0)
 {
-    ActorQuadScratch*    sc;
-    Actor300700Work*     work;
-    TmdObject*           obj;
-    GsCOORDINATE2*       coord;
-    s32                  size, x, y;
-    s16                  i;
-    SVECTOR*             v;
-    POLY_FT4*            prim;
-    Actor300700TexEntry* uv;
+    ActorQuadScratch* sc;
+    Actor300700Work*  work;
+    TmdObject*        obj;
+    GsCOORDINATE2*    coord;
+    s32               size, x, y;
+    s16               i;
+    SVECTOR*          v;
+    POLY_FT4*         prim;
+    ActorSpriteUv*    uv;
     obj         = arg0->extra;
     sc          = (ActorQuadScratch*)(SCRATCH_SP -= 0x28);
     coord       = obj->coords;

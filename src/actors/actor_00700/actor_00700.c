@@ -106,14 +106,6 @@ typedef struct Actor00700Work {
     /* 0x398 */ s16                      field_398;
 } Actor00700Work;
 
-typedef struct Actor00700TexEntry {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 pad_1;
-    /* 0x2 */ u8 v;
-    /* 0x3 */ u8 pad_3;
-} Actor00700TexEntry;
-STATIC_ASSERT_SIZEOF(Actor00700TexEntry, 4);
-
 /// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
 typedef struct Actor00700SpawnWork {
     /* 0x000 */ u8      field_0[0x14];
@@ -204,7 +196,7 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern Actor00700TexEntry Actor00700_D075BC[];
+extern ActorSpriteUv Actor00700_D075BC[];
 
 extern s16 Actor00700_D06DF0[];
 extern u16 Actor00700_D06E00[];
@@ -1965,15 +1957,15 @@ void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
 
 void Actor00700_Fn0305C(Task* arg0)
 {
-    ActorQuadScratch*   sc;
-    Actor00700Work*     work;
-    TmdObject*          obj;
-    GsCOORDINATE2*      coord;
-    s32                 size, x, y;
-    s16                 i;
-    SVECTOR*            v;
-    POLY_FT4*           prim;
-    Actor00700TexEntry* uv;
+    ActorQuadScratch* sc;
+    Actor00700Work*   work;
+    TmdObject*        obj;
+    GsCOORDINATE2*    coord;
+    s32               size, x, y;
+    s16               i;
+    SVECTOR*          v;
+    POLY_FT4*         prim;
+    ActorSpriteUv*    uv;
     obj         = arg0->extra;
     sc          = (ActorQuadScratch*)(SCRATCH_SP -= 0x28);
     coord       = obj->coords;

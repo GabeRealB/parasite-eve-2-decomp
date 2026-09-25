@@ -530,13 +530,15 @@ typedef struct Actor105500Anim {
 } Actor105500Anim;
 STATIC_ASSERT_SIZEOF(Actor105500Anim, 0x154);
 
-/// One texture-page coordinate of the enemy's sprite table.
-typedef struct Actor105500Uv {
+/// One entry of a sprite frame table: the texture-page coordinates of the
+/// frame, each in the low byte of its halfword.
+typedef struct ActorSpriteUv {
     u8 u;
     u8 pad_1;
     u8 v;
     u8 pad_3;
-} Actor105500Uv;
+} ActorSpriteUv;
+STATIC_ASSERT_SIZEOF(ActorSpriteUv, 0x4);
 
 /// Scratch-pad block for projecting one end of the enemy's line primitives:
 /// the point, its screen position and the depth the line is sorted at.
