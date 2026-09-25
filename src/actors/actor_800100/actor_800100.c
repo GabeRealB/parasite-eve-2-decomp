@@ -415,7 +415,7 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Projectile task of the actor: while the state block says a fade-out is not
@@ -633,7 +633,7 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws the projectile's ground splash at the traced ground point `pos`: the
@@ -705,7 +705,7 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void func_actor_800100_801631C8(Task* arg0)
@@ -740,12 +740,12 @@ void func_actor_800100_80163214(Task* arg0)
     u8             saved;
     void*          head;
 
-    actor                   = arg0->work;
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - 8;
-    scratch                 = (SVECTOR3*)(head - 8);
-    extra                   = arg0->extra;
-    coord                   = extra->coords;
+    actor              = arg0->work;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = head - 8;
+    scratch            = (SVECTOR3*)(head - 8);
+    extra              = arg0->extra;
+    coord              = extra->coords;
     arg0->state++;
     arg0->msgTable     = &D_actor_800100_80167130;
     arg0->exitCallback = func_actor_800100_80163C04;
@@ -850,7 +850,7 @@ void func_actor_800100_80163214(Task* arg0)
     scratch->vz = 0;
     Gp_BindActorD4(arg0, scratch, 0x1000);
     func_8010BF7C(arg0, 0x3C, 0x7F);
-    *(u32*)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_actor_800100_801635F4(Task* arg0)
@@ -966,7 +966,7 @@ void func_actor_800100_801635F4(Task* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShade);
         }
     }
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Texture-upload state of the actor: runs two independent sequences, each a
@@ -1035,7 +1035,7 @@ void func_actor_800100_80163A58(Task* arg0)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_actor_800100_80163BF8(Task* arg0)
@@ -1389,7 +1389,7 @@ void func_actor_800100_801643F4(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
@@ -1461,7 +1461,7 @@ void func_actor_800100_80164580(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800100_80164710(Task* arg0)
@@ -1479,11 +1479,11 @@ void func_actor_800100_80164710(Task* arg0)
     s32                     dist;
     u16                     state;
 
-    head                    = *(VECTOR3**)G_SCRATCH_HEAD;
-    actor                   = arg0->work;
-    scratch                 = (Actor800100LockScratch*)((u8*)head - 0x20);
-    *(void**)G_SCRATCH_HEAD = scratch;
-    d4                      = actor->field_910;
+    head               = SCRATCH_HEAD(VECTOR3);
+    actor              = arg0->work;
+    scratch            = (Actor800100LockScratch*)((u8*)head - 0x20);
+    SCRATCH_HEAD(void) = scratch;
+    d4                 = actor->field_910;
     Gp_TrackAllyLockTarget(arg0, 3);
     state = actor->field_95E;
     if (state != 0) {
@@ -1534,7 +1534,7 @@ void func_actor_800100_80164710(Task* arg0)
         }
         scratchHead = (s32*)G_SCRATCH_HEAD;
     }
-    *scratchHead += 0x20;
+    SCRATCH_POP_BYTES_AT(scratchHead, 0x20);
 }
 
 /// Third arm of the lock-on drive, running the actor's `field_95E` state
@@ -1639,7 +1639,7 @@ void func_actor_800100_80164940(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Aim/lock drive for the actor's `field_95E` phase machine. While the angle
@@ -1749,7 +1749,7 @@ void func_actor_800100_80164B9C(Task* arg0)
 tail:
     func_8010BD88(arg0, &block->lock);
     func_8010BE5C(arg0, &block->lock);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 void func_actor_800100_80164E60(Task* arg0)
@@ -2246,14 +2246,14 @@ void func_actor_800100_801659EC(Task* arg0)
     s32            inRange;
     s32            mode;
 
-    head                       = *(VECTOR3**)G_SCRATCH_HEAD;
-    lock                       = (VECTOR3*)((u8*)head - 0x10);
-    *(VECTOR3**)G_SCRATCH_HEAD = lock;
-    actor                      = arg0->work;
-    d4                         = actor->field_910;
-    coord                      = ((TmdObject*)arg0->extra)->coords;
-    node                       = Gp_FindLockNode(arg0);
-    actor->field_90C           = node;
+    head                  = SCRATCH_HEAD(VECTOR3);
+    lock                  = (VECTOR3*)((u8*)head - 0x10);
+    SCRATCH_HEAD(VECTOR3) = lock;
+    actor                 = arg0->work;
+    d4                    = actor->field_910;
+    coord                 = ((TmdObject*)arg0->extra)->coords;
+    node                  = Gp_FindLockNode(arg0);
+    actor->field_90C      = node;
     if (node != NULL) {
         Gp_GetLockPos(node, lock);
         func_80103C74(coord, lock, lock);
@@ -2316,7 +2316,7 @@ void func_actor_800100_801659EC(Task* arg0)
             func_actor_800100_80165664(arg0);
             break;
     }
-    *(u8**)G_SCRATCH_HEAD += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800100_80165C38(Task* arg0)
@@ -2327,8 +2327,8 @@ void func_actor_800100_80165C38(Task* arg0)
     GsCOORDINATE2* place;
     u16            state;
 
-    place                            = (GsCOORDINATE2*)((u8*)*(void**)G_SCRATCH_HEAD - 0x50);
-    *(GsCOORDINATE2**)G_SCRATCH_HEAD = place;
+    place                       = (GsCOORDINATE2*)((u8*)SCRATCH_HEAD(void) - 0x50);
+    SCRATCH_HEAD(GsCOORDINATE2) = place;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2366,7 +2366,7 @@ void func_actor_800100_80165C38(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }
 
 void func_actor_800100_80165DE8(Task* arg0)
@@ -2489,7 +2489,7 @@ void func_actor_800100_80165F50(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }
 
 void func_actor_800100_80166190(Task* arg0)
@@ -2608,7 +2608,7 @@ void func_actor_800100_80166190(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }
 
 void func_actor_800100_80166514(Task* arg0)
@@ -2648,7 +2648,7 @@ void func_actor_800100_80166514(Task* arg0)
     Gp_PlaceCoordOffset(&blk->coord, &blk->coord, (SVECTOR*)((u8*)head - 0xC));
     func_actor_800100_801668C0(&blk->coord);
     Gp_ClearRec18Occupied((GpRec18*)actor->pad_3BC);
-    *scratch = (u8*)*scratch + 0x5C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x5C);
 }
 
 /* The 0x1C bytes are carved off `head` into `newhead` and stored there, but the
@@ -2717,7 +2717,7 @@ void func_actor_800100_8016666C(GsCOORDINATE2* arg0, s16 arg1)
         addPrim((u_long*)(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
     }
-    *scratch = (u8*)*scratch + sizeof(Actor800100LineScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(Actor800100LineScratch));
 }
 
 /// The four (y, z) corners of the quad `func_actor_800100_801668C0` draws,
@@ -2801,7 +2801,7 @@ void func_actor_800100_801668C0(GsCOORDINATE2* arg0)
     prim->y3 = sy;
 
     addPrim((u_long*)&gGpuCurrentOt[blk->otz >> 4], prim);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor800100QuadScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor800100QuadScratch));
 }
 
 s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
@@ -2897,7 +2897,7 @@ s32 func_actor_800100_80166B40(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2
         } else {
             i = 0;
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+        SCRATCH_POP_BYTES(0x68);
         return i;
     }
     return 0;

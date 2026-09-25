@@ -232,11 +232,11 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                           = 0;
-    head                                 = *(ActorRepelScratch**)G_SCRATCH_HEAD;
-    blk                                  = head - 1;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD = blk;
-    s                                    = blk;
+    coord->flg                      = 0;
+    head                            = SCRATCH_HEAD(ActorRepelScratch);
+    blk                             = head - 1;
+    SCRATCH_HEAD(ActorRepelScratch) = blk;
+    s                               = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -268,8 +268,8 @@ s32 Actor01100_Fn000E8(GsCOORDINATE2* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg                            = 0;
-    *(ActorRepelScratch**)G_SCRATCH_HEAD += 1;
+    coord->flg = 0;
+    SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
 
@@ -292,13 +292,13 @@ s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         return 0;
     }
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
-    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
-    s->blocked            = 0;
-    pos->vz               = 0;
-    pos->vy               = 0;
-    pos->vx               = 0;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
+    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
+    s->blocked       = 0;
+    pos->vz          = 0;
+    pos->vy          = 0;
+    pos->vx          = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -386,7 +386,7 @@ s32 Actor01100_Fn00430(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
     return s->blocked != 0;
 }
 
@@ -669,10 +669,10 @@ static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts
     if (Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
-    head                                 = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
-    *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
-    blk                                  = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
-    blk->moved                           = 0;
+    head = SCRATCH_HEAD(OverlayDeltaFlag);
+    SCRATCH_PUSH(OverlayDeltaFlag);
+    blk        = SCRATCH_HEAD(OverlayDeltaFlag);
+    blk->moved = 0;
     if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
         coord->coord.t[0] += head[-1].delta.vx.h.hi;
         coord->coord.t[1] += blk->delta.vy.h.hi;
@@ -696,7 +696,7 @@ static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts
     if ((blk->delta.vx.w != 0) || (blk->delta.vz.w != 0)) {
         blk->moved = 1;
     }
-    *(OverlayDeltaFlag**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayDeltaFlag);
     return blk->moved;
 }
 
@@ -2762,12 +2762,12 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// the distance is one pseudo.
 static __inline__ u8* Actor104900_ScratchRead(void)
 {
-    return *(u8**)G_SCRATCH_HEAD;
+    return SCRATCH_HEAD(u8);
 }
 
 static __inline__ void Actor104900_ScratchWrite(u8* p)
 {
-    *(u8**)G_SCRATCH_HEAD = p;
+    SCRATCH_HEAD(u8) = p;
 }
 
 #define Actor104900_DistToPlayer(arg0, out)                           \
@@ -3296,13 +3296,13 @@ void Actor01100_Fn05E68(Task* task)
     angle               = task->spawnArg1;
     task->killCountdown = 0x5A;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 8;
-    vec                   = (SVECTOR*)(head - 8);
-    Gp_LcgState           = Gp_LcgState * 5 + 0x71357911;
-    vec->vy               = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
-    vec->vx               = rsin(angle);
-    vec->vz               = rcos(angle);
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 8;
+    vec              = (SVECTOR*)(head - 8);
+    Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+    vec->vy          = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
+    vec->vx          = rsin(angle);
+    vec->vz          = rcos(angle);
 
     mtx   = &coord->coord;
     local = *(SVECTOR*)(head - 8);
@@ -3353,9 +3353,9 @@ void Actor01100_Fn05E68(Task* task)
     Gp_LinkObj(3, obj);
     obj->flags |= 0xC000;
 
-    task->exitCallback     = Actor01100_Fn073A8;
-    *(u8**)G_SCRATCH_HEAD += 8;
-    task->state           += 1;
+    task->exitCallback = Actor01100_Fn073A8;
+    SCRATCH_POP_BYTES(8);
+    task->state += 1;
     Actor01100_Fn06198(task);
 }
 
@@ -3721,7 +3721,7 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
         *scratch = vec;
         vec->vz  = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];
         ret      = Gfx_ApplyMatrixNoSf(vec, vec);
-        *scratch = (u8*)*scratch + 8;
+        SCRATCH_POP_BYTES_AT(scratch, 8);
     } else {
         ret = 0x7FFFFFFF;
     }

@@ -615,15 +615,15 @@ void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateToView(coord, rotation);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 s32 func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
@@ -670,7 +670,7 @@ s32 func_actor_444000_80132B14(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -1326,9 +1326,9 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
     u8*      head;
     SVECTOR* dir;
 
-    head                       = *(u8**)G_SCRATCH_HEAD;
-    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
-    *(SVECTOR**)G_SCRATCH_HEAD = dir;
+    head                  = SCRATCH_HEAD(u8);
+    dir                   = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_HEAD(SVECTOR) = dir;
 
     Gfx_MatrixCol2(&coord->coord, dir);
     VectorNormalSS(dir, dir);
@@ -1342,7 +1342,7 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
     coord->coord.t[2] += dir->vz;
     coord->flg         = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// The run-out / turn / run-back pass, stepped by `Actor403200Work::field_F08`.
@@ -1587,8 +1587,8 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -1609,7 +1609,7 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// State 0x12, the death sequence: the boss collapses, each of its escort
@@ -2197,10 +2197,10 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    head                       = *(u8**)G_SCRATCH_HEAD;
-    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
-    *(SVECTOR**)G_SCRATCH_HEAD = dir;
-    gteDir                     = dir;
+    head                  = SCRATCH_HEAD(u8);
+    dir                   = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_HEAD(SVECTOR) = dir;
+    gteDir                = dir;
 
     if (work->field_1A8 != 0) {
         work->field_1AC   = 0;
@@ -2263,7 +2263,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
+    SCRATCH_POP_BYTES(sizeof(SVECTOR));
 }
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
@@ -2278,8 +2278,8 @@ static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -2300,7 +2300,7 @@ static __inline__ void Actor444000_ShrinkRotation(GsCOORDINATE2* coord)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Entry state of the enemy dispatched through `D_actor_444000_80131F0C`:
@@ -2448,8 +2448,8 @@ static __inline__ void Actor444000_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -2470,7 +2470,7 @@ static __inline__ void Actor444000_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->flg           = 0;
 
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Rise state of the enemy dispatched through `D_actor_444000_80131EA8`: for
@@ -3640,8 +3640,8 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -3663,7 +3663,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
     coord->flg           = 0;
 
     ((TmdObject*)task->extra)->coords->flg = 0;
-    *(u8**)G_SCRATCH_HEAD                  = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
     Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
 }
 
@@ -3748,8 +3748,8 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
@@ -3770,7 +3770,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
 
     work->field_0                    = 1;
     ((TmdObject*)task->extra)->flags = 0;
-    *(u8**)G_SCRATCH_HEAD            = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Spawn state of the arena boss: allocate its `Actor403200Work`, wire the host
@@ -4870,7 +4870,7 @@ void func_actor_444000_8013D810(Task* arg0)
 /// accesses, so a release written straight into the caller does not match.
 static __inline__ void Actor444000_ReleaseRotScratch(void)
 {
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Rebuilds one model's root coordinate around the yaw it already faces and
@@ -4884,8 +4884,8 @@ static __inline__ void Actor444000_FlattenRotation(GsCOORDINATE2* coord, s32 vy)
     ActorScaleRotScratch* sc;
     s16                   ang;
 
-    sc                                      = (ActorScaleRotScratch*)(*(u8**)G_SCRATCH_HEAD - sizeof(ActorScaleRotScratch));
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc                                 = (ActorScaleRotScratch*)(SCRATCH_HEAD(u8) - sizeof(ActorScaleRotScratch));
+    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
