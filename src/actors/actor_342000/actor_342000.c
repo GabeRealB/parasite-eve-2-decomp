@@ -367,9 +367,6 @@ void func_actor_342000_80162158(Task* arg0)
 /// first column read through the work block.
 void func_actor_342000_801625D8(Task* arg0)
 {
-    register short   t4 asm("t4");
-    register short   t5 asm("t5");
-    register short   t6 asm("t6");
     Actor342000Work* work;
     OverlayMat*      mtx;
     Actor342000Work* data;
@@ -411,59 +408,28 @@ void func_actor_342000_801625D8(Task* arg0)
             sc = &data->field_264;
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
             TOUCH_REG(sv);
-
-            t4     = mtx->mat.m[0][0];
-            t5     = mtx->mat.m[1][0];
-            t6     = mtx->mat.m[2][0];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
             gte_lddp(sc->vx);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][0] = t4;
-            mtx->mat.m[1][0] = t5;
-            mtx->mat.m[2][0] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
 
             COMPILER_BARRIER();
-            t4     = mtx->mat.m[0][1];
-            t5     = mtx->mat.m[1][1];
-            t6     = mtx->mat.m[2][1];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
             gte_lddp(sc->vy);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][1] = t4;
-            mtx->mat.m[1][1] = t5;
-            mtx->mat.m[2][1] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
 
             COMPILER_BARRIER();
-            t4     = mtx->mat.m[0][2];
-            t5     = mtx->mat.m[1][2];
-            t6     = mtx->mat.m[2][2];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
             gte_lddp(sc->vz);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][2] = t4;
-            mtx->mat.m[1][2] = t5;
-            mtx->mat.m[2][2] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
 
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
             scratch         = *(u32*)(head + 0x3FC);
@@ -494,9 +460,6 @@ void func_actor_342000_801625D8(Task* arg0)
 /// rather than a materialised 32-bit constant.
 void func_actor_342000_801628C8(Task* arg0)
 {
-    register short   t4 asm("t4");
-    register short   t5 asm("t5");
-    register short   t6 asm("t6");
     Actor342000Work* work;
     Actor342000Work* data;
     OverlayMat*      mtx;
@@ -534,59 +497,28 @@ void func_actor_342000_801628C8(Task* arg0)
             sv      = (SVECTOR*)(scratch - 8);
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
             TOUCH_REG(sv);
-
-            t4     = mtx->mat.m[0][0];
-            t5     = mtx->mat.m[1][0];
-            t6     = mtx->mat.m[2][0];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
             gte_lddp(sc->vx);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][0] = t4;
-            mtx->mat.m[1][0] = t5;
-            mtx->mat.m[2][0] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
 
             COMPILER_BARRIER();
-            t4     = mtx->mat.m[0][1];
-            t5     = mtx->mat.m[1][1];
-            t6     = mtx->mat.m[2][1];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
             gte_lddp(sc->vy);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][1] = t4;
-            mtx->mat.m[1][1] = t5;
-            mtx->mat.m[2][1] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
 
             COMPILER_BARRIER();
-            t4     = mtx->mat.m[0][2];
-            t5     = mtx->mat.m[1][2];
-            t6     = mtx->mat.m[2][2];
-            sv->vx = t4;
-            sv->vy = t5;
-            sv->vz = t6;
+            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
             gte_lddp(sc->vz);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
-            t4               = sv->vx;
-            t5               = sv->vy;
-            t6               = sv->vz;
-            mtx->mat.m[0][2] = t4;
-            mtx->mat.m[1][2] = t5;
-            mtx->mat.m[2][2] = t6;
+            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
 
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
             scratch         = *(u32*)(head + 0x3FC);

@@ -118,18 +118,6 @@ extern s32           D_actor_403600_80142120[];
 
 void func_actor_403600_80134398(Task* arg0);
 
-#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, %2(%0);"                                 \
-        "lhu $13, %3(%0);"                                 \
-        "lhu $14, %4(%0);"                                 \
-        "sh $12, 0(%1);"                                   \
-        "sh $13, 2(%1);"                                   \
-        "sh $14, 4(%1)"                                    \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
 /* The read/write matrix operand permits the stack-vector address to be
  * scheduled after the matrix load. The vector load consumes that operand to
  * preserve the order of the two GTE transfers. */
@@ -1092,7 +1080,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 scratch->b.vy = 0;
                 scratch->b.vz = 0x1000;
                 Gfx_OrthonormalBasis(basis4, &scratch->a, output4);
-                ACTOR_COPY_MATRIX_COLUMN_TO_SV(basis4, output4, 4, 10, 16);
+                gte_ReadMatrixColumn(basis4, 2, output4);
 
                 neg0  = (u16)scratch->basis.m[0][0];
                 neg1  = (u16)scratch->basis.m[1][0];

@@ -191,30 +191,6 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, %2(%0);"                                 \
-        "lhu $13, %3(%0);"                                 \
-        "lhu $14, %4(%0);"                                 \
-        "sh $12, 0(%1);"                                   \
-        "sh $13, 2(%1);"                                   \
-        "sh $14, 4(%1)"                                    \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
-#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, 0(%0);"                                  \
-        "lhu $13, 2(%0);"                                  \
-        "lhu $14, 4(%0);"                                  \
-        "sh $12, %2(%1);"                                  \
-        "sh $13, %3(%1);"                                  \
-        "sh $14, %4(%1)"                                   \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
 /// the same `GpAnimCtx`, seven animation slots instead of three, then three
@@ -1744,26 +1720,26 @@ void Actor07000_Fn029F0(Task* arg0, GpCoord* arg1)
     }
     matrix = &arg1->coord;
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
+    gte_ReadMatrixColumn(matrix, 0, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
+    gte_WriteMatrixColumn(vec, matrix, 0);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
+    gte_ReadMatrixColumn(matrix, 1, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
+    gte_WriteMatrixColumn(vec, matrix, 1);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
+    gte_ReadMatrixColumn(matrix, 2, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
+    gte_WriteMatrixColumn(vec, matrix, 2);
 
     SCRATCH_POP_AT(&scratch->head, SVECTOR);
 }
@@ -3493,26 +3469,26 @@ void Actor07000_Fn060FC(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->field_384 != 0) {
         m = &coord[5].coord;
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 0, 6, 12);
+        gte_ReadMatrixColumn(m, 0, &vec);
         gte_lddp(work->field_384 + 0x1000);
         gte_ldsv(&vec);
         gte_gpf12();
         gte_stsv(&vec);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 0, 6, 12);
+        gte_WriteMatrixColumn(&vec, m, 0);
 
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 2, 8, 14);
+        gte_ReadMatrixColumn(m, 1, &vec);
         gte_lddp((work->field_384 >> 2) + 0x1000);
         gte_ldsv(&vec);
         gte_gpf12();
         gte_stsv(&vec);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 2, 8, 14);
+        gte_WriteMatrixColumn(&vec, m, 1);
 
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, &vec, 4, 10, 16);
+        gte_ReadMatrixColumn(m, 2, &vec);
         gte_lddp((work->field_384 >> 2) + 0x1000);
         gte_ldsv(&vec);
         gte_gpf12();
         gte_stsv(&vec);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(&vec, m, 4, 10, 16);
+        gte_WriteMatrixColumn(&vec, m, 2);
 
         coord[5].flg = 0;
     }

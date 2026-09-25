@@ -31,18 +31,6 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017d830.h"
 
-/// Copies the third column of a rotation matrix into an `SVECTOR`.
-#define COPY_MATRIX_COLUMN2(src, dst)     \
-    __asm__ volatile("lhu $12, 4(%0);"    \
-                     "lhu $13, 10(%0);"   \
-                     "lhu $14, 16(%0);"   \
-                     "sh $12, 0(%1);"     \
-                     "sh $13, 2(%1);"     \
-                     "sh $14, 4(%1)"      \
-                     :                    \
-                     : "r"(src), "r"(dst) \
-                     : "$12", "$13", "$14", "memory")
-
 /// 0xD8 work block the falling-debris task keeps at `Task::work`
 /// (`memCalloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
 /// `func_acropolis_cafeteria_80181E3C` through `Gp_UnlinkObj`).
@@ -530,7 +518,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     rot->m20_m21 = 0;
     rot->m22     = 0x1000;
     Gfx_RotMatrixY(&coord->coord, work->scale, 0);
-    COPY_MATRIX_COLUMN2(&coord->coord, &work->move);
+    gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
     work->move.vx      = (work->move.vx * work->angle) >> 16;
     work->move.vy      = (work->move.vy * work->angle) >> 16;
     work->move.vz      = (work->move.vz * work->angle) >> 16;

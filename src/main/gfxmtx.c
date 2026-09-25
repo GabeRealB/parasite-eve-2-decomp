@@ -457,46 +457,19 @@ void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1)
     gte_TransposeMatrix(arg0, arg1);
 }
 
-void Gfx_MatrixCol0(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol0(MATRIX* arg0, SVECTOR* arg1)
 {
-    register short t4 asm("t4");
-    register short t5 asm("t5");
-    register short t6 asm("t6");
-
-    t4       = arg0->m[0][0];
-    t5       = arg0->m[1][0];
-    t6       = arg0->m[2][0];
-    arg1->vx = t4;
-    arg1->vy = t5;
-    arg1->vz = t6;
+    gte_ReadMatrixColumn(arg0, 0, arg1);
 }
 
-void Gfx_MatrixCol1(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol1(MATRIX* arg0, SVECTOR* arg1)
 {
-    register short t4 asm("t4");
-    register short t5 asm("t5");
-    register short t6 asm("t6");
-
-    t4       = arg0->m[0][1];
-    t5       = arg0->m[1][1];
-    t6       = arg0->m[2][1];
-    arg1->vx = t4;
-    arg1->vy = t5;
-    arg1->vz = t6;
+    gte_ReadMatrixColumn(arg0, 1, arg1);
 }
 
-void Gfx_MatrixCol2(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol2(MATRIX* arg0, SVECTOR* arg1)
 {
-    register short t4 asm("t4");
-    register short t5 asm("t5");
-    register short t6 asm("t6");
-
-    t4       = arg0->m[0][2];
-    t5       = arg0->m[1][2];
-    t6       = arg0->m[2][2];
-    arg1->vx = t4;
-    arg1->vy = t5;
-    arg1->vz = t6;
+    gte_ReadMatrixColumn(arg0, 2, arg1);
 }
 
 void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
@@ -753,15 +726,10 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     register u8*      head asm("v1");
     register SVECTOR* sv1 asm("a0");
     MATRIX*           mat;
-    volatile MATRIX*  dest;
     u16               tmp;
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
 
     scratch = SCRATCH_HEAD_ADDR;
     head    = SCRATCH_HEAD_AT(scratch, u8);
-    dest    = out;
 
     *(SVECTOR*)(head - 0x1A) = *arg2;
 
@@ -783,26 +751,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
 
     MatrixNormal_2(mat, mat);
 
-    t4            = mat->m[0][0];
-    t5            = mat->m[1][0];
-    t6            = mat->m[2][0];
-    dest->m[0][0] = t4;
-    dest->m[0][1] = t5;
-    dest->m[0][2] = t6;
-
-    t4            = mat->m[0][1];
-    t5            = mat->m[1][1];
-    t6            = mat->m[2][1];
-    dest->m[1][0] = t4;
-    dest->m[1][1] = t5;
-    dest->m[1][2] = t6;
-
-    t4            = mat->m[0][2];
-    t5            = mat->m[1][2];
-    t6            = mat->m[2][2];
-    dest->m[2][0] = t4;
-    dest->m[2][1] = t5;
-    dest->m[2][2] = t6;
+    gte_TransposeMatrix(mat, out);
 
     SCRATCH_POP_BYTES_AT(scratch, 0x20);
 }

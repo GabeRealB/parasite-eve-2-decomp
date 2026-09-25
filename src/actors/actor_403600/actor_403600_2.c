@@ -191,18 +191,6 @@ s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
-#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, %2(%0);"                                 \
-        "lhu $13, %3(%0);"                                 \
-        "lhu $14, %4(%0);"                                 \
-        "sh $12, 0(%1);"                                   \
-        "sh $13, 2(%1);"                                   \
-        "sh $14, 4(%1)"                                    \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
 #define actor_403600_d_x(out, hi) \
     __asm__("lh %0, %%lo(D_actor_403600_801605D4)(%1)" : "=r"(out) : "r"(hi))
 #define actor_403600_load_scratch_head(out) \
@@ -267,18 +255,6 @@ void func_actor_403600_80141954(s32 arg0);
 void func_actor_403600_80141A34(Task* arg0);
 void func_actor_403600_80141B24(Task* arg0);
 void func_actor_403600_80141C3C(Task* arg0);
-
-#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, 0(%0);"                                  \
-        "lhu $13, 2(%0);"                                  \
-        "lhu $14, 4(%0);"                                  \
-        "sh $12, %2(%1);"                                  \
-        "sh $13, %3(%1);"                                  \
-        "sh $14, %4(%1)"                                   \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
 
 void func_actor_403600_801400BC(Task* arg0);
 void func_actor_403600_80141F28(Task* arg0);
@@ -5469,26 +5445,26 @@ void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1)
     SCRATCH_HEAD_AT(scratch, void) = vec;
     matrix                         = &arg0->coord;
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
+    gte_ReadMatrixColumn(matrix, 0, vec);
     gte_lddp(arg1);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
+    gte_WriteMatrixColumn(vec, matrix, 0);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
+    gte_ReadMatrixColumn(matrix, 1, vec);
     gte_lddp(arg1);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
+    gte_WriteMatrixColumn(vec, matrix, 1);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
+    gte_ReadMatrixColumn(matrix, 2, vec);
     gte_lddp(arg1);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
+    gte_WriteMatrixColumn(vec, matrix, 2);
 
     head                           = SCRATCH_HEAD_AT(scratch, void);
     arg0->flg                      = 0;

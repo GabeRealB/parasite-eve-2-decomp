@@ -365,4 +365,32 @@
                      : "r"(src), "r"(dst)                 \
                      : "$12", "$13", "$14", "memory")
 
+/// Copies column `col` (0-2) of `m`'s rotation into the SVECTOR `v`
+/// (`v->vx = m->m[0][col]` ... `v->vz = m->m[2][col]`) through `$12`-`$14`.
+#define gte_ReadMatrixColumn(m, col, v)                                    \
+    __asm__ volatile("lhu $12,%2(%0);"                                     \
+                     "lhu $13,%3(%0);"                                     \
+                     "lhu $14,%4(%0);"                                     \
+                     "sh $12,0(%1);"                                       \
+                     "sh $13,2(%1);"                                       \
+                     "sh $14,4(%1)"                                        \
+                     :                                                     \
+                     : "r"(m), "r"(v), "i"(2 * (col)), "i"(6 + 2 * (col)), \
+                       "i"(12 + 2 * (col))                                 \
+                     : "$12", "$13", "$14", "memory")
+
+/// Copies the SVECTOR `v` into column `col` (0-2) of `m`'s rotation
+/// (`m->m[0][col] = v->vx` ... `m->m[2][col] = v->vz`) through `$12`-`$14`.
+#define gte_WriteMatrixColumn(v, m, col)                                   \
+    __asm__ volatile("lhu $12,0(%0);"                                      \
+                     "lhu $13,2(%0);"                                      \
+                     "lhu $14,4(%0);"                                      \
+                     "sh $12,%2(%1);"                                      \
+                     "sh $13,%3(%1);"                                      \
+                     "sh $14,%4(%1)"                                       \
+                     :                                                     \
+                     : "r"(v), "r"(m), "i"(2 * (col)), "i"(6 + 2 * (col)), \
+                       "i"(12 + 2 * (col))                                 \
+                     : "$12", "$13", "$14", "memory")
+
 #endif

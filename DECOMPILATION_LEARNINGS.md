@@ -115122,11 +115122,12 @@ Two things in that block are not codegen, they are the source:
   registers Psy-Q's own `gte_ldsv` / `gte_stsv` hardcode and clobber. C-level
   loads would land in `$v0` / `$a3` / `$t0` first.
 
-The macro is in the tree already: `ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0,
-o1, o2)` in `src/actors/actor_403600/actor_403600_2.c` is `lhu $12,%2(%0)` /
-`lhu $13,%3(%0)` / `lhu $14,%4(%0)` / `sh $12,0(%1)` / `sh $13,2(%1)` /
-`sh $14,4(%1)` with the offsets as immediate operands - 100.000% once the body
-uses it, with the column's offsets `4, 10, 16`.
+The macro is in the tree already: `gte_ReadMatrixColumn(m, col, v)` in
+`include/decomp/gte.h` is `lhu $12,%2(%0)` / `lhu $13,%3(%0)` /
+`lhu $14,%4(%0)` / `sh $12,0(%1)` / `sh $13,2(%1)` / `sh $14,4(%1)` with the
+column's offsets as immediate operands, and `gte_WriteMatrixColumn(v, m, col)`
+is the way back - 100.000% once the body uses it, here with column 2. Every
+column copy in the tree, asm or pinned C, now goes through the pair.
 
 **Finding it.** `grep -rlF '$t5, 0xA($v1)' asm/USA/` over the whole asm tree
 locates every body with the same block, matched or not; two were already

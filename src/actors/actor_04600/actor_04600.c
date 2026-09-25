@@ -125,30 +125,6 @@ STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, %2(%0);"                                 \
-        "lhu $13, %3(%0);"                                 \
-        "lhu $14, %4(%0);"                                 \
-        "sh $12, 0(%1);"                                   \
-        "sh $13, 2(%1);"                                   \
-        "sh $14, 4(%1)"                                    \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
-#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, 0(%0);"                                  \
-        "lhu $13, 2(%0);"                                  \
-        "lhu $14, 4(%0);"                                  \
-        "sh $12, %2(%1);"                                  \
-        "sh $13, %3(%1);"                                  \
-        "sh $14, %4(%1)"                                   \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
 /// The first enemy's pair table, packed into its third body's key, and the
 /// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
 extern GpU16Pair  Actor04600_D0415C;
@@ -1556,26 +1532,26 @@ void Actor04600_Fn0294C(Task* arg0, GpCoord* arg1)
     }
     matrix = &arg1->coord;
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 0, 6, 12);
+    gte_ReadMatrixColumn(matrix, 0, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 0, 6, 12);
+    gte_WriteMatrixColumn(vec, matrix, 0);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 2, 8, 14);
+    gte_ReadMatrixColumn(matrix, 1, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 2, 8, 14);
+    gte_WriteMatrixColumn(vec, matrix, 1);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(matrix, vec, 4, 10, 16);
+    gte_ReadMatrixColumn(matrix, 2, vec);
     gte_lddp(work->field_2AC);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, matrix, 4, 10, 16);
+    gte_WriteMatrixColumn(vec, matrix, 2);
 
     SCRATCH_POP_AT(&scratch->head, SVECTOR);
 }

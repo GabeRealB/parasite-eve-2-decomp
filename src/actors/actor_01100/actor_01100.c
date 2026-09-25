@@ -81,43 +81,15 @@ typedef struct {
 
 extern Actor104900EffSlot D_80067330;
 
-/// Reads the halfwords `r0` holds at offsets `o0` / `o1` / `o2` - one column
-/// of a matrix's 3x3 part, 6 bytes apart - into the `SVECTOR` at `r1`, through
-/// `$12`..`$14`.
-#define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, %2(%0);"                                 \
-        "lhu $13, %3(%0);"                                 \
-        "lhu $14, %4(%0);"                                 \
-        "sh $12, 0(%1);"                                   \
-        "sh $13, 2(%1);"                                   \
-        "sh $14, 4(%1)"                                    \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
-/// The way back: the three halfwords of the `SVECTOR` at `r0` are stored into
-/// the matrix column at `o0` / `o1` / `o2` of `r1`.
-#define ACTOR_COPY_SV_TO_MATRIX_COLUMN(r0, r1, o0, o1, o2) \
-    __asm__ volatile(                                      \
-        "lhu $12, 0(%0);"                                  \
-        "lhu $13, 2(%0);"                                  \
-        "lhu $14, 4(%0);"                                  \
-        "sh $12, %2(%1);"                                  \
-        "sh $13, %3(%1);"                                  \
-        "sh $14, %4(%1)"                                   \
-        :                                                  \
-        : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
-        : "$12", "$13", "$14", "memory")
-
-/// Scales one matrix column by `fac` through the GTE's GPF.
-#define SCALE_COL(m, sv, o0, o1, o2, fac)              \
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(m, sv, o0, o1, o2); \
-    gte_lddp(fac);                                     \
-    gte_ldsv(sv);                                      \
-    gte_gpf12();                                       \
-    gte_stsv(sv);                                      \
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
+/// Scales column `col` of `m` by `fac` through the GTE's GPF, using `sv` as
+/// the working vector.
+#define SCALE_COL(m, sv, col, fac)    \
+    gte_ReadMatrixColumn(m, col, sv); \
+    gte_lddp(fac);                    \
+    gte_ldsv(sv);                     \
+    gte_gpf12();                      \
+    gte_stsv(sv);                     \
+    gte_WriteMatrixColumn(sv, m, col)
 
 void Actor01100_Fn0097C(GpEnemy* enemy, Task* task);
 void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work);
@@ -1135,9 +1107,9 @@ static __inline__ void _actor01100ScaleMatrix(MATRIX* m, VECTOR* v)
     SVECTOR* sv;
 
     sv = SCRATCH_PUSH(SVECTOR);
-    SCALE_COL(m, sv, 0, 6, 12, v->vx);
-    SCALE_COL(m, sv, 2, 8, 14, v->vy);
-    SCALE_COL(m, sv, 4, 10, 16, v->vz);
+    SCALE_COL(m, sv, 0, v->vx);
+    SCALE_COL(m, sv, 1, v->vy);
+    SCALE_COL(m, sv, 2, v->vz);
     SCRATCH_POP(SVECTOR);
 }
 
@@ -1226,9 +1198,9 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         sv = &arg->vec;
         c  = task->extra.tmd->coords;
         m  = &c[6].coord;
-        SCALE_COL(m, sv, 0, 6, 12, work->field_B96 + 0x1000);
-        SCALE_COL(m, sv, 2, 8, 14, (work->field_B96 >> 2) + 0x1000);
-        SCALE_COL(m, sv, 4, 10, 16, (work->field_B96 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 0, work->field_B96 + 0x1000);
+        SCALE_COL(m, sv, 1, (work->field_B96 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 2, (work->field_B96 >> 2) + 0x1000);
         c[6].flg = 0;
     }
 
@@ -1240,9 +1212,9 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         sv = &arg->vec;
         c  = task->extra.tmd->coords;
         m  = &c[10].coord;
-        SCALE_COL(m, sv, 0, 6, 12, work->field_B94 + 0x1000);
-        SCALE_COL(m, sv, 2, 8, 14, (work->field_B94 >> 2) + 0x1000);
-        SCALE_COL(m, sv, 4, 10, 16, (work->field_B94 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 0, work->field_B94 + 0x1000);
+        SCALE_COL(m, sv, 1, (work->field_B94 >> 2) + 0x1000);
+        SCALE_COL(m, sv, 2, (work->field_B94 >> 2) + 0x1000);
         c[10].flg = 0;
     }
 }
@@ -2612,31 +2584,15 @@ static __inline__ void Actor104900_ScratchWrite(u8* p)
         }                                                             \
     }
 
-/// Inlined `Gfx_MatrixCol2` plus the GPF that scales the copied column. The
-/// matrix is pinned to `$v1` and the destination is born next; the empty `+r`
-/// keeps that `addiu` ahead of the loads, and the GTE ops stay on the same
-/// pointer. `$t4`..`$t6` are the column, as in the out-of-line copy.
-static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, volatile SVECTOR* arg1, s32 scale)
+/// Copies column 2 of `arg0` into `arg1` and scales it by `scale` through the
+/// GTE's GPF.
+static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 scale)
 {
-    register MATRIX*  src asm("v1");
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
-    volatile SVECTOR* out;
-
-    src = arg0;
-    out = arg1;
-    asm("" : "+r"(out));
-    t4      = src->m[0][2];
-    t5      = src->m[1][2];
-    t6      = src->m[2][2];
-    out->vx = t4;
-    out->vy = t5;
-    out->vz = t6;
+    gte_ReadMatrixColumn(arg0, 2, arg1);
     gte_lddp(scale);
-    gte_ldsv((SVECTOR*)out);
+    gte_ldsv(arg1);
     gte_gpf12();
-    gte_stsv((SVECTOR*)out);
+    gte_stsv(arg1);
 }
 
 /// Lunge. The first frame, while the latch at 0xBA8 is clear, measures the
@@ -2736,7 +2692,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords    = task->extra.tmd->coords;
         if (Mc_SaveData.field_5C1 == 0) {
-            Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->vec, scale);
+            Actor104900_MatrixCol2(&coords->coord, &arg->vec, scale);
             coords->coord.t[0] += arg->vec.vx;
             coords->coord.t[2] += arg->vec.vz;
             coords->flg         = 0;
@@ -2954,26 +2910,26 @@ void Actor01100_Fn05678(
         mtx     = &coords[3].coord;
         __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
 
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 0, 6, 12);
+        gte_ReadMatrixColumn(mtx, 0, sv);
         gte_lddp(sc->vx);
         gte_ldsv(sv);
         gte_gpf12();
         gte_stsv(sv);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 0, 6, 12);
+        gte_WriteMatrixColumn(sv, mtx, 0);
 
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 2, 8, 14);
+        gte_ReadMatrixColumn(mtx, 1, sv);
         gte_lddp(sc->vy);
         gte_ldsv(sv);
         gte_gpf12();
         gte_stsv(sv);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 2, 8, 14);
+        gte_WriteMatrixColumn(sv, mtx, 1);
 
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(mtx, sv, 4, 10, 16);
+        gte_ReadMatrixColumn(mtx, 2, sv);
         gte_lddp(sc->vz);
         gte_ldsv(sv);
         gte_gpf12();
         gte_stsv(sv);
-        ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, mtx, 4, 10, 16);
+        gte_WriteMatrixColumn(sv, mtx, 2);
 
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         scratch       = *(u32*)(head + 0x3FC);
@@ -3430,26 +3386,26 @@ void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     vec                               = head - 1;
     SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 0, 6, 12);
+    gte_ReadMatrixColumn(arg0, 0, vec);
     gte_lddp(arg1->vx);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 0, 6, 12);
+    gte_WriteMatrixColumn(vec, arg0, 0);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 2, 8, 14);
+    gte_ReadMatrixColumn(arg0, 1, vec);
     gte_lddp(arg1->vy);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 2, 8, 14);
+    gte_WriteMatrixColumn(vec, arg0, 1);
 
-    ACTOR_COPY_MATRIX_COLUMN_TO_SV(arg0, vec, 4, 10, 16);
+    gte_ReadMatrixColumn(arg0, 2, vec);
     gte_lddp(arg1->vz);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    ACTOR_COPY_SV_TO_MATRIX_COLUMN(vec, arg0, 4, 10, 16);
+    gte_WriteMatrixColumn(vec, arg0, 2);
 
     head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
     SCRATCH_HEAD_AT(scratch, SVECTOR) = head + 1;
@@ -3554,7 +3510,7 @@ s32 Actor01100_Fn06AC8(GpCoord* arg0)
 void Actor01100_Fn06B6C(GpCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
 {
     if (Mc_SaveData.field_5C1 == 0) {
-        ACTOR_COPY_MATRIX_COLUMN_TO_SV(&arg0->coord, &arg1->vec, 4, 10, 16);
+        gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
         gte_lddp(arg2);
         gte_ldsv(&arg1->vec);
         gte_gpf12();

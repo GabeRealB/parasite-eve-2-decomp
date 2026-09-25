@@ -1631,9 +1631,6 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 /// The message buffers are unions because the cases share their stack slots.
 void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
-    register short      t4 asm("t4");
-    register short      t5 asm("t5");
-    register short      t6 asm("t6");
     DumpingHoleEntity4* work;
     OverlayMat*         mtx;
     OverlayMat*         ident;
@@ -1760,59 +1757,28 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             TOUCH_REG(sv);
                             mtx = (OverlayMat*)&coords[3].coord;
                             TOUCH_REG(mtx);
-
-                            t4     = mtx->mat.m[0][0];
-                            t5     = mtx->mat.m[1][0];
-                            t6     = mtx->mat.m[2][0];
-                            sv->vx = t4;
-                            sv->vy = t5;
-                            sv->vz = t6;
+                            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
                             gte_lddp(sc->vx);
                             gte_ldsv(sv);
                             gte_gpf12();
                             gte_stsv(sv);
-                            t4               = sv->vx;
-                            t5               = sv->vy;
-                            t6               = sv->vz;
-                            mtx->mat.m[0][0] = t4;
-                            mtx->mat.m[1][0] = t5;
-                            mtx->mat.m[2][0] = t6;
+                            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
 
                             COMPILER_BARRIER();
-                            t4     = mtx->mat.m[0][1];
-                            t5     = mtx->mat.m[1][1];
-                            t6     = mtx->mat.m[2][1];
-                            sv->vx = t4;
-                            sv->vy = t5;
-                            sv->vz = t6;
+                            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
                             gte_lddp(sc->vy);
                             gte_ldsv(sv);
                             gte_gpf12();
                             gte_stsv(sv);
-                            t4               = sv->vx;
-                            t5               = sv->vy;
-                            t6               = sv->vz;
-                            mtx->mat.m[0][1] = t4;
-                            mtx->mat.m[1][1] = t5;
-                            mtx->mat.m[2][1] = t6;
+                            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
 
                             COMPILER_BARRIER();
-                            t4     = mtx->mat.m[0][2];
-                            t5     = mtx->mat.m[1][2];
-                            t6     = mtx->mat.m[2][2];
-                            sv->vx = t4;
-                            sv->vy = t5;
-                            sv->vz = t6;
+                            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
                             gte_lddp(sc->vz);
                             gte_ldsv(sv);
                             gte_gpf12();
                             gte_stsv(sv);
-                            t4               = sv->vx;
-                            t5               = sv->vy;
-                            t6               = sv->vz;
-                            mtx->mat.m[0][2] = t4;
-                            mtx->mat.m[1][2] = t5;
-                            mtx->mat.m[2][2] = t6;
+                            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
 
                             __asm__ volatile("lui %0, 0x1F80" : "=r"(head2));
                             scratch2  = *(u32*)(head2 + 0x3FC);
