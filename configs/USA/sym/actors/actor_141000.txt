@@ -1,3 +1,1 @@
 // Overlay-local symbols for actor_141000.
-D_actor_141000_80131E30 = 0x80131E30; // force_not_migration:True actor state table, read from C
-D_actor_141000_80131E3C = 0x80131E3C; // force_not_migration:True actor state table, read from C
