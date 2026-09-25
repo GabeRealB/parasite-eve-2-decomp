@@ -93,7 +93,6 @@ extern UiList         D_8010E820;
 extern UiList         D_8010E854;
 extern UiList         D_8010E884;
 extern UiList         D_8010E8AC;
-extern s32            D_8010E8BC;
 extern UiList         D_8010E8D4;
 extern UiList         D_8010E938;
 extern UiList         D_8010E960;
@@ -3364,151 +3363,104 @@ McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
     return rec;
 }
 
-void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
+/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// marker for items 0x0F-0x32 and its icon at the prompt row's position.
+/// Nothing is drawn while `obj` is in mode 5.
+static inline void _gpDrawItemName(DialogPrompt* prompt, UiObject* obj, s32 item, s32 mode)
 {
-    register DialogPrompt* prompt asm("s4");
-    register UiObject*     obj asm("s5");
-    register McItemScan*   scan asm("s7");
-    McItemRec*             rec;
-    s32                    hi;
-    s32                    item;
-    s32                    five;
-    s32                    i;
-    s32                    count;
-    McItemRec*             table;
-    UiList*                menu;
-    union {
-        struct {
-            u8          buf[0x20];
-            TextDrawReq req;
-        } count;
-        TextDrawReq req;
-    } draw;
+    TextDrawReq req;
+    s32         x;
+    s32         y;
+    s32         color;
+    s32         temp;
 
-    prompt = arg0;
-    asm("addu %0, %1, $zero" : "=r"(obj) : "r"(arg1), "r"(prompt));
-    asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi) : "r"(prompt), "r"(obj));
-    asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
-    rec = Gp_NthEquippableRec(scan, prompt->field_8, 0);
+    x     = prompt->field_18;
+    y     = prompt->field_1A;
+    color = prompt->field_1C;
+    if (obj->mode != 5) {
+        req.x          = obj->baseX + 0x11 + x;
+        req.y          = obj->baseY + (y - 6);
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, Gp_GetItemText(item, 0, 0));
+        func_800C22D8(obj, x, y, item, mode);
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        Gp_DrawItemIcon(obj, x, y, item, 0);
+    }
+}
+
+void Gp_DrawRemoveArmorRow(DialogPrompt* prompt, UiObject* obj)
+{
+    McItemScan* scan;
+    McItemRec*  rec;
+    s32         item;
+
+    scan = &Mc_SaveData.carriedItems;
+    rec  = Gp_NthEquippableRec(scan, prompt->field_8, 0);
     if (rec != NULL) {
         item = rec->itemId;
         {
-            s32 color;
-            s32 x;
-            s32 y;
-            s32 qty;
+            u8          buf[0x20];
+            TextDrawReq req;
+            s32         x;
+            s32         y;
+            s32         color;
+            s32         qty;
 
             x     = prompt->field_18;
             y     = prompt->field_1A;
             color = prompt->field_1C;
             if ((u32)(item - 0xA0) < 0x20U) {
-                qty                       = rec->qty - Gp_CountEquippedRelated(scan, item);
-                draw.count.req.x          = obj->baseX + 0x84 + x;
-                draw.count.req.y          = obj->baseY + (y - 3);
-                draw.count.req.otIndex    = (s16)obj->drawOrder + 1;
-                draw.count.req.field_8    = color;
-                draw.count.req.glyphTable = 5;
-                draw.count.req.centerMode = 2;
-                draw.count.req.field_E    = 0;
-                func_8002E53C(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
-                Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
-                                   0x102010);
+                qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
+                req.x          = obj->baseX + 0x84 + x;
+                req.y          = obj->baseY + (y - 3);
+                req.otIndex    = (s16)obj->drawOrder + 1;
+                req.field_8    = color;
+                req.glyphTable = 5;
+                req.centerMode = 2;
+                req.field_E    = 0;
+                func_8002E53C(&req, Text_ItoaSigned(buf, qty));
+                Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
         }
 
-        five = 5;
         if (rec->attachSlot > 0) {
-            s32 x;
-            s32 y;
-            s32 color;
-            s32 temp;
-
-            x     = prompt->field_18;
-            y     = prompt->field_1A;
-            color = prompt->field_1C;
-            if (obj->mode != five) {
-                draw.req.x          = obj->baseX + 0x11 + x;
-                draw.req.y          = obj->baseY + (y - 6);
-                draw.req.otIndex    = (s16)obj->drawOrder + 1;
-                draw.req.field_8    = color;
-                draw.req.glyphTable = 0;
-                draw.req.centerMode = 0;
-                draw.req.field_E    = 1;
-                func_8002E53C(&draw.req, Gp_GetItemText(item, 0, 0));
-                func_800C22D8(obj, x, y, item, 2);
-                temp = item - 0xF;
-                if ((u32)temp < 0x24U) {
-                    func_800C2538(obj, x, y, temp % 3 + 1, color);
-                }
-                Gp_DrawItemIcon(obj, x, y, item, 0);
-            }
+            _gpDrawItemName(prompt, obj, item, 2);
         } else {
-            s32 x;
-            s32 y;
-            s32 color;
-            s32 temp;
-            s32 one;
-
-            x     = prompt->field_18;
-            y     = prompt->field_1A;
-            color = prompt->field_1C;
-            one   = 1;
-            if (obj->mode != five) {
-                draw.req.x          = obj->baseX + 0x11 + x;
-                draw.req.y          = obj->baseY + (y - 6);
-                draw.req.otIndex    = (s16)obj->drawOrder + one;
-                draw.req.field_8    = color;
-                draw.req.glyphTable = 0;
-                draw.req.centerMode = 0;
-                draw.req.field_E    = one;
-                func_8002E53C(&draw.req, Gp_GetItemText(item, 0, 0));
-                func_800C22D8(obj, x, y, item, one);
-                temp = item - 0xF;
-                if ((u32)temp < 0x24U) {
-                    func_800C2538(obj, x, y, temp % 3 + one, color);
-                }
-                Gp_DrawItemIcon(obj, x, y, item, 0);
-            }
+            _gpDrawItemName(prompt, obj, item, 1);
         }
 
-        {
-            s32 status;
-            s32 one;
-            status = obj->status;
-            one    = 1;
-            if (((status >> 16) == one) || (status == one)) {
-                if (prompt->field_10 == prompt->field_8) {
-                    register s32 t asm("a0");
-                    s32          a1v;
-                    a1v = 1;
-                    if (item == 0) {
-                        t = (s32)Gp_StrEmpty;
-                    } else {
-                        t = (s32)Gp_GetItemText(item, a1v, 0);
-                    }
-                    a1v = 0;
-                    Ui_SetHolderParam(t, a1v, a1v);
-                }
+        if (((obj->status >> 16) == 1 || obj->status == 1) && prompt->field_10 == prompt->field_8) {
+            if (item == 0) {
+                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
+            } else {
+                Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
             }
         }
 
         if (prompt->field_C == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                UiList*    menu;
+                McItemRec* table;
+                s32        i;
+                s32        count;
+
                 menu = &D_8010E8AC;
                 SndEvt_EnqueueType6(3, 0, 0);
                 table = Gp_GetItemTable(scan);
-                i     = 0;
                 count = scan->rowCount;
                 table = &table[scan->firstRow];
-                if (count != 0) {
-                    do {
-                        if (table->attachSlot == menu->field_10 + 1) {
-                            Gp_RefreshItemRow(table);
-                            break;
-                        }
-                        i++;
-                        table++;
-                    } while (i < count);
+                for (i = 0; i < count; i++) {
+                    if (table[i].attachSlot == menu->field_10 + 1) {
+                        Gp_RefreshItemRow(&table[i]);
+                        break;
+                    }
                 }
                 rec->attachSlot = menu->field_10 + 1;
                 obj->field_2E   = 9;
@@ -3519,55 +3471,38 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
             }
         }
     } else {
-        s32          target;
-        s32          baseY;
-        s32          status;
-        s32          one;
-        register s32 a1v asm("a1");
-
-        one    = 1;
-        status = obj->status;
-        if (((status >> 16) == one) || (status == one)) {
-            if (prompt->field_10 == prompt->field_8) {
-                register s32 t asm("a0");
-                TOUCH_REG(rec);
-                t   = (s32)Gp_StrDetachArmorHelp;
-                a1v = 0;
-                Ui_SetHolderParam(t, a1v, a1v);
-            }
+        if (((obj->status >> 16) == 1 || obj->status == 1) && prompt->field_10 == prompt->field_8) {
+            Ui_SetHolderParam((s32)Gp_StrDetachArmorHelp, 0, 0);
         }
-        draw.req.x          = obj->baseX + (u16)prompt->field_18;
-        baseY               = obj->baseY - 6;
-        draw.req.y          = (u16)prompt->field_1A + baseY;
-        draw.req.otIndex    = (s16)obj->drawOrder + 1;
-        draw.req.field_8    = prompt->field_1C;
-        draw.req.glyphTable = 0;
-        draw.req.centerMode = 0;
-        draw.req.field_E    = 1;
-        func_8002E53C(&draw.req, Gp_StrRemoveArmor);
+        {
+            TextDrawReq req;
+            s32         off;
+
+            req.x          = obj->baseX + prompt->field_18;
+            off            = obj->baseY - 6;
+            req.y          = prompt->field_1A + off;
+            req.otIndex    = (s16)obj->drawOrder + 1;
+            req.field_8    = prompt->field_1C;
+            req.glyphTable = 0;
+            req.centerMode = 0;
+            req.field_E    = 1;
+            func_8002E53C(&req, Gp_StrRemoveArmor);
+        }
         if (prompt->field_C == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                target = D_8010E8BC + 1;
+                s32 slot;
+                s32 i;
+                s32 count;
+
+                slot = D_8010E8AC.field_10 + 1;
                 SndEvt_EnqueueType6(3, 0, 0);
-                {
-                    McItemRec*   tmp;
-                    register s32 idx asm("v1");
-                    s32          n;
-                    tmp = Gp_GetItemTable(scan);
-                    i   = 0;
-                    idx = scan->firstRow;
-                    n   = scan->rowCount;
-                    asm volatile("sll %0, %0, 2" : "+r"(idx));
-                    rec = (McItemRec*)((s32)tmp + idx);
-                    if (n != 0) {
-                        do {
-                            if (rec->attachSlot == target) {
-                                Gp_RefreshItemRow(rec);
-                                break;
-                            }
-                            i++;
-                            rec++;
-                        } while (i < n);
+                rec   = Gp_GetItemTable(scan);
+                count = scan->rowCount;
+                rec   = &rec[scan->firstRow];
+                for (i = 0; i < count; i++, rec++) {
+                    if (rec->attachSlot == slot) {
+                        Gp_RefreshItemRow(rec);
+                        break;
                     }
                 }
                 obj->field_2E = 9;

@@ -140838,3 +140838,31 @@ makes CSE rebuild it from the base register as `(tbl + 0x200)` via its
 related-value lookup, with the order the target has; `&Gp_RelatedQty0[item -
 0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
 both places instead lets `fold` merge the two addresses into one.
+
+## A `1` held in a saved register and reused for every `+1` in one arm is an inlined helper's constant parameter (Gp_DrawRemoveArmorRow)
+
+Target: two copies of the same draw sequence; one uses immediates, the other
+does `li fp,1` up front and then `sb fp`, `addu v0,v0,fp`, `sllv a3,v0,fp`,
+`addu a3,a3,fp` for every constant 1 in the sequence, including those in the
+`% 3` expansion. The old reproduction was a `one` local. The sequence is a
+`static inline` helper taking the value as a parameter (`mode`, passed 2 in one
+arm and 1 in the other): the inliner binds the parameter to a pseudo set to the
+constant, and CSE then substitutes that register for every equal constant in the
+body. The arm passing 2 has no pseudo equal to 1, so it keeps its immediates.
+Many row-drawers in `gameplay/3688.c` still carry the same `one` local.
+
+Two block-local `TextDrawReq`s in disjoint scopes share one stack slot, since
+`expand_decl` gets them from `assign_temp`; a function-level union is not needed
+to overlap them.
+
+## Two parameters' saved registers swapped: lengthen the one that lives on, with a `for` or an indexed loop
+
+When prompt/obj-style parameters land in each other's `$s` registers, compare
+their `.greg` rank: `log2(refs) * refs / live_length`, where the length comes
+from the `;; register N life shortened` lines in `.sched`. Here the parameter
+that must rank first died at the row's `field_C` check while the other lived
+through two search loops after it; three more insns in that tail flipped the
+rank. A `do { } while` under `if (count != 0)` rewritten as
+`for (i = 0; i < count; i++)` adds one (the same `beqz`, because `count` is a
+zero-extended `u8`), and indexing `table[i]` instead of walking `table++` adds
+more through `loop.c`'s giv setup, all with byte-identical output.
