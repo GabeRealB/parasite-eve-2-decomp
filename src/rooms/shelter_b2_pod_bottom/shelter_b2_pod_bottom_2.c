@@ -16,20 +16,6 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-/// Scratch block `func_shelter_b2_pod_bottom_8017F994` pops from
-/// `G_SCRATCH_HEAD`: the projected world position, its `gte_stszotz` depth
-/// and `gte_stflg` flag, the two screen radii derived from them, and the
-/// `gte_stsxy` screen point.
-typedef struct _BillboardScratch {
-    SVECTOR vec;
-    s32     otz;
-    s32     flag;
-    s32     rOuter;
-    s32     rInner;
-    s16     sx;
-    s16     sy;
-} _BillboardScratch;
-
 /// 0x2C-byte scratch block `func_shelter_b2_pod_bottom_8018101C` takes from
 /// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
 /// it, and both points' projections. `otz0`/`sx0`/`sy0` belong to `base`,
@@ -763,7 +749,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
 /// the projected point is coloured, from `rgb`; every rim corner is black.
 void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb)
 {
-    register _BillboardScratch* block asm("s3");
+    register RoomDraw07Scratch* block asm("s3");
     register POLY_G4*           prim asm("s2");
     register s32                ang asm("s4");
     register void**             scratch asm("a1");
@@ -777,12 +763,12 @@ void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb
     {
         register u16 vx asm("v0");
         vx                                          = *(u16*)&coord->workm.t[0];
-        ((_BillboardScratch*)(head - 0x1C))->vec.vx = vx;
+        ((RoomDraw07Scratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x1C;
-        block = (_BillboardScratch*)tmp;
+        block = (RoomDraw07Scratch*)tmp;
     }
     block->vec.vy = *(u16*)&coord->workm.t[1];
     vz            = *(u16*)&coord->workm.t[2];
@@ -793,10 +779,10 @@ void func_shelter_b2_pod_bottom_8017F994(GsCOORDINATE2* coord, s32 arg1, u8* rgb
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
     gte_rtps();
-    gte_stsxy(&((_BillboardScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((_BillboardScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((RoomDraw07Scratch*)(head - 0x1C))->sx);
+    gte_stflg(&((RoomDraw07Scratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((_BillboardScratch*)(head - 0x1C))->otz);
+        gte_stszotz(&((RoomDraw07Scratch*)(head - 0x1C))->otz);
         USE_REG(head);
         block->rOuter = ((s16)arg1 * 64) / block->otz;
         block->rInner = ((s16)arg1 * 8) / block->otz;

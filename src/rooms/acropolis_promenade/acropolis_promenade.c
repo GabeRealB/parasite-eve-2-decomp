@@ -39,23 +39,6 @@ typedef struct ApmGlowCorner {
 } ApmGlowCorner;
 STATIC_ASSERT_SIZEOF(ApmGlowCorner, 0x4);
 
-/// Per-frame scratch the promenade's twinkle task
-/// (`func_acropolis_promenade_8017E634`) builds at `G_SCRATCH_HEAD`: `pos` is
-/// the task coordinate's translation, projected through `GsWSMATRIX` into
-/// `sxy`, and `otz` is the resulting depth. `dx` / `dy` are the corner offsets
-/// the two quads are drawn at - `0x1680 / otz` on both axes for the upright
-/// star, then `(0x3A80 / otz) * rsin` / `rcos` of the spin angle for the
-/// rotating one, so both shrink with distance. The block is exactly the 0x18
-/// bytes the task reserves off the scratch head.
-typedef struct ApmTwinkleScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     dx;
-    /* 0x08 */ s32     dy;
-    /* 0x0C */ SVECTOR pos;
-    /* 0x14 */ DVECTOR sxy;
-} ApmTwinkleScratch;
-STATIC_ASSERT_SIZEOF(ApmTwinkleScratch, 0x18);
-
 /// Work block of the prop task, at `Task::work`. The task allocates it with
 /// `memCalloc(4, 0)` and clears its one word; nothing else in the room reads it.
 typedef struct {
@@ -611,7 +594,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     RoomEffWork*       work;
     void**             scratch;
     u8*                head;
-    ApmTwinkleScratch* blk;
+    RoomSpriteScratch* blk;
     s32*               otzp;
     POLY_FT4*          prim;
     s32                grey;
@@ -622,15 +605,15 @@ void func_acropolis_promenade_8017E634(Task* task)
     work->field_22 = task->spawnArg1;
     scratch        = (void**)G_SCRATCH_HEAD;
     head           = *scratch;
-    blk            = (ApmTwinkleScratch*)(head - 0x18);
+    blk            = (RoomSpriteScratch*)(head - 0x18);
     otzp           = &blk->otz;
-    blk->pos.vx    = coord->workm.t[0];
-    blk->pos.vy    = coord->workm.t[1];
+    blk->vec.vx    = coord->workm.t[0];
+    blk->vec.vy    = coord->workm.t[1];
     *scratch       = blk;
-    blk->pos.vz    = coord->workm.t[2];
+    blk->vec.vz    = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->pos);
+    gte_ldv0(&blk->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;

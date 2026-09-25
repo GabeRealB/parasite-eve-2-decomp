@@ -214,4 +214,18 @@ typedef struct RoomStreamWork {
 } RoomStreamWork;
 STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
 
+/// The scratch block a room's sprite drawer takes from `G_SCRATCH_HEAD` to
+/// project and size one camera-facing quad: `vec` is the point it projects,
+/// `sxy` and `otz` the resulting screen point and depth, and `dx`, `dy` the
+/// offsets from `sxy` to the quad's corners, derived from `otz` so the sprite
+/// shrinks with distance.
+typedef struct RoomSpriteScratch {
+    s32     otz;
+    s32     dx;
+    s32     dy;
+    SVECTOR vec;
+    DVECTOR sxy;
+} RoomSpriteScratch;
+STATIC_ASSERT_SIZEOF(RoomSpriteScratch, 0x18);
+
 #endif /* ROOMS_ROOM_H */

@@ -15,22 +15,8 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Per-frame scratch the room's animated billboard task reserves off
-/// `G_SCRATCH_HEAD`. `vec` is the task coordinate's world translation, projected
-/// through `GsWSMATRIX` into `sxy` with `otz` as the resulting depth. `dx` / `dy`
-/// are the rotated half-extents that offset `sxy` into the quad's corners, so
-/// the sprite shrinks with distance. The same layout appears in other rooms'
-/// billboard tasks; whether they are one type is unsettled.
-typedef struct DryfieldToiletSpriteScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    SVECTOR vec;
-    DVECTOR sxy;
-} DryfieldToiletSpriteScratch;
-STATIC_ASSERT_SIZEOF(DryfieldToiletSpriteScratch, 0x18);
 
 extern s32 D_80070F70;
 extern s32 D_80115730;
@@ -93,19 +79,19 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
 
 void func_dryfield_toilet_8017DEF4(Task* arg0)
 {
-    GpEffWork*                   mem;
-    GsCOORDINATE2*               coord;
-    void**                       scratch;
-    u8*                          head;
-    DryfieldToiletSpriteScratch* block;
-    POLY_FT4*                    prim;
-    s32                          rng;
-    s32                          temp;
-    SVECTOR*                     vec;
-    s32                          t2;
-    u8*                          tmp;
-    u16                          vx;
-    u16                          vz;
+    GpEffWork*         mem;
+    GsCOORDINATE2*     coord;
+    void**             scratch;
+    u8*                head;
+    RoomSpriteScratch* block;
+    POLY_FT4*          prim;
+    s32                rng;
+    s32                temp;
+    SVECTOR*           vec;
+    s32                t2;
+    u8*                tmp;
+    u16                vx;
+    u16                vz;
 
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
@@ -115,7 +101,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     vx      = *(u16*)&coord->workm.t[0];
     tmp     = head - 0x18;
     SOFT_USE_REG(tmp); /* keeps the carve apart from `block`, so the head store takes the copy */
-    block         = (DryfieldToiletSpriteScratch*)tmp;
+    block         = (RoomSpriteScratch*)tmp;
     block->vec.vx = vx;
     block->vec.vy = *(u16*)&coord->workm.t[1];
     vz            = *(u16*)&coord->workm.t[2];
@@ -123,15 +109,15 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((DryfieldToiletSpriteScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((RoomSpriteScratch*)(head - 0x18))->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((DryfieldToiletSpriteScratch*)(head - 0x18))->sxy);
+    gte_stsxy(&((RoomSpriteScratch*)(head - 0x18))->sxy);
     gte_stszotz(&block->otz);
-    if (((DryfieldToiletSpriteScratch*)(head - 0x18))->otz >= 0x11) {
+    if (((RoomSpriteScratch*)(head - 0x18))->otz >= 0x11) {
         if (arg0->state == 0) {
             rng         = Gp_LcgState * 5 + 0x71357911;
             mem->scale  = (u16)arg0->spawnArg1 & 0xFFF;

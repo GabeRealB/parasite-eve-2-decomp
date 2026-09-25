@@ -2112,7 +2112,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 
 /// One frame of the bridge's twinkling dust spark: the task coordinate's
 /// translation is projected through `GsWSMATRIX` with a single `RTPS` into an
-/// `AcropolisBridgeTwinkleScratch` block taken from `G_SCRATCH_HEAD`, and two
+/// `RoomSpriteScratch` block taken from `G_SCRATCH_HEAD`, and two
 /// `POLY_FT4`s are linked into the OT at that depth. The first is an upright
 /// 0x1680 / otz square whose 0x10-wide texture cell is picked by
 /// `work->field_22 % 6`, drawn with texture blending off (`code |= 3`). The
@@ -2124,14 +2124,14 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// one frame.
 void func_acropolis_bridge_801812F4(Task* task)
 {
-    GsCOORDINATE2*                 coord;
-    RoomEffWork*                   work;
-    void**                         scratch;
-    u8*                            head;
-    AcropolisBridgeTwinkleScratch* blk;
-    s32*                           otzp;
-    POLY_FT4*                      prim;
-    s32                            grey;
+    GsCOORDINATE2*     coord;
+    RoomEffWork*       work;
+    void**             scratch;
+    u8*                head;
+    RoomSpriteScratch* blk;
+    s32*               otzp;
+    POLY_FT4*          prim;
+    s32                grey;
 
     coord = ((TmdObject*)task->extra)->coords;
     work  = task->spawnArg2;
@@ -2139,15 +2139,15 @@ void func_acropolis_bridge_801812F4(Task* task)
     work->field_22 = task->spawnArg1;
     scratch        = (void**)G_SCRATCH_HEAD;
     head           = *scratch;
-    blk            = (AcropolisBridgeTwinkleScratch*)(head - 0x18);
+    blk            = (RoomSpriteScratch*)(head - 0x18);
     otzp           = &blk->otz;
-    blk->pos.vx    = coord->workm.t[0];
-    blk->pos.vy    = coord->workm.t[1];
+    blk->vec.vx    = coord->workm.t[0];
+    blk->vec.vy    = coord->workm.t[1];
     *scratch       = blk;
-    blk->pos.vz    = coord->workm.t[2];
+    blk->vec.vz    = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->pos);
+    gte_ldv0(&blk->vec);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
