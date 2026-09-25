@@ -180,9 +180,9 @@ void func_acropolis_fountain_8017DD44(Task* task)
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
         blk         = (RoomShaftScratch*)(head - 0x14);
-        blk->vec.vx = *(u16*)&coord->workm.t[0];
-        blk->vec.vy = *(u16*)&coord->workm.t[1];
-        vz          = *(u16*)&coord->workm.t[2];
+        blk->vec.vx = (u16)coord->workm.t[0];
+        blk->vec.vy = (u16)coord->workm.t[1];
+        vz          = (u16)coord->workm.t[2];
         *scratch    = blk;
         p           = blk;
         blk->vec.vz = vz;

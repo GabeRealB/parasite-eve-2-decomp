@@ -389,9 +389,9 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
                 mem->period     = base.v[mem->angle];
                 arg0->state++;
             }
-            blk->vec.vx = *(u16*)&coord->workm.t[0];
-            blk->vec.vy = *(u16*)&coord->workm.t[1];
-            blk->vec.vz = *(u16*)&coord->workm.t[2];
+            blk->vec.vx = (u16)coord->workm.t[0];
+            blk->vec.vy = (u16)coord->workm.t[1];
+            blk->vec.vz = (u16)coord->workm.t[2];
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_ldv0(&blk->vec);
@@ -471,9 +471,9 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     raw  = head - 0x18;
     SOFT_TOUCH_REG(raw);
     blk                = (RoomGlowScratch*)raw;
-    blk->vec.vx        = *(u16*)&coord->workm.t[0];
-    blk->vec.vy        = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    blk->vec.vx        = (u16)coord->workm.t[0];
+    blk->vec.vy        = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = blk;
     blk->vec.vz        = vz;
 
@@ -790,10 +790,10 @@ void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        (u16) blk->v[i].vx = (u16)blk->v[i].vx + *(u16*)&coord->workm.t[0];
-        (u16) sv->vy       = (u16)sv->vy + *(u16*)&coord->workm.t[1];
+        (u16) blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
+        (u16) sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
         i++;
-        (u16) sv->vz = (u16)sv->vz + *(u16*)&coord->workm.t[2];
+        (u16) sv->vz = (u16)sv->vz + (u16)coord->workm.t[2];
     } while (i < 4);
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -906,9 +906,9 @@ s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

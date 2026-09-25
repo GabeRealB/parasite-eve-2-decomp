@@ -282,17 +282,17 @@ void func_shelter_b2_pod_bottom_8017DECC(GpCoord* arg0, u16 arg1, s16 arg2, s16 
         setUV4(prim, u0, v0 + 0x70, u0 + 0x2F, v0 + 0x70, u0, v0 - 0x61, u0 + 0x2F, v0 - 0x61);
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = ang + 0x400;
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -351,17 +351,17 @@ void func_shelter_b2_pod_bottom_8017E334(GpCoord* arg0, u16 arg1, s16 arg2, s16 
         setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = ang + 0x400;
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -411,9 +411,9 @@ void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 arg2)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&coord->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&coord->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)coord->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)coord->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)coord->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -422,9 +422,9 @@ void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 arg2)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&coord->workm.t[0];
-        op->vy             = (u16)op->vy + *(u16*)&coord->workm.t[1];
-        op->vz             = (u16)op->vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)coord->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)coord->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -570,9 +570,9 @@ void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord, s32 ar
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&coord->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&coord->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)coord->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)coord->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)coord->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -581,9 +581,9 @@ void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord, s32 ar
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&coord->workm.t[0];
-        op->vy             = (u16)op->vy + *(u16*)&coord->workm.t[1];
-        op->vz             = (u16)op->vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)coord->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)coord->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -735,7 +735,7 @@ void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                     = *(u16*)&coord->workm.t[0];
+        vx                                     = (u16)coord->workm.t[0];
         ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -743,8 +743,8 @@ void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    vz            = *(u16*)&coord->workm.t[2];
+    block->vec.vy = (u16)coord->workm.t[1];
+    vz            = (u16)coord->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -947,10 +947,10 @@ void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     *scratch                                = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;

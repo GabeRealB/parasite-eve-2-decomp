@@ -297,9 +297,9 @@ void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s3
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw35Scratch*)(head - 0x14))->vec);
-    block->vec.vx = (u16)block->vec.vx + *(u16*)&arg0->workm.t[0];
-    block->vec.vy = (u16)block->vec.vy + *(u16*)&arg0->workm.t[1];
-    block->vec.vz = (u16)block->vec.vz + *(u16*)&arg0->workm.t[2];
+    block->vec.vx = (u16)block->vec.vx + (u16)arg0->workm.t[0];
+    block->vec.vy = (u16)block->vec.vy + (u16)arg0->workm.t[1];
+    block->vec.vz = (u16)block->vec.vz + (u16)arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -336,16 +336,16 @@ void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s3
         prim->g0         = rgb;
         prim->b0         = rgb;
         block->halfWidth = (sv * 0x27) / block->otz;
-        xy               = block->sx - *(u16*)&block->halfWidth;
+        xy               = block->sx - (u16)block->halfWidth;
         prim->x2         = xy;
         prim->x0         = xy;
-        xy               = block->sx + *(u16*)&block->halfWidth;
+        xy               = block->sx + (u16)block->halfWidth;
         prim->x3         = xy;
         prim->x1         = xy;
-        xy               = block->sy - *(u16*)&block->halfWidth;
+        xy               = block->sy - (u16)block->halfWidth;
         prim->y1         = xy;
         prim->y0         = xy;
-        xy               = block->sy + *(u16*)&block->halfWidth;
+        xy               = block->sy + (u16)block->halfWidth;
         prim->y3         = xy;
         prim->y2         = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +

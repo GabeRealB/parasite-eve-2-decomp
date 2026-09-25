@@ -207,9 +207,9 @@ s32 Actor00100_Fn00508(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
@@ -584,9 +584,9 @@ s32 Actor00100_Fn01388(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
@@ -1970,7 +1970,7 @@ void Actor00100_Fn04270(Task* argx)
         done0:
             view1 = &gGfxViewCoord;
             Gp_SpawnEff(0x600A5, view1, 2, &work->field_8A8);
-            work->field_8A8.vy = *(u16*)&arg0->extra.tmd->coords[0].coord.t[1];
+            work->field_8A8.vy = (u16)arg0->extra.tmd->coords[0].coord.t[1];
             svp                = &sv;
             vecp               = &vec;
             fp                 = &flag1;
@@ -2003,7 +2003,7 @@ void Actor00100_Fn04270(Task* argx)
                 goto loop1;
             }
         done1:
-            work->field_8B0.vy = *(u16*)&arg0->extra.tmd->coords[0].coord.t[1];
+            work->field_8B0.vy = (u16)arg0->extra.tmd->coords[0].coord.t[1];
             Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8B0);
             break;
         case 0x3C:

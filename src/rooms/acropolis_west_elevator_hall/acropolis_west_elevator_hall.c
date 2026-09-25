@@ -1081,9 +1081,9 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
        one the rest of the function uses. */
     SOFT_TOUCH_REG(raw);
     block              = (RoomShaftScratch*)raw;
-    block->vec.vx      = *(u16*)&coord->workm.t[0];
-    block->vec.vy      = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    block->vec.vx      = (u16)coord->workm.t[0];
+    block->vec.vy      = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = block;
     block->vec.vz      = vz;
 
@@ -1221,9 +1221,9 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     head          = *scratch;
     block         = (RoomShaftScratch*)(head - 0x14);
     otzp          = &block->otz;
-    block->vec.vx = *(u16*)&coord->workm.t[0];
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    vz            = *(u16*)&coord->workm.t[2];
+    block->vec.vx = (u16)coord->workm.t[0];
+    block->vec.vy = (u16)coord->workm.t[1];
+    vz            = (u16)coord->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1249,10 +1249,10 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
         prim->v3         = 0x67;
         prim->code      |= 3;
         block->halfWidth = 0x6700 / ((RoomShaftScratch*)(head - 0x14))->otz;
-        prim->x0 = prim->x2 = block->sx - *(u16*)&block->halfWidth;
-        prim->x1 = prim->x3 = block->sx + *(u16*)&block->halfWidth;
-        prim->y0 = prim->y1 = block->sy - *(u16*)&block->halfWidth;
-        prim->y2 = prim->y3 = block->sy + *(u16*)&block->halfWidth;
+        prim->x0 = prim->x2 = block->sx - (u16)block->halfWidth;
+        prim->x1 = prim->x3 = block->sx + (u16)block->halfWidth;
+        prim->y0 = prim->y1 = block->sy - (u16)block->halfWidth;
+        prim->y2 = prim->y3 = block->sy + (u16)block->halfWidth;
         addPrim((u_long*)(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }

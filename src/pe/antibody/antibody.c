@@ -374,10 +374,10 @@ void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
 
     head                                      = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
@@ -407,17 +407,17 @@ void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->u3    = u + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + *(u16*)&block->dx;
-        prim->x3    = block->sx - *(u16*)&block->dx;
-        prim->y0    = block->sy - *(u16*)&block->dy;
+        prim->x0    = block->sx + (u16)block->dx;
+        prim->x3    = block->sx - (u16)block->dx;
+        prim->y0    = block->sy - (u16)block->dy;
         ang2        = arg3 + 0x400;
-        prim->y3    = block->sy + *(u16*)&block->dy;
+        prim->y3    = block->sy + (u16)block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1    = block->sx + *(u16*)&block->dx;
-        prim->x2    = block->sx - *(u16*)&block->dx;
-        prim->y1    = block->sy - *(u16*)&block->dy;
-        prim->y2    = block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + (u16)block->dx;
+        prim->x2    = block->sx - (u16)block->dx;
+        prim->y1    = block->sy - (u16)block->dy;
+        prim->y2    = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -446,10 +446,10 @@ void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
 
     head                                      = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
@@ -475,17 +475,17 @@ void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
         ang2      = arg3 + 0x400;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -520,13 +520,13 @@ void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
 
     player                                      = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
     head                                        = SCRATCH_HEAD(u8);
-    ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];
+    ((AntibodyArcScratch*)(head - 0x28))->v0.vx = (u16)arg0->workm.t[0];
     block                                       = (AntibodyArcScratch*)(head - 0x28);
-    block->v0.vy                                = *(u16*)&arg0->workm.t[1];
-    block->v0.vz                                = *(u16*)&arg0->workm.t[2];
-    block->v1.vx                                = *(u16*)&player->workm.t[0];
-    block->v1.vy                                = *(u16*)&player->workm.t[1];
-    vz                                          = *(u16*)&player->workm.t[2];
+    block->v0.vy                                = (u16)arg0->workm.t[1];
+    block->v0.vz                                = (u16)arg0->workm.t[2];
+    block->v1.vx                                = (u16)player->workm.t[0];
+    block->v1.vy                                = (u16)player->workm.t[1];
+    vz                                          = (u16)player->workm.t[2];
     SCRATCH_HEAD(AntibodyArcScratch)            = block;
     block->v1.vz                                = vz;
     vec                                         = &block->v0;
@@ -559,17 +559,17 @@ void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
             ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
             block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = (u16)block->sx0 + *(u16*)&block->dx;
-            prim->x3  = (u16)block->sx1 - *(u16*)&block->dx;
-            prim->y0  = (u16)block->sy0 - *(u16*)&block->dy;
+            prim->x0  = (u16)block->sx0 + (u16)block->dx;
+            prim->x3  = (u16)block->sx1 - (u16)block->dx;
+            prim->y0  = (u16)block->sy0 - (u16)block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = (u16)block->sy1 + *(u16*)&block->dy;
+            prim->y3  = (u16)block->sy1 + (u16)block->dy;
             block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = (u16)block->sx1 + *(u16*)&block->dx;
-            prim->x2  = (u16)block->sx0 - *(u16*)&block->dx;
-            prim->y1  = (u16)block->sy1 - *(u16*)&block->dy;
-            prim->y2  = (u16)block->sy0 + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sx1 + (u16)block->dx;
+            prim->x2  = (u16)block->sx0 - (u16)block->dx;
+            prim->y1  = (u16)block->sy1 - (u16)block->dy;
+            prim->y2  = (u16)block->sy0 + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -594,10 +594,10 @@ void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;

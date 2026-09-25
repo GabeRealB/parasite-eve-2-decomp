@@ -293,8 +293,8 @@ void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy                          = *(u16*)&arg0->workm.t[1];
-    vz                                     = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                          = (u16)arg0->workm.t[1];
+    vz                                     = (u16)arg0->workm.t[2];
     outer                                  = saved + arg2;
     SCRATCH_HEAD_AT(scratch, GpArcScratch) = block;
     block->vec.vz                          = vz;
@@ -475,8 +475,8 @@ void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         tmp   = head - 0x1C;
         block = (GpFxQuadScratch*)tmp;
     }
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
     block->vec.vz                             = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -510,17 +510,17 @@ void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -561,14 +561,14 @@ void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
     head = SCRATCH_HEAD(u8);
     tmp  = head - 0x28;
     SOFT_TOUCH_REG(tmp);
-    vx                                             = *(u16*)&arg0->workm.t[0];
+    vx                                             = (u16)arg0->workm.t[0];
     block                                          = (ApobiosisShardScratch*)tmp;
     ((ApobiosisShardScratch*)(head - 0x28))->v0.vx = vx;
     block->v1.vx                                   = vx;
-    vy                                             = *(u16*)&arg0->workm.t[1];
+    vy                                             = (u16)arg0->workm.t[1];
     block->v0.vy                                   = vy;
     block->v1.vy                                   = vy;
-    vz                                             = *(u16*)&arg0->workm.t[2];
+    vz                                             = (u16)arg0->workm.t[2];
     block->v0.vz                                   = vz;
     block->v1.vz                                   = vz;
     t                                              = vx;
@@ -619,17 +619,17 @@ void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
             ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
             block->dx = (((extent * 0x17) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((extent * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = (u16)block->sx0 + *(u16*)&block->dx;
-            prim->x3  = (u16)block->sx1 - *(u16*)&block->dx;
-            prim->y0  = (u16)block->sy0 - *(u16*)&block->dy;
+            prim->x0  = (u16)block->sx0 + (u16)block->dx;
+            prim->x3  = (u16)block->sx1 - (u16)block->dx;
+            prim->y0  = (u16)block->sy0 - (u16)block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = (u16)block->sy1 + *(u16*)&block->dy;
+            prim->y3  = (u16)block->sy1 + (u16)block->dy;
             block->dx = (((extent * 0x17) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((extent * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = (u16)block->sx1 + *(u16*)&block->dx;
-            prim->x2  = (u16)block->sx0 - *(u16*)&block->dx;
-            prim->y1  = (u16)block->sy1 - *(u16*)&block->dy;
-            prim->y2  = (u16)block->sy0 + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sx1 + (u16)block->dx;
+            prim->x2  = (u16)block->sx0 - (u16)block->dx;
+            prim->y1  = (u16)block->sy1 - (u16)block->dy;
+            prim->y2  = (u16)block->sy0 + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

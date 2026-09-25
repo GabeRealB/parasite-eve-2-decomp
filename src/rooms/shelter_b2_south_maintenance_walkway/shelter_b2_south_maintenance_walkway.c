@@ -695,7 +695,7 @@ void func_shelter_b2_south_maintenance_walkway_8017EC40(GpCoord* arg0, s32 arg1,
     color   = rgb;
     head    = *scratch;
     USE_REG(head);
-    vx = *(u16*)&arg0->workm.t[0];
+    vx = (u16)arg0->workm.t[0];
     USE_REG(vx);
     {
         register u8* tmp asm("v0");
@@ -703,8 +703,8 @@ void func_shelter_b2_south_maintenance_walkway_8017EC40(GpCoord* arg0, s32 arg1,
         block = (RoomDraw02Scratch*)tmp;
     }
     block->vec.vx = vx;
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -778,7 +778,7 @@ void func_shelter_b2_south_maintenance_walkway_8017F06C(GpCoord* arg0, s32 arg1,
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -786,8 +786,8 @@ void func_shelter_b2_south_maintenance_walkway_8017F06C(GpCoord* arg0, s32 arg1,
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -973,23 +973,23 @@ void func_shelter_b2_south_maintenance_walkway_8017F8F0(GpCoord* arg0, GpCoord* 
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vx = (u16)a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        blk->v[0].vy = (u16)a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[0].vz = (u16)a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = *(u16*)&b->workm.t[0];
-        blk->v[1].vy = *(u16*)&b->workm.t[1];
-        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[1].vx = (u16)b->workm.t[0];
+        blk->v[1].vy = (u16)b->workm.t[1];
+        blk->v[1].vz = (u16)b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = *(u16*)&a->workm.t[0];
-        blk->v[2].vy = *(u16*)&a->workm.t[1];
-        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[2].vx = (u16)a->workm.t[0];
+        blk->v[2].vy = (u16)a->workm.t[1];
+        blk->v[2].vz = (u16)a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = *(u16*)&b->workm.t[0];
-        blk->v[3].vy = *(u16*)&b->workm.t[1];
-        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        blk->v[3].vx = (u16)b->workm.t[0];
+        blk->v[3].vy = (u16)b->workm.t[1];
+        blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -1138,7 +1138,7 @@ void func_shelter_b2_south_maintenance_walkway_8017FF70(GpCoord* arg0, s16 arg1,
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -1146,8 +1146,8 @@ void func_shelter_b2_south_maintenance_walkway_8017FF70(GpCoord* arg0, s16 arg1,
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -1457,10 +1457,10 @@ void func_shelter_b2_south_maintenance_walkway_801810AC(GpCoord* arg0, s32 arg1,
     CLOBBER_REG(a1);
     scratch                                 = (void**)G_SCRATCH_HEAD;
     head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     *scratch                                = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -1495,16 +1495,16 @@ void func_shelter_b2_south_maintenance_walkway_801810AC(GpCoord* arg0, s32 arg1,
         prim->v0    = 0;
         prim->v1    = 0;
         block->step = (t - sarg) / block->otz;
-        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        xy          = *(u16*)&block->sx - (u16)block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        xy          = *(u16*)&block->sx + (u16)block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = *(u16*)&block->sy - *(u16*)&block->step;
+        xy          = *(u16*)&block->sy - (u16)block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + *(u16*)&block->step;
+        xy          = *(u16*)&block->sy + (u16)block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -1545,7 +1545,7 @@ void func_shelter_b2_south_maintenance_walkway_80181330(GpCoord* arg0, s32 arg1,
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                     = *(u16*)&arg0->workm.t[0];
+        vx                                     = (u16)arg0->workm.t[0];
         ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -1553,8 +1553,8 @@ void func_shelter_b2_south_maintenance_walkway_80181330(GpCoord* arg0, s32 arg1,
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -1626,7 +1626,7 @@ void func_shelter_b2_south_maintenance_walkway_80181754(GpCoord* arg0, s32 arg1,
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                      = *(u16*)&arg0->workm.t[0];
+        vx                                      = (u16)arg0->workm.t[0];
         ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -1634,8 +1634,8 @@ void func_shelter_b2_south_maintenance_walkway_80181754(GpCoord* arg0, s32 arg1,
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1783,13 +1783,13 @@ void func_shelter_b2_south_maintenance_walkway_80181C94(GpCoord* coord, s16 size
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
     block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = *(u16*)&coord->workm.t[0];
+    block->vec.vx               = (u16)coord->workm.t[0];
     alias                       = block;
-    vy                          = *(u16*)&coord->workm.t[1];
+    vy                          = (u16)coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;
-    sc->vec.vz  = *(u16*)&coord->workm.t[2];
+    sc->vec.vz  = (u16)coord->workm.t[2];
     Gp_LcgState = random;
     *scratch    = sc;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1903,11 +1903,11 @@ void func_shelter_b2_south_maintenance_walkway_801821C0(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 

@@ -2090,9 +2090,9 @@ void func_acropolis_security_room_80180A78(Task* task)
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
         gte_rtv0();
         gte_stsv(&((AsrBeamScratch*)(head - 0x14))->a);
-        blk->a.vx = (u16)blk->a.vx + *(u16*)&coord->workm.t[0];
-        blk->a.vy = (u16)blk->a.vy + *(u16*)&coord->workm.t[1];
-        blk->a.vz = (u16)blk->a.vz + *(u16*)&coord->workm.t[2];
+        blk->a.vx = (u16)blk->a.vx + (u16)coord->workm.t[0];
+        blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
+        blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
         blk->b.vx = -0x1F0;
         blk->b.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
         blk->b.vz = 0x9AF;
@@ -2100,9 +2100,9 @@ void func_acropolis_security_room_80180A78(Task* task)
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);
         gte_rtv0();
         gte_stsv(&((AsrBeamScratch*)(head - 0x14))->b);
-        blk->b.vx = (u16)blk->b.vx + *(u16*)&coord->workm.t[0];
-        blk->b.vy = (u16)blk->b.vy + *(u16*)&coord->workm.t[1];
-        blk->b.vz = (u16)blk->b.vz + *(u16*)&coord->workm.t[2];
+        blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
+        blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
+        blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->a);
@@ -2227,9 +2227,9 @@ void func_acropolis_security_room_80181108(Task* arg0)
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        blk->v[i].vx = (u16)blk->v[i].vx + *(u16*)&coord->workm.t[0];
-        sv->vy       = (u16)sv->vy + *(u16*)&coord->workm.t[1];
-        sv->vz       = (u16)sv->vz + *(u16*)&coord->workm.t[2];
+        blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
+        sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
+        sv->vz       = (u16)sv->vz + (u16)coord->workm.t[2];
     }
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2363,9 +2363,9 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
         SOFT_TOUCH_REG(tmp);
         scratch = (AsrFlashScratch*)tmp;
     }
-    scratch->v.vx      = *(u16*)&coord->workm.t[0];
-    scratch->v.vy      = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    scratch->v.vx      = (u16)coord->workm.t[0];
+    scratch->v.vy      = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = scratch;
     scratch->v.vz      = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2397,16 +2397,16 @@ void func_acropolis_security_room_801817A4(Task* taskArg)
             setRGB1(quad, 0, 0, 0);
             setRGB2(quad, redProduct, greenBit * quadLum, 0);
             setRGB3(quad, 0, 0, 0);
-            quad->x0  = scratch->x - *(u16*)&scratch->step;
+            quad->x0  = scratch->x - (u16)scratch->step;
             x         = scratch->x;
             quad->x2  = x;
             quad->x1  = x;
-            quad->x3  = scratch->x + *(u16*)&scratch->step;
+            quad->x3  = scratch->x + (u16)scratch->step;
             y         = scratch->y;
             quad->y3  = y;
             quad->y2  = y;
             quad->y0  = y;
-            quad->y1  = (scratch->y - *(u16*)&scratch->step) + (scratch->step * (i << 1));
+            quad->y1  = (scratch->y - (u16)scratch->step) + (scratch->step * (i << 1));
             tagMask   = 0xFF000000;
             quad->tag = (quad->tag & tagMask) | (*((u_long*)(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt)) & addrMask);
             TOUCH_REG(tagMask);
@@ -2539,9 +2539,9 @@ s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 cou
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

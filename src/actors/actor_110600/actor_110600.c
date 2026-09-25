@@ -515,9 +515,9 @@ s16 func_actor_110600_80132470(OverlayWalker* walker)
     d->x = walker->nav->nodes[walker->node].x;
     d->y = walker->nav->nodes[walker->node].y;
     d->z = walker->nav->nodes[walker->node].z;
-    d->x = d->x - *(u16*)&walker->coord->coord.t[0];
+    d->x = d->x - (u16)walker->coord->coord.t[0];
     d->y = 0;
-    d->z = d->z - *(u16*)&walker->coord->coord.t[2];
+    d->z = d->z - (u16)walker->coord->coord.t[2];
 
     if (!overlayWalkerOutOfRange(d, walker->field_5C * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
@@ -583,9 +583,9 @@ u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
     block->cfg  = &D_80073B08[(s16)actor];
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = *(u16*)&block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
-        dz          = *(u16*)&block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
+        block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = (u16)block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
+        dz          = (u16)block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -613,8 +613,8 @@ u8 func_actor_110600_80132958(OverlayWalker* work)
 
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&work->coord->coord.t[0] - work->nav->nodes[block->node].x;
-        dz          = *(u16*)&work->coord->coord.t[2] - work->nav->nodes[block->node].z;
+        block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
+        dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -813,9 +813,9 @@ void func_actor_110600_80132FE0(OverlayWalker* work)
         s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&work->coord->workm.t[0];
-    s->eye.vy = *(u16*)&work->coord->workm.t[1];
-    s->eye.vz = *(u16*)&work->coord->workm.t[2];
+    s->eye.vx = (u16)work->coord->workm.t[0];
+    s->eye.vy = (u16)work->coord->workm.t[1];
+    s->eye.vz = (u16)work->coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < work->avoidCount; s->i++) {
@@ -967,9 +967,9 @@ void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
     if (work->nav->count < 2)
         return;
     SOFT_COMPILER_BARRIER();
-    work->nav->nodes[0].x = *(u16*)&work->coord->coord.t[0];
-    work->nav->nodes[0].y = *(u16*)&work->coord->coord.t[1];
-    work->nav->nodes[0].z = *(u16*)&work->coord->coord.t[2];
+    work->nav->nodes[0].x = (u16)work->coord->coord.t[0];
+    work->nav->nodes[0].y = (u16)work->coord->coord.t[1];
+    work->nav->nodes[0].z = (u16)work->coord->coord.t[2];
     head                  = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8)      = head - 0x2C;
     blk                   = (Actor110600TsvScratch*)(head - 0x2C);
@@ -982,9 +982,9 @@ void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
         gte_ldsv(&blk->v);
         gte_gpf12();
         gte_stsv(&blk->v);
-        work->nav->nodes[blk->i].x = *(u16*)&work->coord->coord.t[0] + (u16)blk->v.vx;
-        work->nav->nodes[blk->i].y = *(u16*)&work->coord->coord.t[1] + (u16)blk->v.vy;
-        work->nav->nodes[blk->i].z = *(u16*)&work->coord->coord.t[2] + (u16)blk->v.vz;
+        work->nav->nodes[blk->i].x = (u16)work->coord->coord.t[0] + (u16)blk->v.vx;
+        work->nav->nodes[blk->i].y = (u16)work->coord->coord.t[1] + (u16)blk->v.vy;
+        work->nav->nodes[blk->i].z = (u16)work->coord->coord.t[2] + (u16)blk->v.vz;
         work->nav->field_4[blk->i] = blk->i;
         printf("emc_m->tsv[%d]( %d, %d, %d )\n", blk->i, work->nav->nodes[blk->i].x, work->nav->nodes[blk->i].y, work->nav->nodes[blk->i].z);
     }
@@ -1032,9 +1032,9 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
         case 1:
             cfg                            = &D_80073B08[walker->field_6E];
             pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->coordMtx->t[0];
-            pos->vy                        = *(u16*)&cfg->coordMtx->t[1];
-            pos->vz                        = *(u16*)&cfg->coordMtx->t[2];
+            ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
+            pos->vy                        = (u16)cfg->coordMtx->t[1];
+            pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
             SCRATCH_PUSH_BYTES(4);
@@ -2370,9 +2370,9 @@ void func_actor_110600_80136210(Task* arg0)
         func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
         arg0->extra.tmd->coords->flg = 0;
         Gp_UpdateCoord(arg0->extra.tmd->coords);
-        sc->direction.vx = (s16)(sc->point.vx - *(u16*)&arg0->extra.tmd->coords->workm.t[0]);
-        sc->direction.vy = (s16)(sc->point.vy - *(u16*)&arg0->extra.tmd->coords->workm.t[1]);
-        dz               = sc->point.vz - *(u16*)&arg0->extra.tmd->coords->workm.t[2];
+        sc->direction.vx = (s16)(sc->point.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
+        sc->direction.vy = (s16)(sc->point.vy - (u16)arg0->extra.tmd->coords->workm.t[1]);
+        dz               = sc->point.vz - (u16)arg0->extra.tmd->coords->workm.t[2];
         sc->direction.vz = dz;
         yaw              = ratan2((s32)sc->direction.vx, (s32)dz);
         facing           = arg0->extra.tmd->coords;
@@ -3362,13 +3362,13 @@ void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
     }
     work->field_2 = (u16)work->field_0;
 
-    work->field_950.pos.vx = *(u16*)&arg1->extra.tmd->coords->coord.t[0];
-    work->field_950.pos.vy = *(u16*)&arg1->extra.tmd->coords->coord.t[1];
-    work->field_950.pos.vz = *(u16*)&arg1->extra.tmd->coords->coord.t[2];
+    work->field_950.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
+    work->field_950.pos.vy = (u16)arg1->extra.tmd->coords->coord.t[1];
+    work->field_950.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
     states.fn[work->field_0](arg1);
-    work->field_950.pos.vx = *(u16*)&arg1->extra.tmd->coords->coord.t[0];
-    work->field_950.pos.vy = (u16)(*(u16*)&arg1->extra.tmd->coords->coord.t[1] - 0x124);
-    work->field_950.pos.vz = *(u16*)&arg1->extra.tmd->coords->coord.t[2];
+    work->field_950.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
+    work->field_950.pos.vy = (u16)((u16)arg1->extra.tmd->coords->coord.t[1] - 0x124);
+    work->field_950.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
 
     if (arg0->hp > 0) {
         if (work->field_8AA > 0) {

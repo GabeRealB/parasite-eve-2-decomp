@@ -241,10 +241,10 @@ void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     u16              vz;
 
     head                                      = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
@@ -269,17 +269,17 @@ void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -402,8 +402,8 @@ void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         tmp   = head - 0x1C;
         block = (GpFxQuadScratch*)tmp;
     }
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
     frame                                     = arg1;
     block->vec.vz                             = vz;
@@ -440,17 +440,17 @@ void func_necrosis_8012FE64(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         }
         block->dx = (((arg2 * 31) / block->otz) * rsin(sinArg)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = ang + 0x400;
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -489,8 +489,8 @@ void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         tmp   = head - 0x1C;
         block = (GpFxQuadScratch*)tmp;
     }
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     SCRATCH_HEAD_AT(scratch, GpFxQuadScratch) = block;
     block->vec.vz                             = vz;
 
@@ -523,17 +523,17 @@ void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         }
         block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

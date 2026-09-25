@@ -376,9 +376,9 @@ void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, 
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
-    block->vec.vx = (u16)block->vec.vx + *(u16*)&arg0->workm.t[0];
-    block->vec.vy = (u16)block->vec.vy + *(u16*)&arg0->workm.t[1];
-    block->vec.vz = (u16)block->vec.vz + *(u16*)&arg0->workm.t[2];
+    block->vec.vx = (u16)block->vec.vx + (u16)arg0->workm.t[0];
+    block->vec.vy = (u16)block->vec.vy + (u16)arg0->workm.t[1];
+    block->vec.vz = (u16)block->vec.vz + (u16)arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -399,12 +399,12 @@ void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, 
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, color, color);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - *(u16*)&block->halfWidth;
+            prim->x0 = block->sx - (u16)block->halfWidth;
             prim->x1 = prim->x2 = block->sx;
-            prim->x3            = block->sx + *(u16*)&block->halfWidth;
+            prim->x3            = block->sx + (u16)block->halfWidth;
             prim->y0 = prim->y2 = prim->y3 = block->sy;
             twice                          = i << 1;
-            prim->y1                       = (block->sy - *(u16*)&block->halfWidth) + block->halfWidth * twice;
+            prim->y1                       = (block->sy - (u16)block->halfWidth) + block->halfWidth * twice;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

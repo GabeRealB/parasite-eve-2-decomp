@@ -2121,10 +2121,10 @@ void func_acropolis_bridge_801819C8(Task* task)
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = *(u16*)&coord->workm.t[0];
+        (u16) block->vec[i].vx = (u16)coord->workm.t[0];
         i++;
-        (u16) v->vy = *(u16*)&coord->workm.t[1];
-        (u16) v->vz = *(u16*)&coord->workm.t[2];
+        (u16) v->vy = (u16)coord->workm.t[1];
+        (u16) v->vz = (u16)coord->workm.t[2];
     } while (i < 4);
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2324,9 +2324,9 @@ void func_acropolis_bridge_80182394(Task* task)
     coord->coord.t[1] += work->move.vy;
     coord->coord.t[2] += work->move.vz;
     coord->flg         = 0;
-    block->vec.vx      = *(u16*)&coord->workm.t[0];
-    block->vec.vy      = *(u16*)&coord->workm.t[1];
-    block->vec.vz      = *(u16*)&coord->workm.t[2];
+    block->vec.vx      = (u16)coord->workm.t[0];
+    block->vec.vy      = (u16)coord->workm.t[1];
+    block->vec.vz      = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2430,10 +2430,10 @@ void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        (u16) blk->v[i].vx = (u16)blk->v[i].vx + *(u16*)&coord->workm.t[0];
-        (u16) sv->vy       = (u16)sv->vy + *(u16*)&coord->workm.t[1];
+        (u16) blk->v[i].vx = (u16)blk->v[i].vx + (u16)coord->workm.t[0];
+        (u16) sv->vy       = (u16)sv->vy + (u16)coord->workm.t[1];
         i++;
-        (u16) sv->vz = (u16)sv->vz + *(u16*)&coord->workm.t[2];
+        (u16) sv->vz = (u16)sv->vz + (u16)coord->workm.t[2];
     } while (i < 4);
 
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -2625,9 +2625,9 @@ void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 ang
     block   = (AcropolisBridgeSpriteScratch*)(head - sizeof(AcropolisBridgeSpriteScratch));
     depth   = block;
 
-    block->vec.vx = *(u16*)&coord->workm.t[0];
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    block->vec.vz = *(u16*)&coord->workm.t[2];
+    block->vec.vx = (u16)coord->workm.t[0];
+    block->vec.vy = (u16)coord->workm.t[1];
+    block->vec.vz = (u16)coord->workm.t[2];
     *scratch      = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2655,18 +2655,18 @@ void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 ang
         ang       = angle;
         block->dx = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rsin(ang)) >> 12;
         block->dy = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
 
         ang      += 0x400;
         block->dx = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rsin(ang)) >> 12;
         block->dy = (size * 31 / ((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz * rcos(ang)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
 
         addPrim((u_long*)(((((u32)((AcropolisBridgeSpriteScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
@@ -2703,9 +2703,9 @@ void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
     block   = (AcropolisBridgeDebrisScratch*)(head - sizeof(AcropolisBridgeDebrisScratch));
     depth   = block;
 
-    block->vec.vx = *(u16*)&coord->workm.t[0];
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    block->vec.vz = *(u16*)&coord->workm.t[2];
+    block->vec.vx = (u16)coord->workm.t[0];
+    block->vec.vy = (u16)coord->workm.t[1];
+    block->vec.vz = (u16)coord->workm.t[2];
     *scratch      = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2735,9 +2735,9 @@ void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
 
         block->d = size * 55 / ((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz;
 
-        prim->x0 = prim->x2 = block->sx - *(u16*)&block->d;
-        prim->x1 = prim->x3 = block->sx + *(u16*)&block->d;
-        prim->y0 = prim->y1 = block->sy - *(u16*)&block->d - (block->d >> 1);
+        prim->x0 = prim->x2 = block->sx - (u16)block->d;
+        prim->x1 = prim->x3 = block->sx + (u16)block->d;
+        prim->y0 = prim->y1 = block->sy - (u16)block->d - (block->d >> 1);
         prim->y2 = prim->y3 = block->sy + (block->d >> 1);
 
         addPrim((u_long*)(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -2927,9 +2927,9 @@ s16 func_acropolis_bridge_80184024(OverlayWalker* work)
     d->x = work->nav->nodes[work->node].x;
     d->y = work->nav->nodes[work->node].y;
     d->z = work->nav->nodes[work->node].z;
-    d->x = d->x - *(u16*)&work->coord->coord.t[0];
+    d->x = d->x - (u16)work->coord->coord.t[0];
     d->y = 0;
-    d->z = d->z - *(u16*)&work->coord->coord.t[2];
+    d->z = d->z - (u16)work->coord->coord.t[2];
 
     if (!overlayWalkerOutOfRange(d, work->field_5C * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
@@ -3001,9 +3001,9 @@ u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
     block->cfg  = &D_80073B08[(s16)actor];
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = *(u16*)&block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
-        dz          = *(u16*)&block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
+        block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
+        block->dy   = (u16)block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
+        dz          = (u16)block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -3031,8 +3031,8 @@ u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
 
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = *(u16*)&work->coord->coord.t[0] - work->nav->nodes[block->node].x;
-        dz          = *(u16*)&work->coord->coord.t[2] - work->nav->nodes[block->node].z;
+        block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
+        dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
         block->dz   = dz;
         block->dist = block->dx * block->dx + dz * dz;
         if (block->dist < block->best || block->best == -1) {
@@ -3247,9 +3247,9 @@ void func_acropolis_bridge_80184B94(OverlayWalker* work)
         s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&work->coord->workm.t[0];
-    s->eye.vy = *(u16*)&work->coord->workm.t[1];
-    s->eye.vz = *(u16*)&work->coord->workm.t[2];
+    s->eye.vx = (u16)work->coord->workm.t[0];
+    s->eye.vy = (u16)work->coord->workm.t[1];
+    s->eye.vz = (u16)work->coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < work->avoidCount; s->i++) {
@@ -3424,9 +3424,9 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         case 1:
             cfg                            = &D_80073B08[walker->field_6E];
             pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = *(u16*)&cfg->coordMtx->t[0];
-            pos->vy                        = *(u16*)&cfg->coordMtx->t[1];
-            pos->vz                        = *(u16*)&cfg->coordMtx->t[2];
+            ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
+            pos->vy                        = (u16)cfg->coordMtx->t[1];
+            pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
             SCRATCH_PUSH_BYTES(4);

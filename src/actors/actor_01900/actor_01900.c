@@ -442,9 +442,9 @@ s32 Actor01900_Fn008B4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
@@ -600,9 +600,9 @@ s32 Actor01900_Fn00FA4(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx                     = *(u16*)&coord->coord.t[0];
-    st->eye.vy                     = *(u16*)&coord->coord.t[1];
-    vz                             = *(u16*)&coord->coord.t[2];
+    st->eye.vx                     = (u16)coord->coord.t[0];
+    st->eye.vy                     = (u16)coord->coord.t[1];
+    vz                             = (u16)coord->coord.t[2];
     SCRATCH_HEAD_AT(scratch, void) = st;
     st->eye.vz                     = vz;
 
@@ -2908,11 +2908,11 @@ void Actor01900_Fn083E8(Task* arg0)
 
     coord             = arg0->extra.tmd->coords;
     next              = head - 1;
-    head[-1].delta.vx = *(u16*)&cfg->coordMtx->t[0] - *(u16*)&coord->coord.t[0];
+    head[-1].delta.vx = (u16)cfg->coordMtx->t[0] - (u16)coord->coord.t[0];
     SOFT_USE_REG(next);
     aim                                      = next;
-    aim->delta.vy                            = *(u16*)&cfg->coordMtx->t[1] - *(u16*)&coord->coord.t[1];
-    z                                        = *(u16*)&cfg->coordMtx->t[2] - *(u16*)&coord->coord.t[2];
+    aim->delta.vy                            = (u16)cfg->coordMtx->t[1] - (u16)coord->coord.t[1];
+    z                                        = (u16)cfg->coordMtx->t[2] - (u16)coord->coord.t[2];
     SCRATCH_HEAD_AT(slot, ActorChaseScratch) = aim;
     aim->delta.vz                            = z;
 

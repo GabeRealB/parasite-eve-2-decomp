@@ -545,10 +545,10 @@ void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 
 
     scratch                                   = (void**)G_SCRATCH_HEAD;
     head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&coord->workm.t[1];
-    vz                                        = *(u16*)&coord->workm.t[2];
+    block->vec.vy                             = (u16)coord->workm.t[1];
+    vz                                        = (u16)coord->workm.t[2];
     *scratch                                  = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
@@ -571,17 +571,17 @@ void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 
         setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
         block->dx = (((arg2 * 47) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

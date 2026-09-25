@@ -238,10 +238,10 @@ void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -271,16 +271,16 @@ void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
         prim->u0    = u0;
         prim->u2    = u0;
         block->step = (arg2 * 0x1F) / block->otz;
-        x           = (u16)block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - (u16)block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = (u16)block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + (u16)block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = (u16)block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - (u16)block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = (u16)block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -414,10 +414,10 @@ void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     u16              vz;
 
     head                                      = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     block->vec.vz                             = vz;
     SCRATCH_HEAD(GpFxQuadScratch)             = block;
     vec                                       = &block->vec;
@@ -442,17 +442,17 @@ void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
         block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -481,10 +481,10 @@ void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -517,16 +517,16 @@ void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
         prim->u1    = u1;
         prim->u3    = u1;
         block->step = (arg2 * 0x17) / block->otz;
-        x           = (u16)block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - (u16)block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = (u16)block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + (u16)block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = (u16)block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - (u16)block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = (u16)block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -565,7 +565,7 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                        = *(u16*)&arg0->workm.t[0];
+        vx                                        = (u16)arg0->workm.t[0];
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -573,8 +573,8 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         tmp   = head - 0x1C;
         block = (GpFxQuadScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -606,17 +606,17 @@ void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         ang       = arg3;
         block->dx = (((arg2 * 0x37) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 0x37) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang       = ang + 0x400;
         block->dx = (((arg2 * 0x37) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 0x37) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -651,10 +651,10 @@ void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -684,16 +684,16 @@ void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
         v2          = row * 0x28 - 0x51;
         setUV4(prim, u0, v0, u1, v0, u0, v2, u1, v2);
         block->step = (arg2 * 0x27) / block->otz;
-        x           = (u16)block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - (u16)block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = (u16)block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + (u16)block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = (u16)block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - (u16)block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = (u16)block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +

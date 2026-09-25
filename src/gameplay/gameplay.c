@@ -3891,7 +3891,7 @@ u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -3911,7 +3911,7 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -3972,7 +3972,7 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[3];
             *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = *(u16*)&stream[5];
+            *(u16*)&poly->u2 = (u16)stream[5];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -3992,7 +3992,7 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[4];
             *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u2 = (u16)stream[6];
             *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4013,7 +4013,7 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[4];
             *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u2 = (u16)stream[6];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4033,7 +4033,7 @@ u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
         do {
             *(s32*)&poly->u0 = stream[6];
             *(s32*)&poly->u1 = stream[7];
-            *(u16*)&poly->u2 = *(u16*)&stream[8];
+            *(u16*)&poly->u2 = (u16)stream[8];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4053,7 +4053,7 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[5];
             *(s32*)&poly->u1 = stream[6];
-            *(u16*)&poly->u2 = *(u16*)&stream[7];
+            *(u16*)&poly->u2 = (u16)stream[7];
             *(u16*)&poly->u3 = ((u16*)&stream[7])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4074,7 +4074,7 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
         do {
             *(s32*)&poly->u0 = stream[8];
             *(s32*)&poly->u1 = stream[9];
-            *(u16*)&poly->u2 = *(u16*)&stream[10];
+            *(u16*)&poly->u2 = (u16)stream[10];
             *(u16*)&poly->u3 = ((u16*)&stream[10])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4095,7 +4095,7 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4115,7 +4115,7 @@ u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[3];
             *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = *(u16*)&stream[5];
+            *(u16*)&poly->u2 = (u16)stream[5];
             *(u16*)&poly->u3 = ((u16*)&stream[5])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4144,7 +4144,7 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             *(s32*)&poly->r3 = color;
             *(s32*)&poly->u0 = stream[6];
             *(s32*)&poly->u1 = stream[7];
-            *(u16*)&poly->u2 = *(u16*)&stream[8];
+            *(u16*)&poly->u2 = (u16)stream[8];
             *(u16*)&poly->u3 = ((u16*)&stream[8])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4165,7 +4165,7 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4185,7 +4185,7 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4248,7 +4248,7 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
         do {
             *(s32*)&poly->u0 = stream[3];
             *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = *(u16*)&stream[5];
+            *(u16*)&poly->u2 = (u16)stream[5];
             poly->tpage     += (s8)ws->obj->tpageOffset;
             tmp              = ws->obj->clutOffset;
             tpage            = poly->tpage;
@@ -4258,7 +4258,7 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             poly++;
             *(s32*)&poly->u0 = stream[3];
             *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = *(u16*)&stream[5];
+            *(u16*)&poly->u2 = (u16)stream[5];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4279,7 +4279,7 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             poly++;
             *(s32*)&poly->u0 = stream[3];
             *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = *(u16*)&stream[5];
+            *(u16*)&poly->u2 = (u16)stream[5];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4301,7 +4301,7 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
         do {
             *(s32*)&poly->u0 = stream[4];
             *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u2 = (u16)stream[6];
             *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
             poly->tpage     += (s8)ws->obj->tpageOffset;
             tmp              = ws->obj->clutOffset;
@@ -4312,7 +4312,7 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             poly++;
             *(s32*)&poly->u0 = stream[4];
             *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u2 = (u16)stream[6];
             *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4334,7 +4334,7 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             poly++;
             *(s32*)&poly->u0 = stream[4];
             *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = *(u16*)&stream[6];
+            *(u16*)&poly->u2 = (u16)stream[6];
             *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4358,7 +4358,7 @@ u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32*
             poly++;
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4381,7 +4381,7 @@ u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stre
             poly++;
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -4404,7 +4404,7 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += (s8)ws->obj->tpageOffset;
             tmp              = ws->obj->clutOffset;
             tpage            = poly->tpage;
@@ -4414,7 +4414,7 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             poly++;
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
             poly++;
@@ -4436,7 +4436,7 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
         do {
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
             poly->tpage     += (s8)ws->obj->tpageOffset;
             tmp              = ws->obj->clutOffset;
@@ -4447,7 +4447,7 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             poly++;
             *(s32*)&poly->u0 = stream[2];
             *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = *(u16*)&stream[4];
+            *(u16*)&poly->u2 = (u16)stream[4];
             *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
             poly->tpage     += ws->tpage;
             poly->clut      += ws->clut;
@@ -7429,7 +7429,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 sc->vec.vy = -(sc->ry * rsin(0x300)) >> 12;
             } else {
                 sc->radius = sc->rx;
-                sc->vec.vy = -*(u16*)&sc->ry;
+                sc->vec.vy = -(u16)sc->ry;
             }
         } else {
             sc->vec.vy = 0;
@@ -7504,9 +7504,9 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     if (node != NULL) {
         do {
             if ((node->state.word & 5) != 1) {
-                vec->vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
-                vec->vy = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vy;
-                vec->vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
+                vec->vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
+                vec->vy = (u16)GP_NODE_ENEMY(node)->playerRelPos.vy;
+                vec->vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
@@ -7590,9 +7590,9 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     if (node != NULL) {
         do {
             if ((node->state.word & 5) != 1) {
-                vec->vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
-                vec->vy = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vy;
-                vec->vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
+                vec->vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
+                vec->vy = (u16)GP_NODE_ENEMY(node)->playerRelPos.vy;
+                vec->vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;
                 if (arg3 != 0) {
                     vec->vz -= arg1;
                 }
@@ -8075,8 +8075,8 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         vec = (SVECTOR*)(head - 8);
         do {
             if ((node->state.word & 5) != 1) {
-                block->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vx;
-                block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->playerRelPos.vz;
+                block->vec.vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
+                block->vec.vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;
                 block->vec.vy = 0;
                 if (mode == 0) {
                     gte_lddp(0x1555);
@@ -8457,21 +8457,21 @@ void Gp_UpdateLinkXforms(void)
         tmpp = &tmp;
         do {
             if ((node->state.word & 5) != 1) {
-                block->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
-                block->vec.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
-                block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+                block->vec.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
+                block->vec.vy = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
+                block->vec.vz = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
                 coord         = GP_NODE_ENEMY(node)->coord;
                 tmp           = block->vec;
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(tmpp);
                 gte_rtv0();
                 gte_stsv(out);
-                block->vec.vx += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[0];
-                block->vec.vy += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[1];
-                block->vec.vz += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[2];
-                block->vec.vx -= *(u16*)&player->workm.t[0];
-                block->vec.vy -= *(u16*)&player->workm.t[1];
-                block->vec.vz -= *(u16*)&player->workm.t[2];
+                block->vec.vx += (u16)GP_NODE_ENEMY(node)->coord->workm.t[0];
+                block->vec.vy += (u16)GP_NODE_ENEMY(node)->coord->workm.t[1];
+                block->vec.vz += (u16)GP_NODE_ENEMY(node)->coord->workm.t[2];
+                block->vec.vx -= (u16)player->workm.t[0];
+                block->vec.vy -= (u16)player->workm.t[1];
+                block->vec.vz -= (u16)player->workm.t[2];
                 tmp            = block->vec;
                 gte_SetRotMatrix(&block->mat);
                 gte_ldv0(tmpp);

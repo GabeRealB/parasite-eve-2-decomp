@@ -4721,9 +4721,9 @@ void func_actor_403200_8013B8C4(Task* arg0)
 
         facing     = arg0->extra.tmd->coords;
         dirp       = &sc->dir;
-        sc->dir.vx = *(u16*)&Player_Status.coordMtx->t[0] - *(u16*)&facing->coord.t[0];
-        dirp->vy   = *(u16*)&Player_Status.coordMtx->t[1] - *(u16*)&facing->coord.t[1];
-        dz         = *(u16*)&Player_Status.coordMtx->t[2] - *(u16*)&facing->coord.t[2];
+        sc->dir.vx = (u16)Player_Status.coordMtx->t[0] - (u16)facing->coord.t[0];
+        dirp->vy   = (u16)Player_Status.coordMtx->t[1] - (u16)facing->coord.t[1];
+        dz         = (u16)Player_Status.coordMtx->t[2] - (u16)facing->coord.t[2];
         dirp->vz   = dz;
         yawCoord   = arg0->extra.tmd->coords;
         ang        = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
@@ -4748,9 +4748,9 @@ void func_actor_403200_8013B8C4(Task* arg0)
     sc->dir.vx = 0;
     actorLocalToView(&arg0->extra.tmd->coords[4], &sc->dir);
 
-    sc->dir.vx = *(u16*)&task->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
-    sc->dir.vy = *(u16*)&task->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
-    sc->dir.vz = *(u16*)&task->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
+    sc->dir.vx = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
+    sc->dir.vy = (u16)task->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
+    sc->dir.vz = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
     sc->dist   = sc->dir.vx * sc->dir.vx;
     sc->dist  += sc->dir.vz * sc->dir.vz;
     sc->dist   = SquareRoot0(sc->dist);
@@ -4883,9 +4883,9 @@ void func_actor_403200_8013B8C4(Task* arg0)
         sc->pos.vx      = 0;
         actorLocalToView(&arg0->extra.tmd->coords[4], &sc->pos);
 
-        sc->dir.vx = *(u16*)&task->extra.tmd->coords->coord.t[0] - (u16)sc->pos.vx;
+        sc->dir.vx = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pos.vx;
         sc->dir.vy = 0;
-        sc->dir.vz = *(u16*)&task->extra.tmd->coords->coord.t[2] - (u16)sc->pos.vz;
+        sc->dir.vz = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pos.vz;
         __asm__("" : "+m"(sc->dir.vz));
         yawCoord = arg0->extra.tmd->coords;
         ang      = ratan2(sc->dir.vx, sc->dir.vz) -

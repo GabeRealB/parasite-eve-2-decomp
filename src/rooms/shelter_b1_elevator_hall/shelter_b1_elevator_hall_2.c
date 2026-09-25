@@ -387,11 +387,11 @@ void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u
     pal                                     = arg3 >> 12;
     arg3                                   &= 0xFF;
     head                                    = *scratch;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     next                                    = (GpRingScratch*)(head - 0x18);
     __asm__("move %0,%1" : "=r"(block) : "r"(next));
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -418,16 +418,16 @@ void func_shelter_b1_elevator_hall_8017E9C0(GpCoord* arg0, u16 arg1, u16 arg2, u
         u1 = u0 + 0x17;
         setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
         block->step = arg2 * 23 / block->otz;
-        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        xy          = *(u16*)&block->sx - (u16)block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        xy          = *(u16*)&block->sx + (u16)block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        xy          = *(u16*)&block->sy - *(u16*)&block->step;
+        xy          = *(u16*)&block->sy - (u16)block->step;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + *(u16*)&block->step;
+        xy          = *(u16*)&block->sy + (u16)block->step;
         prim->y3    = xy;
         prim->y2    = xy;
         ds          = &gDisplayState;
@@ -468,7 +468,7 @@ void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw09Scratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -476,8 +476,8 @@ void func_shelter_b1_elevator_hall_8017EC84(GpCoord* arg0, s32 arg1, s32 arg2, u
         tmp   = head - 0x1C;
         block = (RoomDraw09Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -552,7 +552,7 @@ void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -560,8 +560,8 @@ void func_shelter_b1_elevator_hall_8017F0A8(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -799,13 +799,13 @@ void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size)
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
     block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
-    block->vec.vx               = *(u16*)&coord->workm.t[0];
+    block->vec.vx               = (u16)coord->workm.t[0];
     alias                       = block;
-    vy                          = *(u16*)&coord->workm.t[1];
+    vy                          = (u16)coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;
-    sc->vec.vz  = *(u16*)&coord->workm.t[2];
+    sc->vec.vz  = (u16)coord->workm.t[2];
     Gp_LcgState = random;
     *scratch    = sc;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -921,11 +921,11 @@ void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -994,7 +994,7 @@ void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -1002,8 +1002,8 @@ void func_shelter_b1_elevator_hall_80180224(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -1249,7 +1249,7 @@ void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u
     color   = rgb;
     head    = *scratch;
     USE_REG(head);
-    vx = *(u16*)&arg0->workm.t[0];
+    vx = (u16)arg0->workm.t[0];
     USE_REG(vx);
     {
         register u8* tmp asm("v0");
@@ -1257,8 +1257,8 @@ void func_shelter_b1_elevator_hall_80180FBC(GpCoord* arg0, s32 arg1, s32 arg2, u
         block = (RoomDraw02Scratch*)tmp;
     }
     block->vec.vx = vx;
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -1330,7 +1330,7 @@ void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -1338,8 +1338,8 @@ void func_shelter_b1_elevator_hall_801813E8(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -1520,23 +1520,23 @@ void func_shelter_b1_elevator_hall_80181C6C(GpCoord* arg0, GpCoord* arg1, s16 ar
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vx = (u16)a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        blk->v[0].vy = (u16)a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[0].vz = (u16)a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = *(u16*)&b->workm.t[0];
-        blk->v[1].vy = *(u16*)&b->workm.t[1];
-        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[1].vx = (u16)b->workm.t[0];
+        blk->v[1].vy = (u16)b->workm.t[1];
+        blk->v[1].vz = (u16)b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = *(u16*)&a->workm.t[0];
-        blk->v[2].vy = *(u16*)&a->workm.t[1];
-        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[2].vx = (u16)a->workm.t[0];
+        blk->v[2].vy = (u16)a->workm.t[1];
+        blk->v[2].vz = (u16)a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = *(u16*)&b->workm.t[0];
-        blk->v[3].vy = *(u16*)&b->workm.t[1];
-        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        blk->v[3].vx = (u16)b->workm.t[0];
+        blk->v[3].vy = (u16)b->workm.t[1];
+        blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -1680,7 +1680,7 @@ void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -1688,8 +1688,8 @@ void func_shelter_b1_elevator_hall_801822EC(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 

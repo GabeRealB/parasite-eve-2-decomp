@@ -1385,9 +1385,9 @@ void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
         arg2->vz           = 0;
     }
 
-    tmp.vx = *(u16*)&arg0->coord.t[0];
-    tmp.vy = *(u16*)&arg0->coord.t[1];
-    tmp.vz = *(u16*)&arg0->coord.t[2];
+    tmp.vx = (u16)arg0->coord.t[0];
+    tmp.vy = (u16)arg0->coord.t[1];
+    tmp.vz = (u16)arg0->coord.t[2];
     gte_SetRotMatrix(arg1);
     gte_ldv0(&tmp);
     gte_rtv0();

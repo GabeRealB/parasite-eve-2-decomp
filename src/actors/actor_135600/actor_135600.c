@@ -170,8 +170,8 @@ s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
     RotTransPers(&v0, &sxy0, &p, &flag);
     depth = RotTransPers(&v1, &sxy1, &p, &flag);
 
-    x0  = *(u16*)&sxy0;
-    x1  = *(u16*)&sxy1;
+    x0  = (u16)sxy0;
+    x1  = (u16)sxy1;
     y0  = sxy0 >> 16;
     y1  = sxy1 >> 16;
     rot = ratan2(*(s16*)&sxy1 - *(s16*)&sxy0, y0 - y1);
@@ -645,9 +645,9 @@ void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec)
         vec->vz            = 0;
     }
 
-    tmp.vx = *(u16*)&coord->coord.t[0];
-    tmp.vy = *(u16*)&coord->coord.t[1];
-    tmp.vz = *(u16*)&coord->coord.t[2];
+    tmp.vx = (u16)coord->coord.t[0];
+    tmp.vy = (u16)coord->coord.t[1];
+    tmp.vz = (u16)coord->coord.t[2];
     ApplyMatrixSV(mtx, &tmp, &tmp);
     vec->vx += tmp.vx;
     vec->vy += tmp.vy;

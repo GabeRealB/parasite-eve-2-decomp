@@ -702,9 +702,9 @@ void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = (u16)blk->b.vx + *(u16*)&coord->workm.t[0];
-    blk->b.vy = (u16)blk->b.vy + *(u16*)&coord->workm.t[1];
-    blk->b.vz = (u16)blk->b.vz + *(u16*)&coord->workm.t[2];
+    blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
+    blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
+    blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -777,9 +777,9 @@ void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = (u16)blk->b.vx + *(u16*)&coord->workm.t[0];
-    blk->b.vy = (u16)blk->b.vy + *(u16*)&coord->workm.t[1];
-    blk->b.vz = (u16)blk->b.vz + *(u16*)&coord->workm.t[2];
+    blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
+    blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
+    blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -1122,9 +1122,9 @@ s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

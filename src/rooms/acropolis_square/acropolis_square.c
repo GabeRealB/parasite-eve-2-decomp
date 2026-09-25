@@ -2548,9 +2548,9 @@ void func_acropolis_square_801825DC(Task* task)
     raw  = head - 0x18;
     SOFT_TOUCH_REG(raw);
     blk                = (RoomGlowScratch*)raw;
-    blk->vec.vx        = *(u16*)&coord->workm.t[0];
-    blk->vec.vy        = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    blk->vec.vx        = (u16)coord->workm.t[0];
+    blk->vec.vy        = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = blk;
     blk->vec.vz        = vz;
 

@@ -522,9 +522,9 @@ void func_acropolis_patio_8017E324(Task* task)
             work->period    = levels.level[work->angle];
             task->state     = task->state + 1;
         }
-        block->vec.vx = *(u16*)&coord->workm.t[0];
-        block->vec.vy = *(u16*)&coord->workm.t[1];
-        block->vec.vz = *(u16*)&coord->workm.t[2];
+        block->vec.vx = (u16)coord->workm.t[0];
+        block->vec.vy = (u16)coord->workm.t[1];
+        block->vec.vz = (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->vec);
@@ -557,16 +557,16 @@ void func_acropolis_patio_8017E324(Task* task)
             prim->v3 = 0x27;
 
             block->halfWidth = (work->scale * 0x27) / block->otz;
-            xy               = block->sx - *(u16*)&block->halfWidth;
+            xy               = block->sx - (u16)block->halfWidth;
             prim->x2         = xy;
             prim->x0         = xy;
-            xy               = block->sx + *(u16*)&block->halfWidth;
+            xy               = block->sx + (u16)block->halfWidth;
             prim->x3         = xy;
             prim->x1         = xy;
-            xy               = block->sy - *(u16*)&block->halfWidth;
+            xy               = block->sy - (u16)block->halfWidth;
             prim->y1         = xy;
             prim->y0         = xy;
-            xy               = block->sy + *(u16*)&block->halfWidth;
+            xy               = block->sy + (u16)block->halfWidth;
             prim->y3         = xy;
             prim->y2         = xy;
             addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
@@ -625,11 +625,11 @@ void func_acropolis_patio_8017E730(Task* task)
                 anchors       = D_acropolis_patio_80182DDC;
                 dir           = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1].vx -
-                                *(u16*)&coord->coord.t[0];
+                                (u16)coord->coord.t[0];
                 work->move.vy = (u16)anchors[task->spawnArg1].vy -
-                                *(u16*)&coord->coord.t[1];
+                                (u16)coord->coord.t[1];
                 work->move.vz = (u16)anchors[task->spawnArg1].vz -
-                                *(u16*)&coord->coord.t[2];
+                                (u16)coord->coord.t[2];
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x20);
                 gte_ldsv(dir);
@@ -662,9 +662,9 @@ void func_acropolis_patio_8017E730(Task* task)
         coord->coord.t[1] += work->move.vy;
         coord->coord.t[2] += work->move.vz;
         coord->flg         = 0;
-        sc->vec.vx         = *(u16*)&coord->workm.t[0];
-        sc->vec.vy         = *(u16*)&coord->workm.t[1];
-        sc->vec.vz         = *(u16*)&coord->workm.t[2];
+        sc->vec.vx         = (u16)coord->workm.t[0];
+        sc->vec.vy         = (u16)coord->workm.t[1];
+        sc->vec.vz         = (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&sc->vec);

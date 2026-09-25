@@ -1547,11 +1547,11 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->pos.vx   = pos->vx;
         block->pos.vy   = pos->vy;
         block->pos.vz   = pos->vz;
-        block->local.vx = *(u16*)&pos->vx - *(u16*)&world->workm.t[0];
+        block->local.vx = (u16)pos->vx - (u16)world->workm.t[0];
         SCHED_BARRIER();
         src             = &Gfx_ViewWorldMtx;
-        block->local.vy = *(u16*)&pos->vy - *(u16*)&world->workm.t[1];
-        block->local.vz = *(u16*)&pos->vz - *(u16*)&world->workm.t[2];
+        block->local.vy = (u16)pos->vy - (u16)world->workm.t[1];
+        block->local.vz = (u16)pos->vz - (u16)world->workm.t[2];
 
         solve_transpose(src, &block->mtx);
     }
@@ -2628,14 +2628,14 @@ void Gp_DrawTargetCursor(void)
                 goto next;
             }
             head                                    = SCRATCH_HEAD_AT(scratch, u8);
-            ((_GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
+            ((_GpPanScratch*)(head - 0x18))->vec.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
             {
                 register u8* tmp asm("v0");
                 tmp   = head - 0x18;
                 block = (_GpPanScratch*)tmp;
             }
-            block->vec.vy                           = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
-            block->vec.vz                           = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+            block->vec.vy                           = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
+            block->vec.vz                           = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
             SCRATCH_HEAD_AT(scratch, _GpPanScratch) = block;
             Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
             small = 0;
@@ -2772,9 +2772,9 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     }
     actor                           = arg0->work;
     coord                           = arg0->extra.tmd->coords;
-    block->src.vx                   = *(u16*)&coord->coord.t[0];
-    block->src.vy                   = *(u16*)&coord->coord.t[1] - 1000;
-    block->src.vz                   = *(u16*)&coord->coord.t[2];
+    block->src.vx                   = (u16)coord->coord.t[0];
+    block->src.vy                   = (u16)coord->coord.t[1] - 1000;
+    block->src.vz                   = (u16)coord->coord.t[2];
     SCRATCH_HEAD(GpLockScanScratch) = block;
     Gp_UpdateCoord(&gGfxViewCoord);
     srcp = &((GpLockScanScratch*)(head - 0x38))->src;
@@ -2782,9 +2782,9 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     gte_ldv0(srcp);
     gte_rtv0();
     gte_stsv(&block->self);
-    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&gGfxViewCoord.workm.t[0];
-    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&gGfxViewCoord.workm.t[1];
-    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&gGfxViewCoord.workm.t[2];
+    *(u16*)&block->self.vx = *(u16*)&block->self.vx + (u16)gGfxViewCoord.workm.t[0];
+    *(u16*)&block->self.vy = *(u16*)&block->self.vy + (u16)gGfxViewCoord.workm.t[1];
+    *(u16*)&block->self.vz = *(u16*)&block->self.vz + (u16)gGfxViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
         node      = actor->field_90C;
@@ -2841,18 +2841,18 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
             continue;
         }
         Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
-        block->node.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->node.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->node.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+        block->node.vx = (u16)GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->node.vy = (u16)GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->node.vz = (u16)GP_NODE_ENEMY(node)->bodyPos.vz;
         nodeCoord      = GP_NODE_ENEMY(node)->coord;
         tmp            = block->node;
         gte_SetRotMatrix(&nodeCoord->workm);
         gte_ldv0(&tmp);
         gte_rtv0();
         gte_stsv(&block->node);
-        block->node.vx += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->node.vy += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->node.vz += *(u16*)&GP_NODE_ENEMY(node)->coord->workm.t[2];
+        block->node.vx += (u16)GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->node.vy += (u16)GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->node.vz += (u16)GP_NODE_ENEMY(node)->coord->workm.t[2];
         if (func_800E0308(&block->node, &block->self) != 1) {
             bestAngle = angle;
             best      = node;
@@ -5169,7 +5169,7 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
 case4_far:
     block->local.vx = *(u16*)&other->field_C.vx;
     block->local.vy =
-        *(u16*)&(node->coord)->coord.t[1] + (u16)node->pos.vy;
+        (u16)(node->coord)->coord.t[1] + (u16)node->pos.vy;
     block->local.vz = *(u16*)&other->field_C.vz;
     gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0((SVECTOR*)(head - 8));

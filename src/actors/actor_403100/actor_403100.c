@@ -5050,10 +5050,10 @@ void func_actor_403100_8013C7B4(Task* arg0)
     pos0.vy = 0x148;
     pos0.vz = 0x2C0;
     Actor403100CoordToViewInline(joint, &pos0, view);
-    dx0      = *(u16*)&playerCoord->coord.t[0] - (u16)pos0.vx;
+    dx0      = (u16)playerCoord->coord.t[0] - (u16)pos0.vx;
     delta.vx = dx0;
-    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
-    dz0      = *(u16*)&playerCoord->coord.t[2] - (u16)pos0.vz;
+    delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
+    dz0      = (u16)playerCoord->coord.t[2] - (u16)pos0.vz;
     delta.vz = dz0;
     if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
         D_actor_403100_80155808->field_668.b.field_668 = 1;
@@ -5092,10 +5092,10 @@ void func_actor_403100_8013C7B4(Task* arg0)
             break;
         }
     }
-    dx1      = *(u16*)&playerCoord->coord.t[0] - (u16)pos1.vx;
+    dx1      = (u16)playerCoord->coord.t[0] - (u16)pos1.vx;
     delta.vx = dx1;
-    delta.vy = *(u16*)&playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
-    dz1      = *(u16*)&playerCoord->coord.t[2] - (u16)pos1.vz;
+    delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
+    dz1      = (u16)playerCoord->coord.t[2] - (u16)pos1.vz;
     delta.vz = dz1;
     if ((SquareRoot0((dx1 * dx1) + (dz1 * dz1)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
         D_actor_403100_80155808->field_668.b.field_669 = 1;

@@ -260,10 +260,10 @@ void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -337,9 +337,9 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -348,9 +348,9 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&arg0->workm.t[0];
-        op->vy             = (u16)op->vy + *(u16*)&arg0->workm.t[1];
-        op->vz             = (u16)op->vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {

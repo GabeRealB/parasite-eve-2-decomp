@@ -310,10 +310,10 @@ void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     u16            vz;
 
     head                                    = SCRATCH_HEAD(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&arg0->workm.t[1];
-    vz                                      = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                           = (u16)arg0->workm.t[1];
+    vz                                      = (u16)arg0->workm.t[2];
     color                                   = arg3;
     SOFT_TOUCH_REG(color);
     SCRATCH_HEAD(GpRingScratch) = block;

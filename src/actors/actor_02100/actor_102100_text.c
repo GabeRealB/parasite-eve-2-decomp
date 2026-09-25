@@ -886,9 +886,9 @@ case2:
     }
     lock = &((GpEnemy*)work->field_140->spawnArg2)->node;
     Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
-    scratch->shortVec.vx = *(u16*)&scratch->vec.vx;
-    scratch->shortVec.vy = *(u16*)&scratch->vec.vy;
-    scratch->shortVec.vz = *(u16*)&scratch->vec.vz;
+    scratch->shortVec.vx = (u16)scratch->vec.vx;
+    scratch->shortVec.vy = (u16)scratch->vec.vy;
+    scratch->shortVec.vz = (u16)scratch->vec.vz;
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&scratch->shortVec);
     gte_rtv0();

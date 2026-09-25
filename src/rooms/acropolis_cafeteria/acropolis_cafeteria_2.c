@@ -319,9 +319,9 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             head                               = SCRATCH_HEAD(u8);
             newHead                            = (OverlaySpriteScratch*)(head - 0x18);
             block                              = newHead;
-            block->vec.vx                      = *(u16*)&coord->workm.t[0];
-            block->vec.vy                      = *(u16*)&coord->workm.t[1];
-            vz                                 = *(u16*)&coord->workm.t[2];
+            block->vec.vx                      = (u16)coord->workm.t[0];
+            block->vec.vy                      = (u16)coord->workm.t[1];
+            vz                                 = (u16)coord->workm.t[2];
             SCRATCH_HEAD(OverlaySpriteScratch) = block;
             block->vec.vz                      = vz;
             gte_SetTransMatrix(&GsWSMATRIX);
@@ -377,16 +377,16 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             prim->v3  = (quot / 5) * 48 + 47;
             block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale)) >> 12;
             block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale)) >> 12;
-            prim->x0  = (u16)block->sxy.vx + *(u16*)&block->dx;
-            prim->x3  = (u16)block->sxy.vx - *(u16*)&block->dx;
-            prim->y0  = (u16)block->sxy.vy - *(u16*)&block->dy;
-            prim->y3  = (u16)block->sxy.vy + *(u16*)&block->dy;
+            prim->x0  = (u16)block->sxy.vx + (u16)block->dx;
+            prim->x3  = (u16)block->sxy.vx - (u16)block->dx;
+            prim->y0  = (u16)block->sxy.vy - (u16)block->dy;
+            prim->y3  = (u16)block->sxy.vy + (u16)block->dy;
             block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale + 0x400)) >> 12;
             block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale + 0x400)) >> 12;
-            prim->x1  = (u16)block->sxy.vx + *(u16*)&block->dx;
-            prim->x2  = (u16)block->sxy.vx - *(u16*)&block->dx;
-            prim->y1  = (u16)block->sxy.vy - *(u16*)&block->dy;
-            prim->y2  = (u16)block->sxy.vy + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sxy.vx + (u16)block->dx;
+            prim->x2  = (u16)block->sxy.vx - (u16)block->dx;
+            prim->y1  = (u16)block->sxy.vy - (u16)block->dy;
+            prim->y2  = (u16)block->sxy.vy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             SCRATCH_POP_BYTES(0x18);
@@ -652,7 +652,7 @@ void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
     color   = rgb;
     head    = *scratch;
     USE_REG(head);
-    vx = *(u16*)&arg0->workm.t[0];
+    vx = (u16)arg0->workm.t[0];
     USE_REG(vx);
     {
         register u8* tmp asm("v0");
@@ -660,8 +660,8 @@ void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
         block = (RoomDraw02Scratch*)tmp;
     }
     block->vec.vx = vx;
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -736,7 +736,7 @@ void func_acropolis_cafeteria_80180018(GpCoord* arg0, s32 arg1, u8* rgb)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -744,8 +744,8 @@ void func_acropolis_cafeteria_80180018(GpCoord* arg0, s32 arg1, u8* rgb)
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -925,23 +925,23 @@ void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vx = (u16)a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        blk->v[0].vy = (u16)a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[0].vz = (u16)a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = *(u16*)&b->workm.t[0];
-        blk->v[1].vy = *(u16*)&b->workm.t[1];
-        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[1].vx = (u16)b->workm.t[0];
+        blk->v[1].vy = (u16)b->workm.t[1];
+        blk->v[1].vz = (u16)b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = *(u16*)&a->workm.t[0];
-        blk->v[2].vy = *(u16*)&a->workm.t[1];
-        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[2].vx = (u16)a->workm.t[0];
+        blk->v[2].vy = (u16)a->workm.t[1];
+        blk->v[2].vz = (u16)a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = *(u16*)&b->workm.t[0];
-        blk->v[3].vy = *(u16*)&b->workm.t[1];
-        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        blk->v[3].vx = (u16)b->workm.t[0];
+        blk->v[3].vy = (u16)b->workm.t[1];
+        blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -1086,7 +1086,7 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -1094,8 +1094,8 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -1434,9 +1434,9 @@ s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, 
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

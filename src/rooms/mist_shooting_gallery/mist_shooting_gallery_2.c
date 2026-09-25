@@ -191,13 +191,13 @@ void func_mist_shooting_gallery_80182064(Task* task)
 
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             rand0        = Gp_LcgState;
-            work->pos.vx = *(u16*)&coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
+            work->pos.vx = (u16)coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             rand1        = Gp_LcgState;
             work->pos.vy = coord->workm.t[1] - 0x800;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             rand2        = Gp_LcgState;
-            work->pos.vz = *(u16*)&coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
+            work->pos.vz = (u16)coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
             work->scale  = 0x80;
             work->angle  = rand2 >> 16 & 0xFFF;
         case 1:
@@ -236,10 +236,10 @@ void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16
 
     scratch                                   = (void**)G_SCRATCH_HEAD;
     head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&coord->workm.t[1];
-    vz                                        = *(u16*)&coord->workm.t[2];
+    block->vec.vy                             = (u16)coord->workm.t[1];
+    vz                                        = (u16)coord->workm.t[2];
     *scratch                                  = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
@@ -268,16 +268,16 @@ void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16
         prim->u3    = u * 40 + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + *(u16*)&block->dx;
-        prim->x3    = block->sx - *(u16*)&block->dx;
-        prim->y0    = block->sy - *(u16*)&block->dy;
-        prim->y3    = block->sy + *(u16*)&block->dy;
+        prim->x0    = block->sx + (u16)block->dx;
+        prim->x3    = block->sx - (u16)block->dx;
+        prim->y0    = block->sy - (u16)block->dy;
+        prim->y3    = block->sy + (u16)block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = block->sx + *(u16*)&block->dx;
-        prim->x2    = block->sx - *(u16*)&block->dx;
-        prim->y1    = block->sy - *(u16*)&block->dy;
-        prim->y2    = block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + (u16)block->dx;
+        prim->x2    = block->sx - (u16)block->dx;
+        prim->y1    = block->sy - (u16)block->dy;
+        prim->y2    = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
@@ -304,10 +304,10 @@ void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2
 
     scratch                                                  = (void**)G_SCRATCH_HEAD;
     head                                                     = *scratch;
-    ((MistShootingGalleryBeamScratch*)(head - 0x20))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((MistShootingGalleryBeamScratch*)(head - 0x20))->vec.vx = (u16)coord->workm.t[0];
     block                                                    = (MistShootingGalleryBeamScratch*)(head - 0x20);
-    block->vec.vy                                            = *(u16*)&coord->workm.t[1];
-    vz                                                       = *(u16*)&coord->workm.t[2];
+    block->vec.vy                                            = (u16)coord->workm.t[1];
+    vz                                                       = (u16)coord->workm.t[2];
     *scratch                                                 = block;
     block->vec.vz                                            = vz;
     vecp                                                     = block;
@@ -341,16 +341,16 @@ void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2
             ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
-            prim->x0    = (u16)block->sxy0.vx + *(u16*)&block->dx;
-            prim->x3    = (u16)block->sxy1.vx - *(u16*)&block->dx;
-            prim->y0    = (u16)block->sxy0.vy - *(u16*)&block->dy;
-            prim->y3    = (u16)block->sxy1.vy + *(u16*)&block->dy;
+            prim->x0    = (u16)block->sxy0.vx + (u16)block->dx;
+            prim->x3    = (u16)block->sxy1.vx - (u16)block->dx;
+            prim->y0    = (u16)block->sxy0.vy - (u16)block->dy;
+            prim->y3    = (u16)block->sxy1.vy + (u16)block->dy;
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1    = (u16)block->sxy1.vx + *(u16*)&block->dx;
-            prim->x2    = (u16)block->sxy0.vx - *(u16*)&block->dx;
-            prim->y1    = (u16)block->sxy1.vy - *(u16*)&block->dy;
-            prim->y2    = (u16)block->sxy0.vy + *(u16*)&block->dy;
+            prim->x1    = (u16)block->sxy1.vx + (u16)block->dx;
+            prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
+            prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
+            prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }

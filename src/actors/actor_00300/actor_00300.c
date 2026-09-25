@@ -256,13 +256,13 @@ void Actor00300_Fn00078(GpCoord* coord, s16 size)
     slot->data.coord.flg        = 0;
     scratch                     = SCRATCH_HEAD_ADDR;
     block                       = (GpRingScratch*)SCRATCH_HEAD_AT(scratch, void) - 1;
-    block->vec.vx               = *(u16*)&coord->workm.t[0];
+    block->vec.vx               = (u16)coord->workm.t[0];
     alias                       = block;
-    vy                          = *(u16*)&coord->workm.t[1];
+    vy                          = (u16)coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc                             = alias;
     sc->vec.vy                     = vy;
-    sc->vec.vz                     = *(u16*)&coord->workm.t[2];
+    sc->vec.vz                     = (u16)coord->workm.t[2];
     Gp_LcgState                    = random;
     SCRATCH_HEAD_AT(scratch, void) = sc;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -382,11 +382,11 @@ void Actor00300_Fn005D0(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        *(u16*)&v->vx = *(u16*)&v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        *(u16*)&v->vy = *(u16*)&v->vy + (u16)arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        *(u16*)&v->vz = *(u16*)&v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 

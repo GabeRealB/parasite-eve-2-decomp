@@ -343,16 +343,16 @@ void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
         setRGB0(prim, blend, blend, blend);
         ((RoomDraw25Scratch*)tmp)->radius =
             (t - sarg) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx - (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->x2 = xy;
         prim->x0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx + (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->x3 = xy;
         prim->x1 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy - (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->y1 = xy;
         prim->y0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy + (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
         addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
@@ -459,7 +459,7 @@ void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
     color   = rgb;
     head    = *scratch;
     USE_REG(head);
-    vx = *(u16*)&arg0->workm.t[0];
+    vx = (u16)arg0->workm.t[0];
     USE_REG(vx);
     {
         register u8* tmp asm("v0");
@@ -467,8 +467,8 @@ void func_dryfield_night_r08_8017E854(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
         block = (RoomDraw02Scratch*)tmp;
     }
     block->vec.vx = vx;
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -543,7 +543,7 @@ void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s32 arg1, u8* rgb)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -551,8 +551,8 @@ void func_dryfield_night_r08_8017EC80(GpCoord* arg0, s32 arg1, u8* rgb)
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -738,23 +738,23 @@ void func_dryfield_night_r08_8017F504(GpCoord* arg0, GpCoord* arg1, s16 arg2, s1
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vx = (u16)a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        blk->v[0].vy = (u16)a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[0].vz = (u16)a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = *(u16*)&b->workm.t[0];
-        blk->v[1].vy = *(u16*)&b->workm.t[1];
-        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[1].vx = (u16)b->workm.t[0];
+        blk->v[1].vy = (u16)b->workm.t[1];
+        blk->v[1].vz = (u16)b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = *(u16*)&a->workm.t[0];
-        blk->v[2].vy = *(u16*)&a->workm.t[1];
-        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[2].vx = (u16)a->workm.t[0];
+        blk->v[2].vy = (u16)a->workm.t[1];
+        blk->v[2].vz = (u16)a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = *(u16*)&b->workm.t[0];
-        blk->v[3].vy = *(u16*)&b->workm.t[1];
-        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        blk->v[3].vx = (u16)b->workm.t[0];
+        blk->v[3].vy = (u16)b->workm.t[1];
+        blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -905,7 +905,7 @@ void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -913,8 +913,8 @@ void func_dryfield_night_r08_8017FB84(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 

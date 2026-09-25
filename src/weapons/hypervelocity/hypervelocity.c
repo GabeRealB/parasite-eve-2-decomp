@@ -468,9 +468,9 @@ void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
         gte_ldv0(&sc->rim[i]);
         gte_rtv0();
         gte_stsv(&sc->rim[i]);
-        sc->rim[i].vx += *(u16*)&coord->workm.t[0];
-        sc->rim[i].vy += *(u16*)&coord->workm.t[1];
-        sc->rim[i].vz += *(u16*)&coord->workm.t[2];
+        sc->rim[i].vx += (u16)coord->workm.t[0];
+        sc->rim[i].vy += (u16)coord->workm.t[1];
+        sc->rim[i].vz += (u16)coord->workm.t[2];
         sc->hub[i].vx  = (rsin(ang) * hubRad) >> 12;
         vert           = &sc->rim[i] + 16;
         vert->vy       = (rcos(ang) * hubRad) >> 12;
@@ -479,9 +479,9 @@ void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
         gte_ldv0(&sc->hub[i]);
         gte_rtv0();
         gte_stsv(&sc->hub[i]);
-        sc->hub[i].vx += *(u16*)&coord->workm.t[0];
-        vert->vy      += *(u16*)&coord->workm.t[1];
-        vert->vz      += *(u16*)&coord->workm.t[2];
+        sc->hub[i].vx += (u16)coord->workm.t[0];
+        vert->vy      += (u16)coord->workm.t[1];
+        vert->vz      += (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 0x10; i++) {
@@ -534,10 +534,10 @@ void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
     u16              vz;
 
     head                                                         = SCRATCH_HEAD(u8);
-    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = (u16)coord->workm.t[0];
     block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
-    block->vec.vy                                                = *(u16*)&coord->workm.t[1];
-    vz                                                           = *(u16*)&coord->workm.t[2];
+    block->vec.vy                                                = (u16)coord->workm.t[1];
+    vz                                                           = (u16)coord->workm.t[2];
     SCRATCH_HEAD(GpFxQuadScratch)                                = block;
     block->vec.vz                                                = vz;
     vec                                                          = &block->vec;
@@ -563,17 +563,17 @@ void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
         setUV4(prim, u0, 0xC8, u1, 0xC8, u0, 0xFF, u1, 0xFF);
         block->dx = (((spin * 55) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((spin * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = ang + 0x400;
         block->dx = (((spin * 55) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((spin * 55) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     SCRATCH_POP_BYTES(sizeof(GpFxQuadScratch));
@@ -620,11 +620,11 @@ void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + *(u16*)&ground->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)ground->workm.t[0];
         tbl++;
-        (u16) v->vy = (u16)v->vy + *(u16*)&ground->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)ground->workm.t[1];
         i++;
-        (u16) v->vz = (u16)v->vz + *(u16*)&ground->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)ground->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -724,9 +724,9 @@ void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
         gte_ldv0(&sc->rim[i]);
         gte_rtv0();
         gte_stsv(&sc->rim[i]);
-        (u16) sc->rim[i].vx = (u16)sc->rim[i].vx + *(u16*)&coord->workm.t[0];
-        (u16) sc->rim[i].vy = (u16)sc->rim[i].vy + *(u16*)&coord->workm.t[1];
-        (u16) sc->rim[i].vz = (u16)sc->rim[i].vz + *(u16*)&coord->workm.t[2];
+        (u16) sc->rim[i].vx = (u16)sc->rim[i].vx + (u16)coord->workm.t[0];
+        (u16) sc->rim[i].vy = (u16)sc->rim[i].vy + (u16)coord->workm.t[1];
+        (u16) sc->rim[i].vz = (u16)sc->rim[i].vz + (u16)coord->workm.t[2];
         vert                = &sc->rim[i] + 4;
         vert->vx            = tbl[i].x * radius;
         vert->vy            = 0x700;
@@ -735,10 +735,10 @@ void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
         gte_ldv0(&sc->hub[i]);
         gte_rtv0();
         gte_stsv(&sc->hub[i]);
-        (u16) vert->vx = (u16)vert->vx + *(u16*)&coord->workm.t[0];
+        (u16) vert->vx = (u16)vert->vx + (u16)coord->workm.t[0];
         i++;
-        (u16) vert->vy = (u16)vert->vy + *(u16*)&coord->workm.t[1];
-        (u16) vert->vz = (u16)vert->vz + *(u16*)&coord->workm.t[2];
+        (u16) vert->vy = (u16)vert->vy + (u16)coord->workm.t[1];
+        (u16) vert->vz = (u16)vert->vz + (u16)coord->workm.t[2];
     } while (i < 4);
 
     gte_SetRotMatrix(&GsWSMATRIX);

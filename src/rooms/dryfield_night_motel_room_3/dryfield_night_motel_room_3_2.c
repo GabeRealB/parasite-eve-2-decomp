@@ -93,16 +93,16 @@ void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s32 arg2
         setRGB0(prim, blend, blend, blend);
         ((RoomDraw25Scratch*)tmp)->radius =
             (t - sarg) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx - (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->x2 = xy;
         prim->x0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sx + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx + (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->x3 = xy;
         prim->x1 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy - (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->y1 = xy;
         prim->y0 = xy;
-        xy       = ((RoomDraw25Scratch*)tmp)->sy + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy + (u16)((RoomDraw25Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
         addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->otDepthShift) >> 2) & 0xFFC) +

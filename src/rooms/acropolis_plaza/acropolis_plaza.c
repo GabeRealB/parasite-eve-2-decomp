@@ -1915,9 +1915,9 @@ void func_acropolis_plaza_801802C0(Task* task)
     raw  = head - 0x60;
     SOFT_TOUCH_REG(raw);
     blk                = (AcropolisPlazaBeamScratch*)raw;
-    blk->vec[0].vx     = *(u16*)&coord->workm.t[0];
-    blk->vec[0].vy     = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    blk->vec[0].vx     = (u16)coord->workm.t[0];
+    blk->vec[0].vy     = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = blk;
     blk->vec[0].vz     = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1993,9 +1993,9 @@ void func_acropolis_plaza_801802C0(Task* task)
                 gte_stsv(&blk->vec[i]);
                 // Add the field offset last to keep this pointer separate from the GTE address.
                 point           = ((AcropolisPlazaBeamScratch*)((SVECTOR*)blk + i))->vec;
-                blk->vec[i].vx += *(u16*)&coord->workm.t[0];
-                point->vy      += *(u16*)&coord->workm.t[1];
-                point->vz      += *(u16*)&coord->workm.t[2];
+                blk->vec[i].vx += (u16)coord->workm.t[0];
+                point->vy      += (u16)coord->workm.t[1];
+                point->vz      += (u16)coord->workm.t[2];
             }
             gte_SetRotMatrix(&GsWSMATRIX);
             for (i = 1; i < 7; i++) {
@@ -2101,9 +2101,9 @@ void func_acropolis_plaza_801802C0(Task* task)
         gte_ldv0(&blk->vec[0]);
         gte_rtv0();
         gte_stsv(&blk->vec[0]);
-        blk->vec[0].vx += *(u16*)&coord->workm.t[0];
-        blk->vec[0].vy += *(u16*)&coord->workm.t[1];
-        blk->vec[0].vz += *(u16*)&coord->workm.t[2];
+        blk->vec[0].vx += (u16)coord->workm.t[0];
+        blk->vec[0].vy += (u16)coord->workm.t[1];
+        blk->vec[0].vz += (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec[0]);
@@ -2168,9 +2168,9 @@ void func_acropolis_plaza_801811D0(Task* task)
     head               = SCRATCH_HEAD(void);
     raw                = head - 0x4C;
     blk                = (AcropolisPlazaFlareScratch*)raw;
-    blk->vec.vx        = *(u16*)&coord->workm.t[0];
-    blk->vec.vy        = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    blk->vec.vx        = (u16)coord->workm.t[0];
+    blk->vec.vy        = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = blk;
     blk->vec.vz        = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2283,9 +2283,9 @@ void func_acropolis_plaza_801811D0(Task* task)
         gte_ldv0(&blk->vec);
         gte_rtv0();
         gte_stsv(&blk->vec);
-        blk->vec.vx += *(u16*)&coord->workm.t[0];
-        blk->vec.vy += *(u16*)&coord->workm.t[1];
-        blk->vec.vz += *(u16*)&coord->workm.t[2];
+        blk->vec.vx += (u16)coord->workm.t[0];
+        blk->vec.vy += (u16)coord->workm.t[1];
+        blk->vec.vz += (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec);
@@ -2339,9 +2339,9 @@ void func_acropolis_plaza_80182054(Task* task)
     raw  = head - 0x14;
     SOFT_TOUCH_REG(raw);
     blk                = (AcropolisPlazaGlowScratch*)raw;
-    blk->vec.vx        = *(u16*)&coord->workm.t[0];
-    blk->vec.vy        = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    blk->vec.vx        = (u16)coord->workm.t[0];
+    blk->vec.vy        = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = blk;
     blk->vec.vz        = vz;
     gte_SetTransMatrix(&GsWSMATRIX);

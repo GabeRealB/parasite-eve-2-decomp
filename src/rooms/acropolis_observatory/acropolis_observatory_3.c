@@ -205,9 +205,9 @@ void func_acropolis_observatory_8017E424(Task* arg0)
     scratch     = (void**)G_SCRATCH_HEAD;
     head        = *scratch;
     blk         = (AobFlareScratch*)(head - sizeof(AobFlareScratch));
-    blk->pos.vx = *(u16*)&coord->workm.t[0];
-    blk->pos.vy = *(u16*)&coord->workm.t[1];
-    vz          = *(u16*)&coord->workm.t[2];
+    blk->pos.vx = (u16)coord->workm.t[0];
+    blk->pos.vy = (u16)coord->workm.t[1];
+    vz          = (u16)coord->workm.t[2];
     *scratch    = blk;
     blk->pos.vz = vz;
 

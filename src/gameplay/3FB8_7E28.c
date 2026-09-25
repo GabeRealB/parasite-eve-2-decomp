@@ -34,14 +34,14 @@ void Gp_DrawEffSprite81(Task* arg0)
     head                                    = SCRATCH_HEAD(u8);
     coord                                   = extra->coords;
     mem                                     = arg0->spawnArg2;
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
     {
         register u8* tmp asm("v0");
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy               = *(u16*)&coord->workm.t[1];
-    vz                          = *(u16*)&coord->workm.t[2];
+    block->vec.vy               = (u16)coord->workm.t[1];
+    vz                          = (u16)coord->workm.t[2];
     SCRATCH_HEAD(GpRingScratch) = block;
     block->vec.vz               = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -80,16 +80,16 @@ void Gp_DrawEffSprite81(Task* arg0)
         prim->v3    = 0xC7;
         prim->u3    = ((t * 8) & 0x70) + 0xF;
         block->step = ((mem->scale * 0xF) / block->otz) >> 1;
-        x           = *(u16*)&block->sx - *(u16*)&block->step;
+        x           = *(u16*)&block->sx - (u16)block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->step;
+        x           = *(u16*)&block->sx + (u16)block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->step;
+        y           = *(u16*)&block->sy - (u16)block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->step;
+        y           = *(u16*)&block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -127,11 +127,11 @@ void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&coord->workm.t[0];
+        *(u16*)&v->vx = *(u16*)&v->vx + (u16)coord->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&coord->workm.t[1];
+        *(u16*)&v->vy = *(u16*)&v->vy + (u16)coord->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&coord->workm.t[2];
+        *(u16*)&v->vz = *(u16*)&v->vz + (u16)coord->workm.t[2];
         v++;
     } while (i < 4);
 

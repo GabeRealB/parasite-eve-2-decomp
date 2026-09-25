@@ -196,9 +196,9 @@ s32 func_acropolis_hallway_8017D9D4(GpCoord* coord, GpRec18* recs, s16 count, s1
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

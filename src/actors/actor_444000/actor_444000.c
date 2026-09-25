@@ -5063,9 +5063,9 @@ void func_actor_444000_8013E058(Task* task)
     cfg        = &Player_Status;
     facing     = task->extra.tmd->coords;
     dirp       = &sc->dir;
-    sc->dir.vx = *(u16*)&cfg->coordMtx->t[0] - *(u16*)&facing->coord.t[0];
-    dirp->vy   = *(u16*)&cfg->coordMtx->t[1] - *(u16*)&facing->coord.t[1];
-    dz         = *(u16*)&cfg->coordMtx->t[2] - *(u16*)&facing->coord.t[2];
+    sc->dir.vx = (u16)cfg->coordMtx->t[0] - (u16)facing->coord.t[0];
+    dirp->vy   = (u16)cfg->coordMtx->t[1] - (u16)facing->coord.t[1];
+    dz         = (u16)cfg->coordMtx->t[2] - (u16)facing->coord.t[2];
     dirp->vz   = dz;
     yawCoord   = task->extra.tmd->coords;
     angle      = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
@@ -5089,9 +5089,9 @@ void func_actor_444000_8013E058(Task* task)
     sc->dir.vx = 0;
     actorLocalToView(&task->extra.tmd->coords[4], &sc->dir);
 
-    sc->dir.vx = *(u16*)&slot3->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
-    sc->dir.vy = *(u16*)&slot3->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
-    sc->dir.vz = *(u16*)&slot3->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
+    sc->dir.vx = (u16)slot3->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
+    sc->dir.vy = (u16)slot3->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
+    sc->dir.vz = (u16)slot3->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
     sc->dist   = sc->dir.vx * sc->dir.vx;
     sc->dist  += sc->dir.vz * sc->dir.vz;
     sc->dist   = SquareRoot0(sc->dist);

@@ -2614,13 +2614,13 @@ s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     head               = SCRATCH_HEAD(Actor01600AimScratch);
     coord              = arg0->extra.tmd->coords;
     other              = (*slot)->extra.tmd->coords;
-    dx                 = *(u16*)&other->workm.t[0] - *(u16*)&coord->workm.t[0];
+    dx                 = (u16)other->workm.t[0] - (u16)coord->workm.t[0];
     allocated          = (SCRATCH_HEAD(Actor01600AimScratch) = head - 1);
     (head - 1)->dir.vx = (s16)dx;
     vec                = &(head - 1)->dir;
-    vec->vy            = (s16)(*(u16*)&other->workm.t[1] - *(u16*)&coord->workm.t[1]);
+    vec->vy            = (s16)((u16)other->workm.t[1] - (u16)coord->workm.t[1]);
     scratch            = allocated;
-    vec->vz            = (s16)(*(u16*)&other->workm.t[2] - *(u16*)&coord->workm.t[2]);
+    vec->vz            = (s16)((u16)other->workm.t[2] - (u16)coord->workm.t[2]);
     matrix             = &(head - 1)->mat;
     TransposeMatrix(&coord->workm, matrix);
     local = *vec;

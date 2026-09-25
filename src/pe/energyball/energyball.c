@@ -421,7 +421,7 @@ void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                      = *(u16*)&arg0->workm.t[0];
+        vx                                      = (u16)arg0->workm.t[0];
         ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -429,8 +429,8 @@ void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy               = *(u16*)&arg0->workm.t[1];
-    vz                          = *(u16*)&arg0->workm.t[2];
+    block->vec.vy               = (u16)arg0->workm.t[1];
+    vz                          = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpRingScratch) = block;
     block->vec.vz               = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -493,12 +493,12 @@ void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     u16                       vz;
 
     head                                      = SCRATCH_HEAD(u8);
-    vx                                        = *(u16*)&arg0->workm.t[0];
+    vx                                        = (u16)arg0->workm.t[0];
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     p                                         = (GpFxQuadScratch*)(head - 0x1C);
     block                                     = p;
-    block->vec.vy                             = *(u16*)&arg0->workm.t[1];
-    vz                                        = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                             = (u16)arg0->workm.t[1];
+    vz                                        = (u16)arg0->workm.t[2];
     block->vec.vz                             = vz;
     SCRATCH_HEAD(GpFxQuadScratch)             = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -528,17 +528,17 @@ void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         }
         block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + *(u16*)&block->dx;
-        prim->x3  = block->sx - *(u16*)&block->dx;
-        prim->y0  = block->sy - *(u16*)&block->dy;
-        prim->y3  = block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + (u16)block->dx;
+        prim->x3  = block->sx - (u16)block->dx;
+        prim->y0  = block->sy - (u16)block->dy;
+        prim->y3  = block->sy + (u16)block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 55) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 55) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + *(u16*)&block->dx;
-        prim->x2  = block->sx - *(u16*)&block->dx;
-        prim->y1  = block->sy - *(u16*)&block->dy;
-        prim->y2  = block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + (u16)block->dx;
+        prim->x2  = block->sx - (u16)block->dx;
+        prim->y1  = block->sy - (u16)block->dy;
+        prim->y2  = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -589,11 +589,11 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        (u16) v->vx = (u16)v->vx + *(u16*)&arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + (u16)arg0->workm.t[0];
         tbl++;
-        (u16) v->vy = (u16)v->vy + *(u16*)&arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + (u16)arg0->workm.t[1];
         i++;
-        (u16) v->vz = (u16)v->vz + *(u16*)&arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + (u16)arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -680,9 +680,9 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
         block->outer[i].vx = (u32)(rsin(ang) * 3) >> 5;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -691,9 +691,9 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&arg0->workm.t[0];
-        op->vy             = (u16)op->vy + *(u16*)&arg0->workm.t[1];
-        op->vz             = (u16)op->vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {

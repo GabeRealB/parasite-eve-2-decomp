@@ -115,9 +115,9 @@ void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
     head                            = SCRATCH_HEAD(u8);
     blk                             = (GpEffFlareScratch*)(head - 0x1C);
     copy                            = blk;
-    blk->vec.vx                     = *(u16*)&arg0->workm.t[0];
-    blk->vec.vy                     = *(u16*)&arg0->workm.t[1];
-    blk->vec.vz                     = *(u16*)&arg0->workm.t[2];
+    blk->vec.vx                     = (u16)arg0->workm.t[0];
+    blk->vec.vy                     = (u16)arg0->workm.t[1];
+    blk->vec.vz                     = (u16)arg0->workm.t[2];
     SCRATCH_HEAD(GpEffFlareScratch) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -138,17 +138,17 @@ void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
         ang         = arg2;
         blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
         blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x0    = blk->sx + *(u16*)&blk->dx;
-        prim->x3    = blk->sx - *(u16*)&blk->dx;
-        prim->y0    = blk->sy - *(u16*)&blk->dy;
-        prim->y3    = blk->sy + *(u16*)&blk->dy;
+        prim->x0    = blk->sx + (u16)blk->dx;
+        prim->x3    = blk->sx - (u16)blk->dx;
+        prim->y0    = blk->sy - (u16)blk->dy;
+        prim->y3    = blk->sy + (u16)blk->dy;
         ang         = ang + 0x400;
         blk->dx     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
         blk->dy     = (((arg1 * 0x37) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x1    = blk->sx + *(u16*)&blk->dx;
-        prim->x2    = blk->sx - *(u16*)&blk->dx;
-        prim->y1    = blk->sy - *(u16*)&blk->dy;
-        prim->y2    = blk->sy + *(u16*)&blk->dy;
+        prim->x1    = blk->sx + (u16)blk->dx;
+        prim->x2    = blk->sx - (u16)blk->dx;
+        prim->y1    = blk->sy - (u16)blk->dy;
+        prim->y2    = blk->sy + (u16)blk->dy;
         addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -189,9 +189,9 @@ void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
     gte_rtv0();
     gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
-    (u16) blk->v[0].vx = (u16)blk->v[0].vx + *(u16*)&arg0->workm.t[0];
-    (u16) blk->v[0].vy = (u16)blk->v[0].vy + *(u16*)&arg0->workm.t[1];
-    (u16) blk->v[0].vz = (u16)blk->v[0].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[0].vx = (u16)blk->v[0].vx + (u16)arg0->workm.t[0];
+    (u16) blk->v[0].vy = (u16)blk->v[0].vy + (u16)arg0->workm.t[1];
+    (u16) blk->v[0].vz = (u16)blk->v[0].vz + (u16)arg0->workm.t[2];
 
     blk->v[1].vx = (u32)rsin(ang) >> 1;
     blk->v[1].vy = (u32)rcos(ang) >> 1;
@@ -200,9 +200,9 @@ void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
     gte_rtv0();
     gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
-    (u16) blk->v[1].vx = (u16)blk->v[1].vx + *(u16*)&arg0->workm.t[0];
-    (u16) blk->v[1].vy = (u16)blk->v[1].vy + *(u16*)&arg0->workm.t[1];
-    (u16) blk->v[1].vz = (u16)blk->v[1].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[1].vx = (u16)blk->v[1].vx + (u16)arg0->workm.t[0];
+    (u16) blk->v[1].vy = (u16)blk->v[1].vy + (u16)arg0->workm.t[1];
+    (u16) blk->v[1].vz = (u16)blk->v[1].vz + (u16)arg0->workm.t[2];
 
     blk->v[2].vx = (u32)rsin(ang) >> 4;
     blk->v[2].vy = (u32)rcos(ang) >> 4;
@@ -211,10 +211,10 @@ void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
     gte_rtv0();
     gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
-    (u16) blk->v[2].vx = (u16)blk->v[2].vx + *(u16*)&arg0->workm.t[0];
+    (u16) blk->v[2].vx = (u16)blk->v[2].vx + (u16)arg0->workm.t[0];
     ang                = ang + 0xC0;
-    (u16) blk->v[2].vy = (u16)blk->v[2].vy + *(u16*)&arg0->workm.t[1];
-    (u16) blk->v[2].vz = (u16)blk->v[2].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[2].vy = (u16)blk->v[2].vy + (u16)arg0->workm.t[1];
+    (u16) blk->v[2].vz = (u16)blk->v[2].vz + (u16)arg0->workm.t[2];
 
     blk->v[3].vx = (u32)rsin(ang) >> 4;
     blk->v[3].vy = (u32)rcos(ang) >> 4;
@@ -223,9 +223,9 @@ void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
     gte_rtv0();
     gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
-    (u16) blk->v[3].vx = (u16)blk->v[3].vx + *(u16*)&arg0->workm.t[0];
-    (u16) blk->v[3].vy = (u16)blk->v[3].vy + *(u16*)&arg0->workm.t[1];
-    (u16) blk->v[3].vz = (u16)blk->v[3].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[3].vx = (u16)blk->v[3].vx + (u16)arg0->workm.t[0];
+    (u16) blk->v[3].vy = (u16)blk->v[3].vy + (u16)arg0->workm.t[1];
+    (u16) blk->v[3].vz = (u16)blk->v[3].vz + (u16)arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);

@@ -220,9 +220,9 @@ s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
@@ -383,9 +383,9 @@ s32 func_actor_123200_80132B94(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx                     = *(u16*)&coord->coord.t[0];
-    st->eye.vy                     = *(u16*)&coord->coord.t[1];
-    vz                             = *(u16*)&coord->coord.t[2];
+    st->eye.vx                     = (u16)coord->coord.t[0];
+    st->eye.vy                     = (u16)coord->coord.t[1];
+    vz                             = (u16)coord->coord.t[2];
     SCRATCH_HEAD_AT(scratch, void) = st;
     st->eye.vz                     = vz;
 

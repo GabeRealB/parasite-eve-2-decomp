@@ -298,9 +298,9 @@ void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&arg1->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&arg1->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&arg1->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg1->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg1->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg1->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -309,9 +309,9 @@ void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&arg1->workm.t[0];
-        op->vy             = (u16)op->vy + *(u16*)&arg1->workm.t[1];
-        op->vz             = (u16)op->vz + *(u16*)&arg1->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg1->workm.t[0];
+        op->vy             = (u16)op->vy + (u16)arg1->workm.t[1];
+        op->vz             = (u16)op->vz + (u16)arg1->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -384,7 +384,7 @@ void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                     = *(u16*)&arg0->workm.t[0];
+        vx                                     = (u16)arg0->workm.t[0];
         ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -392,8 +392,8 @@ void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy                          = *(u16*)&arg0->workm.t[1];
-    vz                                     = *(u16*)&arg0->workm.t[2];
+    block->vec.vy                          = (u16)arg0->workm.t[1];
+    vz                                     = (u16)arg0->workm.t[2];
     SCRATCH_HEAD_AT(scratch, GpArcScratch) = block;
     sum                                    = saved + arg2;
     block->vec.vz                          = vz;

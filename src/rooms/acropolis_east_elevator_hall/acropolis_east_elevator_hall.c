@@ -927,9 +927,9 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
        one the rest of the function uses. */
     SOFT_TOUCH_REG(raw);
     block              = (RoomShaftScratch*)raw;
-    block->vec.vx      = *(u16*)&coord->workm.t[0];
-    block->vec.vy      = *(u16*)&coord->workm.t[1];
-    vz                 = *(u16*)&coord->workm.t[2];
+    block->vec.vx      = (u16)coord->workm.t[0];
+    block->vec.vy      = (u16)coord->workm.t[1];
+    vz                 = (u16)coord->workm.t[2];
     SCRATCH_HEAD(void) = block;
     block->vec.vz      = vz;
 
@@ -988,9 +988,9 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     Gp_UpdateCoord(coord);
     head          = *scratch;
     block         = (RoomMoteScratch*)(head - 0xC);
-    block->vec.vx = *(u16*)&coord->workm.t[0];
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    vz            = *(u16*)&coord->workm.t[2];
+    block->vec.vx = (u16)coord->workm.t[0];
+    block->vec.vy = (u16)coord->workm.t[1];
+    vz            = (u16)coord->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 

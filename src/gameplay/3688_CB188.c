@@ -4554,8 +4554,8 @@ void Gp_MapScreenTask(Task* arg0)
         obj             = Ui_SpawnFromDesc(&D_8010F840, arg0->spawnArg1, one, one, NULL);
         arg0->spawnArg2 = obj;
         if (obj != NULL) {
-            obj->field_C = *(u16*)&D_80114E8C;
-            obj->field_E = *(u16*)&D_80114E90;
+            obj->field_C = (u16)D_80114E8C;
+            obj->field_E = (u16)D_80114E90;
         }
         Stage_InitPrimBufOnce();
         GameMain_SetFrameTiming(0);

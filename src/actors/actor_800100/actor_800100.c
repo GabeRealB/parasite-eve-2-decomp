@@ -365,10 +365,10 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
 
     scratch                                 = SCRATCH_HEAD_ADDR;
     head                                    = SCRATCH_HEAD_AT(scratch, void);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&pos->vx;
+    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)pos->vx;
     block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = *(u16*)&pos->vy;
-    vz                                      = *(u16*)&pos->vz;
+    block->vec.vy                           = (u16)pos->vy;
+    vz                                      = (u16)pos->vz;
     SCRATCH_HEAD_AT(scratch, void)          = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
@@ -399,16 +399,16 @@ void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
         prim->u2    = u0;
         prim->u3    = u1;
         block->step = ((u16)brightness * 31) / block->otz;
-        x           = (u16)block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - (u16)block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = (u16)block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + (u16)block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = (u16)block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - (u16)block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = (u16)block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + (u16)block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -583,10 +583,10 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 
     scratch                                   = SCRATCH_HEAD_ADDR;
     head                                      = SCRATCH_HEAD_AT(scratch, void);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&pos->vx;
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)pos->vx;
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&pos->vy;
-    vz                                        = *(u16*)&pos->vz;
+    block->vec.vy                             = (u16)pos->vy;
+    vz                                        = (u16)pos->vz;
     SCRATCH_HEAD_AT(scratch, void)            = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
@@ -618,17 +618,17 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         a           = ang;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x0    = block->sx + *(u16*)&block->dx;
-        prim->x3    = block->sx - *(u16*)&block->dx;
-        prim->y0    = block->sy - *(u16*)&block->dy;
+        prim->x0    = block->sx + (u16)block->dx;
+        prim->x3    = block->sx - (u16)block->dx;
+        prim->y0    = block->sy - (u16)block->dy;
         a           = a + 0x400;
-        prim->y3    = block->sy + *(u16*)&block->dy;
+        prim->y3    = block->sy + (u16)block->dy;
         block->dx   = (((width * 0x27) / block->otz) * rsin(a)) >> 12;
         block->dy   = (((width * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x1    = block->sx + *(u16*)&block->dx;
-        prim->x2    = block->sx - *(u16*)&block->dx;
-        prim->y1    = block->sy - *(u16*)&block->dy;
-        prim->y2    = block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + (u16)block->dx;
+        prim->x2    = block->sx - (u16)block->dx;
+        prim->y1    = block->sy - (u16)block->dy;
+        prim->y2    = block->sy + (u16)block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -668,9 +668,9 @@ void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = (u16)block->vec[i].vx + *(u16*)&pos->vx;
-        (u16) block->vec[i].vy = (u16)block->vec[i].vy + *(u16*)&pos->vy;
-        (u16) block->vec[i].vz = (u16)block->vec[i].vz + *(u16*)&pos->vz;
+        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)pos->vx;
+        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)pos->vy;
+        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)pos->vz;
         i++;
     } while (i < 4);
 
@@ -2758,9 +2758,9 @@ void func_actor_800100_801668C0(GpCoord* arg0)
         blk->work.vx = 0;
         blk->work.vy = ay;
         blk->work.vz = az;
-        blk->v[i].vx = *(u16*)&blk->work.vx + *(u16*)&arg0->workm.t[0];
-        blk->v[i].vy = *(u16*)&blk->work.vy + *(u16*)&arg0->workm.t[1];
-        blk->v[i].vz = *(u16*)&blk->work.vz + *(u16*)&arg0->workm.t[2];
+        blk->v[i].vx = (u16)blk->work.vx + (u16)arg0->workm.t[0];
+        blk->v[i].vy = (u16)blk->work.vy + (u16)arg0->workm.t[1];
+        blk->v[i].vz = (u16)blk->work.vz + (u16)arg0->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);

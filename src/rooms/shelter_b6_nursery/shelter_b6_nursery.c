@@ -2155,10 +2155,10 @@ void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
 
     scratch                                   = (void**)G_SCRATCH_HEAD;
     head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&coord->workm.t[1];
-    vz                                        = *(u16*)&coord->workm.t[2];
+    block->vec.vy                             = (u16)coord->workm.t[1];
+    vz                                        = (u16)coord->workm.t[2];
     *scratch                                  = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
@@ -2186,17 +2186,17 @@ void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
             ang       = arg3;
             block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = block->sx + *(u16*)&block->dx;
-            prim->x3  = block->sx - *(u16*)&block->dx;
-            prim->y0  = block->sy - *(u16*)&block->dy;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = block->sy + *(u16*)&block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
             block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = block->sx + *(u16*)&block->dx;
-            prim->x2  = block->sx - *(u16*)&block->dx;
-            prim->y1  = block->sy - *(u16*)&block->dy;
-            prim->y2  = block->sy + *(u16*)&block->dy;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -2220,10 +2220,10 @@ void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
 
     scratch                                   = (void**)G_SCRATCH_HEAD;
     head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = *(u16*)&coord->workm.t[1];
-    vz                                        = *(u16*)&coord->workm.t[2];
+    block->vec.vy                             = (u16)coord->workm.t[1];
+    vz                                        = (u16)coord->workm.t[2];
     *scratch                                  = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
@@ -2248,17 +2248,17 @@ void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 ar
             ang       = arg3;
             block->dx = (((arg2 * 31) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = block->sx + *(u16*)&block->dx;
-            prim->x3  = block->sx - *(u16*)&block->dx;
-            prim->y0  = block->sy - *(u16*)&block->dy;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = block->sy + *(u16*)&block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
             block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = block->sx + *(u16*)&block->dx;
-            prim->x2  = block->sx - *(u16*)&block->dx;
-            prim->y1  = block->sy - *(u16*)&block->dy;
-            prim->y2  = block->sy + *(u16*)&block->dy;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -2351,9 +2351,9 @@ void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
         gte_ldv0(p);
         gte_rtv0();
         gte_stsv(p);
-        p->vx = (u16)p->vx + *(u16*)&coord->workm.t[0];
-        p->vy = (u16)p->vy + *(u16*)&coord->workm.t[1];
-        p->vz = (u16)p->vz + *(u16*)&coord->workm.t[2];
+        p->vx = (u16)p->vx + (u16)coord->workm.t[0];
+        p->vy = (u16)p->vy + (u16)coord->workm.t[1];
+        p->vz = (u16)p->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
@@ -2476,7 +2476,7 @@ void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
     color   = rgb;
     head    = *scratch;
     USE_REG(head);
-    vx = *(u16*)&arg0->workm.t[0];
+    vx = (u16)arg0->workm.t[0];
     USE_REG(vx);
     {
         register u8* tmp asm("v0");
@@ -2484,8 +2484,8 @@ void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
         block = (RoomDraw02Scratch*)tmp;
     }
     block->vec.vx = vx;
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     sum           = saved + arg2;
     block->vec.vz = vz;
@@ -2560,7 +2560,7 @@ void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s32 arg1, u8* rgb)
     USE_REG(head);
     {
         register u16 vx asm("v0");
-        vx                                          = *(u16*)&arg0->workm.t[0];
+        vx                                          = (u16)arg0->workm.t[0];
         ((RoomDraw04Scratch*)(head - 0x18))->vec.vx = vx;
     }
     {
@@ -2568,8 +2568,8 @@ void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s32 arg1, u8* rgb)
         tmp   = head - 0x18;
         block = (RoomDraw04Scratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 
@@ -2753,23 +2753,23 @@ void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s1
         j            = arg2 - i;
         i0           = j & 7;
         a            = &arg0[i0];
-        blk->v[0].vx = *(u16*)&a->workm.t[0];
+        blk->v[0].vx = (u16)a->workm.t[0];
         j            = j - 1;
-        blk->v[0].vy = *(u16*)&a->workm.t[1];
+        blk->v[0].vy = (u16)a->workm.t[1];
         i1           = j & 7;
-        blk->v[0].vz = *(u16*)&a->workm.t[2];
+        blk->v[0].vz = (u16)a->workm.t[2];
         b            = &arg1[i0];
-        blk->v[1].vx = *(u16*)&b->workm.t[0];
-        blk->v[1].vy = *(u16*)&b->workm.t[1];
-        blk->v[1].vz = *(u16*)&b->workm.t[2];
+        blk->v[1].vx = (u16)b->workm.t[0];
+        blk->v[1].vy = (u16)b->workm.t[1];
+        blk->v[1].vz = (u16)b->workm.t[2];
         a            = &arg0[i1];
-        blk->v[2].vx = *(u16*)&a->workm.t[0];
-        blk->v[2].vy = *(u16*)&a->workm.t[1];
-        blk->v[2].vz = *(u16*)&a->workm.t[2];
+        blk->v[2].vx = (u16)a->workm.t[0];
+        blk->v[2].vy = (u16)a->workm.t[1];
+        blk->v[2].vz = (u16)a->workm.t[2];
         b            = &arg1[i1];
-        blk->v[3].vx = *(u16*)&b->workm.t[0];
-        blk->v[3].vy = *(u16*)&b->workm.t[1];
-        blk->v[3].vz = *(u16*)&b->workm.t[2];
+        blk->v[3].vx = (u16)b->workm.t[0];
+        blk->v[3].vy = (u16)b->workm.t[1];
+        blk->v[3].vz = (u16)b->workm.t[2];
         gte_ldv0(&blk->v[0]);
         gte_rtps();
         gte_stsxy(&blk->sx0);
@@ -2918,7 +2918,7 @@ void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
     head    = *scratch;
     {
         register u16 vx asm("v0");
-        vx                                             = *(u16*)&arg0->workm.t[0];
+        vx                                             = (u16)arg0->workm.t[0];
         ((RoomBillboardScratch*)(head - 0x1C))->vec.vx = vx;
     }
     {
@@ -2926,8 +2926,8 @@ void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
         tmp   = head - 0x1C;
         block = (RoomBillboardScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
+    block->vec.vy = (u16)arg0->workm.t[1];
+    vz            = (u16)arg0->workm.t[2];
     *scratch      = block;
     block->vec.vz = vz;
 

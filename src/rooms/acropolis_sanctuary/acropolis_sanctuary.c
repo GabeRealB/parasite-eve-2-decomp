@@ -1035,9 +1035,9 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             mem->step       = step.v[mem->angle];
             arg0->state++;
         }
-        blk->vec.vx = *(u16*)&coord->workm.t[0];
-        blk->vec.vy = *(u16*)&coord->workm.t[1];
-        blk->vec.vz = *(u16*)&coord->workm.t[2];
+        blk->vec.vx = (u16)coord->workm.t[0];
+        blk->vec.vy = (u16)coord->workm.t[1];
+        blk->vec.vz = (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&blk->vec);
@@ -1176,9 +1176,9 @@ s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, 
         tmp = head - sizeof(OverlayBisectorScratch);
         st  = (OverlayBisectorScratch*)tmp;
     }
-    st->eye.vx = *(u16*)&coord->coord.t[0];
-    st->eye.vy = *(u16*)&coord->coord.t[1];
-    vz         = *(u16*)&coord->coord.t[2];
+    st->eye.vx = (u16)coord->coord.t[0];
+    st->eye.vy = (u16)coord->coord.t[1];
+    vz         = (u16)coord->coord.t[2];
     *scratch   = st;
     st->eye.vz = vz;
 

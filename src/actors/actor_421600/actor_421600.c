@@ -509,9 +509,9 @@ s32 func_actor_421600_80132310(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
@@ -1001,9 +1001,9 @@ s32 func_actor_421600_801335BC(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR
         s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = *(u16*)&coord->workm.t[0];
-    s->eye.vy = *(u16*)&coord->workm.t[1];
-    s->eye.vz = *(u16*)&coord->workm.t[2];
+    s->eye.vx = (u16)coord->workm.t[0];
+    s->eye.vy = (u16)coord->workm.t[1];
+    s->eye.vz = (u16)coord->workm.t[2];
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
