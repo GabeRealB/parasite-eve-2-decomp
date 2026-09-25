@@ -323,8 +323,6 @@ void              Actor01600_Fn06EA4(Task* actor);
 void                    func_8004BFF8(s16 angle, MATRIX* matrix);
 extern struct GpU16Pair Actor01600_D09F04;
 
-extern u8      D_80071075;
-extern s16     D_80072830;
 extern SVECTOR Actor01600_D09F1C[];
 extern SVECTOR Actor01600_D09F3C[];
 
@@ -1874,7 +1872,7 @@ void Actor01600_Fn020F8(Task* actor)
                         if (Actor01600_Fn047A0(actor) & 0xFF) {
                             targetKind = work->field_53E;
                             if (targetKind == 1) {
-                                if (D_80072830 > 0) {
+                                if (Mc_SaveData.companionHp > 0) {
                                     if (Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0) == targetKind) {
                                         work->field_506 = 9;
                                         work->field_50E = 0;
@@ -1989,7 +1987,7 @@ void Actor01600_Fn020F8(Task* actor)
                         }
                     } else {
                     block_156:
-                        if (D_80072830 <= 0) {
+                        if (Mc_SaveData.companionHp <= 0) {
                             work->field_506           = 9;
                             work->field_50E           = 0;
                             work->field_50A           = 0;
@@ -2532,7 +2530,7 @@ void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                     if (pad->field_A == 1) {
                         break;
                     }
-                    if (D_80071075 != 0) {
+                    if (gDisplayState.pendingMode != 0) {
                         break;
                     }
                     pad->field_6 |= 1;

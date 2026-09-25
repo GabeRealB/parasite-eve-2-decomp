@@ -2843,7 +2843,7 @@ void func_actor_503500_80137678(Task* arg0)
     work->pos.vz.w     = (u16)work->pos.vz.w;
     coord->flg         = 0;
     if (func_actor_503500_801360BC(arg0->spawnArg1, 3) != 0) {
-        switch ((u32)gDisplayState.animFrame % 6) {
+        switch (gDisplayState.animFrame % 6) {
             case 0:
             case 2:
             case 4:
@@ -3541,7 +3541,7 @@ void func_actor_503500_80139014(Task* arg0)
             break;
     }
     if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_2E4 < 3 &&
-        (u32)gDisplayState.animFrame % 12 == 0) {
+        gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
             Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
             j++;

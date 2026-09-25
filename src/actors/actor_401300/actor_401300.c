@@ -1194,10 +1194,10 @@ void func_actor_401300_80133A3C(Task* arg0)
     inRange = Actor401300_InRange(arg0);
     if (inRange == 1) {
         if (work->field_8A2 == 2) {
-            if ((u32)gDisplayState.animFrame % 6 == 0) {
+            if (gDisplayState.animFrame % 6 == 0) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
             }
-            if ((u32)gDisplayState.animFrame % 6 == 3) {
+            if (gDisplayState.animFrame % 6 == 3) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 3) {
@@ -1210,10 +1210,10 @@ void func_actor_401300_80133A3C(Task* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         } else if (work->field_8A2 == 9 || work->field_8A2 == 25 || work->field_8A2 == 26) {
-            if ((u32)gDisplayState.animFrame % 5 == 0) {
+            if (gDisplayState.animFrame % 5 == 0) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[18], 0x40, 0, 0x1C2, -100);
             }
-            if ((u32)gDisplayState.animFrame % 6 == 3) {
+            if (gDisplayState.animFrame % 6 == 3) {
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }

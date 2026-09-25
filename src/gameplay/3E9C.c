@@ -1775,7 +1775,7 @@ void Gp_EffSprTask5C(Task* arg0)
                         i += 1;
                     } while (i < n);
                 }
-                n = (u32)gDisplayState.animFrame % 3;
+                n = gDisplayState.animFrame % 3;
                 i = 0;
                 if (n > 0) {
                     do {
@@ -1968,7 +1968,7 @@ void func_800F289C(Task* arg0)
                     mask = (arg0->spawnArg1 & 0xC0000000) | 0x6002000;
                     Gp_SpawnEff(0x60070, coord, step | mask, 0);
                 }
-                n = (u32)gDisplayState.animFrame % 3;
+                n = gDisplayState.animFrame % 3;
                 for (i = 0; i < n; i++) {
                     step2 = mem->scale - (mem->scale >> 2);
                     mask2 = (arg0->spawnArg1 & 0xC0000000) | 0x4003000;

@@ -1848,7 +1848,7 @@ void Gp_DebugPanTask(Task* arg0)
             mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
             mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
             D_80114F28                                 = 0;
-        } else if (((u32)gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
+        } else if ((gDisplayState.animFrame % 3) == 0 && cfg->hp > 0 && gGameSession->eventState == 0) {
             {
                 register MATRIX* colorMtx asm("v0");
                 if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {

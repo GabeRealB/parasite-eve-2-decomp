@@ -409,10 +409,6 @@ extern GpEffArg D_actor_110600_80148698;
 /// `recs` slot, clear the screen shake, then `Gp_DestroyEnemy`.
 void func_actor_110600_801387F4(Task* task);
 
-/// Global freeze flag the walker's turn step bails out on: 1 while the game is
-/// paused.
-extern u8 D_80072728;
-
 /// Table of 0x80-byte actor config blocks the walker's `field_6E` byte indexes
 /// for the position state 1 steers towards.
 extern PlayerStatus D_80073B08[];
@@ -907,7 +903,7 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     s32                       angle;
     u16                       frames;
 
-    if (D_80072728 == 1)
+    if (Mc_SaveData.unknown_5C0 == 1)
         return;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x1C;
@@ -3254,11 +3250,6 @@ void func_actor_110600_80137DB0(Task* arg0)
     }
 }
 
-/// Remaining-enemy count: once it has run out the tick hands the enemy 1 HP
-/// back rather than letting the death it just took stand. Same "the fight is
-/// over" global `func_actor_105100_80136318` gates on.
-extern s16 D_80073BA0;
-
 /// Per-frame step the tick hands off to once the `field_8AA` countdown reaches
 /// zero.
 void func_actor_110600_80136210(Task* arg0);
@@ -3380,7 +3371,7 @@ void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
             goto block_24;
         }
     }
-    if (D_80073BA0 <= 0) {
+    if (Player_Status.hp <= 0) {
         arg0->hp = 1;
     }
 block_24:

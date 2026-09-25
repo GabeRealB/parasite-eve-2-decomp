@@ -26,7 +26,7 @@
 typedef struct {
     s32     frameCount;   // Vblanks elapsed while the game owns the display; the frame timestamp gameplay reads
     s32     gameTick;     // 1/60-second game time, accumulated for the play clock; stops advancing while a CD command runs
-    s32     animFrame;    // Frames rendered since the last reset; the phase effect animation advances from
+    u32     animFrame;    // Frames rendered since the last reset; the phase effect animation advances from
     s32     vsyncCount;   // Vblanks since the display was set up, counted even while another screen owns it
     s32     field_10;     // Advanced with `gameTick` but never paused; no reader in this tree, role unproven
     s32     loopCount;    // Main-loop iterations since the last reset, counted even when no frame is rendered

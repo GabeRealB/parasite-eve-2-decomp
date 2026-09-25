@@ -11,7 +11,6 @@
 #include "gte.h"
 
 extern s8 D_80114C12;
-extern u8 D_80071075;
 
 void func_801811C4(s32 amount);
 

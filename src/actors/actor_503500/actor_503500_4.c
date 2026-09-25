@@ -3100,7 +3100,7 @@ void func_actor_503500_80140654(Task* arg0)
             break;
     }
     if (func_actor_503500_801360BC(arg0->spawnArg1, 4) != 0 && work->field_3D0 < 3 &&
-        (u32)gDisplayState.animFrame % 12 == 0) {
+        gDisplayState.animFrame % 12 == 0) {
         for (i = 8, j = 0; i > 0; i--) {
             Gp_SpawnEff(0x60070, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
             j++;

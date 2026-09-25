@@ -119,8 +119,6 @@ typedef struct Actor00100MoveWork {
     /* 0x14 */ s16 index;
 } Actor00100MoveWork;
 
-extern u32 D_80070F70;
-
 static __inline__ s32 Actor00100_PatrolOutsideRadius(SVECTOR* pos, s32 radius)
 {
     OverlayRangeScratch* head;
@@ -147,7 +145,6 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s16 arg2, s32 arg3, s32 arg4);
 
 extern s8 Actor00100_D1B6D0;
 extern s8 D_80114C12;
-extern u8 D_80071075;
 
 extern const GpEnemyTaskFuncTable4 Actor00100_D001A0;
 
@@ -1909,7 +1906,7 @@ void Actor00100_Fn04270(Task* argx)
         Gp_UnlinkObj((GpObj*)&work->objs[2]);
         ctx->recs = 0;
     }
-    if (work->field_6 >= 0x3D && work->field_C18 == 0 && D_80114C12 != 1 && D_80071075 == 0) {
+    if (work->field_6 >= 0x3D && work->field_C18 == 0 && D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, ctx->placeKey >> 12, 0);
         }
@@ -2172,7 +2169,7 @@ void Actor00100_Fn04864(Task* arg0)
         scratch->delta.vy = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
         scratch->delta.vz = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
         SCHED_BARRIER();
-        if ((ctx->placeKey >> 12) == D_80070F70 % 15) {
+        if ((ctx->placeKey >> 12) == gDisplayState.animFrame % 15) {
             if (!Actor00100_PatrolOutsideRadius(&scratch->delta, 2000)) {
                 Gp_ArmStateF0(1);
                 work->field_0 = 0x26;
@@ -3321,7 +3318,7 @@ void Actor00100_Fn0782C(Task* arg0)
     arg0->extra.tmd->coords->flg = 0;
     if ((Actor00100_Fn00BF8(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(Player_Status.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = Player_Status.coordMtx->t[1] - coord3->coord.t[1], target2->vz = Player_Status.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->field_C22) != 0))) {
         if (work->field_C26 <= 0) {
-            if ((ctx->placeKey >> 0xC) == (D_80070F70 % 15)) {
+            if ((ctx->placeKey >> 0xC) == (gDisplayState.animFrame % 15)) {
                 if (Actor00100_OutsideRadius(&scratch->target, radius)) {
                     if (!Actor00100_OutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
                         facing5  = arg0->extra.tmd->coords;
@@ -3837,7 +3834,7 @@ void Actor00100_Fn09310(Task* arg0)
         Gp_UnlinkObj((GpObj*)&work->objs[2]);
         ctx->recs = 0;
     }
-    if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (D_80114C12 != 1) && (D_80071075 == 0)) {
+    if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
         }
@@ -3994,7 +3991,7 @@ void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj         = arg0->extra.tmd;
                 finishedObj->flags |= 4;
             }
-            if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (D_80114C12 != 1) && D_80071075 == 0) {
+            if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (D_80114C12 != 1) && gDisplayState.pendingMode == 0) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
                 work->field_C2A = 1;
                 arg0->state++;
@@ -4250,7 +4247,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                 if (command == &Actor00100_D1B9D0) {
                     if ((config->hp > 0) && ((s16)work->field_C28 >= 0x17)) {
                         message           = &work->field_BF8;
-                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_1C;
+                        command->field_10 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_1C;
                         work->field_BFC   = 4;
                         work->field_C00   = 1;
                         work->field_C04   = 3;
@@ -4259,7 +4256,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
                     message                 = &work->field_BF8;
-                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_1C;
+                    Actor00100_D1B9BC.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_1C;
                     work->field_BFC         = 4;
                     work->field_C00         = 1;
                     work->field_C04         = 3;
@@ -4305,9 +4302,9 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                         work->field_BFC = 5;
                         command2        = work->field_BF8;
                         if (command2 == &Actor00100_D1B9D0) {
-                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_24;
+                            command2->field_14 = (s32)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_24;
                         } else {
-                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9]->field_24;
+                            Actor00100_D1B9C0.value = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon]->field_24;
                         }
                         nextMessage = &work->field_BF8;
                         Gp_DispatchMsg(player, 0x3FF, (s32)nextMessage, 0);

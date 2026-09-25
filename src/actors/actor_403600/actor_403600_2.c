@@ -5343,7 +5343,7 @@ void func_actor_403600_8014161C(Task* arg0)
             Gp_SpawnEff(0x60055, arg0->extra.tmd->coords + 1, 0x12800, NULL);
         }
         /* Stored through a plain halfword pointer: as a structure store it
-         * makes the compiler read `D_80070F70` again after it. */
+         * makes the compiler read `gDisplayState.animFrame` again after it. */
         ticks                       = &work->field_79E;
         *ticks                      = (u16)(work->field_79E + 1);
         work->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 8) >> 6;
@@ -5456,7 +5456,7 @@ s32 func_actor_403600_80141840(Task* arg0)
         work->field_4B8.coord.t[1] = work->field_6B0.vy;
     } else if (targetY < currentY) {
         /* Stored through a plain halfword pointer: as a structure store it
-         * lets the compiler read `D_80070F70` ahead of it. */
+         * lets the compiler read `gDisplayState.animFrame` ahead of it. */
         rise                        = &work->field_74A;
         *rise                       = -0x12C;
         work->field_4B8.coord.t[1] += rsin(gDisplayState.animFrame << 8) >> 6;

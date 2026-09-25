@@ -2083,7 +2083,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
         blk->a.vx = -0x427;
-        blk->a.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
+        blk->a.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
         *scratch  = blk;
         blk->a.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
@@ -2094,7 +2094,7 @@ void func_acropolis_security_room_80180A78(Task* task)
         blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
         blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
         blk->b.vx = -0x1F0;
-        blk->b.vy = ((u32)gDisplayState.animFrame * 6) % 406 + 0xF633;
+        blk->b.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
         blk->b.vz = 0x9AF;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((AsrBeamScratch*)(head - 0x14))->b);

@@ -89,7 +89,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     if (task->state < 6) {
         task->state = (task->spawnArg1 >> 4) + 1;
     }
-    if ((u32)gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
+    if (gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
         for (i = 0; i < task->state; i++) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             angle       = ((Gp_LcgState >> 16) & 0x7FF) - 0x400;
