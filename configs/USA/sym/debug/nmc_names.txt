@@ -1,1 +1,5 @@
 // Overlay-local symbols for nmc_names (file 20600).
+
+// The item-name table gameplay indexes for ids 0x500 and up; the 12 bytes
+// before it are a separate string.
+Gp_ItemTextHi = 0x801D6484; // size:0x138
