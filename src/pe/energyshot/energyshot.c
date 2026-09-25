@@ -136,9 +136,9 @@ void func_energyshot_8012EF34(Task* arg0)
 
                 table             = D_energyshot_801300E4;
                 mem->scale        = mem->scale + table[mem->index].field_4;
-                rgb[0]            = *(u8*)&mem->scale;
+                rgb[0]            = (u8)mem->scale;
                 rgb[1]            = mem->scale >> 1;
-                rgb[2]            = *(u8*)&mem->scale;
+                rgb[2]            = (u8)mem->scale;
                 coord->coord.t[1] = -table[mem->index].field_6;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
@@ -196,9 +196,9 @@ void func_energyshot_8012EF34(Task* arg0)
                     goto release;
                 }
                 mem->scale        = mem->scale - 0x10;
-                rgb[0]            = *(u8*)&mem->scale;
+                rgb[0]            = (u8)mem->scale;
                 rgb[1]            = mem->scale >> 1;
-                rgb[2]            = *(u8*)&mem->scale;
+                rgb[2]            = (u8)mem->scale;
                 table             = D_energyshot_801300E4;
                 coord->coord.t[1] = -table[mem->index].field_6;
                 coord->flg        = 0;

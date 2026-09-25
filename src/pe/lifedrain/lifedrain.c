@@ -132,7 +132,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 mem->scale = mem->scale - 0x10;
                 rgb[0]     = mem->scale >> 1;
                 rgb[1]     = mem->scale >> 1;
-                rgb[2]     = *(u8*)&mem->scale;
+                rgb[2]     = (u8)mem->scale;
                 Gp_DrawFadeQuad(rgb, 1);
             }
             if (mem->age == 0x1E) {
@@ -172,7 +172,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 mem->period = mem->period - 0x10;
                 rgb[0]      = mem->period >> 1;
                 rgb[1]      = mem->period >> 1;
-                rgb[2]      = *(u8*)&mem->period;
+                rgb[2]      = (u8)mem->period;
                 Gp_DrawFadeQuad(rgb, 1);
             }
             val = mem->scale;
@@ -183,7 +183,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             mem->angle = mem->angle + (u16)D_lifedrain_80130AB4[mem->index].unk8;
             rgb[0]     = mem->scale >> 1;
             rgb[1]     = mem->scale >> 1;
-            rgb[2]     = *(u8*)&mem->scale;
+            rgb[2]     = (u8)mem->scale;
             i          = 0;
             if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
                 t2 = D_lifedrain_80130AB4;
@@ -250,7 +250,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             rgb[0] = mem->scale >> 1;
             rgb[1] = mem->scale >> 1;
-            rgb[2] = *(u8*)&mem->scale;
+            rgb[2] = (u8)mem->scale;
             i      = 0;
             if (D_lifedrain_80130AB4[mem->index].unk0 > 0) {
                 t2 = D_lifedrain_80130AB4;
@@ -676,7 +676,7 @@ void func_lifedrain_801308C0(Task* arg0)
     mem->period = mem->period + ((s16)D_lifedrain_80130AB4[mem->index].field_2 >> 1);
     rgb[0]      = mem->scale >> 1;
     rgb[1]      = mem->scale >> 1;
-    rgb[2]      = *(u8*)&mem->scale;
+    rgb[2]      = (u8)mem->scale;
     Gp_DrawBandEx(coord, mem->angle, mem->period, rgb);
 
     scale      = (u16)mem->scale;

@@ -297,7 +297,7 @@ void func_actor_450200_80132538(Task* task)
                 for (i = 0; i < 0x100; i++) {
                     r      = ((src[i] >> 10) & 0x1F) * scale;
                     g      = ((src[i] >> 5) & 0x1F) * scale;
-                    b      = (*(u8*)&src[i] & 0x1F) * scale;
+                    b      = ((u8)src[i] & 0x1F) * scale;
                     col    = r >> 7;
                     g    >>= 7;
                     col   &= 0xFF;
@@ -327,7 +327,7 @@ void func_actor_450200_80132538(Task* task)
                 for (j = 0; j < 0x100; j++) {
                     r      = ((src[j] >> 10) & 0x1F) * scale;
                     g      = ((src[j] >> 5) & 0x1F) * scale;
-                    b      = (*(u8*)&src[j] & 0x1F) * scale;
+                    b      = ((u8)src[j] & 0x1F) * scale;
                     col    = r >> 7;
                     g    >>= 7;
                     col   &= 0xFF;

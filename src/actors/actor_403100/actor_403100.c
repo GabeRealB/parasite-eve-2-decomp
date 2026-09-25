@@ -2525,7 +2525,7 @@ void func_actor_403100_80136830(Task* arg0)
                 scratch.handlers.funcs[D_actor_403100_80155808->field_5F2]();
             }
             stateHandlers.funcs[(s16)D_actor_403100_80155808->field_5F8](arg0);
-            if ((D_actor_403100_80155808->field_65C != 0) && (*(u8*)&D_actor_403100_80155808->pad_660[1] == 0) && (*(u8*)&D_actor_403100_80155808->pad_670[1] == 0)) {
+            if ((D_actor_403100_80155808->field_65C != 0) && ((u8)D_actor_403100_80155808->pad_660[1] == 0) && ((u8)D_actor_403100_80155808->pad_670[1] == 0)) {
                 D_actor_403100_80155808->field_5F8 = 9;
                 D_actor_403100_80155808->field_5FA = 0;
             }
@@ -2680,7 +2680,7 @@ void func_actor_403100_80136830(Task* arg0)
                     Gp_SetLightMode(arg0->spawnArg2, 0);
                 }
             }
-            if ((D_actor_403100_8015580C->hp <= 0) && (*(u8*)&D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
+            if ((D_actor_403100_8015580C->hp <= 0) && ((u8)D_actor_403100_80155808->pad_670[3] == 0) && (D_actor_403100_80155808->field_5F2 == 0)) {
                 if (config->hp <= 0) {
                     D_actor_403100_8015580C->hp = 0x3E8;
                 } else {

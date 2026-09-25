@@ -1209,7 +1209,7 @@ void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 color, u1
         gte_stflg(&block->flag);
         gte_stszotz(&block->otz1);
         if (block->flag >= 0) {
-            blend = (*(u8*)&gDisplayState.animFrame & 1) << 4;
+            blend = ((u8)gDisplayState.animFrame & 1) << 4;
             r     = scale * ((color >> 8) & 0xF) + blend;
             g     = scale * ((color >> 4) & 0xF) + blend;
             b     = scale * (color & 0xF) + blend;

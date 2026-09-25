@@ -463,7 +463,7 @@ void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg
         radius        = ((s16)arg1 * 64) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
         ds_ptr        = (u8*)&gDisplayState;
         packed        = arg2 << 16;
-        blend         = ((*(u8*)&((DisplayState*)ds_ptr)->animFrame & 1) * 8) | 0x20;
+        blend         = (((u8)((DisplayState*)ds_ptr)->animFrame & 1) * 8) | 0x20;
         r             = blend * (packed >> 24);
         g             = blend * ((packed >> 20) & 3);
         b             = blend * (arg2 & 3);

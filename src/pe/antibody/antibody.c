@@ -118,8 +118,8 @@ void func_antibody_8012EF34(Task* arg0)
 
                 table             = D_antibody_80130BD4;
                 mem->scale        = mem->scale + table[mem->index].field_4;
-                rgb[0]            = *(u8*)&mem->scale;
-                rgb[1]            = *(u8*)&mem->scale;
+                rgb[0]            = (u8)mem->scale;
+                rgb[1]            = (u8)mem->scale;
                 rgb[2]            = mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;
@@ -184,8 +184,8 @@ void func_antibody_8012EF34(Task* arg0)
                     goto release;
                 }
                 mem->scale        = mem->scale - 0x10;
-                rgb[0]            = *(u8*)&mem->scale;
-                rgb[1]            = *(u8*)&mem->scale;
+                rgb[0]            = (u8)mem->scale;
+                rgb[1]            = (u8)mem->scale;
                 rgb[2]            = mem->scale >> 1;
                 coord->coord.t[1] = -0x400;
                 coord->flg        = 0;

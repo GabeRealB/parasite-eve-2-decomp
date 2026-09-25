@@ -225,7 +225,7 @@ void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2)
             ds        = &gDisplayState;
             SCHED_BARRIER();
             ang    = (s16)ang;
-            blend  = (*(u8*)&ds->animFrame & 1) * 8;
+            blend  = ((u8)ds->animFrame & 1) * 8;
             packed = arg2 << 16;
             tr     = (packed >> 20) & 0xF0;
             tg     = (packed >> 16) & 0xF0;
@@ -357,7 +357,7 @@ void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 arg2)
         tmp  = (u8*)&gDisplayState;
         SOFT_TOUCH_REG(tmp);
         ds            = (DisplayState*)tmp;
-        blend         = (*(u8*)&ds->animFrame & 1) * 8;
+        blend         = ((u8)ds->animFrame & 1) * 8;
         packed        = arg2 << 16;
         tr            = (packed >> 20) & 0xF0;
         tg            = (packed >> 16) & 0xF0;
@@ -796,7 +796,7 @@ void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color)
             color = D_shelter_b6_training_room_801843FC[color];
             tr    = ((color >> 8) & 0xF) << 4;
             tg    = ((color >> 4) & 0xF) << 4;
-            blend = (*(u8*)&D_80070F70 & 1) << 4;
+            blend = ((u8)D_80070F70 & 1) << 4;
             r     = tr + blend;
             g     = tg + blend;
             b     = ((color & 0xF) << 4) + blend;
@@ -935,7 +935,7 @@ void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s16 size
             g         = ((color >> 4) & 0xF) << 1;
             b         = (color & 0xF) << 1;
             ds        = &gDisplayState;
-            blend     = (*(u8*)&ds->animFrame & 1) << 1;
+            blend     = ((u8)ds->animFrame & 1) << 1;
             r        += blend;
             g        += blend;
             b        += blend;

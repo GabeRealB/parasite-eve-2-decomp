@@ -119,7 +119,7 @@ void func_plasma_8012EF34(Task* arg0)
             func_plasma_8012F568(mem, coord, 0);
             func_plasma_8012F568(mem, coord, 1);
             func_plasma_8012F568(mem, coord, 2);
-            bright             = *(u8*)&mem->scale;
+            bright             = (u8)mem->scale;
             rgb[1]             = bright;
             rgb[0]             = bright;
             rgb[2]             = mem->scale * 3 / 2;
@@ -201,7 +201,7 @@ void func_plasma_8012EF34(Task* arg0)
             func_plasma_8012F568(mem, coord, 0);
             func_plasma_8012F568(mem, coord, 1);
             func_plasma_8012F568(mem, coord, 2);
-            bright             = *(u8*)&mem->scale;
+            bright             = (u8)mem->scale;
             rgb[1]             = bright;
             rgb[0]             = bright;
             rgb[2]             = mem->scale * 3 / 2;

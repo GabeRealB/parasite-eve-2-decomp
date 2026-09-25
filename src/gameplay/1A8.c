@@ -183,7 +183,7 @@ void Gp_DirAction0(void)
     GpVoidFuncTable6 sp;
 
     sp = Gp_WarpPhaseFns;
-    sp.funcs[*(s16*)&Gp_DirPhase]();
+    sp.funcs[(s16)Gp_DirPhase]();
 }
 
 void Gp_DirAction1(void)
@@ -199,7 +199,7 @@ void Gp_DirAction1(void)
     if (D_80114CDD != 0) {
         Gp_StateF0.field_1 = 0x3C;
     }
-    sp.funcs[*(s16*)&Gp_DirPhase]();
+    sp.funcs[(s16)Gp_DirPhase]();
 }
 
 void Gp_ClearDirCursor(void)

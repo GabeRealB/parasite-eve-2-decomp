@@ -255,7 +255,7 @@ void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2)
             ds        = &gDisplayState;
             SCHED_BARRIER();
             ang    = (s16)ang;
-            blend  = (*(u8*)&ds->animFrame & 1) * 8;
+            blend  = ((u8)ds->animFrame & 1) * 8;
             packed = arg2 << 16;
             tr     = (packed >> 20) & 0xF0;
             tg     = (packed >> 16) & 0xF0;
@@ -387,7 +387,7 @@ void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 arg2)
         tmp  = (u8*)&gDisplayState;
         SOFT_TOUCH_REG(tmp);
         ds            = (DisplayState*)tmp;
-        blend         = (*(u8*)&ds->animFrame & 1) * 8;
+        blend         = ((u8)ds->animFrame & 1) * 8;
         packed        = arg2 << 16;
         tr            = (packed >> 20) & 0xF0;
         tg            = (packed >> 16) & 0xF0;

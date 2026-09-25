@@ -1724,7 +1724,7 @@ void Gp_ApplyCapEvtFlags(void)
     s32      base;
     s32      idx;
 
-    idx        = *(s16*)&D_801155AE;
+    idx        = (s16)D_801155AE;
     base       = (s32)Gp_CapTable;
     p          = (GpEvt12*)(idx * sizeof(GpEvt12) + base);
     field4     = p->field_4;

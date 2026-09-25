@@ -1136,7 +1136,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
             }
             if (script->field_0 > 0) {
                 D_80115694         = save->at4.loc.view;
-                save->at4.loc.view = *(u8*)&script->field_0;
+                save->at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }

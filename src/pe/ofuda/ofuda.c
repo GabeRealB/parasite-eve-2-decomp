@@ -66,7 +66,7 @@ void ofudaEffectTask(Task* arg0)
             mem->angle = mem->angle + (copy << 3);
         }
             arg0->spawnArg1 = arg0->spawnArg1 - 1;
-            rgb[0]          = *(u8*)&mem->scale;
+            rgb[0]          = (u8)mem->scale;
             rgb[1]          = mem->scale >> 2;
             rgb[2]          = mem->scale >> 1;
             Gp_DrawRing(coord, mem->angle, rgb);
@@ -104,7 +104,7 @@ void ofudaEffectTask(Task* arg0)
             if (mem->scale < 9) {
                 goto kill;
             }
-            rgb[0] = *(u8*)&mem->scale;
+            rgb[0] = (u8)mem->scale;
             rgb[1] = mem->scale >> 2;
             rgb[2] = mem->scale >> 1;
             Gp_DrawRing(coord, mem->angle, rgb);

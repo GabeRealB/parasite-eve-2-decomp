@@ -1989,9 +1989,9 @@ u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             ws->texCoord.vx += ws->elemNormal.vx >> 8;
             ws->texCoord.vy += ws->elemNormal.vy >> 8;
             dest             = ws->preXformWrite + rec[2];
-            dest[8]          = *(u8*)&ws->texCoord.vx;
+            dest[8]          = (u8)ws->texCoord.vx;
             dest             = ws->preXformWrite + rec[2];
-            dest[9]          = *(u8*)&ws->texCoord.vy;
+            dest[9]          = (u8)ws->texCoord.vy;
             arg2            += ws->elemStride;
         } while (ws->elemCount-- > 0);
     }
@@ -2045,9 +2045,9 @@ u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
             ws->texCoord.vx += ws->elemNormal.vx >> 8;
             ws->texCoord.vy += ws->elemNormal.vy >> 8;
             dest             = ws->preXformWrite + rec[2];
-            dest[4]          = *(u8*)&ws->texCoord.vx;
+            dest[4]          = (u8)ws->texCoord.vx;
             dest             = ws->preXformWrite + rec[2];
-            dest[5]          = *(u8*)&ws->texCoord.vy;
+            dest[5]          = (u8)ws->texCoord.vy;
             arg2            += ws->elemStride;
             gte_strgb(ws->preXformWrite + rec[3]);
         } while (ws->elemCount-- > 0);
@@ -5387,7 +5387,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
                 func_800A5574(arg0, val1, val2, rec->field_6);
             after_23:
                 if (arg1 != NULL) {
-                    kind           = *(u8*)&rec->field_6;
+                    kind           = (u8)rec->field_6;
                     arg1->field_18 = val1;
                     arg1->field_16 = kind + 2;
                 }
@@ -6136,7 +6136,7 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
                             GpWheelPt* candidate = (GpWheelPt*)((u8*)points + offset);
                             val                  = candidate->y;
                         }
-                        if ((s16)val < *(s16*)&scan->y) {
+                        if ((s16)val < (s16)scan->y) {
                             best = j;
                         }
                         j++;
@@ -7155,14 +7155,14 @@ case_411: {
 
     val                 = (u16)(val % 10U);
     rec                 = &D_80113E10[val];
-    lo                  = *(u8*)&c08->field_C & 0xF;
+    lo                  = (u8)c08->field_C & 0xF;
     tmp                 = rec->field_6;
     *(u8*)&c08->field_C = lo;
     c08->field_10       = tmp;
     if (lo < 2) {
         *(u8*)&c08->field_C = lo + 1;
     }
-    *(u8*)&c08->field_C = *(u8*)&c08->field_C | (val << 4);
+    *(u8*)&c08->field_C = (u8)c08->field_C | (val << 4);
     return;
 }
 
@@ -9580,7 +9580,7 @@ void Gp_ViewLoadImage(Task* task)
         CdCmd_SelectMdecBuffer();
         if (D_80114C40 >= 0) {
             task->state++;
-            param = *(u8*)&D_80114C40;
+            param = (u8)D_80114C40;
             CdCmd_EnqueueReplace(0x61, 0, &param);
             CdCmd_CommitReplace();
             task->killCountdown = 0;

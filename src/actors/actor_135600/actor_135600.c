@@ -174,7 +174,7 @@ s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
     x1  = (u16)sxy1;
     y0  = sxy0 >> 16;
     y1  = sxy1 >> 16;
-    rot = ratan2(*(s16*)&sxy1 - *(s16*)&sxy0, y0 - y1);
+    rot = ratan2((s16)sxy1 - (s16)sxy0, y0 - y1);
 
     /* Only the middle diagonal and the last entry go through `mtx`: a store
      * written that way keeps its address in the register `RotMatrixZ` is

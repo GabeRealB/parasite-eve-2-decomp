@@ -1888,7 +1888,7 @@ void func_800FCD00(Task* arg0)
     heightSum = (u16)mem->period + (rsin(mem->age << 6) >> 8);
     y         = heightSum;
     rad       = mem->step;
-    sum       = *(u8*)&gDisplayState.animFrame + *(u8*)&mem->scale;
+    sum       = (u8)gDisplayState.animFrame + (u8)mem->scale;
     rawBright = mem->angle;
     bright    = rawBright;
     inner     = rad - 0x40;

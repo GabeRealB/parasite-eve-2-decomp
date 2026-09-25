@@ -274,7 +274,7 @@ void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
             raw       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
             ang       = (s16)raw;
-            blend     = ((*(u8*)&ds->animFrame & 1) * 0x10) | 0x20;
+            blend     = (((u8)ds->animFrame & 1) * 0x10) | 0x20;
             SOFT_BARRIER();
             angEnd = ang + 0x800;
             if (ang < angEnd) {

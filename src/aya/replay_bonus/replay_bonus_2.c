@@ -255,7 +255,7 @@ s32 func_replay_bonus_801175F0(UiList* list, ReplayBonusCtx* ctx)
     s32           off;
 
     cfg = &Player_Status;
-    i   = *(s8*)&list->field_9;
+    i   = (s8)list->field_9;
     n   = list->field_4;
     sum = 0;
     if (i < n) {

@@ -359,7 +359,7 @@ void Display_FlipOtAndDispatch(s32 arg0)
     *ot                        = GPU_OT_END_PRIM;
     gGpuCurrentOt              = ot + 0x20;
     temp->at100.flags.flipMode = 0;
-    temp->drawBuffer           = *(u8*)&temp->frameBuffer;
+    temp->drawBuffer           = (u8)temp->frameBuffer;
     mode                       = Stage_Ctx->field_11;
     switch (mode) {
         case 3:

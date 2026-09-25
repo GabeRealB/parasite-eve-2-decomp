@@ -597,7 +597,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
 
     arg1      = &CdCmd_Queue;
     secondary = NULL;
-    switch (*(s16*)&D5B498_8006AC9C) {
+    switch ((s16)D5B498_8006AC9C) {
         case 0:
             D_8006ACA0 = 0;
             D_8006AC9F = 0;

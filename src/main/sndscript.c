@@ -724,7 +724,7 @@ void SndVoice_StepMasterLevel(void)
     var_a0 = SndVoice_GetMasterVolume();
     if (D_8008274A > 0) {
         var_a0 = var_a0 + D_8008274A;
-        bound  = *(u8*)&D_80082749;
+        bound  = (u8)D_80082749;
         if (bound < var_a0) {
             if (bound != 0) {
                 var_a0     = bound;

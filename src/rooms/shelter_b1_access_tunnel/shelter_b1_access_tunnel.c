@@ -436,7 +436,7 @@ void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 arg2)
             ds        = &gDisplayState;
             SCHED_BARRIER();
             ang    = (s16)ang;
-            blend  = (*(u8*)&ds->animFrame & 1) * 8;
+            blend  = ((u8)ds->animFrame & 1) * 8;
             packed = arg2 << 16;
             tr     = (packed >> 20) & 0xF0;
             tg     = (packed >> 16) & 0xF0;

@@ -1175,7 +1175,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
             }
             if (script->field_0 > 0) {
                 D_80115694         = save->at4.loc.view;
-                save->at4.loc.view = *(u8*)&script->field_0;
+                save->at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }

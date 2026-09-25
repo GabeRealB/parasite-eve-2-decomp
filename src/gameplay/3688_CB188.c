@@ -4596,7 +4596,7 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
     s32                        minX;
     s32                        minY;
 
-    otz                            = *(s16*)&obj->drawOrder;
+    otz                            = (s16)obj->drawOrder;
     verts                          = mesh->verts;
     cur                            = (u32*)mesh->prims;
     tw.y                           = 0;
@@ -5110,7 +5110,7 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     Ui_DrawText((UiPanel*)obj, Gp_StrNextLevel);
     obj->status = saved;
     func_800D3D98(obj, spawnArg, 1);
-    y    = *(s16*)&obj->field_1A;
+    y    = (s16)obj->field_1A;
     text = Gp_GetItemText(spawnArg + 1, 1, 1);
     Text_DrawPrompt(obj, obj->field_1C + 2, y - 0xF, text, 0x606060, 3, 0);
     text = Gp_GetItemText(spawnArg + 1, 2, 1);

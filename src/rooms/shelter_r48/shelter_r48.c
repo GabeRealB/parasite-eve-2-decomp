@@ -1861,7 +1861,7 @@ void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
         if (block->flag >= 0) {
             tr    = (((u16)ang >> 8) & 0xF) << 4;
             tg    = (((u16)ang >> 4) & 0xF) << 4;
-            blend = (*(u8*)&gDisplayState.animFrame & 1) << 4;
+            blend = ((u8)gDisplayState.animFrame & 1) << 4;
             r     = tr + blend;
             g     = tg + blend;
             // Dead: never read before the loop sets it, but it has to be

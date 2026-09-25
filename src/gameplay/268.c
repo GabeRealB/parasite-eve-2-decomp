@@ -1685,7 +1685,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             save = &Mc_SaveData;
             TOUCH_REG(save);
             idx                              = item - 0x60;
-            *(u8*)&save->itemLevelBonus[idx] = *(u8*)&save->itemLevelBonus[idx] + 1;
+            *(u8*)&save->itemLevelBonus[idx] = (u8)save->itemLevelBonus[idx] + 1;
         } else {
             task->status = 0x1A;
         }

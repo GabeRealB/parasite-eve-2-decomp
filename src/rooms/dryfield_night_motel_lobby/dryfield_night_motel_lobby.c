@@ -1114,7 +1114,7 @@ void func_dryfield_night_motel_lobby_8017F504(Task* task)
             }
             if (script->field_0 > 0) {
                 D_80115694         = save->at4.loc.view;
-                save->at4.loc.view = *(u8*)&script->field_0;
+                save->at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
             }

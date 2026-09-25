@@ -150,7 +150,7 @@ void func_metabolism_8012EF34(Task* arg0)
             }
         draw:
             rgb[0] = mem->scale >> 2;
-            rgb[1] = *(u8*)&mem->scale;
+            rgb[1] = (u8)mem->scale;
             rgb[2] = mem->scale >> 1;
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
             Gp_DrawRing(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);

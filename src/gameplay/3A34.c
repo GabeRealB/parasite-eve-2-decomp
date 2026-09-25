@@ -2605,7 +2605,7 @@ void Gp_DrawTargetCursor(void)
     if (sess->field_65 == 1) {
         return;
     }
-    stateA = *(u8*)&Gp_StateC08.field_A;
+    stateA = (u8)Gp_StateC08.field_A;
     if ((u8)(stateA - 2) < 2) {
         return;
     }
@@ -2678,7 +2678,7 @@ void Gp_DrawTargetCursor(void)
                 D_8010F9F0 = block->sy << 8;
             }
             ds              = &gDisplayState;
-            (u16) block->sy = (u16)block->sy - (s8) * (u8*)&ds->vramYOffset;
+            (u16) block->sy = (u16)block->sy - (s8)(u8)ds->vramYOffset;
             n               = ds->animFrame;
             n               = (u32)n % 24U;
             frame           = (u32)n / 3U;

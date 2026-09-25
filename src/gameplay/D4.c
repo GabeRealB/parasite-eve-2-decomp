@@ -2339,7 +2339,7 @@ void func_800AD6BC(void)
     D_80114CD0 = (s16)Gp_DirFlags;
     if (D_80114CF8 != 0) {
         gGameSession->dirActionBusy = 1;
-        action                      = *(u8*)&Gp_DirFlags;
+        action                      = (u8)Gp_DirFlags;
         if (action != 0xFF) {
             funcs.funcs[action]();
         } else {

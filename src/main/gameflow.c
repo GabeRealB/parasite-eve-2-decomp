@@ -572,7 +572,7 @@ void Pad_UpdatePort0(void)
             pad->triggered       = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->buttons         = scratch->buttons;
 
-            if (*(s8*)&gGameSession->uiOpen != 0) {
+            if ((s8)gGameSession->uiOpen != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
                     pad->autoRepeat = pad->autoRepeat + ds->frameTicks;
                 } else {

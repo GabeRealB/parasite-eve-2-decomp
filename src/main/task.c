@@ -51,7 +51,7 @@ case2:
 merge:
     if (((u8)desc->flags == 0) || (extra.tmd != NULL)) {
         task->callback     = desc->callback;
-        priority           = *(u8*)&desc->priority;
+        priority           = (u8)desc->priority;
         task->exitCallback = taskKill;
         task->priority     = priority;
         flags_lo           = (u8)desc->flags;
