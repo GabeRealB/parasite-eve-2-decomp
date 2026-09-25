@@ -5986,183 +5986,99 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void Gp_SelectArmorMenuTask(Task* arg0)
+/// Whether `id` is an armour item (0x60-0x7F). Armour item `id` is armour
+/// number `id - 0x5F` in `PlayerStatus.armor`.
+static inline s32 _gpIsArmorItem(u8 id)
 {
-    UiList*              menu;
-    UiObject*            obj;
-    PlayerStatus*        cfg;
-    register s32         hi asm("s0");
-    register McItemScan* scan asm("s1");
-    McItemRec*           rec;
-    Task*                parent;
-    Task*                child;
-    Task*                next;
-    Task*                head;
-    UiObject*            childObj;
-    s32*                 p;
-    s32*                 table;
-    s32                  flags;
-    s32                  i;
-    s32                  slot;
-    s32                  minusOne;
-    s32                  flag;
-    s32                  val;
-    McItemScan*          a0scan;
+    return (u32)(id - 0x60) < 0x20U;
+}
 
-    menu          = &D_8010E9F4;
-    obj           = arg0->spawnArg2;
-    obj->field_2E = 0;
-    Ui_DrawText((UiPanel*)obj, Gp_StrSelectArmor);
+/// Counts the carried rows holding armour other than the piece the player has
+/// equipped, into `count`.
+#define GP_COUNT_SPARE_ARMOR(count)                                                     \
+    do {                                                                                \
+        PlayerStatus* _cfg;                                                             \
+        McItemScan*   _scan;                                                            \
+        McItemRec*    _rec;                                                             \
+        s32           _i;                                                               \
+                                                                                        \
+        (count) = 0;                                                                    \
+        _scan   = &Mc_SaveData.carriedItems;                                            \
+        _cfg    = &Player_Status;                                                       \
+        _rec    = Gp_GetItemTable(_scan);                                               \
+        _i      = 0;                                                                    \
+        _rec    = &_rec[_scan->firstRow];                                               \
+        for (; _i < _scan->rowCount; _i++) {                                            \
+            if (_gpIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
+                (count)++;                                                              \
+            }                                                                           \
+            _rec++;                                                                     \
+        }                                                                               \
+    } while (0)
 
-    if (arg0->state == 0) {
-        hi = 0x8007 << 16;
-        asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
-        {
-            McItemScan* a0scan;
-            a0scan = scan;
-            TOUCH_REG(a0scan);
-            cfg = &Player_Status;
-            rec = Gp_GetItemTable(a0scan);
-        }
-        {
-            register s32        idx asm("v1");
-            s32                 n;
-            register s32        iter asm("a2");
-            volatile McItemRec* recTable;
+/// Finds the `index`-th carried row (from 0) holding armour other than the
+/// equipped piece, and stores its item id in `found`, or 0 when there is none.
+#define GP_FIND_SPARE_ARMOR(found, index)                                               \
+    do {                                                                                \
+        PlayerStatus* _cfg;                                                             \
+        McItemScan*   _scan;                                                            \
+        McItemRec*    _rec;                                                             \
+        s32           _i;                                                               \
+        s32           _n;                                                               \
+                                                                                        \
+        _scan   = &Mc_SaveData.carriedItems;                                            \
+        _cfg    = &Player_Status;                                                       \
+        _n      = (index);                                                              \
+        _rec    = Gp_GetItemTable(_scan);                                               \
+        (found) = _i = 0;                                                               \
+        _rec         = &_rec[_scan->firstRow];                                          \
+        for (; _i < _scan->rowCount; _i++) {                                            \
+            if (_gpIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
+                _n--;                                                                   \
+                if (_n < 0) {                                                           \
+                    (found) = _rec->itemId;                                             \
+                    break;                                                              \
+                }                                                                       \
+            }                                                                           \
+            _rec++;                                                                     \
+        }                                                                               \
+    } while (0)
 
-            iter = 0;
-            asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
-            hi = iter;
-            n  = scan->rowCount;
-            asm volatile("sll %0, %0, 2" : "+r"(idx));
-            recTable = (volatile McItemRec*)((s32)rec + idx);
-            if (n != 0) {
-                do {
-                    if ((u32)(recTable->itemId - 0x60) < 0x20U) {
-                        if (cfg->armor != recTable->itemId - 0x5F) {
-                            hi++;
-                        }
-                    }
-                    iter++;
-                    recTable++;
-                } while (iter < n);
-            }
-        }
-        menu->field_4 = hi;
-        menu->field_5 = 4;
-        Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        menu->field_A   = 1;
-        menu->field_17 += 0x4C;
-        obj->field_12  += 0x4C;
-        menu->field_10  = 0;
-        menu->field_9   = 0;
-        parent          = arg0->parent;
-        Ui_SetState4(parent->spawnArg2, parent);
-        Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
-        arg0->state = arg0->state + 1;
-    }
+/// Puts `item` in slot `slot` of the three preview slots in `Gp_PreviewItems`,
+/// sets the other two to -1 and requests it through `Gp_EnqueueItemPreviewCd`.
+/// Nothing happens when the slot already holds `item`.
+#define GP_SET_PREVIEW_ITEM(item, slot)          \
+    do {                                         \
+        s32* _p;                                 \
+        s32  _i;                                 \
+                                                 \
+        _p = Gp_PreviewItems;                    \
+        if ((item) != _p[slot]) {                \
+            for (_i = 0; _i < 3; _i++, _p++) {   \
+                if (_i == (slot)) {              \
+                    *_p = (item);                \
+                } else {                         \
+                    *_p = -1;                    \
+                }                                \
+            }                                    \
+            Gp_EnqueueItemPreviewCd(item, slot); \
+        }                                        \
+    } while (0)
 
-    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
-    Ui_UpdateListNoAnim(menu, obj);
+/// Applies the codes the children of `task` have posted in their `field_2E`:
+/// 9 and -1 are copied to `obj`, and 6 tears that child's UI down and sets
+/// `obj->status` back to 1. The walk ends when it wraps around to the first
+/// child or the task has no children left.
+static inline void _gpApplyChildResults(UiObject* obj, Task* task)
+{
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
 
-    {
-        s32 remaining;
-        s32 found;
-
-        asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
-        asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
-        a0scan = scan;
-        TOUCH_REG(a0scan);
-        cfg       = &Player_Status;
-        remaining = menu->field_10;
-        rec       = Gp_GetItemTable(a0scan);
-        {
-            s32                 iter;
-            register s32        n asm("a2");
-            s32                 count;
-            register s32        id asm("a2");
-            register s32        idx asm("v1");
-            volatile McItemRec* recTable;
-
-            iter  = 0;
-            found = iter;
-            asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
-            n = scan->rowCount;
-            asm volatile("sll %0, %0, 2" : "+r"(idx));
-            recTable = (volatile McItemRec*)((s32)rec + idx);
-            if (n != 0) {
-                count = n;
-                do {
-                loop:
-                    if ((u32)(recTable->itemId - 0x60) < 0x20U) {
-                        id = recTable->itemId;
-                        if (cfg->armor != id - 0x5F) {
-                            remaining--;
-                            if (remaining < 0) {
-                                found = id;
-                                break;
-                            }
-                        }
-                    }
-                    iter++;
-                    recTable++;
-                    if (iter < count) {
-                        goto loop;
-                    }
-                } while (0);
-            }
-        }
-        {
-            register UiObject* a0obj asm("a0");
-            a0obj = obj;
-            hi    = found;
-            TOUCH_REG(hi);
-            func_800C7DA8(a0obj, found, 1, 0);
-        }
-    }
-
-    flags = 0x12;
-    if (hi == 0) {
-        flags = 0x112;
-        goto draw;
-    }
-    if (((obj->status >> 16) == 1) || (obj->status == 1)) {
-        table = Gp_PreviewItems;
-        if (hi != table[2]) {
-            i = 0;
-            do {
-                slot     = 2;
-                minusOne = -1;
-                p        = table;
-            } while (0);
-            for (; i < 3; i++, p++) {
-                if (i == slot) {
-                    *p = hi;
-                } else {
-                    *p = minusOne;
-                }
-            }
-            Gp_EnqueueItemPreviewCd(hi, 2);
-        }
-    }
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        flags |= 0x100;
-    }
-draw:
-    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
-
-    if (obj->status == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 9;
-        }
-    }
-
-    child = arg0->firstChild;
+    child = task->firstChild;
     if (child != NULL) {
-        val = 6;
         do {
             childObj = child->spawnArg2;
             flag     = childObj->field_2E;
@@ -6179,7 +6095,7 @@ draw:
                     obj->status = 1;
                     break;
             }
-            head  = arg0->firstChild;
+            head  = task->firstChild;
             child = next;
             if (child == head) {
                 break;
@@ -6189,6 +6105,70 @@ draw:
             }
         } while (1);
     }
+}
+
+void Gp_SelectArmorMenuTask(Task* arg0)
+{
+    UiList*   menu;
+    UiObject* obj;
+    Task*     parent;
+    s32       count;
+    s32       found;
+    s32       item;
+    s32       flags;
+
+    menu          = &D_8010E9F4;
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, Gp_StrSelectArmor);
+
+    if (arg0->state == 0) {
+        GP_COUNT_SPARE_ARMOR(count);
+        menu->field_4 = count;
+        menu->field_5 = 4;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_A   = 1;
+        menu->field_17 += 0x4C;
+        obj->field_12  += 0x4C;
+        menu->field_10  = 0;
+        menu->field_9   = 0;
+        parent          = arg0->parent;
+        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
+        arg0->state++;
+    }
+
+    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    Ui_UpdateListNoAnim(menu, obj);
+
+    GP_FIND_SPARE_ARMOR(found, menu->field_10);
+    item = found;
+    func_800C7DA8(obj, item, 1, 0);
+
+    flags = 0x12;
+    if (item == 0) {
+        flags = 0x112;
+        goto draw;
+    }
+    if (((obj->status >> 16) == 1) || (obj->status == 1)) {
+        GP_SET_PREVIEW_ITEM(item, 2);
+    }
+    if (CdCmd_IsIdle() == 0) {
+        flags |= 0x100;
+    }
+draw:
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            obj->field_2E = -1;
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 9;
+        }
+    }
+
+    _gpApplyChildResults(obj, arg0);
 
     if (obj->field_2E == 9) {
         obj->field_2E = 6;

@@ -140700,3 +140700,33 @@ scratch head did not: compiled out of line, cse keeps `0x1F8003FC` in a register
 (`lui`/`ori`, `lw a1,0(s0)`), while the inlined expansions reload the address at
 each use. So the standalone copies keep their own bodies, and a helper that has
 to reproduce both forms needs one written body for each.
+
+## A byte field re-read after a range test without `volatile`: the test is an inline predicate taking `u8` (Gp_SelectArmorMenuTask, 2026-09-26)
+
+The target tests `rec->itemId` and then loads it again for the next compare:
+
+```
+lbu   v0,0(a0)          # range test
+addiu v0,v0,-0x60
+sltiu v0,v0,0x20
+beqz  v0,.Lnext
+lbu   v0,0(a0)          # same byte, loaded again
+```
+
+Written in line, cse folds the second read into the first, which is why the
+tree held a `volatile McItemRec*` for it. The natural source is a helper
+`static inline s32 isArmor(u8 id) { return (u32)(id - 0x60) < 0x20U; }` called
+as `isArmor(rec->itemId) && cfg->armor != rec->itemId - 0x5F`. The argument
+is loaded as a plain `(set (reg:QI) (mem:QI))`, while the later read is a
+`(zero_extend:SI (mem:QI))`; cse records only whole expressions, so nothing
+equates the two and the second stays a load. The `.cse` dump shows both
+forms. The single-compare return folds into the caller's branch; in the same
+function an inline predicate returning an `||` of two compares did not, and
+left a materialised 0/1 behind.
+
+Same function: the hacked sibling bodies kept `do { ... } while (0)` dummies
+around the item search and the preview-slot loop, and removing them loses the
+match, because the extra loop level is what weights `REG_N_REFS` (see the
+loop-depth entries). Those wrappers are the bodies of real `do { } while (0)`
+macros, one per repeated operation (count, find, set preview slot), and
+written that way nothing else is needed.
