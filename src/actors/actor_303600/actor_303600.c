@@ -29,6 +29,8 @@ extern s8  D_80114C12;
 
 void func_actor_303600_80161F40(Task* arg0);
 
+INCLUDE_ASM("actors/nonmatchings/actor_303600/actor_303600", func_actor_303600_80161E60);
+
 /// Command dispatcher the cutscene controller steps while the cutscene is up.
 /// Commands 1-5 send the slot-4 task message 0x7DA carrying the session's two id
 /// bytes and the command as selector, latching it in the published work block's

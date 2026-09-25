@@ -3164,11 +3164,13 @@ objects = [
 ]
 
 [actors.overlays.actor_303600]
+label = "Code starts at 0x40: the first function is a leaf with no stack prologue, so the span detector starts at the next function's; the actor's task table names 0x80161E60 as entry 3"
 slot = 3
 id = 235
+text = ["0x40", "0xCC8"]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_303600/actor_303600", rodata = "0x4", text = "0x120" },
+  { unit = "actor_303600/actor_303600", rodata = "0x4", text = "0x40" },
   { unit = "actor_303600/actor_303600_3", rodata = "0x28", text = "0xA50" },
   { lib = true, unit = "actors_shared_8016447c", text = "0x838" },
   { lib = true, unit = "actors_shared_8016449c", text = "0x858" },
