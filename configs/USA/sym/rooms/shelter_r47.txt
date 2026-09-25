@@ -1,2 +1,6 @@
 // Overlay-local symbols for shelter_r47.
 D_shelter_r47_8017D638 = 0x8017D638; // force_not_migration:True string with non-zero bytes after its terminator, read from C
+D_shelter_r47_80186FAC = 0x80186FAC; // type:u8 size:0x5
+D_shelter_r47_8018A695 = 0x8018A695; // type:u8 size:0x1
+D_shelter_r47_8018A696 = 0x8018A696; // type:u8 size:0x1
+D_shelter_r47_8018A697 = 0x8018A697; // type:u8 size:0x1

@@ -31,10 +31,10 @@ extern s16       D_80114D08;
 /// Menu input lock, counted down by `Gp_TickMenuLock`.
 extern s16 Gp_MenuLockDelay;
 
-/// Area views published for the first cap script's selections, indexed by the
-/// selection's low byte; the second byte is also written on its own.
-extern u8 D_shelter_r47_80186FAC[];
-extern u8 D_shelter_r47_80186FAD;
+/// Area views published for the first cap script's five selections, indexed by
+/// the selection; entry 1 is switched between views 0x12 and 0x24 by the low bit
+/// of game flag 0xD5.
+extern u8 D_shelter_r47_80186FAC[5];
 
 /// Byte sequences selected by `ShelterR47State::step` and walked by
 /// `field_48`; `0xFF` ends a sequence.
@@ -772,7 +772,7 @@ s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
 }
 
 /// Loads the script's working copies of game flags 0xAC, 0xD5, 0xAE, 0xD6 and
-/// 0xD2, and sets `D_shelter_r47_80186FAD` from the low bit of flag 0xD5.
+/// 0xD2, and sets `D_shelter_r47_80186FAC[1]` from the low bit of flag 0xD5.
 void func_shelter_r47_80182AA0(Task* task)
 {
     ShelterR47State* state = (ShelterR47State*)task->work;
@@ -780,9 +780,9 @@ void func_shelter_r47_80182AA0(Task* task)
     state->toggles[0] = GameFlag_GetNibble(0xAC);
     state->toggles[1] = GameFlag_GetNibble(0xD5);
     if (!(state->toggles[1] & 1)) {
-        D_shelter_r47_80186FAD = 0x12;
+        D_shelter_r47_80186FAC[1] = 0x12;
     } else {
-        D_shelter_r47_80186FAD = 0x24;
+        D_shelter_r47_80186FAC[1] = 0x24;
     }
     state->toggles[2] = GameFlag_GetNibble(0xAE);
     state->toggles[3] = GameFlag_GetNibble(0xD6);
@@ -1127,11 +1127,11 @@ void func_shelter_r47_801833DC(Task* task, s16 arg1)
             break;
         case 1:
             if (!(state->toggles[1] & 1)) {
-                D_shelter_r47_80186FAD = 0x12;
-                D_8007216C.view        = 0x12;
+                D_shelter_r47_80186FAC[1] = 0x12;
+                D_8007216C.view           = 0x12;
             } else {
-                D_shelter_r47_80186FAD = 0x24;
-                D_8007216C.view        = 0x24;
+                D_shelter_r47_80186FAC[1] = 0x24;
+                D_8007216C.view           = 0x24;
             }
             break;
         case 3:
