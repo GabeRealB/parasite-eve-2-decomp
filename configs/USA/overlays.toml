@@ -4124,11 +4124,6 @@ id = 231
 objects = [
   { kind = "packageId" },
   { unit = "actor_341300/actor_341300", rodata = "0x4", text = "0x64" },
-  { unit = "actor_341300/actor_341300_2", rodata = "0x44", text = "0x5FC" },
-  { unit = "actor_341300/actor_341300_3", text = "0x57C" },
-  { unit = "actor_341300/actor_341300_4", text = "0x59C" },
-  { unit = "actor_341300/actor_341300_5", text = "0x5BC" },
-  { unit = "actor_341300/actor_341300_6", text = "0x5DC" },
   { kind = "data", at = "0x1CD0" },
 ]
 
