@@ -5,6 +5,7 @@
 #include "psyq/libgs.h"
 #include "psyq/rand.h"
 #include "psyq/inline_c.h"
+#include "psyq/gtemac.h"
 #include "gte.h"
 
 #include "actors/actors_shared_80131fc8.h"
@@ -3159,172 +3160,117 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return tmdDrawStreamGt3(arg0, arg1, stream);
 }
 
-u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+/// Scratch-pad frame of a quad pass that draws the model in the frame of a
+/// reference coordinate: the GTE state the pass restores on exit, the
+/// model-to-reference matrix it builds, and the element being drawn.
+typedef struct {
+    VECTOR  trans;    // GTE translation on entry
+    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
+    SVECTOR verts[4]; // The element's vertices in the reference frame, clamped to y <= 0
+    s32     index[4]; // The element's vertex indices
+    MATRIX  savedRot; // GTE rotation on entry
+    MATRIX  local;    // Model-to-reference transform
+} _Actor403600QuadScratch;
+
+/// Rotates `v` in place by `m`.
+static inline void _actor403600RotateSv(MATRIX* m, SVECTOR* v)
 {
-    CVECTOR          color;
-    SVECTOR          local;
-    u8*              head;
-    u8*              scratch;
-    register MATRIX* saved asm("s1");
-    register MATRIX* transposed asm("s0");
-    MATRIX*          active;
-    u32*             stream;
-    u16*             record;
-    u8*              verts;
-    u8*              norms;
-    u8*              coord;
-    u8*              local_stack;
-    u8*              local_addr;
-    register u8*     color_ds asm("s2");
-    POLY_GT4*        poly;
-    s32*             flg;
-    register s32*    opz asm("t3");
-    u32              clip_mask;
-    u32              mask;
-    u32              ds_high;
-    s32              i;
-    s32              offset;
-    register u8*     index asm("a0");
-    register u8*     clamp asm("a1");
+    SVECTOR in;
 
-    __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
+    in = *v;
+    gte_ApplyMatrixSV(m, &in, v);
+}
+
+u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+{
+    CVECTOR                  color;
+    u8*                      head;
+    _Actor403600QuadScratch* sc;
+    GpCoord*                 coord;
+    POLY_GT4*                poly;
+    u16*                     rec;
+    s32                      i;
+
     if (D_actor_403600_801606A0 != NULL) {
-        poly    = (POLY_GT4*)arg0->primWrite;
-        color   = D_actor_403600_80131E34;
-        head    = SCRATCH_HEAD(u8);
-        scratch = (SCRATCH_HEAD(u8) = head - 0x88);
-        gte_sttr(scratch);
-        saved = (MATRIX*)(head - 0x40);
-        gte_ReadRotMatrix(saved);
-        transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
-
-        coord                   = (u8*)D_actor_403600_801606A0;
-        *(s16*)(scratch + 0x10) = *(u16*)(head - 0x88) - *(u16*)(coord + 0x38);
-        *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
-        *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
-
-        local_stack = (u8*)&local;
-        local_addr  = head - 0x78;
-        local       = *(SVECTOR*)local_addr;
-        gte_SetRotMatrix(transposed);
-        gte_ldv0(local_stack);
-        gte_rtv0();
-        gte_stsv(local_addr);
-
-        gte_SetRotMatrix(transposed);
-        gte_ldclmv(saved);
-        gte_rtir();
-        gte_stclmv(transposed);
-        gte_ldclmv(head - 0x3E);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][1]);
-        gte_ldclmv(head - 0x3C);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][2]);
-
-        *(s32*)(scratch + 0x7C) = *(s16*)(scratch + 0x10);
-        *(s32*)(scratch + 0x80) = *(s16*)(scratch + 0x12);
-        *(s32*)(scratch + 0x84) = *(s16*)(scratch + 0x14);
-        color_ds                = (u8*)&color;
-        gte_ldrgb(color_ds);
-        if (arg0->elemCount-- > 0) {
-            active = transposed;
-            SOFT_USE_REG(head);
-            flg       = &arg0->gteFlag;
-            clip_mask = 0x80000000;
-            opz       = &arg0->gteResult;
-            __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
-            __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(color_ds) : "r"(ds_high));
-            mask = 0xFFFFFF;
-            SOFT_TOUCH_REG(mask);
-            saved = (MATRIX*)0xFF000000;
-            do {
-                record = (u16*)stream;
-                gte_SetTransMatrix(active);
-                gte_SetRotMatrix(active);
-                i                       = 0;
-                clamp                   = scratch;
-                *(s32*)(scratch + 0x38) = record[0] >> 3;
-                offset                  = 0x18;
-                *(s32*)(scratch + 0x3C) = record[1] >> 3;
-                *(s32*)(scratch + 0x40) = record[2] >> 3;
-                *(s32*)(scratch + 0x44) = record[3] >> 3;
-                __asm__("move %0,%1" : "=r"(index) : "r"(scratch));
-                do {
-                    verts = (u8*)arg0->verts;
-                    gte_ldv0(verts + (*(s32*)(index + 0x38) << 3));
-                    gte_rtv0tr();
-                    gte_stsv(scratch + offset);
-                    if (*(s16*)(clamp + 0x1A) > 0) {
-                        *(s16*)(clamp + 0x1A) = 0;
-                    }
-                    clamp  += 8;
-                    offset += 8;
-                    i++;
-                    index += 4;
-                } while (i < 4);
-
-                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                index = scratch + 0x18;
-                gte_ldv3(index, scratch + 0x20, scratch + 0x28);
-                gte_rtpt();
-                gte_stflg(flg);
-                if (!(arg0->gteFlag & clip_mask)) {
-                    gte_nclip();
-                    gte_stopz(opz);
-                    gte_stsxy3_gt4(poly);
-                    gte_ldv0(scratch + 0x30);
-                    gte_rtps();
-                    gte_stflg(flg);
-                    if (!(arg0->gteFlag & clip_mask)) {
-                        if (arg0->gteResult > 0) {
-                            goto draw;
-                        }
-                        gte_nclip();
-                        gte_stopz(opz);
-                        if (arg0->gteResult < 0) {
-                        draw:
-                            gte_stsxy2(&poly->x3);
-                            gte_avsz4();
-                            norms = (u8*)arg0->normals;
-                            gte_ldv3(norms + (record[4] & 0xFFF8),
-                                     norms + (record[5] & 0xFFF8),
-                                     norms + (record[6] & 0xFFF8));
-                            gte_ncct();
-                            gte_strgb3_gt4(poly);
-                            gte_ldv0((u8*)arg0->normals + (record[7] & 0xFFF8));
-                            gte_nccs();
-                            gte_strgb(&poly->r3);
-                            setlen(poly, 12);
-                            setcode(poly, 0x3C);
-                            gte_stotz(opz);
-                            poly->tag = (poly->tag & (u32)saved) |
-                                        (*(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) &
-                                                     0xFFC) +
-                                                    (s32)arg0->ot) &
-                                         mask);
-                            *(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
-                                       (s32)arg0->ot) =
-                                (*(u_long*)(((((u32)arg0->gteResult << ((DisplayState*)color_ds)->otDepthShift) >> 2) & 0xFFC) +
-                                            (s32)arg0->ot) &
-                                 (u32)saved) |
-                                ((u32)poly & mask);
-                        }
-                    }
+        poly  = (POLY_GT4*)ws->primWrite;
+        color = D_actor_403600_80131E34;
+        head  = SCRATCH_HEAD(u8);
+        sc    = SCRATCH_HEAD(_Actor403600QuadScratch) =
+            (_Actor403600QuadScratch*)(head - sizeof(_Actor403600QuadScratch));
+        gte_sttr(&sc->trans);
+        gte_ReadRotMatrix(&sc->savedRot);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
+        coord         = (GpCoord*)D_actor_403600_801606A0;
+        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
+        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
+        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
+        _actor403600RotateSv(&sc->local, &sc->offset);
+        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
+        sc->local.t[0] = sc->offset.vx;
+        sc->local.t[1] = sc->offset.vy;
+        sc->local.t[2] = sc->offset.vz;
+        gte_ldrgb(&color);
+        for (; ws->elemCount-- > 0; poly++, stream += ws->elemStride) {
+            rec = (u16*)stream;
+            gte_SetTransMatrix(&sc->local);
+            gte_SetRotMatrix(&sc->local);
+            sc->index[0] = rec[0] >> 3;
+            sc->index[1] = rec[1] >> 3;
+            sc->index[2] = rec[2] >> 3;
+            sc->index[3] = rec[3] >> 3;
+            for (i = 0; i < 4; i++) {
+                gte_ldv0(&ws->verts[sc->index[i]]);
+                gte_rtv0tr();
+                gte_stsv(&sc->verts[i]);
+                if (sc->verts[i].vy > 0) {
+                    sc->verts[i].vy = 0;
                 }
-                poly++;
-                stream += arg0->elemStride;
-            } while (arg0->elemCount-- > 0);
+            }
+            gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
+            gte_rtpt();
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag & 0x80000000) {
+                continue;
+            }
+            gte_nclip();
+            gte_stopz(&ws->gteResult);
+            gte_stsxy3_gt4(poly);
+            gte_ldv0(&sc->verts[3]);
+            gte_rtps();
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag & 0x80000000) {
+                continue;
+            }
+            /* Drawn when either triangle of the quad faces the camera. */
+            if (ws->gteResult <= 0) {
+                gte_nclip();
+                gte_stopz(&ws->gteResult);
+                if (ws->gteResult >= 0) {
+                    continue;
+                }
+            }
+            gte_stsxy2(&poly->x3);
+            gte_avsz4();
+            gte_ldv3(&ws->normals[rec[4] >> 3], &ws->normals[rec[5] >> 3], &ws->normals[rec[6] >> 3]);
+            gte_ncct();
+            gte_strgb3_gt4(poly);
+            gte_ldv0(&ws->normals[rec[7] >> 3]);
+            gte_nccs();
+            gte_strgb(&poly->r3);
+            setlen(poly, 12);
+            setcode(poly, 0x3C);
+            gte_stotz(&ws->gteResult);
+            addPrim(&ws->ot[((u32)ws->gteResult << gDisplayState.otDepthShift) >> 4 & 0x3FF], poly);
         }
-        arg0->primWrite = (u8*)poly;
-        gte_SetTransVector(scratch);
-        gte_SetRotMatrix(scratch + 0x48);
-        SCRATCH_POP_BYTES(0x88);
+        ws->primWrite = (u8*)poly;
+        gte_SetTransVector(&sc->trans);
+        gte_SetRotMatrix(&sc->savedRot);
+        SCRATCH_POP_BYTES(sizeof(_Actor403600QuadScratch));
         return stream;
     }
-    return tmdDrawStreamGt4(arg0, arg1, stream);
+    return tmdDrawStreamGt4(ws, flags, stream);
 }
 
 u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
