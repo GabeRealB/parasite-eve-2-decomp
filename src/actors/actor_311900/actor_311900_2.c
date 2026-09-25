@@ -23,7 +23,7 @@ extern u8 D_actor_311900_8016EBF4[];
 /// Non-zero while the game is paused, which freezes the per-frame step below.
 extern u8 D_80072729;
 
-/// The `ActorsShared80135df4Table` spawn handler -- the actor's second setup
+/// The `D_actor_311900_80161E30` spawn handler -- the actor's second setup
 /// path, reached through the three-entry table whose tick is
 /// `func_actor_311900_801625F0`. It is the same setup `func_actor_311900_8016228C`
 /// performs for the first table, under different conditions: the enemy is torn

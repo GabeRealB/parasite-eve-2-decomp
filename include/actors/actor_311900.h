@@ -9,9 +9,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// A `MATRIX` plus the word-wise view `func_actor_311900_8016278C` splats the
-/// light / colour pair through: five aligned stores rather than nine halfword
-/// ones (the same idiom as `ActorsShared8016a538Mat` and `Actor141000MatWords`).
+/// A `MATRIX` plus the word-wise view `func_actor_311900_8016278C` and
+/// `func_actor_311900_8016281C` seed the light / colour pair's identity
+/// through: five aligned stores rather than nine halfword ones.
 typedef union Actor311900MatWords {
     MATRIX mat;
     struct {
@@ -41,8 +41,7 @@ STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
 /// two matrices onto `TmdObject::lightMtx` / `field_20`, the light / colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
 ///
 /// The size is the allocation, and the fields below are the ones the spawn
 /// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
@@ -69,6 +68,11 @@ typedef struct Actor311900Work {
     /* 0x4C9 */ byte            pad_4C9[0x3];
 } Actor311900Work;
 STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
+
+/// The actor's second state table: `func_actor_311900_801624F8`'s setup,
+/// `func_actor_311900_801625F0`'s tick and `Gp_DestroyEnemy`, dispatched by
+/// `func_actor_311900_8016249C`.
+extern GpEnemyTaskFuncTable3 D_actor_311900_80161E30;
 
 void func_actor_311900_8016278C(Task* task);
 

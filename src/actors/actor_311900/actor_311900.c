@@ -187,7 +187,7 @@ void func_actor_311900_8016222C(Task* task)
     sp.funcs[task->state](enemy, task);
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", ActorsShared80135df4Table);
+INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E30);
 
 /// The actor's first setup path, reached through `D_actor_311900_80161E24`. It
 /// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
