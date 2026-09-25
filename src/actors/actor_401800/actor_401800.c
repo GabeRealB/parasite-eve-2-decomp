@@ -1056,10 +1056,6 @@ void func_actor_401800_80133EB8(Task* arg0)
     s32                       sound;
     s32                       soundId;
     s32                       pan;
-    s8*                       seekSlot;
-    s8*                       resetSlot;
-    s8*                       secondarySlot;
-    s8*                       tickSlot;
 
     work  = (ActorsShared80133eb8Work*)arg0->work;
     enemy = arg0->spawnArg2;
@@ -1070,15 +1066,12 @@ void func_actor_401800_80133EB8(Task* arg0)
         if (work->field_89C != (s16)work->field_89E) {
             seekIndex = 1;
             table     = (u32)&D_actor_401800_8015514C;
-            // Slot i has stride 0x28; its rate is at work + 0x39 + i * 0x28.
-            seekSlot = ((s8*)work + 0x28);
             do {
-                seekSlotIndex  = seekIndex;
-                seekSlot[0x39] = (u8)seekWork->field_8A2;
-                animation      = (s16)seekWork->field_89E;
-                seekSlot      += 0x28;
-                index          = seekWork->field_89C * 0x2D;
-                func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0,
+                seekSlotIndex                   = seekIndex;
+                work->rig.slots[seekIndex].rate = (u8)seekWork->field_8A2;
+                animation                       = (s16)seekWork->field_89E;
+                index                           = seekWork->field_89C * 0x2D;
+                func_800B4114(&seekWork->rig.anim, seekSlotIndex, animation, 0,
                               (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x13);
@@ -1092,12 +1085,10 @@ void func_actor_401800_80133EB8(Task* arg0)
         // Preserve the separate work pointer for the reset loop.
         TOUCH_REG(resetWork);
         resetIndex = 1;
-        resetSlot  = ((s8*)work + 0x28);
         do {
-            resetSlotIndex  = resetIndex;
-            resetSlot[0x39] = (u8)resetWork->field_8A2;
-            resetSlot      += 0x28;
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex,
+            resetSlotIndex                   = resetIndex;
+            work->rig.slots[resetIndex].rate = (u8)resetWork->field_8A2;
+            Gp_AnimResetSlot(&resetWork->rig.anim, resetSlotIndex,
                              (s32)(s16)resetWork->field_89E);
             resetIndex += 1;
         } while (resetIndex < 0x13);
@@ -1109,14 +1100,12 @@ void func_actor_401800_80133EB8(Task* arg0)
     if (work->field_8A6 == 2) {
         secondaryWork            = (ActorsShared80133eb8Work*)arg0->work;
         secondaryIndex           = 1;
-        secondarySlot            = ((s8*)secondaryWork + 0x28);
         secondaryWork->field_8AA = 0x30;
         secondaryWork->field_8AC = 0x800;
         do {
-            secondarySlotIndex  = secondaryIndex;
-            secondarySlot[0x39] = (u8)secondaryWork->field_8AA;
-            secondarySlot      += 0x28;
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex,
+            secondarySlotIndex                            = secondaryIndex;
+            secondaryWork->rig.slots[secondaryIndex].rate = (u8)secondaryWork->field_8AA;
+            Gp_AnimResetSlot(&secondaryWork->blend.anim, secondarySlotIndex,
                              (s32)secondaryWork->field_8A8);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x13);
@@ -1126,17 +1115,15 @@ void func_actor_401800_80133EB8(Task* arg0)
     if ((s16)work->field_89A == 0) {
         tickWork  = (ActorsShared80133eb8Work*)arg0->work;
         tickIndex = 1;
-        tickSlot  = ((s8*)tickWork + 0x28);
         do {
-            tickSlotIndex  = tickIndex;
-            tickSlot[0x39] = (u8)tickWork->field_8A2;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
-            tickSlot  += 0x28;
+            tickSlotIndex                       = tickIndex;
+            tickWork->rig.slots[tickIndex].rate = (u8)tickWork->field_8A2;
+            Gp_AnimTickIndex(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {
         func_actor_401800_801337EC(arg0);
-        if (work->field_4A4 & 1) {
+        if (work->blend.slots[1].flags & 1) {
             work->field_89A = 0;
         }
     }
