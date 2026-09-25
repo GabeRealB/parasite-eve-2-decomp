@@ -28,16 +28,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// One entry of the room's 0x98-byte display-object table. Only the flag byte
-/// at 0x4A is touched here: bit 6 shows the entry, clearing it hides it.
-typedef struct {
-    /* 0x00 */ u8 pad_0[0x4A];
-    /* 0x4A */ u8 field_4A;
-    /* 0x4B */ u8 pad_4B[0x4D];
-} DryfieldNightGarageObj;
-
-STATIC_ASSERT_SIZEOF(DryfieldNightGarageObj, 0x98);
-
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80179954(RoomEventMsg* in, RoomEventMsg* out);
 s32         func_800D4D2C(s32 arg0);
@@ -177,12 +167,14 @@ extern GpGridParams D_dryfield_night_garage_80181D7C;
 extern GpGridParams D_dryfield_night_garage_80181E40;
 extern GpGridParams D_dryfield_night_garage_80183DD4;
 
-extern TaskDesc               D_dryfield_night_garage_80182C98[];
-extern s32                    D_dryfield_night_garage_80182DE0;
-extern s32                    D_dryfield_night_garage_80182DE4;
-extern s32                    D_dryfield_night_garage_80182DF8;
-extern s32                    D_dryfield_night_garage_801831B8;
-extern DryfieldNightGarageObj D_dryfield_night_garage_80186E60[];
+extern TaskDesc D_dryfield_night_garage_80182C98[];
+extern s32      D_dryfield_night_garage_80182DE0;
+extern s32      D_dryfield_night_garage_80182DE4;
+extern s32      D_dryfield_night_garage_80182DF8;
+extern s32      D_dryfield_night_garage_801831B8;
+/// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
+/// room toggles the first node and the third.
+extern GpObj4A D_dryfield_night_garage_80186E60[];
 
 /// Work pair of the charge panel `func_dryfield_night_garage_8017F2F8`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
@@ -1430,9 +1422,9 @@ void func_dryfield_night_garage_8017FDF8(Task* task)
 /// hands off to the player actor through messages 0x3E9 / 0x3E8.
 void func_dryfield_night_garage_8017FF2C(Task* task)
 {
-    DryfieldNightGarageObj* base;
-    DryfieldNightGarageObj* obj;
-    Task*                   player;
+    GpObj4A* base;
+    GpObj4A* obj;
+    Task*    player;
 
     task->msgTable = D_dryfield_night_garage_80181C38;
     Game_SetPtrSlot(task, 7);
@@ -1457,7 +1449,7 @@ void func_dryfield_night_garage_8017FF2C(Task* task)
             GameFlag_SetNibble(0x6C, 2);
         }
         base            = D_dryfield_night_garage_80186E60;
-        obj             = base + 1;
+        obj             = base + 2;
         base->field_4A |= 0x40;
         obj->field_4A  &= 0xBF;
     }
@@ -1466,8 +1458,8 @@ void func_dryfield_night_garage_8017FF2C(Task* task)
 
 s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
 {
-    DryfieldNightGarageObj* base;
-    DryfieldNightGarageObj* obj;
+    GpObj4A* base;
+    GpObj4A* obj;
 
     if (msg->field_2 == 6) {
         if (gGameSession->at4.loc.place == 2) {
@@ -1483,7 +1475,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
                     Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (GameFlag_GetNibble(0x6C) == 0) {
                     base            = D_dryfield_night_garage_80186E60;
-                    obj             = base + 1;
+                    obj             = base + 2;
                     base->field_4A |= 0x40;
                     obj->field_4A  &= 0xBF;
                     func_800E8634((s32)&D_dryfield_night_garage_80182DF8, 0,

@@ -26,15 +26,6 @@
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_r47.h"
 
-/// Sparse view of the adjacent records at 0x80187960 and 0x80187C0C.
-/// The room's 0x13EF message handler toggles bit 0x40 at offset 0x4A.
-typedef struct ShelterR47Object {
-    u8 pad_0[0x4A];
-    u8 field_4A;
-    u8 pad_4B[0x261];
-} ShelterR47Object;
-STATIC_ASSERT_SIZEOF(ShelterR47Object, 0x2AC);
-
 /// One textured piece of a sprite drawn by `func_shelter_r47_80180F38`: its
 /// CLUT position, its offset from the sprite's origin, and its texture window.
 /// A piece whose `clutX` is 0xFFFF ends the list.
@@ -136,10 +127,14 @@ extern TaskDesc D_shelter_r47_80187020;
 /// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
 extern ShelterR47SpritePart* D_shelter_r47_8018729C[];
 
-extern TaskDesc         D_shelter_r47_801872F0;
-extern TaskDesc         D_shelter_r47_80187618;
-extern ShelterR47Object D_shelter_r47_80187960[];
-extern ShelterR47Object D_shelter_r47_80187C0C;
+extern TaskDesc D_shelter_r47_801872F0;
+extern TaskDesc D_shelter_r47_80187618;
+
+/// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
+/// room toggles the first node and the tenth, which the code also names on its
+/// own as `D_shelter_r47_80187C0C`.
+extern GpObj4A D_shelter_r47_80187960[];
+extern GpObj4A D_shelter_r47_80187C0C;
 
 extern GpAreaApplyRec D_shelter_r47_80188888;
 extern Task*          D_shelter_r47_8018A68C;
@@ -1380,17 +1375,17 @@ void func_shelter_r47_8017FCC0(void)
 
 s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
 {
-    Task*             spawned_p;
-    Task*             spawned_p6;
-    Task*             spawned_a;
-    Task*             spawned_a0;
-    Task*             spawned_a1;
-    s32               flag_a;
-    s32               flag_b;
-    s32               kind;
-    u8                field9;
-    ShelterR47Object* p;
-    ShelterR47Object* q;
+    Task*    spawned_p;
+    Task*    spawned_p6;
+    Task*    spawned_a;
+    Task*    spawned_a0;
+    Task*    spawned_a1;
+    s32      flag_a;
+    s32      flag_b;
+    s32      kind;
+    u8       field9;
+    GpObj4A* p;
+    GpObj4A* q;
 
     field9 = gGameSession->at4.loc.place;
     if (field9 == 1) {
@@ -1462,7 +1457,7 @@ s32 func_shelter_r47_8017FE84(s32 arg0, s32 arg1, RoomEventMsg* arg2)
                     GameFlag_SetNibble(flag_a, flag_b);
                 toggle_only:
                     p            = D_shelter_r47_80187960;
-                    q            = p + 1;
+                    q            = p + 9;
                     p->field_4A &= 0xBF;
                     q->field_4A |= 0x40;
                 }
