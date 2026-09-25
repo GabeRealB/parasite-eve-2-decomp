@@ -17,8 +17,8 @@
 /// allocation. The task dispatcher republishes it in the global every tick,
 /// and every other function in the overlay reaches the block through it.
 ///
-/// `anim` is the animation context the tick and reseed loops walk; `slots` and
-/// `poses` are the buffers `func_800B3F84` binds to it.
+/// `anim` is the animation context the tick and reseed loops walk; the spawn
+/// handler passes `poses` and `slots` to `func_800B3F84` together with it.
 typedef struct Actor420700Work {
     /* 0x000 */ MATRIX     light;
     /* 0x020 */ MATRIX     color;
