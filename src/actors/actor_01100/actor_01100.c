@@ -1128,6 +1128,19 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
+/// Scales the columns of `m`'s rotation part by `v`'s three components,
+/// through a vector on the scratch-pad stack.
+static __inline__ void _actor01100ScaleMatrix(MATRIX* m, VECTOR* v)
+{
+    SVECTOR* sv;
+
+    sv = SCRATCH_PUSH(SVECTOR);
+    SCALE_COL(m, sv, 0, 6, 12, v->vx);
+    SCALE_COL(m, sv, 2, 8, 14, v->vy);
+    SCALE_COL(m, sv, 4, 10, 16, v->vz);
+    SCRATCH_POP(SVECTOR);
+}
+
 /// State-0xA pose: clamps the walk at 0xB8E, splits it as Y rotations across
 /// model parts 4 and its two `sub` nodes, then GPF-scales the arm chains at
 /// parts 6 and 10. 0xB9A/0xB98 scale the child then the parent by the
@@ -1135,11 +1148,11 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// columns 1-2 at 1+delta/4).
 void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpCoord*     part;
-    GpCoord*     coords;
-    s32          walk;
-    s32          rest;
-    register s32 t asm("v1");
+    GpCoord* part;
+    GpCoord* node;
+    s32      walk;
+    s32      rest;
+    s32      scale;
 
     walk = work->field_B8E;
     part = task->extra.tmd->coords + 4;
@@ -1167,96 +1180,42 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Gfx_RotMatrixY(&part->sub->sub->coord, rest, 0);
     part->sub->sub->flg = 0;
 
-    t = work->field_B9A;
-    if (t != 0) {
-        GpCoord*          node;
-        GpCoord*          sub;
-        MATRIX*           m;
-        MATRIX*           parent;
-        register SVECTOR* sv asm("v0");
-        register s32      scale asm("a1");
-        register s32      inv asm("a0");
+    if (work->field_B9A != 0) {
+        GpCoord* coords;
+        s32      inv;
 
-        scale  = t + 0x1000;
-        coords = task->extra.tmd->coords;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
+        scale       = work->field_B9A + 0x1000;
+        coords      = task->extra.tmd->coords;
         arg->pos.vz = scale;
         arg->pos.vy = scale;
         arg->pos.vx = scale;
-        node        = coords + 6;
-        m           = (MATRIX*)node->sub;
-        SCHED_BARRIER();
-        sv--;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        m = &((GpCoord*)m)->coord;
-        SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
-        SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
-        SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
-        inv    = 0x01000000 / scale;
-        parent = &coords[6].coord;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv  = *(SVECTOR**)((u8*)sv + 0x3FC);
-        sub = node->sub;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
-        sub->flg = 0;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        arg->pos.vz = inv;
-        SCHED_BARRIER();
-        arg->pos.vy = inv;
-        arg->pos.vx = inv;
-        SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
-        SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
-        SCALE_COL(parent, sv, 4, 10, 16, arg->pos.vz);
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv = *(SVECTOR**)((u8*)sv + 0x3FC);
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+        node        = &coords[6];
+        _actor01100ScaleMatrix(&node->sub->coord, &arg->pos);
+        node->sub->flg = 0;
+        inv            = 0x01000000 / scale;
+        arg->pos.vz    = inv;
+        arg->pos.vy    = inv;
+        arg->pos.vx    = inv;
+        _actor01100ScaleMatrix(&node->coord, &arg->pos);
     }
 
-    t = work->field_B98;
-    if (t != 0) {
-        GpCoord*          node;
-        GpCoord*          sub;
-        MATRIX*           m;
-        MATRIX*           parent;
-        register SVECTOR* sv asm("v0");
-        register s32      scale asm("a1");
-        register s32      inv asm("a0");
+    if (work->field_B98 != 0) {
+        GpCoord* coords;
+        s32      inv;
 
-        scale  = t + 0x1000;
-        coords = task->extra.tmd->coords;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
+        scale       = work->field_B98 + 0x1000;
+        coords      = task->extra.tmd->coords;
         arg->pos.vz = scale;
         arg->pos.vy = scale;
         arg->pos.vx = scale;
-        node        = coords + 10;
-        m           = (MATRIX*)node->sub;
-        SCHED_BARRIER();
-        sv--;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        m = &((GpCoord*)m)->coord;
-        SCALE_COL(m, sv, 0, 6, 12, arg->pos.vx);
-        SCALE_COL(m, sv, 2, 8, 14, arg->pos.vy);
-        SCALE_COL(m, sv, 4, 10, 16, arg->pos.vz);
-        inv    = 0x01000000 / scale;
-        parent = &coords[10].coord;
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv  = *(SVECTOR**)((u8*)sv + 0x3FC);
-        sub = node->sub;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
-        sub->flg = 0;
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-        arg->pos.vz = inv;
-        SCHED_BARRIER();
-        arg->pos.vy = inv;
-        arg->pos.vx = inv;
-        SCALE_COL(parent, sv, 0, 6, 12, arg->pos.vx);
-        SCALE_COL(parent, sv, 2, 8, 14, arg->pos.vy);
-        SCALE_COL(parent, sv, 4, 10, 16, arg->pos.vz);
-        __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
-        sv = *(SVECTOR**)((u8*)sv + 0x3FC);
-        __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv + 1) : "memory");
+        node        = &coords[10];
+        _actor01100ScaleMatrix(&node->sub->coord, &arg->pos);
+        node->sub->flg = 0;
+        inv            = 0x01000000 / scale;
+        arg->pos.vz    = inv;
+        arg->pos.vy    = inv;
+        arg->pos.vx    = inv;
+        _actor01100ScaleMatrix(&node->coord, &arg->pos);
     }
 
     if (work->field_B96 != 0) {

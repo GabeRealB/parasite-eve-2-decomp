@@ -140568,3 +140568,18 @@ Two smaller points:
 
 So when a big function needs pins, look for repeated sequences to turn into
 helpers before fighting the allocator.
+
+### Which locals are function-scoped decides global preferences: a pin on a loaded value can be a scope choice
+
+`Actor01100_Fn01D98` runs the same block twice (`if (field) { scale = field + 0x1000; ... }`
+for two fields) and had the loaded `field` pinned to `$v1`. Declared per block,
+`scale` is a single-block pseudo: local-alloc gives it `$a1` first, and then
+`global.c:set_preference` sees `(set $a1 (plus field 4096))` and gives the
+global `field` pseudo a preference for `$a1`, so both share it. Declaring
+`scale` (and the arm pointer `node`) once at function scope makes them one
+pseudo across both blocks, hence global: no hard destination at conflict time, no
+preference, and `field` takes the first free register (`$v1`). The other block
+temporaries (`coords`, `inv`) had to stay block-scoped. When a pin sits on the
+source of an add/copy, try the destination's scope first - sweeping which
+locals are shared between sibling blocks is cheap (16 builds for four locals
+here) and one combination matched outright.
