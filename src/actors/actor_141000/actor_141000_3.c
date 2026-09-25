@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_141000.h"
-#include "actors/actors_shared_80133a68.h"
 
 #include "main/task.h"
 #include "main/tmd.h"
@@ -14,7 +13,7 @@ void func_actor_141000_80133BD8(Task* arg0);
 /// `func_actor_141000_80133A00`. It opens this unit's .rodata, so a C
 /// definition lands at the address the split gave it.
 const TaskFuncTable4 D_actor_141000_80131E58 = { {
-    ActorsShared80133a68,
+    func_actor_141000_80133A68,
     func_actor_141000_80133B28,
     func_actor_141000_80133490,
     func_actor_141000_80133BD8,

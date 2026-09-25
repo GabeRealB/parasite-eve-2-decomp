@@ -32,8 +32,7 @@ extern SVECTOR D_actor_141000_801348A8[];
 /// and parked in that task's `Task::work` slot -- that slot is not a
 /// `TaskIdMap` here. `func_actor_141000_801339DC` republishes the two matrices
 /// onto `TmdObject::lightMtx` / `field_20`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_350700_801624B4` does for `Actor350700Work`.
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
 ///
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C9 are set to -1, and the
@@ -115,8 +114,7 @@ typedef struct Actor141000CtrlWork {
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
 /// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the same 4-byte record as `Actor335800Msg` and `Actor342400Msg`, whose
-/// halfword at 0x2 chooses the variant this handler latches.
+/// its halfword at 0x2 chooses the variant the handler latches.
 typedef struct Actor141000Msg {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -128,7 +126,7 @@ STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
 /// `Gp_AnimResetSlot` / `Gp_AnimTickIndex` and `func_800B3F84` /
 /// `func_800B4114`. The turn-to-face body fills `field_0` with 0, `field_4` with
 /// the `field_43F` byte, `field_8` with 1, `field_C` with 5 and `field_10` with
-/// 0 -- the same five-word shape as `GpAnimArg` and `Actor503500AnimPreset`.
+/// 0.
 typedef struct Actor141000AnimPreset {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -138,14 +136,28 @@ typedef struct Actor141000AnimPreset {
 } Actor141000AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor141000AnimPreset, 0x14);
 
-/// Spawn placement `func_actor_141000_801336DC` copies into the work block:
-/// the position into `Actor141000Work::target`, the rotation into
-/// `field_4B8..field_4BC` (the yaw being the turn-to-face target).
+/// Payload of the two placement messages: a world position and Euler angles.
+/// Message 0x7DD (`func_actor_141000_801336DC`) copies it into the work block,
+/// the position into `Actor141000Work::target` and the rotation into
+/// `field_4B8..field_4BC` (the yaw being the turn-to-face target); message
+/// 0x7D4 (`func_actor_141000_80133E10`) applies it to the root coordinate at
+/// once.
 typedef struct Actor141000Placement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;
 } Actor141000Placement;
 STATIC_ASSERT_SIZEOF(Actor141000Placement, 0x18);
+
+/// `GsCOORDINATE2` at `TmdObject::coords` as the placement code uses it: the
+/// libgs `param` slot at 0x44 holds the Euler angles written there and then
+/// handed straight to `RotMatrix`.
+typedef struct Actor141000Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor141000Coord;
+STATIC_ASSERT_SIZEOF(Actor141000Coord, 0x4C);
 
 /// Optional start animation for the same handler: the preset's `field_4`
 /// and the `field_43F` byte. Absent, the defaults are anim 10 (or 2 once
@@ -157,8 +169,7 @@ typedef struct Actor141000SpawnAnim {
 
 /// A `MATRIX`'s word-wise view, for the identity splat
 /// `func_actor_141000_80132FD0` writes over the root coordinate: five aligned
-/// stores rather than nine halfword ones (the same shape as
-/// `ActorsShared8016a538Mat`, whose comment on the idiom is the fuller one).
+/// stores rather than nine halfword ones.
 typedef struct Actor141000MatWords {
     /* 0x00 */ s32 m00_m01;
     /* 0x04 */ s32 m02_m10;
@@ -184,5 +195,8 @@ void func_actor_141000_801339DC(Task* arg0);
 void func_actor_141000_80131E94(Actor141000* arg0, Actor141000Point* arg1, s32 arg2);
 void func_actor_141000_801323F0(Actor141000* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3);
 void func_actor_141000_80133260(Actor141000* arg0);
+void func_actor_141000_80132E04(Task* task);
+void func_actor_141000_801339BC(Task* arg0);
+void func_actor_141000_80133A68(Task* task);
 
 #endif

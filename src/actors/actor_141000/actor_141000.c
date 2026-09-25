@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_141000.h"
-#include "actors/actors_shared_80162850.h"
 
 #include "gameplay/3CD8.h"
 
@@ -296,7 +295,7 @@ void func_actor_141000_80132C7C(Task* task)
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
     Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, (s32)task);
-    task->exitCallback = ActorsShared80162850;
+    task->exitCallback = func_actor_141000_80132E04;
     task->state       += 1;
 }
 

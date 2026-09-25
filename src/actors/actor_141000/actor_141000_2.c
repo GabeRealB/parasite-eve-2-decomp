@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_141000.h"
-#include "actors/actors_shared_801327b4.h"
 
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -202,10 +201,9 @@ void func_actor_141000_801331AC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Chains this actor's root coordinate under the spawner's, then hands the task
-/// to it. Same attach shape as `ActorsShared80132450`, but the parent's part is
-/// always its root coordinate and the actor is flagged for immediate unlink
-/// (`killCountdown`) instead of surviving to a later state.
+/// Chains this actor's root coordinate under the spawner's root coordinate,
+/// hands the task to the spawner with `Task_Reparent`, arms `killCountdown` at
+/// 0x7FF and advances the state.
 void func_actor_141000_80133204(Task* task)
 {
     ((TmdObject*)task->extra)->coords->sub = ((TmdObject*)((Task*)task->spawnArg2)->extra)->coords;
@@ -432,6 +430,6 @@ void func_actor_141000_8013392C(Task* arg0)
     func_actor_141000_801339DC(arg0);
 
     arg0->msgTable     = D_actor_141000_8013D788;
-    arg0->exitCallback = ActorsShared801327b4;
+    arg0->exitCallback = func_actor_141000_801339BC;
     arg0->state++;
 }
