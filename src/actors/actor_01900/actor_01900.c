@@ -262,14 +262,14 @@ static __inline__ void Actor01900_StepForwardHead(GsCOORDINATE2* coord, s16 amou
 static __inline__ void Actor01900_ResetYaw(GsCOORDINATE2* coord)
 {
     void**                scratch;
-    void*                 head;
+    ActorScaleRotScratch* head;
     ActorScaleRotScratch* blk;
     s16                   ang;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    SCRATCH_HEAD_AT(scratch, void) = blk;
+    scratch                                        = SCRATCH_HEAD_ADDR;
+    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
+    blk                                            = head - 1;
+    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -289,7 +289,7 @@ static __inline__ void Actor01900_ResetYaw(GsCOORDINATE2* coord)
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     coord->coord.m[2][2] = *(u16*)&blk->m.m[2][2];
     coord->flg           = 0;
-    SCRATCH_POP_BYTES_AT(scratch, 0x34);
+    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).

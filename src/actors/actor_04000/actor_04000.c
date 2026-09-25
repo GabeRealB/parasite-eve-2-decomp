@@ -2208,15 +2208,15 @@ s32 Actor04000_Fn06728(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
 {
     void**                scratch;
-    void*                 head;
+    ActorScaleRotScratch* head;
     ActorScaleRotScratch* blk;
     s16                   ang;
     u16                   m22;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    blk                            = (ActorScaleRotScratch*)head - 1;
-    SCRATCH_HEAD_AT(scratch, void) = blk;
+    scratch                                        = SCRATCH_HEAD_ADDR;
+    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
+    blk                                            = head - 1;
+    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2226,7 +2226,7 @@ void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)head - 1)->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&(head - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -2235,7 +2235,7 @@ void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(ActorScaleRotScratch));
+    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
