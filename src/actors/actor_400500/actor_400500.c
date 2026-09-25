@@ -73,16 +73,6 @@ typedef struct Actor400500HitView {
     /* 0x4C */ Actor400500HitFlags flags_4C;
 } Actor400500HitView;
 
-/// 0x28-byte stride overlay of `Actor400500Work` from offset 0. `anim` is
-/// 0x14 bytes, so `stride[i].field_1D` is `slots[i].field_9`. Walked from
-/// index 1 by `func_actor_400500_8013A8E4`.
-typedef struct Actor400500AnimStride {
-    /* 0x00 */ byte pad[0x1D];
-    /* 0x1D */ u8   field_1D;
-    /* 0x1E */ byte pad_1E[0xA];
-} Actor400500AnimStride;
-STATIC_ASSERT_SIZEOF(Actor400500AnimStride, 0x28);
-
 /// Per-actor state block for the `actor_400500` overlay.
 ///
 /// `func_actor_400500_80135414` is the overlay's only allocator: it calls
@@ -604,31 +594,33 @@ void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &firstMatrix);
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &secondMatrix);
-        first.vy       = (s16)height;
-        second.vy      = (s16)height;
-        first.vx       = firstMatrix.t[0];
-        first.vz       = firstMatrix.t[2];
-        second.vx      = secondMatrix.t[0];
-        second.vz      = secondMatrix.t[2];
-        angle          = ratan2((s16)secondMatrix.t[0] - (s16)firstMatrix.t[0], (s16)secondMatrix.t[2] - (s16)firstMatrix.t[2]);
-        halfX          = (first.vx - second.vx) / 2;
-        halfZ          = (first.vz - second.vz) / 2;
-        offset0        = rcos(angle) * width;
-        corner0.vy     = (s16)height;
-        corner0.vx     = halfX + (first.vx - (offset0 >> 0xC));
-        corner0.vz     = halfZ + (first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1        = rcos(angle) * width;
-        corner1.vy     = (s16)height;
-        corner1.vx     = halfX + (first.vx + (offset1 >> 0xC));
-        corner1.vz     = halfZ + (first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2        = rcos(angle) * width;
-        corner2.vy     = (s16)height;
-        corner2.vx     = (second.vx - (offset2 >> 0xC)) - halfX;
-        corner2.vz     = (second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        offset3        = rcos(angle) * width;
-        corner3.vy     = (s16)height;
-        corner3.vx     = (second.vx + (offset3 >> 0xC)) - halfX;
-        corner3.vz     = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        first.vy   = (s16)height;
+        second.vy  = (s16)height;
+        first.vx   = firstMatrix.t[0];
+        first.vz   = firstMatrix.t[2];
+        second.vx  = secondMatrix.t[0];
+        second.vz  = secondMatrix.t[2];
+        angle      = ratan2((s16)secondMatrix.t[0] - (s16)firstMatrix.t[0], (s16)secondMatrix.t[2] - (s16)firstMatrix.t[2]);
+        halfX      = (first.vx - second.vx) / 2;
+        halfZ      = (first.vz - second.vz) / 2;
+        offset0    = rcos(angle) * width;
+        corner0.vy = (s16)height;
+        corner0.vx = halfX + (first.vx - (offset0 >> 0xC));
+        corner0.vz = halfZ + (first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1    = rcos(angle) * width;
+        corner1.vy = (s16)height;
+        corner1.vx = halfX + (first.vx + (offset1 >> 0xC));
+        corner1.vz = halfZ + (first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2    = rcos(angle) * width;
+        corner2.vy = (s16)height;
+        corner2.vx = (second.vx - (offset2 >> 0xC)) - halfX;
+        corner2.vz = (second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        offset3    = rcos(angle) * width;
+        corner3.vy = (s16)height;
+        corner3.vx = (second.vx + (offset3 >> 0xC)) - halfX;
+        corner3.vz = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
+           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
         viewCoord      = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
         viewCoord->flg = 0;
         Gp_UpdateCoord(viewCoord);
@@ -638,7 +630,7 @@ void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16
                               &perspective, &flags);
         if (flags >= 0) {
             poly           = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (DR_TPAGE*)((u8*)poly + sizeof(POLY_FT4));
+            gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
             poly->code       = 0x2E;
             texU0            = 0xC0;
@@ -1061,44 +1053,43 @@ s32 func_actor_400500_80133460(Task* arg0)
 
 void func_actor_400500_801335E8(Task* arg0)
 {
-    MATRIX                 local;
-    MATRIX                 local2;
-    MATRIX                 world;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    Actor400500HitView*    hit;
-    Actor400500ViewPos*    posA;
-    Actor400500ViewPos*    posB;
-    Actor400500ViewPos*    posC;
-    Actor400500ViewPos*    posD;
-    Actor400500ViewPos*    saveA;
-    Actor400500ViewPos*    saveB;
-    Actor400500ViewPos*    saveC;
-    Actor400500ViewPos*    saveD;
-    GsCOORDINATE2*         root;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         soundCoords;
-    GsCOORDINATE2*         soundCoords2;
-    s32                    i;
-    s32                    cond;
-    s32                    z;
-    s32                    soundId;
-    s32                    pan;
-    s32                    pan2;
-    s32                    sc0;
-    s32                    sc1;
-    s32                    cur;
-    s32                    q0;
-    s32                    q1;
-    s32                    q2;
-    s32                    dx;
-    s32                    dz;
-    s32                    posZ;
-    s32                    dx2;
-    s32                    dz2;
-    s32                    posZ2;
+    MATRIX              local;
+    MATRIX              local2;
+    MATRIX              world;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500HitView* hit;
+    Actor400500ViewPos* posA;
+    Actor400500ViewPos* posB;
+    Actor400500ViewPos* posC;
+    Actor400500ViewPos* posD;
+    Actor400500ViewPos* saveA;
+    Actor400500ViewPos* saveB;
+    Actor400500ViewPos* saveC;
+    Actor400500ViewPos* saveD;
+    GsCOORDINATE2*      root;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      soundCoords;
+    GsCOORDINATE2*      soundCoords2;
+    s32                 i;
+    s32                 cond;
+    s32                 z;
+    s32                 soundId;
+    s32                 pan;
+    s32                 pan2;
+    s32                 sc0;
+    s32                 sc1;
+    s32                 cur;
+    s32                 q0;
+    s32                 q1;
+    s32                 q2;
+    s32                 dx;
+    s32                 dz;
+    s32                 posZ;
+    s32                 dx2;
+    s32                 dz2;
+    s32                 posZ2;
 
     work = (Actor400500Work*)arg0->work;
     root = ((TmdObject*)arg0->extra)->coords;
@@ -1122,13 +1113,11 @@ void func_actor_400500_801335E8(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
 
@@ -1235,45 +1224,44 @@ void func_actor_400500_801335E8(Task* arg0)
 
 void func_actor_400500_80133B14(Task* arg0)
 {
-    MATRIX                 local;
-    MATRIX                 local2;
-    MATRIX                 world;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    Actor400500HitView*    hit;
-    Actor400500ViewPos*    posA;
-    Actor400500ViewPos*    posB;
-    Actor400500ViewPos*    posC;
-    Actor400500ViewPos*    posD;
-    Actor400500ViewPos*    saveA;
-    Actor400500ViewPos*    saveB;
-    Actor400500ViewPos*    saveC;
-    Actor400500ViewPos*    saveD;
-    GsCOORDINATE2*         root;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         soundCoords;
-    GsCOORDINATE2*         soundCoords2;
-    s32                    i;
-    s32                    cond;
-    s32                    z;
-    s32                    soundId;
-    s32                    pan;
-    s32                    soundId2;
-    s32                    pan2;
-    s32                    sc0;
-    s32                    sc1;
-    s32                    cur;
-    s32                    q0;
-    s32                    q1;
-    s32                    q2;
-    s32                    dx;
-    s32                    dz;
-    s32                    posZ;
-    s32                    dx2;
-    s32                    dz2;
-    s32                    posZ2;
+    MATRIX              local;
+    MATRIX              local2;
+    MATRIX              world;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500HitView* hit;
+    Actor400500ViewPos* posA;
+    Actor400500ViewPos* posB;
+    Actor400500ViewPos* posC;
+    Actor400500ViewPos* posD;
+    Actor400500ViewPos* saveA;
+    Actor400500ViewPos* saveB;
+    Actor400500ViewPos* saveC;
+    Actor400500ViewPos* saveD;
+    GsCOORDINATE2*      root;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      soundCoords;
+    GsCOORDINATE2*      soundCoords2;
+    s32                 i;
+    s32                 cond;
+    s32                 z;
+    s32                 soundId;
+    s32                 pan;
+    s32                 soundId2;
+    s32                 pan2;
+    s32                 sc0;
+    s32                 sc1;
+    s32                 cur;
+    s32                 q0;
+    s32                 q1;
+    s32                 q2;
+    s32                 dx;
+    s32                 dz;
+    s32                 posZ;
+    s32                 dx2;
+    s32                 dz2;
+    s32                 posZ2;
 
     work = (Actor400500Work*)arg0->work;
     root = ((TmdObject*)arg0->extra)->coords;
@@ -1297,13 +1285,11 @@ void func_actor_400500_80133B14(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
 
@@ -1410,44 +1396,43 @@ void func_actor_400500_80133B14(Task* arg0)
 
 void func_actor_400500_8013403C(Task* arg0)
 {
-    MATRIX                 local;
-    MATRIX                 local2;
-    MATRIX                 world;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    Actor400500HitView*    hit;
-    Actor400500ViewPos*    posA;
-    Actor400500ViewPos*    posB;
-    Actor400500ViewPos*    posC;
-    Actor400500ViewPos*    posD;
-    Actor400500ViewPos*    saveA;
-    Actor400500ViewPos*    saveB;
-    Actor400500ViewPos*    saveC;
-    Actor400500ViewPos*    saveD;
-    GsCOORDINATE2*         root;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         soundCoords;
-    GsCOORDINATE2*         soundCoords2;
-    s32                    i;
-    s32                    cond;
-    s32                    z;
-    s32                    soundId;
-    s32                    pan;
-    s32                    pan2;
-    s32                    sc0;
-    s32                    sc1;
-    s32                    cur;
-    s32                    q0;
-    s32                    q1;
-    s32                    q2;
-    s32                    dx;
-    s32                    dz;
-    s32                    posZ;
-    s32                    dx2;
-    s32                    dz2;
-    s32                    posZ2;
+    MATRIX              local;
+    MATRIX              local2;
+    MATRIX              world;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500HitView* hit;
+    Actor400500ViewPos* posA;
+    Actor400500ViewPos* posB;
+    Actor400500ViewPos* posC;
+    Actor400500ViewPos* posD;
+    Actor400500ViewPos* saveA;
+    Actor400500ViewPos* saveB;
+    Actor400500ViewPos* saveC;
+    Actor400500ViewPos* saveD;
+    GsCOORDINATE2*      root;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      soundCoords;
+    GsCOORDINATE2*      soundCoords2;
+    s32                 i;
+    s32                 cond;
+    s32                 z;
+    s32                 soundId;
+    s32                 pan;
+    s32                 pan2;
+    s32                 sc0;
+    s32                 sc1;
+    s32                 cur;
+    s32                 q0;
+    s32                 q1;
+    s32                 q2;
+    s32                 dx;
+    s32                 dz;
+    s32                 posZ;
+    s32                 dx2;
+    s32                 dz2;
+    s32                 posZ2;
 
     work = (Actor400500Work*)arg0->work;
     root = ((TmdObject*)arg0->extra)->coords;
@@ -1471,13 +1456,11 @@ void func_actor_400500_8013403C(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
 
@@ -1707,19 +1690,17 @@ void func_actor_400500_8013456C(Task* arg0)
 
 void func_actor_400500_801348D8(Task* arg0, s32 arg1)
 {
-    SVECTOR                pos;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         joint;
-    GsCOORDINATE2*         player;
-    Task*                  slot;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500AnimStride* stride;
-    Actor400500AnimStride* stride2;
-    s32                    i;
-    s32                    cur;
-    s32                    sample;
+    SVECTOR          pos;
+    GsCOORDINATE2*   coords;
+    GsCOORDINATE2*   joint;
+    GsCOORDINATE2*   player;
+    Task*            slot;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    s32              i;
+    s32              cur;
+    s32              sample;
 
     coords = ((TmdObject*)arg0->extra)->coords;
     slot   = *Gp_ActorSlots;
@@ -1743,13 +1724,11 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         } else if (work->field_9FA == 3) {
             work->field_A00 = (u16)work->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
         gGfxViewCoord.flg = 0;
         Gp_UpdateCoord(&gGfxViewCoord);
@@ -1791,13 +1770,11 @@ void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         } else if (work3->field_9FA == 3) {
             work3->field_A00 = (u16)work3->field_A00 + 1;
         }
-        i       = 1;
-        stride2 = (Actor400500AnimStride*)work3 + 1;
+        i = 1;
         do {
-            stride2->field_1D = (u8)work3->field_9F8;
+            work3->slots[i].rate = (u8)work3->field_9F8;
             Gp_AnimTickIndex(&work3->anim, i);
             i++;
-            stride2++;
         } while (i < 0x12);
         work->field_9F8 = 0x10;
     }
@@ -1998,24 +1975,23 @@ void func_actor_400500_80134D6C(s32 otz)
 
 void func_actor_400500_80135414(Task* arg0)
 {
-    TmdObject*             extra;
-    GpEnemy*               enemy;
-    GsCOORDINATE2*         coord;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    Actor400500Work*       work5;
-    Actor400500Work*       work6;
-    Actor400500Work*       work7;
-    Actor400500AnimStride* stride;
-    GsCOORDINATE2*         player;
-    GsCOORDINATE2*         coord2;
-    TmdObject*             extra2;
-    s32                    i;
-    s32                    flag;
-    s32                    val;
-    u8                     mode;
+    TmdObject*       extra;
+    GpEnemy*         enemy;
+    GsCOORDINATE2*   coord;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    Actor400500Work* work5;
+    Actor400500Work* work6;
+    Actor400500Work* work7;
+    GsCOORDINATE2*   player;
+    GsCOORDINATE2*   coord2;
+    TmdObject*       extra2;
+    s32              i;
+    s32              flag;
+    s32              val;
+    u8               mode;
 
     extra      = arg0->extra;
     enemy      = arg0->spawnArg2;
@@ -2063,13 +2039,11 @@ void func_actor_400500_80135414(Task* arg0)
     } else if (work3->field_9FA == 3) {
         work3->field_A00 = (u16)work3->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work3 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work3->field_9F8;
+        work3->slots[i].rate = (u8)work3->field_9F8;
         Gp_AnimTickIndex(&work3->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     arg0->msgTable = D_actor_400500_80153CA0;
     func_actor_400500_80132C54(arg0);
@@ -2409,17 +2383,15 @@ const TaskFuncTable3 D_actor_400500_80131EBC = { {
 
 void func_actor_400500_80135EBC(Task* arg0)
 {
-    Actor400500Work*       work;
-    GpEnemy*               enemy;
-    TaskFuncTable11        sp10;
-    TaskFuncTable3         sp40;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
-    s32                    flag;
-    Actor400500Work*       work4;
-    Actor400500AnimStride* stride2;
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    TaskFuncTable11  sp10;
+    TaskFuncTable3   sp40;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
+    s32              flag;
+    Actor400500Work* work4;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
@@ -2443,13 +2415,11 @@ void func_actor_400500_80135EBC(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
         work3 = (Actor400500Work*)arg0->work;
         if ((work3->field_A46 >= 0) || (((u8)work3->field_A46 & 0x7F) != 1)) {
@@ -2480,13 +2450,11 @@ void func_actor_400500_80135EBC(Task* arg0)
         } else if (work4->field_9FA == 3) {
             work4->field_A00 = (u16)work4->field_A00 + 1;
         }
-        i       = 1;
-        stride2 = (Actor400500AnimStride*)work4 + 1;
+        i = 1;
         do {
-            stride2->field_1D = (u8)work4->field_9F8;
+            work4->slots[i].rate = (u8)work4->field_9F8;
             Gp_AnimTickIndex(&work4->anim, i);
             i++;
-            stride2++;
         } while (i < 0x12);
     }
     sp10.funcs[(s16)work->field_A08](arg0);
@@ -2500,29 +2468,28 @@ void func_actor_400500_80135EBC(Task* arg0)
 
 void func_actor_400500_801361EC(Task* arg0)
 {
-    OverlayMat             rot;
-    MATRIX                 local;
-    OverlayMat*            src;
-    MATRIX*                dst;
-    Actor400500Work*       work;
-    Actor400500Work*       workA;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coords2;
-    Actor400500AnimStride* stride;
-    Actor400500ViewPos*    pos;
-    Actor400500ViewPos*    pos2;
-    Actor400500ViewPos*    pos3;
-    Actor400500ViewPos*    pos4;
-    s32                    flag;
-    s32                    flag2;
-    s32                    heading;
-    s32                    i;
-    s32                    tx;
-    s32                    a1c;
+    OverlayMat          rot;
+    MATRIX              local;
+    OverlayMat*         src;
+    MATRIX*             dst;
+    Actor400500Work*    work;
+    Actor400500Work*    workA;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    Actor400500Work*    work4;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coords2;
+    Actor400500ViewPos* pos;
+    Actor400500ViewPos* pos2;
+    Actor400500ViewPos* pos3;
+    Actor400500ViewPos* pos4;
+    s32                 flag;
+    s32                 flag2;
+    s32                 heading;
+    s32                 i;
+    s32                 tx;
+    s32                 a1c;
 
     work    = (Actor400500Work*)arg0->work;
     heading = (u16)work->field_94A & 0xFFF;
@@ -2571,13 +2538,11 @@ void func_actor_400500_801361EC(Task* arg0)
             } else if (work2->field_9FA == 3) {
                 work2->field_A00 = (u16)work2->field_A00 + 1;
             }
-            i      = 1;
-            stride = (Actor400500AnimStride*)work2 + 1;
+            i = 1;
             do {
-                stride->field_1D = (u8)work2->field_9F8;
+                work2->slots[i].rate = (u8)work2->field_9F8;
                 Gp_AnimTickIndex(&work2->anim, i);
                 i++;
-                stride++;
             } while (i < 0x12);
             switch ((s16)((u16)work->field_A1A - 1)) {
                 case 3:
@@ -3347,13 +3312,12 @@ void func_actor_400500_80137478(Task* arg0)
 
 void func_actor_400500_801375B8(Task* arg0)
 {
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    Actor400500AnimStride* stride;
-    s32                    flag;
-    s32                    i;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    s32              flag;
+    s32              i;
 
     work              = (Actor400500Work*)arg0->work;
     work->obj0.radius = 0x130;
@@ -3383,13 +3347,11 @@ void func_actor_400500_801375B8(Task* arg0)
     } else if (work4->field_9FA == 3) {
         work4->field_A00 = (u16)work4->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work4 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work4->field_9F8;
+        work4->slots[i].rate = (u8)work4->field_9F8;
         Gp_AnimTickIndex(&work4->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     work->field_A04 = 0;
     work->field_A18 = 0;
@@ -3407,52 +3369,51 @@ void func_actor_400500_8013771C(Task* arg0)
         MATRIX    mat;
         GpAnimArg msg;
     } slot;
-    MATRIX                 parent;
-    MATRIX*                parentp;
-    MATRIX*                tmp;
-    MATRIX*                mtx;
-    MATRIX*                scratch;
-    MATRIX*                scratch2;
-    MATRIX*                scratch3;
-    u8*                    scratchBase;
-    MATRIX*                viewWorld;
-    TmdObject*             model2;
-    GsCOORDINATE2*         coords2;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord8;
-    GsCOORDINATE2*         playerCoords;
-    GsCOORDINATE2*         walker;
-    GsCOORDINATE2*         viewCoord;
-    GsCOORDINATE2*         viewCoord2;
-    GsCOORDINATE2*         part;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    Actor400500Work*       work5;
-    Actor400500AnimStride* stride;
-    Actor400500HitView*    hit;
-    GameActor*             player;
-    void*                  spawn;
-    SVECTOR                dvec;
-    s16                    vz;
-    s32                    dist;
-    s32                    delta;
-    s32                    ident;
-    s32                    one;
-    s32                    i;
-    s32                    flag;
-    s32                    cond;
-    s32                    soundId;
-    s32                    soundId2;
-    s32                    soundId3;
-    s32                    pan;
-    s32                    pan2;
-    s32                    pan3;
-    s32                    r;
-    u16                    heading;
-    u16                    heading2;
-    s32                    cur;
+    MATRIX              parent;
+    MATRIX*             parentp;
+    MATRIX*             tmp;
+    MATRIX*             mtx;
+    MATRIX*             scratch;
+    MATRIX*             scratch2;
+    MATRIX*             scratch3;
+    u8*                 scratchBase;
+    MATRIX*             viewWorld;
+    TmdObject*          model2;
+    GsCOORDINATE2*      coords2;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord8;
+    GsCOORDINATE2*      playerCoords;
+    GsCOORDINATE2*      walker;
+    GsCOORDINATE2*      viewCoord;
+    GsCOORDINATE2*      viewCoord2;
+    GsCOORDINATE2*      part;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    Actor400500Work*    work4;
+    Actor400500Work*    work5;
+    Actor400500HitView* hit;
+    GameActor*          player;
+    void*               spawn;
+    SVECTOR             dvec;
+    s16                 vz;
+    s32                 dist;
+    s32                 delta;
+    s32                 ident;
+    s32                 one;
+    s32                 i;
+    s32                 flag;
+    s32                 cond;
+    s32                 soundId;
+    s32                 soundId2;
+    s32                 soundId3;
+    s32                 pan;
+    s32                 pan2;
+    s32                 pan3;
+    s32                 r;
+    u16                 heading;
+    u16                 heading2;
+    s32                 cur;
 
     work            = (Actor400500Work*)arg0->work;
     player          = Gp_ActorSlots[0]->work;
@@ -3474,13 +3435,11 @@ void func_actor_400500_8013771C(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     src = &rot;
     if ((s16)work->field_A04 < 0xF) {
@@ -3669,36 +3628,35 @@ void func_actor_400500_8013771C(Task* arg0)
 
 void func_actor_400500_80138088(Task* arg0)
 {
-    MATRIX                 normal;
-    MATRIX                 parent;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    GsCOORDINATE2*         view;
-    GsCOORDINATE2*         view2;
-    MATRIX*                parentp;
-    MATRIX*                tmp;
-    u8*                    head;
-    u8*                    head2;
-    u8*                    head3;
-    MATRIX*                allocated;
-    MATRIX*                matrix;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coords2;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         current;
-    GsCOORDINATE2*         dest;
-    Actor400500HitView*    hit;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    s32                    i;
-    s32                    cond;
-    s32                    flag;
-    u16                    angle;
-    u16                    addend;
-    s32                    delta;
-    TmdObject*             model2;
-    TmdObject*             model;
+    MATRIX              normal;
+    MATRIX              parent;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    GsCOORDINATE2*      view;
+    GsCOORDINATE2*      view2;
+    MATRIX*             parentp;
+    MATRIX*             tmp;
+    u8*                 head;
+    u8*                 head2;
+    u8*                 head3;
+    MATRIX*             allocated;
+    MATRIX*             matrix;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coords2;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      current;
+    GsCOORDINATE2*      dest;
+    Actor400500HitView* hit;
+    Actor400500Work*    work3;
+    Actor400500Work*    work4;
+    s32                 i;
+    s32                 cond;
+    s32                 flag;
+    u16                 angle;
+    u16                 addend;
+    s32                 delta;
+    TmdObject*          model2;
+    TmdObject*          model;
 
     work            = (Actor400500Work*)arg0->work;
     work->field_A04 = work->field_A04 + 1;
@@ -3718,13 +3676,11 @@ void func_actor_400500_80138088(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
 
     addend = *(volatile u16*)&work->field_9BC;
@@ -3864,15 +3820,14 @@ const TaskFuncTable3 D_actor_400500_80131EFC = { {
 
 void func_actor_400500_801385D0(Task* arg0)
 {
-    Actor400500Work*       work;
-    GpEnemy*               enemy;
-    TaskFuncTable3         sp10;
-    TaskFuncTable3         sp20;
-    Actor400500Work*       workA;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    skip;
-    s32                    i;
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    TaskFuncTable3   sp10;
+    TaskFuncTable3   sp20;
+    Actor400500Work* workA;
+    Actor400500Work* work2;
+    s32              skip;
+    s32              i;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
@@ -3919,13 +3874,11 @@ void func_actor_400500_801385D0(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
 }
@@ -3993,15 +3946,14 @@ const TaskFuncTable5 D_actor_400500_80131F08 = { {
 
 void func_actor_400500_8013899C(Task* arg0)
 {
-    Actor400500Work*       work;
-    GpEnemy*               enemy;
-    TaskFuncTable5         sp;
-    Actor400500Work*       workA;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
-    s32                    skip;
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    TaskFuncTable5   sp;
+    Actor400500Work* workA;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
+    s32              skip;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
@@ -4043,13 +3995,11 @@ void func_actor_400500_8013899C(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
         work3            = (Actor400500Work*)arg0->work;
         work3->field_A49 = 0;
@@ -4173,13 +4123,12 @@ const TaskFuncTable4 D_actor_400500_80131F1C = { {
 
 void func_actor_400500_80138EA0(Task* arg0)
 {
-    Actor400500Work*       work;
-    GpEnemy*               enemy;
-    TaskFuncTable4         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
+    Actor400500Work* work;
+    GpEnemy*         enemy;
+    TaskFuncTable4   sp;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
@@ -4209,13 +4158,11 @@ void func_actor_400500_80138EA0(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
     work3->field_A3C = 0;
@@ -4237,11 +4184,10 @@ const TaskFuncTable7 D_actor_400500_80131F2C = { {
 
 void func_actor_400500_8013905C(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable7         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
+    Actor400500Work* work;
+    TaskFuncTable7   sp;
+    Actor400500Work* work2;
+    s32              i;
 
     work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131F2C;
@@ -4262,13 +4208,11 @@ void func_actor_400500_8013905C(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
 }
 
@@ -4319,13 +4263,12 @@ void func_actor_400500_801391B0(Task* arg0)
 
 void func_actor_400500_801392D8(Task* arg0)
 {
-    Actor400500Work*       work             = (Actor400500Work*)arg0->work;
-    void                   (*fns[2])(Task*) = { func_actor_400500_8013C7A4, func_actor_400500_80139448 };
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500Work*       work4;
-    Actor400500AnimStride* stride;
-    s32                    i;
+    Actor400500Work* work             = (Actor400500Work*)arg0->work;
+    void             (*fns[2])(Task*) = { func_actor_400500_8013C7A4, func_actor_400500_80139448 };
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    s32              i;
 
     fns[(s16)work->field_A08](arg0);
     work2 = (Actor400500Work*)arg0->work;
@@ -4344,13 +4287,11 @@ void func_actor_400500_801392D8(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
     work3->field_A3C = 0;
@@ -4421,12 +4362,11 @@ const TaskFuncTable3 D_actor_400500_80131F48 = { {
 
 void func_actor_400500_801395D0(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable3         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
+    Actor400500Work* work;
+    TaskFuncTable3   sp;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
 
     work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131F48;
@@ -4447,13 +4387,11 @@ void func_actor_400500_801395D0(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
     sp.funcs[(s16)work->field_A08](arg0);
@@ -4466,38 +4404,37 @@ void func_actor_400500_801395D0(Task* arg0)
 
 void func_actor_400500_8013973C(Task* arg0)
 {
-    OverlayMat             rot;
-    MATRIX                 local0;
-    MATRIX                 local3;
-    OverlayMat*            src;
-    MATRIX*                view;
-    Actor400500Work*       work;
-    Actor400500Work*       workRot;
-    Actor400500Work*       workAnim;
-    Actor400500Work*       work3;
-    GsCOORDINATE2*         coordsEarly;
-    GsCOORDINATE2*         coordsMain;
-    GsCOORDINATE2*         coordsRot;
-    GsCOORDINATE2*         part3;
-    GsCOORDINATE2*         root;
-    Actor400500ViewPos*    pos;
-    Actor400500ViewPos*    pos2;
-    Actor400500ViewPos*    posMain;
-    Actor400500ViewPos*    posMain2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    s32                    three;
-    s32                    curX;
-    s32                    curZ;
-    s32                    tgtX;
-    s32                    tgtZ;
-    s32                    dx;
-    s32                    dz;
-    u16                    step;
-    u16                    accum;
-    u16                    pitch;
-    s32                    y;
-    s32                    viewZ;
+    OverlayMat          rot;
+    MATRIX              local0;
+    MATRIX              local3;
+    OverlayMat*         src;
+    MATRIX*             view;
+    Actor400500Work*    work;
+    Actor400500Work*    workRot;
+    Actor400500Work*    workAnim;
+    Actor400500Work*    work3;
+    GsCOORDINATE2*      coordsEarly;
+    GsCOORDINATE2*      coordsMain;
+    GsCOORDINATE2*      coordsRot;
+    GsCOORDINATE2*      part3;
+    GsCOORDINATE2*      root;
+    Actor400500ViewPos* pos;
+    Actor400500ViewPos* pos2;
+    Actor400500ViewPos* posMain;
+    Actor400500ViewPos* posMain2;
+    s32                 i;
+    s32                 three;
+    s32                 curX;
+    s32                 curZ;
+    s32                 tgtX;
+    s32                 tgtZ;
+    s32                 dx;
+    s32                 dz;
+    u16                 step;
+    u16                 accum;
+    u16                 pitch;
+    s32                 y;
+    s32                 viewZ;
 
     work = (Actor400500Work*)arg0->work;
     root = ((TmdObject*)arg0->extra)->coords;
@@ -4592,13 +4529,11 @@ void func_actor_400500_8013973C(Task* arg0)
         } else if (workAnim->field_9FA == three) {
             workAnim->field_A00 = (u16)workAnim->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)workAnim + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)workAnim->field_9F8;
+            workAnim->slots[i].rate = (u8)workAnim->field_9F8;
             Gp_AnimTickIndex(&workAnim->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
         root->flg = 0;
         Gp_UpdateCoord(root);
@@ -4662,12 +4597,11 @@ const TaskFuncTable3 D_actor_400500_80131F54 = { {
 
 void func_actor_400500_80139C1C(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable3         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
+    Actor400500Work* work;
+    TaskFuncTable3   sp;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
 
     work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131F54;
@@ -4688,13 +4622,11 @@ void func_actor_400500_80139C1C(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
     work3->field_A3C = 0;
@@ -4768,12 +4700,11 @@ void func_actor_400500_80139D70(Task* arg0)
 
 void func_actor_400500_80139F6C(Task* arg0)
 {
-    Actor400500Work*       work             = (Actor400500Work*)arg0->work;
-    void                   (*fns[2])(Task*) = { func_actor_400500_8013CA38, func_actor_400500_8013A0B8 };
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500AnimStride* stride;
-    s32                    i;
+    Actor400500Work* work             = (Actor400500Work*)arg0->work;
+    void             (*fns[2])(Task*) = { func_actor_400500_8013CA38, func_actor_400500_8013A0B8 };
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    s32              i;
 
     fns[(s16)work->field_A08](arg0);
     work2 = (Actor400500Work*)arg0->work;
@@ -4792,13 +4723,11 @@ void func_actor_400500_80139F6C(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
     work3->field_A3C = 0;
@@ -4809,32 +4738,31 @@ void func_actor_400500_80139F6C(Task* arg0)
 
 void func_actor_400500_8013A0B8(Task* arg0)
 {
-    OverlayMat             rot;
-    MATRIX                 local2;
-    OverlayMat*            src;
-    Actor400500Work*       work;
-    Actor400500Work*       ang;
-    Actor400500Work*       work3;
-    Actor400500Work*       nextWork;
-    Actor400500Work*       anim;
-    Actor400500HitView*    hit;
-    Actor400500AnimStride* stride;
-    Actor400500ViewPos*    pos;
-    GsCOORDINATE2*         coords;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         coord14;
-    GpEnemy*               enemy;
-    MATRIX*                view;
-    Actor400500ViewPos*    pos2;
-    s32                    z;
-    s32                    cond;
-    s32                    flag;
-    s32                    i;
-    s32                    dx;
-    s32                    dz;
-    s32                    delta;
-    s32                    neg;
-    u32                    rnd;
+    OverlayMat          rot;
+    MATRIX              local2;
+    OverlayMat*         src;
+    Actor400500Work*    work;
+    Actor400500Work*    ang;
+    Actor400500Work*    work3;
+    Actor400500Work*    nextWork;
+    Actor400500Work*    anim;
+    Actor400500HitView* hit;
+    Actor400500ViewPos* pos;
+    GsCOORDINATE2*      coords;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      coord14;
+    GpEnemy*            enemy;
+    MATRIX*             view;
+    Actor400500ViewPos* pos2;
+    s32                 z;
+    s32                 cond;
+    s32                 flag;
+    s32                 i;
+    s32                 dx;
+    s32                 dz;
+    s32                 delta;
+    s32                 neg;
+    u32                 rnd;
 
     neg    = -1;
     coords = ((TmdObject*)arg0->extra)->coords;
@@ -4904,13 +4832,11 @@ void func_actor_400500_8013A0B8(Task* arg0)
             } else if (anim->field_9FA == 3) {
                 anim->field_A00 = (u16)anim->field_A00 + 1;
             }
-            i      = 1;
-            stride = (Actor400500AnimStride*)anim + 1;
+            i = 1;
             do {
-                stride->field_1D = (u8)anim->field_9F8;
+                anim->slots[i].rate = (u8)anim->field_9F8;
                 Gp_AnimTickIndex(&anim->anim, i);
                 i++;
-                stride++;
             } while (i < 0x12);
             coords->flg = 0;
             Gp_UpdateCoord(coords);
@@ -4971,11 +4897,10 @@ const TaskFuncTable7 D_actor_400500_80131F60 = { {
 
 void func_actor_400500_8013A484(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable7         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
+    Actor400500Work* work;
+    TaskFuncTable7   sp;
+    Actor400500Work* work2;
+    s32              i;
 
     work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131F60;
@@ -4996,13 +4921,11 @@ void func_actor_400500_8013A484(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
 }
 
@@ -5136,13 +5059,12 @@ void func_actor_400500_8013A700(Task* arg0)
 
 void func_actor_400500_8013A8E4(Task* arg0)
 {
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    Actor400500AnimStride* stride;
-    GpEnemy*               enemy;
-    s32                    mapped;
-    s32                    i;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    GpEnemy*         enemy;
+    s32              mapped;
+    s32              i;
 
     work            = (Actor400500Work*)arg0->work;
     enemy           = (GpEnemy*)arg0->spawnArg2;
@@ -5166,13 +5088,11 @@ void func_actor_400500_8013A8E4(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
@@ -5194,12 +5114,11 @@ void func_actor_400500_8013A8E4(Task* arg0)
 
 void func_actor_400500_8013AA98(Task* arg0)
 {
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    Actor400500HitView*    hit;
-    s32                    i;
-    s32                    cond;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500HitView* hit;
+    s32                 i;
+    s32                 cond;
 
     work  = (Actor400500Work*)arg0->work;
     work2 = work;
@@ -5218,13 +5137,11 @@ void func_actor_400500_8013AA98(Task* arg0)
     } else if (work->field_9FA == 3) {
         work->field_A00 = (u16)work->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
     hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
@@ -5295,14 +5212,13 @@ const TaskFuncTable11 D_actor_400500_80131FA4 = { {
 
 void func_actor_400500_8013AD60(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable11        sp;
-    GpEnemy*               enemy;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
-    Actor400500Work*       work3;
-    s32                    flag;
+    Actor400500Work* work;
+    TaskFuncTable11  sp;
+    GpEnemy*         enemy;
+    Actor400500Work* work2;
+    s32              i;
+    Actor400500Work* work3;
+    s32              flag;
 
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2;
@@ -5324,13 +5240,11 @@ void func_actor_400500_8013AD60(Task* arg0)
         } else if (work2->field_9FA == 3) {
             work2->field_A00 = (u16)work2->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work2 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work2->field_9F8;
+            work2->slots[i].rate = (u8)work2->field_9F8;
             Gp_AnimTickIndex(&work2->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
     }
     if (enemy->hp > 0) {
@@ -5348,19 +5262,18 @@ void func_actor_400500_8013AD60(Task* arg0)
 
 void func_actor_400500_8013AF44(Task* arg0)
 {
-    MATRIX                 local;
-    Actor400500Work*       work;
-    Actor400500Work*       work2;
-    Actor400500Work*       work3;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         coords;
-    Actor400500AnimStride* stride;
-    Actor400500ViewPos*    pos;
-    Actor400500ViewPos*    pos2;
-    s32                    flag;
-    s32                    heading;
-    s32                    i;
-    u16                    a1c;
+    MATRIX              local;
+    Actor400500Work*    work;
+    Actor400500Work*    work2;
+    Actor400500Work*    work3;
+    GsCOORDINATE2*      coord;
+    GsCOORDINATE2*      coords;
+    Actor400500ViewPos* pos;
+    Actor400500ViewPos* pos2;
+    s32                 flag;
+    s32                 heading;
+    s32                 i;
+    u16                 a1c;
 
     work    = (Actor400500Work*)arg0->work;
     heading = (u16)work->field_94A & 0xFFF;
@@ -5393,13 +5306,11 @@ void func_actor_400500_8013AF44(Task* arg0)
         } else if (work3->field_9FA == 3) {
             work3->field_A00 = (u16)work3->field_A00 + 1;
         }
-        i      = 1;
-        stride = (Actor400500AnimStride*)work3 + 1;
+        i = 1;
         do {
-            stride->field_1D = (u8)work3->field_9F8;
+            work3->slots[i].rate = (u8)work3->field_9F8;
             Gp_AnimTickIndex(&work3->anim, i);
             i++;
-            stride++;
         } while (i < 0x12);
         switch ((s16)((u16)work->field_A1A - 1)) {
             case 3:
@@ -5643,11 +5554,10 @@ const TaskFuncTable5 D_actor_400500_80131FEC = { {
 
 void func_actor_400500_8013B5E0(Task* arg0)
 {
-    Actor400500Work*       work;
-    TaskFuncTable5         sp;
-    Actor400500Work*       work2;
-    Actor400500AnimStride* stride;
-    s32                    i;
+    Actor400500Work* work;
+    TaskFuncTable5   sp;
+    Actor400500Work* work2;
+    s32              i;
 
     work = (Actor400500Work*)arg0->work;
     sp   = D_actor_400500_80131FEC;
@@ -5668,13 +5578,11 @@ void func_actor_400500_8013B5E0(Task* arg0)
     } else if (work2->field_9FA == 3) {
         work2->field_A00 = (u16)work2->field_A00 + 1;
     }
-    i      = 1;
-    stride = (Actor400500AnimStride*)work2 + 1;
+    i = 1;
     do {
-        stride->field_1D = (u8)work2->field_9F8;
+        work2->slots[i].rate = (u8)work2->field_9F8;
         Gp_AnimTickIndex(&work2->anim, i);
         i++;
-        stride++;
     } while (i < 0x12);
 }
 
