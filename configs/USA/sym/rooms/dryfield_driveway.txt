@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_driveway.
+D_dryfield_driveway_80180694 = 0x80180694; // size:0xC

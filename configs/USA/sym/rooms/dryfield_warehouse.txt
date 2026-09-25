@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_warehouse.
+D_dryfield_warehouse_801821C4 = 0x801821C4; // type:s16 size:0x2

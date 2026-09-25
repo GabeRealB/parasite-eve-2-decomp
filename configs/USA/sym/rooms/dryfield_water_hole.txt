@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_water_hole.
+D_dryfield_water_hole_801828D0 = 0x801828D0; // type:s16 size:0x2
