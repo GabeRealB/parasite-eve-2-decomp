@@ -403,7 +403,7 @@ void func_neo_ark_forest_zone_8017E074(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     i       = 0;
     wm      = &arg0->workm;
     tbl     = D_80111E38;
-    head    = (u8*)*scratch - 0x38;
+    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpQuadScratch);
     SOFT_TOUCH_REG(head);
     block    = (GpQuadScratch*)head;
     v        = block->vec;

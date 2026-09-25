@@ -779,7 +779,7 @@ void func_shelter_b1_north_maintenance_walkway_8017FB44(GsCOORDINATE2* coord, s1
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];
@@ -2320,7 +2320,7 @@ void func_shelter_b1_north_maintenance_walkway_801841D4(GsCOORDINATE2* coord, s1
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];

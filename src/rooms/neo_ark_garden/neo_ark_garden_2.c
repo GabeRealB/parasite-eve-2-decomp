@@ -293,7 +293,7 @@ void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     i       = 0;
     wm      = &m;
     tbl     = D_80111E38;
-    head    = (u8*)*scratch - 0x38;
+    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpQuadScratch);
     SOFT_TOUCH_REG(head);
     block    = (GpQuadScratch*)head;
     v        = block->vec;
@@ -887,7 +887,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];

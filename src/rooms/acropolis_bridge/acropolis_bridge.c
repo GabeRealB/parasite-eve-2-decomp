@@ -2105,7 +2105,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     i         = 0;
     m         = &coord->workm;
     tbl       = D_acropolis_bridge_8018990C;
-    head      = (u8*)*scratch - sizeof(AcropolisBridgeQuadScratch);
+    head      = SCRATCH_HEAD_AT(scratch, u8) - sizeof(AcropolisBridgeQuadScratch);
     work->age = ((GpEffSpawnArg*)&task->spawnArg1)->field_0;
     *scratch  = head;
     block     = (AcropolisBridgeQuadScratch*)*scratch;
@@ -2407,7 +2407,7 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     coord = arg0;
     SOFT_TOUCH_REG(coord);
     scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(OverlayFlaggedQuadScratch);
+    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(OverlayFlaggedQuadScratch);
     SOFT_TOUCH_REG(head);
     *scratch = head;
     blk      = (OverlayFlaggedQuadScratch*)head;

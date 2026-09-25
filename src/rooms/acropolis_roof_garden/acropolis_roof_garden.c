@@ -771,7 +771,7 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
     i       = 0;
     wm      = &coord->workm;
     tbl     = D_80111E38;
-    head    = (u8*)*scratch - sizeof(RoomQuadScratch);
+    head    = SCRATCH_HEAD_AT(scratch, u8) - sizeof(RoomQuadScratch);
     /* `head` and `blk` have to stay separate registers: the ROM computes the
        block address into a scratch register and copies it into the one the
        rest of the function uses. */

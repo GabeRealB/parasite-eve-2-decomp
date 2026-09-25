@@ -394,7 +394,7 @@ void func_shelter_b2_pod_bottom_8017E788(GsCOORDINATE2* coord, s16 arg1, s16 arg
 
     r1       = arg1 + 0x200;
     scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
+    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpBandScratch);
     *scratch = head;
     red      = arg2 >> 1;
     grn      = arg2 >> 1;
@@ -1055,7 +1055,7 @@ void func_shelter_b2_pod_bottom_80180A4C(GsCOORDINATE2* coord, s16 radius, SVECT
     u8*                             head;
 
     scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x120;
+    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(_ShelterB2PodBottomRingScratch);
     *scratch = head;
     block    = (_ShelterB2PodBottomRingScratch*)head;
     gte_SetTransMatrix(&coord->workm);

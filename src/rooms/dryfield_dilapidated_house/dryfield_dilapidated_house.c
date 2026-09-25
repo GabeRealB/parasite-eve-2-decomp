@@ -2399,7 +2399,7 @@ void func_dryfield_dilapidated_house_80182A18(GsCOORDINATE2* arg0, s16 arg1, s16
     blu      = ramp >> 18;
     r1       = arg1 + 0x100;
     scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
+    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpBandScratch);
     block    = (GpBandScratch*)head;
     *scratch = head;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2639,7 +2639,7 @@ void func_dryfield_dilapidated_house_80183728(GsCOORDINATE2* arg0, s16 arg1, s32
 
     r1       = arg1 + arg2;
     scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
+    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(GpBandScratch);
     block    = (GpBandScratch*)head;
     *scratch = head;
     gte_SetTransMatrix(&GsWSMATRIX);

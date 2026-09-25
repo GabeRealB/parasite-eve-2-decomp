@@ -549,7 +549,7 @@ void func_shelter_b3_elevator_hall_8018217C(GsCOORDINATE2* coord, s16 size)
     light->head.u.at.local.t[2] = coord->coord.t[2];
     slot->data.coord.flg        = 0;
     scratch                     = (void**)G_SCRATCH_HEAD;
-    block                       = (GpRingScratch*)*scratch - 1;
+    block                       = SCRATCH_HEAD_AT(scratch, GpRingScratch) - 1;
     block->vec.vx               = *(u16*)&coord->workm.t[0];
     alias                       = block;
     vy                          = *(u16*)&coord->workm.t[1];
