@@ -32,6 +32,13 @@ Checks, in order:
    several images overlap there (a family's overlays share a load address,
    title and gameplay share theirs), in which case names only have to agree
    within each image.
+5. interior: a name that C code uses although it is declared strictly inside
+   another data object of the image that owns it - a field or element given a
+   name of its own. Code reaching that address means the containing object's
+   member, and should say so; declaring the interior address separately gives
+   one object two declarations. Extents are the sized symbols of the owning
+   image's ELF. A name only the split assembly still carries is a label, not a
+   declaration, and is not reported.
 
 Two kinds of memory belong to no image of ours but are real targets: the
 kernel's area below the executable and a development unit's RAM past 2 MB,
@@ -85,6 +92,25 @@ def image_range(elf: Path) -> tuple[int, int]:
             lo = a if lo is None else min(lo, a)
             hi = b if hi is None else max(hi, b)
     return lo, hi
+
+
+def image_objects(elf: Path) -> list[tuple[int, int, str]]:
+    """Sized data symbols of a linked image, as (address, size, name), sorted."""
+    out = {}
+    with open(elf, 'rb') as f:
+        e = ELFFile(f)
+        tab = e.get_section_by_name('.symtab')
+        if tab is None:
+            return []
+        for sym in tab.iter_symbols():
+            size, sh = sym['st_size'], sym['st_shndx']
+            if not size or not isinstance(sh, int):
+                continue
+            if e.get_section(sh)['sh_flags'] & SH_FLAGS.SHF_EXECINSTR:
+                continue
+            name = sym.name.removesuffix('.NON_MATCHING')
+            out[(sym['st_value'], name)] = size
+    return sorted((a, sz, n) for (a, n), sz in out.items())
 
 
 def load_configs(root: Path) -> dict[str, dict]:
@@ -290,9 +316,44 @@ def main() -> None:
                 report('addresses', {owner} | {d.image for d in ds}, f'0x{addr:08X} is ambiguous ({len(cover)} images) and {owner} alone '
                        f'declares it as {", ".join(sorted(ns))}')
 
+    # 5. interior: names that point into the middle of another data object.
+    used_in_c = set()
+    for sub in ('src', 'include'):
+        for path in (root / sub).rglob('*.[ch]'):
+            text = re.sub(r'/\*.*?\*/|//[^\n]*', ' ', path.read_text(errors='replace'), flags=re.S)
+            used_in_c.update(re.findall(r'\b[A-Za-z_]\w*\b', text))
+    objects = {}
+    declared_sizes = defaultdict(list)
+    for d in decls:
+        if d.owner == d.image and 'size' in d.attrs:
+            try:
+                declared_sizes[d.image].append((d.addr, int(d.attrs['size'], 16), d.name))
+            except ValueError:
+                pass
+    for image in configs:
+        # The ELF sizes an unsplit run up to the next label; a size a symbol
+        # map declares is the object's own and may span labels inside it.
+        objs = sorted(set(image_objects(root / 'build/USA/out' / f'{image}.elf')) | set(declared_sizes[image]))
+        objects[image] = (objs, [o[0] for o in objs])
+    import bisect
+    for d in decls:
+        if d.owner not in objects or d.name not in used_in_c:
+            continue
+        objs, starts = objects[d.owner]
+        i = bisect.bisect_right(starts, d.addr) - 1
+        # Several objects may start below the address; the nearest one that
+        # still spans it is the container.
+        while i >= 0 and objs[i][0] > d.addr - 0x10000:
+            a0, size, name = objs[i]
+            if a0 < d.addr < a0 + size and name != d.name:
+                report('interior', {d.owner, d.image},
+                       f'{d.where}: {d.name} = 0x{d.addr:08X} is {name}+0x{d.addr - a0:X} in {d.owner}')
+                break
+            i -= 1
+
     wanted = set(a.image)
     total = 0
-    for check in ('layout', 'range', 'declared', 'names', 'addresses'):
+    for check in ('layout', 'range', 'declared', 'names', 'addresses', 'interior'):
         items = [msg for imgs, msg in findings[check] if not wanted or imgs & wanted]
         total += len(items)
         print(f'{check}: {len(items)}')
