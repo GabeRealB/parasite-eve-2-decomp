@@ -432,7 +432,7 @@ static __inline__ s16 Actor223600_BearingXY(SVECTOR3* p, SVECTOR3* eye)
 }
 
 /// Collects the bearings of up to eight kind 0x10000 / 0x30000 records among
-/// the first `count` of `recs`, drops every pair closer than 0x400 apart, and
+/// the first `count` of `recs`, drops both bearings of every pair more than 0x400 apart, and
 /// for each bearing left steps `coord` 10 units away from it, accumulating the
 /// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
 /// returns 0 at once when the session's `viewReady` or `D_80072729` is 1.
