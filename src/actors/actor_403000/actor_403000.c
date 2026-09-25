@@ -854,25 +854,25 @@ void func_actor_403000_80132AE0(GpCoord* parent)
                 if (i != 1) {
                     POLY_FT4* prev = prim - 1;
 
-                    *(s32*)&prim->x0 = *(s32*)&prev->x2;
-                    *(s32*)&prim->x1 = *(s32*)&prev->x3;
+                    PRIM_XY_WORD(prim, 0) = PRIM_XY_WORD(prev, 2);
+                    PRIM_XY_WORD(prim, 1) = PRIM_XY_WORD(prev, 3);
                 } else {
                     prim->x0 = scratch->prevSxy.v.vx + scratch->normal.vx;
                     prim->y0 = scratch->prevSxy.v.vy + scratch->normal.vy;
                     prim->x1 = scratch->prevSxy.v.vx - scratch->normal.vx;
                     prim->y1 = scratch->prevSxy.v.vy - scratch->normal.vy;
                 }
-                prim->u2         = 4;
-                prim->u0         = 4;
-                prim->u3         = 5;
-                prim->u1         = 5;
-                prim->v1         = 7;
-                prim->v0         = 7;
-                prim->v3         = 8;
-                prim->v2         = 8;
-                prim->tpage      = 0x3F;
-                prim->clut       = 0x3C51;
-                *(s32*)&prim->r0 = ((17 - i) * 4) & 0xFF;
+                prim->u2                 = 4;
+                prim->u0                 = 4;
+                prim->u3                 = 5;
+                prim->u1                 = 5;
+                prim->v1                 = 7;
+                prim->v0                 = 7;
+                prim->v3                 = 8;
+                prim->v2                 = 8;
+                prim->tpage              = 0x3F;
+                prim->clut               = 0x3C51;
+                PRIM_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
                 setlen(prim, 9);
                 prim->code = 0x2E;
                 addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);

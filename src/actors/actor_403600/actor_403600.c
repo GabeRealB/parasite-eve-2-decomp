@@ -639,10 +639,10 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             poly->y2 = (s16)(y + 0x10);
             func_actor_403600_8013289C((s32)poly, 2, (Actor403600GridVertex*)&scratch->offset, fade);
         } else {
-            *(s32*)&poly->x2 = *(s32*)&previous->x3;
-            poly->u2         = previous->u3;
-            poly->v2         = previous->v3;
-            poly->page2      = previous->page3;
+            PRIM_XY_WORD(poly, 2) = PRIM_XY_WORD(previous, 3);
+            poly->u2              = previous->u3;
+            poly->v2              = previous->v3;
+            poly->page2           = previous->page3;
         }
         if (y == -0x78) {
             previous_top = poly - 1;
@@ -651,24 +651,24 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 poly->y0 = y;
                 func_actor_403600_8013289C((s32)poly, 0, (Actor403600GridVertex*)&scratch->offset, fade);
             } else {
-                *(s32*)&poly->x0 = *(s32*)&previous_top->x1;
-                poly->u0         = previous_top->u1;
-                poly->v0         = previous_top->v1;
-                poly->page0      = previous_top->page1;
+                PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous_top, 1);
+                poly->u0              = previous_top->u1;
+                poly->v0              = previous_top->v1;
+                poly->page0           = previous_top->page1;
             }
             poly->x1 = (s16)(x + 0x10);
             poly->y1 = y;
             func_actor_403600_8013289C((s32)poly, 1, (Actor403600GridVertex*)&scratch->offset, fade);
         } else {
-            previous_row     = poly - 20;
-            *(s32*)&poly->x0 = *(s32*)&previous_row->x2;
-            poly->u0         = previous_row->u2;
-            poly->v0         = previous_row->v2;
-            poly->page0      = previous_row->page2;
-            *(s32*)&poly->x1 = *(s32*)&previous_row->x3;
-            poly->u1         = previous_row->u3;
-            poly->v1         = previous_row->v3;
-            poly->page1      = previous_row->page3;
+            previous_row          = poly - 20;
+            PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous_row, 2);
+            poly->u0              = previous_row->u2;
+            poly->v0              = previous_row->v2;
+            poly->page0           = previous_row->page2;
+            PRIM_XY_WORD(poly, 1) = PRIM_XY_WORD(previous_row, 3);
+            poly->u1              = previous_row->u3;
+            poly->v1              = previous_row->v3;
+            poly->page1           = previous_row->page3;
         }
         poly->x3 = (s16)(x + 0x10);
         poly->y3 = (s16)(y + 0x10);
@@ -678,9 +678,9 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             ((u8*)&poly->tag)[3] = 9;
             poly->code           = 0x2D;
         } else {
-            *(s32*)&poly->r0     = (green | 0x800000) | red;
-            ((u8*)&poly->tag)[3] = 9;
-            poly->code           = 0x2C;
+            PRIM_COLOR_WORD(poly, 0) = (green | PRIM_RGBC(0, 0, 0x80, 0)) | red;
+            ((u8*)&poly->tag)[3]     = 9;
+            poly->code               = 0x2C;
         }
         __asm__ volatile("lui %0, 0xFF; ori %0, %0, 0xFFFF" : "=r"(mask));
         ot = (s32*)gGpuCurrentOt;
@@ -714,7 +714,7 @@ void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600Fx
         tile->w                               = 0x140;
         tile->h                               = 0xF0;
         ((u8*)&tile->tag)[3]                  = 3;
-        *(s32*)&tile->r0                      = color;
+        PRIM_COLOR_WORD(tile, 0)              = color;
         tile->code                            = 0x62;
         draw_mode                             = gGpuPrimCursor;
         gGpuPrimCursor                        = draw_mode + 1;
@@ -1646,12 +1646,12 @@ block_22:
                                 ((POLY_FT4*)shared)->u0   = 0xA8U;
                                 ((POLY_FT4*)shared)->clut = 0x428C;
                             }
-                            ((POLY_FT4*)shared)->v1         = 0xC9;
-                            ((POLY_FT4*)shared)->v0         = 0xC9;
-                            ((POLY_FT4*)shared)->v3         = 0xFF;
-                            ((POLY_FT4*)shared)->v2         = 0xFF;
-                            *(s32*)&((POLY_FT4*)shared)->r0 = sp24;
-                            temp_v1_12                      = ((POLY_FT4*)shared)->u0 + 0x37;
+                            ((POLY_FT4*)shared)->v1                 = 0xC9;
+                            ((POLY_FT4*)shared)->v0                 = 0xC9;
+                            ((POLY_FT4*)shared)->v3                 = 0xFF;
+                            ((POLY_FT4*)shared)->v2                 = 0xFF;
+                            PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
+                            temp_v1_12                              = ((POLY_FT4*)shared)->u0 + 0x37;
                             setlen((POLY_FT4*)shared, 9);
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
@@ -1708,8 +1708,8 @@ block_22:
                         }
                         temp_v1_13 = D_actor_403600_80142120[var_a0];
                         setlen((POLY_FT4*)shared, 9);
-                        *(s32*)&((POLY_FT4*)shared)->r0 = temp_v1_13;
-                        ((POLY_FT4*)shared)->code       = 0x2E;
+                        PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
+                        ((POLY_FT4*)shared)->code               = 0x2E;
                     block_100:
                         otOffset                 = (((u32)(scratch->otz << var_a1_3->otDepthShift) >> 2) & 0xFFC);
                         ot                       = (s32*)gGpuCurrentOt;
@@ -1857,12 +1857,12 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
             gte_gpf12();
             gte_stsv(vec);
 
-            *(s32*)&poly->x0 = scratch->sxy;
-            oldY             = poly->y0;
-            projectedX       = scratch->vec.vx + 0xA0;
-            screenX          = (s16)poly->x0 + projectedX;
-            projectedY       = scratch->vec.vy + 0x78;
-            screenY          = (s16)poly->y0 + projectedY;
+            PRIM_XY_WORD(poly, 0) = scratch->sxy;
+            oldY                  = poly->y0;
+            projectedX            = scratch->vec.vx + 0xA0;
+            screenX               = (s16)poly->x0 + projectedX;
+            projectedY            = scratch->vec.vy + 0x78;
+            screenY               = (s16)poly->y0 + projectedY;
             if (screenY >= 0xF0) {
                 poly->y0 = oldY + 0xEF - screenY;
                 screenY  = 0xEF;
@@ -1900,27 +1900,27 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
             }
             previous = poly - 1;
             if (i != 0) {
-                *(s32*)&previous->x1 = *(s32*)&poly->x0;
-                previous->u1         = poly->u0;
+                PRIM_XY_WORD(previous, 1) = PRIM_XY_WORD(poly, 0);
+                previous->u1              = poly->u0;
                 do {
                     previous->v1    = poly->v0;
                     previous->page1 = poly->page0;
                     if (j != 0) {
-                        mirrorXY = *(s32*)&previous->x0;
+                        mirrorXY = PRIM_XY_WORD(previous, 0);
                         mirror   = poly - 17;
                     } else {
-                        mirrorXY = *(s32*)&previous->x0;
+                        mirrorXY = PRIM_XY_WORD(previous, 0);
                         mirror   = poly + 175;
                     }
-                    *(s32*)&mirror->x2 = mirrorXY;
-                    mirror->u2         = previous->u0;
+                    PRIM_XY_WORD(mirror, 2) = mirrorXY;
+                    mirror->u2              = previous->u0;
                 } while (0);
-                mirror->v2         = previous->v0;
-                mirror->page2      = previous->page0;
-                *(s32*)&mirror->x3 = *(s32*)&previous->x1;
-                mirror->u3         = previous->u1;
-                mirror->v3         = previous->v1;
-                mirror->page3      = previous->page1;
+                mirror->v2              = previous->v0;
+                mirror->page2           = previous->page0;
+                PRIM_XY_WORD(mirror, 3) = PRIM_XY_WORD(previous, 1);
+                mirror->u3              = previous->u1;
+                mirror->v3              = previous->v1;
+                mirror->page3           = previous->page1;
             }
             height++;
             radiusOffset += 4;
@@ -2328,9 +2328,9 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        *(u32*)&poly->r0 = 0;
-                        *(u32*)&poly->r1 = 0;
-                        *(u32*)&poly->r2 = 0;
+                        PRIM_COLOR_WORD(poly, 0) = 0;
+                        PRIM_COLOR_WORD(poly, 1) = 0;
+                        PRIM_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -2438,9 +2438,9 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                     upper_delta = (upper_calc + light) * 2;
                                 }
                                 if (upper_delta >= 0x81) {
-                                    *(u32*)&poly->r0 = 0;
-                                    *(u32*)&poly->r1 = 0;
-                                    *(u32*)&poly->r2 = 0;
+                                    PRIM_COLOR_WORD(poly, 0) = 0;
+                                    PRIM_COLOR_WORD(poly, 1) = 0;
+                                    PRIM_COLOR_WORD(poly, 2) = 0;
                                 } else {
                                     first       = (u8)poly->r0;
                                     upper_delta = 0x80 - upper_delta;
@@ -2549,10 +2549,10 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             }
                         }
                         if (upper_delta >= 0x81) {
-                            *(u32*)&poly->r0 = 0;
-                            *(u32*)&poly->r1 = 0;
-                            *(u32*)&poly->r2 = 0;
-                            *(u32*)&poly->r3 = 0;
+                            PRIM_COLOR_WORD(poly, 0) = 0;
+                            PRIM_COLOR_WORD(poly, 1) = 0;
+                            PRIM_COLOR_WORD(poly, 2) = 0;
+                            PRIM_COLOR_WORD(poly, 3) = 0;
                         } else {
                             col.r = -0x80 - upper_delta;
                             col.g = -0x80 - upper_delta;
@@ -2675,10 +2675,10 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                         upper_delta = (upper_calc + light) * 2;
                                     }
                                     if (upper_delta >= 0x81) {
-                                        *(u32*)&poly->r0 = 0;
-                                        *(u32*)&poly->r1 = 0;
-                                        *(u32*)&poly->r2 = 0;
-                                        *(u32*)&poly->r3 = 0;
+                                        PRIM_COLOR_WORD(poly, 0) = 0;
+                                        PRIM_COLOR_WORD(poly, 1) = 0;
+                                        PRIM_COLOR_WORD(poly, 2) = 0;
+                                        PRIM_COLOR_WORD(poly, 3) = 0;
                                     } else {
                                         first       = (u8)poly->r0;
                                         upper_delta = 0x80 - upper_delta;
@@ -2773,9 +2773,9 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        *(u32*)&poly->r0 = 0;
-                        *(u32*)&poly->r1 = 0;
-                        *(u32*)&poly->r2 = 0;
+                        PRIM_COLOR_WORD(poly, 0) = 0;
+                        PRIM_COLOR_WORD(poly, 1) = 0;
+                        PRIM_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -2874,9 +2874,9 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        *(u32*)&poly->r0 = 0;
-                        *(u32*)&poly->r1 = 0;
-                        *(u32*)&poly->r2 = 0;
+                        PRIM_COLOR_WORD(poly, 0) = 0;
+                        PRIM_COLOR_WORD(poly, 1) = 0;
+                        PRIM_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -2992,10 +2992,10 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             }
                         }
                         if (upper_delta >= 0x81) {
-                            *(u32*)&poly->r0 = 0;
-                            *(u32*)&poly->r1 = 0;
-                            *(u32*)&poly->r2 = 0;
-                            *(u32*)&poly->r3 = 0;
+                            PRIM_COLOR_WORD(poly, 0) = 0;
+                            PRIM_COLOR_WORD(poly, 1) = 0;
+                            PRIM_COLOR_WORD(poly, 2) = 0;
+                            PRIM_COLOR_WORD(poly, 3) = 0;
                         } else {
                             col.r = -0x80 - upper_delta;
                             col.g = -0x80 - upper_delta;

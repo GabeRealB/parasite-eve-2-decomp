@@ -1773,7 +1773,7 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
         do {
             sprt = &dest->sprt;
             if ((cur->flags & 1) == 0) {
-                *(u32*)&sprt->r0 = *(u32*)&cur->r0;
+                PRIM_COLOR_WORD(sprt, 0) = PRIM_COLOR_WORD(cur, 0);
             }
             tpage = elem->tpage;
             setlen(&dest->tpage, 1);
@@ -1781,10 +1781,10 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             setcode(sprt, 0x64);
             dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
             MargePrim(dest, sprt);
-            sprt->code      |= cur->flags;
-            *(u16*)&sprt->u0 = *(u16*)&cur->u0;
-            sprt->clut       = cur->clut;
-            *(u32*)&sprt->x0 = *(u32*)&cur->x0;
+            sprt->code           |= cur->flags;
+            *(u16*)&sprt->u0      = *(u16*)&cur->u0;
+            sprt->clut            = cur->clut;
+            PRIM_XY_WORD(sprt, 0) = PRIM_XY_WORD(cur, 0);
             i++;
             TOUCH_REG(i);
             *(u32*)&sprt->w = *(u32*)&cur->w;
@@ -1922,19 +1922,19 @@ void Gp_AllocSprtLists(void)
                         mid = (GpSprtElemFromW*)&elem->w;
                         TOUCH_REG(mid);
                         do {
-                            dest             = *cursor;
-                            sprt             = &dest->sprt;
-                            *(u32*)&sprt->r0 = 0x8000;
+                            dest                     = *cursor;
+                            sprt                     = &dest->sprt;
+                            PRIM_COLOR_WORD(sprt, 0) = PRIM_RGBC(0, 0x80, 0, 0);
                             setlen(&dest->tpage, 1);
                             tpage = elem->tpage;
                             setlen(&dest->sprt, 4);
                             setcode(&dest->sprt, 0x65);
                             dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
                             MargePrim(dest, sprt);
-                            sprt->code      |= mid->flags;
-                            *(u16*)&sprt->u0 = *(u16*)&mid->u0;
-                            sprt->clut       = ((u16*)&mid->w)[-1];
-                            *(u32*)&sprt->x0 = *(u32*)&mid->x0;
+                            sprt->code           |= mid->flags;
+                            *(u16*)&sprt->u0      = *(u16*)&mid->u0;
+                            sprt->clut            = ((u16*)&mid->w)[-1];
+                            PRIM_XY_WORD(sprt, 0) = PRIM_XY_WORD(mid, 0);
                             TOUCH_REG(i);
                             i++;
                             *(u32*)&sprt->w = *(u32*)&mid->w;

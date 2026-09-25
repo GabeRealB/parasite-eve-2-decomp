@@ -118,50 +118,50 @@ body:
             SOFT_TOUCH_REG(t);
             c = t & 0xFF;
         }
-        color          = 0x80;
-        t              = color - val;
-        color          = (c << 16) | (c << 8) | c;
-        *(u32*)&p->r1  = color;
-        *(u32*)&p2->r1 = color;
+        color                  = 0x80;
+        t                      = color - val;
+        color                  = (c << 16) | (c << 8) | c;
+        PRIM_COLOR_WORD(p, 1)  = color;
+        PRIM_COLOR_WORD(p2, 1) = color;
         if (t <= 0) {
             t = 1;
         }
-        c              = t & 0xFF;
-        color          = 0x40;
-        t              = color - val;
-        color          = (c << 16) | (c << 8) | c;
-        *(u32*)&p->r0  = color;
-        *(u32*)&p2->r0 = color;
+        c                      = t & 0xFF;
+        color                  = 0x40;
+        t                      = color - val;
+        color                  = (c << 16) | (c << 8) | c;
+        PRIM_COLOR_WORD(p, 0)  = color;
+        PRIM_COLOR_WORD(p2, 0) = color;
         if (t <= 0) {
             t = 1;
         }
-        c              = t & 0xFF;
-        color          = 0x30;
-        t              = color - val;
-        color          = (c << 16) | (c << 8) | c;
-        *(u32*)&p->r3  = color;
-        *(u32*)&p2->r3 = color;
+        c                      = t & 0xFF;
+        color                  = 0x30;
+        t                      = color - val;
+        color                  = (c << 16) | (c << 8) | c;
+        PRIM_COLOR_WORD(p, 3)  = color;
+        PRIM_COLOR_WORD(p2, 3) = color;
         if (t <= 0) {
             t = 1;
         }
-        color          = t & 0xFF;
-        color0         = (color << 16) | (color << 8) | color;
-        *(u32*)&p2->r2 = color0;
-        *(u32*)&p->r2  = color0;
+        color                  = t & 0xFF;
+        color0                 = (color << 16) | (color << 8) | color;
+        PRIM_COLOR_WORD(p2, 2) = color0;
+        PRIM_COLOR_WORD(p, 2)  = color0;
     } else {
         color  = 0xA8A8A8;
         color0 = 0x808080;
         color2 = 0x404040;
         color3 = 0x303030;
     store_colors:
-        *(u32*)&p->r1  = color;
-        *(u32*)&p2->r1 = color;
-        *(u32*)&p->r0  = color0;
-        *(u32*)&p2->r0 = color0;
-        *(u32*)&p->r3  = color2;
-        *(u32*)&p2->r3 = color2;
-        *(u32*)&p2->r2 = color3;
-        *(u32*)&p->r2  = color3;
+        PRIM_COLOR_WORD(p, 1)  = color;
+        PRIM_COLOR_WORD(p2, 1) = color;
+        PRIM_COLOR_WORD(p, 0)  = color0;
+        PRIM_COLOR_WORD(p2, 0) = color0;
+        PRIM_COLOR_WORD(p, 3)  = color2;
+        PRIM_COLOR_WORD(p2, 3) = color2;
+        PRIM_COLOR_WORD(p2, 2) = color3;
+        PRIM_COLOR_WORD(p, 2)  = color3;
     }
 
     p->v1 = 0;
@@ -1154,44 +1154,44 @@ void func_80046B34(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     u16      t;
 
     if ((arg5 != 0) && (arg3 >= 2)) {
-        p              = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        p->x0          = arg0->field_20 + arg1 + 1;
-        y              = arg0->field_22;
-        p->w           = arg3 - 1;
-        p->h           = arg4 - 1;
-        *(u32*)&p->r0  = arg5;
+        p                     = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor        = p + 1;
+        p->x0                 = arg0->field_20 + arg1 + 1;
+        y                     = arg0->field_22;
+        p->w                  = arg3 - 1;
+        p->h                  = arg4 - 1;
+        PRIM_COLOR_WORD(p, 0) = arg5;
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, p);
     }
 
-    l              = (LINE_F3*)gGpuPrimCursor;
-    l->x2          = arg0->field_20 + arg1 + 1;
-    t              = arg0->field_20 + (arg1 + arg3);
-    l->x1          = t;
-    l->x0          = t;
-    gGpuPrimCursor = l + 1;
-    l->y0          = arg0->field_22 + arg2;
-    t              = arg0->field_22 + (arg2 + arg4);
-    l->y2          = t;
-    l->y1          = t;
-    *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x506058 : 0x101810;
+    l                     = (LINE_F3*)gGpuPrimCursor;
+    l->x2                 = arg0->field_20 + arg1 + 1;
+    t                     = arg0->field_20 + (arg1 + arg3);
+    l->x1                 = t;
+    l->x0                 = t;
+    gGpuPrimCursor        = l + 1;
+    l->y0                 = arg0->field_22 + arg2;
+    t                     = arg0->field_22 + (arg2 + arg4);
+    l->y2                 = t;
+    l->y1                 = t;
+    PRIM_COLOR_WORD(l, 0) = ((arg6 & 1) == 0) ? PRIM_RGBC(0x58, 0x60, 0x50, 0) : PRIM_RGBC(0x10, 0x18, 0x10, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
 
-    l              = (LINE_F3*)gGpuPrimCursor;
-    t              = arg0->field_20 + arg1;
-    l->x1          = t;
-    l->x2          = t;
-    l->x0          = arg0->field_20 + (arg1 + arg3) - 1;
-    gGpuPrimCursor = l + 1;
-    t              = arg0->field_22 + arg2;
-    l->y1          = t;
-    l->y0          = t;
-    l->y2          = arg0->field_22 + (arg2 + arg4);
-    *(u32*)&l->r0  = ((arg6 & 1) == 0) ? 0x101810 : 0x506058;
+    l                     = (LINE_F3*)gGpuPrimCursor;
+    t                     = arg0->field_20 + arg1;
+    l->x1                 = t;
+    l->x2                 = t;
+    l->x0                 = arg0->field_20 + (arg1 + arg3) - 1;
+    gGpuPrimCursor        = l + 1;
+    t                     = arg0->field_22 + arg2;
+    l->y1                 = t;
+    l->y0                 = t;
+    l->y2                 = arg0->field_22 + (arg2 + arg4);
+    PRIM_COLOR_WORD(l, 0) = ((arg6 & 1) == 0) ? PRIM_RGBC(0x10, 0x18, 0x10, 0) : PRIM_RGBC(0x58, 0x60, 0x50, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, l);
 }
@@ -1237,7 +1237,7 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
         p->w           = width - 2;
         p->h           = h - 1;
         setlen(p, 3);
-        *(u32*)&p->r0 = color;
+        PRIM_COLOR_WORD(p, 0) = color;
         setcode(p, 0x60);
         arg2  = arg2 - h;
         p->y0 = y + arg2 + 1;
@@ -1780,14 +1780,14 @@ void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg
     sp10.field_8    = color;
     func_8002E53C(&sp10, (u8*)arg3);
 
-    p              = (POLY_F4*)gGpuPrimCursor;
-    p->x2          = x;
-    p->x0          = x;
-    textX          = (u16)sp10.x;
-    gGpuPrimCursor = (POLY_FT4*)p + 1;
-    *(s32*)&p->r0  = 0x21002;
-    p->y3          = y + 7;
-    p->y2          = y + 7;
+    p                     = (POLY_F4*)gGpuPrimCursor;
+    p->x2                 = x;
+    p->x0                 = x;
+    textX                 = (u16)sp10.x;
+    gGpuPrimCursor        = (POLY_FT4*)p + 1;
+    PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x02, 0x10, 0x02, 0);
+    p->y3                 = y + 7;
+    p->y2                 = y + 7;
     setcode(p, 0x28);
     setlen(p, 5);
     p->y1 = y;
@@ -2530,13 +2530,13 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
     color = arg5;
 
     if ((color != 0) && (arg3 >= 2)) {
-        p              = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        p->x0          = arg0->field_20 + arg1 + 1;
-        y              = arg0->field_22;
-        p->w           = arg3 - 1;
-        p->h           = arg4 - 1;
-        *(u32*)&p->r0  = color;
+        p                     = (TILE*)gGpuPrimCursor;
+        gGpuPrimCursor        = p + 1;
+        p->x0                 = arg0->field_20 + arg1 + 1;
+        y                     = arg0->field_22;
+        p->w                  = arg3 - 1;
+        p->h                  = arg4 - 1;
+        PRIM_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
@@ -2791,8 +2791,8 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         p->y1 = tv1;
         p->x2 = tv0 + 4;
     }
-    mask          = 0xFFFFFF;
-    *(s32*)&p->r0 = arg3 * 2;
+    mask                  = 0xFFFFFF;
+    PRIM_COLOR_WORD(p, 0) = arg3 * 2;
     setlen(p, 4);
     setcode(p, 0x20);
     ot      = gGpuCurrentOt;

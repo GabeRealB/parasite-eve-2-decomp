@@ -2782,7 +2782,7 @@ void Gp_DrawMapCursor(Task* arg0)
     if (ang == 0x100) {
         ang = 0xFF;
     }
-    *(u32*)&p->r0 = ((ang & 0xFF) << 0x10) | ((ang & 0xFF) << 8) | (ang & 0xFF);
+    PRIM_COLOR_WORD(p, 0) = ((ang & 0xFF) << 0x10) | ((ang & 0xFF) << 8) | (ang & 0xFF);
     setlen(p, 3);
     setcode(p, 0x7E);
     p->clut = GetClut(0, 0x101);
@@ -3147,7 +3147,7 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             if (lum == 0x100) {
                 lum = 0xFF;
             }
-            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
         }
         setlen(p, 3);
         setcode(p, 0x7C);
@@ -3320,7 +3320,7 @@ void func_800D15D0(Task* arg0)
             if (lum == 0x100) {
                 lum = 0xFF;
             }
-            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             setlen(p, 4);
             setcode(p, 0x66);
             p->clut = GetClut(0x50, 0x101);
@@ -3356,7 +3356,7 @@ void func_800D15D0(Task* arg0)
             if (lum == 0x100) {
                 lum = 0xFF;
             }
-            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             setlen(p, 4);
             setcode(p, 0x66);
             p->clut = GetClut(0x50, 0x101);
@@ -4355,9 +4355,9 @@ void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
             Ui_AllocTile((UiPanel*)arg0, x, y, (span * prev) / max, 3, 0x1741FU);
             color = 0xD287F;
             Ui_LayoutWithMode1(arg0, (void*)x, (void*)y, (void*)((span * val) / max), (void*)3, (void*)0x1A50FE);
-            p->u0         = 0xA0;
-            *(u32*)&p->r0 = color;
-            p->y0         = p->y0 - 1;
+            p->u0                 = 0xA0;
+            PRIM_COLOR_WORD(p, 0) = color;
+            p->y0                 = p->y0 - 1;
         } else {
             if (val < prev) {
                 do {
@@ -4373,8 +4373,8 @@ void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
                 }
                 u0 = 0x78;
             }
-            p->u0         = u0;
-            *(u32*)&p->r0 = color;
+            p->u0                 = u0;
+            PRIM_COLOR_WORD(p, 0) = color;
         }
         spriteX = arg0->baseX + x;
         p->w    = 8;
@@ -4701,11 +4701,11 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                         p4->v2 = p4->y2 - 0x78;
                         p4->v3 = p4->y3 - 0x78;
                         if (mode == 1) {
-                            *(u32*)&p4->r0 = 0x202020;
+                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            *(u32*)&p4->r0 = 0xFF4040;
+                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
                         } else {
-                            *(u32*)&p4->r0 = 0x4040FF;
+                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
                         }
                         p4->clut = 0x4000;
                     }
@@ -4792,11 +4792,11 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
                         p3->v1 = p3->y1 - 0x78;
                         p3->v2 = p3->y2 - 0x78;
                         if (mode == 1) {
-                            *(u32*)&p3->r0 = 0x202020;
+                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            *(u32*)&p3->r0 = 0xFF4040;
+                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
                         } else {
-                            *(u32*)&p3->r0 = 0x4040FF;
+                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
                         }
                         p3->clut = 0x4000;
                     }

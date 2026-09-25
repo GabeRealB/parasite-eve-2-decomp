@@ -19,7 +19,8 @@ the argument is written. Arithmetic in a macro's body is reported at the
 macro's use, except for macros whose expansion is pointer arithmetic by design:
 the Psy-Q SDK's (`include/psyq`), the scratch-pad stack and its fixed address
 (`main/scratch.h`, `PSX_SCRATCH_ADDR`), the step from an embedded member to
-the object holding it (`PARENT_OF`, `OFFSET_OF`), and the link-node-to-enemy
+the object holding it (`PARENT_OF`, `OFFSET_OF`), the whole-word accesses to
+primitives and place keys (`PRIM_*`, `GP_LOC_WORD`), and the link-node-to-enemy
 step (`GP_NODE_ENEMY`).
 """
 
@@ -36,8 +37,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref
 import cref  # noqa: E402
 import clang.cindex as ci  # noqa: E402
 
-SANCTIONED_PREFIXES = ("SCRATCH_",)
-SANCTIONED = {"GP_NODE_ENEMY", "PSX_SCRATCH_ADDR", "G_SCRATCH_HEAD", "GameResetScratchHead", "PARENT_OF", "OFFSET_OF"}
+SANCTIONED_PREFIXES = ("SCRATCH_", "PRIM_")
+SANCTIONED = {"GP_NODE_ENEMY", "PSX_SCRATCH_ADDR", "G_SCRATCH_HEAD", "GameResetScratchHead", "PARENT_OF", "OFFSET_OF", "GP_LOC_WORD"}
 
 _WRAPPERS = {ci.CursorKind.PAREN_EXPR, ci.CursorKind.UNEXPOSED_EXPR}
 

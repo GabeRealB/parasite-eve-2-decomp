@@ -129,6 +129,26 @@ extern u_long* gGpuCurrentOt;
 /// of the half it draws from.
 extern u8* gGpuPrimCursor;
 
+/// A primitive's words written or read whole. Psy-Q lays each vertex's fields
+/// out so that several of them share one word, and the drawing code moves those
+/// words in one access rather than field by field.
+
+/// Vertex `n`'s colour word: `rn`, `gn`, `bn`, then the primitive's `code` for
+/// vertex 0 and a pad byte for the others. Build a constant with `PRIM_RGBC`.
+#define PRIM_COLOR_WORD(p, n) (*(u32*)&(p)->r##n)
+/// Vertex `n`'s position word: `xn` in the low half, `yn` in the high half, the
+/// layout the GTE stores a projected point in.
+#define PRIM_XY_WORD(p, n) (*(u32*)&(p)->x##n)
+/// The first texture word: `u0` and `v0`, then the CLUT.
+#define PRIM_UV_CLUT_WORD(p) (*(u32*)&(p)->u0)
+/// The second texture word: `u1` and `v1`, then the texture page.
+#define PRIM_UV_TPAGE_WORD(p) (*(u32*)&(p)->u1)
+
+/// A colour word from its bytes; `code` is the primitive code for vertex 0 and
+/// 0 for the other vertices.
+#define PRIM_RGBC(r, g, b, code) \
+    ((u32)(r) | ((u32)(g) << 8) | ((u32)(b) << 16) | ((u32)(code) << 24))
+
 extern u8*          Gpu_SysPrimCursor;         // primitive buffer cursor
 extern u8           Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
 extern void*        Gpu_PrimBufBase;           // base gGpuPrimCursor is reset from

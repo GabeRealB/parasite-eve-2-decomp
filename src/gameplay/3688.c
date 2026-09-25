@@ -880,19 +880,19 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2D);
     } else {
-        *(u32*)&p->r0 = 0x404040;
+        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
         setlen(p, 9);
         setcode(p, 0x2C);
     }
     addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
     if (flag3 != 0) {
-        q              = (TILE*)gGpuPrimCursor;
-        q->x0          = p->x0 - 1;
-        q->y0          = p->y0 - 1;
-        q->w           = p->x1 - p->x0 + 2;
-        q->h           = p->y2 - p->y0 + 2;
-        gGpuPrimCursor = q + 1;
-        *(u32*)&q->r0  = 0xC0C0C0;
+        q                     = (TILE*)gGpuPrimCursor;
+        q->x0                 = p->x0 - 1;
+        q->y0                 = p->y0 - 1;
+        q->w                  = p->x1 - p->x0 + 2;
+        q->h                  = p->y2 - p->y0 + 2;
+        gGpuPrimCursor        = q + 1;
+        PRIM_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
         setlen(q, 3);
         setcode(q, 0x60);
         addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, q);
@@ -997,13 +997,13 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             bar = max;
         }
         if (bar > 0) {
-            tile             = (TILE*)gGpuPrimCursor;
-            gGpuPrimCursor   = tile + 1;
-            tile->x0         = arg1 + 1;
-            tile->y0         = arg3 - 1;
-            tile->w          = bar;
-            tile->h          = 2;
-            *(u32*)&tile->r0 = arg6;
+            tile                     = (TILE*)gGpuPrimCursor;
+            gGpuPrimCursor           = tile + 1;
+            tile->x0                 = arg1 + 1;
+            tile->y0                 = arg3 - 1;
+            tile->w                  = bar;
+            tile->h                  = 2;
+            PRIM_COLOR_WORD(tile, 0) = arg6;
             setlen(tile, 3);
             setcode(tile, 0x60);
             addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, tile);
@@ -1245,7 +1245,7 @@ void Gp_HpMpBarTask(Task* arg0)
         p->h    = 8;
         p->clut = 0x3C02;
         setlen(p, 4);
-        *(u32*)&p->r0 = color;
+        PRIM_COLOR_WORD(p, 0) = color;
         setcode(p, 0x64);
         p->y0 = y + 3;
         addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
@@ -1535,7 +1535,7 @@ void Gp_PeGridPanelTask(Task* arg0)
         p              = (SPRT*)gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 4);
-        *(u32*)&p->r0 = 0x606060;
+        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
         setcode(p, 0x64);
         addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
         p->x0   = D_8010E844[iconCol].xOffset + (obj->baseX + startX + iconCol * colStep);
@@ -1568,7 +1568,7 @@ void Gp_PeGridPanelTask(Task* arg0)
                 p->v0          = 0x88;
                 p->clut        = 0x3C02;
                 setlen(p, 4);
-                *(u32*)&p->r0 = 0x606060;
+                PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
                 setcode(p, 0x64);
                 p->y0 = capY;
                 addPrim(gGpuCurrentOt + (s16)obj->drawOrder + 1, p);
@@ -1712,7 +1712,7 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     p->v0          = 0x88;
     p->clut        = 0x3C02;
     setlen(p, 4);
-    *(u32*)&p->r0 = color;
+    PRIM_COLOR_WORD(p, 0) = color;
     setcode(p, 0x64);
     p->y0 = y + arg2 - 7;
     addPrim(gGpuCurrentOt + (s16)arg0->drawOrder + 1, p);
@@ -4962,22 +4962,22 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 itemVal        = itemRow[i];
                 gGpuPrimCursor = p + 1;
                 if (selVal < itemVal) {
-                    p->u0         = 0x30;
-                    *(u32*)&p->r0 = 0x1741F;
+                    p->u0                 = 0x30;
+                    PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
                     if (swap != 0) {
-                        *(u32*)&p->r0 = 0xD287F;
+                        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x7f, 0x28, 0x0d, 0);
                     }
                 } else if (itemVal < selVal) {
-                    p->u0         = 0xA0;
-                    *(u32*)&p->r0 = 0xD287F;
-                    p->y0         = p->y0 - 1;
+                    p->u0                 = 0xA0;
+                    PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x7f, 0x28, 0x0d, 0);
+                    p->y0                 = p->y0 - 1;
                     if (swap != 0) {
-                        *(u32*)&p->r0 = 0x1741F;
+                        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
                     }
                 } else {
-                    p->u0         = 0x78;
-                    val           = 0x606060;
-                    *(u32*)&p->r0 = val;
+                    p->u0                 = 0x78;
+                    val                   = 0x606060;
+                    PRIM_COLOR_WORD(p, 0) = val;
                 }
                 y      += 0x18;
                 p->v0   = 0x60;

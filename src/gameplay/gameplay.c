@@ -1684,8 +1684,8 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
             gte_ldsxy_fifo_gt4_x3_s0(xy);
             gte_nclip();
             if (ws->gteResult <= 0) {
-                *(u32*)&xy[-1].x0 = *(u32*)&xy[-1].x1;
-                *(u32*)&xy->x0    = *(u32*)&xy->x1;
+                *(u32*)&xy[-1].x0   = *(u32*)&xy[-1].x1;
+                PRIM_XY_WORD(xy, 0) = PRIM_XY_WORD(xy, 1);
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
                     goto next;
@@ -1693,8 +1693,8 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
             } else {
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
-                    *(u32*)&xy[-1].x3 = *(u32*)&xy[-1].x2;
-                    *(u32*)&xy->x3    = *(u32*)&xy->x2;
+                    *(u32*)&xy[-1].x3   = *(u32*)&xy[-1].x2;
+                    PRIM_XY_WORD(xy, 3) = PRIM_XY_WORD(xy, 2);
                 }
             }
             szTable = (u8*)ws->szTable;
@@ -3889,11 +3889,11 @@ u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -3909,12 +3909,12 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            *(u16*)&poly->u3         = ((u16*)&stream[4])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -3933,7 +3933,7 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 5);
-            *(s32*)&poly->r0 = color;
+            PRIM_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
@@ -3953,7 +3953,7 @@ u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 4);
-            *(s32*)&poly->r0 = color;
+            PRIM_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x20);
             poly++;
             stream += ws->elemStride;
@@ -3970,11 +3970,11 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[3];
-            *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = (u16)stream[5];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[3];
+            PRIM_UV_TPAGE_WORD(poly) = stream[4];
+            *(u16*)&poly->u2         = (u16)stream[5];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -3990,12 +3990,12 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[4];
-            *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = (u16)stream[6];
-            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[4];
+            PRIM_UV_TPAGE_WORD(poly) = stream[5];
+            *(u16*)&poly->u2         = (u16)stream[6];
+            *(u16*)&poly->u3         = ((u16*)&stream[6])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4011,11 +4011,11 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[4];
-            *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = (u16)stream[6];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[4];
+            PRIM_UV_TPAGE_WORD(poly) = stream[5];
+            *(u16*)&poly->u2         = (u16)stream[6];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4031,11 +4031,11 @@ u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[6];
-            *(s32*)&poly->u1 = stream[7];
-            *(u16*)&poly->u2 = (u16)stream[8];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[6];
+            PRIM_UV_TPAGE_WORD(poly) = stream[7];
+            *(u16*)&poly->u2         = (u16)stream[8];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4051,12 +4051,12 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[5];
-            *(s32*)&poly->u1 = stream[6];
-            *(u16*)&poly->u2 = (u16)stream[7];
-            *(u16*)&poly->u3 = ((u16*)&stream[7])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[5];
+            PRIM_UV_TPAGE_WORD(poly) = stream[6];
+            *(u16*)&poly->u2         = (u16)stream[7];
+            *(u16*)&poly->u3         = ((u16*)&stream[7])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4072,12 +4072,12 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[8];
-            *(s32*)&poly->u1 = stream[9];
-            *(u16*)&poly->u2 = (u16)stream[10];
-            *(u16*)&poly->u3 = ((u16*)&stream[10])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[8];
+            PRIM_UV_TPAGE_WORD(poly) = stream[9];
+            *(u16*)&poly->u2         = (u16)stream[10];
+            *(u16*)&poly->u3         = ((u16*)&stream[10])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4093,11 +4093,11 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4113,12 +4113,12 @@ u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[3];
-            *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = (u16)stream[5];
-            *(u16*)&poly->u3 = ((u16*)&stream[5])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[3];
+            PRIM_UV_TPAGE_WORD(poly) = stream[4];
+            *(u16*)&poly->u2         = (u16)stream[5];
+            *(u16*)&poly->u3         = ((u16*)&stream[5])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4135,19 +4135,19 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->r0 = stream[2];
-            *(s32*)&poly->r1 = stream[3];
-            *(s32*)&poly->r2 = stream[4];
-            color            = stream[5];
+            PRIM_COLOR_WORD(poly, 0) = stream[2];
+            PRIM_COLOR_WORD(poly, 1) = stream[3];
+            PRIM_COLOR_WORD(poly, 2) = stream[4];
+            color                    = stream[5];
             setlen(poly, 12);
             setcode(poly, 0x3E);
-            *(s32*)&poly->r3 = color;
-            *(s32*)&poly->u0 = stream[6];
-            *(s32*)&poly->u1 = stream[7];
-            *(u16*)&poly->u2 = (u16)stream[8];
-            *(u16*)&poly->u3 = ((u16*)&stream[8])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_COLOR_WORD(poly, 3) = color;
+            PRIM_UV_CLUT_WORD(poly)  = stream[6];
+            PRIM_UV_TPAGE_WORD(poly) = stream[7];
+            *(u16*)&poly->u2         = (u16)stream[8];
+            *(u16*)&poly->u3         = ((u16*)&stream[8])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4163,11 +4163,11 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_FT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4183,12 +4183,12 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_FT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            *(u16*)&poly->u3         = ((u16*)&stream[4])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4207,7 +4207,7 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 5);
-            *(s32*)&poly->r0 = color;
+            PRIM_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
@@ -4227,7 +4227,7 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 4);
-            *(s32*)&poly->r0 = color;
+            PRIM_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x20);
             poly++;
             stream += ws->elemStride;
@@ -4246,21 +4246,21 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[3];
-            *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = (u16)stream[5];
-            poly->tpage     += (s8)ws->obj->tpageOffset;
-            tmp              = ws->obj->clutOffset;
-            tpage            = poly->tpage;
-            tpage           |= 0x20;
-            poly->tpage      = tpage;
-            poly->clut      += (s8)tmp << 6;
+            PRIM_UV_CLUT_WORD(poly)  = stream[3];
+            PRIM_UV_TPAGE_WORD(poly) = stream[4];
+            *(u16*)&poly->u2         = (u16)stream[5];
+            poly->tpage             += (s8)ws->obj->tpageOffset;
+            tmp                      = ws->obj->clutOffset;
+            tpage                    = poly->tpage;
+            tpage                   |= 0x20;
+            poly->tpage              = tpage;
+            poly->clut              += (s8)tmp << 6;
             poly++;
-            *(s32*)&poly->u0 = stream[3];
-            *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = (u16)stream[5];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[3];
+            PRIM_UV_TPAGE_WORD(poly) = stream[4];
+            *(u16*)&poly->u2         = (u16)stream[5];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4277,11 +4277,11 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     if (ws->elemCount-- > 0) {
         do {
             poly++;
-            *(s32*)&poly->u0 = stream[3];
-            *(s32*)&poly->u1 = stream[4];
-            *(u16*)&poly->u2 = (u16)stream[5];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[3];
+            PRIM_UV_TPAGE_WORD(poly) = stream[4];
+            *(u16*)&poly->u2         = (u16)stream[5];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4299,23 +4299,23 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[4];
-            *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = (u16)stream[6];
-            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
-            poly->tpage     += (s8)ws->obj->tpageOffset;
-            tmp              = ws->obj->clutOffset;
-            tpage            = poly->tpage;
-            tpage           |= 0x20;
-            poly->tpage      = tpage;
-            poly->clut      += (s8)tmp << 6;
+            PRIM_UV_CLUT_WORD(poly)  = stream[4];
+            PRIM_UV_TPAGE_WORD(poly) = stream[5];
+            *(u16*)&poly->u2         = (u16)stream[6];
+            *(u16*)&poly->u3         = ((u16*)&stream[6])[1];
+            poly->tpage             += (s8)ws->obj->tpageOffset;
+            tmp                      = ws->obj->clutOffset;
+            tpage                    = poly->tpage;
+            tpage                   |= 0x20;
+            poly->tpage              = tpage;
+            poly->clut              += (s8)tmp << 6;
             poly++;
-            *(s32*)&poly->u0 = stream[4];
-            *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = (u16)stream[6];
-            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[4];
+            PRIM_UV_TPAGE_WORD(poly) = stream[5];
+            *(u16*)&poly->u2         = (u16)stream[6];
+            *(u16*)&poly->u3         = ((u16*)&stream[6])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4332,12 +4332,12 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     if (ws->elemCount-- > 0) {
         do {
             poly++;
-            *(s32*)&poly->u0 = stream[4];
-            *(s32*)&poly->u1 = stream[5];
-            *(u16*)&poly->u2 = (u16)stream[6];
-            *(u16*)&poly->u3 = ((u16*)&stream[6])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[4];
+            PRIM_UV_TPAGE_WORD(poly) = stream[5];
+            *(u16*)&poly->u2         = (u16)stream[6];
+            *(u16*)&poly->u3         = ((u16*)&stream[6])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4356,11 +4356,11 @@ u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32*
             poly->tpage = 0x3F;
             poly->clut  = 0x3C10;
             poly++;
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4379,12 +4379,12 @@ u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stre
             poly->tpage = 0x3F;
             poly->clut  = 0x3C10;
             poly++;
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            *(u16*)&poly->u3         = ((u16*)&stream[4])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4402,21 +4402,21 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += (s8)ws->obj->tpageOffset;
-            tmp              = ws->obj->clutOffset;
-            tpage            = poly->tpage;
-            tpage           |= 0x20;
-            poly->tpage      = tpage;
-            poly->clut      += (s8)tmp << 6;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += (s8)ws->obj->tpageOffset;
+            tmp                      = ws->obj->clutOffset;
+            tpage                    = poly->tpage;
+            tpage                   |= 0x20;
+            poly->tpage              = tpage;
+            poly->clut              += (s8)tmp << 6;
             poly++;
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -4434,23 +4434,23 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         do {
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
-            poly->tpage     += (s8)ws->obj->tpageOffset;
-            tmp              = ws->obj->clutOffset;
-            tpage            = poly->tpage;
-            tpage           |= 0x20;
-            poly->tpage      = tpage;
-            poly->clut      += (s8)tmp << 6;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            *(u16*)&poly->u3         = ((u16*)&stream[4])[1];
+            poly->tpage             += (s8)ws->obj->tpageOffset;
+            tmp                      = ws->obj->clutOffset;
+            tpage                    = poly->tpage;
+            tpage                   |= 0x20;
+            poly->tpage              = tpage;
+            poly->clut              += (s8)tmp << 6;
             poly++;
-            *(s32*)&poly->u0 = stream[2];
-            *(s32*)&poly->u1 = stream[3];
-            *(u16*)&poly->u2 = (u16)stream[4];
-            *(u16*)&poly->u3 = ((u16*)&stream[4])[1];
-            poly->tpage     += ws->tpage;
-            poly->clut      += ws->clut;
+            PRIM_UV_CLUT_WORD(poly)  = stream[2];
+            PRIM_UV_TPAGE_WORD(poly) = stream[3];
+            *(u16*)&poly->u2         = (u16)stream[4];
+            *(u16*)&poly->u3         = ((u16*)&stream[4])[1];
+            poly->tpage             += ws->tpage;
+            poly->clut              += ws->clut;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -6211,7 +6211,7 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
             tile->w        = Gp_StateC08.field_2;
             tile->h        = 1;
             setlen(tile, 3);
-            *(u32*)&tile->r0 = 0xFFC000;
+            PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0, 0xc0, 0xff, 0);
             setcode(tile, 0x60);
             addPrim(gGpuCurrentOt - 2, tile);
         }
@@ -7320,11 +7320,11 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 {
     LINE_F2* prim;
 
-    prim             = (LINE_F2*)gGpuPrimCursor;
-    gGpuPrimCursor   = prim + 1;
-    *(u32*)&prim->r0 = 0x40C000;
-    *(u32*)&prim->x0 = *(u32*)&sc->sxyPrev;
-    *(u32*)&prim->x1 = *(u32*)&sc->sxy;
+    prim                     = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor           = prim + 1;
+    PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0, 0xc0, 0x40, 0);
+    PRIM_XY_WORD(prim, 0)    = *(u32*)&sc->sxyPrev;
+    PRIM_XY_WORD(prim, 1)    = *(u32*)&sc->sxy;
     setlen(prim, 3);
     setcode(prim, 0x40);
     addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
@@ -7776,7 +7776,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 tile->y0       = y + 0xE;
                 tile->h        = 2;
                 setlen(tile, 3);
-                *(u32*)&tile->r0 = 0x1741F;
+                PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
                 setcode(tile, 0x60);
                 tile->w = w1;
                 addPrim(gGpuCurrentOt - 2, tile);
@@ -7788,9 +7788,9 @@ void func_800A57B0(GpIdMapC* arg0)
                     s32 tileX = w1 + 5;
                     tile->x0  = x + tileX;
                 }
-                tile->y0         = y + 0xE;
-                tile->h          = 2;
-                *(u32*)&tile->r0 = 0xFFFF;
+                tile->y0                 = y + 0xE;
+                tile->h                  = 2;
+                PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0xff, 0xff, 0, 0);
                 setlen(tile, 3);
                 setcode(tile, 0x60);
                 tile->w = w2 - w1;
@@ -7825,7 +7825,7 @@ void func_800A57B0(GpIdMapC* arg0)
         tile->y0       = y + 0xE;
         tile->h        = 2;
         setlen(tile, 3);
-        *(u32*)&tile->r0 = 0x1741F;
+        PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
         setcode(tile, 0x60);
         tile->w = w1;
         addPrim(gGpuCurrentOt - 2, tile);
@@ -7837,9 +7837,9 @@ void func_800A57B0(GpIdMapC* arg0)
             s32 tileX = w1 + 0x30;
             tile->x0  = x + tileX;
         }
-        tile->y0         = y + 0xE;
-        tile->h          = 2;
-        *(u32*)&tile->r0 = 0xFFFF;
+        tile->y0                 = y + 0xE;
+        tile->h                  = 2;
+        PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0xff, 0xff, 0, 0);
         setlen(tile, 3);
         setcode(tile, 0x60);
         tile->w = w2 - w1;
@@ -8147,12 +8147,12 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         setcode(sp, 0x65);
         addPrim(gGpuCurrentOt - 2, sp);
     }
-    poly             = (POLY_GT4*)gGpuPrimCursor;
-    gGpuPrimCursor   = poly + 1;
-    *(u32*)&poly->r2 = 0xC0C0C0;
-    *(u32*)&poly->r3 = 0x808080;
-    *(u32*)&poly->r0 = 0x404040;
-    *(u32*)&poly->r1 = 0x303030;
+    poly                     = (POLY_GT4*)gGpuPrimCursor;
+    gGpuPrimCursor           = poly + 1;
+    PRIM_COLOR_WORD(poly, 2) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
+    PRIM_COLOR_WORD(poly, 3) = PRIM_RGBC(0x80, 0x80, 0x80, 0);
+    PRIM_COLOR_WORD(poly, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
+    PRIM_COLOR_WORD(poly, 1) = PRIM_RGBC(0x30, 0x30, 0x30, 0);
     poly->x1 = poly->x3 = x + 0x40;
     poly->y2 = poly->y3 = y + 0x40;
     poly->tpage         = 0x1E;
@@ -8304,9 +8304,9 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             tile->w  = w;
             tile->h  = 2;
             if (kind == 0) {
-                *(u32*)&tile->r0 = 0x1741F;
+                PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
             } else {
-                *(u32*)&tile->r0 = 0x80;
+                PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0x80, 0, 0, 0);
             }
             setlen(tile, 3);
             setcode(tile, 0x60);

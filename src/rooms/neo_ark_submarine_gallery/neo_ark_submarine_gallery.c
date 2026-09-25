@@ -956,9 +956,9 @@ s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, 0, 0, 0);
             setSemiTrans(prim, 1);
-            *(s32*)&prim->x0 = sxy0;
-            *(s32*)&prim->x1 = sxy1;
-            *(s32*)&prim->x2 = sxy2;
+            PRIM_XY_WORD(prim, 0) = sxy0;
+            PRIM_XY_WORD(prim, 1) = sxy1;
+            PRIM_XY_WORD(prim, 2) = sxy2;
             addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], prim);
             dr             = (DR_MODE*)gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;

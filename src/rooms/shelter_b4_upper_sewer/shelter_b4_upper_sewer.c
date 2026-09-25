@@ -403,13 +403,13 @@ void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
                     setlen(poly, 5);
                     setcode(poly, 0x2A);
-                    *(s32*)&poly->x0 = sxy0;
-                    *(s32*)&poly->x1 = sxy1;
-                    *(s32*)&poly->x2 = sxy2;
-                    *(s32*)&poly->x3 = sxy3;
-                    poly->r0         = 0;
-                    poly->g0         = c >> 2;
-                    poly->b0         = c;
+                    PRIM_XY_WORD(poly, 0) = sxy0;
+                    PRIM_XY_WORD(poly, 1) = sxy1;
+                    PRIM_XY_WORD(poly, 2) = sxy2;
+                    PRIM_XY_WORD(poly, 3) = sxy3;
+                    poly->r0              = 0;
+                    poly->g0              = c >> 2;
+                    poly->b0              = c;
                     addPrim((u_long*)(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                             poly);
                     dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;
@@ -446,13 +446,13 @@ void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
                     setlen(poly, 5);
                     setcode(poly, 0x2A);
-                    *(s32*)&poly->x0 = sxy0;
-                    *(s32*)&poly->x1 = sxy1;
-                    *(s32*)&poly->x2 = sxy2;
-                    *(s32*)&poly->x3 = sxy3;
-                    poly->r0         = 0;
-                    poly->g0         = c >> 2;
-                    poly->b0         = c;
+                    PRIM_XY_WORD(poly, 0) = sxy0;
+                    PRIM_XY_WORD(poly, 1) = sxy1;
+                    PRIM_XY_WORD(poly, 2) = sxy2;
+                    PRIM_XY_WORD(poly, 3) = sxy3;
+                    poly->r0              = 0;
+                    poly->g0              = c >> 2;
+                    poly->b0              = c;
                     addPrim((u_long*)(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                             poly);
                     dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;

@@ -734,11 +734,11 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
             poly           = gGpuPrimCursor;
             gGpuPrimCursor = (u8*)poly + 0x28;
             setlen(poly, 9);
-            poly->code       = 0x2E;
-            *(s32*)&poly->x0 = s->screen0;
-            *(s32*)&poly->x1 = s->screen1;
-            *(s32*)&poly->x2 = s->screen2;
-            *(s32*)&poly->x3 = s->screen3;
+            poly->code            = 0x2E;
+            PRIM_XY_WORD(poly, 0) = s->screen0;
+            PRIM_XY_WORD(poly, 1) = s->screen1;
+            PRIM_XY_WORD(poly, 2) = s->screen2;
+            PRIM_XY_WORD(poly, 3) = s->screen3;
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             poly->tpage = 0x48;
             poly->clut  = 0x4283;

@@ -1733,16 +1733,16 @@ void func_mist_parking_8018089C(DialogPrompt* prompt, UiObject* obj)
         prim->x2 = x0;
         prim->x0 = x0;
 
-        gGpuPrimCursor   = prim + 1;
-        y0               = obj->baseY;
-        y0               = y0 + barY;
-        y0              += 1;
-        *(u32*)&prim->r3 = 0x10000;
-        *(u32*)&prim->r1 = 0x10000;
+        gGpuPrimCursor           = prim + 1;
+        y0                       = obj->baseY;
+        y0                       = y0 + barY;
+        y0                      += 1;
+        PRIM_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
+        PRIM_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
         setlen(prim, 8);
-        *(u32*)&prim->r0 = 0x100B0;
+        PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
         setcode(prim, 0x38);
-        *(u32*)&prim->r2 = 0x100B0;
+        PRIM_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
 
         x1 = (u16)prim->x0 + barW;
         x1--;
@@ -2300,20 +2300,20 @@ void func_mist_parking_80181A10(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
         y              = arg0->field_22;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 8);
-        *(u32*)&prim->r0 = arg5;
+        PRIM_COLOR_WORD(prim, 0) = arg5;
         setcode(prim, 0x38);
-        *(u32*)&prim->r2 = arg5;
-        *(u32*)&prim->r3 = arg6;
-        *(u32*)&prim->r1 = arg6;
-        y                = y + arg2 + 1;
-        x                = (u16)prim->x0 + w - 1;
-        prim->y1         = y;
-        prim->y0         = y;
-        prim->x3         = x;
-        prim->x1         = x;
-        y                = y + arg4 - 1;
-        prim->y3         = y;
-        prim->y2         = y;
+        PRIM_COLOR_WORD(prim, 2) = arg5;
+        PRIM_COLOR_WORD(prim, 3) = arg6;
+        PRIM_COLOR_WORD(prim, 1) = arg6;
+        y                        = y + arg2 + 1;
+        x                        = (u16)prim->x0 + w - 1;
+        prim->y1                 = y;
+        prim->y0                 = y;
+        prim->x3                 = x;
+        prim->x1                 = x;
+        y                        = y + arg4 - 1;
+        prim->y3                 = y;
+        prim->y2                 = y;
         addPrim(gGpuCurrentOt + (s16)arg0->field_14 + 1, prim);
     }
 }
