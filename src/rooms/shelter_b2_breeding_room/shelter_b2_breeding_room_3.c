@@ -636,7 +636,7 @@ void func_shelter_b2_breeding_room_8017FAD8(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_breeding_room_80180004(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat quad facing the camera around the coordinate's world

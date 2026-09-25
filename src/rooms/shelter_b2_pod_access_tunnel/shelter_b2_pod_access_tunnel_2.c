@@ -1171,7 +1171,7 @@ void func_shelter_b2_pod_access_tunnel_80180894(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_pod_access_tunnel_80180DC0(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
@@ -1894,7 +1894,7 @@ void func_shelter_b2_pod_access_tunnel_80182B80(GsCOORDINATE2* arg0, GsCOORDINAT
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns effect 0x60076 at the task's

@@ -1040,7 +1040,7 @@ void func_shelter_1f_vehicular_airlock_8017FC10(GsCOORDINATE2* arg0, GsCOORDINAT
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns

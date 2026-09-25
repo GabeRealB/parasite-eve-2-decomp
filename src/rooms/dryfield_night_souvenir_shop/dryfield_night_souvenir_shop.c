@@ -101,7 +101,7 @@ void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
     s16              green;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_PUSH(RoomQuadScratch);
     blk = SCRATCH_HEAD(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
@@ -206,7 +206,7 @@ void func_dryfield_night_souvenir_shop_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's model task: `Task::extra` is the task's

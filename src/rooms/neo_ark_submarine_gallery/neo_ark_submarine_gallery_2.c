@@ -773,7 +773,7 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
     s32                  farNext;
     u8                   shade;
 
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadProjScratch));
+    SCRATCH_PUSH(RoomQuadProjScratch);
     blk = SCRATCH_HEAD(RoomQuadProjScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
@@ -895,5 +895,5 @@ void func_neo_ark_submarine_gallery_80180E80(GsCOORDINATE2* coord, s16 arg1)
         addPrim((u_long*)((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    SCRATCH_POP_BYTES(sizeof(RoomQuadProjScratch));
+    SCRATCH_POP(RoomQuadProjScratch);
 }

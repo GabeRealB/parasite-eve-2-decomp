@@ -155,7 +155,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
     s16              green;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_PUSH(RoomQuadScratch);
     blk = SCRATCH_HEAD(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
@@ -260,7 +260,7 @@ void func_dryfield_night_dilapidated_house_8017DD30(GsCOORDINATE2* coord, s16 ar
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// Per-frame draw of the room's model task: recomputes the model's world

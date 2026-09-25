@@ -2335,7 +2335,7 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
     POLY_F3*                     prim;
     s32                          i;
 
-    SCRATCH_PUSH_BYTES(sizeof(_ShelterB6NurseryTriScratch));
+    SCRATCH_PUSH(_ShelterB6NurseryTriScratch);
     blk = SCRATCH_HEAD(_ShelterB6NurseryTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 3; i++) {
@@ -2371,7 +2371,7 @@ void func_shelter_b6_nursery_801829E4(GsCOORDINATE2* coord, s16 scale, s16 shade
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gp_AddTpageShift((P_TAG*)prim, (Gp_LcgState >> 16) & 1, blk->otz);
     }
-    SCRATCH_POP_BYTES(sizeof(_ShelterB6NurseryTriScratch));
+    SCRATCH_POP(_ShelterB6NurseryTriScratch);
 }
 
 void func_shelter_b6_nursery_80182D14(s16 arg0, s16 arg1)
@@ -2820,7 +2820,7 @@ void func_shelter_b6_nursery_80183C7C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns

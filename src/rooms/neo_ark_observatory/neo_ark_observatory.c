@@ -1413,7 +1413,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
     start       = gDisplayState.animFrame & 0xFFF;
     level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
     if (level >= 0) {
-        SCRATCH_PUSH_BYTES(sizeof(RoomQuadProjScratch));
+        SCRATCH_PUSH(RoomQuadProjScratch);
         blk = SCRATCH_HEAD(RoomQuadProjScratch);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         for (angle = start; angle < start + step * arg3; angle = next) {
@@ -1463,7 +1463,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
-        SCRATCH_POP_BYTES(sizeof(RoomQuadProjScratch));
+        SCRATCH_POP(RoomQuadProjScratch);
     }
 }
 

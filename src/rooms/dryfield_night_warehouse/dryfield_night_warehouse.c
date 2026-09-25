@@ -110,7 +110,7 @@ void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
     s16              green;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_PUSH(RoomQuadScratch);
     blk = SCRATCH_HEAD(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
@@ -215,7 +215,7 @@ void func_dryfield_night_warehouse_8017D6B4(GsCOORDINATE2* coord, s16 arg1)
                       (s32)gGpuCurrentOt),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
@@ -238,7 +238,7 @@ void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 
     s32              next;
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_PUSH(RoomQuadScratch);
     blk   = SCRATCH_HEAD(RoomQuadScratch);
     start = gDisplayState.animFrame & 0xFFF;
     step  = 0x1000 / arg2;
@@ -320,7 +320,7 @@ void func_dryfield_night_warehouse_8017DFF4(GsCOORDINATE2* coord, s16 arg1, s16 
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's model task: recomputes the model's world

@@ -2763,7 +2763,7 @@ void func_dryfield_night_gas_station_80182CD4(GsCOORDINATE2* arg0, GsCOORDINATE2
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Effect task of a burst: spawns its particle effects, then either scatters

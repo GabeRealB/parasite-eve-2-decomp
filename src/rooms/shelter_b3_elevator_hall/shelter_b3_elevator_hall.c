@@ -1192,7 +1192,7 @@ void func_shelter_b3_elevator_hall_8017FA80(GsCOORDINATE2* coord, s16 size)
             func_shelter_b3_elevator_hall_8017FFAC(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a semi-transparent textured quad lying flat at `arg0`'s world

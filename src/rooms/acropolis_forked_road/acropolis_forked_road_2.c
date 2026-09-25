@@ -637,7 +637,7 @@ void func_acropolis_forked_road_8017EC70(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// A flash that swells and then fades. For as many ticks as the spawn argument
@@ -1080,7 +1080,7 @@ void func_acropolis_forked_road_8017FED4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero

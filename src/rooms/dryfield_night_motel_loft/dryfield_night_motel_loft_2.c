@@ -386,7 +386,7 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
     s32                                off;
     s32                                ang;
 
-    SCRATCH_PUSH_BYTES(sizeof(_DryfieldNightMotelLoftTriScratch));
+    SCRATCH_PUSH(_DryfieldNightMotelLoftTriScratch);
     blk = SCRATCH_HEAD(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // `off` is the corner's byte offset in the block, initialised with the
@@ -428,5 +428,5 @@ void func_dryfield_night_motel_loft_8017E540(GsCOORDINATE2* coord, s16 scale, s1
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gp_AddTpageShift((P_TAG*)prim, ((u32)Gp_LcgState >> 16) & 1, blk->otz);
     }
-    SCRATCH_POP_BYTES(sizeof(_DryfieldNightMotelLoftTriScratch));
+    SCRATCH_POP(_DryfieldNightMotelLoftTriScratch);
 }

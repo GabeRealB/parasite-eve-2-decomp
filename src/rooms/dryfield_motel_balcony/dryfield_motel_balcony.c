@@ -931,7 +931,7 @@ void func_dryfield_motel_balcony_8017EF44(GsCOORDINATE2* coord, s16 size)
             func_dryfield_motel_balcony_8017F470(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1645,7 +1645,7 @@ void func_dryfield_motel_balcony_80181230(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// An impact effect task. State 0 spawns effect 0x60076, then either a

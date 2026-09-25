@@ -861,7 +861,7 @@ void func_shelter_b1_north_maintenance_walkway_8017FB44(GsCOORDINATE2* coord, s1
             func_shelter_b1_north_maintenance_walkway_80180070(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues a flat, semi-transparent textured quad of half-size `arg1` lying
@@ -1579,7 +1579,7 @@ void func_shelter_b1_north_maintenance_walkway_80181E30(GsCOORDINATE2* arg0, GsC
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -2402,7 +2402,7 @@ void func_shelter_b1_north_maintenance_walkway_801841D4(GsCOORDINATE2* coord, s1
             func_shelter_b1_north_maintenance_walkway_80184700(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues a flat, semi-transparent textured quad of half-size `arg1` lying

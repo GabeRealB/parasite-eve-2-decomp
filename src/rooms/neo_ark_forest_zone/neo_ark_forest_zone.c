@@ -932,7 +932,7 @@ void func_neo_ark_forest_zone_8017F374(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn

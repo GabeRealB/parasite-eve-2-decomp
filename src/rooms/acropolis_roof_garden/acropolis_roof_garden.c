@@ -434,7 +434,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
             }
-            SCRATCH_POP_BYTES(sizeof(RoomShaftScratch));
+            SCRATCH_POP(RoomShaftScratch);
         }
     }
 }
@@ -822,7 +822,7 @@ void func_acropolis_roof_garden_8017F560(GsCOORDINATE2* arg0, s32 arg1, s16 arg2
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 }
 
 /// reports one, adds its X and Z to the coordinate's translation, rounding a

@@ -2149,7 +2149,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(AcropolisBridgeQuadScratch));
+    SCRATCH_POP(AcropolisBridgeQuadScratch);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -2453,7 +2453,7 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayFlaggedQuadScratch));
+    SCRATCH_POP(OverlayFlaggedQuadScratch);
 }
 
 /// Controller for one piece of the bridge's blown debris: it drifts the task's
@@ -3319,7 +3319,7 @@ void func_acropolis_bridge_80184B94(OverlayWalker* work)
         }
     }
 
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
+    SCRATCH_POP(OverlayAvoidScratch);
 }
 
 /// Turns the walker toward `pos` by at most `field_5A` angle units per frame.

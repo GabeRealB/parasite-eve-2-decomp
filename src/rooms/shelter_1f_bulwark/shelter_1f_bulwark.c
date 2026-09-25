@@ -885,7 +885,7 @@ void func_shelter_1f_bulwark_8017F2E0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)

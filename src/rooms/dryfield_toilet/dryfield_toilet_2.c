@@ -801,7 +801,7 @@ void func_dryfield_toilet_8017FA00(GsCOORDINATE2* coord, s16 size)
             func_dryfield_toilet_8017FF2C(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues a semi-transparent textured quad lying flat at the world position of

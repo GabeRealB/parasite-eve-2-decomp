@@ -909,7 +909,7 @@ void func_neo_ark_island_80180AF0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect

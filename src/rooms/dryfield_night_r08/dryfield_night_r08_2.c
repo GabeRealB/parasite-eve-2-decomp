@@ -805,7 +805,7 @@ void func_dryfield_night_r08_8017F504(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. While `eventState` is non-zero

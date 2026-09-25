@@ -1821,7 +1821,7 @@ void func_neo_ark_pavilion_80180C04(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect
@@ -2650,7 +2650,7 @@ void func_neo_ark_pavilion_80182FA8(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_pavilion_801834D4(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it with

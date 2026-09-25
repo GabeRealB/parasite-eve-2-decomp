@@ -843,7 +843,7 @@ void func_dryfield_night_back_street_8017F2E4(GsCOORDINATE2* arg0, GsCOORDINATE2
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,

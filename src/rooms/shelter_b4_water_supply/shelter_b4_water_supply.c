@@ -1988,7 +1988,7 @@ void func_shelter_b4_water_supply_80181D40(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_water_supply_8018226C(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad at `arg0`: the four corners of the unit quad

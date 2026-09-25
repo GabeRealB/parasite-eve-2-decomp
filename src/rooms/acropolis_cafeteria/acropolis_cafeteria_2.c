@@ -992,7 +992,7 @@ void func_acropolis_cafeteria_8018089C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_acropolis_cafeteria_80180C94(Task* task)

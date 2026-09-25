@@ -2595,7 +2595,7 @@ void func_shelter_b4_reservoir_80183E80(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_reservoir_801843AC(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat quad facing the camera around the coordinate's world

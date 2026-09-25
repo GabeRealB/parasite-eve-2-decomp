@@ -1172,7 +1172,7 @@ void func_mine_cavern_801804CC(GsCOORDINATE2* coord, s16 size)
             func_mine_cavern_801809F8(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space

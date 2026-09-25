@@ -256,7 +256,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES(sizeof(AobFlareScratch));
+    SCRATCH_POP(AobFlareScratch);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 

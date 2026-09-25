@@ -961,7 +961,7 @@ void func_shelter_b1_transfer_tunnel_8017F594(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_transfer_tunnel_8017FAC0(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured sprite at the coordinate's world position: the unit
@@ -1673,7 +1673,7 @@ void func_shelter_b1_transfer_tunnel_80181880(GsCOORDINATE2* arg0, GsCOORDINATE2
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Spark burst: state 0 spawns the burst's effects and then either streams

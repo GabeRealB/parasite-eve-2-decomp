@@ -1244,7 +1244,7 @@ void func_shelter_b2_elevator_hall_80180464(GsCOORDINATE2* coord, s16 size)
             func_shelter_b2_elevator_hall_80180990(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 void func_shelter_b2_elevator_hall_80180990(GsCOORDINATE2* arg0, s32 arg1)
@@ -1919,7 +1919,7 @@ void func_shelter_b2_elevator_hall_80182750(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_shelter_b2_elevator_hall_80182B48(Task* task)

@@ -1290,7 +1290,7 @@ void func_dryfield_main_street_8017FE3C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,

@@ -1731,7 +1731,7 @@ void func_shelter_b4_upper_sewer_8018139C(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_upper_sewer_801818C8(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space
@@ -2431,7 +2431,7 @@ void func_shelter_b4_upper_sewer_80183688(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_shelter_b4_upper_sewer_80183A80(Task* task)
@@ -3239,7 +3239,7 @@ void func_shelter_b4_upper_sewer_80185A2C(GsCOORDINATE2* coord, s16 size)
             func_shelter_b4_upper_sewer_80185F58(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space

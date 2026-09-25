@@ -632,7 +632,7 @@ void func_shelter_b1_control_room_access_tunnel_801815D0(GsCOORDINATE2* coord, s
             func_shelter_b1_control_room_access_tunnel_80181AFC(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured sprite at the coordinate's world position: the unit

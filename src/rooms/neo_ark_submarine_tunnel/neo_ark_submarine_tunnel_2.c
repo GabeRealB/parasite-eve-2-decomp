@@ -649,7 +649,7 @@ void func_neo_ark_submarine_tunnel_80180840(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_submarine_tunnel_80180D6C(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues a semi-transparent textured quad lying flat at the world position of

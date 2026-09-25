@@ -635,7 +635,7 @@ void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_control_room_80181810(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad centred on the coordinate's world translation:

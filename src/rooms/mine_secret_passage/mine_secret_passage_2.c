@@ -979,7 +979,7 @@ void func_mine_secret_passage_8017FAF4(GsCOORDINATE2* coord, s16 size)
             func_mine_secret_passage_80180020(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space

@@ -570,7 +570,7 @@ void func_shelter_b6_training_room_8017F014(GsCOORDINATE2* coord, s16 size)
             func_shelter_b6_training_room_8017F540(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad centred on `arg0`'s translation: the unit quad

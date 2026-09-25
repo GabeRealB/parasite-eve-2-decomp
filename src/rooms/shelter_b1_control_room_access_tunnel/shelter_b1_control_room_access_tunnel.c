@@ -774,7 +774,7 @@ void func_shelter_b1_control_room_access_tunnel_8017F22C(GsCOORDINATE2* arg0, Gs
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Spark burst: state 0 spawns the burst's effects and then either streams

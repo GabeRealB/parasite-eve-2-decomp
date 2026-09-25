@@ -1592,7 +1592,7 @@ void func_dryfield_night_main_street_80180CF4(GsCOORDINATE2* coord, s16 size)
             func_dryfield_night_main_street_80181220(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a textured semi-transparent quad of half-size `arg1` at the

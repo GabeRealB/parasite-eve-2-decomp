@@ -969,7 +969,7 @@ void func_neo_ark_garden_80180AF4(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_garden_80181020(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flickering flat quad at the coordinate `arg0`: scales the unit quad

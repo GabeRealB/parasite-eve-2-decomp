@@ -941,7 +941,7 @@ void func_shelter_b1_storeroom_8017FA34(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_storeroom_8017FF60(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane
@@ -1630,7 +1630,7 @@ void func_shelter_b1_storeroom_80181D20(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_shelter_b1_storeroom_80182118(Task* task)
@@ -2426,7 +2426,7 @@ void func_shelter_b1_storeroom_801840C4(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_storeroom_801845F0(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a flat textured quad of half-extent `arg1` lying on the ground plane

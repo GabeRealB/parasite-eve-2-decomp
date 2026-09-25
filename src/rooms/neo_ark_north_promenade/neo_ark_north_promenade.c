@@ -740,7 +740,7 @@ void func_neo_ark_north_promenade_8017EA3C(GsCOORDINATE2* coord, s16 size)
             func_neo_ark_north_promenade_8017EF68(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
@@ -1464,7 +1464,7 @@ void func_neo_ark_north_promenade_80180D28(GsCOORDINATE2* arg0, GsCOORDINATE2* a
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn

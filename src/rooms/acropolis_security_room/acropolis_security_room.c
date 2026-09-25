@@ -2195,7 +2195,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     s32              tx;
     s32              tz;
 
-    SCRATCH_PUSH_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_PUSH(RoomQuadScratch);
     blk   = SCRATCH_HEAD(RoomQuadScratch);
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     mem   = arg0->spawnArg2;
@@ -2256,7 +2256,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->code |= 1;
         addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    SCRATCH_POP_BYTES(sizeof(RoomQuadScratch));
+    SCRATCH_POP(RoomQuadScratch);
 
     if (mem->index == 0) {
         coord->coord.t[0] += mem->move.vx;

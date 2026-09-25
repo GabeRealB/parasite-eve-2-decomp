@@ -631,7 +631,7 @@ void func_shelter_b1_sleeping_quarters_8017FA40(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_sleeping_quarters_8017FF6C(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Queues a flat, semi-transparent textured quad of half-size `arg1` lying

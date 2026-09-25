@@ -1521,7 +1521,7 @@ void func_mine_mesa_80180184(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 void func_mine_mesa_8018057C(Task* task)

@@ -880,7 +880,7 @@ void func_shelter_b1_elevator_hall_8017F980(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_elevator_hall_8017FEAC(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
@@ -1587,7 +1587,7 @@ void func_shelter_b1_elevator_hall_80181C6C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Impact task. It spawns effect 0x60076 at its coordinate, then either (with

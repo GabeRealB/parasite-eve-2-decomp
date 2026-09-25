@@ -1319,7 +1319,7 @@ void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
             func_shelter_b1_main_corridor_8018028C(&ground, outerSize);
         }
     }
-    SCRATCH_POP_BYTES(sizeof(GpRingScratch));
+    SCRATCH_POP(GpRingScratch);
 }
 
 /// Draws a semi-transparent textured square at `arg0`'s world translation,
@@ -2029,7 +2029,7 @@ void func_shelter_b1_main_corridor_8018204C(GsCOORDINATE2* arg0, GsCOORDINATE2* 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// A burst at the effect's coordinate: spawns effect 0x60076, then either

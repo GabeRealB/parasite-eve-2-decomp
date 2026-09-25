@@ -410,7 +410,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    SCRATCH_POP_BYTES(sizeof(OverlayRippleScratch));
+    SCRATCH_POP(OverlayRippleScratch);
 }
 
 s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)

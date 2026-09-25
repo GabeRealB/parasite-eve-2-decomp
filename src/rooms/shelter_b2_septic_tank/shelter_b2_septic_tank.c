@@ -1729,7 +1729,7 @@ void func_shelter_b2_septic_tank_80181B34(GsCOORDINATE2* arg0, GsCOORDINATE2* ar
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP_BYTES(sizeof(RoomDraw03Scratch));
+    SCRATCH_POP(RoomDraw03Scratch);
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
