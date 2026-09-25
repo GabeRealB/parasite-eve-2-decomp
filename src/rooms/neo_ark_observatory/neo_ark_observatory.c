@@ -22,6 +22,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #define gte_TransposeMatrix(src, dst)     \
@@ -62,23 +63,6 @@ typedef struct MapMarkerOut {
     byte pad_0[3];
     s8   field_3;
 } MapMarkerOut;
-
-/// Departure staged by the message handler `func_neo_ark_observatory_8017F6F8`
-/// and carried out by the departure task `func_neo_ark_observatory_8017F588`.
-/// `field_0`..`field_3` are the stage, area, warp and room the task commits to
-/// the save's location. `field_4` is the halfword the task sends to the player
-/// as message 0x3EE, where all ones sends nothing; `field_8` is the sound event
-/// it plays and waits out, where 0 plays none.
-typedef struct NeoArkObservatoryEventDesc {
-    u8   field_0;
-    u8   field_1;
-    u8   field_2;
-    u8   field_3;
-    u16  field_4;
-    byte pad_6[0x2];
-    s32  field_8;
-} NeoArkObservatoryEventDesc;
-STATIC_ASSERT_SIZEOF(NeoArkObservatoryEventDesc, 0xC);
 
 /// The save's location key, read byte-wise for its view and as one word to
 /// test its view and area together.
@@ -209,9 +193,9 @@ extern SVECTOR                D_neo_ark_observatory_80181564[];
 extern SVECTOR                D_neo_ark_observatory_80181574[];
 extern SVECTOR                D_neo_ark_observatory_8018157C[];
 
-extern GpAreaApplyRec             D_neo_ark_observatory_80187A28;
-extern NeoArkObservatoryEventDesc D_neo_ark_observatory_80187A30;
-extern s16                        D_neo_ark_observatory_80187A3C;
+extern GpAreaApplyRec D_neo_ark_observatory_80187A28;
+extern RoomDeparture  D_neo_ark_observatory_80187A30;
+extern s16            D_neo_ark_observatory_80187A3C;
 
 void func_neo_ark_observatory_8017D8A8(Task* task);
 s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
@@ -1027,7 +1011,7 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_neo_ark_observatory_80187A30.field_4;
+            msg.field_12 = D_neo_ark_observatory_80187A30.facing;
             if (msg.field_12 == -1) {
                 arg0->state = 2;
                 break;
@@ -1041,25 +1025,25 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
             }
             break;
         case 2:
-            if (D_neo_ark_observatory_80187A30.field_8 == 0) {
+            if (D_neo_ark_observatory_80187A30.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_neo_ark_observatory_80187A30.field_8, 0, 0);
+            SndEvt_EnqueueType6(D_neo_ark_observatory_80187A30.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_neo_ark_observatory_80187A30.field_8) == 0) {
+            if (SndVoice_HasActiveId(D_neo_ark_observatory_80187A30.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             D_80071076                = 1;
-            Mc_SaveData.at4.loc.stage = D_neo_ark_observatory_80187A30.field_0;
-            Mc_SaveData.at4.loc.area  = D_neo_ark_observatory_80187A30.field_1;
-            Mc_SaveData.at4.loc.warp  = D_neo_ark_observatory_80187A30.field_2;
-            Mc_SaveData.at4.loc.room  = D_neo_ark_observatory_80187A30.field_3;
+            Mc_SaveData.at4.loc.stage = D_neo_ark_observatory_80187A30.stage;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_observatory_80187A30.area;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_observatory_80187A30.warp;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_observatory_80187A30.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -1070,25 +1054,25 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
 
 /// Copies the area, warp and room of `desc` into a resolver record, lets
 /// `resolve` rewrite the record in place, and copies the result back.
-static __inline__ void _neoArkObservatoryStageMarker(NeoArkObservatoryEventDesc* desc, _MapMarkerResolve resolve)
+static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve)
 {
     MapMarkerRec rec;
 
-    rec.field_0  = desc->field_1;
-    rec.pad_2[0] = desc->field_2;
-    rec.pad_2[1] = desc->field_3;
+    rec.field_0  = desc->area;
+    rec.pad_2[0] = desc->warp;
+    rec.pad_2[1] = desc->room;
     rec.field_5  = 0;
     resolve(&rec, (MapMarkerOut*)&rec);
-    desc->field_1 = rec.field_0;
-    desc->field_2 = rec.pad_2[0];
-    desc->field_3 = rec.pad_2[1];
+    desc->area = rec.field_0;
+    desc->warp = rec.pad_2[0];
+    desc->room = rec.pad_2[1];
 }
 
 s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
 {
-    NeoArkObservatoryEventDesc desc;
-    _MapMarkerResolve          resolve;
-    s32                        temp;
+    RoomDeparture     desc;
+    _MapMarkerResolve resolve;
+    s32               temp;
 
     if (arg2->field_2 == 0xA) {
         if (GameFlag_GetNibble(0xD1) == 2) {
@@ -1100,13 +1084,13 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
                 _MapMarkerResolve resolve;
 
                 GameFlag_SetNibble(0xF7, 1);
-                desc.field_0 = 4;
-                desc.field_1 = 0x12;
-                desc.field_2 = 3;
-                desc.field_3 = temp;
-                desc.field_8 = 0x55070005;
-                desc.field_4 = 0x400;
-                resolve      = func_neo_ark_observatory_8017F44C;
+                desc.stage    = 4;
+                desc.area     = 0x12;
+                desc.warp     = 3;
+                desc.room     = temp;
+                desc.sndEvent = 0x55070005;
+                desc.facing   = 0x400;
+                resolve       = func_neo_ark_observatory_8017F44C;
                 Gp_MsgPlayerWeapon(0);
                 _neoArkObservatoryStageMarker(&desc, resolve);
                 D_neo_ark_observatory_80187A30 = desc;
@@ -1114,13 +1098,13 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
                 return 0;
             }
         }
-        desc.field_0 = 4;
-        desc.field_1 = arg2->field_3;
-        desc.field_3 = 1;
-        desc.field_2 = 4;
-        desc.field_8 = 0x55070005;
-        desc.field_4 = 0x400;
-        resolve      = func_neo_ark_observatory_8017F44C;
+        desc.stage    = 4;
+        desc.area     = arg2->field_3;
+        desc.room     = 1;
+        desc.warp     = 4;
+        desc.sndEvent = 0x55070005;
+        desc.facing   = 0x400;
+        resolve       = func_neo_ark_observatory_8017F44C;
         Gp_MsgPlayerWeapon(0);
         _neoArkObservatoryStageMarker(&desc, resolve);
         D_neo_ark_observatory_80187A30 = desc;

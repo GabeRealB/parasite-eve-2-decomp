@@ -2458,7 +2458,7 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
     switch (arg0->state) {
         case 0:
             /* Read unsigned, though the staging code stores it signed. */
-            msg.field_12 = (u16)D_shelter_b1_underground_parking_8018D77C.field_4;
+            msg.field_12 = (u16)D_shelter_b1_underground_parking_8018D77C.facing;
             if (msg.field_12 == -1) {
                 arg0->state = 2;
                 break;
@@ -2472,25 +2472,25 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b1_underground_parking_8018D77C.field_8 == 0) {
+            if (D_shelter_b1_underground_parking_8018D77C.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_shelter_b1_underground_parking_8018D77C.field_8, 0, 0);
+            SndEvt_EnqueueType6(D_shelter_b1_underground_parking_8018D77C.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_shelter_b1_underground_parking_8018D77C.field_8) == 0) {
+            if (SndVoice_HasActiveId(D_shelter_b1_underground_parking_8018D77C.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             D_80071076                = 1;
-            Mc_SaveData.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.field_0;
-            Mc_SaveData.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.field_1;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_b1_underground_parking_8018D77C.field_3;
+            Mc_SaveData.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
+            Mc_SaveData.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
+            Mc_SaveData.at4.loc.room  = D_shelter_b1_underground_parking_8018D77C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -2922,10 +2922,10 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 /// weapon and ends the task.
 void func_shelter_b1_underground_parking_80182DB4(Task* task)
 {
-    ShelterParkingDeparture  rec;
-    RoomEventMsg             msg;
-    ShelterParkingDeparture* p;
-    s32                      (*handler)(RoomEventMsg*, RoomEventMsg*);
+    RoomDeparture  rec;
+    RoomEventMsg   msg;
+    RoomDeparture* p;
+    s32            (*handler)(RoomEventMsg*, RoomEventMsg*);
 
     switch (task->state) {
         case 0:
@@ -2955,23 +2955,23 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                     GameFlag_SetNibble(0x11F, 2);
                     D_8007272D = 0x1B;
                 }
-                handler     = func_shelter_b1_underground_parking_80183124;
-                rec.field_0 = 5;
-                rec.field_1 = 1;
-                rec.field_3 = 1;
-                rec.field_2 = 1;
-                rec.field_8 = 0x54140008;
-                rec.field_4 = -1;
+                handler      = func_shelter_b1_underground_parking_80183124;
+                rec.stage    = 5;
+                rec.area     = 1;
+                rec.room     = 1;
+                rec.warp     = 1;
+                rec.sndEvent = 0x54140008;
+                rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
                 p           = &rec;
-                msg.msgId   = p->field_1;
-                msg.field_2 = p->field_2;
-                msg.field_3 = p->field_3;
+                msg.msgId   = p->area;
+                msg.field_2 = p->warp;
+                msg.field_3 = p->room;
                 msg.field_5 = 0;
                 handler(&msg, &msg);
-                p->field_1                                = msg.msgId;
-                p->field_2                                = msg.field_2;
-                p->field_3                                = msg.field_3;
+                p->area                                   = msg.msgId;
+                p->warp                                   = msg.field_2;
+                p->room                                   = msg.field_3;
                 D_shelter_b1_underground_parking_8018D77C = rec;
                 Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);

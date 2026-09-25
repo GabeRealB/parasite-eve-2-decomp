@@ -22,6 +22,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Parameter block of `func_dryfield_night_water_hole_8017D6AC`, the room-local
@@ -33,7 +34,7 @@
 /// through unchanged, `field_3` is the byte the resolver writes, and `field_5`
 /// is a busy flag - non-zero makes the resolver return immediately without
 /// reading or writing anything else. The caller stages the block from the
-/// `DnwhEventDesc` it is about to publish and copies `field_3` back into it.
+/// `RoomDeparture` it is about to publish and copies `field_3` back into it.
 typedef struct DnwhUtilParam {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -42,28 +43,6 @@ typedef struct DnwhUtilParam {
     /* 0x5 */ u8  field_5;
 } DnwhUtilParam;
 STATIC_ASSERT_SIZEOF(DnwhUtilParam, 0x6);
-
-/// The twelve bytes `func_dryfield_night_water_hole_8017DC28` stages in
-/// `D_dryfield_night_water_hole_80183630` before spawning the room's event task
-/// from `D_dryfield_night_water_hole_801805EC`.
-///
-/// The task that consumes it, `func_dryfield_night_water_hole_8017D7E8`, sends
-/// `field_4` to the slot-3 game pointer as message 0x3EE (0xFFFF: nothing to
-/// send) and plays `field_8` as a sound event (0: none). Once that sound goes
-/// quiet it commits the save location in `field_0`..`field_3` (stage, area,
-/// warp, room) and re-spawns the player task as type 0x11.
-///
-/// `field_6` is never read or written by either side, so it is padding.
-typedef struct DnwhEventDesc {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ u16  field_4;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s32  field_8;
-} DnwhEventDesc;
-STATIC_ASSERT_SIZEOF(DnwhEventDesc, 0xC);
 
 /// One entry of the NULL-terminated override list
 /// `func_dryfield_night_water_hole_8017DE88` walks: the record the entry
@@ -142,7 +121,7 @@ extern u8* D_dryfield_night_water_hole_80183628;
 /// Frame counter the water surface's wave is phased by.
 extern s16 D_dryfield_night_water_hole_8018362C;
 /// The staged event descriptor, read by the room's event task.
-extern DnwhEventDesc D_dryfield_night_water_hole_80183630;
+extern RoomDeparture D_dryfield_night_water_hole_80183630;
 
 void func_dryfield_night_water_hole_8017DE20(Task* task);
 void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
@@ -250,9 +229,9 @@ s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* ou
 
 /// The room's event task, run on the descriptor staged in
 /// `D_dryfield_night_water_hole_80183630`. State 0 sends the
-/// descriptor's `field_4` to the slot-3 game pointer as message 0x3EE, skipping
-/// to state 2 when it is 0xFFFF; state 1 waits until that pointer answers 0x3F0
-/// with 0. States 2 and 3 play the sound event `field_8`, if any, and wait for
+/// descriptor's `facing` to the slot-3 game pointer as message 0x3EE, skipping
+/// to state 2 when it is -1; state 1 waits until that pointer answers 0x3F0
+/// with 0. States 2 and 3 play the sound event `sndEvent`, if any, and wait for
 /// its voice to go quiet. State 4 queues type-7 sound event 0x80000000, commits
 /// the save location in the descriptor's first four bytes (stage, area, warp,
 /// room), re-spawns the player task as type 0x11 and kills itself.
@@ -264,7 +243,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_dryfield_night_water_hole_80183630.field_4;
+            msg.field_12 = D_dryfield_night_water_hole_80183630.facing;
             if (msg.field_12 == -1) {
                 arg0->state = 2;
                 break;
@@ -278,25 +257,25 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
             }
             break;
         case 2:
-            if (D_dryfield_night_water_hole_80183630.field_8 == 0) {
+            if (D_dryfield_night_water_hole_80183630.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_dryfield_night_water_hole_80183630.field_8, 0, 0);
+            SndEvt_EnqueueType6(D_dryfield_night_water_hole_80183630.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_dryfield_night_water_hole_80183630.field_8) == 0) {
+            if (SndVoice_HasActiveId(D_dryfield_night_water_hole_80183630.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             D_80071076                = 1;
-            Mc_SaveData.at4.loc.stage = D_dryfield_night_water_hole_80183630.field_0;
-            Mc_SaveData.at4.loc.area  = D_dryfield_night_water_hole_80183630.field_1;
-            Mc_SaveData.at4.loc.warp  = D_dryfield_night_water_hole_80183630.field_2;
-            Mc_SaveData.at4.loc.room  = D_dryfield_night_water_hole_80183630.field_3;
+            Mc_SaveData.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
+            Mc_SaveData.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
+            Mc_SaveData.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
+            Mc_SaveData.at4.loc.room  = D_dryfield_night_water_hole_80183630.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -409,8 +388,8 @@ s32 func_dryfield_night_water_hole_8017DADC(s32 arg0, s32 arg1, RoomEventMsg* in
 /// `arg2`, and only 2 concerns this room.
 ///
 /// With progress nibble 0xB8 set the room's event task is spawned: this stages
-/// a `DnwhEventDesc` for it, hands the code in `field_1` to the room's resolver
-/// for one last say over `field_3`, publishes the descriptor to
+/// a `RoomDeparture` for it, hands the code in `area` to the room's resolver
+/// for one last say over `room`, publishes the descriptor to
 /// `D_dryfield_night_water_hole_80183630` and spawns the task from
 /// `D_dryfield_night_water_hole_801805EC`. The code staged is 0x2E, past the end
 /// of the resolver's jump table, so the byte comes back as it went in.
@@ -419,30 +398,30 @@ s32 func_dryfield_night_water_hole_8017DADC(s32 arg0, s32 arg1, RoomEventMsg* in
 /// it, and the sound is enqueued here instead of by the spawned task.
 s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    DnwhEventDesc work;
+    RoomDeparture work;
     DnwhUtilParam param;
 
     if (arg2 == 2) {
         if (GameFlag_GetNibble(0xB8) != 0) {
-            DnwhEventDesc* wp;
+            RoomDeparture* wp;
             s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) = func_dryfield_night_water_hole_8017D6AC;
 
-            work.field_0 = 4;
-            work.field_1 = 0x2E;
-            work.field_3 = 1;
-            work.field_2 = 3;
-            work.field_8 = 0x53200007;
-            work.field_4 = 0xC00;
+            work.stage    = 4;
+            work.area     = 0x2E;
+            work.room     = 1;
+            work.warp     = 3;
+            work.sndEvent = 0x53200007;
+            work.facing   = 0xC00;
             Gp_MsgPlayerWeapon(0);
             wp            = &work;
-            param.field_0 = wp->field_1;
-            param.field_2 = wp->field_2;
-            param.field_3 = wp->field_3;
+            param.field_0 = wp->area;
+            param.field_2 = wp->warp;
+            param.field_3 = wp->room;
             param.field_5 = 0;
             resolve(&param, &param);
-            wp->field_1                          = param.field_0;
-            wp->field_2                          = param.field_2;
-            wp->field_3                          = param.field_3;
+            wp->area                             = param.field_0;
+            wp->warp                             = param.field_2;
+            wp->room                             = param.field_3;
             D_dryfield_night_water_hole_80183630 = work;
             Task_SpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {

@@ -25,29 +25,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// The twelve bytes the room's message handler stages before spawning a task
-/// from `D_shelter_b2_main_corridor_80182C44`. `field_1` takes either the
-/// triggering message's `field_3` or a fixed value, chosen together with
-/// `field_0`. Once the staged block has been passed through
-/// `func_shelter_b2_main_corridor_8017E0FC`, the event task copies it whole and
-/// reads the copy as a destination (`field_0` to `field_3`: stage, area, warp,
-/// room), a halfword to send to the slot-3 game pointer (`field_4`, -1 for
-/// none) and a sound to play (`field_8`, zero for none).
-///
-/// The layout matches the event blocks other rooms stage the same way
-/// (`ShelterB4WaterSupplyEventDesc`, `NeoArkObservatoryEventDesc`); whether they
-/// are one type is open. `pad_6` is never touched here.
-typedef struct ShelterB2MainCorridorEventDesc {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ s16  field_4;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s32  field_8;
-} ShelterB2MainCorridorEventDesc;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorEventDesc, 0xC);
-
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
 /// is not otherwise read.
@@ -100,14 +77,14 @@ extern u8 D_shelter_b2_main_corridor_8018965C;
 
 /// A second copy of the staged event block, taken whole once the block has been
 /// passed through `func_shelter_b2_main_corridor_8017E0FC`.
-extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189664;
+extern RoomDeparture D_shelter_b2_main_corridor_80189664;
 
 /// The exit being taken, read by the exit task.
 extern RoomLatchedEvent D_shelter_b2_main_corridor_80189674;
 
 /// The staged event block, read by the task spawned from
 /// `D_shelter_b2_main_corridor_80182C44`.
-extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189684;
+extern RoomDeparture D_shelter_b2_main_corridor_80189684;
 
 /// Descriptor of the task spawned after the staged block has been copied.
 extern TaskDesc D_shelter_b2_main_corridor_801828E4;
@@ -172,10 +149,10 @@ void func_shelter_b2_main_corridor_80181F20(GsCOORDINATE2* arg0, s16 arg1, u8* a
 
 /// Carries out a staged event once the message handler has passed it through
 /// `func_shelter_b2_main_corridor_8017E0FC`, from the copy in
-/// `D_shelter_b2_main_corridor_80189664`. State 0 sends the event's `field_4`
+/// `D_shelter_b2_main_corridor_80189664`. State 0 sends the event's `facing`
 /// to the slot-3 game pointer as message 0x3EE, unless it is -1, in which case
 /// it skips to state 2; state 1 polls that pointer with message 0x3F0 until it
-/// answers 0. States 2 and 3 queue the event's sound `field_8`, if any, and
+/// answers 0. States 2 and 3 queue the event's sound `sndEvent`, if any, and
 /// wait for its voice to end. State 4 copies the event's stage, area, warp and
 /// room into the save location and spawns the room-load task 0x11.
 void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
@@ -186,7 +163,7 @@ void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_shelter_b2_main_corridor_80189664.field_4;
+            msg.field_12 = D_shelter_b2_main_corridor_80189664.facing;
             if (msg.field_12 == -1) {
                 arg0->state = 2;
                 break;
@@ -200,25 +177,25 @@ void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b2_main_corridor_80189664.field_8 == 0) {
+            if (D_shelter_b2_main_corridor_80189664.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_shelter_b2_main_corridor_80189664.field_8, 0, 0);
+            SndEvt_EnqueueType6(D_shelter_b2_main_corridor_80189664.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_shelter_b2_main_corridor_80189664.field_8) == 0) {
+            if (SndVoice_HasActiveId(D_shelter_b2_main_corridor_80189664.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             D_80071076                = 1;
-            Mc_SaveData.at4.loc.stage = D_shelter_b2_main_corridor_80189664.field_0;
-            Mc_SaveData.at4.loc.area  = D_shelter_b2_main_corridor_80189664.field_1;
-            Mc_SaveData.at4.loc.warp  = D_shelter_b2_main_corridor_80189664.field_2;
-            Mc_SaveData.at4.loc.room  = D_shelter_b2_main_corridor_80189664.field_3;
+            Mc_SaveData.at4.loc.stage = D_shelter_b2_main_corridor_80189664.stage;
+            Mc_SaveData.at4.loc.area  = D_shelter_b2_main_corridor_80189664.area;
+            Mc_SaveData.at4.loc.warp  = D_shelter_b2_main_corridor_80189664.warp;
+            Mc_SaveData.at4.loc.room  = D_shelter_b2_main_corridor_80189664.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -369,16 +346,16 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2
         if (arg2->field_3 == 7) {
             if (GameFlag_GetNibble(0xAE) != 0) {
                 if (GameFlag_GetNibble(0xDA) != 0) {
-                    D_shelter_b2_main_corridor_80189684.field_0 = 5;
-                    D_shelter_b2_main_corridor_80189684.field_1 = arg2->field_3;
+                    D_shelter_b2_main_corridor_80189684.stage = 5;
+                    D_shelter_b2_main_corridor_80189684.area  = arg2->field_3;
                 } else {
-                    D_shelter_b2_main_corridor_80189684.field_0 = 4;
-                    D_shelter_b2_main_corridor_80189684.field_1 = 0x31;
+                    D_shelter_b2_main_corridor_80189684.stage = 4;
+                    D_shelter_b2_main_corridor_80189684.area  = 0x31;
                 }
-                D_shelter_b2_main_corridor_80189684.field_3 = 1;
-                D_shelter_b2_main_corridor_80189684.field_2 = 1;
-                D_shelter_b2_main_corridor_80189684.field_8 = 0;
-                D_shelter_b2_main_corridor_80189684.field_4 = -1;
+                D_shelter_b2_main_corridor_80189684.room     = 1;
+                D_shelter_b2_main_corridor_80189684.warp     = 1;
+                D_shelter_b2_main_corridor_80189684.sndEvent = 0;
+                D_shelter_b2_main_corridor_80189684.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
             } else {
@@ -401,12 +378,12 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2
             } else {
                 id = 7;
             }
-            D_shelter_b2_main_corridor_80189684.field_0 = 5;
-            D_shelter_b2_main_corridor_80189684.field_1 = arg2->field_3;
-            D_shelter_b2_main_corridor_80189684.field_3 = 1;
-            D_shelter_b2_main_corridor_80189684.field_2 = 1;
-            D_shelter_b2_main_corridor_80189684.field_8 = 0;
-            D_shelter_b2_main_corridor_80189684.field_4 = -1;
+            D_shelter_b2_main_corridor_80189684.stage    = 5;
+            D_shelter_b2_main_corridor_80189684.area     = arg2->field_3;
+            D_shelter_b2_main_corridor_80189684.room     = 1;
+            D_shelter_b2_main_corridor_80189684.warp     = 1;
+            D_shelter_b2_main_corridor_80189684.sndEvent = 0;
+            D_shelter_b2_main_corridor_80189684.facing   = -1;
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }
@@ -458,10 +435,10 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             arg0->state++;
             break;
         case 4:
-            if (D_shelter_b2_main_corridor_80189684.field_1 == 7 && GameFlag_GetNibble(0xD1) == 2) {
+            if (D_shelter_b2_main_corridor_80189684.area == 7 && GameFlag_GetNibble(0xD1) == 2) {
                 GameFlag_SetNibble(0x4C, 9);
             }
-            if (D_shelter_b2_main_corridor_80189684.field_1 == 0x31) {
+            if (D_shelter_b2_main_corridor_80189684.area == 0x31) {
                 if (GameFlag_GetNibble(0xD1) == 2) {
                     GameFlag_SetNibble(0x4C, 9);
                 }
@@ -470,22 +447,22 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
                     GameFlag_SetNibble(0x7A, 5);
                 }
             }
-            if (D_shelter_b2_main_corridor_80189684.field_1 == 8) {
+            if (D_shelter_b2_main_corridor_80189684.area == 8) {
                 if (GameFlag_GetNibble(0xDF) == 1) {
                     GameFlag_SetNibble(0xF8, 1);
                 }
             }
             resolve = func_shelter_b2_main_corridor_8017E0FC;
             Gp_MsgPlayerWeapon(0);
-            param.msgId   = D_shelter_b2_main_corridor_80189684.field_1;
-            param.field_2 = D_shelter_b2_main_corridor_80189684.field_2;
-            param.field_3 = D_shelter_b2_main_corridor_80189684.field_3;
+            param.msgId   = D_shelter_b2_main_corridor_80189684.area;
+            param.field_2 = D_shelter_b2_main_corridor_80189684.warp;
+            param.field_3 = D_shelter_b2_main_corridor_80189684.room;
             param.field_5 = 0;
             resolve(&param, &param);
-            D_shelter_b2_main_corridor_80189684.field_1 = param.msgId;
-            D_shelter_b2_main_corridor_80189684.field_2 = param.field_2;
-            D_shelter_b2_main_corridor_80189684.field_3 = param.field_3;
-            D_shelter_b2_main_corridor_80189664         = D_shelter_b2_main_corridor_80189684;
+            D_shelter_b2_main_corridor_80189684.area = param.msgId;
+            D_shelter_b2_main_corridor_80189684.warp = param.field_2;
+            D_shelter_b2_main_corridor_80189684.room = param.field_3;
+            D_shelter_b2_main_corridor_80189664      = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E4, 0, 0, 0);
             taskKill(arg0);
             break;

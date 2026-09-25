@@ -78,4 +78,21 @@ typedef struct RoomShopTier {
 } RoomShopTier;
 STATIC_ASSERT_SIZEOF(RoomShopTier, 0xC);
 
+/// Where a room sends the player when it moves them on, staged by the room
+/// before it spawns its departure task. The room first runs `area`, `warp`
+/// and `room` through its message handler, which may rewrite them. The task
+/// then turns the player to `facing`, plays `sndEvent` and waits for it, and
+/// finally commits the four location bytes as the save location and restarts
+/// the player task.
+typedef struct RoomDeparture {
+    u8   stage;
+    u8   area;
+    u8   warp;
+    u8   room;
+    s16  facing;   // Heading sent to the player as message 0x3EE; -1 sends nothing
+    byte pad_6[0x2];
+    s32  sndEvent; // Sound event played before leaving; 0 for none
+} RoomDeparture;
+STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
+
 #endif /* ROOMS_ROOM_H */

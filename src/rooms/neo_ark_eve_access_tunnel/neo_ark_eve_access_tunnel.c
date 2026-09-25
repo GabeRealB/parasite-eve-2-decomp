@@ -11,6 +11,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/neo_ark_eve_access_tunnel.h"
+#include "rooms/room.h"
 
 /// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
 /// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
@@ -19,7 +20,7 @@
 /// `field_0` is the code the resolver switches on, `field_2` passes through
 /// unchanged, `field_3` is the byte it writes, and a non-zero `field_5` makes it
 /// return without touching anything. The caller stages the block from the
-/// `NaetEventDesc` it is about to publish and copies `field_3` back into it.
+/// `RoomDeparture` it is about to publish and copies `field_3` back into it.
 typedef struct NaetUtilParam {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -29,36 +30,12 @@ typedef struct NaetUtilParam {
 } NaetUtilParam;
 STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
-/// The twelve bytes `func_neo_ark_eve_access_tunnel_8017D980` stages in
-/// `D_neo_ark_eve_access_tunnel_801807A8` before spawning the tunnel's outgoing
-/// task from `D_neo_ark_eve_access_tunnel_8017EA88`.
-///
-/// The task that consumes it is the outgoing task,
-/// `func_neo_ark_eve_access_tunnel_8017D810`: `field_4` is the halfword it
-/// forwards as message 0x3EE and gives up on when it reads 0xFFFF, `field_8` the
-/// sound event it queues and polls, and the four bytes at 0x0 are the
-/// save-location block it copies into `Mc_SaveData`'s 0x5..0x8. `field_1` is the
-/// code `func_neo_ark_eve_access_tunnel_8017D980` hands its resolver, staged
-/// from the task's `spawnArg1`.
-///
-/// `field_6` is never read or written by either side, so it is padding.
-typedef struct NaetEventDesc {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ u16  field_4;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s32  field_8;
-} NaetEventDesc;
-STATIC_ASSERT_SIZEOF(NaetEventDesc, 0xC);
-
 /// Descriptor the tunnel's outgoing task is spawned from, index 0 of the table
 /// `func_neo_ark_eve_access_tunnel_8017D980` hands `Task_SpawnFromTable`.
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 
 /// The staged event descriptor, read by the task spawned above.
-extern NaetEventDesc D_neo_ark_eve_access_tunnel_801807A8;
+extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
 extern s8 D_8007272D;
@@ -184,9 +161,9 @@ s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* 
 
 /// The tunnel's outgoing task, run on the descriptor staged in
 /// `D_neo_ark_eve_access_tunnel_801807A8`. State 0 sends the descriptor's
-/// `field_4` to the task in pointer slot 3 as message 0x3EE, skipping to state 2
-/// when it is 0xFFFF; state 1 waits until that task answers 0x3F0 with 0. States
-/// 2 and 3 queue the sound event `field_8`, if any, and wait for its voice to go
+/// `facing` to the task in pointer slot 3 as message 0x3EE, skipping to state 2
+/// when it is -1; state 1 waits until that task answers 0x3F0 with 0. States
+/// 2 and 3 queue the sound event `sndEvent`, if any, and wait for its voice to go
 /// quiet. State 4 queues type-7 sound event 0x80000000, commits the save
 /// location in the descriptor's first four bytes (stage, area, warp, room) to
 /// `Mc_SaveData`, spawns task type 0x11 and ends the task.
@@ -198,7 +175,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.field_12 = D_neo_ark_eve_access_tunnel_801807A8.field_4;
+            msg.field_12 = D_neo_ark_eve_access_tunnel_801807A8.facing;
             if (msg.field_12 == -1) {
                 arg0->state = 2;
                 break;
@@ -212,25 +189,25 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             }
             break;
         case 2:
-            if (D_neo_ark_eve_access_tunnel_801807A8.field_8 == 0) {
+            if (D_neo_ark_eve_access_tunnel_801807A8.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_neo_ark_eve_access_tunnel_801807A8.field_8, 0, 0);
+            SndEvt_EnqueueType6(D_neo_ark_eve_access_tunnel_801807A8.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_neo_ark_eve_access_tunnel_801807A8.field_8) == 0) {
+            if (SndVoice_HasActiveId(D_neo_ark_eve_access_tunnel_801807A8.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             D_80071076                = 1;
-            Mc_SaveData.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.field_0;
-            Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.field_1;
-            Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.field_2;
-            Mc_SaveData.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.field_3;
+            Mc_SaveData.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
+            Mc_SaveData.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
+            Mc_SaveData.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
+            Mc_SaveData.at4.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -280,27 +257,27 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             task->state++;
             return;
         case 4: {
-            NaetEventDesc  work;
+            RoomDeparture  work;
             NaetUtilParam  param;
-            NaetEventDesc* wp;
+            RoomDeparture* wp;
             s32            (*resolve)(NaetUtilParam*, NaetUtilParam*) = func_neo_ark_eve_access_tunnel_8017D6D4;
 
-            work.field_0 = 4;
-            work.field_1 = (u8)task->spawnArg1;
-            work.field_3 = 1;
-            work.field_2 = 2;
-            work.field_8 = 0;
-            work.field_4 = 0x800;
+            work.stage    = 4;
+            work.area     = (u8)task->spawnArg1;
+            work.room     = 1;
+            work.warp     = 2;
+            work.sndEvent = 0;
+            work.facing   = 0x800;
             Gp_MsgPlayerWeapon(0);
             wp            = &work;
-            param.field_0 = wp->field_1;
-            param.field_2 = wp->field_2;
-            param.field_3 = wp->field_3;
+            param.field_0 = wp->area;
+            param.field_2 = wp->warp;
+            param.field_3 = wp->room;
             param.field_5 = 0;
             resolve(&param, &param);
-            wp->field_1                          = param.field_0;
-            wp->field_2                          = param.field_2;
-            wp->field_3                          = param.field_3;
+            wp->area                             = param.field_0;
+            wp->warp                             = param.field_2;
+            wp->room                             = param.field_3;
             D_neo_ark_eve_access_tunnel_801807A8 = work;
             Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
             taskKill(task);

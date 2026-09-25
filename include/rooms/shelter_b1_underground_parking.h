@@ -7,6 +7,7 @@
 
 #include "main/task.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
@@ -30,23 +31,8 @@ typedef struct SbupExamineWork {
     /* 0x0F */ byte pad_F[0x1];
 } SbupExamineWork;
 
-/// A staged departure from the room. The departure task forwards `field_4` as
-/// message 0x3EE to the slot-3 game pointer (0xFFFF skips the message), plays
-/// `field_8` as a sound event and waits for it to finish (0 skips it), then
-/// commits `field_0`..`field_3` as the save location's stage, area, warp and
-/// room and restarts the player task.
-typedef struct ShelterParkingDeparture {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ s16  field_4;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s32  field_8;
-} ShelterParkingDeparture;
-
 /// The departure the departure task carries out.
-extern ShelterParkingDeparture D_shelter_b1_underground_parking_8018D77C;
+extern RoomDeparture D_shelter_b1_underground_parking_8018D77C;
 
 /// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
 /// is the scene's sub-task.
