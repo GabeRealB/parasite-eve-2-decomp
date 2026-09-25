@@ -3749,22 +3749,12 @@ objects = [
 ]
 
 [actors.overlays.actor_120400]
+label = "One code object: its rodata holds only the four C tables at 0x4..0x3C and no compiled jump table"
 slot = 1
 id = 110
 objects = [
   { kind = "packageId" },
   { unit = "actor_120400/actor_120400", rodata = "0x4", text = "0x3C" },
-  { unit = "actor_120400/actor_120400_2", rodata = "0x1C", text = "0x784" },
-  { unit = "actor_120400/actor_120400_7", text = "0x72C" },
-  { unit = "actor_120400/actor_120400_8", text = "0x890" },
-  { unit = "actor_120400/actor_120400_3", text = "0x928" },
-  { unit = "actor_120400/actor_120400_9", text = "0x994" },
-  { unit = "actor_120400/actor_120400_10", text = "0x9B4" },
-  { unit = "actor_120400/actor_120400_4", text = "0x9D0" },
-  { unit = "actor_120400/actor_120400_11", text = "0x9D8" },
-  { unit = "actor_120400/actor_120400_5", text = "0xB80" },
-  { unit = "actor_120400/actor_120400_12", text = "0xD9C" },
-  { unit = "actor_120400/actor_120400_6", text = "0xE18" },
   { kind = "model", at = "0xEFC" },
   { kind = "model", at = "0x5A40" },
   { kind = "model", at = "0x5E94" },
