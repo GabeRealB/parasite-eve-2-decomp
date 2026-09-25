@@ -1,15 +1,103 @@
 #include "common.h"
 
-#include "actors/actor_310600.h"
+#include <psyq/libgte.h>
+
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// The actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-extern TaskFuncTable3 D_actor_310600_80161E24;
+/// 0x538-byte work block `func_actor_310600_80161E64` allocates with
+/// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
+/// linked by `Gp_LinkObj` at spawn (its `ctx.recs` points at `rec`, the
+/// `GpRec18` table `Gp_InitRec18Table` fills) and unlinked again by the
+/// exit callback `func_actor_310600_80162A24`.
+///
+/// `light` / `color` are the actor's own lighting and colour matrices;
+/// `func_actor_310600_80162A58` republishes them onto the model's
+/// `TmdObject::lightMtx` / `colorMtx` in place of the shared defaults
+/// `Gp_BindDefaultMtx` installs.
+///
+/// The block is fronted by the animation context `func_actor_310600_8016246C`
+/// drives: the `GpAnimCtx` (`func_800B3F84` takes the block address), the
+/// twenty `GpAnimSlot`s immediately above it, and the 0x140-byte table
+/// `func_800B3F84` also takes at 0x334. `field_474` is the once-only latch the
+/// slots are started through, and `field_476` / `field_475` are the animation
+/// bank index and the animation id, latched on change and re-read from the
+/// block by the loops below them.
+typedef struct Actor310600Work {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x14];
+    /* 0x334 */ byte       field_334[0x140];
+    /* 0x474 */ s8         field_474;
+    /* 0x475 */ s8         field_475;
+    /* 0x476 */ s8         field_476;
+    /* 0x477 */ s8         field_477;
+    /* 0x478 */ s16        field_478;
+    /* 0x47A */ s16        field_47A;
+    /* 0x47C */ s16        field_47C;
+    /* 0x47E */ u16        field_47E;
+    /* 0x480 */ MATRIX     light;
+    /* 0x4A0 */ MATRIX     color;
+    /* 0x4C0 */ GpObj      obj;
+    /* 0x4E0 */ GpRec18    rec;
+    /* 0x4F8 */ s32        field_4F8;
+    /* 0x4FC */ s32        field_4FC;
+    /* 0x500 */ s32        field_500;
+    /* 0x504 */ byte       pad_504[0x4];
+    /* 0x508 */ VECTOR3    step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x514 */ byte       pad_514[0x4];
+    /* 0x518 */ s32        field_518;
+    /* 0x51C */ s32        field_51C;
+    /* 0x520 */ s32        field_520;
+    /* 0x524 */ byte       pad_524[0x4];
+    /* 0x528 */ SVECTOR    limit; // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x530 */ byte       pad_530[0x8];
+} Actor310600Work;
+STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
+
+/// Overlay of the `GsCOORDINATE2` at `TmdObject::coords`, the actor's root
+/// part. Offset 0x44 (libgs `param`, `super` at 0x48) holds the Euler angles
+/// `func_actor_310600_80162AD8` and `func_actor_310600_80162C18` write and then
+/// hand straight to `RotMatrix`.
+typedef struct Actor310600Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor310600Coord;
+STATIC_ASSERT_SIZEOF(Actor310600Coord, 0x4C);
+
+/// The 0x14-byte command block the actor's state handlers build on the stack
+/// and hand to `func_actor_310600_8016246C`, which reads it as
+/// `{animId, state, path, param}`.
+typedef struct Actor310600Cmd {
+    /* 0x00 */ s32 animId;
+    /* 0x04 */ s32 state;
+    /* 0x08 */ s32 path;
+    /* 0x0C */ s32 param;
+    /* 0x10 */ s32 unk10;
+} Actor310600Cmd;
+
+/// Placement block `func_actor_310600_80162C18` receives: a world translation
+/// followed by the Euler angles handed to `RotMatrix`.
+typedef struct Actor310600Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor310600Placement;
+STATIC_ASSERT_SIZEOF(Actor310600Placement, 0x18);
+
+/// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
+/// setup entry it is spawned from is `func_actor_310600_80161E64`.
+extern TaskDesc D_actor_310600_801796A4[];
+
+/// The overlay's `GpMsgEntry` table, parked in `Task::msgTable`.
+extern GpMsgEntry D_actor_310600_801796BC[];
 
 /// Per-animation cue lists: `D_actor_310600_80179660[field_475]` is a
 /// zero-terminated list of the frames at which that animation fires its effect.
@@ -18,8 +106,66 @@ extern SVECTOR D_actor_310600_80179694;
 extern s32     D_actor_310600_8017969C;
 extern s32     D_actor_310600_801796A0;
 
+extern void* D_actor_310600_80179640[]; // animation bank table `work->field_476` indexes
+extern s8    D_actor_310600_80179644[]; // extra ticks owed to the animation id in `work->field_475`
+
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 extern TaskDesc D_80182AD8[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+
+void func_actor_310600_80161E64(Task* task);
+void func_actor_310600_80161FA0(Task* task);
+void func_actor_310600_8016231C(Task* arg0);
+s32  func_actor_310600_8016246C(Task* task, s32 arg1, Actor310600Cmd* cmd, s32 arg3);
+s32  func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
+void func_actor_310600_801627A4(Task* task);
+void func_actor_310600_801628B0(Task* task);
+void func_actor_310600_80162948(Task* task);
+void func_actor_310600_801629C4(Task* task);
+void func_actor_310600_80162A24(Task* arg0);
+void func_actor_310600_80162A58(Task* arg0);
+void func_actor_310600_80162A74(void);
+void func_actor_310600_80162A7C(Task* task);
+void func_actor_310600_80162AD8(Task* task);
+void func_actor_310600_80162B98(Task* task);
+
+/// State handlers of the child part task, which `func_actor_310600_8016274C`
+/// runs by `Task::state`: setup, tick and exit.
+const TaskFuncTable3 D_actor_310600_80161E24 = { {
+    func_actor_310600_801627A4,
+    func_actor_310600_801628B0,
+    taskKill,
+} };
+
+/// A second child handler triple - attach to the parent's part, an empty tick,
+/// exit. No dispatcher in this package reads it.
+const TaskFuncTable3 D_actor_310600_80161E30 = { {
+    func_actor_310600_80162948,
+    func_actor_310600_801629C4,
+    taskKill,
+} };
+
+/// The actor's own state handlers, which `func_actor_310600_801629CC` runs by
+/// `Task::state`: spawn/setup, per-frame tick and teardown.
+const TaskFuncTable3 D_actor_310600_80161E3C = { {
+    func_actor_310600_80161E64,
+    func_actor_310600_80161FA0,
+    func_actor_310600_80162A24,
+} };
+
+/// The actor's movement steps, which `func_actor_310600_80162A7C` runs by
+/// `field_47E`: turn to face the target point, start moving, stop on arrival.
+const TaskFuncTable3 D_actor_310600_80161E48 = { {
+    func_actor_310600_80162AD8,
+    func_actor_310600_80162B98,
+    func_actor_310600_8016231C,
+} };
+
+/// The constant local-space offset `func_actor_310600_80162B98` rotates,
+/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
+const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
 
 void func_actor_310600_80161E64(Task* task)
 {
@@ -59,8 +205,6 @@ void func_actor_310600_80161E64(Task* task)
     task->exitCallback = func_actor_310600_80162A24;
     task->state++;
 }
-
-void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 /// The actor's per-frame handler. Runs the entry of its second state table that
 /// `field_47C` selects, then advances the root part by `step`: each axis'
@@ -215,12 +359,8 @@ void func_actor_310600_8016231C(Task* arg0)
     work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
-void         func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-extern void* D_actor_310600_80179640[]; // animation bank table `work->field_476` indexes
-extern s8    D_actor_310600_80179644[]; // extra ticks owed to the animation id in `work->field_475`
-
-/// Animation preset handler of message 0x7D3, the twenty-slot twin of
-/// `func_actor_335800_801632A4`: re-seeds the slot array off bank table
+/// Animation preset handler of message 0x7D3: re-seeds the slot array off bank
+/// table
 /// `D_actor_310600_80179640` when the preset's bank index changes -- clearing
 /// the latched id to -1 so the state below is re-applied -- then restarts or
 /// resets every slot and ticks them, repeating the tick pass `1 +
@@ -343,7 +483,6 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     }
     return ret;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_310600/actor_310600", D_actor_310600_80161E24);
 
 void func_actor_310600_8016274C(Task* task)
 {
@@ -393,8 +532,209 @@ void func_actor_310600_801627A4(Task* task)
     task->state++;
 }
 
-INCLUDE_RODATA("actors/nonmatchings/actor_310600/actor_310600", D_actor_310600_80161E3C);
+/// Keeps a child model's visibility in step with its parent's: bits 0x80
+/// (hidden) and 0x4 (buffers released) of the parent task's `TmdObject` - the
+/// task named by `spawnArg2` - are copied onto the calling task's own object.
+/// When bit 0x4 comes off, the child's draw buffers are rebuilt through
+/// `Tmd_AllocBuffers`.
+void func_actor_310600_801628B0(Task* task)
+{
+    TmdObject* parentObject;
+    TmdObject* object;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_310600/actor_310600", D_actor_310600_80161E48);
+    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
+    object       = (TmdObject*)task->extra;
 
-INCLUDE_RODATA("actors/nonmatchings/actor_310600/actor_310600", D_actor_310600_80161E54);
+    if (!(parentObject->flags & 0x80)) {
+        object->flags &= 0xFF7F;
+    } else {
+        object->flags |= 0x80;
+    }
+    if (!(parentObject->flags & 4)) {
+        object->flags &= 0xFFFB;
+        Tmd_AllocBuffers(object);
+        return;
+    }
+    object->flags |= 4;
+}
+
+/// Attaches a child model to the part of its parent's skeleton named by the
+/// spawn arguments (`spawnArg2` the parent task, `spawnArg1` the part): the
+/// child's root coordinate is chained under that part's coordinate, the
+/// parent's light and colour matrices are shared, and the task is reparented
+/// so it is updated with the parent.
+void func_actor_310600_80162948(Task* task)
+{
+    Task*          parent;
+    s32            part;
+    TmdObject*     extra;
+    TmdObject*     parentExtra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* dest;
+
+    parent          = (Task*)task->spawnArg2;
+    part            = task->spawnArg1;
+    extra           = (TmdObject*)task->extra;
+    parentExtra     = (TmdObject*)parent->extra;
+    coord           = extra->coords;
+    dest            = &parentExtra->coords[part];
+    coord->flg      = 0;
+    coord->sub      = dest;
+    extra->lightMtx = parentExtra->lightMtx;
+    extra->colorMtx = parentExtra->colorMtx;
+    Task_Reparent(parent, task);
+    task->state += 1;
+}
+
+/// Tick state of the second child handler triple `D_actor_310600_80161E30`:
+/// does nothing.
+void func_actor_310600_801629C4(Task* task)
+{
+}
+
+void func_actor_310600_801629CC(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_310600_80161E3C;
+    sp.funcs[task->state](task);
+}
+
+void func_actor_310600_80162A24(Task* arg0)
+{
+    Gp_UnlinkObj(&((Actor310600Work*)arg0->work)->obj);
+    Gp_EnemyTaskExit(arg0);
+}
+
+void func_actor_310600_80162A58(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor310600Work* work;
+
+    work          = (Actor310600Work*)arg0->work;
+    ext           = arg0->extra;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
+}
+
+/// Entry 0 of the two-entry stack table `func_actor_310600_80161FA0` dispatches
+/// through by `field_47C`: the idle handler, which does nothing. Entry 1 is
+/// `func_actor_310600_80162A7C`; both are called with no argument.
+void func_actor_310600_80162A74(void)
+{
+}
+
+/// Runs the entry of the actor's second state table that `field_47E` selects -
+/// the counter `func_actor_310600_80162AD8` and `func_actor_310600_80162B98`
+/// bump as they finish, so the table steps through the handlers in turn. Copies
+/// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
+/// performs over `state`.
+void func_actor_310600_80162A7C(Task* task)
+{
+    Actor310600Work* work;
+    TaskFuncTable3   fns;
+
+    work = (Actor310600Work*)task->work;
+    fns  = D_actor_310600_80161E48;
+    fns.funcs[(s16)work->field_47E](task);
+}
+
+/// Turns the actor's root part to face the work block's stored point: normalises
+/// the offset from the part's own translation, takes its yaw with `ratan2`, and
+/// rebuilds the local matrix from that yaw alone. Clearing `flg` makes
+/// `_gpUpdateCoordTree` recompute the world matrix from it, and bumping
+/// `field_47E` moves the actor on to the next handler of its state table.
+void func_actor_310600_80162AD8(Task* task)
+{
+    Actor310600Work*  work;
+    Actor310600Coord* coord;
+    VECTOR            delta;
+    SVECTOR           dir;
+    SVECTOR           rot;
+
+    work  = (Actor310600Work*)task->work;
+    coord = (Actor310600Coord*)((TmdObject*)task->extra)->coords;
+
+    delta.vx = work->field_4F8 - coord->coord.t[0];
+    delta.vy = work->field_4FC - coord->coord.t[1];
+    delta.vz = work->field_500 - coord->coord.t[2];
+    VectorNormalS(&delta, &dir);
+
+    rot.vx = 0;
+    rot.vy = ratan2(dir.vx, dir.vz);
+    rot.vz = 0;
+
+    coord->rot.vx = rot.vx;
+    coord->rot.vy = rot.vy;
+    coord->rot.vz = rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    work->field_47E++;
+}
+
+/// State handler reached by the `field_47E` advance `func_actor_310600_80162AD8`
+/// ends with: rotates the constant local-space offset
+/// `D_actor_310600_80161E54` through the root part's matrix into `work->step`,
+/// opens the per-axis stop threshold to 0x7FFF, which disables it for the update
+/// loop, and advances `field_47E` again so the dispatcher runs the next handler.
+void func_actor_310600_80162B98(Task* task)
+{
+    Actor310600Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           vec;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = (Actor310600Work*)task->work;
+
+    vec = D_actor_310600_80161E54;
+    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
+    work->limit.vx = 0x7FFF;
+    work->limit.vy = 0x7FFF;
+    work->limit.vz = 0x7FFF;
+    work->field_47E++;
+}
+
+/// Places the actor at `args`: the translation goes straight into the root
+/// part's local matrix, the Euler angles into the coordinate's `rot` slot, and
+/// the rotation is rebuilt from them. Clearing `flg` makes `_gpUpdateCoordTree`
+/// recompute the world matrix. `arg1` is unused.
+s32 func_actor_310600_80162C18(Task* task, s32 arg1, Actor310600Placement* args)
+{
+    Actor310600Coord* coord;
+
+    coord             = (Actor310600Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
+
+/// Sends the actor walking to the point `arg2`: stores it as the target the
+/// movement steps of `D_actor_310600_80161E48` turn toward and close in on,
+/// switches the tick onto those steps (`field_47C`), and starts animation 0xC
+/// of bank 0 through `func_actor_310600_8016246C`. `arg1` is unused.
+void func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2)
+{
+    Actor310600Work* work;
+    Actor310600Cmd   cmd;
+
+    work = (Actor310600Work*)arg0->work;
+
+    work->field_47C = 1;
+    work->field_4F8 = arg2->vx;
+    work->field_4FC = arg2->vy;
+    work->field_500 = arg2->vz;
+
+    cmd.animId = 0;
+    cmd.state  = 0xC;
+    cmd.path   = 0;
+    cmd.param  = 0;
+    cmd.unk10  = 0;
+
+    func_actor_310600_8016246C(arg0, 0x7D3, &cmd, 0);
+}
