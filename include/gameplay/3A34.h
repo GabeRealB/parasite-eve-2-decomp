@@ -493,7 +493,7 @@ typedef struct _GpLightCapture {
     /* 0x01 */ s8             field_1;
     /* 0x02 */ byte           pad_2[0x22];
     /* 0x24 */ GpNearestLight field_24;
-    /* 0x30 */ VECTOR3        field_30[4];
+    /* 0x30 */ GpRec12        field_30[4];
 } GpLightCapture;
 STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 

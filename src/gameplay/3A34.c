@@ -1350,16 +1350,9 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2
     gte_gpf12();
     gte_stsv(dir);
 
-    {
-        GpMtxCol* col;
-        s32       off = arg0 * 2;
-        u16       first;
-        first  = block->dir.vx;
-        col    = (GpMtxCol*)((u8*)colorMtx + off);
-        col->x = first;
-        col->y = block->dir.vy;
-        col->z = block->dir.vz;
-    }
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
 
     SCRATCH_POP_BYTES(0x1C);
 }
@@ -1656,7 +1649,10 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
         i = startr;
         if ((u32)i < (u32)count) {
-            end     = i + count;
+            end = i + count;
+            /* The slot is addressed as the block advanced by whole records, so its
+             * fields load at the slot array's own displacement; indexing
+             * block->slots folds that displacement into the pointer instead. */
             slotArg = (GpSolveSlotView*)((GpRec12*)block + end);
 
             do {
@@ -1671,7 +1667,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                             s32      cutoffScale;
                             cutoffLight = (GpLight*)slotArg->field_8;
                             delta       = 0;
-                            if (((GpSolveSlotView*)((GpRec12*)block + count))->field_0 != 0) {
+                            if (block->slots[count].field_0 != 0) {
                                 attenuation = light->u.at.scale;
                                 cutoffScale = cutoffLight->u.at.scale;
                                 diff        = attenuation - cutoffScale;
@@ -1762,9 +1758,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     if (Pad_RemapState->field_1 == 0x13 && D_80760618->field_1 == 1) {
         i = 0;
         do {
-            GpLightCapture* debugState;
-            debugState                       = (GpLightCapture*)((u8*)D_80760618 + i * sizeof(GpRec12));
-            *(GpRec12*)&debugState->field_30 = block->slots[i];
+            D_80760618->field_30[i] = block->slots[i];
             i++;
         } while (i < 4);
     }
@@ -3482,8 +3476,8 @@ s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
 void Gp_LoadImages(GpImgRec* arg0)
 {
     void**         scratch;
-    void*          head;
-    register void* temp asm("v0");
+    RECT*          head;
+    register RECT* temp asm("v0");
     RECT*          dest;
     s32            done;
     register s32   max asm("s4");
@@ -3491,8 +3485,8 @@ void Gp_LoadImages(GpImgRec* arg0)
     done                           = 0;
     scratch                        = SCRATCH_HEAD_ADDR;
     max                            = 0xFF;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    temp                           = (u8*)head - 8;
+    head                           = SCRATCH_HEAD_AT(scratch, RECT);
+    temp                           = head - 1;
     dest                           = temp;
     SCRATCH_HEAD_AT(scratch, RECT) = dest;
 
@@ -3509,7 +3503,7 @@ void Gp_LoadImages(GpImgRec* arg0)
         arg0++;
     } while (done == 0);
 
-    SCRATCH_POP_BYTES(8);
+    SCRATCH_POP(RECT);
     SOFT_USE_REG(max);
 }
 
@@ -5268,8 +5262,8 @@ do_edges:
             s32 ib;
             ia = pair->field_0;
             ib = pair->field_2;
-            va = (VECTOR*)((u8*)block + (ia << 4));
-            vb = (VECTOR*)((u8*)block + (ib << 4));
+            va = &block->verts[ia];
+            vb = &block->verts[ib];
         }
         block->delta.vx = va->vx - vb->vx;
         block->delta.vy = va->vy - vb->vy;
@@ -5411,8 +5405,8 @@ body:
             s32 ib;
             ia = pair->field_0;
             ib = pair->field_2;
-            va = (VECTOR*)((u8*)block + (ia << 4));
-            vb = (VECTOR*)((u8*)block + (ib << 4));
+            va = &block[ia];
+            vb = &block[ib];
         }
         block[6].vx = va->vx - vb->vx;
         block[6].vy = va->vy - vb->vy;
