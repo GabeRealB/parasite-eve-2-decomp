@@ -5,6 +5,8 @@
 
 #include <psyq/libgte.h>
 
+#include "main/task.h"
+
 /// A scripted event a room starts in answer to a message. The room's message
 /// handler builds the record, and if the event has not happened yet it copies
 /// the record into the room's own pending copy and spawns the room's event
@@ -194,5 +196,22 @@ typedef struct RoomFlagModelArg {
     u8 unk0[8];
     u8 flagId;
 } RoomFlagModelArg;
+
+/// The work block a room's streamed-scene task allocates at `Task::work`. The
+/// task walks the translation of `mtx` along the scene's path table once per
+/// streamed frame, addresses its messages to `target`, the task in pointer
+/// slot 3, and reparents itself under `script`, the scene's script task.
+/// `child` is a task it spawns on the way (a skip or prompt task) and polls
+/// with `Task_PollKill`; `spawned` says that it exists, since the block starts
+/// out zeroed.
+typedef struct RoomStreamWork {
+    MATRIX* mtx;
+    Task*   target;
+    Task*   child;
+    Task*   script;
+    u16     spawned;
+    byte    pad_12[0x2];
+} RoomStreamWork;
+STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
 
 #endif /* ROOMS_ROOM_H */

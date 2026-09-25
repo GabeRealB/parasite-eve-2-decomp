@@ -23,29 +23,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// 0x14 work block the forked road's streamed-scene task
-/// (`func_acropolis_forked_road_8017DA24`) keeps at `Task::work`
-/// (`memCalloc(0x14, 0)` in its state 0).
-///
-/// `mtx` is `D_80073B8C`, the camera-target matrix the scene walks along
-/// `D_acropolis_forked_road_80180F80` once per streamed frame. `target` is the
-/// slot-3 task every placement message is addressed to, captured once from
-/// `gameGetPtrSlot(3)`. `script` is the scene's script task, which the room
-/// task reparents itself under. The return ride
-/// (`func_acropolis_forked_road_8017DD60`) also uses `skipper`, the task it
-/// spawns when the pad asks to skip the scene, and `skipping`, the flag that
-/// says that task is live.
-typedef struct AfrStreamWork {
-    /* 0x00 */ MATRIX* mtx;
-    /* 0x04 */ Task*   target;
-    /* 0x08 */ Task*   skipper;
-    /* 0x0C */ Task*   script;
-    /* 0x10 */ u16     skipping;
-    /* 0x12 */ byte    pad_12[0x2];
-} AfrStreamWork;
-STATIC_ASSERT_SIZEOF(AfrStreamWork, 0x14);
 
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
@@ -102,7 +81,7 @@ void func_acropolis_forked_road_8017FED4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg
 void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
 /// The forked road's streamed-scene task. State 0 allocates the
-/// `AfrStreamWork` block, restarts the stream frame counter, cues the stream
+/// `RoomStreamWork` block, restarts the stream frame counter, cues the stream
 /// (slot-6 msg 0xFA4), captures the camera-target matrix and slot 3 in the
 /// block and warps slot 3 to the head of the path with a 0x3E9 placement.
 /// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
@@ -114,15 +93,15 @@ void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2
 /// the save's room ids, arms the fade-out task and kills this task.
 void func_acropolis_forked_road_8017DA24(Task* task)
 {
-    RoomPlacement  place;
-    RoomPlacement  place2;
-    u8             slot;
-    AfrStreamWork* work;
-    AfrStreamWork* blk;
-    CdCmdQueue*    queue;
+    RoomPlacement   place;
+    RoomPlacement   place2;
+    u8              slot;
+    RoomStreamWork* work;
+    RoomStreamWork* blk;
+    CdCmdQueue*     queue;
 
     queue = &CdCmd_Queue;
-    work  = (AfrStreamWork*)task->work;
+    work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
@@ -133,9 +112,9 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             }
             queue->field_1EA = 1;
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4                   = 2;
-            ((AfrStreamWork*)task->work)->mtx    = D_80073B8C;
-            ((AfrStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            Gp_StateF0.field_4                    = 2;
+            ((RoomStreamWork*)task->work)->mtx    = D_80073B8C;
+            ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
@@ -143,7 +122,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place.pos.vx = D_acropolis_forked_road_80180F80[0].vx - 0x654;
             place.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsg(((AfrStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
+            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
             task->state = task->state + 1;
             break;
 
@@ -152,7 +131,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place2.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
             place2.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place2.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsg(((AfrStreamWork*)task->work)->target, 0x3F2, (s32)&place2, 0);
+            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3F2, (s32)&place2, 0);
             task->state = task->state + 1;
             break;
 
@@ -203,7 +182,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
 /// the far end (`0x3B - CdCmd_Queue::field_1EA`).
 ///
-/// State 0 allocates the `AfrStreamWork` block, captures slot 3 and the
+/// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
 /// camera-target matrix (`Player_Status::field_4`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
@@ -218,16 +197,16 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// view and the session's ride flag and kills this task.
 void func_acropolis_forked_road_8017DD60(Task* task)
 {
-    GpRec14        rec;
-    RoomPlacement  place;
-    s32            sp40;
-    AfrStreamWork* work;
-    AfrStreamWork* blk;
-    CdCmdQueue*    queue;
-    s32            weaponId;
+    GpRec14         rec;
+    RoomPlacement   place;
+    s32             sp40;
+    RoomStreamWork* work;
+    RoomStreamWork* blk;
+    CdCmdQueue*     queue;
+    s32             weaponId;
 
     queue = &CdCmd_Queue;
-    work  = (AfrStreamWork*)task->work;
+    work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
@@ -236,8 +215,8 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 taskKill(task);
                 break;
             }
-            ((AfrStreamWork*)task->work)->target = gameGetPtrSlot(3);
-            ((AfrStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId     = Player_Status.weapon;
             rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -245,7 +224,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             rec.field_8  = 0;
             rec.field_C  = 0;
             rec.field_10 = 0;
-            Gp_DispatchMsg(((AfrStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 2;
             task->state        = task->state + 1;
@@ -274,28 +253,28 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             work->mtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
             work->mtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
             work->mtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
-            if (work->skipping != 0) {
-                if (Task_PollKill(work->skipper, &sp40) != 0) {
+            if (work->spawned != 0) {
+                if (Task_PollKill(work->child, &sp40) != 0) {
                     place.pos.vx = -0x190;
                     place.pos.vy = 1;
                     place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    Gp_DispatchMsg(((AfrStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
+                    Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E9, (s32)&place, 0);
                     Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (Pad_CheckFlag800() != 0) {
-                work->skipper  = Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 3, 0, 0);
-                work->skipping = 1;
+                work->child   = Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 3, 0, 0);
+                work->spawned = 1;
             }
             if ((0x3B - queue->field_1EA) < 0xB) {
                 place.pos.vx = -0x190;
                 place.pos.vy = 1;
                 place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
-                Gp_DispatchMsg(((AfrStreamWork*)task->work)->target, 0x3F2, (s32)&place, 0);
+                Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3F2, (s32)&place, 0);
                 task->state = task->state + 1;
             }
             break;

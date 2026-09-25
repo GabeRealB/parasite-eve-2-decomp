@@ -24,31 +24,9 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181d28.h"
-
-/// 0x14 work block the promenade's streamed-scene task
-/// (`func_acropolis_promenade_8017DB9C`) keeps at `Task::work`
-/// (`memCalloc(0x14, 0)` in its state 0). Laid out like the observatory's
-/// `AobStreamWork`, which drives the same kind of scene.
-///
-/// `mtx` is `Player_Status.coordMtx`, the player actor's coordinate matrix; the
-/// task walks its translation along `D_acropolis_promenade_80181184` once per
-/// frame while the stream runs. `target` is the slot-3 task every message the
-/// scene sends is addressed to, captured once from `gameGetPtrSlot(3)`.
-/// `child` is the prompt task spawned from `D_acropolis_promenade_80181148`
-/// entry 3 and polled with `Task_PollKill`; `spawned` records that it exists,
-/// since the calloc leaves it at 0. `script` is the scene's script task, which
-/// the promenade task reparents itself under.
-typedef struct ApmStreamWork {
-    /* 0x00 */ MATRIX* mtx;
-    /* 0x04 */ Task*   target;
-    /* 0x08 */ Task*   child;
-    /* 0x0C */ Task*   script;
-    /* 0x10 */ u16     spawned;
-    /* 0x12 */ u16     pad_12;
-} ApmStreamWork;
-STATIC_ASSERT_SIZEOF(ApmStreamWork, 0x14);
 
 /// Sign pair for one corner of the promenade's ground-glow quad
 /// (`func_acropolis_promenade_8017ED44`). The four entries of
@@ -354,7 +332,7 @@ void func_acropolis_promenade_8017DB48(Task* task)
     coord->flg = 0;
 }
 
-/// The promenade's streamed-scene task. State 0 allocates the `ApmStreamWork`
+/// The promenade's streamed-scene task. State 0 allocates the `RoomStreamWork`
 /// block, cues the stream (slot-6 msg 0xFA4), captures slot 3 and the player's
 /// coordinate matrix in the block, and republishes the player's weapon to slot
 /// 3 with a 0x3E8 record. State 1 waits for the stream to come up
@@ -369,17 +347,17 @@ void func_acropolis_promenade_8017DB48(Task* task)
 /// (0xFA5), records the room in the save and kills the task.
 void func_acropolis_promenade_8017DB9C(Task* task)
 {
-    GpRec14        rec;
-    RoomPlacement  place;
-    s32            killed;
-    ApmStreamWork* work;
-    ApmStreamWork* blk;
-    ApmStreamWork* dest;
-    CdCmdQueue*    queue;
-    s32            weaponId;
+    GpRec14         rec;
+    RoomPlacement   place;
+    s32             killed;
+    RoomStreamWork* work;
+    RoomStreamWork* blk;
+    RoomStreamWork* dest;
+    CdCmdQueue*     queue;
+    s32             weaponId;
 
     queue = &CdCmd_Queue;
-    work  = (ApmStreamWork*)task->work;
+    work  = (RoomStreamWork*)task->work;
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
@@ -389,15 +367,15 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 break;
             }
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            ((ApmStreamWork*)task->work)->target = gameGetPtrSlot(3);
-            ((ApmStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
-            weaponId                             = Player_Status.weapon;
-            rec.field_0                          = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4                          = 1;
-            rec.field_8                          = 0;
-            rec.field_C                          = 0;
-            rec.field_10                         = 0;
-            Gp_DispatchMsg(((ApmStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
+            ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            weaponId                              = Player_Status.weapon;
+            rec.field_0                           = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4                           = 1;
+            rec.field_8                           = 0;
+            rec.field_C                           = 0;
+            rec.field_10                          = 0;
+            Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 1;
             task->state        = task->state + 1;
@@ -425,7 +403,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    dest         = (ApmStreamWork*)task->work;
+                    dest         = (RoomStreamWork*)task->work;
                     Gp_DispatchMsg(dest->target, 0x3E9, (s32)&place, 0);
                     Task_SpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
@@ -439,7 +417,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 place.pos.vx = 0x282;
                 place.pos.vy = 0x29;
                 place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->field_1EA].vz - 0xC8;
-                dest         = (ApmStreamWork*)task->work;
+                dest         = (RoomStreamWork*)task->work;
                 Gp_DispatchMsg(dest->target, 0x3F2, (s32)&place, 0);
                 task->state = task->state + 1;
             }
