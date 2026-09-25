@@ -2084,7 +2084,7 @@ void func_actor_400500_80135414(Task* arg0)
     enemy->recs       = (s32)work->rec0;
     enemy->param      = &D_actor_400500_80153C90;
     enemy->hp = enemy->hpMax = D_actor_400500_80153C90.hpMax;
-    func_800B3F84(&work->anim, D_actor_400500_80153CC0, (GsCOORDINATE2*)extra, work->pad_2E4,
+    func_800B3F84(&work->anim, D_actor_400500_80153CC0, extra, work->pad_2E4,
                   work->slots);
     coord->sub       = &gGfxViewCoord;
     work2            = (Actor400500Work*)arg0->work;
