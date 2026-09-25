@@ -38,16 +38,6 @@ void func_actor_207200_8014B128(Task* arg0);
 void func_actor_207200_8014B21C(Task* task);
 void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 
-/// 0x38-byte block `func_actor_207200_8014A588` takes from `G_SCRATCH_HEAD`:
-/// `delta` receives the `func_800E0C10` push-back and is then reused for the
-/// offset to the player.
-typedef struct Actor207200HitScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-} Actor207200HitScratch;
-STATIC_ASSERT_SIZEOF(Actor207200HitScratch, 0x38);
-
 void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {
     ActorShared8014df20Work* work;
@@ -272,8 +262,8 @@ void func_actor_207200_8014A1C4(Task* arg0)
 void func_actor_207200_8014A588(Task* arg0)
 {
     ActorShared8014df20Work* work;
-    Actor207200HitScratch*   sc;
-    Actor207200HitScratch*   head;
+    ActorDeltaFrame38*       sc;
+    ActorDeltaFrame38*       head;
     TmdObject*               obj;
     GsCOORDINATE2*           coord;
     GpEnemy*                 enemy;
@@ -283,13 +273,13 @@ void func_actor_207200_8014A588(Task* arg0)
     u32                      damage;
     s32                      snd;
 
-    work                                     = (ActorShared8014df20Work*)arg0->work;
-    head                                     = *(Actor207200HitScratch**)G_SCRATCH_HEAD;
-    *(Actor207200HitScratch**)G_SCRATCH_HEAD = head - 1;
-    sc                                       = head - 1;
-    obj                                      = arg0->extra;
-    coord                                    = obj->coords;
-    enemy                                    = arg0->spawnArg2;
+    work                                 = (ActorShared8014df20Work*)arg0->work;
+    head                                 = *(ActorDeltaFrame38**)G_SCRATCH_HEAD;
+    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = head - 1;
+    sc                                   = head - 1;
+    obj                                  = arg0->extra;
+    coord                                = obj->coords;
+    enemy                                = arg0->spawnArg2;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -378,7 +368,7 @@ void func_actor_207200_8014A588(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    *(Actor207200HitScratch**)G_SCRATCH_HEAD = *(Actor207200HitScratch**)G_SCRATCH_HEAD + 1;
+    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = *(ActorDeltaFrame38**)G_SCRATCH_HEAD + 1;
 }
 
 /// Dying-state tick of the small enemy, under the shared `Gp_StateF0.field_4` mode

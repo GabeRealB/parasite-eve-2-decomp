@@ -67,20 +67,6 @@ typedef struct Actor101500Work {
     /* 0x382 */ s16      field_382; // spawn variant, `GpAreaPlace.variant`
 } Actor101500Work;
 
-/// 0x58-byte frame allocated on the scratchpad stack by
-/// `Actor01500_Fn004EC`.
-typedef struct Actor101500ContactFrame {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ VECTOR         normal;
-    /* 0x40 */ VECTOR         push;
-    /* 0x50 */ s16            dx;
-    /* 0x52 */ byte           pad_52[2];
-    /* 0x54 */ s16            dz;
-    /* 0x56 */ byte           pad_56[2];
-} Actor101500ContactFrame;
-STATIC_ASSERT_SIZEOF(Actor101500ContactFrame, 0x58);
-
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
 extern s16 Actor01500_D0A050[];
 
@@ -294,36 +280,36 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 /// contact records (damage from actors, push-out from walls) and clears them.
 void Actor01500_Fn004EC(Task* actor)
 {
-    Actor101500Work*         work;
-    Actor101500ContactFrame* frame;
-    s32                      push;
-    VECTOR*                  normal;
-    GsCOORDINATE2*           coord;
-    GsCOORDINATE2*           sourceCoord;
-    GpRec18*                 effectRec;
-    s16                      cooldown;
-    s32                      result;
-    s32                      i;
-    s32                      depth;
-    s32                      boundedDepth;
-    s32                      dx;
-    s32                      dy;
-    s32                      dz;
-    s32                      wallDx;
-    s32                      wallDy;
-    s32                      wallDz;
-    u32                      lastId;
-    u32                      id;
-    u32                      hitId;
-    u32                      damage;
+    Actor101500Work* work;
+    ActorPushFrame*  frame;
+    s32              push;
+    VECTOR*          normal;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   sourceCoord;
+    GpRec18*         effectRec;
+    s16              cooldown;
+    s32              result;
+    s32              i;
+    s32              depth;
+    s32              boundedDepth;
+    s32              dx;
+    s32              dy;
+    s32              dz;
+    s32              wallDx;
+    s32              wallDy;
+    s32              wallDz;
+    u32              lastId;
+    u32              id;
+    u32              hitId;
+    u32              damage;
 
-    push                                    = 0;
-    lastId                                  = 0;
-    work                                    = actor->work;
-    *(Actor101500ContactFrame**)0x1F8003FC -= 1;
-    frame                                   = *(Actor101500ContactFrame**)0x1F8003FC;
-    coord                                   = ((TmdObject*)actor->extra)->coords;
-    result                                  = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
+    push                           = 0;
+    lastId                         = 0;
+    work                           = actor->work;
+    *(ActorPushFrame**)0x1F8003FC -= 1;
+    frame                          = *(ActorPushFrame**)0x1F8003FC;
+    coord                          = ((TmdObject*)actor->extra)->coords;
+    result                         = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
         if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
             work->field_35A        = 6;
@@ -444,14 +430,14 @@ void Actor01500_Fn004EC(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal((VECTOR*)&frame->delta, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->push);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
                 }
                 break;
         }
     }
     if (push > 0) {
-        coord->coord.t[0] += (s32)(push * frame->push.vx) >> 0xC;
-        coord->coord.t[2] += (s32)(push * frame->push.vz) >> 0xC;
+        coord->coord.t[0] += (s32)(push * frame->dir.vx) >> 0xC;
+        coord->coord.t[2] += (s32)(push * frame->dir.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->field_1FC);
     effectRec = work->field_2FC;
@@ -460,7 +446,7 @@ void Actor01500_Fn004EC(Task* actor)
         Gp_ClearRec18Occupied(effectRec);
         work->field_36A = 1;
     }
-    *(Actor101500ContactFrame**)0x1F8003FC += 1;
+    *(ActorPushFrame**)0x1F8003FC += 1;
 }
 
 void Actor01500_Fn00AFC(Task* actor, s32 damage)

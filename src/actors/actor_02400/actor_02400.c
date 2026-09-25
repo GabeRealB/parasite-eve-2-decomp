@@ -115,19 +115,6 @@ typedef struct Actor02400ScaleScratch {
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
-/// Scratchpad block the hit handling works in: `delta` receives the
-/// `func_800E0C10` push-back and is then reused for each record's offset,
-/// `normal` is its `VectorNormal`, and `dir` that normal brought into the
-/// grid's frame.
-typedef struct Actor02400PushScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ VECTOR         normal;
-    /* 0x40 */ VECTOR         dir;
-    /* 0x50 */ byte           pad_50[0x8];
-} Actor02400PushScratch;
-STATIC_ASSERT_SIZEOF(Actor02400PushScratch, 0x58);
-
 extern s32 D_80115728;
 extern s32 D_80115734;
 extern s32 D_80115754;
@@ -485,30 +472,30 @@ void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 /// player the variant's MP.
 void Actor02400_Fn00C08(Task* task)
 {
-    Actor02400PushScratch* scratch;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         src;
-    Actor02400Work*        work;
-    GpEnemy*               enemy;
-    s32                    push;
-    s32                    reach;
-    s32                    val;
-    s32                    res;
-    s32                    i;
-    s32                    z;
-    s32                    kind;
-    s32                    param;
-    s32                    damage;
-    s32                    lastId;
-    s16                    dmg;
-    s32                    sndId;
-    s32                    pan;
-    s32                    stun;
+    ActorPushFrame* scratch;
+    GsCOORDINATE2*  coord;
+    GsCOORDINATE2*  src;
+    Actor02400Work* work;
+    GpEnemy*        enemy;
+    s32             push;
+    s32             reach;
+    s32             val;
+    s32             res;
+    s32             i;
+    s32             z;
+    s32             kind;
+    s32             param;
+    s32             damage;
+    s32             lastId;
+    s16             dmg;
+    s32             sndId;
+    s32             pan;
+    s32             stun;
 
     push    = 0;
     lastId  = 0;
     work    = task->work;
-    scratch = (Actor02400PushScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
+    scratch = (ActorPushFrame*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
     coord   = ((TmdObject*)task->extra)->coords;
     enemy   = task->spawnArg2;
     res     = func_800E0C10(work->rec60, &scratch->delta, 4, NULL);

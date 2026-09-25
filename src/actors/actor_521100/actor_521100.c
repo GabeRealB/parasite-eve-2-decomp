@@ -37,13 +37,6 @@ typedef struct Actor521100AimScratch {
 } Actor521100AimScratch;
 STATIC_ASSERT_SIZEOF(Actor521100AimScratch, 0x40);
 
-typedef struct Actor521100HitScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[0x18];
-} Actor521100HitScratch;
-STATIC_ASSERT_SIZEOF(Actor521100HitScratch, 0x48);
-
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -346,39 +339,39 @@ static __inline__ s32 Actor521100_GetHitType(s32 key)
 
 void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 {
-    Actor521100HitScratch* scratch;
-    Actor521100Work*       work;
-    GpEnemy*               enemy;
-    GsCOORDINATE2*         coord;
-    u32                    lastId;
-    u32                    sound;
-    u32                    kind;
-    u32                    damage;
-    u32                    rng;
-    u32                    rng2;
-    u32                    r;
-    s32                    result;
-    s32                    dx;
-    s32                    coordX;
-    s32                    dz;
-    s32                    absDiff;
-    s32                    r2;
-    s32                    angle;
-    s32                    angle2;
-    s32                    hitType;
-    s32                    i;
-    s16                    diff;
-    s16                    wrap;
-    s16                    cooldown;
-    s32                    pan;
-    s32                    pan1;
-    s32                    pan2;
-    s32                    depth;
-    s16                    wait;
+    ActorDeltaFrame48* scratch;
+    Actor521100Work*   work;
+    GpEnemy*           enemy;
+    GsCOORDINATE2*     coord;
+    u32                lastId;
+    u32                sound;
+    u32                kind;
+    u32                damage;
+    u32                rng;
+    u32                rng2;
+    u32                r;
+    s32                result;
+    s32                dx;
+    s32                coordX;
+    s32                dz;
+    s32                absDiff;
+    s32                r2;
+    s32                angle;
+    s32                angle2;
+    s32                hitType;
+    s32                i;
+    s16                diff;
+    s16                wrap;
+    s16                cooldown;
+    s32                pan;
+    s32                pan1;
+    s32                pan2;
+    s32                depth;
+    s16                wait;
 
     lastId  = 0;
     work    = arg0->work;
-    scratch = (Actor521100HitScratch*)(SCRATCH_SP -= 0x48);
+    scratch = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
     coord   = ((TmdObject*)arg0->extra)->coords;
     enemy   = arg0->spawnArg2;
     result  = func_800E0C10(work->rec49C, &scratch->delta, 5, NULL);

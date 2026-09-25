@@ -78,19 +78,6 @@ typedef struct Actor104600Work {
 } Actor104600Work;
 STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
 
-/// The 0x4C bytes `Actor04600_Fn00978` takes off the scratch stack: `delta`
-/// receives the `func_800E0C10` push-back and is then reused for offsets,
-/// `normal` is the normalized wall offset, and `result` is the word
-/// `func_800E0C10` reports through its last argument.
-typedef struct Actor104600ContactScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-    /* 0x38 */ VECTOR         normal;
-    /* 0x48 */ s32            result;
-} Actor104600ContactScratch;
-STATIC_ASSERT_SIZEOF(Actor104600ContactScratch, 0x4C);
-
 /// The 0x2B0-byte work block of the package's second enemy, allocated by its
 /// spawn handler and parked in `Task::work`. It carries three `GpObj` bodies:
 /// the first points its `ctx.d4rec` at the `GpActorD4Rec` after it, the other
@@ -135,16 +122,6 @@ typedef struct Actor104600Enemy2Work {
     /* 0x2AE */ byte         pad_2AE[2];
 } Actor104600Enemy2Work;
 STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
-
-/// 0x38-byte block `Actor04600_Fn0346C` takes from `G_SCRATCH_HEAD`:
-/// `delta` receives the `func_800E0C10` push-back and is then reused for the
-/// offset to the player.
-typedef struct Actor104600HitScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-} Actor104600HitScratch;
-STATIC_ASSERT_SIZEOF(Actor104600HitScratch, 0x38);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -604,33 +581,33 @@ void Actor04600_Fn007B0(Task* arg0)
 /// body's 0x8000 bit.
 void Actor04600_Fn00978(Task* arg0)
 {
-    s32                        damageState;
-    TmdObject*                 object;
-    GpEnemy*                   enemy;
-    GpRec18*                   effectRec;
-    VECTOR*                    normal;
-    VECTOR*                    delta;
-    s16                        cooldown;
-    s32                        stage;
-    s32                        contactStage;
-    s32                        effect;
-    s32                        pushY;
-    s32                        movement;
-    s32                        dx;
-    s32                        dz;
-    s32                        wallDx;
-    s32                        wallDz;
-    s32                        hitCooldown;
-    s32                        boundedDepth;
-    s32                        distance;
-    s32                        z;
-    u32                        id;
-    u32                        damage;
-    Actor104600Work*           work;
-    GsCOORDINATE2*             coord;
-    void*                      scratchHead;
-    Actor104600ContactScratch* scratch;
-    Actor104600Work*           contact;
+    s32                damageState;
+    TmdObject*         object;
+    GpEnemy*           enemy;
+    GpRec18*           effectRec;
+    VECTOR*            normal;
+    VECTOR*            delta;
+    s16                cooldown;
+    s32                stage;
+    s32                contactStage;
+    s32                effect;
+    s32                pushY;
+    s32                movement;
+    s32                dx;
+    s32                dz;
+    s32                wallDx;
+    s32                wallDz;
+    s32                hitCooldown;
+    s32                boundedDepth;
+    s32                distance;
+    s32                z;
+    u32                id;
+    u32                damage;
+    Actor104600Work*   work;
+    GsCOORDINATE2*     coord;
+    void*              scratchHead;
+    ActorContactFrame* scratch;
+    Actor104600Work*   contact;
 
     work        = (Actor104600Work*)arg0->work;
     scratchHead = (void*)(*(u32*)0x1F8003FC -= 0x4C);
@@ -1205,13 +1182,13 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
 /// The table is released either way.
 void Actor04600_Fn01E0C(Task* arg0)
 {
-    ActorsShared80133cd0Scratch* scratch;
-    Actor104600Work*             work;
-    GsCOORDINATE2*               coord;
-    s32                          movement;
+    ActorDeltaFrame48* scratch;
+    Actor104600Work*   work;
+    GsCOORDINATE2*     coord;
+    s32                movement;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorsShared80133cd0Scratch*)(SCRATCH_SP -= 0x48);
+    scratch  = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->rec154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -1918,8 +1895,8 @@ void Actor04600_Fn030A8(Task* arg0)
 void Actor04600_Fn0346C(Task* arg0)
 {
     Actor104600Enemy2Work* work;
-    Actor104600HitScratch* sc;
-    Actor104600HitScratch* head;
+    ActorDeltaFrame38*     sc;
+    ActorDeltaFrame38*     head;
     TmdObject*             obj;
     GsCOORDINATE2*         coord;
     GpEnemy*               enemy;
@@ -1929,13 +1906,13 @@ void Actor04600_Fn0346C(Task* arg0)
     u32                    damage;
     s32                    snd;
 
-    work                                     = (Actor104600Enemy2Work*)arg0->work;
-    head                                     = *(Actor104600HitScratch**)G_SCRATCH_HEAD;
-    *(Actor104600HitScratch**)G_SCRATCH_HEAD = head - 1;
-    sc                                       = head - 1;
-    obj                                      = arg0->extra;
-    coord                                    = obj->coords;
-    enemy                                    = arg0->spawnArg2;
+    work                                 = (Actor104600Enemy2Work*)arg0->work;
+    head                                 = *(ActorDeltaFrame38**)G_SCRATCH_HEAD;
+    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = head - 1;
+    sc                                   = head - 1;
+    obj                                  = arg0->extra;
+    coord                                = obj->coords;
+    enemy                                = arg0->spawnArg2;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -2024,7 +2001,7 @@ void Actor04600_Fn0346C(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    *(Actor104600HitScratch**)G_SCRATCH_HEAD = *(Actor104600HitScratch**)G_SCRATCH_HEAD + 1;
+    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = *(ActorDeltaFrame38**)G_SCRATCH_HEAD + 1;
 }
 
 /// Dying-state tick of the second enemy, under the `Gp_StateF0.field_4` mode byte: 1

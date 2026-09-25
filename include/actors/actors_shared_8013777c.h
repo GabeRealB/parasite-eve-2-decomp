@@ -8,18 +8,6 @@
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
-/// 0x38-byte scratch the movement step takes off `G_SCRATCH_HEAD`. The
-/// `GpDeltaScratch` at 0x20 is the one `func_800E0C10` fills with the 16.16
-/// translation toward the collision response; the block is handed out whole so
-/// the walk's own `GpSlideScratch`, taken below the head, stays clear of it.
-/// Same shape as `WeaponGrenadeScratch`.
-typedef struct ActorsShared8013777cScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-} ActorsShared8013777cScratch;
-STATIC_ASSERT_SIZEOF(ActorsShared8013777cScratch, 0x38);
-
 /// The part of the carriers' work block this body touches. Each carrier's block
 /// is its own type (`Actor107000Work`, ...); the shared unit only names the two
 /// collision-record tables `func_800E0C10` and `Gp_ClearRec18Occupied` walk,

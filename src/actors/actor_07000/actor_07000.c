@@ -216,17 +216,6 @@ static __inline__ void Actor107000_TickAnim(Task* task)
         : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
         : "$12", "$13", "$14", "memory")
 
-/// Collision-response scratch, followed by the normalized contact vector and
-/// the result word passed to func_800E0C10.
-typedef struct Actor107000ContactScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ byte           pad_30[8];
-    /* 0x38 */ VECTOR         normal;
-    /* 0x48 */ s32            result;
-} Actor107000ContactScratch;
-STATIC_ASSERT_SIZEOF(Actor107000ContactScratch, 0x4C);
-
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
 /// the same `GpAnimCtx`, seven animation slots instead of three, then three
@@ -763,33 +752,33 @@ void Actor07000_Fn00854(Task* arg0)
 
 void Actor07000_Fn00A1C(Task* arg0)
 {
-    s32                        damageState;
-    TmdObject*                 object;
-    GpEnemy*                   enemy;
-    GpRec18*                   effectRec;
-    VECTOR*                    normal;
-    VECTOR*                    delta;
-    s16                        cooldown;
-    s32                        stage;
-    s32                        contactStage;
-    s32                        effect;
-    s32                        pushY;
-    s32                        movement;
-    s32                        dx;
-    s32                        dz;
-    s32                        wallDx;
-    s32                        wallDz;
-    s32                        hitCooldown;
-    s32                        boundedDepth;
-    s32                        distance;
-    s32                        z;
-    u32                        id;
-    u32                        damage;
-    Actor107000Work*           work;
-    GsCOORDINATE2*             coord;
-    void*                      scratchHead;
-    Actor107000ContactScratch* scratch;
-    Actor107000Work*           contact;
+    s32                damageState;
+    TmdObject*         object;
+    GpEnemy*           enemy;
+    GpRec18*           effectRec;
+    VECTOR*            normal;
+    VECTOR*            delta;
+    s16                cooldown;
+    s32                stage;
+    s32                contactStage;
+    s32                effect;
+    s32                pushY;
+    s32                movement;
+    s32                dx;
+    s32                dz;
+    s32                wallDx;
+    s32                wallDz;
+    s32                hitCooldown;
+    s32                boundedDepth;
+    s32                distance;
+    s32                z;
+    u32                id;
+    u32                damage;
+    Actor107000Work*   work;
+    GsCOORDINATE2*     coord;
+    void*              scratchHead;
+    ActorContactFrame* scratch;
+    Actor107000Work*   contact;
 
     work        = (Actor107000Work*)arg0->work;
     scratchHead = (void*)(*(u32*)0x1F8003FC -= 0x4C);
@@ -1393,13 +1382,13 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
 /// way.
 void Actor07000_Fn01EB0(Task* arg0)
 {
-    ActorsShared80133cd0Scratch* scratch;
-    Actor107000Work*             work;
-    GsCOORDINATE2*               coord;
-    s32                          movement;
+    ActorDeltaFrame48* scratch;
+    Actor107000Work*   work;
+    GsCOORDINATE2*     coord;
+    s32                movement;
 
     work     = (Actor107000Work*)arg0->work;
-    scratch  = (ActorsShared80133cd0Scratch*)(SCRATCH_SP -= 0x48);
+    scratch  = (ActorDeltaFrame48*)(SCRATCH_SP -= 0x48);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_154[0], &scratch->delta, 4, NULL);
     switch (movement) {
@@ -2329,21 +2318,21 @@ void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
 
 void Actor07000_Fn03E08(Task* arg0)
 {
-    s32                          movement;
-    s32                          dx;
-    s32                          dy;
-    s32                          dz;
-    s32                          reaction;
-    s32                          cooldown;
-    u32                          random;
-    u32                          kind;
-    u32                          damage;
-    s32                          i;
-    Actor107000Spawn2Work*       work;
-    GsCOORDINATE2*               coord;
-    GpEnemy*                     enemy;
-    void*                        head;
-    ActorsShared8013777cScratch* scratch;
+    s32                    movement;
+    s32                    dx;
+    s32                    dy;
+    s32                    dz;
+    s32                    reaction;
+    s32                    cooldown;
+    u32                    random;
+    u32                    kind;
+    u32                    damage;
+    s32                    i;
+    Actor107000Spawn2Work* work;
+    GsCOORDINATE2*         coord;
+    GpEnemy*               enemy;
+    void*                  head;
+    ActorDeltaFrame38*     scratch;
 
     work     = arg0->work;
     head     = (void*)(*(u32*)0x1F8003FC -= 0x38);
@@ -3240,13 +3229,13 @@ void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
 /// tables are released either way.
 void Actor07000_Fn0595C(Task* arg0)
 {
-    ActorsShared8013777cScratch* scratch;
-    ActorsShared8013777cWork*    work;
-    GsCOORDINATE2*               coord;
-    s32                          movement;
+    ActorDeltaFrame38*        scratch;
+    ActorsShared8013777cWork* work;
+    GsCOORDINATE2*            coord;
+    s32                       movement;
 
     work     = (ActorsShared8013777cWork*)arg0->work;
-    scratch  = (ActorsShared8013777cScratch*)(SCRATCH_SP -= 0x38);
+    scratch  = (ActorDeltaFrame38*)(SCRATCH_SP -= 0x38);
     coord    = ((TmdObject*)arg0->extra)->coords;
     movement = func_800E0C10(&work->field_24C[0], &scratch->delta, 4, NULL);
     switch (movement) {

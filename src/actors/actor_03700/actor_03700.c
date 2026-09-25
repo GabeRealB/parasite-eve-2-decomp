@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -115,19 +116,6 @@ extern void* Actor03700_D08108;
 
 /// Animation-set table handed to the player as the 0x3FF payload's `animBlock`.
 extern GpAnimSet* Actor03700_D080FC[];
-
-/// 0x58-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn0042C`:
-/// `delta` receives the `func_800E0C10` push-back and is then reused for each
-/// record's offset, `normal` is its `VectorNormal`, and `dir` that normal
-/// transformed by the grid's `workm`.
-typedef struct Actor103700PushScratch {
-    /* 0x00 */ byte           pad_0[0x20];
-    /* 0x20 */ GpDeltaScratch delta;
-    /* 0x30 */ VECTOR         normal;
-    /* 0x40 */ VECTOR         dir;
-    /* 0x50 */ byte           pad_50[0x8];
-} Actor103700PushScratch;
-STATIC_ASSERT_SIZEOF(Actor103700PushScratch, 0x58);
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
 extern s16 Actor03700_D08074[];
@@ -344,27 +332,27 @@ void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
 /// and move the actor into its flinch / knockdown modes.
 void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 {
-    Actor103700PushScratch* scratch;
-    GsCOORDINATE2*          coord;
-    GsCOORDINATE2*          src;
-    Actor103700Work*        work;
-    s32                     push;
-    s32                     reach;
-    s32                     res;
-    s32                     i;
-    s32                     z;
-    s32                     val;
-    s32                     ex;
-    s32                     ey;
-    s32                     ez;
-    s32                     broke;
-    u32                     id;
-    u32                     damage;
+    ActorPushFrame*  scratch;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   src;
+    Actor103700Work* work;
+    s32              push;
+    s32              reach;
+    s32              res;
+    s32              i;
+    s32              z;
+    s32              val;
+    s32              ex;
+    s32              ey;
+    s32              ez;
+    s32              broke;
+    u32              id;
+    u32              damage;
 
     push    = 0;
     broke   = 0;
     work    = (Actor103700Work*)task->work;
-    scratch = (Actor103700PushScratch*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
+    scratch = (ActorPushFrame*)(*(u8**)G_SCRATCH_HEAD -= 0x58);
     coord   = ((TmdObject*)task->extra)->coords;
     res     = func_800E0C10(work->records, &scratch->delta, 4, NULL);
     if (res == 1)

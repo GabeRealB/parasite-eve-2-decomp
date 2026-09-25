@@ -251,6 +251,55 @@ typedef struct ActorMoveScratch {
 } ActorMoveScratch;
 STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
 
+/// A 0x38-byte scratch-pad frame around the 16.16 step `func_800E0C10` or
+/// `func_800E0FEC` resolves into `delta`. The frame is taken whole so the
+/// caller's own scratch, taken below the head, stays clear of it; nothing
+/// else in it is read.
+typedef struct ActorDeltaFrame38 {
+    byte           pad_0[0x20];
+    GpDeltaScratch delta;
+    byte           pad_30[0x8];
+} ActorDeltaFrame38;
+STATIC_ASSERT_SIZEOF(ActorDeltaFrame38, 0x38);
+
+/// The same frame at 0x48 bytes, for the steps that take the larger block.
+typedef struct ActorDeltaFrame48 {
+    byte           pad_0[0x20];
+    GpDeltaScratch delta;
+    byte           pad_30[0x18];
+} ActorDeltaFrame48;
+STATIC_ASSERT_SIZEOF(ActorDeltaFrame48, 0x48);
+
+/// The scratch-pad frame of a wall contact: `delta` receives the
+/// `func_800E0C10` push-back and is then reused for offsets, `normal` is the
+/// normalised wall offset, and `result` the word `func_800E0C10` reports
+/// through its last argument.
+typedef struct ActorContactFrame {
+    byte           pad_0[0x20];
+    GpDeltaScratch delta;
+    byte           pad_30[0x8];
+    VECTOR         normal;
+    s32            result;
+} ActorContactFrame;
+STATIC_ASSERT_SIZEOF(ActorContactFrame, 0x4C);
+
+/// The scratch-pad frame of a push against the collision grid: `delta`
+/// receives the `func_800E0C10` push-back and is then reused for each
+/// record's offset, `normal` is that offset normalised, and `dir` the normal
+/// brought into the grid's frame. `dx` and `dz` are the contact record's
+/// normal, staged for the bearing some actors take from it.
+typedef struct ActorPushFrame {
+    byte           pad_0[0x20];
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    VECTOR         dir;
+    s16            dx;
+    byte           pad_52[0x2];
+    s16            dz;
+    byte           pad_56[0x2];
+} ActorPushFrame;
+STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
+
 /* Tables. */
 
 /// One row of a per-room height clamp: when `field_0` / `field_2` match the
