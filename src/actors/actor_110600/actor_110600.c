@@ -437,15 +437,15 @@ void func_actor_110600_80131FC0(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
@@ -499,7 +499,7 @@ s32 func_actor_110600_801322CC(GsCOORDINATE2* coord, GpRec18* movement, s16 coun
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return s->moved;
 }
 
@@ -508,9 +508,9 @@ s16 func_actor_110600_80132470(OverlayWalker* walker)
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x8;
-    d                     = (OverlayWalkerArrivalDelta*)(head - 0x8);
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x8;
+    d                = (OverlayWalkerArrivalDelta*)(head - 0x8);
 
     d->x = walker->nav->nodes[walker->node].x;
     d->y = walker->nav->nodes[walker->node].y;
@@ -521,10 +521,10 @@ s16 func_actor_110600_80132470(OverlayWalker* walker)
 
     if (!overlayWalkerOutOfRange(d, walker->field_5C * 4) ||
         !overlayWalkerOutOfRange(d, 300)) {
-        *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+        SCRATCH_POP_BYTES(0x8);
         return 1;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x8;
+    SCRATCH_POP_BYTES(0x8);
     return 0;
 }
 
@@ -576,9 +576,9 @@ u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
     u8*                          head;
     s16                          dz;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x18;
-    block                 = (OverlayWalkerNearCfgScratch*)*(u8**)G_SCRATCH_HEAD;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x18;
+    block            = (OverlayWalkerNearCfgScratch*)SCRATCH_HEAD(u8);
 
     block->cfg  = &D_80073B08[(s16)actor];
     block->best = -1;
@@ -593,7 +593,7 @@ u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
             block->nearest = block->node;
         }
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
     return block->nearest;
 }
 
@@ -607,9 +607,9 @@ u8 func_actor_110600_80132958(OverlayWalker* work)
     u8*                       head;
     s16                       dz;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x14;
-    block                 = (OverlayWalkerNearScratch*)*(u8**)G_SCRATCH_HEAD;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x14;
+    block            = (OverlayWalkerNearScratch*)SCRATCH_HEAD(u8);
 
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
@@ -622,7 +622,7 @@ u8 func_actor_110600_80132958(OverlayWalker* work)
             block->nearest = block->node;
         }
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x14;
+    SCRATCH_POP_BYTES(0x14);
     return block->nearest;
 }
 
@@ -644,9 +644,9 @@ void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
     s32                        diff;
     s32                        best;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
-    s                     = (OverlayWalkerRouteScratch*)(head - 0x1C);
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x1C;
+    s                = (OverlayWalkerRouteScratch*)(head - 0x1C);
 
     s->nodeA  = func_actor_110600_801327EC(work, actor);
     s->nodeB  = func_actor_110600_80132958(work);
@@ -694,8 +694,8 @@ void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
     if (s->best == 0xFF) {
         printf(D_actor_110600_80131E24);
     }
-    work->cursor         += (u8)work->field_73;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+    work->cursor += (u8)work->field_73;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_actor_110600_80132D54(OverlayWalker* work)
@@ -711,9 +711,9 @@ void func_actor_110600_80132D54(OverlayWalker* work)
     s32                       y;
     s32                       mag;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x18;
-    s                     = (OverlayWalkerMoveScratch*)(head - 0x18);
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x18;
+    s                = (OverlayWalkerMoveScratch*)(head - 0x18);
     if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
         dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
         dz         = s->delta.vz.h.hi;
@@ -780,7 +780,7 @@ void func_actor_110600_80132D54(OverlayWalker* work)
     } else {
         work->moving = 0;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_110600_80132FE0(OverlayWalker* work)
@@ -800,9 +800,9 @@ void func_actor_110600_80132FE0(OverlayWalker* work)
     work->push.vy = 0;
     work->push.vx = 0;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayAvoidScratch);
-    s                     = (OverlayAvoidScratch*)*(u8**)G_SCRATCH_HEAD;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
+    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
 
     Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -891,8 +891,8 @@ void func_actor_110600_80132FE0(OverlayWalker* work)
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD =
-        (u8*)*(u8**)G_SCRATCH_HEAD + sizeof(OverlayAvoidScratch);
+    SCRATCH_HEAD(u8) =
+        (u8*)SCRATCH_HEAD(u8) + sizeof(OverlayAvoidScratch);
 }
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
@@ -909,11 +909,11 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
 
     if (D_80072728 == 1)
         return;
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x1C;
-    s                     = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord                 = work->coord;
-    diff                  = overlayCoordBearingXZ(pos, coord) -
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x1C;
+    s                = (OverlayWalkerTurnScratch*)(head - 0x1C);
+    coord            = work->coord;
+    diff             = overlayCoordBearingXZ(pos, coord) -
            ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     t = diff;
     if (diff < 0) {
@@ -949,7 +949,7 @@ void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     __builtin_memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
     Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
@@ -970,8 +970,8 @@ void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
     work->nav->nodes[0].x = *(u16*)&work->coord->coord.t[0];
     work->nav->nodes[0].y = *(u16*)&work->coord->coord.t[1];
     work->nav->nodes[0].z = *(u16*)&work->coord->coord.t[2];
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x2C;
+    head                  = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)      = head - 0x2C;
     blk                   = (Actor110600TsvScratch*)(head - 0x2C);
     work->nav->field_4[0] = 0;
     blk->m                = work->coord->coord;
@@ -994,7 +994,7 @@ void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle)
         work->route->nodes[blk->i] = blk->i;
     }
     work->route->nodes[blk->i] = 0xFF;
-    *(u8**)G_SCRATCH_HEAD      = *(u8**)G_SCRATCH_HEAD + 0x2C;
+    SCRATCH_POP_BYTES(0x2C);
 }
 
 /// The walker's per-tick body, open on the scratch frame `func_actor_110600_80133A94`
@@ -1037,9 +1037,9 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             pos->vz                        = *(u16*)&cfg->coordMtx->t[2];
             break;
         case 2:
-            *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 4;
-            walker->field_6F      = func_actor_110600_801327EC(walker, 1);
-            walker->field_70      = func_actor_110600_80132958(walker);
+            SCRATCH_PUSH_BYTES(4);
+            walker->field_6F = func_actor_110600_801327EC(walker, 1);
+            walker->field_70 = func_actor_110600_80132958(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
                 walker->field_6F != walker->field_71) {
                 func_actor_110600_80132A84(walker, 1);
@@ -1049,9 +1049,9 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
             if (func_actor_110600_80132470(walker) != 0) {
-                walker->cursor       += (u8)walker->field_73;
-                walker->node          = walker->nav->field_4[walker->cursor];
-                *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 4;
+                walker->cursor += (u8)walker->field_73;
+                walker->node    = walker->nav->field_4[walker->cursor];
+                SCRATCH_POP_BYTES(4);
             }
             break;
         case 3:
@@ -1083,10 +1083,10 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
         step->vy            = 0;
         walker->moveStep.vx = 0;
     } else {
-        head2                 = *(u8**)G_SCRATCH_HEAD;
-        sv                    = (SVECTOR*)(head2 - 8);
-        *(u8**)G_SCRATCH_HEAD = (u8*)sv;
-        gsv                   = sv;
+        head2            = SCRATCH_HEAD(u8);
+        sv               = (SVECTOR*)(head2 - 8);
+        SCRATCH_HEAD(u8) = (u8*)sv;
+        gsv              = sv;
         if (speed != 0) {
             Gfx_MatrixCol2(&coord->coord, sv);
             VectorNormalSS(sv, sv);
@@ -1100,7 +1100,7 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
             walker->moveStep   = *(SVECTOR*)(head2 - 8);
             coord->flg         = 0;
         }
-        *(u8**)G_SCRATCH_HEAD += 8;
+        SCRATCH_POP_BYTES(8);
     }
     if (walker->field_6C == 0) {
         func_actor_110600_80132D54(walker);
@@ -1121,12 +1121,12 @@ void func_actor_110600_80133A94(OverlayWalker* walker)
     u8*                       head;
     OverlayWalkerTickScratch* block;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x28;
-    block                 = (OverlayWalkerTickScratch*)*(u8**)G_SCRATCH_HEAD;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x28;
+    block            = (OverlayWalkerTickScratch*)SCRATCH_HEAD(u8);
     Actor110600_WalkerStep(walker, head, block);
-    walker->coord->flg    = 0;
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x28;
+    walker->coord->flg = 0;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
@@ -1144,10 +1144,10 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    coord                                   = ((TmdObject*)task->extra)->coords;
-    blk                                     = (ActorScaleRotScratch*)(head - 0x34);
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
+    head                               = SCRATCH_HEAD(u8);
+    coord                              = ((TmdObject*)task->extra)->coords;
+    blk                                = (ActorScaleRotScratch*)(head - 0x34);
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -1169,7 +1169,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     coord->flg                             = 0;
     coord->coord.m[2][2]                   = m22;
     ((TmdObject*)task->extra)->coords->flg = 0;
-    *(u8**)G_SCRATCH_HEAD                  = *(u8**)G_SCRATCH_HEAD + 0x34;
+    SCRATCH_POP_BYTES(0x34);
 }
 
 /// Placement opcode: drops the model's root coordinate onto `placement` (the
@@ -1635,9 +1635,9 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
 {
     VECTOR *head, *scale;
     s32     amount;
-    head                      = *(VECTOR**)G_SCRATCH_HEAD;
-    scale                     = head - 1;
-    *(VECTOR**)G_SCRATCH_HEAD = scale;
+    head                     = SCRATCH_HEAD(VECTOR);
+    scale                    = head - 1;
+    SCRATCH_HEAD(VECTOR)     = scale;
     walker->scaleMtx.m[0][0] = walker->scaleMtx.m[1][1] = walker->scaleMtx.m[2][2] = 0x1000;
     walker->scaleMtx.m[0][1] = walker->scaleMtx.m[0][2] = walker->scaleMtx.m[1][0] = walker->scaleMtx.m[1][2] = walker->scaleMtx.m[2][0] = walker->scaleMtx.m[2][1] = 0;
     walker->scaleMtx.t[0] = walker->scaleMtx.t[1] = walker->scaleMtx.t[2] = 0;
@@ -1646,7 +1646,7 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
         scale->vx = scale->vy = scale->vz = amount;
         ScaleMatrix(&walker->scaleMtx, scale);
     }
-    *(VECTOR**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
@@ -2234,7 +2234,7 @@ void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     SVECTOR* sc;
     s32      mag;
 
-    sc  = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    sc  = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     mag = (arg1 >= 0) ? arg1 : -arg1;
     if (mag < 0x200) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2287,7 +2287,7 @@ void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     D_actor_110600_80148698.spawnArgLo = 0x100;
     D_actor_110600_80148698.spawnArgHi = 3;
     func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &((TmdObject*)arg0->extra)->coords[sc->pad], sc, &D_actor_110600_80148698);
-    *(u32*)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 static __inline__ s32 Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count)
@@ -2332,7 +2332,7 @@ void func_actor_110600_80136210(Task* arg0)
         work->field_A90.flags &= 0x7FFF;
         return;
     }
-    sc      = (Actor110600HitScratch*)(*(u32*)G_SCRATCH_HEAD -= 0x30);
+    sc      = (Actor110600HitScratch*)SCRATCH_PUSH_BYTES(0x30);
     sc->key = Actor110600_FindHit(&sc->point, work->recs_8D8, 5);
     if (!sc->key) {
         sc->key = Actor110600_FindHit(&sc->point, work->recs_970, 12);
@@ -2441,7 +2441,7 @@ void func_actor_110600_80136210(Task* arg0)
             }
         }
     }
-    *(u32*)G_SCRATCH_HEAD += 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Timer stage that walks between the two long `field_892` values. Entering on
@@ -2579,33 +2579,33 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
     u16                   m22;
     u8*                   restoredHead;
 
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    obj                                     = arg0->extra;
-    coord                                   = obj->coords;
-    page                                    = work->walker.scale;
-    blk                                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
-    y                                      -= (work->field_BE0 - 0x12C) * 2;
-    ang                                     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                              = ang;
+    head                               = SCRATCH_HEAD(u8);
+    obj                                = arg0->extra;
+    coord                              = obj->coords;
+    page                               = work->walker.scale;
+    blk                                = (ActorScaleRotScratch*)((u8*)head - 0x34);
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    y                                 -= (work->field_BE0 - 0x12C) * 2;
+    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                         = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = page;
     blk->scale.vy = y;
     blk->scale.vz = page;
     ScaleMatrix(&blk->m, &blk->scale);
-    coord->coord.m[0][0]  = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
-    coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
-    coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
-    coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];
-    coord->coord.m[1][1]  = *(u16*)&blk->m.m[1][1];
-    coord->coord.m[1][2]  = *(u16*)&blk->m.m[1][2];
-    coord->coord.m[2][0]  = *(u16*)&blk->m.m[2][0];
-    coord->coord.m[2][1]  = *(u16*)&blk->m.m[2][1];
-    restoredHead          = *(u8**)G_SCRATCH_HEAD;
-    m22                   = *(u16*)&blk->m.m[2][2];
-    coord->flg            = 0;
-    *(u8**)G_SCRATCH_HEAD = restoredHead + 0x34;
-    coord->coord.m[2][2]  = m22;
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    restoredHead         = SCRATCH_HEAD(u8);
+    m22                  = *(u16*)&blk->m.m[2][2];
+    coord->flg           = 0;
+    SCRATCH_HEAD(u8)     = restoredHead + 0x34;
+    coord->coord.m[2][2] = m22;
 }
 
 void func_actor_110600_80136B20(Task* arg0)
@@ -2848,29 +2848,29 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    head                                    = *(u8**)G_SCRATCH_HEAD;
-    coord                                   = ((TmdObject*)arg0->extra)->coords;
-    blk                                     = (ActorScaleRotScratch*)(head - 0x34);
-    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = blk;
-    ang                                     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                              = ang;
+    head                               = SCRATCH_HEAD(u8);
+    coord                              = ((TmdObject*)arg0->extra)->coords;
+    blk                                = (ActorScaleRotScratch*)(head - 0x34);
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                         = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = (s16)scale;
     blk->scale.vy = (s16)scale;
     blk->scale.vx = (s16)scale;
     ScaleMatrix(&blk->m, &blk->scale);
-    coord->coord.m[0][0]  = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
-    coord->coord.m[0][1]  = *(u16*)&blk->m.m[0][1];
-    coord->coord.m[0][2]  = *(u16*)&blk->m.m[0][2];
-    coord->coord.m[1][0]  = *(u16*)&blk->m.m[1][0];
-    coord->coord.m[1][1]  = *(u16*)&blk->m.m[1][1];
-    coord->coord.m[1][2]  = *(u16*)&blk->m.m[1][2];
-    coord->coord.m[2][0]  = *(u16*)&blk->m.m[2][0];
-    coord->coord.m[2][1]  = *(u16*)&blk->m.m[2][1];
-    m22                   = *(u16*)&blk->m.m[2][2];
-    coord->flg            = 0;
-    coord->coord.m[2][2]  = m22;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x34;
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
+    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
+    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
+    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
+    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
+    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
+    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
+    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    m22                  = *(u16*)&blk->m.m[2][2];
+    coord->flg           = 0;
+    coord->coord.m[2][2] = m22;
+    SCRATCH_POP_BYTES(0x34);
 }
 
 void func_actor_110600_801372CC(Task* arg0)
@@ -3005,18 +3005,18 @@ static __inline__ s32 Actor110600_OutOfRange(SVECTOR* d)
     s32                  dz;
     u8*                  head;
 
-    head                                   = *(u8**)G_SCRATCH_HEAD;
-    blk                                    = (OverlayRangeScratch*)(head - 0xC);
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD = blk;
-    blk->dx                                = d->vx;
-    blk->dz                                = d->vz;
-    blk->r                                 = 0xBB8;
-    blk->dx                               *= blk->dx;
-    dz                                     = blk->dz;
-    dz2                                    = dz * dz;
-    blk->dz                                = dz2;
-    blk->r                                *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                  = head;
+    head                              = SCRATCH_HEAD(u8);
+    blk                               = (OverlayRangeScratch*)(head - 0xC);
+    SCRATCH_HEAD(OverlayRangeScratch) = blk;
+    blk->dx                           = d->vx;
+    blk->dz                           = d->vz;
+    blk->r                            = 0xBB8;
+    blk->dx                          *= blk->dx;
+    dz                                = blk->dz;
+    dz2                               = dz * dz;
+    blk->dz                           = dz2;
+    blk->r                           *= blk->r;
+    SCRATCH_HEAD(u8)                  = head;
     __asm__("" : "=r"(dz), "+r"(dz2) : "m"(blk->r));
     return (blk->dx + dz2) >= blk->r;
 }
@@ -3566,7 +3566,7 @@ void func_actor_110600_80138568(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
@@ -3601,7 +3601,7 @@ void func_actor_110600_80138680(GsCOORDINATE2* coord, s16 sx, s16 sy, s16 sz)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }

@@ -251,16 +251,16 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    extra->flags               = 0;
-    coord->flg                 = 0;
-    head                       = *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD;
-    extra->lightMtx            = &work->field_20;
-    extra->colorMtx            = &work->field_0;
-    rotation                   = &head[-1].rotation;
-    rotation->vx               = 0;
-    rotation->vy               = 0;
-    *(SVECTOR**)G_SCRATCH_HEAD = rotation;
-    rotation->vz               = arg0->place->mode;
+    extra->flags          = 0;
+    coord->flg            = 0;
+    head                  = SCRATCH_HEAD(Actor02100Fn00048Scratch);
+    extra->lightMtx       = &work->field_20;
+    extra->colorMtx       = &work->field_0;
+    rotation              = &head[-1].rotation;
+    rotation->vx          = 0;
+    rotation->vy          = 0;
+    SCRATCH_HEAD(SVECTOR) = rotation;
+    rotation->vz          = arg0->place->mode;
     RotMatrix(rotation, &head[-1].matrix);
     matrix = &coord->coord;
     gte_SetRotMatrix(matrix);
@@ -358,9 +358,9 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     work->field_C8.flags     = 3U;
     work->field_78.flags     = (u16)((work->field_78.flags & 0x3FFF) | 0xC00);
     Gp_LinkObj(1, &work->field_C8);
-    work->field_C8.flags                        = (u16)((work->field_C8.flags & 0x3FFF) | 0x400);
-    arg1->state                                 = 1;
-    *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD = *(Actor02100Fn00048Scratch**)G_SCRATCH_HEAD + 1;
+    work->field_C8.flags                   = (u16)((work->field_C8.flags & 0x3FFF) | 0x400);
+    arg1->state                            = 1;
+    SCRATCH_HEAD(Actor02100Fn00048Scratch) = SCRATCH_HEAD(Actor02100Fn00048Scratch) + 1;
 }
 
 void Actor02100_Fn004C4(Task* arg0)
@@ -379,12 +379,12 @@ void Actor02100_Fn004C4(Task* arg0)
     s32                       depth;
     s32                       index;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x18;
-    scratch               = (Actor02100Fn014E4Scratch*)*(u8**)G_SCRATCH_HEAD;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    work                  = arg0->work;
-    enemy                 = arg0->spawnArg2;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x18;
+    scratch          = (Actor02100Fn014E4Scratch*)SCRATCH_HEAD(u8);
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    work             = arg0->work;
+    enemy            = arg0->spawnArg2;
 
     if (work->field_170 != 0) {
         work->field_170--;
@@ -501,7 +501,7 @@ void Actor02100_Fn004C4(Task* arg0)
     }
 
     Gp_ClearRec18Occupied(&work->field_98);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Stops the looping effect, clears the offset vector and starts the tail
@@ -673,9 +673,9 @@ void Actor02100_Fn00DCC(Task* arg0)
     work->field_180 = 0;
     self->flg       = 0;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0x20;
-    blk                   = (Actor02100Sight*)(head - 0x20);
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x20;
+    blk              = (Actor02100Sight*)(head - 0x20);
 
     if (work->field_178 == 4) {
         target = &((TmdObject*)gameGetPtrSlot(3)->extra)->coords[0];
@@ -753,7 +753,7 @@ void Actor02100_Fn00DCC(Task* arg0)
         }
     }
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x20;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 void Actor02100_Fn011C4(Task* arg0)
@@ -777,7 +777,7 @@ void Actor02100_Fn011C4(Task* arg0)
     if (head != NULL) {
         scratchSlot  = (u8**)G_SCRATCH_HEAD;
         current      = head;
-        scratchHead  = *(u8**)G_SCRATCH_HEAD;
+        scratchHead  = SCRATCH_HEAD(u8);
         *scratchSlot = scratchHead - 0x40;
         scratch      = (Actor02100Fn011C4Scratch*)*scratchSlot;
         SOFT_TOUCH_REG(head);
@@ -828,7 +828,7 @@ void Actor02100_Fn011C4(Task* arg0)
             }
             current = (Task*)((Task*)current)->nextSibling;
         } while (current != head);
-        *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x40;
+        SCRATCH_POP_BYTES(0x40);
     }
 }
 
@@ -851,11 +851,11 @@ s32 Actor02100_Fn014E4(Task* arg0)
         return result;
     }
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    scratch               = (Actor02100Fn014E4Scratch*)(head - 0x18);
-    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
-    vec                   = &scratch->vec;
-    state                 = work->field_180;
+    head             = SCRATCH_HEAD(u8);
+    scratch          = (Actor02100Fn014E4Scratch*)(head - 0x18);
+    SCRATCH_HEAD(u8) = (u8*)scratch;
+    vec              = &scratch->vec;
+    state            = work->field_180;
     if (state == 1) {
         goto case1;
     }
@@ -900,7 +900,7 @@ case2:
     result = 1;
 
 cleanup:
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
     return result;
 }
 
@@ -932,11 +932,11 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     u8*                       head1;
     u8*                       head2;
 
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    head0                 = *(u8**)G_SCRATCH_HEAD;
-    scratch               = (Actor02100Fn01FF0Scratch*)(head0 - 0x28);
-    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
-    work                  = arg0->work;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    head0            = SCRATCH_HEAD(u8);
+    scratch          = (Actor02100Fn01FF0Scratch*)(head0 - 0x28);
+    SCRATCH_HEAD(u8) = (u8*)scratch;
+    work             = arg0->work;
 
     scratch->shortVec.vx = 0;
     scratch->shortVec.vy = 0;
@@ -954,7 +954,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     scratch->transformed.vz = work->field_108.vz - scratch->delta.vz;
     Gp_OrientAlong(&scratch->transformed, &work->field_144, 0);
 
-    head1                     = *(u8**)G_SCRATCH_HEAD;
+    head1                     = SCRATCH_HEAD(u8);
     nextWork                  = arg0->work;
     shortScratch              = (Actor02100Fn014E4Scratch*)(head1 + 0x10);
     nextWork->field_128[0].vx = 0;
@@ -962,29 +962,29 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     nextWork->field_128[0].vz = 0x12C;
     shortScratch->shortVec.vx = 0;
     shortScratch->shortVec.vy = 0;
-    *(u8**)G_SCRATCH_HEAD     = head1 + 0x28;
+    SCRATCH_HEAD(u8)          = head1 + 0x28;
     shortScratch->shortVec.vz = nextWork->field_182;
-    *(u8**)G_SCRATCH_HEAD     = (u8*)shortScratch;
+    SCRATCH_HEAD(u8)          = (u8*)shortScratch;
     gte_SetRotMatrix(&nextWork->field_144);
     gte_ldv0(&shortScratch->shortVec);
     gte_rtv0();
     gte_stsv(&nextWork->field_128[1]);
     nextWork->field_128[1].vz += 0x12C;
 
-    head2                 = *(u8**)G_SCRATCH_HEAD;
-    shortVec              = (SVECTOR*)(head2 + 0x10);
-    *(u8**)G_SCRATCH_HEAD = head2 + 0x18;
-    nextWork2             = arg0->work;
-    *(u8**)G_SCRATCH_HEAD = (u8*)shortVec;
-    shortVec->vx          = 0;
-    shortVec->vy          = 0;
-    shortVec->vz          = 0x2710;
+    head2            = SCRATCH_HEAD(u8);
+    shortVec         = (SVECTOR*)(head2 + 0x10);
+    SCRATCH_HEAD(u8) = head2 + 0x18;
+    nextWork2        = arg0->work;
+    SCRATCH_HEAD(u8) = (u8*)shortVec;
+    shortVec->vx     = 0;
+    shortVec->vy     = 0;
+    shortVec->vz     = 0x2710;
     gte_SetRotMatrix(&nextWork2->field_144);
     gte_ldv0(shortVec);
     gte_rtv0();
     gte_stsv(&nextWork2->field_B0);
-    nextWork2->field_E8    = nextWork2->field_B0;
-    *(u8**)G_SCRATCH_HEAD += 8;
+    nextWork2->field_E8 = nextWork2->field_B0;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Rebuilds the same two direction vectors as `Actor02100_AimAndBuildVectors`
@@ -1004,13 +1004,13 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
     if (currentWork->field_17A == 0xE) {
         work                  = arg0->work;
         work->field_128[0].vz = 0x12C;
-        head                  = *(u8**)G_SCRATCH_HEAD;
+        head                  = SCRATCH_HEAD(u8);
         scratch               = (Actor02100Fn014E4Scratch*)(head - 0x18);
         work->field_128[0].vx = 0;
         work->field_128[0].vy = 0;
         scratch->shortVec.vx  = 0;
         scratch->shortVec.vy  = 0;
-        *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+        SCRATCH_HEAD(u8)      = (u8*)scratch;
         scratch->shortVec.vz  = work->field_182;
         gte_SetRotMatrix(&work->field_144);
         head -= 8;
@@ -1019,13 +1019,13 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
     } else {
         work                  = arg0->work;
         work->field_128[0].vz = 0x12C;
-        head                  = *(u8**)G_SCRATCH_HEAD;
+        head                  = SCRATCH_HEAD(u8);
         scratch2              = (Actor02100Fn014E4Scratch*)(head - 0x18);
         work->field_128[0].vx = 0;
         work->field_128[0].vy = 0;
         scratch2->shortVec.vx = 0;
         scratch2->shortVec.vy = 0;
-        *(u8**)G_SCRATCH_HEAD = (u8*)scratch2;
+        SCRATCH_HEAD(u8)      = (u8*)scratch2;
         scratch2->shortVec.vz = work->field_182;
         gte_SetRotMatrix(&work->field_144);
         head -= 8;
@@ -1034,22 +1034,22 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
     }
     gte_stsv(&work->field_128[1]);
     work->field_128[1].vz += 0x12C;
-    *(u8**)G_SCRATCH_HEAD += 0x18;
+    SCRATCH_POP_BYTES(0x18);
     SOFT_COMPILER_BARRIER();
 
-    headTail              = *(u8**)G_SCRATCH_HEAD;
-    shortVec              = (SVECTOR*)(headTail - 8);
-    nextWork              = arg0->work;
-    *(u8**)G_SCRATCH_HEAD = (u8*)shortVec;
-    shortVec->vx          = 0;
-    shortVec->vy          = 0;
-    shortVec->vz          = 0x2710;
+    headTail         = SCRATCH_HEAD(u8);
+    shortVec         = (SVECTOR*)(headTail - 8);
+    nextWork         = arg0->work;
+    SCRATCH_HEAD(u8) = (u8*)shortVec;
+    shortVec->vx     = 0;
+    shortVec->vy     = 0;
+    shortVec->vz     = 0x2710;
     gte_SetRotMatrix(&nextWork->field_144);
     gte_ldv0(shortVec);
     gte_rtv0();
     gte_stsv(&nextWork->field_B0);
-    nextWork->field_E8     = nextWork->field_B0;
-    *(u8**)G_SCRATCH_HEAD += 8;
+    nextWork->field_E8 = nextWork->field_B0;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Four-state sweep with a charge-up, a strike and a recovery wait. State 0 aims
@@ -1074,12 +1074,12 @@ void Actor02100_Fn016EC(Task* arg0)
     s16             state;
     s16             frame;
 
-    *(u8**)G_SCRATCH_HEAD -= 0x48;
-    work                   = arg0->work;
-    state                  = work->field_174;
-    coord                  = ((TmdObject*)arg0->extra)->coords;
-    flagBit                = 0x20000;
-    sound                  = 0;
+    SCRATCH_PUSH_BYTES(0x48);
+    work    = arg0->work;
+    state   = work->field_174;
+    coord   = ((TmdObject*)arg0->extra)->coords;
+    flagBit = 0x20000;
+    sound   = 0;
 
     switch (state) {
         case 0:
@@ -1194,7 +1194,7 @@ void Actor02100_Fn016EC(Task* arg0)
             break;
     }
 
-    *(u8* volatile*)G_SCRATCH_HEAD += 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 /// Points the actor at its stored target. Rotates a fixed forward offset by the
@@ -1208,11 +1208,11 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
     GsCOORDINATE2*            coord;
     u8*                       head;
 
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    work                  = arg0->work;
-    scratch               = (Actor02100Fn01FF0Scratch*)(head - 0x28);
-    *(u8**)G_SCRATCH_HEAD = (u8*)scratch;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    work             = arg0->work;
+    scratch          = (Actor02100Fn01FF0Scratch*)(head - 0x28);
+    SCRATCH_HEAD(u8) = (u8*)scratch;
 
     scratch->shortVec.vx = 0;
     scratch->shortVec.vy = 0;
@@ -1248,7 +1248,7 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     u8*                       head2;
     u16                       vz;
 
-    head    = *(u8**)G_SCRATCH_HEAD;
+    head    = SCRATCH_HEAD(u8);
     work    = arg0->work;
     scratch = (Actor02100Fn01FF0Scratch*)head;
     inner   = (Actor02100Fn014E4Scratch*)(head + 0x10);
@@ -1260,31 +1260,31 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     inner->shortVec.vy    = 0;
     vz                    = work->field_182;
     SOFT_COMPILER_BARRIER();
-    *(u8**)G_SCRATCH_HEAD = head + 0x28;
+    SCRATCH_HEAD(u8) = head + 0x28;
     SOFT_COMPILER_BARRIER();
-    *(u8**)G_SCRATCH_HEAD = (u8*)inner;
-    inner->shortVec.vz    = vz;
+    SCRATCH_HEAD(u8)   = (u8*)inner;
+    inner->shortVec.vz = vz;
     gte_SetRotMatrix(&work->field_144);
     gte_ldv0(&scratch->shortVec);
     gte_rtv0();
     gte_stsv(&work->field_128[1]);
-    head2                  = *(u8**)G_SCRATCH_HEAD;
+    head2                  = SCRATCH_HEAD(u8);
     work->field_128[1].vz += 0x12C;
 
-    work2                 = arg0->work;
-    shortVec              = (SVECTOR*)(head2 + 0x10);
-    *(u8**)G_SCRATCH_HEAD = head2 + 0x18;
+    work2            = arg0->work;
+    shortVec         = (SVECTOR*)(head2 + 0x10);
+    SCRATCH_HEAD(u8) = head2 + 0x18;
     SOFT_COMPILER_BARRIER();
-    *(u8**)G_SCRATCH_HEAD = (u8*)shortVec;
-    shortVec->vx          = 0;
-    shortVec->vy          = 0;
-    shortVec->vz          = 0x2710;
+    SCRATCH_HEAD(u8) = (u8*)shortVec;
+    shortVec->vx     = 0;
+    shortVec->vy     = 0;
+    shortVec->vz     = 0x2710;
     gte_SetRotMatrix(&work2->field_144);
     gte_ldv0(shortVec);
     gte_rtv0();
     gte_stsv(&work2->field_B0);
-    work2->field_E8        = work2->field_B0;
-    *(u8**)G_SCRATCH_HEAD += 8;
+    work2->field_E8 = work2->field_B0;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Rewrites the far vector alone, without the per-frame near vector: the same
@@ -1296,25 +1296,25 @@ static __inline__ void Actor02100_SetVector(Task* arg0)
     SVECTOR*        shortVec;
     u8*             head;
 
-    head     = *(u8**)G_SCRATCH_HEAD;
+    head     = SCRATCH_HEAD(u8);
     work     = arg0->work;
     shortVec = (SVECTOR*)(head - 8);
     SOFT_TOUCH_REG(head);
     ((SVECTOR*)(head - 8))->vx = 0;
     shortVec->vz               = 0x2710;
-    *(u8**)G_SCRATCH_HEAD      = (u8*)shortVec;
+    SCRATCH_HEAD(u8)           = (u8*)shortVec;
     shortVec->vy               = 0;
     gte_SetRotMatrix(&work->field_144);
     gte_ldv0(shortVec);
     gte_rtv0();
     gte_stsv(&work->field_B0);
-    work->field_E8         = work->field_B0;
-    *(u8**)G_SCRATCH_HEAD += 8;
+    work->field_E8 = work->field_B0;
+    SCRATCH_POP_BYTES(8);
 }
 
 static __inline__ void Actor02100_ReleaseScratch28(void)
 {
-    *(u8**)G_SCRATCH_HEAD += 0x28;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
@@ -1350,12 +1350,12 @@ void Actor02100_Fn01FF0(Task* arg0)
     u16                     flags96;
     u16                     flagsE6;
 
-    rootHead              = *(u8**)G_SCRATCH_HEAD - 0x48;
-    *(u8**)G_SCRATCH_HEAD = rootHead;
-    root                  = (Actor02100Fn01FF0Block*)rootHead;
-    work                  = arg0->work;
-    state                 = work->field_174;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    rootHead         = SCRATCH_HEAD(u8) - 0x48;
+    SCRATCH_HEAD(u8) = rootHead;
+    root             = (Actor02100Fn01FF0Block*)rootHead;
+    work             = arg0->work;
+    state            = work->field_174;
+    coord            = ((TmdObject*)arg0->extra)->coords;
 
     switch (state) {
         case 0:
@@ -1483,7 +1483,7 @@ void Actor02100_Fn01FF0(Task* arg0)
             break;
     }
 
-    *(u8**)G_SCRATCH_HEAD += 0x48;
+    SCRATCH_POP_BYTES(0x48);
 }
 
 /// Draws one beam between the two screen points held in `Actor02100Work`
@@ -1525,11 +1525,11 @@ void Actor02100_Fn02924(Task* arg0, s32 arg1)
     s32                       spanZ;
     Actor02100Work*           work;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    work                  = arg0->work;
-    newHead               = head - 0x3C;
-    *(u8**)G_SCRATCH_HEAD = newHead;
-    scratch               = (Actor02100Fn02924Scratch*)newHead;
+    head             = SCRATCH_HEAD(u8);
+    work             = arg0->work;
+    newHead          = head - 0x3C;
+    SCRATCH_HEAD(u8) = newHead;
+    scratch          = (Actor02100Fn02924Scratch*)newHead;
 
     ((Actor02100Fn02924Scratch*)(head - 0x3C))->delta.vx = work->field_18C[1] - work->field_18C[0];
     scratch->delta.vy                                    = work->field_190[1] - work->field_190[0];
@@ -1662,7 +1662,7 @@ void Actor02100_Fn02924(Task* arg0, s32 arg1)
         segment += 1;
     } while (segment < 8);
 
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 0x3C;
+    SCRATCH_POP_BYTES(0x3C);
 }
 
 void Actor02100_Fn03168(Task* arg0)
@@ -1794,7 +1794,7 @@ s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
     return ret;
 }
 
@@ -1821,11 +1821,11 @@ void Actor02100_Fn034E0(Task* arg0)
     u8*               head;
     s32               y;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    work                  = arg0->work;
-    *(u8**)G_SCRATCH_HEAD = head - 8;
-    scratch               = (Actor02100Screen*)*(u8**)G_SCRATCH_HEAD;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    work             = arg0->work;
+    SCRATCH_HEAD(u8) = head - 8;
+    scratch          = (Actor02100Screen*)SCRATCH_HEAD(u8);
+    coord            = ((TmdObject*)arg0->extra)->coords;
     for (i = 0; i < 2; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_SetTransMatrix(&coord->workm);
@@ -1838,7 +1838,7 @@ void Actor02100_Fn034E0(Task* arg0)
         work->field_190[i] = y;
         work->field_194[i] = scratch->sz;
     }
-    *(u8**)G_SCRATCH_HEAD = (u8*)*(u8**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
