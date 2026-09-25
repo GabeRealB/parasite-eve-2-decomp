@@ -854,8 +854,10 @@ void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s1
         s->corner3.vy = height;
         s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
         s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        view          = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
-        view->flg     = 0;
+        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
+           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
+        view      = (GsCOORDINATE2*)((u8*)&Gfx_ViewWorldMtx - OFFSET_OF(GsCOORDINATE2, workm));
+        view->flg = 0;
         Gp_UpdateCoord(view);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
@@ -863,7 +865,7 @@ void func_actor_421600_80132EC0(Task* actor, s16 firstJoint, s16 secondJoint, s1
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
             poly           = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)poly + 0x28;
+            gGpuPrimCursor = (u8*)(poly + 1);
             setlen(poly, 9);
             poly->code       = 0x2E;
             *(s32*)&poly->x0 = s->screen0;
@@ -928,7 +930,7 @@ void func_actor_421600_80133444(GsCOORDINATE2* arg0)
     SVECTOR              vec;
     SVECTOR*             dir;
     OverlayRangeScratch* blk;
-    u8*                  head;
+    OverlayRangeScratch* head;
     s32                  outside;
     u32                  spad_a;
     u32                  spad_b;
@@ -936,8 +938,8 @@ void func_actor_421600_80133444(GsCOORDINATE2* arg0)
     if ((u32)(arg0->coord.t[0] - 0x1F5) < 0x3E7) {
         if (arg0->coord.t[2] < 0x1F4) {
             if (arg0->coord.t[2] < -0x1F4) {
-                head                           = SCRATCH_HEAD(void);
-                blk                            = (OverlayRangeScratch*)(head - 0xC);
+                head                           = SCRATCH_HEAD(OverlayRangeScratch);
+                blk                            = head - 1;
                 spad_a                         = (u32)PSX_SCRATCH;
                 *(void**)((u8*)spad_a + 0x3FC) = blk;
                 vec.vx                         = (u16)arg0->coord.t[0] - 0x3E8;
@@ -1965,13 +1967,12 @@ void func_actor_421600_801354D8(Task* arg0)
     Actor421600Work*          work;
     GpEnemy*                  enemy;
     Actor421600DamageScratch* scratch;
-    void*                     head;
+    Actor421600DamageScratch* head;
     enemy = arg0->spawnArg2;
     work  = arg0->work;
     if (enemy->hp > 0) {
-        head              = SCRATCH_HEAD(void);
-        scratch           = (SCRATCH_HEAD(Actor421600DamageScratch) =
-                       (Actor421600DamageScratch*)head - 1);
+        head              = SCRATCH_HEAD(Actor421600DamageScratch);
+        scratch           = (SCRATCH_HEAD(Actor421600DamageScratch) = head - 1);
         scratch->field_20 = Actor421600_FindDamageHit(
             &work->field_90C, (SVECTOR*)&scratch->field_18);
         if (scratch->field_20 == 0) {
@@ -2460,14 +2461,14 @@ void func_actor_421600_80136138(Task* arg0)
 /// a 0x34-byte block borrowed from the scratchpad. Marks the coordinate dirty.
 static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
 {
-    void*                 head;
+    ActorScaleRotScratch* head;
     ActorScaleRotScratch* blk;
     s16                   ang;
     u16                   m22;
 
-    head               = SCRATCH_HEAD(void);
-    blk                = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    SCRATCH_HEAD(void) = blk;
+    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
+    blk                                = head - 1;
+    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2477,8 +2478,7 @@ static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
     blk->scale.vz = 0x1000;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] =
-        *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&(head - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -2487,7 +2487,7 @@ static __inline__ void Actor421600_ShrinkCoord(GsCOORDINATE2* coord, s16 y)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    SCRATCH_POP_BYTES(0x34);
+    SCRATCH_POP(ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
@@ -3495,7 +3495,7 @@ void func_actor_421600_801392A8(Task* arg0)
     TmdObject*           obj;
     GsCOORDINATE2*       coord;
     MATRIX*              target;
-    void*                head;
+    OverlayRangeScratch* head;
     OverlayRangeScratch* blk;
     SVECTOR              vec;
     SVECTOR*             dir;
@@ -3528,8 +3528,8 @@ void func_actor_421600_801392A8(Task* arg0)
     dir                            = &vec;
     dir->vy                        = (u16)target->t[1] - (u16)coord->coord.t[1];
     dir->vz                        = (u16)target->t[2] - (u16)coord->coord.t[2];
-    head                           = SCRATCH_HEAD(void);
-    blk                            = (OverlayRangeScratch*)((u8*)head - 0xC);
+    head                           = SCRATCH_HEAD(OverlayRangeScratch);
+    blk                            = head - 1;
     spad_a                         = (u32)PSX_SCRATCH;
     *(void**)((u8*)spad_a + 0x3FC) = blk;
     blk->dx                        = vec.vx;
