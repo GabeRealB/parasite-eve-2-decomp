@@ -846,15 +846,15 @@ void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
     s32               vTop;
     u16*              clutTbl;
 
-    coord    = arg0;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    i        = 0;
-    wm       = &coord->workm;
-    tbl      = D_80111E38;
-    head     = (u8*)*scratch - 0x38;
-    block    = (GpQuadScratch*)head;
-    v        = block->vec;
-    *scratch = block;
+    coord                                   = arg0;
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    i                                       = 0;
+    wm                                      = &coord->workm;
+    tbl                                     = D_80111E38;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
+    block                                   = (GpQuadScratch*)head;
+    v                                       = block->vec;
+    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
     do {
         v->vx = tbl->x * arg1;
         v->vy = 0;
@@ -3358,16 +3358,16 @@ void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2)
     id = arg1;
     SOFT_TOUCH_REG(id);
     kind    = arg2;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     SOFT_TOUCH_REG_USE(scratch, kind);
-    head  = *scratch;
+    head  = SCRATCH_HEAD_AT(scratch, u8);
     actor = arg0->work;
     p     = head - 0x10;
     obj   = (GpObj*)actor->field_10C;
     rec   = &actor->field_14C;
     asm("" : "+r"(obj), "+r"(rec) : "r"(p));
-    *scratch = p;
-    task     = actor->field_91C;
+    SCRATCH_HEAD_AT(scratch, void) = p;
+    task                           = actor->field_91C;
     if (task != NULL) {
         tmp                               = p;
         extra                             = task->extra;
@@ -3465,14 +3465,14 @@ void func_8010133C(void)
     GpScratch10* s;
     s32          color;
 
-    scratch    = (void**)G_SCRATCH_HEAD;
-    color      = 0x808008;
-    head       = *scratch;
-    tmp        = (GpScratch10*)(head - 0x10);
-    *scratch   = tmp;
-    s          = tmp;
-    s->field_8 = color;
-    s->field_E = -0x58;
+    scratch                               = SCRATCH_HEAD_ADDR;
+    color                                 = 0x808008;
+    head                                  = SCRATCH_HEAD_AT(scratch, u8);
+    tmp                                   = (GpScratch10*)(head - 0x10);
+    SCRATCH_HEAD_AT(scratch, GpScratch10) = tmp;
+    s                                     = tmp;
+    s->field_8                            = color;
+    s->field_E                            = -0x58;
     for (s->field_0 = 0; s->field_0 < 2; s->field_0++) {
         s->field_4 = 0;
         s->field_C = -0x40;
@@ -4150,11 +4150,11 @@ void Gp_AimPitchToLock(Task* arg0)
     s32               angle;
     s32               dist;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    actor    = arg0->work;
-    tmp      = head - 0x84;
-    *scratch = tmp;
+    scratch                      = SCRATCH_HEAD_ADDR;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    actor                        = arg0->work;
+    tmp                          = head - 0x84;
+    SCRATCH_HEAD_AT(scratch, u8) = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
@@ -4262,11 +4262,11 @@ void Gp_AimPitchToLockAlt(Task* arg0)
     s32               angle;
     s32               dist;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    actor    = arg0->work;
-    tmp      = head - 0x84;
-    *scratch = tmp;
+    scratch                      = SCRATCH_HEAD_ADDR;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    actor                        = arg0->work;
+    tmp                          = head - 0x84;
+    SCRATCH_HEAD_AT(scratch, u8) = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
@@ -4375,12 +4375,12 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
     s32             thresh;
 
     thresh  = arg2;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     TOUCH_REG_USE(scratch, thresh);
-    head     = *scratch;
-    actor    = arg0->work;
-    tmp      = head - 0x84;
-    *scratch = tmp;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    actor                        = arg0->work;
+    tmp                          = head - 0x84;
+    SCRATCH_HEAD_AT(scratch, u8) = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
@@ -4439,11 +4439,11 @@ void Gp_AimPitchDirect(Task* arg0)
     s32             dz;
     s32             angle;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    actor    = arg0->work;
-    tmp      = head - 0x84;
-    *scratch = tmp;
+    scratch                      = SCRATCH_HEAD_ADDR;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    actor                        = arg0->work;
+    tmp                          = head - 0x84;
+    SCRATCH_HEAD_AT(scratch, u8) = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
         TOUCH_REG(block);
@@ -5007,7 +5007,7 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
     } else {
         ret = block->field_8;
     }
-    tmp = (s32)G_SCRATCH_HEAD;
+    tmp = (s32)SCRATCH_HEAD_ADDR;
     SCRATCH_POP_BYTES_AT(tmp, 0xC);
     return ret;
 }
@@ -6120,17 +6120,17 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
         s32               dist;
         GpRec18*          picked;
 
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_HEAD_ADDR;
         i       = 0;
         bestIdx = i;
         pidx    = &idx;
         rec     = arg0;
         {
             register void* p asm("v0");
-            p        = *scratch;
-            p        = (u8*)p - 0x68;
-            block    = p;
-            *scratch = p;
+            p                              = SCRATCH_HEAD_AT(scratch, void);
+            p                              = (u8*)p - 0x68;
+            block                          = p;
+            SCRATCH_HEAD_AT(scratch, void) = p;
         }
         do {
             if (rec->key & 0x100000) {
@@ -9096,13 +9096,13 @@ void func_8010AD64(Task* arg0)
     s32            val;
     s32            idx;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     TOUCH_REG(scratch);
-    head     = *scratch;
-    params   = &D_80113358;
-    vec      = (SVECTOR*)(head - 8);
-    *scratch = vec;
-    inner    = arg0->work;
+    head                              = SCRATCH_HEAD_AT(scratch, u8);
+    params                            = &D_80113358;
+    vec                               = (SVECTOR*)(head - 8);
+    SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
+    inner                             = arg0->work;
     switch (inner->field_95E) {
         case 0:
             idx                     = (s8)inner->field_993;

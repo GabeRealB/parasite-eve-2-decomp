@@ -900,9 +900,9 @@ s32 Gp_LightPointRoom(GpPointLight* arg0, VECTOR3* arg1)
             return 0;
         }
     }
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     vx      = obj2->head.u.at.world.t[0];
-    head    = *scratch;
+    head    = SCRATCH_HEAD_AT(scratch, u8);
     vx     -= pos->vx;
     vx    >>= 1;
     {
@@ -912,14 +912,14 @@ s32 Gp_LightPointRoom(GpPointLight* arg0, VECTOR3* arg1)
         ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
         block                                   = tmp;
     }
-    block->vec.vy  = (obj2->head.u.at.world.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (obj2->head.u.at.world.t[2] - pos->vz) >> 1;
-    vx             = obj->outer;
-    block->scale   = 0;
-    vx           >>= 1;
-    block->outerSq = vx;
-    vx             = ((GpAttnScratch*)(head - 0x20))->vec.vx;
-    *scratch       = block;
+    block->vec.vy                           = (obj2->head.u.at.world.t[1] - pos->vy) >> 1;
+    block->vec.vz                           = (obj2->head.u.at.world.t[2] - pos->vz) >> 1;
+    vx                                      = obj->outer;
+    block->scale                            = 0;
+    vx                                    >>= 1;
+    block->outerSq                          = vx;
+    vx                                      = ((GpAttnScratch*)(head - 0x20))->vec.vx;
+    SCRATCH_HEAD_AT(scratch, GpAttnScratch) = block;
     if (vx < 0) {
         ((GpAttnScratch*)(head - 0x20))->vec.vx = -vx;
     }
@@ -1010,9 +1010,9 @@ s32 Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1)
     u8*                     ptr;
 
     obj                                     = arg0;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_HEAD_ADDR;
     vx                                      = obj->head.u.at.world.t[0];
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8);
     vx                                     -= arg1->vx;
     vx                                    >>= 1;
     tmp                                     = (GpAttnScratch*)(head - 0x20);
@@ -1028,7 +1028,7 @@ s32 Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1)
     lum                                     = block->distSq;
     result                                  = 0;
     block->outerSq                          = sq;
-    *scratch                                = block;
+    SCRATCH_HEAD_AT(scratch, GpAttnScratch) = block;
     tooFar                                  = (u32)sq < (u32)lum;
     block->scale                            = 0;
     if (!tooFar) {
@@ -1101,9 +1101,9 @@ s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
             return result;
         }
     }
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_HEAD_ADDR;
     vx                                      = obj->head.u.at.world.t[0];
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8);
     vx                                     -= pos->vx;
     vx                                    >>= 1;
     addr                                    = head - 0x2C;
@@ -1112,16 +1112,16 @@ s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
     block->vec.vy                           = (obj->head.u.at.world.t[1] - pos->vy) >> 1;
     block->vec.vz                           = (obj->head.u.at.world.t[2] - pos->vz) >> 1;
     TOUCH_REG(addr);
-    sq             = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->distSq  = sq;
-    sq             = obj2->outer;
-    lum            = sq * sq;
-    sq             = lum >> 2;
-    lum            = block->distSq;
-    block->outerSq = sq;
-    *scratch       = block;
-    tooFar         = (u32)sq < (u32)lum;
-    block->scale   = 0;
+    sq                                      = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->distSq                           = sq;
+    sq                                      = obj2->outer;
+    lum                                     = sq * sq;
+    sq                                      = lum >> 2;
+    lum                                     = block->distSq;
+    block->outerSq                          = sq;
+    SCRATCH_HEAD_AT(scratch, GpSpotScratch) = block;
+    tooFar                                  = (u32)sq < (u32)lum;
+    block->scale                            = 0;
     if (tooFar) {
         result = 0;
     } else {
@@ -2128,9 +2128,9 @@ void Gp_LightFalloff(GpPointLight* arg0)
     u8*                     ptr;
 
     result                                  = 0;
-    scratch                                 = (void**)G_SCRATCH_HEAD;
+    scratch                                 = SCRATCH_HEAD_ADDR;
     vx                                      = arg0->head.u.at.local.t[0];
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8);
     vx                                    >>= 1;
     tmp                                     = (GpAttnScratch*)(head - 0x20);
     ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
@@ -2140,7 +2140,7 @@ void Gp_LightFalloff(GpPointLight* arg0)
     block->distSq                           = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->outerSq                          = (arg0->outer * arg0->outer) >> 2;
     tooFar                                  = (u32)block->outerSq < (u32)block->distSq;
-    *scratch                                = block;
+    SCRATCH_HEAD_AT(scratch, GpAttnScratch) = block;
     block->scale                            = 0;
     if (!tooFar) {
         block->innerSq = (arg0->inner * arg0->inner) >> 2;
@@ -2624,7 +2624,7 @@ void Gp_DrawTargetCursor(void)
         return;
     }
     if (node != NULL) {
-        scratch = (void**)G_SCRATCH_HEAD;
+        scratch = SCRATCH_HEAD_ADDR;
         do {
             if (node->state.b.targeted == 0) {
                 goto next;
@@ -2632,16 +2632,16 @@ void Gp_DrawTargetCursor(void)
             if (node->state.b.flags & 1) {
                 goto next;
             }
-            head                                    = *scratch;
+            head                                    = SCRATCH_HEAD_AT(scratch, u8);
             ((_GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vx;
             {
                 register u8* tmp asm("v0");
                 tmp   = head - 0x18;
                 block = (_GpPanScratch*)tmp;
             }
-            block->vec.vy = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
-            block->vec.vz = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
-            *scratch      = block;
+            block->vec.vy                           = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vy;
+            block->vec.vz                           = *(u16*)&GP_NODE_ENEMY(node)->bodyPos.vz;
+            SCRATCH_HEAD_AT(scratch, _GpPanScratch) = block;
             Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
             small = 0;
             gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
@@ -3488,13 +3488,13 @@ void Gp_LoadImages(GpImgRec* arg0)
     s32            done;
     register s32   max asm("s4");
 
-    done     = 0;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    max      = 0xFF;
-    head     = *scratch;
-    temp     = (u8*)head - 8;
-    dest     = temp;
-    *scratch = dest;
+    done                           = 0;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    max                            = 0xFF;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    temp                           = (u8*)head - 8;
+    dest                           = temp;
+    SCRATCH_HEAD_AT(scratch, RECT) = dest;
 
     do {
         if (arg0->field_0 == 0) {
@@ -4578,8 +4578,8 @@ void func_800DDC2C(GpObj* arg0)
     obj     = arg0;
     dir     = &obj->ctx.dir->dir;
     prod    = dir->vx * (u16)obj->radius;
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    scratch = SCRATCH_HEAD_ADDR;
+    head    = SCRATCH_HEAD_AT(scratch, u8);
     {
         register s32 tmp asm("v0");
 
@@ -4590,16 +4590,16 @@ void func_800DDC2C(GpObj* arg0)
         x               += prod >> 12;
         block->src[0].vx = x;
     }
-    block->src[0].vz = (u16)obj->pos.vz + ((dir->vz * (u16)obj->radius) >> 12);
-    prod             = dir->vx * (u16)obj->radius;
-    x                = (u16)obj->pos.vx;
-    block->src[1].vy = 0;
-    x               += (-prod) >> 12;
-    block->src[1].vx = x;
-    head            -= 0x20;
-    block->src[1].vz = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
-    coord            = (GsCOORDINATE2*)obj->coord;
-    *scratch         = block;
+    block->src[0].vz                        = (u16)obj->pos.vz + ((dir->vz * (u16)obj->radius) >> 12);
+    prod                                    = dir->vx * (u16)obj->radius;
+    x                                       = (u16)obj->pos.vx;
+    block->src[1].vy                        = 0;
+    x                                      += (-prod) >> 12;
+    block->src[1].vx                        = x;
+    head                                   -= 0x20;
+    block->src[1].vz                        = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
+    coord                                   = (GsCOORDINATE2*)obj->coord;
+    SCRATCH_HEAD_AT(scratch, GpEdgeScratch) = block;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
     {
@@ -4690,7 +4690,7 @@ void func_800DDDF8(GpObj* node)
                         }
                     } else {
                         t    = i * sizeof(GpGridFace);
-                        head = (void**)G_SCRATCH_HEAD;
+                        head = SCRATCH_HEAD_ADDR;
                         for (;;) {
                             flags = slot->flags;
                             TOUCH_REG(flags);
@@ -4968,14 +4968,14 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     s32                     flags;
 
     obj     = arg0;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     TOUCH_REG2(obj, scratch);
-    head     = *scratch;
-    found    = 0;
-    head    -= 0x18;
-    *scratch = head;
-    rec      = obj->ctx.d4rec;
-    block    = (GpNormScratch*)head;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    found                        = 0;
+    head                        -= 0x18;
+    SCRATCH_HEAD_AT(scratch, u8) = head;
+    rec                          = obj->ctx.d4rec;
+    block                        = (GpNormScratch*)head;
 
     if (arg3 == 0) {
         if (obj->flags & 0x800) {
@@ -5106,14 +5106,14 @@ void func_800DEF80(GpObj* arg0, GpObj4C* arg1)
     void**            sp;
 
     node    = arg0;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     TOUCH_REG2(node, scratch);
     /* Preserve the scratch pointer priority across the four early exits. */
     SOFT_USE_REG2(scratch, scratch);
-    head     = *scratch;
-    other    = arg1;
-    *scratch = (void*)(head - 0x98);
-    block    = *scratch;
+    head                           = SCRATCH_HEAD_AT(scratch, u8);
+    other                          = arg1;
+    SCRATCH_HEAD_AT(scratch, void) = (void*)(head - 0x98);
+    block                          = SCRATCH_HEAD_AT(scratch, GpQuadHitScratch);
     Gp_ObjWorldPosInline(node, (VECTOR*)(head - 0x18));
     gte_SetRotMatrix(&((GsCOORDINATE2*)other->field_8)->workm);
     gte_ldv0(&other->field_C);
@@ -5238,7 +5238,7 @@ fail:
     goto do_restore;
 
 restore_reload:
-    sp = (void**)G_SCRATCH_HEAD;
+    sp = SCRATCH_HEAD_ADDR;
     goto do_restore;
 
 do_edges:
@@ -5290,7 +5290,7 @@ do_edges:
         pair++;
     } while (i < 5);
 
-    sp              = (void**)G_SCRATCH_HEAD;
+    sp              = SCRATCH_HEAD_ADDR;
     other->field_4B = 1;
 do_restore:
     SCRATCH_POP_BYTES_AT(sp, 0x98);
@@ -5381,7 +5381,7 @@ restore_early:
     return;
 
 restore_reload:
-    sp = (void**)G_SCRATCH_HEAD;
+    sp = SCRATCH_HEAD_ADDR;
     goto do_restore;
 
 body:
@@ -5433,7 +5433,7 @@ body:
         pair++;
     } while (i < 5);
 
-    sp             = (void**)G_SCRATCH_HEAD;
+    sp             = SCRATCH_HEAD_ADDR;
     arg1->field_4B = 1;
 do_restore:
     SCRATCH_POP_BYTES_AT(sp, 0xB0);
@@ -5549,7 +5549,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     SCRATCH_POP_BYTES_AT(sp, 0x80);
     return 0;
 fail_poly:
-    sp = (void**)G_SCRATCH_HEAD;
+    sp = SCRATCH_HEAD_ADDR;
     SCRATCH_POP_BYTES_AT(sp, 0x80);
     return 0;
 
@@ -5580,7 +5580,7 @@ do_poly:
         }
         pair++;
     } while (i < 5);
-    sp = (void**)G_SCRATCH_HEAD;
+    sp = SCRATCH_HEAD_ADDR;
     SCRATCH_POP_BYTES_AT(sp, 0x80);
     tmp = 0;
     return 1;
@@ -5613,16 +5613,16 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     s32              ret;
 
     ret                          = 0;
-    scratch                      = (void**)G_SCRATCH_HEAD;
+    scratch                      = SCRATCH_HEAD_ADDR;
     node                         = D_80115550;
-    head                         = *scratch;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
     ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
     head                         = head - 0x10;
     vec                          = (VECTOR*)head;
     TOUCH_REG_USE(vec, head);
-    vec->vy  = arg1->vy - arg0->vy;
-    *scratch = vec;
-    vec->vz  = arg1->vz - arg0->vz;
+    vec->vy                          = arg1->vy - arg0->vy;
+    SCRATCH_HEAD_AT(scratch, VECTOR) = vec;
+    vec->vz                          = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
         if (node->field_3A & 0x40) {

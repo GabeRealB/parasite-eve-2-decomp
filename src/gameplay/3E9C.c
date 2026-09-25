@@ -2796,14 +2796,14 @@ void Gp_EffSprTask9E(Task* arg0)
     }
     Gp_UpdateCoord(coord);
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x38;
-    block    = (GpQuadScratch*)head;
-    *scratch = block;
-    i        = 0;
-    m        = &coord->workm;
-    v        = block->vec;
-    tbl      = D_80111E38;
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
+    block                                   = (GpQuadScratch*)head;
+    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
+    i                                       = 0;
+    m                                       = &coord->workm;
+    v                                       = block->vec;
+    tbl                                     = D_80111E38;
     do {
         v->vx = tbl->x * *(u16*)&mem->scale;
         v->vy = 0;

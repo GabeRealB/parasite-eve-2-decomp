@@ -110,15 +110,15 @@ void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
     MATRIX*           wm;
     POLY_FT4*         prim;
 
-    coord    = arg0;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    i        = 0;
-    wm       = &coord->workm;
-    tbl      = D_80111E38;
-    head     = (u8*)*scratch - 0x38;
-    block    = (GpQuadScratch*)head;
-    v        = block->vec;
-    *scratch = block;
+    coord                                   = arg0;
+    scratch                                 = SCRATCH_HEAD_ADDR;
+    i                                       = 0;
+    wm                                      = &coord->workm;
+    tbl                                     = D_80111E38;
+    head                                    = SCRATCH_HEAD_AT(scratch, u8) - 0x38;
+    block                                   = (GpQuadScratch*)head;
+    v                                       = block->vec;
+    SCRATCH_HEAD_AT(scratch, GpQuadScratch) = block;
     do {
         v->vx = tbl->x * arg1;
         v->vy = 0;

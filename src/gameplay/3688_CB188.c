@@ -3101,7 +3101,7 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
 
     otOff   = 0;
     i       = 0;
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     ret     = 0;
     obj     = arg0->spawnArg2;
     icons   = D_8010F0CC[gGameSession->at4.loc.stage - 1];
@@ -3132,17 +3132,17 @@ s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             goto next;
         }
 
-        head                             = *scratch;
-        pos                              = (GpMapIconPos*)(head - 0xC);
-        block                            = pos;
-        pos->field_8                     = 0;
-        block->field_6                   = 0;
-        block->field_4                   = 0;
-        *scratch                         = block;
-        ((GpMapIconPos*)(head - 0xC))->x = icons[(u8)i].x;
-        p                                = (SPRT_16*)gGpuPrimCursor;
-        gGpuPrimCursor                   = p + 1;
-        block->y                         = icons[(u8)i].y;
+        head                                   = SCRATCH_HEAD_AT(scratch, u8);
+        pos                                    = (GpMapIconPos*)(head - 0xC);
+        block                                  = pos;
+        pos->field_8                           = 0;
+        block->field_6                         = 0;
+        block->field_4                         = 0;
+        SCRATCH_HEAD_AT(scratch, GpMapIconPos) = block;
+        ((GpMapIconPos*)(head - 0xC))->x       = icons[(u8)i].x;
+        p                                      = (SPRT_16*)gGpuPrimCursor;
+        gGpuPrimCursor                         = p + 1;
+        block->y                               = icons[(u8)i].y;
         if (icons[(u8)i].field_2 == 2) {
             if (lum == 0x100) {
                 lum = 0xFF;
