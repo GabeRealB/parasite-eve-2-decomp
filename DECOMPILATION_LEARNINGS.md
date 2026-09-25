@@ -140819,3 +140819,10 @@ static inline void rotateSv(MATRIX* m, SVECTOR* v)
     gte_ApplyMatrixSV(m, &in, v);
 }
 ```
+## Reading a global field back after storing it keeps the global's full address in a register (func_actor_403600_80140B4C)
+
+**Symptom.** The target stores the projection distance as `lui v0,%hi(gDisplayState); addiu v0,v0,%lo(gDisplayState); sh s1,0x110(v0)` and then `ctc2 s1,$26`; a plain `gDisplayState.screenDistance = h; gte_SetGeomScreen(h);` folds the offset into `%lo(gDisplayState+0x110)`. The seed held `&gDisplayState` in a pinned pointer local.
+
+**Fix.** `gDisplayState.screenDistance = h; gte_SetGeomScreen(gDisplayState.screenDistance);`. The field is addressed twice, so CSE keeps `&gDisplayState` in a pseudo and addresses both through it; the read-back itself is then satisfied from the stored register and emits no load. The same pair of statements in gameplay's view loaders reads the value from a record instead, which is why they fold.
+
+The in-place random-radius trick above (`rnd = (u16)(rnd >> 16); rnd &= mask;`) keeps a wanted `sll 16; sra 16`, but the in-place set adds an anti-dependence on the `Gp_LcgState` store. That lengthens the radius chain's sched1 priority, so an independent computation next to it (here the angle drawn from the previous LCG step) is scheduled after the chain instead of before it. Where the target computes that neighbour first, the trick does not fit, and the extension stays a hack.
