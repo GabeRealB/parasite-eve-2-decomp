@@ -339,6 +339,51 @@ typedef struct ActorOffsetScratch {
 } ActorOffsetScratch;
 STATIC_ASSERT_SIZEOF(ActorOffsetScratch, 0x18);
 
+/// The scratch-pad block of a hit the actor takes: `d` is the position of the
+/// first contact record of the attacking kind, `pos` its offset from the
+/// model's origin, `id` the attack, `dmg` the damage worked out from it and
+/// `angle` the hit's yaw relative to the model's facing.
+typedef struct ActorHitTakenScratch {
+    SVECTOR d;
+    SVECTOR pos;
+    s32     id;
+    u16     dmg;
+    s16     angle;
+} ActorHitTakenScratch;
+STATIC_ASSERT_SIZEOF(ActorHitTakenScratch, 0x18);
+
+/// The scratch-pad block of a head turned to aim at the player: `view` is the
+/// head coordinate in view space, `delta` the player's offset from it, and
+/// `local` that offset rotated into the body's frame and clamped.
+typedef struct ActorAimScratch {
+    MATRIX view;
+    VECTOR delta;
+    VECTOR local;
+} ActorAimScratch;
+STATIC_ASSERT_SIZEOF(ActorAimScratch, 0x40);
+
+/// Work block of a model that draws with its own lighting: the light and
+/// colour matrices its `TmdObject::lightMtx` / `colorMtx` point at, and the
+/// task that spawned it, which the spawn routine reparents to it.
+typedef struct ActorLitWork {
+    MATRIX light;
+    MATRIX color;
+    Task*  field_40;
+} ActorLitWork;
+STATIC_ASSERT_SIZEOF(ActorLitWork, 0x44);
+
+/// One entry of a zone table: a rectangle on the floor from (`x`, `z`)
+/// spanning `w` along X and `h` along Z, and the id a lookup returns for a
+/// point inside it. A table ends at an entry whose `id` is -1.
+typedef struct ActorZone {
+    s16 x;
+    s16 z;
+    s16 w;
+    s16 h;
+    s16 id;
+} ActorZone;
+STATIC_ASSERT_SIZEOF(ActorZone, 0xA);
+
 /* Tables. */
 
 /// One row of a per-room height clamp: when `field_0` / `field_2` match the
@@ -1174,6 +1219,19 @@ typedef struct Actor402200TrailScratch {
     s16     dy;
 } Actor402200TrailScratch;
 STATIC_ASSERT_SIZEOF(Actor402200TrailScratch, 0x3C);
+
+/// The scratch-pad block of the grab: the query sent with message 0x3F8, the
+/// animation sent with message 0x3FF, the placement sent with message 0x3E9,
+/// and the offset `in` rotated through the actor's root into `out`; `in` is
+/// also the rotation the grab's matrix is built from.
+typedef struct Actor402200GrabScratch {
+    GpDelayArg query;
+    GpAnimArg  anim;
+    GpXformArg place;
+    VECTOR     out;
+    SVECTOR    in;
+} Actor402200GrabScratch;
+STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
 
 /* actor_323000 and actor_323400 carry the same enemy code. Function names in
  * these comments are actor_323000's. */

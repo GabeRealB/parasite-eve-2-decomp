@@ -84,27 +84,6 @@ typedef struct Actor01200Work {
 } Actor01200Work;
 STATIC_ASSERT_SIZEOF(Actor01200Work, 0x3E0);
 
-/// 0x18-byte scratch taken from `0x1F8003FC` by the hit check: the first
-/// type-2 record's position, its offset from the model origin, the attack id,
-/// the computed damage and the hit's yaw relative to the model's facing.
-typedef struct Actor01200HitScratch {
-    /* 0x00 */ SVECTOR d;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ s32     id;
-    /* 0x14 */ u16     dmg;
-    /* 0x16 */ s16     angle;
-} Actor01200HitScratch;
-STATIC_ASSERT_SIZEOF(Actor01200HitScratch, 0x18);
-
-/// 0x34-byte scratch from `G_SCRATCH_HEAD` for the death state's facing
-/// rebuild: the rotation, the uniform scale applied to it and the yaw.
-typedef struct Actor01200FaceScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-} Actor01200FaceScratch;
-STATIC_ASSERT_SIZEOF(Actor01200FaceScratch, 0x34);
-
 /// The ten substate handlers the tick copies onto its stack before dispatching.
 typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
@@ -674,27 +653,27 @@ void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
 
 static __inline__ void Actor01200_FaceScale(GsCOORDINATE2* coord, s16 s)
 {
-    Actor01200FaceScratch* head;
-    Actor01200FaceScratch* sc;
+    ActorScaleRotScratch* head;
+    ActorScaleRotScratch* sc;
 
-    head                                     = *(Actor01200FaceScratch**)G_SCRATCH_HEAD;
-    sc                                       = head - 1;
-    *(Actor01200FaceScratch**)G_SCRATCH_HEAD = sc;
-    sc->angle                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                                    = *(ActorScaleRotScratch**)G_SCRATCH_HEAD;
+    sc                                      = head - 1;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc->angle                               = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
-    coord->coord.m[0][0]                      = head[-1].m.m[0][0];
-    coord->coord.m[0][1]                      = sc->m.m[0][1];
-    coord->coord.m[0][2]                      = sc->m.m[0][2];
-    coord->coord.m[1][0]                      = sc->m.m[1][0];
-    coord->coord.m[1][1]                      = sc->m.m[1][1];
-    coord->coord.m[1][2]                      = sc->m.m[1][2];
-    coord->coord.m[2][0]                      = sc->m.m[2][0];
-    coord->coord.m[2][1]                      = sc->m.m[2][1];
-    coord->coord.m[2][2]                      = sc->m.m[2][2];
-    coord->flg                                = 0;
-    *(Actor01200FaceScratch**)G_SCRATCH_HEAD += 1;
+    coord->coord.m[0][0]                     = head[-1].m.m[0][0];
+    coord->coord.m[0][1]                     = sc->m.m[0][1];
+    coord->coord.m[0][2]                     = sc->m.m[0][2];
+    coord->coord.m[1][0]                     = sc->m.m[1][0];
+    coord->coord.m[1][1]                     = sc->m.m[1][1];
+    coord->coord.m[1][2]                     = sc->m.m[1][2];
+    coord->coord.m[2][0]                     = sc->m.m[2][0];
+    coord->coord.m[2][1]                     = sc->m.m[2][1];
+    coord->coord.m[2][2]                     = sc->m.m[2][2];
+    coord->flg                               = 0;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
@@ -1029,7 +1008,7 @@ void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
 /// points run out, moves to substate 6.
 void Actor01200_Fn02918(GpEnemy* arg0, Task* arg1)
 {
-    Actor01200HitScratch* sc;
+    ActorHitTakenScratch* sc;
     Actor01200Work*       work;
     GpRec18*              recs;
     SVECTOR*              pos;
@@ -1040,7 +1019,7 @@ void Actor01200_Fn02918(GpEnemy* arg0, Task* arg1)
     s16                   i;
 
     work = arg1->work;
-    sc   = (Actor01200HitScratch*)(SCRATCH_SP -= sizeof(Actor01200HitScratch));
+    sc   = (ActorHitTakenScratch*)(SCRATCH_SP -= sizeof(ActorHitTakenScratch));
     pos  = &sc->pos;
     recs = &work->rec250;
     i    = 0;
@@ -1088,7 +1067,7 @@ found:
             work->field_0    = 6;
         }
     }
-    SCRATCH_SP += sizeof(Actor01200HitScratch);
+    SCRATCH_SP += sizeof(ActorHitTakenScratch);
 }
 
 /// Patrol between the two `patrol` points: turn at most 0x20 toward the current
@@ -1421,15 +1400,15 @@ s32 Actor01200_Fn03B70(Task* task, s32 arg1, GpXformArg* placement)
 /// coordinate dirty.
 void Actor01200_Fn03C40(GsCOORDINATE2* coord, s16 scale)
 {
-    void**                 scratch;
-    void*                  head;
-    Actor01200FaceScratch* blk;
-    s16                    ang;
-    u16                    m22;
+    void**                scratch;
+    void*                 head;
+    ActorScaleRotScratch* blk;
+    s16                   ang;
+    u16                   m22;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (Actor01200FaceScratch*)head - 1;
+    blk      = (ActorScaleRotScratch*)head - 1;
     *scratch = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -1440,7 +1419,7 @@ void Actor01200_Fn03C40(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((Actor01200FaceScratch*)head - 1)->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)head - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -1449,7 +1428,7 @@ void Actor01200_Fn03C40(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + sizeof(Actor01200FaceScratch);
+    *scratch             = (u8*)*scratch + sizeof(ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }

@@ -29,19 +29,6 @@
 
 extern Actor402200FrameStep D_actor_403900_801383DC[];
 
-/// 0x5C-byte block `func_actor_403900_8013314C` takes from `G_SCRATCH_HEAD`:
-/// the 0x3F8 query, the `GpAnimArg` sent as message 0x3FF, the 0x3E9
-/// placement, and the offset `in` rotated through the actor's root into `out`
-/// (`in` is also the rotation handed to `RotMatrix` and `func_800FDB18`).
-typedef struct Actor403900GrabScratch {
-    /* 0x00 */ GpDelayArg query;
-    /* 0x18 */ GpAnimArg  anim;
-    /* 0x2C */ GpXformArg place;
-    /* 0x44 */ VECTOR     out;
-    /* 0x54 */ SVECTOR    in;
-} Actor403900GrabScratch;
-STATIC_ASSERT_SIZEOF(Actor403900GrabScratch, 0x5C);
-
 /// Per-roll wait lengths the wait state of `func_actor_403900_801329A4`
 /// scales by `16 - field_70C`, indexed by a 4-bit `Gp_LcgState` draw.
 extern s16 D_actor_403900_80153C3C[];
@@ -686,7 +673,7 @@ void func_actor_403900_8013314C(Task* arg0)
     Actor402200Work*        work;
     GsCOORDINATE2*          coord;
     Task*                   player;
-    Actor403900GrabScratch* sc;
+    Actor402200GrabScratch* sc;
     GsCOORDINATE2*          pcoord;
     s32                     flag;
     s32                     snd;
@@ -699,8 +686,8 @@ void func_actor_403900_8013314C(Task* arg0)
     work                   = arg0->work;
     coord                  = ((TmdObject*)arg0->extra)->coords;
     player                 = gameGetPtrSlot(3);
-    *(u8**)G_SCRATCH_HEAD -= sizeof(Actor403900GrabScratch);
-    sc                     = *(Actor403900GrabScratch**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD -= sizeof(Actor402200GrabScratch);
+    sc                     = *(Actor402200GrabScratch**)G_SCRATCH_HEAD;
     pcoord                 = ((TmdObject*)player->extra)->coords;
     flag                   = 0;
     switch (work->field_6CE) {
@@ -932,7 +919,7 @@ void func_actor_403900_8013314C(Task* arg0)
             }
             break;
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900GrabScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor402200GrabScratch);
 }
 
 /// Runs the actor's approach-and-strike sequence. State 0 aims the display

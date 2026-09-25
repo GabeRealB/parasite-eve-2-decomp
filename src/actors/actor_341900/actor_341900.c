@@ -68,20 +68,6 @@ typedef struct Actor341900Work {
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
-/// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
-/// and parked in that task's `Task::work` slot, which is not a `TaskIdMap`
-/// here. The two matrices are the light/colour pair the function republishes
-/// onto `TmdObject::lightMtx` / `field_20` -- the pair `Gp_BindDefaultMtx`
-/// otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- and `field_40` is
-/// the `Task::spawnArg2` spawner, which the same function reparents to the
-/// actor.
-typedef struct Actor341900ColorMtx {
-    /* 0x00 */ MATRIX light;
-    /* 0x20 */ MATRIX color;
-    /* 0x40 */ Task*  field_40;
-} Actor341900ColorMtx;
-STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
-
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
 /// and read by the sequence helpers that hang their work off its `Task::work`.
 extern Task* D_actor_341900_80164208;
@@ -303,14 +289,14 @@ void func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd)
 /// actor draws with, allocating that pair on the first frame.
 void func_actor_341900_80162200(Task* arg0)
 {
-    TmdObject*           extra;
-    TmdObject*           mdl;
-    Actor341900ColorMtx* mtx;
-    VECTOR               pos;
+    TmdObject*    extra;
+    TmdObject*    mdl;
+    ActorLitWork* mtx;
+    VECTOR        pos;
 
     if (arg0->state == 0) {
         extra      = (TmdObject*)arg0->extra;
-        mtx        = (Actor341900ColorMtx*)Mem_Malloc(0x44, 0);
+        mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
         arg0->work = (TaskIdMap*)mtx;
         if (mtx == NULL) {
             taskKill(arg0);

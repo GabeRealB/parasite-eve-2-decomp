@@ -184,19 +184,7 @@ typedef struct Actor400600QuadScratch {
 } Actor400600QuadScratch;
 STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
 
-/// One entry of `D_actor_400600_80151B40`, a world-space XZ rectangle table
-/// ended by an entry whose `id` is -1. `func_actor_400600_8013886C` returns the
-/// `id` of the first rectangle containing the actor (edges inclusive).
-typedef struct Actor400600Zone {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 id;
-} Actor400600Zone;
-STATIC_ASSERT_SIZEOF(Actor400600Zone, 0xA);
-
-extern Actor400600Zone D_actor_400600_80151B40[];
+extern ActorZone D_actor_400600_80151B40[];
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
  * source for the effect's own `TmdObject`; `Gp_StateF0.field_24` and `Gp_StateF0.field_27` are
@@ -3279,10 +3267,10 @@ void func_actor_400600_801387DC(Task* arg0, s32 arg1)
 /// actor's world XZ position, or 0 if none does.
 s32 func_actor_400600_8013886C(Task* arg0)
 {
-    GpCoordPos*      coord;
-    Actor400600Zone* zone;
-    s16              x;
-    s16              z;
+    GpCoordPos* coord;
+    ActorZone*  zone;
+    s16         x;
+    s16         z;
 
     coord = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
     x     = coord->x;

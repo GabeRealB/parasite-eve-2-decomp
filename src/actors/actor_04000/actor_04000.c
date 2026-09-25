@@ -102,18 +102,6 @@ typedef struct Actor104000Work {
 } Actor104000Work;
 STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
 
-/// 0x18-byte scratch taken from `0x1F8003FC` while applying a hit: the first
-/// type-2 record's position, its offset from the model origin, the attack id,
-/// the computed damage and the hit's yaw relative to the model's facing.
-typedef struct Actor104000HitScratch {
-    /* 0x00 */ SVECTOR d;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ s32     id;
-    /* 0x14 */ u16     dmg;
-    /* 0x16 */ s16     angle;
-} Actor104000HitScratch;
-STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
-
 /// 0x14-byte scratch taken from `0x1F8003FC` by the lunge state: the offset to
 /// the player (later the snap direction), the final yaw and the relative yaw.
 typedef struct Actor104000AimScratch {
@@ -123,15 +111,6 @@ typedef struct Actor104000AimScratch {
     /* 0x12 */ s16     angle;
 } Actor104000AimScratch;
 STATIC_ASSERT_SIZEOF(Actor104000AimScratch, 0x14);
-
-/// 0x34-byte scratch from `G_SCRATCH_HEAD` for rebuilding a coordinate as a
-/// scaled yaw: the rotation, the uniform scale applied to it and the yaw.
-typedef struct Actor104000FaceScratch {
-    /* 0x00 */ MATRIX m;
-    /* 0x20 */ VECTOR scale;
-    /* 0x30 */ s16    angle;
-} Actor104000FaceScratch;
-STATIC_ASSERT_SIZEOF(Actor104000FaceScratch, 0x34);
 
 /// The nineteen handlers the tick copies onto its stack before dispatching.
 typedef struct Actor104000StateTable {
@@ -840,27 +819,27 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
 /// rotation uniformly by `s`, working on a scratch block.
 static __inline__ void Actor204000_FaceScale(GsCOORDINATE2* coord, s16 s)
 {
-    Actor104000FaceScratch* head;
-    Actor104000FaceScratch* sc;
+    ActorScaleRotScratch* head;
+    ActorScaleRotScratch* sc;
 
-    head                                      = *(Actor104000FaceScratch**)G_SCRATCH_HEAD;
-    sc                                        = head - 1;
-    *(Actor104000FaceScratch**)G_SCRATCH_HEAD = sc;
-    sc->angle                                 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                                    = *(ActorScaleRotScratch**)G_SCRATCH_HEAD;
+    sc                                      = head - 1;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD = sc;
+    sc->angle                               = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
-    coord->coord.m[0][0]                       = head[-1].m.m[0][0];
-    coord->coord.m[0][1]                       = sc->m.m[0][1];
-    coord->coord.m[0][2]                       = sc->m.m[0][2];
-    coord->coord.m[1][0]                       = sc->m.m[1][0];
-    coord->coord.m[1][1]                       = sc->m.m[1][1];
-    coord->coord.m[1][2]                       = sc->m.m[1][2];
-    coord->coord.m[2][0]                       = sc->m.m[2][0];
-    coord->coord.m[2][1]                       = sc->m.m[2][1];
-    coord->coord.m[2][2]                       = sc->m.m[2][2];
-    coord->flg                                 = 0;
-    *(Actor104000FaceScratch**)G_SCRATCH_HEAD += 1;
+    coord->coord.m[0][0]                     = head[-1].m.m[0][0];
+    coord->coord.m[0][1]                     = sc->m.m[0][1];
+    coord->coord.m[0][2]                     = sc->m.m[0][2];
+    coord->coord.m[1][0]                     = sc->m.m[1][0];
+    coord->coord.m[1][1]                     = sc->m.m[1][1];
+    coord->coord.m[1][2]                     = sc->m.m[1][2];
+    coord->coord.m[2][0]                     = sc->m.m[2][0];
+    coord->coord.m[2][1]                     = sc->m.m[2][1];
+    coord->coord.m[2][2]                     = sc->m.m[2][2];
+    coord->flg                               = 0;
+    *(ActorScaleRotScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Frames 0x5B onward of the collapse: drifts the model along its facing for the
@@ -1440,20 +1419,20 @@ void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
 /// `arg0->field_40`, switching to state 6 once it runs out.
 void Actor04000_Fn03FB4(GpEnemy* arg0, Task* arg1)
 {
-    Actor104000HitScratch* sc;
-    Actor104000Work*       work;
-    GpRec18*               recs;
-    SVECTOR*               pos;
-    s32                    mask;
-    s32                    kind;
-    s32                    id;
-    s16                    angle;
-    s32                    snd;
-    s32                    pan;
-    s16                    i;
+    ActorHitTakenScratch* sc;
+    Actor104000Work*      work;
+    GpRec18*              recs;
+    SVECTOR*              pos;
+    s32                   mask;
+    s32                   kind;
+    s32                   id;
+    s16                   angle;
+    s32                   snd;
+    s32                   pan;
+    s16                   i;
 
     work = arg1->work;
-    sc   = (Actor104000HitScratch*)(SCRATCH_SP -= sizeof(Actor104000HitScratch));
+    sc   = (ActorHitTakenScratch*)(SCRATCH_SP -= sizeof(ActorHitTakenScratch));
     pos  = &sc->pos;
     recs = work->hits;
     i    = 0;
@@ -1510,7 +1489,7 @@ found:
             work->field_496 = 0;
         }
     }
-    SCRATCH_SP += sizeof(Actor104000HitScratch);
+    SCRATCH_SP += sizeof(ActorHitTakenScratch);
 }
 
 /// Patrol state: restarts the actor when `field_4` is set; otherwise turns the
@@ -2230,15 +2209,15 @@ s32 Actor04000_Fn06728(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// borrowed from the scratchpad, and marks the coordinate dirty.
 void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
 {
-    void**                  scratch;
-    void*                   head;
-    Actor104000FaceScratch* blk;
-    s16                     ang;
-    u16                     m22;
+    void**                scratch;
+    void*                 head;
+    ActorScaleRotScratch* blk;
+    s16                   ang;
+    u16                   m22;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    blk      = (Actor104000FaceScratch*)head - 1;
+    blk      = (ActorScaleRotScratch*)head - 1;
     *scratch = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2249,7 +2228,7 @@ void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
     blk->scale.vx = scale;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&((Actor104000FaceScratch*)head - 1)->m.m[0][0];
+    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)head - 1)->m.m[0][0];
     coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
     coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
     coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
@@ -2258,7 +2237,7 @@ void Actor04000_Fn06760(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + sizeof(Actor104000FaceScratch);
+    *scratch             = (u8*)*scratch + sizeof(ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }

@@ -24,17 +24,6 @@
 #include "actors/actor_510900.h"
 #include "actors/actors_shared_80132074.h"
 
-/// 0x40-byte scratch `func_actor_510900_80138BF0` takes from `G_SCRATCH_HEAD`
-/// to aim the head coordinate at the player. `view` is the head coordinate in
-/// view space, `delta` the player offset from it, and `local` that offset
-/// rotated into the body's frame and clamped before `Gp_OrientAlong`.
-typedef struct Actor510900AimScratch {
-    /* 0x00 */ MATRIX view;
-    /* 0x20 */ VECTOR delta;
-    /* 0x30 */ VECTOR local;
-} Actor510900AimScratch;
-STATIC_ASSERT_SIZEOF(Actor510900AimScratch, 0x40);
-
 /// 0x10-byte scratch `func_actor_510900_80138F44` takes from `G_SCRATCH_HEAD`
 /// to rebuild the collision face this actor occupies. `center` starts as the
 /// fixed local offset of the body's footprint and becomes that offset rotated
@@ -1863,15 +1852,15 @@ void func_actor_510900_80138A9C(Task* arg0)
 /// `- 0x600` on the player coordinate.
 void func_actor_510900_80138BF0(Task* arg0)
 {
-    Actor510900AimScratch* scratch;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         head;
-    s32                    offsetY;
+    ActorAimScratch* scratch;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   head;
+    s32              offsetY;
 
     coord                   = ((TmdObject*)arg0->extra)->coords;
     head                    = &coord[4];
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor510900AimScratch);
-    scratch                 = (Actor510900AimScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(ActorAimScratch);
+    scratch                 = (ActorAimScratch*)*(void**)G_SCRATCH_HEAD;
 
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
@@ -1894,7 +1883,7 @@ void func_actor_510900_80138BF0(Task* arg0)
         scratch->local.vz = 0x200;
     }
     Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900AimScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAimScratch);
 }
 
 /// Yaws the head coordinate (`coords[3]`) by the residual rotation in

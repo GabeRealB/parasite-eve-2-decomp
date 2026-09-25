@@ -33,16 +33,6 @@ typedef struct Actor400500TaskFuncTable13 {
 } Actor400500TaskFuncTable13;
 STATIC_ASSERT_SIZEOF(Actor400500TaskFuncTable13, 0x34);
 
-/// X/Z bounds and result id; an id of -1 terminates the zone table.
-typedef struct Actor400500Zone {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 h;
-    /* 0x8 */ s16 id;
-} Actor400500Zone;
-STATIC_ASSERT_SIZEOF(Actor400500Zone, 0xA);
-
 /// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
 /// the translation `Gp_WorldToLocal` produces for one of the actor's
 /// coordinate nodes. `func_actor_400500_80132C54` passes
@@ -201,8 +191,8 @@ typedef struct Actor400500Work {
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
-extern u8              D_actor_400500_80153CB0[];
-extern Actor400500Zone D_actor_400500_80153D6C[];
+extern u8        D_actor_400500_80153CB0[];
+extern ActorZone D_actor_400500_80153D6C[];
 
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 /// Still called by actor_206100, which includes this header; remove once that
@@ -2144,12 +2134,12 @@ const TaskFuncTable4 D_actor_400500_80131E4C = { {
 
 static __inline__ s32 lookup_zone(Task* task)
 {
-    Actor400500Zone* zone;
-    u16              id_u;
-    s16              zone_id;
-    GsCOORDINATE2*   root;
-    u16              px_u, pz_u;
-    s16              px, pz;
+    ActorZone*     zone;
+    u16            id_u;
+    s16            zone_id;
+    GsCOORDINATE2* root;
+    u16            px_u, pz_u;
+    s16            px, pz;
 
     zone    = D_actor_400500_80153D6C;
     id_u    = (u16)zone->id;

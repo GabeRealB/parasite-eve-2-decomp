@@ -33,19 +33,6 @@ extern s16 D_actor_402200_801383AC[];
 
 extern Actor402200FrameStep D_actor_402200_801383D8[];
 
-/// 0x5C-byte block `func_actor_402200_8013314C` takes from `G_SCRATCH_HEAD`:
-/// the 0x3F8 query, the `GpAnimArg` sent as message 0x3FF, the 0x3E9
-/// placement, and the offset `in` rotated through the actor's root into `out`
-/// (`in` is also the rotation handed to `RotMatrix` and `func_800FDB18`).
-typedef struct Actor402200GrabScratch {
-    /* 0x00 */ GpDelayArg query;
-    /* 0x18 */ GpAnimArg  anim;
-    /* 0x2C */ GpXformArg place;
-    /* 0x44 */ VECTOR     out;
-    /* 0x54 */ SVECTOR    in;
-} Actor402200GrabScratch;
-STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
-
 /// Reacts to the damage just taken; see its definition.
 void func_actor_402200_801324E8(Task* arg0, s32 arg1);
 

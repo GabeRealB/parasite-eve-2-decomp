@@ -24,19 +24,6 @@
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by the aim body
-/// `func_actor_521100_80134EDC`: `view` is the player-relative position
-/// `Gp_WorldToLocal` produces for the head coordinate's `workm`, `delta` the
-/// player position with the 0x600 head offset applied, and `local` the same
-/// delta rotated into the body's frame by `ApplyTransposeMatrixLV` and then
-/// clamped. Same shape as `Actor510900AimScratch`.
-typedef struct Actor521100AimScratch {
-    /* 0x00 */ MATRIX view;
-    /* 0x20 */ VECTOR delta;
-    /* 0x30 */ VECTOR local;
-} Actor521100AimScratch;
-STATIC_ASSERT_SIZEOF(Actor521100AimScratch, 0x40);
-
 typedef struct Actor521100FireRow {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ u16 field_2;
@@ -1731,15 +1718,15 @@ void func_actor_521100_80134D88(Task* arg0)
 /// `- 0x600` on the player coordinate.
 void func_actor_521100_80134EDC(Task* arg0)
 {
-    Actor521100AimScratch* scratch;
-    GsCOORDINATE2*         coord;
-    GsCOORDINATE2*         head;
-    s32                    offsetY;
+    ActorAimScratch* scratch;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   head;
+    s32              offsetY;
 
     coord                   = ((TmdObject*)arg0->extra)->coords;
     head                    = &coord[4];
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor521100AimScratch);
-    scratch                 = (Actor521100AimScratch*)*(void**)G_SCRATCH_HEAD;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(ActorAimScratch);
+    scratch                 = (ActorAimScratch*)*(void**)G_SCRATCH_HEAD;
 
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
@@ -1762,7 +1749,7 @@ void func_actor_521100_80134EDC(Task* arg0)
         scratch->local.vz = 0x200;
     }
     Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor521100AimScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAimScratch);
 }
 /// Untwists the coordinate at `field_8[3]`, which `func_actor_521100_801322F8`
 /// left rotated by the random residual in `Actor521100Work::field_678` on the
