@@ -24,6 +24,7 @@ extern s32 D_actor_450900_80135F08;
 extern s32 D_actor_450900_80135F24;
 extern s32 D_actor_450900_80135FEC;
 extern s32 D_actor_450900_801360B4;
+extern s16 D_actor_450900_8013646A;
 extern s32 D_actor_450900_80136470;
 extern s32 D_actor_450900_80136680;
 extern s32 D_actor_450900_80136890;
@@ -333,7 +334,23 @@ void func_actor_450900_80132684(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450900/actor_450900", func_actor_450900_80132724);
+/// Script callback (opcode 0xD): refreshes the root coordinates of the slot-0xA
+/// and slot-3 tasks and stores the 12-bit `ratan2` heading from the slot-3
+/// object to the slot-0xA object in `D_actor_450900_8013646A`, the halfword at
+/// offset 0x12 of the `D_actor_450900_80136458` block the same scripts then post
+/// with message `0x3EE`.
+void func_actor_450900_80132724(void)
+{
+    GsCOORDINATE2* target;
+    GsCOORDINATE2* origin;
+
+    target = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    origin = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    Gp_UpdateCoord(target);
+    Gp_UpdateCoord(origin);
+    D_actor_450900_8013646A =
+        ratan2(target->coord.t[0] - origin->coord.t[0], target->coord.t[2] - origin->coord.t[2]) & 0xFFF;
+}
 
 /// Spawns the ally's save-point state handler. Once flag 0xD8 is set (the
 /// capture ran) the one-shot `D_actor_450900_80135E74` swaps the ally onto the
