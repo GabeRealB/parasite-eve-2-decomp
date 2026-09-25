@@ -216,7 +216,7 @@ void func_dryfield_night_souvenir_shop_8017DFF4(Task* task)
 {
     GsCOORDINATE2* coord;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     func_dryfield_night_souvenir_shop_8017D6B4(coord, 0);
     func_dryfield_night_souvenir_shop_8017D6B4(coord, 8);

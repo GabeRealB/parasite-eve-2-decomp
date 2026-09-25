@@ -432,7 +432,7 @@ void func_actor_121300_8013293C(Task* arg0)
     TmdObject*             tail;
 
     work  = (Actor121300DebrisWork*)arg0->work;
-    obj   = arg0->extra;
+    obj   = arg0->extra.tmd;
     coord = obj->coords;
     if (D_actor_121300_8013D41C == 0) {
         taskKill(arg0);
@@ -587,10 +587,10 @@ void func_actor_121300_8013293C(Task* arg0)
             }
             break;
     }
-    tail   = arg0->extra;
+    tail   = arg0->extra.tmd;
     pos.vx = tail->coords->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    pos.vy = arg0->extra.tmd->coords->workm.t[1];
+    pos.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tail, &pos, 0, 3);
 }
 
@@ -1006,7 +1006,7 @@ void func_actor_121300_80133BFC(Task* arg0)
     s32              i;
     u8               id;
 
-    tmd        = arg0->extra;
+    tmd        = arg0->extra.tmd;
     coord      = tmd->coords;
     map        = Mem_Malloc(0x4B0, 0);
     arg0->work = map;
@@ -1116,10 +1116,10 @@ void func_actor_121300_80133D98(Task* arg0)
             return;
     }
     func_actor_121300_80133854(arg0);
-    extra          = (TmdObject*)arg0->extra;
+    extra          = arg0->extra.tmd;
     scratch.vec.vx = extra->coords[1].workm.t[0];
-    scratch.vec.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    scratch.vec.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    scratch.vec.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    scratch.vec.vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(extra, &scratch.vec, 0, 3);
     D_actor_121300_8013CC00 += 1;
 }
@@ -1171,7 +1171,7 @@ void func_actor_121300_8013411C(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;
@@ -1189,7 +1189,7 @@ void func_actor_121300_801341A8(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)arg0->extra;
+    extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
             extra->flags = (extra->flags | 0x80) & 0xFFFB;

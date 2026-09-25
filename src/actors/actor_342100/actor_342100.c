@@ -479,7 +479,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     s32            vz;
 
     eff   = (GpEffArg*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
             arg0->work = (TaskIdMap*)Mem_Malloc(8, 0);
@@ -490,7 +490,7 @@ void func_actor_342100_80162AB0(Task* arg0)
             eff = (GpEffArg*)arg0->work;
             Mem_Set(eff, 0, 8);
             eff->spawnArgLo = 0x100;
-            eff->coord      = ((TmdObject*)arg0->extra)->coords;
+            eff->coord      = arg0->extra.tmd->coords;
             eff->spawnArgHi = 1;
             arg0->state++;
             return;
@@ -576,7 +576,7 @@ void func_actor_342100_80162C88(void)
         rng               = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState       = rng;
         task              = Task_SpawnFromTable(&D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
-        coord             = ((TmdObject*)task->extra)->coords;
+        coord             = task->extra.tmd->coords;
         rot               = (GpMtxWords*)&coord->coord;
         rot->m00_m01      = 0x1000;
         rot->m02_m10      = 0;
@@ -622,8 +622,8 @@ void func_actor_342100_80162DDC(Task* arg0)
         case 0:
             idx                               &= 3;
             D_actor_342100_801649A0.spawnArgLo = 0x100;
-            D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
-            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
+            D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
+            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
             arg0->state++;
             return;
         case 1:
@@ -633,8 +633,8 @@ void func_actor_342100_80162DDC(Task* arg0)
                 }
                 idx                               &= 3;
                 D_actor_342100_801649A0.spawnArgLo = 0x10;
-                D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
-                func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
+                D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
+                func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
                 return;
             }
             if (D_80070F70 & 7) {
@@ -642,8 +642,8 @@ void func_actor_342100_80162DDC(Task* arg0)
             }
             idx                               &= 0xF;
             D_actor_342100_801649A0.spawnArgLo = 0x100;
-            D_actor_342100_801649A0.coord      = &((TmdObject*)slot->extra)->coords[D_actor_342100_801649A8[idx]];
-            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_actor_342100_801649A0);
+            D_actor_342100_801649A0.coord      = &slot->extra.tmd->coords[D_actor_342100_801649A8[idx]];
+            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_actor_342100_801649A0);
             return;
     }
 }

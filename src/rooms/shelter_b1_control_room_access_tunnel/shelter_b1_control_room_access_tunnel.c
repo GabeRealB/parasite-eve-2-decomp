@@ -346,7 +346,7 @@ void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -588,7 +588,7 @@ void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -788,7 +788,7 @@ void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

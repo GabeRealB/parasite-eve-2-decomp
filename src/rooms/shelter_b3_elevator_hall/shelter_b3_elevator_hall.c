@@ -603,7 +603,7 @@ void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
     s32            lifetime;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -938,7 +938,7 @@ void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1024,7 +1024,7 @@ void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1436,7 +1436,7 @@ void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;

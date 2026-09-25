@@ -474,7 +474,7 @@ u16 func_shelter_b3_dumping_hole_8017DA00(GsCOORDINATE2* coord, s16 w, s16 h, s1
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
     DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord  = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2*       coord  = arg0->extra.tmd->coords;
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
     if (entity->field_42 == 1) {
@@ -546,7 +546,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 {
     DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     SVECTOR              pos;
     DVECTOR              sxy;
@@ -651,7 +651,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
     DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
-    GsCOORDINATE2*       coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2*       coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     s32                  sa1;
     u32                  roll1;
@@ -759,7 +759,7 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     VECTOR                        v;
     TmdObject*                    e2;
 
-    extra      = (TmdObject*)arg0->extra;
+    extra      = arg0->extra.tmd;
     cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2;
     coord      = extra->coords;
     work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
@@ -769,8 +769,8 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
         return;
     }
     Mem_Set(work, 0, 0x5C);
-    coord->sub                       = &gGfxViewCoord;
-    ((TmdObject*)arg0->extra)->flags = 0;
+    coord->sub             = &gGfxViewCoord;
+    arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(extra);
     extra->lightMtx   = &work->field_0;
     extra->colorMtx   = &work->field_20;
@@ -783,10 +783,10 @@ void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->flg = 0;
     Task_Reparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
-    e2   = (TmdObject*)arg0->extra;
+    e2   = arg0->extra.tmd;
     v.vx = e2->coords->workm.t[0];
-    v.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    v.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    v.vy = arg0->extra.tmd->coords->workm.t[1];
+    v.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(e2, &v, 0, 3);
 }
 
@@ -798,7 +798,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 {
     DumpingHoleCoordWork* work  = (DumpingHoleCoordWork*)arg0->work;
     u16                   flag  = ((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_40;
-    GsCOORDINATE2*        coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2*        coord = arg0->extra.tmd->coords;
     GsCOORDINATE2*        c2;
     DumpingHoleProjection p;
     s32                   sx;
@@ -891,7 +891,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             work->rotY     += work->spinY;
             work->rotZ     += work->spinZ;
             work->fall     += 5;
-            c2              = ((TmdObject*)arg0->extra)->coords;
+            c2              = arg0->extra.tmd->coords;
             c2->sub         = &gGfxViewCoord;
             c2->coord.t[0] += work->velX;
             c2->coord.t[1] += work->velY + work->fall;
@@ -1169,10 +1169,10 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_46                     = 0;
             }
             w             = (DumpingHoleEntity*)arg0->work;
-            w->field_0    = ((TmdObject*)w->field_28->extra)->coords->coord.t[0];
+            w->field_0    = w->field_28->extra.tmd->coords->coord.t[0];
             t             = w->field_28;
-            w->field_4    = ((TmdObject*)t->extra)->coords->coord.t[1];
-            w->field_8    = ((TmdObject*)t->extra)->coords->coord.t[2];
+            w->field_4    = t->extra.tmd->coords->coord.t[1];
+            w->field_8    = t->extra.tmd->coords->coord.t[2];
             w->field_12   = 0x400;
             w->field_10   = 0;
             w->field_14   = 0;
@@ -1422,7 +1422,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     s32                  size;
 
     work  = (DumpingHoleShard*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2;
     if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
         taskKill(arg0);
@@ -1704,7 +1704,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->field_58.vy                  = 0;
                     work->field_58.vz                  = 0;
                     D_shelter_b3_dumping_hole_8018F4B0 = 1;
-                    work->field_68                     = &((TmdObject*)task->extra)->coords[2];
+                    work->field_68                     = &task->extra.tmd->coords[2];
                     work->field_6C                     = 0x14;
                     work->scale.vx                     = 0x1000;
                     work->scale.vy                     = 0x1000;
@@ -1727,13 +1727,13 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         buf.vec[2].vx = 0xC8;
                         buf.vec[2].vy = 0x190;
                         buf.vec[2].vz = -0xC8;
-                        ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        Gp_SpawnEff(0x60070, ((TmdObject*)task->extra)->coords, 0x608, &buf.vec[3]);
+                        ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
+                        Gp_SpawnEff(0x60070, task->extra.tmd->coords, 0x608, &buf.vec[3]);
                         buf.vec[2].vx = 0xC8;
                         buf.vec[2].vy = 0x190;
                         buf.vec[2].vz = -0x320;
-                        ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        Gp_SpawnEff(0x60070, ((TmdObject*)task->extra)->coords, 0x608, &buf.vec[3]);
+                        ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
+                        Gp_SpawnEff(0x60070, task->extra.tmd->coords, 0x608, &buf.vec[3]);
                         work->timer    = 0;
                         work->field_98 = 0;
                         work->field_9A = 0x80;
@@ -1742,11 +1742,11 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     }
                     if (work->timer >= 0x1F) {
                         if (work->timer >= 0x3D) {
-                            ((TmdObject*)task->extra)->coords[2].coord.t[1] += 8;
-                            work->scale.vx                                  -= 10;
-                            work->scale.vz                                  -= 10;
-                            ident                                            = (OverlayMat*)&((TmdObject*)task->extra)->coords[3].coord;
-                            sc                                               = &work->scale;
+                            task->extra.tmd->coords[2].coord.t[1] += 8;
+                            work->scale.vx                        -= 10;
+                            work->scale.vz                        -= 10;
+                            ident                                  = (OverlayMat*)&task->extra.tmd->coords[3].coord;
+                            sc                                     = &work->scale;
 
                             ident->ident.m00_m01 = 0x1000;
                             ident->ident.m02_m10 = 0;
@@ -1756,7 +1756,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
 
                             // Scale each column of the rotation through a
                             // scratchpad SVECTOR and the GTE.
-                            obj = task->extra;
+                            obj = task->extra.tmd;
                             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
                             scratch               = *(u32*)(head + 0x3FC);
                             coords                = obj->coords;
@@ -1825,8 +1825,8 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             scratch2 += 8;
                             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch2) : "memory");
                         } else if (work->timer < 0x20) {
-                            ((TmdObject*)task->extra)->coords[2].coord.t[1] += 0x20;
-                            ident2                                           = (OverlayMat*)&((TmdObject*)task->extra)->coords[3].coord;
+                            task->extra.tmd->coords[2].coord.t[1] += 0x20;
+                            ident2                                 = (OverlayMat*)&task->extra.tmd->coords[3].coord;
 
                             ident2->ident.m00_m01 = 0x1000;
                             ident2->ident.m02_m10 = 0;
@@ -1838,13 +1838,13 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             buf.vec[1].vx = 0xC8;
                             buf.vec[1].vy = 0x190;
                             buf.vec[1].vz = -0xC8;
-                            ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[1], &buf2.vec);
-                            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords, 0x200, &buf2.vec);
+                            ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
+                            Gp_SpawnEff(0x600E0, task->extra.tmd->coords, 0x200, &buf2.vec);
                             buf.vec[1].vx = 0xC8;
                             buf.vec[1].vy = 0x190;
                             buf.vec[1].vz = -0x320;
-                            ApplyMatrixSV(&((TmdObject*)task->extra)->coords->coord, &buf.vec[1], &buf2.vec);
-                            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords, 0x200, &buf2.vec);
+                            ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
+                            Gp_SpawnEff(0x600E0, task->extra.tmd->coords, 0x200, &buf2.vec);
                         }
                     }
                     if (gDisplayState.animFrame & 1) {
@@ -1859,7 +1859,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         buf2.vec.vx = -0x190;
                         buf2.vec.vy = 0x190;
                         buf2.vec.vz = 0x190;
-                        Gp_SpawnEff(0x600E0, &((TmdObject*)task->extra)->coords[1], 0x200, &buf2.vec);
+                        Gp_SpawnEff(0x600E0, &task->extra.tmd->coords[1], 0x200, &buf2.vec);
                     }
                     if (++work->timer >= 6) {
                         if (work->field_98 < -0x154) {
@@ -1867,9 +1867,9 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         } else {
                             work->field_98 -= 8;
                         }
-                        Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, work->field_98, 1);
+                        Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, work->field_98, 1);
                     }
-                    ((TmdObject*)task->extra)->coords[2].coord.t[1] += 0x190;
+                    task->extra.tmd->coords[2].coord.t[1] += 0x190;
                     Gp_DispatchMsg(task, 0x7D4, (s32)&work->pose, 0);
                     break;
             }
@@ -2009,13 +2009,13 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             if (D_80114C12 == 1 || D_80071075 != 0) {
                 return;
             }
-            obj        = task->extra;
+            obj        = task->extra.tmd;
             task->work = memCalloc(0xA0, false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {
-                ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
-                work                                   = task->work;
+                task->extra.tmd->coords->sub = &gGfxViewCoord;
+                work                         = task->work;
                 Mem_Set(work, 0, 0xA0);
                 work->field_80                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
@@ -2050,10 +2050,10 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             }
             break;
     }
-    tail    = task->extra;
+    tail    = task->extra.tmd;
     desc[0] = tail->coords->workm.t[0];
-    desc[1] = ((TmdObject*)task->extra)->coords->workm.t[1];
-    desc[2] = ((TmdObject*)task->extra)->coords->workm.t[2];
+    desc[1] = task->extra.tmd->coords->workm.t[1];
+    desc[2] = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tail, (VECTOR*)desc, 0, 3);
 }
 
@@ -2064,7 +2064,7 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     switch (arg2) {
         case 0:
             extra->flags = (extra->flags | 0x80) & 0xFFFB;
@@ -2086,7 +2086,7 @@ void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* pla
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;
@@ -2168,7 +2168,7 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
 {
     func_shelter_b3_dumping_hole_8017FD9C(
-        (s32) & ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1], arg0);
+        (s32)&gameGetPtrSlot(3)->extra.tmd->coords[1], arg0);
 }
 
 void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
@@ -2983,7 +2983,7 @@ void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
         D_shelter_b3_dumping_hole_8018F4D4++;
         task       = enemy->task;
-        obj        = task->extra;
+        obj        = task->extra.tmd;
         obj->tpage = 3;
         obj->clut  = 5;
         enemy->hp  = 1;
@@ -2993,7 +2993,7 @@ void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
         D_shelter_b3_dumping_hole_8018F4D4++;
         task       = enemy->task;
-        obj        = task->extra;
+        obj        = task->extra.tmd;
         obj->tpage = 3;
         obj->clut  = 5;
         enemy->hp  = 1;
@@ -3218,7 +3218,7 @@ void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
-        TmdObject* p        = t00->extra;
+        TmdObject* p        = t00->extra.tmd;
         p->clut             = 2;
         p->tpage            = 0;
         t0->workType        = 0x900;
@@ -3267,7 +3267,7 @@ void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
-        TmdObject* p        = t00->extra;
+        TmdObject* p        = t00->extra.tmd;
         p->tpage            = 2;
         p->clut             = 4;
         t0->workType        = 0x900;
@@ -3301,7 +3301,7 @@ void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 
     if (t0 != NULL) {
         Task*      t00      = t0->task;
-        TmdObject* p        = t00->extra;
+        TmdObject* p        = t00->extra.tmd;
         p->tpage            = 3;
         p->clut             = 5;
         t0->workType        = 0x900;
@@ -3326,7 +3326,7 @@ void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
         }
         {
             Task*      t00 = ent->enemy1->task;
-            TmdObject* p   = t00->extra;
+            TmdObject* p   = t00->extra.tmd;
             GpCmdArg   desc;
             p->tpage            = 3;
             p->clut             = 5;
@@ -3780,7 +3780,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->spawnArg1 < 0) {
             func_shelter_b3_dumping_hole_80185DCC(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -4076,7 +4076,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -4341,7 +4341,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     s32            i;
 
     mem   = (GpEffWork*)arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_dumping_hole_80186AB8(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (Gp_State1C->eventState >= 4) {

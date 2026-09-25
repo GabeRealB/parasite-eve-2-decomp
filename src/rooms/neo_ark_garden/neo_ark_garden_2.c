@@ -374,7 +374,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
     u8             col[4];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -404,7 +404,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &((TmdObject*)player->extra)->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -490,7 +490,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
     VECTOR         delta;
 
     work   = task->spawnArg2;
-    coord  = ((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -800,7 +800,7 @@ void func_neo_ark_garden_80180948(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;

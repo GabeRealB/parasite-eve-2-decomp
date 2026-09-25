@@ -236,7 +236,7 @@ void func_actor_136100_801320E0(Task* arg0)
     u8               id;
 
     if (arg0->state == 0) {
-        TmdObject*     tmd   = arg0->extra;
+        TmdObject*     tmd   = arg0->extra.tmd;
         GsCOORDINATE2* coord = tmd->coords;
 
         work       = Mem_Malloc(0x4F0, 0);
@@ -245,8 +245,8 @@ void func_actor_136100_801320E0(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub                       = (GsCOORDINATE2*)arg0->spawnArg2;
-            ((TmdObject*)arg0->extra)->flags = 0;
+            coord->sub             = (GsCOORDINATE2*)arg0->spawnArg2;
+            arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
@@ -262,16 +262,16 @@ void func_actor_136100_801320E0(Task* arg0)
             place++;
             id = place->entryId;
         }
-        Gp_SetTmdBytes((TmdObject*)arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+        Gp_SetTmdBytes(arg0->extra.tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
         arg0->state += 1;
     }
     {
-        TmdObject* obj = arg0->extra;
+        TmdObject* obj = arg0->extra.tmd;
 
         Gp_UpdateCoord(obj->coords);
-        vec.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-        vec.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-        vec.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+        vec.vx = arg0->extra.tmd->coords->workm.t[0];
+        vec.vy = arg0->extra.tmd->coords->workm.t[1];
+        vec.vz = arg0->extra.tmd->coords->workm.t[2];
         func_800D7A9C(obj, &vec, 0, 3);
     }
 }
@@ -282,7 +282,7 @@ void func_actor_136100_80132284(Task* arg0)
     VECTOR           vec;
 
     if (arg0->state == 0) {
-        TmdObject*     tmd   = arg0->extra;
+        TmdObject*     tmd   = arg0->extra.tmd;
         GsCOORDINATE2* coord = tmd->coords;
 
         work       = Mem_Malloc(0x4F0, 0);
@@ -291,8 +291,8 @@ void func_actor_136100_80132284(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(work, 0, 0x4F0);
-            coord->sub                       = (GsCOORDINATE2*)arg0->spawnArg2;
-            ((TmdObject*)arg0->extra)->flags = 0;
+            coord->sub             = (GsCOORDINATE2*)arg0->spawnArg2;
+            arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
@@ -301,7 +301,7 @@ void func_actor_136100_80132284(Task* arg0)
         }
         arg0->state += 1;
         if (arg0->spawnArg1 != 0) {
-            GsCOORDINATE2* reset = ((TmdObject*)arg0->extra)->coords;
+            GsCOORDINATE2* reset = arg0->extra.tmd->coords;
 
             Gfx_RotMatrixX(&reset->coord, 0x400, 1);
             reset->coord.t[1] = 0xC8;
@@ -309,12 +309,12 @@ void func_actor_136100_80132284(Task* arg0)
         }
     }
     {
-        TmdObject* obj = arg0->extra;
+        TmdObject* obj = arg0->extra.tmd;
 
         Gp_UpdateCoord(obj->coords);
-        vec.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-        vec.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-        vec.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+        vec.vx = arg0->extra.tmd->coords->workm.t[0];
+        vec.vy = arg0->extra.tmd->coords->workm.t[1];
+        vec.vz = arg0->extra.tmd->coords->workm.t[2];
         func_800D7A9C(obj, &vec, 0, 3);
     }
 }
@@ -721,7 +721,7 @@ void func_actor_136100_80133238(Task* arg0)
                     work->field_4C6++;
                     return;
                 case 1:
-                    Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords[4].coord, work->field_4EA, 1);
+                    Gfx_RotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4EA, 1);
                     if (work->field_4EA >= 0xD56) {
                         work->field_4EA -= 0x40;
                     }
@@ -729,7 +729,7 @@ void func_actor_136100_80133238(Task* arg0)
             }
             return;
         case 7:
-            coords = ((TmdObject*)arg0->extra)->coords;
+            coords = arg0->extra.tmd->coords;
             if ((work->field_4EA += 0x40) > 0x1000) {
                 work->field_4EA = 0;
                 work->field_4CC = 0;
@@ -905,7 +905,7 @@ void func_actor_136100_8013379C(s32 arg0)
     Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
 
     if (arg0 == 1) {
-        Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords[4].coord, 0, 1);
+        Gfx_RotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
     }
 }
 
@@ -977,7 +977,7 @@ void func_actor_136100_80133A88(Task* arg0)
     GpAreaPlace*     place;
     u8               id;
 
-    tmd        = arg0->extra;
+    tmd        = arg0->extra.tmd;
     coord      = tmd->coords;
     map        = Mem_Malloc(0x4F0, 0);
     arg0->work = map;
@@ -1082,12 +1082,12 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 /// stays out of the CSE class of the `Gp_DrawFloorQuad` argument that follows.
 static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 {
-    TmdObject* obj = arg0->extra;
+    TmdObject* obj = arg0->extra.tmd;
 
     Gp_UpdateCoord(&obj->coords[1]);
-    vec->vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-    vec->vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    vec->vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    vec->vx = arg0->extra.tmd->coords[1].workm.t[0];
+    vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
+    vec->vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(obj, vec, 0, 3);
 }
 
@@ -1124,14 +1124,14 @@ void func_actor_136100_80133BC8(Task* arg0)
             work            = (Actor136100Work*)arg0->work;
             work->field_4E4 = GameFlag_GetNibble(0x73) == 0;
             work->field_4B8 = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
-                                                  (s32)((TmdObject*)arg0->extra)->coords + 0x140);
+                                                  (s32)arg0->extra.tmd->coords + 0x140);
             if (work->field_4E4 == 0) {
                 func_actor_136100_ResetSlots(arg0, 1);
                 work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, (s32)&gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
                 work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
-                                                      (s32)((TmdObject*)arg0->extra)->coords + 0x280);
+                                                      (s32)arg0->extra.tmd->coords + 0x280);
                 Mem_CopyUnaligned(&D_actor_136100_8013F224, &D_801833F4, 0x20);
                 Mem_CopyUnaligned(&D_actor_136100_8013F2C4, &D_80183ACC, 0x30);
                 Mem_CopyUnaligned(&D_actor_136100_8013F244, &D_801834AC, 0x80);
@@ -1227,7 +1227,7 @@ void func_actor_136100_80133BC8(Task* arg0)
     ((SVECTOR*)&rec)->vx = 0;
     ((SVECTOR*)&rec)->vy = 0x380;
     ((SVECTOR*)&rec)->vz = 0;
-    Gp_DrawFloorQuad(&((TmdObject*)arg0->extra)->coords[1], 0x300, (SVECTOR*)&rec);
+    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, (SVECTOR*)&rec);
 }
 
 /// Fade-in task, entry 4 of the actor's task table: on its first tick it
@@ -1332,7 +1332,7 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)task->extra;
+    obj = task->extra.tmd;
     if (arg2 != 0) {
         obj->flags = obj->flags & 0xFF7F;
         return;
@@ -1348,7 +1348,7 @@ void func_actor_136100_80134720(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;

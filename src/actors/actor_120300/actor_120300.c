@@ -116,8 +116,8 @@ extern s32 D_actor_120300_80141A34;
 static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec)
 {
     vec->vx = tmd->coords[1].workm.t[0];
-    vec->vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    vec->vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
+    vec->vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(tmd, vec, 0, 3);
 }
 
@@ -194,7 +194,7 @@ void func_actor_120300_80132004(Task* arg0)
     u8               id;
 
     if (arg0->state == 0) {
-        tmd        = arg0->extra;
+        tmd        = arg0->extra.tmd;
         coord      = tmd->coords;
         map        = Mem_Malloc(0x4E4, 0);
         arg0->work = map;
@@ -203,8 +203,8 @@ void func_actor_120300_80132004(Task* arg0)
         } else {
             work = (Actor120300Work*)map;
             Mem_Set(map, 0, 0x4E4);
-            coord->sub                       = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords + 4;
-            ((TmdObject*)arg0->extra)->flags = 0;
+            coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + 4;
+            arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             kill           = 0;
             tmd->lightMtx  = &work->field_474;
@@ -226,14 +226,14 @@ void func_actor_120300_80132004(Task* arg0)
             place++;
             id = place->entryId;
         }
-        Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+        Gp_SetTmdBytes(arg0->extra.tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
         arg0->state += 1;
     }
-    tmd2     = arg0->extra;
+    tmd2     = arg0->extra.tmd;
     scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
     vec.vx   = tmd2->coords->workm.t[0];
-    vec.vy   = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    vec.vz   = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    vec.vy   = arg0->extra.tmd->coords->workm.t[1];
+    vec.vz   = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
     scale  = scaleRaw & 0xFFFF;
     vec.vz = scale;
@@ -266,7 +266,7 @@ void func_actor_120300_801321C8(Task* arg0)
     Actor120300Work* work;
 
     if (arg0->state == 0) {
-        tmd        = arg0->extra;
+        tmd        = arg0->extra.tmd;
         coord      = tmd->coords;
         map        = Mem_Malloc(0x4E4, 0);
         arg0->work = map;
@@ -275,8 +275,8 @@ void func_actor_120300_801321C8(Task* arg0)
         } else {
             work = (Actor120300Work*)map;
             Mem_Set(map, 0, 0x4E4);
-            coord->sub                       = ((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords + 8;
-            ((TmdObject*)arg0->extra)->flags = 0;
+            coord->sub             = ((Task*)arg0->spawnArg2)->extra.tmd->coords + 8;
+            arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
             kill           = 0;
             tmd->lightMtx  = &work->field_474;
@@ -291,11 +291,11 @@ void func_actor_120300_801321C8(Task* arg0)
         }
         arg0->state += 1;
     }
-    tmd2     = arg0->extra;
+    tmd2     = arg0->extra.tmd;
     scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2)->work)->field_4E0;
     vec.vx   = tmd2->coords->workm.t[0];
-    vec.vy   = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    vec.vz   = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    vec.vy   = arg0->extra.tmd->coords->workm.t[1];
+    vec.vz   = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
     scale  = scaleRaw & 0xFFFF;
     vec.vz = scale;
@@ -673,8 +673,8 @@ void func_actor_120300_80132338(Task* arg0)
             goto clear;
         case 20:
             playerTask  = work->field_4B4;
-            actorCoord  = ((TmdObject*)arg0->extra)->coords;
-            playerCoord = ((TmdObject*)playerTask->extra)->coords;
+            actorCoord  = arg0->extra.tmd->coords;
+            playerCoord = playerTask->extra.tmd->coords;
             player      = (GameActor*)playerTask->work;
             switch ((u16)work->field_4C2) {
                 case 0:
@@ -754,7 +754,7 @@ void func_actor_120300_80132C60(Task* arg0)
     s32              n;
     s32              t;
 
-    tmd   = (TmdObject*)arg0->extra;
+    tmd   = arg0->extra.tmd;
     work  = (Actor120300Work*)arg0->work;
     coord = tmd->coords;
     func_actor_120300_80131EE0(arg0);
@@ -1029,9 +1029,9 @@ void func_actor_120300_80133330(s32 arg0)
     s32              weaponId;
     s32              id;
 
-    task                             = D_actor_120300_80141BA8;
-    work                             = (Actor120300Work*)task->work;
-    ((TmdObject*)task->extra)->flags = 0;
+    task                   = D_actor_120300_80141BA8;
+    work                   = (Actor120300Work*)task->work;
+    task->extra.tmd->flags = 0;
     Gp_DispatchMsg(task, 0x7D4, (s32)&D_actor_120300_80140B2C, 0);
 
     animWork            = (Actor120300Work*)task->work;
@@ -1138,7 +1138,7 @@ void func_actor_120300_801335D8(Task* arg0)
     u8               id;
     s32              i;
 
-    tmd        = arg0->extra;
+    tmd        = arg0->extra.tmd;
     coord      = tmd->coords;
     map        = Mem_Malloc(0x4E4, 0);
     arg0->work = map;
@@ -1299,8 +1299,8 @@ void func_actor_120300_801337C4(Task* arg0)
     scratch.draw.rot.vx = 0;
     scratch.draw.rot.vy = 0x380;
     scratch.draw.rot.vz = 0;
-    Gp_DrawFloorQuad(&((TmdObject*)arg0->extra)->coords[1], 0x300, &scratch.draw.rot);
-    tmd      = arg0->extra;
+    Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &scratch.draw.rot);
+    tmd      = arg0->extra.tmd;
     scaleRaw = work->field_4E0;
     func_actor_120300_FillLight(arg0, tmd, &scratch.draw.vec);
     scale               = scaleRaw & 0xFFFF;
@@ -1355,7 +1355,7 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)task->extra;
+    obj = task->extra.tmd;
     if (arg2 != 0) {
         obj->flags = obj->flags & 0xFF7F;
         return;
@@ -1372,7 +1372,7 @@ void func_actor_120300_80133C6C(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;

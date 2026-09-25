@@ -36,7 +36,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     head                  = SCRATCH_HEAD(u8);
     blk                   = (SVECTOR*)(head - 8);
     SCRATCH_HEAD(SVECTOR) = blk;
-    extra                 = arg0->extra;
+    extra                 = arg0->extra.tmd;
     idx                   = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord                 = extra->coords;
     muzzle                = coord->sub;
@@ -139,7 +139,7 @@ void func_kyle_800102_80167DE0(Task* arg0)
     s32                   sfxbase;
 
     work             = (WeaponGrenadeWork*)arg0->work;
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - sizeof(WeaponGrenadeScratch);
     blk              = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));

@@ -127,7 +127,7 @@ void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     } else {
         D_shelter_b1_golem_freezer_1_8017E6D2 = 0x2710;
     }
-    func_shelter_b1_golem_freezer_1_8017D7CC(((TmdObject*)task->extra)->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
+    func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
 void func_shelter_b1_golem_freezer_1_8017D7CC(GsCOORDINATE2* coord, s16* arg1)
@@ -298,7 +298,7 @@ void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s32            vz;
     s16            f2a;
     u32            rng2;

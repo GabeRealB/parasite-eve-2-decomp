@@ -221,9 +221,9 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
     GsCOORDINATE2* coords;
 
     target = (Task*)Gp_LookupSlot4(0);
-    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+    player = gameGetPtrSlot(3)->extra.tmd->coords;
     if (target != NULL) {
-        coords = ((TmdObject*)target->extra)->coords;
+        coords = target->extra.tmd->coords;
         D_shelter_b2_septic_tank_80182FFE =
             (ratan2(coords->coord.t[0] - player->coord.t[0], coords->coord.t[2] - player->coord.t[2]) + 0x1000) & 0xFFF;
     }
@@ -655,7 +655,7 @@ void func_shelter_b2_septic_tank_8017F040(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b2_septic_tank_8017F194(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -792,7 +792,7 @@ void func_shelter_b2_septic_tank_8017F4C8(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -1295,7 +1295,7 @@ void func_shelter_b2_septic_tank_80180BE0(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1541,7 +1541,7 @@ void func_shelter_b2_septic_tank_80181644(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1746,7 +1746,7 @@ void func_shelter_b2_septic_tank_80181F2C(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

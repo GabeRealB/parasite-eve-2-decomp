@@ -173,7 +173,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
     GpXformArg placement;
     VECTOR3    vec;
 
-    ext = arg0->extra;
+    ext = arg0->extra.tmd;
 
     if (arg0->spawnArg1 == 1 && arg0->killCountdown < 0x6E) {
         placement.pos.vx = D_mine_forked_tunnel_80181244[arg0->killCountdown].vx;
@@ -188,11 +188,11 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
     }
 
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords->workm.t, &vec) != 0) {
+        if (func_800EA1A8((VECTOR3*)arg0->extra.tmd->coords->workm.t, &vec) != 0) {
             Gp_DrawEffGroundQuad(&vec, 0x200, Gp_State1C->groundShade);
         }
-        Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords->workm.t, 0, 3);
+        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords->workm.t, 0, 3);
     }
 
     if (((MineForkedTunnelWork*)arg0->work)->field_44 >= 0) {
@@ -245,7 +245,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
             placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
 
             place               = &placement;
-            coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+            coord               = (GpCoordExt*)task->extra.tmd->coords;
             coord->coord.t[0]   = place->pos.vx;
             coord->coord.t[1]   = place->pos.vy;
             coord->coord.t[2]   = place->pos.vz;
@@ -267,7 +267,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
             do {
                 case 3:
                     src                 = &D_mine_forked_tunnel_80181BBC;
-                    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+                    coord               = (GpCoordExt*)task->extra.tmd->coords;
                     coord->coord.t[0]   = src->pos.vx;
                     coord->coord.t[1]   = src->pos.vy;
                     coord->coord.t[2]   = src->pos.vz;
@@ -300,7 +300,7 @@ void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         placement.rot.vz = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vz;
 
         place               = &placement;
-        coord               = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
+        coord               = (GpCoordExt*)arg0->extra.tmd->coords;
         coord->coord.t[0]   = place->pos.vx;
         coord->coord.t[1]   = place->pos.vy;
         coord->coord.t[2]   = place->pos.vz;
@@ -337,7 +337,7 @@ void func_mine_forked_tunnel_8017DC70(Task* arg0)
     TmdObject*            ext;
     MineForkedTunnelWork* work;
 
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     work          = (MineForkedTunnelWork*)arg0->work;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
@@ -351,7 +351,7 @@ s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -377,7 +377,7 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
     TmdObject* ext;
     s32        ret;
 
-    ext = (TmdObject*)task->extra;
+    ext = task->extra.tmd;
     ret = 0;
     switch (mode) {
         case 0:
@@ -433,8 +433,8 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     GpCoordExt*    dst;
 
     parent      = task->spawnArg2;
-    ext         = task->extra;
-    parentExt   = parent->extra;
+    ext         = task->extra.tmd;
+    parentExt   = parent->extra.tmd;
     coord       = (GpCoordExt*)ext->coords;
     parentCoord = parentExt->coords;
 
@@ -446,7 +446,7 @@ void func_mine_forked_tunnel_8017DE54(Task* task)
     Task_Reparent(parent, task);
     ext->flags = ext->flags & 0xFF7F;
 
-    dst               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    dst               = (GpCoordExt*)task->extra.tmd->coords;
     dst->coord.t[0]   = D_mine_forked_tunnel_80181BA4.pos.vx;
     dst->coord.t[1]   = D_mine_forked_tunnel_80181BA4.pos.vy;
     dst->coord.t[2]   = D_mine_forked_tunnel_80181BA4.pos.vz;

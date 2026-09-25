@@ -80,7 +80,7 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
     GpAreaKey*     sessionKey;
     void*          work;
 
-    obj                     = task->extra;
+    obj                     = task->extra.tmd;
     coord                   = obj->coords;
     work                    = memCalloc(0x5A0, 0);
     D_actor_420700_8013EFE0 = work;
@@ -102,7 +102,7 @@ void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
     D_actor_420700_8013EFEC      = Task_SpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
     sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
     raw                          = enemy->placeKey;
-    model                        = D_actor_420700_8013EFE8->extra;
+    model                        = D_actor_420700_8013EFE8->extra.tmd;
     key.stage                    = sessionKey->stage;
     key.area                     = sessionKey->area;
     key.room                     = sessionKey->room;
@@ -163,9 +163,9 @@ void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
     s32            i;
     u8             rate;
 
-    coords = ((TmdObject*)task->extra)->coords;
+    coords = task->extra.tmd->coords;
     part   = &coords[2];
-    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+    player = gameGetPtrSlot(3)->extra.tmd->coords;
     Gp_UpdateCoord(part);
     pos.vx = part->workm.t[0];
     pos.vy = part->workm.t[1];
@@ -255,9 +255,9 @@ void func_actor_420700_8013239C(Task* arg0)
 /// to `func_800D7A9C` for the model's colour matrix.
 void func_actor_420700_801323D8(Task* task)
 {
-    TmdObject*     extra = task->extra;
+    TmdObject*     extra = task->extra.tmd;
     GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
+    GsCOORDINATE2* parts = D_actor_420700_8013EFE4->extra.tmd->coords;
     GsCOORDINATE2* part  = parts + 4;
     VECTOR         vec;
 
@@ -384,9 +384,9 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, GpAnimArg* args)
 /// objects it loads land in `$a3` / `$a0` / `$v1` rather than shifted one down.
 s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject* actor = D_actor_420700_8013EFE4->extra;
-    TmdObject* model = D_actor_420700_8013EFE8->extra;
-    TmdObject* twin  = D_actor_420700_8013EFEC->extra;
+    TmdObject* actor = D_actor_420700_8013EFE4->extra.tmd;
+    TmdObject* model = D_actor_420700_8013EFE8->extra.tmd;
+    TmdObject* twin  = D_actor_420700_8013EFEC->extra.tmd;
 
     if (arg2 & 1) {
         actor->flags = 0;
@@ -442,9 +442,9 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, GpCmdArg* args)
 /// -2.
 void func_actor_420700_801327EC(Task* task)
 {
-    TmdObject*     extra = task->extra;
+    TmdObject*     extra = task->extra.tmd;
     GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_420700_8013EFE4->extra)->coords;
+    GsCOORDINATE2* parts = D_actor_420700_8013EFE4->extra.tmd->coords;
     GsCOORDINATE2* part  = parts + 8;
     VECTOR         vec;
 

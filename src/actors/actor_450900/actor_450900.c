@@ -88,7 +88,7 @@ void func_actor_450900_80131E38(Task* task)
             if (D_actor_450900_80135E74 == 0 && (s16)Mc_SaveData.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
-                    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+                    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
                     depth = (s8)gpGetObjDepth(coord);
                     if (rand() & 1) {
@@ -130,7 +130,7 @@ void func_actor_450900_8013207C(Task* task)
         case 1:
             if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (Gp_StateF0.field_4 == 0) && ((D_8017A99C - 0x456) >= 0)) {
                 if ((D_8017A99C - 0x456) % 210 == 0) {
-                    coord = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+                    coord = gameGetPtrSlot(3)->extra.tmd->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
                     depth = (s8)gpGetObjDepth(coord);
                     if (rand() & 1) {
@@ -322,7 +322,7 @@ void func_actor_450900_80132684(s32 arg0)
     s8             pan;
     s8             depth;
 
-    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     pan   = (s8)Gp_GetObjPan(coord);
     depth = (s8)gpGetObjDepth(coord);
     if (arg0 != 0) {
@@ -344,8 +344,8 @@ void func_actor_450900_80132724(void)
     GsCOORDINATE2* target;
     GsCOORDINATE2* origin;
 
-    target = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
-    origin = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
+    origin = (gameGetPtrSlot(3))->extra.tmd->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(origin);
     D_actor_450900_8013646A =
@@ -385,7 +385,7 @@ void func_actor_450900_80132834(void)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
     if (coord->coord.t[2] < -0x76C) {
         Task_SpawnFromTable(&D_actor_450900_80135E78, 4, 0, 0);
     } else {

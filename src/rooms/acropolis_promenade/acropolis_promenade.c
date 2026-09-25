@@ -270,7 +270,7 @@ void func_acropolis_promenade_8017DAA4(Task* task)
     GsCOORDINATE2* coord;
     ApmPropWork*   work;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     coord = extra->coords;
     work  = (ApmPropWork*)memCalloc(sizeof(ApmPropWork), 0);
     if (work == NULL) {
@@ -293,7 +293,7 @@ void func_acropolis_promenade_8017DB48(Task* task)
     TmdObject*     obj;
     GsCOORDINATE2* coord;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (Gp_GetViewIndex() == 5) {
         obj->flags = 0x80;
@@ -457,7 +457,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
     s32            mask;
     s16            prev;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
     view  = Gp_GetViewIndex();
     if (Gp_State1C->eventState >= 4) {
@@ -599,7 +599,7 @@ void func_acropolis_promenade_8017E634(Task* task)
     POLY_FT4*             prim;
     s32                   grey;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     work->age   = task->spawnArg1;
@@ -712,7 +712,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
     s32              i;
     s32              grey;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch   = (void**)G_SCRATCH_HEAD;
@@ -804,7 +804,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
     s32                             grey;
     s32                             clut;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch     = (void**)G_SCRATCH_HEAD;

@@ -61,7 +61,7 @@ void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
     TmdObject*     obj;
     GsCOORDINATE2* coord;
 
-    obj                     = task->extra;
+    obj                     = task->extra.tmd;
     coord                   = obj->coords;
     work                    = memCalloc(sizeof(Actor110300Work), 0);
     D_actor_110800_80139F10 = work;
@@ -123,8 +123,8 @@ void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
     TmdObject*     obj;
     VECTOR         vec;
 
-    coord = ((TmdObject*)task->extra)->coords;
-    obj   = (TmdObject*)task->extra;
+    coord = task->extra.tmd->coords;
+    obj   = task->extra.tmd;
     func_actor_110800_80132368(task);
     switch ((s16)D_actor_110800_80139F10->st.animId) {
         case 4:
@@ -202,8 +202,8 @@ void func_actor_110800_801322FC(Task* arg0)
     GsCOORDINATE2* parent;
     GsCOORDINATE2* coord;
 
-    parent            = ((TmdObject*)D_actor_110800_80139F14->extra)->coords;
-    coord             = ((TmdObject*)arg0->extra)->coords;
+    parent            = D_actor_110800_80139F14->extra.tmd->coords;
+    coord             = arg0->extra.tmd->coords;
     coord->flg        = 0;
     coord->coord.t[0] = -50;
     coord->sub        = parent + 8;
@@ -310,8 +310,8 @@ s32 func_actor_110800_80132584(Task* task, s32 arg1, s32 flags)
     TmdObject* self;
     TmdObject* other;
 
-    self  = D_actor_110800_80139F14->extra;
-    other = (TmdObject*)D_actor_110800_80139F18->extra;
+    self  = D_actor_110800_80139F14->extra.tmd;
+    other = D_actor_110800_80139F18->extra.tmd;
 
     if (flags & 1) {
         self->flags  = 0;

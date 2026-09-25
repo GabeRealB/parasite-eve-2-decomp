@@ -1585,7 +1585,7 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;
     m->m[2][2]         = one;
-    coord              = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    coord              = gameGetPtrSlot(0xA)->extra.tmd->coords;
     Gp_ComposeParentWorld(&coord[8], m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
@@ -1635,7 +1635,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
 
     work = Gp_FindWorkById(gGameSession->at4.loc.area | ((gGameSession->at4.loc.stage << 8) | 0x2000));
     if (work != NULL) {
-        coord = ((TmdObject*)((Task*)work->field_0)->extra)->coords;
+        coord = ((Task*)work->field_0)->extra.tmd->coords;
         switch (arg0) {
             case 0:
                 offset.vx = 0;
@@ -2025,7 +2025,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     s32                             i;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     mask  = 1 << Gp_GetViewIndex();
     if (task->state == 0) {
         D_80115758                 = 0x60006;
@@ -2340,7 +2340,7 @@ void func_dryfield_night_gas_station_80181D80(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2579,7 +2579,7 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2775,7 +2775,7 @@ void func_dryfield_night_gas_station_801830CC(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

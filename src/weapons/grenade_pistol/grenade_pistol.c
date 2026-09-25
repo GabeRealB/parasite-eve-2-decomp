@@ -65,10 +65,10 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             actor->field_95E = 3;
             actor->field_981 = 0;
             actor->field_940 = 0x28;
-            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
+            Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             Gp_SpawnEff(0x6006C,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, GRENADE_WEAPON,
+                        actor->field_91C->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
             Gp_ConsumeSlotQty(WEAPON_ITEM(GRENADE_WEAPON), 1);
             /* The projectile's kind and its row of the muzzle-offset and speed tables
@@ -106,7 +106,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
     head                  = SCRATCH_HEAD(u8);
     blk                   = (SVECTOR*)(head - 8);
     SCRATCH_HEAD(SVECTOR) = blk;
-    extra                 = arg0->extra;
+    extra                 = arg0->extra.tmd;
     idx                   = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord                 = extra->coords;
     muzzle                = coord->sub;
@@ -209,7 +209,7 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
     s32                   sfxbase;
 
     work  = (WeaponGrenadeWork*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     head  = SCRATCH_HEAD(u8);
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`

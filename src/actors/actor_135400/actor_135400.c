@@ -183,7 +183,7 @@ void func_actor_135400_80131EB4(Task* task)
 
     switch (task->spawnArg1) {
         case 1:
-            coord = ((TmdObject*)task->extra)->coords;
+            coord = task->extra.tmd->coords;
             Gp_ComposeParentWorld(coord, &rot.mat, &sv);
             coord->coord      = rot.mat;
             coord->coord.t[0] = sv.vx;
@@ -198,7 +198,7 @@ void func_actor_135400_80131EB4(Task* task)
                 break;
             }
         case 3:
-            coord              = ((TmdObject*)task->extra)->coords;
+            coord              = task->extra.tmd->coords;
             src                = &rot;
             src->ident.m00_m01 = 0x1000;
             src->ident.m02_m10 = 0;
@@ -259,7 +259,7 @@ void func_actor_135400_80132064(Task* arg0)
     spawned            = Task_SpawnFromTable(&D_actor_135400_8013A4AC, 1, 4, (s32)arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
-        model           = (TmdObject*)spawned->extra;
+        model           = spawned->extra.tmd;
         sessionKey      = (GpAreaKey*)&gGameSession->at4.loc;
         raw             = ((GpEnemy*)arg0->spawnArg2)->placeKey;
         key.stage       = sessionKey->stage;
@@ -314,18 +314,18 @@ void func_actor_135400_801322A8(Task* task)
     s32                  rate;
 
     work = (Actor135400MainWork*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
+        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         if (work->headAim != 0) {
             rate           = work->headRate + 0x100;
             work->headRate = rate;
@@ -368,8 +368,8 @@ void func_actor_135400_80132450(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -410,8 +410,8 @@ void func_actor_135400_8013252C(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -449,7 +449,7 @@ void func_actor_135400_80132634(Task* task)
     TmdObject*           ext;
     Actor135400MainWork* work;
 
-    ext           = task->extra;
+    ext           = task->extra.tmd;
     work          = (Actor135400MainWork*)task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -468,7 +468,7 @@ s32 func_actor_135400_80132650(Task* task, s32 anim, GpAnimArg* params, s32 arg3
     s32                  i;
 
     work = (Actor135400MainWork*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (params->animBlock.index != work->model.bank) {
         work->model.bank = params->animBlock.index;
         func_800B3F84(&work->rig.anim, D_actor_135400_8013A4A8[work->model.bank], ext, work->rig.poses, work->rig.slots);
@@ -498,7 +498,7 @@ s32 func_actor_135400_8013276C(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -523,8 +523,8 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     TmdObject* other;
     s32        ret;
 
-    obj   = (TmdObject*)task->extra;
-    other = (TmdObject*)((Actor135400MainWork*)task->work)->field_4B8->extra;
+    obj   = task->extra.tmd;
+    other = ((Actor135400MainWork*)task->work)->field_4B8->extra.tmd;
     ret   = 0;
     switch (mode) {
         case 0:
@@ -567,13 +567,13 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
     switch (msg->command) {
         case 0:
             if (work->field_4BC != NULL) {
-                model         = (TmdObject*)work->field_4BC->extra;
+                model         = work->field_4BC->extra.tmd;
                 model->flags &= 0xFF7F;
             }
             break;
         case 1:
             if (work->field_4BC != NULL) {
-                model         = (TmdObject*)work->field_4BC->extra;
+                model         = work->field_4BC->extra.tmd;
                 model->flags |= 0x80;
             }
             break;
@@ -591,7 +591,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
         case 5:
             if (work->field_4BC != NULL) {
                 work->field_4BC->spawnArg1 = 3;
-                model                      = (TmdObject*)work->field_4BC->extra;
+                model                      = work->field_4BC->extra.tmd;
                 model->flags              &= 0xFF7F;
             }
             break;
@@ -617,13 +617,13 @@ void func_actor_135400_801329B0(Task* task)
     u16              count;
 
     work = (Actor135400Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80) && (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[0].workm.t, &pos) != 0)) {
+    if (!(ext->flags & 0x80) && (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[0].workm.t, &pos) != 0)) {
         Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->groundShade);
     }
     count               = task->killCountdown + 1;
@@ -714,7 +714,7 @@ void func_actor_135400_80132C90(Task* arg0)
 void func_actor_135400_80132CB0(Task* task)
 {
     Actor135400Work* work = (Actor135400Work*)task->work;
-    TmdObject*       obj  = (TmdObject*)task->extra;
+    TmdObject*       obj  = task->extra.tmd;
     GsF_LIGHT*       light;
     s32              i;
 
@@ -738,7 +738,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, GpAnimArg* params, s32 arg3
     s32              i;
 
     work = (Actor135400Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (params->animBlock.index != work->model.bank) {
         work->model.bank = params->animBlock.index;
         func_800B3F84(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], ext, work->rig.poses, work->rig.slots);
@@ -766,7 +766,7 @@ s32 func_actor_135400_80132E40(Task* task, s32 anim, GpXformArg* args, s32 arg3)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -787,7 +787,7 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
     TmdObject* obj;
     s32        ret;
 
-    obj = task->extra;
+    obj = task->extra.tmd;
     ret = 0;
     switch (arg2) {
         case 0:

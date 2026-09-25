@@ -284,7 +284,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2;
     s16                           ev    = Gp_State1C->eventState;
-    GsCOORDINATE2*                coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*                coord = task->extra.tmd->coords;
     SVECTOR                       step;
 
     if (ev < 4) {

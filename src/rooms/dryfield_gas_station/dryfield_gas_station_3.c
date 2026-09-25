@@ -596,7 +596,7 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     GsCOORDINATE2* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mask & 0x1850) {
         func_dryfield_gas_station_80180B4C(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
     } else if (mask != 0) {

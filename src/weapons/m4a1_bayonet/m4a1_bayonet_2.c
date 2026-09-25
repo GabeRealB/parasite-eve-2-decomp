@@ -39,7 +39,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
     s16            frames;
 
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
     spot = SCRATCH_HEAD(GsCOORDINATE2);
@@ -101,9 +101,9 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0004, 1);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                actor->field_91C->extra.tmd->coords,
                                 0x1A, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
@@ -134,9 +134,9 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->field_95E++;
                     actor->field_93E  = 0xA;
                     actor->field_12A |= 0xC000;
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0006, 0);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0006, 0);
                     eff = Gp_SpawnEff(0x6003E,
-                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                      actor->field_91C->extra.tmd->coords,
                                       0x1A, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);
@@ -147,7 +147,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 }
             }
             if (Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201A0005, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0005, 0);
             }
             break;
         case 7:

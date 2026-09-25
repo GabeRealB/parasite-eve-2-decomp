@@ -267,7 +267,7 @@ void func_actor_135600_80132234(Task* task)
     spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 1, 8, (s32)task);
     if (spawned != NULL) {
         work->child1 = spawned;
-        model1       = (TmdObject*)spawned->extra;
+        model1       = spawned->extra.tmd;
         raw1         = ((GpEnemy*)task->spawnArg2)->placeKey;
         sessionKey1  = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage    = sessionKey1->stage;
@@ -299,7 +299,7 @@ void func_actor_135600_80132234(Task* task)
     spawned = Task_SpawnFromTable(&D_actor_135600_8013B0C4, 2, 0xC, (s32)task);
     if (spawned != NULL) {
         work->child0 = spawned;
-        model2       = (TmdObject*)spawned->extra;
+        model2       = spawned->extra.tmd;
         raw2         = ((GpEnemy*)task->spawnArg2)->placeKey;
         sessionKey2  = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage    = sessionKey2->stage;
@@ -358,7 +358,7 @@ void func_actor_135600_80132234(Task* task)
 /// down while non-negative, freeing the model's buffers when it reaches zero.
 void func_actor_135600_801324D0(Task* arg0)
 {
-    TmdObject*       ext      = arg0->extra;
+    TmdObject*       ext      = arg0->extra.tmd;
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
     VECTOR3          pos;
@@ -366,13 +366,13 @@ void func_actor_135600_801324D0(Task* arg0)
     s32              i;
 
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)arg0->extra)->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)arg0->extra.tmd->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
     if (Gp_StateF0.field_4 == 0) {
         funcs[work->walk.motion](arg0);
-        coord                = ((TmdObject*)arg0->extra)->coords;
+        coord                = arg0->extra.tmd->coords;
         work->walk.acc[0].w += work->walk.step.vx;
         work->walk.acc[1].w += work->walk.step.vy;
         work->walk.acc[2].w += work->walk.step.vz;
@@ -389,9 +389,9 @@ void func_actor_135600_801324D0(Task* arg0)
             }
         }
         if (gGameSession->viewReady != 0) {
-            ((TmdObject*)arg0->extra)->coords[1].flg = 0;
-            Gp_UpdateCoord(&((TmdObject*)arg0->extra)->coords[1]);
-            func_800D7A9C(ext, (VECTOR*)((TmdObject*)arg0->extra)->coords[1].workm.t, 0, 3);
+            arg0->extra.tmd->coords[1].flg = 0;
+            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
         }
         if (work->freeCountdown >= 0) {
             if (work->freeCountdown == 0) {
@@ -416,7 +416,7 @@ void func_actor_135600_801326E8(Task* arg0)
     GpAnimArg        preset;
 
     work  = (Actor135600Work*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (work->walk.target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
     } else {
@@ -483,7 +483,7 @@ s32 func_actor_135600_8013282C(Task* task, s32 arg1, GpXformArg* place, Actor135
 
     msg  = &preset;
     work = (Actor135600Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank = msg->animBlock.index;
         func_800B3F84(&work->rig.anim, D_actor_135600_8013B0C0[work->model.bank], ext, work->rig.poses, work->rig.slots);
@@ -530,8 +530,8 @@ void func_actor_135600_80132A38(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -575,9 +575,9 @@ void func_actor_135600_80132B14(Task* task)
     GsCOORDINATE2* dest;
 
     parent      = (Task*)task->spawnArg2;
-    extra       = (TmdObject*)task->extra;
+    extra       = task->extra.tmd;
     part        = task->spawnArg1;
-    parentExtra = (TmdObject*)parent->extra;
+    parentExtra = parent->extra.tmd;
     coord       = extra->coords;
     dest        = &parentExtra->coords[part];
 
@@ -615,7 +615,7 @@ void func_actor_135600_80132C18(Task* task)
 
     if (gGameSession->eventState != 0) {
         countdown = task->killCountdown;
-        if (countdown > 0 && func_actor_135600_80131E68(((TmdObject*)task->extra)->coords, countdown) >= 0x1F5) {
+        if (countdown > 0 && func_actor_135600_80131E68(task->extra.tmd->coords, countdown) >= 0x1F5) {
             task->killCountdown = 0x800;
         }
     }
@@ -677,7 +677,7 @@ void func_actor_135600_80132DDC(Task* task)
     TmdObject*       ext;
     Actor135600Work* work;
 
-    ext           = task->extra;
+    ext           = task->extra.tmd;
     work          = (Actor135600Work*)task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -713,7 +713,7 @@ void func_actor_135600_80132E68(Task* task)
     SVECTOR          rot;
 
     work  = (Actor135600Work*)task->work;
-    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord = (GpCoordExt*)task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -741,7 +741,7 @@ void func_actor_135600_80132F28(Task* task)
     GsCOORDINATE2*   coord;
     VECTOR           vec;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = (Actor135600Work*)task->work;
 
     vec = D_actor_135600_80131E58;
@@ -769,7 +769,7 @@ void func_actor_135600_80132FA8(Task* arg0)
     s32              vy;
     s16              diff;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = (Actor135600Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -815,7 +815,7 @@ s32 func_actor_135600_801330A8(Task* task, s32 msgId, GpAnimArg* msg, s32 arg3)
     s32              i;
 
     work = (Actor135600Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank = msg->animBlock.index;
         func_800B3F84(&work->rig.anim, D_actor_135600_8013B0C0[work->model.bank], ext, work->rig.poses, work->rig.slots);
@@ -846,7 +846,7 @@ s32 func_actor_135600_801331C4(Task* task, s32 msgId, GpXformArg* args, s32 arg3
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -876,10 +876,10 @@ s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
     s32              ret;
 
     work = (Actor135600Work*)task->work;
-    obj  = task->extra;
-    objB = work->child1->extra;
-    objA = work->child0->extra;
-    objC = work->child2->extra;
+    obj  = task->extra.tmd;
+    objB = work->child1->extra.tmd;
+    objA = work->child0->extra.tmd;
+    objC = work->child2->extra.tmd;
     ret  = 0;
     switch (mode) {
         case 0:

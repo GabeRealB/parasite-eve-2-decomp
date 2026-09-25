@@ -49,7 +49,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
     s32            alive;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     phase = Gp_State1C->eventState;
     if (phase == 0) {
         work->age++;

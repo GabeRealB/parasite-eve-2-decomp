@@ -492,7 +492,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     DbwEventWork*   work;
     OverlayHotspot* hs;
 
-    ext   = arg0->extra;
+    ext   = arg0->extra.tmd;
     coord = ext->coords;
 
     work = (DbwEventWork*)memCalloc(0x60, false);
@@ -536,7 +536,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
 
     {
         DbwEventWork* eventWork = (DbwEventWork*)arg0->work;
-        TmdObject*    eventObj  = (TmdObject*)arg0->extra;
+        TmdObject*    eventObj  = arg0->extra.tmd;
         OverlayMat*   light     = (OverlayMat*)&eventWork->light;
         OverlayMat*   color     = (OverlayMat*)&eventWork->color;
 
@@ -620,7 +620,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
     GsCOORDINATE2*    coord;
     MATRIX*           m;
 
-    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     work   = (DbwEventWork*)task->work;
     hs     = D_dryfield_breezeway_80182E00;
     prompt = &D_80114D28;
@@ -687,7 +687,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
 void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
-    GsCOORDINATE2*    coord  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord  = task->extra.tmd->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;
@@ -1288,7 +1288,7 @@ s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 /// from the new translation. The scan calls this once, as it leaves its loop.
 void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 {
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
 
     coord->coord.t[2] = 0x5DC;
     coord->flg        = 0;
@@ -1478,8 +1478,8 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 
     mask   = 1 << gGameSession->at4.loc.view;
     eff    = task->spawnArg2;
-    coord  = ((TmdObject*)task->extra)->coords;
-    player = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
+    coord  = task->extra.tmd->coords;
+    player = gameGetPtrSlot(3)->extra.tmd->coords;
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, D_dryfield_breezeway_80183164, 0x600, 0x80);
     } else if (mask & 0x20) {
@@ -1785,7 +1785,7 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     MATRIX*        m;
     SVECTOR        delta;
     SVECTOR        dir;
@@ -1925,7 +1925,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 /// A non-null `color` tints the sprite and makes it semi-transparent.
 void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
-    TmdObject*       extra = (TmdObject*)task->extra;
+    TmdObject*       extra = task->extra.tmd;
     GpEffWork*       work  = task->spawnArg2;
     void**           scratch;
     GsCOORDINATE2*   coord;

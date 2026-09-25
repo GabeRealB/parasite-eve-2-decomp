@@ -380,7 +380,7 @@ s32 func_actor_160900_80132844(Task* arg0)
     u16                    done;
 
     work = (Actor160900Child3Work*)arg0->work;
-    if (((TmdObject*)arg0->extra)->flags & 0x80) {
+    if (arg0->extra.tmd->flags & 0x80) {
         return 0;
     }
     for (i = 1; i < 0x14; i++) {
@@ -427,7 +427,7 @@ void func_actor_160900_80132A14(Task* arg0)
     VECTOR pos;
 
     if (arg0->state == 0) {
-        TmdObject*             tmd    = arg0->extra;
+        TmdObject*             tmd    = arg0->extra.tmd;
         Task*                  parent = arg0->spawnArg2;
         GsCOORDINATE2*         coord  = tmd->coords;
         Actor160900Child3Work* work;
@@ -444,11 +444,11 @@ void func_actor_160900_80132A14(Task* arg0)
         work = block;
         switch (arg0->spawnArg1) {
             case 0:
-                coord->sub = &((TmdObject*)parent->extra)->coords[12];
+                coord->sub = &parent->extra.tmd->coords[12];
                 break;
             case 1:
             case 2:
-                coord->sub = &((TmdObject*)parent->extra)->coords[8];
+                coord->sub = &parent->extra.tmd->coords[8];
                 break;
         }
         Mem_Set(arg0->work, 0, 0x4BC);
@@ -464,20 +464,20 @@ void func_actor_160900_80132A14(Task* arg0)
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes((TmdObject*)arg0->extra, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
         } else if (arg0->spawnArg1 == 2) {
-            Gp_SetTmdBytes((TmdObject*)arg0->extra, 0, 0);
+            Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
         }
         Task_Reparent(parent, arg0);
         arg0->msgTable = D_actor_160900_8013F200;
         arg0->state   += 1;
         return;
     } else {
-        TmdObject* obj = arg0->extra;
+        TmdObject* obj = arg0->extra.tmd;
 
         pos.vx = obj->coords->workm.t[0];
-        pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-        pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+        pos.vy = arg0->extra.tmd->coords->workm.t[1];
+        pos.vz = arg0->extra.tmd->coords->workm.t[2];
         func_800D7A9C(obj, &pos, 0, 3);
     }
 }
@@ -514,7 +514,7 @@ void func_actor_160900_80132C08(Task* task)
     s32                    failed;
 
     if (task->state == 0) {
-        obj        = (TmdObject*)task->extra;
+        obj        = task->extra.tmd;
         coord      = obj->coords;
         work       = (Actor160900Child3Work*)Mem_Malloc(0x4BC, false);
         task->work = (TaskIdMap*)work;
@@ -531,7 +531,7 @@ void func_actor_160900_80132C08(Task* task)
             while (place->entryId != 0xFF && place->entryId != 0x65) {
                 place++;
             }
-            Gp_SetTmdBytes((TmdObject*)task->extra, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(task->extra.tmd, (s8)place->tpage, (s8)place->clut);
             Task_Reparent(D_actor_160900_8013FBB4, task);
             failed = 0;
         }
@@ -539,19 +539,19 @@ void func_actor_160900_80132C08(Task* task)
             taskKill(task);
             return;
         }
-        func_actor_160900_InitAnim(task, task->extra);
+        func_actor_160900_InitAnim(task, task->extra.tmd);
         task->state++;
     }
     func_actor_160900_80132844(task);
     if (gGameSession->at4.loc.view == 0x2E) {
-        Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[18].coord, 0x800, 1);
+        Gfx_RotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, 1);
     } else {
-        Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[18].coord, 0x79C, 1);
+        Gfx_RotMatrixX(&task->extra.tmd->coords[18].coord, 0x79C, 1);
     }
-    obj2   = (TmdObject*)task->extra;
+    obj2   = task->extra.tmd;
     pos.vx = obj2->coords->workm.t[0];
-    pos.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
+    pos.vy = task->extra.tmd->coords->workm.t[1];
+    pos.vz = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(obj2, &pos, 0, 3);
 }
 
@@ -568,7 +568,7 @@ void func_actor_160900_80132E80(Task* task)
     DR_TPAGE*      tp;
     s16            i;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     verts = &((Actor160900ChildWork*)task->work)->field_0;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);
@@ -858,7 +858,7 @@ void func_actor_160900_8013358C(Task* arg0)
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
-            Gp_SpawnEff(0x60046, ((TmdObject*)work->field_38->extra)->coords, 0x20000100, &ofs);
+            Gp_SpawnEff(0x60046, work->field_38->extra.tmd->coords, 0x20000100, &ofs);
             break;
         case 3:
             child            = (Actor160900Child3Work*)work->field_38->work;
@@ -874,7 +874,7 @@ void func_actor_160900_8013358C(Task* arg0)
             ofs2.vx = -200;
             ofs2.vy = 100;
             ofs2.vz = -400;
-            Gp_SpawnEff(0x60046, ((TmdObject*)work->field_38->extra)->coords, 0x20000100, &ofs2);
+            Gp_SpawnEff(0x60046, work->field_38->extra.tmd->coords, 0x20000100, &ofs2);
             break;
     }
     work->field_54 = 0;
@@ -927,24 +927,24 @@ void func_actor_160900_80133880(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0x3E8;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x5DC;
-    work->field_0.vz                              = 0x3E8;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x5DC;
-    work->field_8.vz                              = 0;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x3E8;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = 0;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[1]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0x3E8;
+    task->extra.tmd->coords->coord.t[2] = 0xBB8;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x5DC;
+    work->field_0.vz                    = 0x3E8;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x5DC;
+    work->field_8.vz                    = 0;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x3E8;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = 0;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
+    data->field_C[1]                    = task;
     if (task == NULL) {
         return;
     }
@@ -956,22 +956,22 @@ void func_actor_160900_80133880(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0x3E8;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x5DC;
-    work->field_0.vz                              = 0;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x5DC;
-    work->field_8.vz                              = -0x3E8;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x3E8;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0x3E8;
+    task->extra.tmd->coords->coord.t[2] = 0xBB8;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x5DC;
+    work->field_0.vz                    = 0;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x5DC;
+    work->field_8.vz                    = -0x3E8;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x3E8;
 }
 void func_actor_160900_80133A84(void)
 {
@@ -994,24 +994,24 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = 0x1F4;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = -0x1F4;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x1F4;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x1F4;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 2, 0);
-    data->field_C[1]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = 0x1F4;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = -0x1F4;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x1F4;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x1F4;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 2, 0);
+    data->field_C[1]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1023,24 +1023,24 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = 0x3E8;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = 0x1F4;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x3E8;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = 0x1F4;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 3, 0);
-    data->field_C[2]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = 0x3E8;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = 0x1F4;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x3E8;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = 0x1F4;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 3, 0);
+    data->field_C[2]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1052,24 +1052,24 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = -0x1F4;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = -0x3E8;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = -0x1F4;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x3E8;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 4, 0);
-    data->field_C[3]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = -0x1F4;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = -0x3E8;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = -0x1F4;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x3E8;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 4, 0);
+    data->field_C[3]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1081,24 +1081,24 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = 0x1F4;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = -0x1F4;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x1F4;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x1F4;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 0, 0);
-    data->field_C[4]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = -0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = 0x1F4;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = -0x1F4;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x1F4;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x1F4;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 0, 0);
+    data->field_C[4]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1110,24 +1110,24 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = 0x3E8;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = 0x1F4;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x3E8;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = 0x1F4;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[5]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = -0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = 0x3E8;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = 0x1F4;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x3E8;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = 0x1F4;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
+    data->field_C[5]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1139,22 +1139,22 @@ void func_actor_160900_80133A84(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = -0x1F4;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x3E8;
-    work->field_0.vz                              = -0x1F4;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x3E8;
-    work->field_8.vz                              = -0x3E8;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = -0x1F4;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x3E8;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = -0x1F4;
+    task->extra.tmd->coords->coord.t[2] = 0xA8C;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x3E8;
+    work->field_0.vz                    = -0x1F4;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x3E8;
+    work->field_8.vz                    = -0x3E8;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = -0x1F4;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x3E8;
 }
 void func_actor_160900_80133F90(void)
 {
@@ -1177,24 +1177,24 @@ void func_actor_160900_80133F90(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x5DC;
-    work->field_0.vz                              = 0x3E8;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x5DC;
-    work->field_8.vz                              = 0;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0x3E8;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = 0;
-    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[1]                              = task;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0;
+    task->extra.tmd->coords->coord.t[2] = 0xBB8;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x5DC;
+    work->field_0.vz                    = 0x3E8;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x5DC;
+    work->field_8.vz                    = 0;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0x3E8;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = 0;
+    task                                = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
+    data->field_C[1]                    = task;
     if (task == NULL) {
         return;
     }
@@ -1206,22 +1206,22 @@ void func_actor_160900_80133F90(void)
     }
     work = alloc;
     Mem_Set(work, 0, 0x20);
-    ((TmdObject*)task->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = 0x1770;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = 0;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = 0xBB8;
-    work->field_0.vx                              = 0;
-    work->field_0.vy                              = -0x5DC;
-    work->field_0.vz                              = 0;
-    work->field_8.vx                              = 0;
-    work->field_8.vy                              = -0x5DC;
-    work->field_8.vz                              = -0x3E8;
-    work->field_10.vx                             = 0;
-    work->field_10.vy                             = 0;
-    work->field_10.vz                             = 0;
-    work->field_18.vx                             = 0;
-    work->field_18.vy                             = 0;
-    work->field_18.vz                             = -0x3E8;
+    task->extra.tmd->coords->sub        = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[0] = 0x1770;
+    task->extra.tmd->coords->coord.t[1] = 0;
+    task->extra.tmd->coords->coord.t[2] = 0xBB8;
+    work->field_0.vx                    = 0;
+    work->field_0.vy                    = -0x5DC;
+    work->field_0.vz                    = 0;
+    work->field_8.vx                    = 0;
+    work->field_8.vy                    = -0x5DC;
+    work->field_8.vz                    = -0x3E8;
+    work->field_10.vx                   = 0;
+    work->field_10.vy                   = 0;
+    work->field_10.vz                   = 0;
+    work->field_18.vx                   = 0;
+    work->field_18.vy                   = 0;
+    work->field_18.vz                   = -0x3E8;
 }
 void func_actor_160900_8013418C(Task* arg0)
 {
@@ -1364,7 +1364,7 @@ void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     switch (arg2) {
         case 0:
             break;
@@ -1386,7 +1386,7 @@ void func_actor_160900_80134624(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;

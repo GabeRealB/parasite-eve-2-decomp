@@ -568,7 +568,7 @@ void func_mine_cavern_8017F240(Task* task)
     s32            lifetime;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -912,7 +912,7 @@ void func_mine_cavern_8017FF88(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1003,7 +1003,7 @@ void func_mine_cavern_80180320(Task* task)
     u16            temp;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1420,7 +1420,7 @@ void func_mine_cavern_80181730(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -2057,30 +2057,30 @@ void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->exitCallback                            = func_mine_cavern_80183860;
-    ((TmdObject*)arg1->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)arg1->extra)->flags              = 0;
-    ((TmdObject*)arg1->extra)->lightMtx           = &work->light;
-    ((TmdObject*)arg1->extra)->colorMtx           = &work->color;
-    ((TmdObject*)arg1->extra)->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
-    ((TmdObject*)arg1->extra)->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
-    ((TmdObject*)arg1->extra)->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
-    ((TmdObject*)arg1->extra)->coords->flg        = 0;
-    obj40                                         = &work->obj40;
-    obj40->coord                                  = ((TmdObject*)arg1->extra)->coords;
-    obj40->ctx.recs                               = work->recs;
-    obj40->pos.vx                                 = 0;
-    obj40->pos.vy                                 = -0x320;
-    obj40->pos.vz                                 = 0;
-    obj40->key                                    = 0x50000;
-    obj40->radius                                 = 0x100;
-    obj40->flags                                  = 1;
+    arg1->exitCallback                  = func_mine_cavern_80183860;
+    arg1->extra.tmd->coords->sub        = &gGfxViewCoord;
+    arg1->extra.tmd->flags              = 0;
+    arg1->extra.tmd->lightMtx           = &work->light;
+    arg1->extra.tmd->colorMtx           = &work->color;
+    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
+    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
+    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    arg1->extra.tmd->coords->flg        = 0;
+    obj40                               = &work->obj40;
+    obj40->coord                        = arg1->extra.tmd->coords;
+    obj40->ctx.recs                     = work->recs;
+    obj40->pos.vx                       = 0;
+    obj40->pos.vy                       = -0x320;
+    obj40->pos.vz                       = 0;
+    obj40->key                          = 0x50000;
+    obj40->radius                       = 0x100;
+    obj40->flags                        = 1;
     Gp_LinkObj(2, obj40);
     obj40->flags |= 0x8000;
     Gp_InitRec18Table(obj40->ctx.recs, 4, 0);
     work->obj40.flags |= 0x8000;
     objC0              = &work->objC0;
-    objC0->coord       = ((TmdObject*)arg1->extra)->coords;
+    objC0->coord       = arg1->extra.tmd->coords;
     objC0->ctx.recs    = &work->recE0;
     temp               = ((SVECTOR*)NULL)->vy;
     objC0->pos.vz      = 0;
@@ -2094,15 +2094,15 @@ void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
     work->objC0.flags &= 0x7FFF;
     arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
     arg0->param        = &D_mine_cavern_8018EAE4;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
-    vec.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
-    vec.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
-    vec.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
-    func_800D7A9C(arg1->extra, &vec, 0, 3);
+    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    vec.vx = arg1->extra.tmd->coords->workm.t[0];
+    vec.vy = arg1->extra.tmd->coords->workm.t[1];
+    vec.vz = arg1->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(arg1->extra.tmd, &vec, 0, 3);
     arg0->bodyPos.vx = 0;
     arg0->bodyPos.vy = -0x320;
     arg0->bodyPos.vz = 0;
-    arg0->coord      = ((TmdObject*)arg1->extra)->coords;
+    arg0->coord      = arg1->extra.tmd->coords;
     Gp_LinkNode(&arg0->node);
     arg0->node.state.b.flags = 1;
     arg1->state++;
@@ -2137,7 +2137,7 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     player = gameGetPtrSlot(3);
     switch (Gp_StateF0.field_4) {
         case 2:
-            ((TmdObject*)arg1->extra)->flags = 0x80;
+            arg1->extra.tmd->flags = 0x80;
             return;
         case 0:
         default:
@@ -2146,7 +2146,7 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
             return;
     }
 
-    coords                              = ((TmdObject*)arg1->extra)->coords;
+    coords                              = arg1->extra.tmd->coords;
     head                                = SCRATCH_HEAD(u8);
     ((SVECTOR*)(head - 0x18))->vx       = Player_Status.coordMtx->t[0] - coords->coord.t[0];
     d                                   = (SVECTOR*)(head - 0x18);
@@ -2162,13 +2162,13 @@ void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
         arg0->node.state.b.flags = 0;
     }
 
-    ((TmdObject*)arg1->extra)->coords->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
-    blk->pos.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
-    blk->pos.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
-    blk->pos.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
-    func_800D7A9C(arg1->extra, &blk->pos, 0, 3);
-    ((TmdObject*)arg1->extra)->flags = 0;
+    arg1->extra.tmd->coords->flg = 0;
+    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    blk->pos.vx = arg1->extra.tmd->coords->workm.t[0];
+    blk->pos.vy = arg1->extra.tmd->coords->workm.t[1];
+    blk->pos.vz = arg1->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(arg1->extra.tmd, &blk->pos, 0, 3);
+    arg1->extra.tmd->flags = 0;
 
     dst  = &blk->d;
     recs = work->recs;
@@ -2195,11 +2195,11 @@ found:
     }
 
     if (blk->key != 0) {
-        blk->d.vx -= ((TmdObject*)arg1->extra)->coords->workm.t[0];
-        blk->d.vy -= ((TmdObject*)arg1->extra)->coords->workm.t[1];
-        blk->d.vz -= ((TmdObject*)arg1->extra)->coords->workm.t[2];
-        angle = blk->angle = ratan2(blk->d.vx, blk->d.vz) - ratan2(-((TmdObject*)arg1->extra)->coords->workm.m[2][0],
-                                                                   ((TmdObject*)arg1->extra)->coords->workm.m[2][2]);
+        blk->d.vx -= arg1->extra.tmd->coords->workm.t[0];
+        blk->d.vy -= arg1->extra.tmd->coords->workm.t[1];
+        blk->d.vz -= arg1->extra.tmd->coords->workm.t[2];
+        angle = blk->angle = ratan2(blk->d.vx, blk->d.vz) - ratan2(-arg1->extra.tmd->coords->workm.m[2][0],
+                                                                   arg1->extra.tmd->coords->workm.m[2][2]);
         if (angle < 0) {
         neg:
             if (angle < -0x800) {
@@ -2214,9 +2214,9 @@ found:
             }
         }
         blk->angle  = angle;
-        blk->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0] - ((TmdObject*)arg1->extra)->coords->coord.t[0];
-        blk->pos.vy = ((TmdObject*)player->extra)->coords->coord.t[1] - ((TmdObject*)arg1->extra)->coords->coord.t[1];
-        blk->pos.vz = ((TmdObject*)player->extra)->coords->coord.t[2] - ((TmdObject*)arg1->extra)->coords->coord.t[2];
+        blk->pos.vx = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
+        blk->pos.vy = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
+        blk->pos.vz = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
         blk->dist   = SquareRoot0(blk->pos.vx * blk->pos.vx + blk->pos.vy * blk->pos.vy + blk->pos.vz * blk->pos.vz);
         blk->damage = Gp_ComputeDamage(blk->key, blk->dist, 0, 0);
         blk->damage = D_mine_cavern_8018EAF4[blk->key & 0x7F];
@@ -2227,11 +2227,11 @@ found:
             if (!((blk->bits >> (u16)arg1->spawnArg1) & 1)) {
                 blk->bits |= 1 << (u16)arg1->spawnArg1;
                 GameFlag_SetNibble(0xE2, blk->bits);
-                ((TmdObject*)arg1->extra)->flags = 0x80;
+                arg1->extra.tmd->flags = 0x80;
             }
             id  = ((arg0->placeKey >> 12) << 8) | 0x54020014;
-            pan = (s8)Gp_GetObjPan(((TmdObject*)arg1->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(((TmdObject*)arg1->extra)->coords) / 2));
+            pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(arg1->extra.tmd->coords) / 2));
             arg1->state++;
         }
     }
@@ -2263,19 +2263,19 @@ void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    ((TmdObject*)arg1->extra)->coords->sub        = &gGfxViewCoord;
-    ((TmdObject*)arg1->extra)->flags              = 0;
-    ((TmdObject*)arg1->extra)->lightMtx           = &work->light;
-    ((TmdObject*)arg1->extra)->colorMtx           = &work->color;
-    ((TmdObject*)arg1->extra)->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
-    ((TmdObject*)arg1->extra)->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
-    ((TmdObject*)arg1->extra)->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
-    ((TmdObject*)arg1->extra)->coords->flg        = 0;
-    Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
-    vec.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
-    vec.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
-    vec.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
-    func_800D7A9C(arg1->extra, &vec, 0, 3);
+    arg1->extra.tmd->coords->sub        = &gGfxViewCoord;
+    arg1->extra.tmd->flags              = 0;
+    arg1->extra.tmd->lightMtx           = &work->light;
+    arg1->extra.tmd->colorMtx           = &work->color;
+    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vx;
+    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vy;
+    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1].vz;
+    arg1->extra.tmd->coords->flg        = 0;
+    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    vec.vx = arg1->extra.tmd->coords->workm.t[0];
+    vec.vy = arg1->extra.tmd->coords->workm.t[1];
+    vec.vz = arg1->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(arg1->extra.tmd, &vec, 0, 3);
     arg1->state++;
 }
 
@@ -2340,7 +2340,7 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
     work = (MineCavernWork*)arg1->work;
 
-    ((TmdObject*)arg1->extra)->flags = 0x80;
+    arg1->extra.tmd->flags = 0x80;
 
     state           = work->field_148;
     work->field_148 = state + 1;
@@ -2348,15 +2348,15 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
     switch ((s16)state) {
         case 0:
             printf(D_mine_cavern_8017D7E8);
-            ((TmdObject*)arg1->extra)->coords->coord.t[1] = -0x258;
-            ((TmdObject*)arg1->extra)->coords->flg        = 0;
-            Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
-            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01001200, NULL);
+            arg1->extra.tmd->coords->coord.t[1] = -0x258;
+            arg1->extra.tmd->coords->flg        = 0;
+            Gp_UpdateCoord(arg1->extra.tmd->coords);
+            Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01001200, NULL);
             return;
 
         case 1:
             printf(D_mine_cavern_8017D7F0);
-            eff = Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01000580, NULL);
+            eff = Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01000580, NULL);
             if (eff != NULL) {
                 eff->move.vx = 0;
                 eff->move.vy = -0xA;
@@ -2366,7 +2366,7 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
         case 2:
         case 4:
-            Gp_SpawnEff(0x6005C, ((TmdObject*)arg1->extra)->coords, 0x01002500, NULL);
+            Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01002500, NULL);
             return;
 
         case 3:
@@ -2415,15 +2415,15 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
 
     work = (MineCavernWork*)task->work;
 
-    ((TmdObject*)task->extra)->coords->flg = 0;
-    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
-    vec.vx = ((TmdObject*)task->extra)->coords->workm.t[0];
-    vec.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
-    vec.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
-    func_800D7A9C(task->extra, &vec, 0, 3);
+    task->extra.tmd->coords->flg = 0;
+    Gp_UpdateCoord(task->extra.tmd->coords);
+    vec.vx = task->extra.tmd->coords->workm.t[0];
+    vec.vy = task->extra.tmd->coords->workm.t[1];
+    vec.vz = task->extra.tmd->coords->workm.t[2];
+    func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
     if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1) & 1)) {
-        ((TmdObject*)task->extra)->flags = 0x80;
+        task->extra.tmd->flags = 0x80;
     } else {
         m                         = &work->coord.coord;
         *(s32*)&work->coord.coord = 0x1000;
@@ -2431,14 +2431,14 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
         *(s32*)&m->m[1][1]        = 0x1000;
         *(s32*)&m->m[2][0]        = 0;
         m->m[2][2]                = 0x1000;
-        work->coord.sub           = ((TmdObject*)task->extra)->coords;
+        work->coord.sub           = task->extra.tmd->coords;
         work->coord.coord.t[2]    = 0;
         work->coord.coord.t[0]    = 0;
         work->coord.coord.t[1]    = -0x320;
         work->coord.flg           = 0;
         Gp_UpdateCoord(&work->coord);
         work->field_148++;
-        ((TmdObject*)task->extra)->flags = 0;
+        task->extra.tmd->flags = 0;
     }
 }
 

@@ -24,7 +24,7 @@ void func_m249_8011D1DC(Task* arg0)
     SCRATCH_PUSH_BYTES(0x68);
     scratch = SCRATCH_HEAD(M249Scratch);
     actor   = arg0->work;
-    coord   = ((TmdObject*)arg0->extra)->coords;
+    coord   = arg0->extra.tmd->coords;
     switch (actor->field_95E) {
         case 0:
             anim              = 1;
@@ -59,9 +59,9 @@ void func_m249_8011D1DC(Task* arg0)
                 actor->field_95E++;
                 actor->field_12A |= 0xC000;
                 Gp_ConsumeSlotQty(0x90, 1);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20110004, 1);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20110004, 1);
                 Gp_SpawnEff(0x6006B,
-                            (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 0x11,
+                            actor->field_91C->extra.tmd->coords, 0x11,
                             NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
             }

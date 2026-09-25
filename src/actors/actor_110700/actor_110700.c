@@ -54,7 +54,7 @@ void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     Actor110700Work* work;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     work  = memCalloc(sizeof(Actor110700Work), false);
     if (work == NULL) {
@@ -83,7 +83,7 @@ void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
     s32              i;
 
     work  = (Actor110700Work*)task->work;
-    coord = &((TmdObject*)task->extra)->coords[1];
+    coord = &task->extra.tmd->coords[1];
     SCRATCH_PUSH_BYTES(0x10);
     block = (VECTOR*)SCRATCH_HEAD(void);
     if (work->animId != 0) {
@@ -120,7 +120,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
 /// clears `flg` so the world matrix is recomputed from them.
 s32 func_actor_110700_80132074(Task* task, s32 msgId, GpXformArg* args)
 {
-    TmdObject*     ext   = task->extra;
+    TmdObject*     ext   = task->extra.tmd;
     GsCOORDINATE2* coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
@@ -138,14 +138,14 @@ s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)task->extra;
+    obj = task->extra.tmd;
     if (!(arg2 & 1)) {
         obj->flags = 0x80;
     } else {
         obj->flags = 0;
     }
     if (arg2 & 2) {
-        obj         = (TmdObject*)task->extra;
+        obj         = task->extra.tmd;
         obj->flags |= 4;
     }
     return 0;

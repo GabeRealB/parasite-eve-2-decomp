@@ -51,12 +51,12 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     s32            j;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
     slot  = &base->data.light;
 
-    if ((((TmdObject*)(gameGetPtrSlot(3))->extra)->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
+    if (((gameGetPtrSlot(3))->extra.tmd->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
         work->age = work->age + 1;
         switch (task->state) {
             case 0:
@@ -257,7 +257,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     GsCOORDINATE2* parent;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mem->age++;
     switch (arg0->state) {
         case 0:

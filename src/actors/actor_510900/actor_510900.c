@@ -67,7 +67,7 @@ void func_actor_510900_80131F24(Task* arg0)
     s32            z;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     base  = &Gp_RoomCoords[2];
     slot  = &base->data.light;
     if (Gp_State1C->eventState != 0) {
@@ -367,7 +367,7 @@ void func_actor_510900_80132D4C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -486,7 +486,7 @@ void func_actor_510900_801332EC(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                   = SCRATCH_HEAD_ADDR;
@@ -593,7 +593,7 @@ void func_actor_510900_8013371C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                   = SCRATCH_HEAD_ADDR;
@@ -704,7 +704,7 @@ void func_actor_510900_80133C84(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         scratch                                   = SCRATCH_HEAD_ADDR;
@@ -806,7 +806,7 @@ void func_actor_510900_801340E8(Task* arg0)
     base  = &Gp_RoomCoords[3];
     cam   = &base->data.coord;
     eff   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     ext   = &base->data.light;
     if (Gp_State1C->eventState != 0) {
         Gp_ReleaseState1CMem(eff, arg0);
@@ -862,7 +862,7 @@ void func_actor_510900_80134284(Task* arg0)
     block = (Actor510900TrailScratch*)SCRATCH_HEAD(void);
     eff   = arg0->spawnArg2;
     mode  = Gp_State1C->eventState;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mode != 0) {
         if (mode >= 4) {
             Gp_ReleaseState1CMem(eff, arg0);
@@ -948,7 +948,7 @@ void func_actor_510900_801346D4(Task* arg0)
 
     eff   = arg0->spawnArg2;
     mode  = Gp_State1C->eventState;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mode != 0) {
         if (mode >= 4 || arg0->state == 4) {
             Gp_ReleaseState1CMem(eff, arg0);
@@ -1001,7 +1001,7 @@ void func_actor_510900_8013482C(Task* arg0)
 
     eff   = arg0->spawnArg2;
     mode  = Gp_State1C->eventState;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mode != 0) {
         if (mode >= 4) {
             Gp_ReleaseState1CMem(eff, arg0);
@@ -1199,7 +1199,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     u8               areaByte0;
     s32              i;
 
-    obj   = arg1->extra;
+    obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = memCalloc(sizeof(Actor510900Work), 0);
     if (work == NULL) {
@@ -1214,14 +1214,14 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord                = &((TmdObject*)arg1->extra)->coords[3];
+    arg0->coord                = &arg1->extra.tmd->coords[3];
     arg0->bodyPos.vx           = 0;
     arg0->bodyPos.vy           = 0;
     arg0->bodyPos.vz           = 0;
     arg0->param                = &D_actor_510900_80167980;
     arg0->recs                 = work->rec49C;
     arg0->hp                   = D_actor_510900_80167980.hpMax;
-    work->field_53C.coord      = &((TmdObject*)arg1->extra)->coords[3];
+    work->field_53C.coord      = &arg1->extra.tmd->coords[3];
     work->field_53C.spawnArgLo = 0x400;
     work->field_53C.spawnArgHi = 2;
     func_800B3F84((GpAnimCtx*)work, D_actor_510900_80167AA4, (TmdObject*)obj,
@@ -1233,7 +1233,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, arg0);
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 2, 0, arg0);
     raw1        = arg0->placeKey;
-    model1      = spawned->task->extra;
+    model1      = spawned->task->extra.tmd;
     sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage   = sessionKey1->stage;
     key.area    = sessionKey1->area;
@@ -1250,7 +1250,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
         tmdProcessStream(model1);
     }
     work->field_568 = spawned->task;
-    eff             = Gp_SpawnEff(0x80060043, ((TmdObject*)spawned->task->extra)->coords, 0, NULL);
+    eff             = Gp_SpawnEff(0x80060043, spawned->task->extra.tmd->coords, 0, NULL);
     if (eff != NULL) {
         work->field_564 = (s32*)eff->task;
         Task_Reparent(arg1, eff->task);
@@ -1260,7 +1260,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     }
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 3, 0, arg0);
     raw2        = arg0->placeKey;
-    model2      = spawned->task->extra;
+    model2      = spawned->task->extra.tmd;
     sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage   = sessionKey2->stage;
     key.area    = sessionKey2->area;
@@ -1281,7 +1281,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 1, arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 2, arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 6, 0, arg0);
-    work->obj47C.coord    = &((TmdObject*)arg1->extra)->coords[3];
+    work->obj47C.coord    = &arg1->extra.tmd->coords[3];
     records1              = work->rec49C;
     work->obj47C.ctx.recs = records1;
     work->obj47C.pos.vx   = 0;
@@ -1294,7 +1294,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(records1, 3, 0);
     records2              = work->rec524;
     work->obj47C.flags   |= 0x8000;
-    work->obj4E4.coord    = ((TmdObject*)work->field_568->extra)->coords;
+    work->obj4E4.coord    = work->field_568->extra.tmd->coords;
     work->obj4E4.ctx.recs = records2;
     work->obj4E4.pos.vx   = -0x140;
     work->obj4E4.pos.vy   = 0x80;
@@ -1305,7 +1305,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(3, &work->obj4E4);
     Gp_InitRec18Table(records2, 1, 0);
     work->obj4E4.flags   &= 0x7FFF;
-    work->obj504.coord    = &((TmdObject*)arg1->extra)->coords[7];
+    work->obj504.coord    = &arg1->extra.tmd->coords[7];
     work->obj504.ctx.recs = records2;
     work->obj504.pos.vx   = 0;
     work->obj504.pos.vy   = 0;
@@ -1332,7 +1332,7 @@ void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
     s32              i;
 
     work                     = arg1->work;
-    coord                    = ((TmdObject*)arg1->extra)->coords;
+    coord                    = arg1->extra.tmd->coords;
     arg0->node.state.b.flags = 1;
     if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
         work->field_594 = 1;

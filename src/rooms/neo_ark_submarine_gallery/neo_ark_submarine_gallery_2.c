@@ -43,7 +43,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
     GsCOORDINATE2* coord;
     s32            view;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
         D_8011574C  = 0x60193;
         D_80115738  = 0x60194;
@@ -111,7 +111,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_submarine_gallery_8017F3DC(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -247,7 +247,7 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

@@ -161,7 +161,7 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     GpAreaKey*     keyPtr;
     void*          work;
 
-    obj                     = task->extra;
+    obj                     = task->extra.tmd;
     coord                   = obj->coords;
     work                    = memCalloc(0x4F8, 0);
     D_actor_260400_80154C70 = work;
@@ -193,7 +193,7 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     if (spawned != NULL) {
         D_actor_260400_80154C70->helper = spawned;
         sessionKey                      = (GpAreaKey*)&gGameSession->at4.loc;
-        model                           = spawned->extra;
+        model                           = spawned->extra.tmd;
         raw                             = ((GpEnemy*)task->spawnArg2)->placeKey;
         key.stage                       = sessionKey->stage;
         key.area                        = sessionKey->area;
@@ -227,7 +227,7 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void func_actor_260400_8014A200(Task* task)
 {
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*   coord = task->extra.tmd->coords;
     Actor260400Work* work  = (Actor260400Work*)task->work;
 
     if (D_actor_260400_80154C70->st.state == 1) {
@@ -291,7 +291,7 @@ void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         pos;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
@@ -322,7 +322,7 @@ void func_actor_260400_8014A66C(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -340,9 +340,9 @@ void func_actor_260400_8014A66C(Task* task)
 /// point 0x320 above the actor's root translation.
 void func_actor_260400_8014A6F8(Task* task)
 {
-    TmdObject*     extra = task->extra;
+    TmdObject*     extra = task->extra.tmd;
     GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_260400_80154C74->extra)->coords;
+    GsCOORDINATE2* parts = D_actor_260400_80154C74->extra.tmd->coords;
     GsCOORDINATE2* part  = parts + task->spawnArg1;
     VECTOR         vec;
 
@@ -437,8 +437,8 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
     TmdObject* obj;
     TmdObject* helperObj;
 
-    obj       = (TmdObject*)D_actor_260400_80154C74->extra;
-    helperObj = (TmdObject*)D_actor_260400_80154C70->helper->extra;
+    obj       = D_actor_260400_80154C74->extra.tmd;
+    helperObj = D_actor_260400_80154C70->helper->extra.tmd;
 
     if (arg2 & 1) {
         obj->flags       = 0;
@@ -465,7 +465,7 @@ s32 func_actor_260400_8014AA28(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                           = ((TmdObject*)task->extra)->coords;
+    coord                           = task->extra.tmd->coords;
     D_actor_260400_80154C70->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -484,7 +484,7 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, GpCmdArg* msg)
     TmdObject* obj;
     s32        mode;
 
-    obj  = (TmdObject*)D_actor_260400_80154C70->helper->extra;
+    obj  = D_actor_260400_80154C70->helper->extra.tmd;
     mode = msg->command;
 
     switch (mode) {
@@ -520,7 +520,7 @@ s32 func_actor_260400_8014AB50(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              dist;
     s32              angle;
 
-    coord                   = ((TmdObject*)task->extra)->coords;
+    coord                   = task->extra.tmd->coords;
     work                    = (Actor260400Work*)task->work;
     D_actor_260400_80154C78 = mode;
     dx                      = target->vx - coord->coord.t[0];

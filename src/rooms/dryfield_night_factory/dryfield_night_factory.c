@@ -72,7 +72,7 @@ void func_dryfield_night_factory_8017D6F8(Task* task)
     GsCOORDINATE2*    coord;
     TmdObject*        obj;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     work  = memCalloc(0x58, 0);
     if (work == NULL) {
@@ -124,7 +124,7 @@ void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAlt
     s32            i;
     s32            j;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (gGameSession->at4.loc.stage == 2) {
         geom = &D_dryfield_night_factory_80187BF8;
     } else {
@@ -177,7 +177,7 @@ void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAlt
 s32 func_dryfield_night_factory_8017DA54(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -255,7 +255,7 @@ s32 func_dryfield_night_factory_8017DA54(Task* task)
 s32 func_dryfield_night_factory_8017DDD4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -333,7 +333,7 @@ s32 func_dryfield_night_factory_8017DDD4(Task* task)
 s32 func_dryfield_night_factory_8017E13C(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
 
     switch (work->field_17) {
@@ -403,7 +403,7 @@ s32 func_dryfield_night_factory_8017E13C(Task* task)
 s32 func_dryfield_night_factory_8017E480(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
 
     switch (work->field_17) {
@@ -473,7 +473,7 @@ s32 func_dryfield_night_factory_8017E480(Task* task)
 s32 func_dryfield_night_factory_8017E7A4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -562,7 +562,7 @@ s32 func_dryfield_night_factory_8017E7A4(Task* task)
 s32 func_dryfield_night_factory_8017EBD4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*    coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -654,7 +654,7 @@ s32 func_dryfield_night_factory_8017EBD4(Task* task)
 s32 func_dryfield_night_factory_8017F00C(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
-    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*            coord = task->extra.tmd->coords;
     OverlayMat*               mat;
     s32                       ret = 0;
 
@@ -712,7 +712,7 @@ s32 func_dryfield_night_factory_8017F00C(Task* task)
 s32 func_dryfield_night_factory_8017F1DC(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
-    GsCOORDINATE2*            coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*            coord = task->extra.tmd->coords;
     OverlayMat*               mat;
     s32                       ret = 0;
 
@@ -964,9 +964,9 @@ void func_dryfield_night_factory_8017FA08(Task* task)
 
     /* The model pointer is read twice on purpose: the second read is what
        leaves the target's `move s4, v0` copy. */
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = (NightFactoryWork*)task->work;
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     flag  = GameFlag_GetNibble(0x49);
     prev  = work->field_0;
     if (flag != prev) {
@@ -1012,7 +1012,7 @@ void func_dryfield_night_factory_8017FB68(Task* task)
     TmdObject*        extra;
 
     work            = (NightFactoryWork*)task->work;
-    extra           = (TmdObject*)task->extra;
+    extra           = task->extra.tmd;
     coord           = extra->coords;
     extra->lightMtx = &work->light;
     extra->colorMtx = &work->color;
@@ -1040,8 +1040,8 @@ void func_dryfield_night_factory_8017FBC8(Task* arg0)
 void func_dryfield_night_factory_8017FBF4(Task* task)
 {
     Task*                     cap      = task->spawnArg2;
-    TmdObject*                model    = task->extra;
-    TmdObject*                capModel = cap->extra;
+    TmdObject*                model    = task->extra.tmd;
+    TmdObject*                capModel = cap->extra.tmd;
     GsCOORDINATE2*            coord    = model->coords;
     GsCOORDINATE2*            capCoord = capModel->coords;
     NightFactoryCutsceneWork* work     = memCalloc(0xC, 0);

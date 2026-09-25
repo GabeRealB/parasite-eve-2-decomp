@@ -387,15 +387,15 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     ctl       = gameGetPtrSlot(3);
     mask      = 1 << gGameSession->at4.loc.view;
     splash    = arg0->spawnArg2;
-    coord     = ((TmdObject*)arg0->extra)->coords;
-    ctlCoords = ((TmdObject*)ctl->extra)->coords;
+    coord     = arg0->extra.tmd->coords;
+    ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
             D_8011574C  = 0x600FD;
             D_80115738  = 0x600FE;
             arg0->state = 1;
             for (i = 0; i < 2; i++) {
-                part                                 = &((TmdObject*)ctl->extra)->coords[14 + i * 3];
+                part                                 = &ctl->extra.tmd->coords[14 + i * 3];
                 D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
                 D_dryfield_water_hole_8017FD1C[i].vy = part->workm.t[1];
                 D_dryfield_water_hole_8017FD1C[i].vz = part->workm.t[2];
@@ -405,7 +405,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             if (Gp_State1C->eventState == 0 && gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
-                    part = &((TmdObject*)ctl->extra)->coords[14 + i * 3];
+                    part = &ctl->extra.tmd->coords[14 + i * 3];
                     Gp_UpdateCoord(part);
                     splash->strength = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
@@ -603,7 +603,7 @@ void func_dryfield_water_hole_8017EC90(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_water_hole_8017EDE4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {

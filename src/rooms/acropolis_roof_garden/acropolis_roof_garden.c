@@ -311,7 +311,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
     s32            i;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (task->state == 0) {
         for (i = 0; i < 2; i++) {
             Gp_SpawnEff(0x6008A, coord, i + 0x2000000, &D_acropolis_roof_garden_80184BF8[i]);
@@ -372,7 +372,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
     s16               y;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 2) {
         if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
             Gp_UpdateCoord(coord);
@@ -464,7 +464,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     s32              shift;
     u32              depth;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     head = SCRATCH_HEAD(void);
@@ -659,7 +659,7 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
     s32            vz;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     work->age++;
     switch (task->state) {
@@ -1039,7 +1039,7 @@ void func_acropolis_roof_garden_80180160(Task* task)
     s32         view;
 
     obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
+    tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     view = Gp_GetViewIndex();
     if (view >= 8) {

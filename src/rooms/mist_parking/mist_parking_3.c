@@ -193,7 +193,7 @@ void func_mist_parking_8018397C(Task* arg0)
 
 void func_mist_parking_801839CC(Task* task)
 {
-    TmdObject* obj = task->extra;
+    TmdObject* obj = task->extra.tmd;
 
     obj->flags         &= 0xFF7F;
     task->killCountdown = -0x78;
@@ -226,7 +226,7 @@ s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

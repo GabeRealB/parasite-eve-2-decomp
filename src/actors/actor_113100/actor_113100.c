@@ -191,7 +191,7 @@ void func_actor_113100_80131E58(Task* task)
     if (child2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model2      = (TmdObject*)child2->extra;
+        model2      = child2->extra.tmd;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
         key.room    = sessionKey2->room;
@@ -212,7 +212,7 @@ void func_actor_113100_80131E58(Task* task)
     if (child3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = ((GpEnemy*)task->spawnArg2)->placeKey;
-        model3      = (TmdObject*)child3->extra;
+        model3      = child3->extra.tmd;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
         key.room    = sessionKey3->room;
@@ -232,7 +232,7 @@ void func_actor_113100_80131E58(Task* task)
     func_actor_113100_80132F24(task);
 
     obj           = &work->obj;
-    obj->coord    = &((TmdObject*)task->extra)->coords[1];
+    obj->coord    = &task->extra.tmd->coords[1];
     obj->ctx.recs = &work->field_4D8;
     obj->key      = 0x30000;
     obj->radius   = 0x100;
@@ -265,7 +265,7 @@ void func_actor_113100_80131E58(Task* task)
 /// lighting, and `field_53D` counts the buffer free down to zero.
 void func_actor_113100_80132104(Task* task)
 {
-    TmdObject*       extra    = (TmdObject*)task->extra;
+    TmdObject*       extra    = task->extra.tmd;
     Actor113100Work* work     = (Actor113100Work*)task->work;
     TaskFunc         funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
     VECTOR3          pos;
@@ -277,15 +277,15 @@ void func_actor_113100_80132104(Task* task)
     u16              rate;
 
     if (!(extra->flags & 0x80)) {
-        ((TmdObject*)task->extra)->coords[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+        task->extra.tmd->coords[1].flg = 0;
+        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
     if (Gp_StateF0.field_4 == 0) {
         funcs[work->walk.motion](task);
-        coord                = ((TmdObject*)task->extra)->coords;
+        coord                = task->extra.tmd->coords;
         work->walk.acc[0].w += work->walk.step.vx;
         work->walk.acc[1].w += work->walk.step.vy;
         work->walk.acc[2].w += work->walk.step.vz;
@@ -336,9 +336,9 @@ void func_actor_113100_80132104(Task* task)
             func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, (s16)work->field_538);
         }
         if (gGameSession->viewReady != 0) {
-            ((TmdObject*)task->extra)->coords[1].flg = 0;
-            Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-            func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
+            task->extra.tmd->coords[1].flg = 0;
+            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         }
         if (work->field_53D >= 0) {
             if (work->field_53D == 0) {
@@ -381,7 +381,7 @@ void func_actor_113100_801324DC(Task* task)
     u16              yaw;
     s16              diff;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = (Actor113100Work*)task->work;
     angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     yaw   = (u16)work->field_53A;
@@ -447,7 +447,7 @@ void func_actor_113100_8013264C(Task* task)
     GpAnimArg        preset;
 
     work  = (Actor113100Work*)task->work;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (work->walk.target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
     } else {
@@ -507,7 +507,7 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
     s32              ret;
 
     work  = (Actor113100Work*)task->work;
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     work2 = (Actor113100Work*)task->work;
     head  = &work2->obj;
     ret   = 0;
@@ -596,7 +596,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, GpXformArg* place, Actor11
 
     msg  = &preset;
     work = (Actor113100Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank   = msg->animBlock.index;
         work->model.animId = -1;
@@ -639,12 +639,12 @@ void func_actor_113100_80132B30(Task* task)
     GsCOORDINATE2* node;
     GsCOORDINATE2* part;
 
-    model = task->extra;
+    model = task->extra.tmd;
     SOFT_BARRIER();
     parent = (Task*)task->spawnArg2;
     index  = task->spawnArg1;
     node   = model->coords;
-    part   = ((TmdObject*)parent->extra)->coords;
+    part   = parent->extra.tmd->coords;
 
     node->coord.t[1] = 0x64;
     node->coord.t[0] = 0;
@@ -677,8 +677,8 @@ void func_actor_113100_80132BDC(Task* task)
     s32            index;
 
     index = task->spawnArg1;
-    node  = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
-    part  = &((TmdObject*)((Task*)task->spawnArg2)->extra)->coords[index];
+    node  = task->extra.tmd->coords;
+    part  = &((Task*)task->spawnArg2)->extra.tmd->coords[index];
     view  = &Gp_GetStageView(&gGameSession->at4.loc)->mtx;
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);
@@ -712,8 +712,8 @@ void func_actor_113100_80132CF4(Task* task)
     GsCOORDINATE2* root;
 
     parent      = task->spawnArg2;
-    obj         = task->extra;
-    parentObj   = parent->extra;
+    obj         = task->extra.tmd;
+    parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
     obj->flags |= 0x80;
     root        = obj->coords;
@@ -746,8 +746,8 @@ void func_actor_113100_80132E00(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
-    object       = (TmdObject*)task->extra;
+    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
         object->flags &= 0xFF7F;
@@ -785,7 +785,7 @@ void func_actor_113100_80132F24(Task* task)
     TmdObject*       ext;
     Actor113100Work* work;
 
-    ext           = task->extra;
+    ext           = task->extra.tmd;
     work          = (Actor113100Work*)task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -835,7 +835,7 @@ void func_actor_113100_8013301C(Task* arg0)
     SVECTOR          dir;
 
     work  = (Actor113100Work*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
@@ -862,7 +862,7 @@ void func_actor_113100_801330E8(Task* arg0)
     s32              vy;
     s16              diff;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = (Actor113100Work*)arg0->work;
 
     Gp_ExtractEuler(&vec, &coord->coord);
@@ -914,7 +914,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, GpAnimArg* preset, s32 arg
     s32              i;
 
     work = (Actor113100Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (preset->animBlock.index != work->model.bank) {
         work->model.bank   = preset->animBlock.index;
         work->model.animId = -1;
@@ -949,7 +949,7 @@ s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -977,14 +977,14 @@ s32 func_actor_113100_801333B8(Task* task, s32 msgId, GpCmdArg* msg)
     switch (msg->command) {
         case 0:
             if (work->field_534 != NULL) {
-                model         = (TmdObject*)work->field_534->extra;
+                model         = work->field_534->extra.tmd;
                 model->flags &= 0xFF7F;
             }
             break;
 
         case 1:
             if (work->field_534 != NULL) {
-                model         = (TmdObject*)work->field_534->extra;
+                model         = work->field_534->extra.tmd;
                 model->flags |= 0x80;
             }
             break;

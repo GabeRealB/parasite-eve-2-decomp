@@ -83,7 +83,7 @@ void func_actor_213000_80149E54(Task* task)
     Task*            spawned1;
     Task*            spawned2;
 
-    obj  = task->extra;
+    obj  = task->extra.tmd;
     work = (Actor213000Work*)memCalloc(0x4C4, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
@@ -107,7 +107,7 @@ void func_actor_213000_80149E54(Task* task)
         s32          idx;
 
         idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
-        model      = (TmdObject*)spawned1->extra;
+        model      = spawned1->extra.tmd;
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -130,7 +130,7 @@ void func_actor_213000_80149E54(Task* task)
         GpAreaKey*   sessionKey;
         s32          idx;
 
-        model      = (TmdObject*)spawned2->extra;
+        model      = spawned2->extra.tmd;
         idx        = ((GpEnemy*)task->spawnArg2)->placeKey >> 12;
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         key.stage  = sessionKey->stage;
@@ -189,8 +189,8 @@ void func_actor_213000_8014A0DC(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -241,8 +241,8 @@ void func_actor_213000_8014A1B8(Task* task)
     GsCOORDINATE2* root;
 
     parent      = task->spawnArg2;
-    obj         = task->extra;
-    parentObj   = parent->extra;
+    obj         = task->extra.tmd;
+    parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
     obj->flags |= 0x80;
     root        = obj->coords;
@@ -274,8 +274,8 @@ void func_actor_213000_8014A2C4(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
-    object       = (TmdObject*)task->extra;
+    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
         object->flags &= 0xFF7F;
@@ -307,11 +307,11 @@ void func_actor_213000_8014A35C(Task* task)
     u16         flags;
 
     parent    = task->spawnArg2;
-    obj       = task->extra;
-    parentObj = parent->extra;
+    obj       = task->extra.tmd;
+    parentObj = parent->extra.tmd;
     for (i = 0; i < 3; i++) {
-        coords             = &((GpCoordExt*)((TmdObject*)parent->extra)->coords)[i + 9];
-        root               = &((GpCoordExt*)((TmdObject*)task->extra)->coords)[i];
+        coords             = &((GpCoordExt*)parent->extra.tmd->coords)[i + 9];
+        root               = &((GpCoordExt*)task->extra.tmd->coords)[i];
         root->sub          = (GsCOORDINATE2*)coords;
         root->coord.t[0]   = 0;
         root->coord.t[1]   = 0;
@@ -347,8 +347,8 @@ void func_actor_213000_8014A488(Task* task)
     TmdObject* parentObject;
     TmdObject* object;
 
-    parentObject = (TmdObject*)((Task*)task->spawnArg2)->extra;
-    object       = (TmdObject*)task->extra;
+    parentObject = ((Task*)task->spawnArg2)->extra.tmd;
+    object       = task->extra.tmd;
 
     if (!(parentObject->flags & 0x80)) {
         object->flags &= 0xFF7F;
@@ -412,7 +412,7 @@ void func_actor_213000_8014A5D0(Task* task)
     GsCOORDINATE2*   coords;
     s32              i;
 
-    extra  = (TmdObject*)task->extra;
+    extra  = task->extra.tmd;
     work   = (Actor213000Work*)task->work;
     coords = &extra->coords[1];
     if (work->field_474 != 0) {
@@ -443,7 +443,7 @@ void func_actor_213000_8014A6AC(Task* task)
     TmdObject*       extra;
 
     work            = (Actor213000Work*)task->work;
-    extra           = (TmdObject*)task->extra;
+    extra           = task->extra.tmd;
     coords          = extra->coords;
     extra->lightMtx = &work->light;
     extra->colorMtx = &work->color;
@@ -465,7 +465,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, GpAnimArg* msg)
     s32              i;
 
     work = (Actor213000Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->field_476) {
         work->field_476 = msg->animBlock.index;
         work->field_475 = -1;
@@ -497,7 +497,7 @@ s32 func_actor_213000_8014A828(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -523,7 +523,7 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
     Actor213000Work* work;
     s32              ret;
 
-    obj  = task->extra;
+    obj  = task->extra.tmd;
     work = (Actor213000Work*)task->work;
     ret  = 0;
 
@@ -576,25 +576,25 @@ s32 func_actor_213000_8014A980(Task* task, s32 arg1, GpCmdArg* msg)
         case 0:
             child = work->field_4BC;
             if (child != NULL) {
-                ((TmdObject*)child->extra)->flags &= 0xFF7F;
+                child->extra.tmd->flags &= 0xFF7F;
             }
             break;
         case 1:
             child = work->field_4BC;
             if (child != NULL) {
-                ((TmdObject*)child->extra)->flags |= 0x80;
+                child->extra.tmd->flags |= 0x80;
             }
             break;
         case 2:
             child = work->field_4C0;
             if (child != NULL) {
-                ((TmdObject*)child->extra)->flags &= 0xFF7F;
+                child->extra.tmd->flags &= 0xFF7F;
             }
             break;
         case 3:
             child = work->field_4C0;
             if (child != NULL) {
-                ((TmdObject*)child->extra)->flags |= 0x80;
+                child->extra.tmd->flags |= 0x80;
             }
             break;
     }

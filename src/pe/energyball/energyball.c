@@ -53,7 +53,7 @@ void func_energyball_8012EF48(Task* arg0)
     s32            rng;
 
     mem      = arg0->spawnArg2;
-    coord    = ((TmdObject*)arg0->extra)->coords;
+    coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
@@ -124,7 +124,7 @@ void func_energyball_8012F180(Task* arg0)
     slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
     sc    = &slot->data.coord;
     tail  = &slot->data.light;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
     mem   = arg0->spawnArg2;
@@ -246,7 +246,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 2:
             if ((mem->age & 7) == 0) {
-                player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
+                player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -745,7 +745,7 @@ void func_energyball_8013107C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->fadeState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         return;
     }

@@ -69,7 +69,7 @@ s32  func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXfo
 /// `field_C`), runs the placement setup and installs the message table.
 void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 {
-    TmdObject* obj = task->extra;
+    TmdObject* obj = task->extra.tmd;
     void*      mem;
 
     mem = memCalloc(0x54, false);
@@ -95,8 +95,8 @@ void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    GpCoordExt*    coord = (GpCoordExt*)((TmdObject*)task->extra)->coords;
-    TmdObject*     obj   = task->extra;
+    GpCoordExt*    coord = (GpCoordExt*)task->extra.tmd->coords;
+    TmdObject*     obj   = task->extra.tmd;
     s16            n;
 
     n = --work->field_50;
@@ -122,7 +122,7 @@ void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
-    TmdObject*     obj  = task->extra;
+    TmdObject*     obj  = task->extra.tmd;
     GsF_LIGHT*     light;
     s32            i;
 
@@ -172,7 +172,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXfor
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

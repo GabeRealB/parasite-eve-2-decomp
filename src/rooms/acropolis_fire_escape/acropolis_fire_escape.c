@@ -1586,7 +1586,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     switch (task->state) {
         case 0:
             work->move.vx = 0xB58;
@@ -1654,7 +1654,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
     u16                             vx;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     play  = 0;
     if (Gp_State1C->eventState < 4 && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
@@ -1807,7 +1807,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     u32                             tag;
     u_long*                         ot;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     mem   = task->spawnArg2;
     Gp_UpdateCoord(coord);
     head = SCRATCH_HEAD(void);

@@ -2,12 +2,23 @@
 #define TASK_H
 
 #include "common.h"
+#include "main/tmd.h"
 
 // =============================================================================
 // Types — cooperative task system (src/main/task.c)
 // =============================================================================
 
 struct Task;
+struct GpDisp2d;
+
+/// The body a task owns, whose kind its `spawnType` names: a model for 1, a 2D
+/// display for 2, nothing for 0. Both kinds sit on a list of their own, and are
+/// linked and unlinked as `node`, the pair of links they both begin with.
+typedef union TaskBody {
+    TmdObject*       tmd;    // spawnType 1
+    struct GpDisp2d* disp2d; // spawnType 2
+    TmdListHead*     node;   // Either kind, as its list links
+} TaskBody;
 
 /// A function the task system calls with the task that owns the slot.
 ///
@@ -144,7 +155,7 @@ typedef struct Task {
     u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
     u8           priority;      // List position; lower runs earlier, and selects which pass picks the task up
     s16          killCountdown; // Frames left before the body is released; the task's own timer otherwise
-    void*        extra;         // The body the task owns, attached and released according to `spawnType`
+    TaskBody     extra;         // The body the task owns, attached and released according to `spawnType`
     s32          state;         // Index a handler dispatches on to pick its per-state function
     s32          spawnArg1;     // First spawn argument; its meaning is the spawned type's
     u8           status;        // The task's own byte; the task system records a stop request in it as 0xFF

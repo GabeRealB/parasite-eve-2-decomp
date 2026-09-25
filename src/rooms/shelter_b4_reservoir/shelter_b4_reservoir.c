@@ -515,7 +515,7 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
 
 void func_shelter_b4_reservoir_8017E558(Task* arg0)
 {
-    TmdObject*     obj   = arg0->extra;
+    TmdObject*     obj   = arg0->extra.tmd;
     GsCOORDINATE2* coord = obj->coords;
 
     if (arg0->state == 0) {
@@ -1007,7 +1007,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 
     work   = task->spawnArg2;
     player = gameGetPtrSlot(3);
-    root   = ((TmdObject*)player->extra)->coords;
+    root   = player->extra.tmd->coords;
     if (task->state == 0) {
         D_8011574C  = 0x60172;
         D_80115738  = 0x60173;
@@ -1028,7 +1028,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
         D_shelter_b4_reservoir_80187684.field_2 = 0;
         D_shelter_b4_reservoir_80187684.field_4 = 0;
         for (i = 0; i < 2; i++) {
-            c                                     = &((TmdObject*)player->extra)->coords[i * 3 + 14];
+            c                                     = &player->extra.tmd->coords[i * 3 + 14];
             D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
             D_shelter_b4_reservoir_801850AC[i].vy = c->workm.t[1];
             D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
@@ -1040,7 +1040,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                 for (i = 0; i < 2; i++) {
                     parent = &gGfxViewCoord;
                     view   = &Gfx_ViewWorldMtx;
-                    c      = &((TmdObject*)player->extra)->coords[i * 3 + 14];
+                    c      = &player->extra.tmd->coords[i * 3 + 14];
                     Gp_UpdateCoord(c);
                     work->field_26 = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
@@ -1147,7 +1147,7 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_reservoir_80180530(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1282,7 +1282,7 @@ void func_shelter_b4_reservoir_80180864(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -1547,7 +1547,7 @@ void func_shelter_b4_reservoir_8018110C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s16            f2a;
     u32            rng;
 
@@ -2011,7 +2011,7 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
     u8             col[4];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -2041,7 +2041,7 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &((TmdObject*)player->extra)->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -2127,7 +2127,7 @@ void func_shelter_b4_reservoir_80183074(Task* task)
     VECTOR         delta;
 
     work   = task->spawnArg2;
-    coord  = ((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -2430,7 +2430,7 @@ void func_shelter_b4_reservoir_80183CD4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;

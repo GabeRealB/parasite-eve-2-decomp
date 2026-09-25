@@ -35,7 +35,7 @@ void func_as12_8011D1DC(Task* arg0)
     SCRATCH_PUSH_BYTES(0x50);
     spot  = SCRATCH_HEAD(GsCOORDINATE2);
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -73,10 +73,10 @@ void func_as12_8011D1DC(Task* arg0)
             actor->field_95E++;
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8E, 1);
-            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords,
+            Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
             Gp_SpawnEff(0x600A1,
-                        (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                        actor->field_91C->extra.tmd->coords,
                         (Player_Status.weaponSlotItem << 0x10) | 0xF, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
             break;

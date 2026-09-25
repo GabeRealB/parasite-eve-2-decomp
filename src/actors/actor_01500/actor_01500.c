@@ -158,7 +158,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
     s32              i;
     s32              r;
 
-    obj   = arg1->extra;
+    obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = memCalloc(0x384U, false);
     if (work == NULL) {
@@ -173,7 +173,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &coord->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord                = &((TmdObject*)arg1->extra)->coords[2];
+    arg0->coord                = &arg1->extra.tmd->coords[2];
     arg0->node.state.b.flags   = 0;
     arg0->bodyPos.vx           = 0;
     arg0->bodyPos.vy           = 0;
@@ -233,7 +233,7 @@ void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
             func_800B4114(work, i, work->field_352, 0, r);
         }
     }
-    work->field_1DC.coord    = &((TmdObject*)arg1->extra)->coords[2];
+    work->field_1DC.coord    = &arg1->extra.tmd->coords[2];
     work->field_1DC.ctx.recs = work->field_1FC;
     work->field_1DC.pos.vx   = 0;
     work->field_1DC.pos.vy   = 0;
@@ -307,7 +307,7 @@ void Actor01500_Fn004EC(Task* actor)
     work   = actor->work;
     SCRATCH_PUSH(ActorPushFrame);
     frame  = SCRATCH_HEAD(ActorPushFrame);
-    coord  = ((TmdObject*)actor->extra)->coords;
+    coord  = actor->extra.tmd->coords;
     result = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
         if (work->field_370 == 0 && work->field_35A == 3 && frame->delta.vy.w == 0) {
@@ -364,7 +364,7 @@ void Actor01500_Fn004EC(Task* actor)
                 break;
             case 2:
                 if (work->field_350 == 0) {
-                    sourceCoord       = ((TmdObject*)Gp_ActorSlots[(id >> 7) & 1]->extra)->coords;
+                    sourceCoord       = Gp_ActorSlots[(id >> 7) & 1]->extra.tmd->coords;
                     dx                = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vx.w = dx;
                     dy                = sourceCoord->coord.t[1] - coord->coord.t[1];
@@ -374,7 +374,7 @@ void Actor01500_Fn004EC(Task* actor)
                     damage            = Gp_ComputeDamage(work->field_1FC[i].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(actor->spawnArg2, work->field_1FC[i].key, 0) != 0) {
                         damage *= 4;
-                        Gp_SpawnEff(0x6009C, ((TmdObject*)actor->extra)->coords, 0, NULL);
+                        Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((GpEnemy*)actor->spawnArg2)->node, damage, 0);
                     func_800E2C78(actor->spawnArg2, work->field_1FC[i].key, damage, 0);
@@ -457,7 +457,7 @@ void Actor01500_Fn00AFC(Task* actor, s32 damage)
 
     enemy      = actor->spawnArg2;
     work       = actor->work;
-    coord      = ((TmdObject*)actor->extra)->coords;
+    coord      = actor->extra.tmd->coords;
     enemy->hp -= damage;
     if (enemy->hp <= 0) {
         work->field_378 = 1;
@@ -515,7 +515,7 @@ void Actor01500_Fn00CA4(Task* actor)
     SCRATCH_PUSH(VECTOR);
     frame = SCRATCH_HEAD(VECTOR);
     work  = actor->work;
-    coord = ((TmdObject*)actor->extra)->coords;
+    coord = actor->extra.tmd->coords;
     flag  = 0;
     if (work->field_37A != 0) {
         work->field_35A = 2;
@@ -600,7 +600,7 @@ void Actor01500_Fn00FC4(Task* actor)
     u32              rnd2;
 
     work  = actor->work;
-    coord = ((TmdObject*)actor->extra)->coords;
+    coord = actor->extra.tmd->coords;
     if ((s16)work->field_356 >= 0x1E) {
         work->field_374 = angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
         switch (work->field_36E) {
@@ -663,7 +663,7 @@ void Actor01500_Fn011B0(Task* actor)
     SCRATCH_HEAD(u8) = head - 0x10;
     vec              = (VECTOR3*)(head - 0x10);
     work             = actor->work;
-    coord            = ((TmdObject*)actor->extra)->coords;
+    coord            = actor->extra.tmd->coords;
     switch (work->field_35C) {
         case 0:
             off  = work->field_364 + 0x708;
@@ -764,7 +764,7 @@ void Actor01500_Fn015DC(Task* actor)
     VECTOR*          blk;
 
     work                 = actor->work;
-    coord                = ((TmdObject*)actor->extra)->coords;
+    coord                = actor->extra.tmd->coords;
     work->field_352      = 0xE;
     work->field_360      = 5;
     work->field_376      = 5;
@@ -852,7 +852,7 @@ void Actor01500_Fn01838(Task* arg0)
     s32               wrapStep;
 
     sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
     want  = work->field_372;
@@ -913,7 +913,7 @@ void Actor01500_Fn01988(Task* arg0)
     s16              bob;
 
     work  = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     bob   = 0;
     if ((s16)work->field_352 == 5) {
         work->field_37C++;
@@ -962,11 +962,11 @@ void Actor01500_Fn01AB0(Task* arg0)
     GpAreaKey*   sessionKey4;
 
     D_80067704[0] = Actor01500_D0458C;
-    effect1       = Gp_SpawnEff(0x40007, &((TmdObject*)arg0->extra)->coords[1], 0x100, NULL);
+    effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
         sessionKey1 = (GpAreaKey*)&gGameSession->at4.loc;
         raw1        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
-        model1      = (TmdObject*)effect1->task->extra;
+        model1      = effect1->task->extra.tmd;
         key.stage   = sessionKey1->stage;
         key.area    = sessionKey1->area;
         key.room    = sessionKey1->room;
@@ -984,11 +984,11 @@ void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = Actor01500_D046D0;
-    effect2       = Gp_SpawnEff(0x40007, &((TmdObject*)arg0->extra)->coords[1], 0x100, NULL);
+    effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
         sessionKey2 = (GpAreaKey*)&gGameSession->at4.loc;
         raw2        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
-        model2      = (TmdObject*)effect2->task->extra;
+        model2      = effect2->task->extra.tmd;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
         key.room    = sessionKey2->room;
@@ -1006,11 +1006,11 @@ void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = Actor01500_D048BC;
-    effect3       = Gp_SpawnEff(0x40007, &((TmdObject*)arg0->extra)->coords[1], 0x100, NULL);
+    effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
         sessionKey3 = (GpAreaKey*)&gGameSession->at4.loc;
         raw3        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
-        model3      = (TmdObject*)effect3->task->extra;
+        model3      = effect3->task->extra.tmd;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
         key.room    = sessionKey3->room;
@@ -1028,11 +1028,11 @@ void Actor01500_Fn01AB0(Task* arg0)
     }
 
     D_80067704[0] = Actor01500_D04A94;
-    effect4       = Gp_SpawnEff(0x40007, &((TmdObject*)arg0->extra)->coords[1], 0x100, NULL);
+    effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
         sessionKey4 = (GpAreaKey*)&gGameSession->at4.loc;
         raw4        = ((GpEnemy*)arg0->spawnArg2)->placeKey;
-        model4      = (TmdObject*)effect4->task->extra;
+        model4      = effect4->task->extra.tmd;
         key.stage   = sessionKey4->stage;
         key.area    = sessionKey4->area;
         key.room    = sessionKey4->room;
@@ -1064,7 +1064,7 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
     GsCOORDINATE2*   coord;
     GsCOORDINATE2*   sub;
 
-    model = arg1->extra;
+    model = arg1->extra.tmd;
     work  = arg1->work;
     coord = model->coords;
     switch (Gp_StateF0.field_4) {
@@ -1142,7 +1142,7 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             }
             break;
     }
-    sub = ((TmdObject*)arg1->extra)->coords;
+    sub = arg1->extra.tmd->coords;
     sub = &sub[1];
 update:
     pos.vx = sub->workm.t[0];
@@ -1171,7 +1171,7 @@ void Actor01500_Fn020D8(Task* arg0)
     SCRATCH_HEAD(u8) = (u8*)stk;
     vec              = stk;
     work             = arg0->work;
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     switch (work->field_35C) {
         case 0:
             off = work->field_364 + 800;
@@ -1260,7 +1260,7 @@ void Actor01500_Fn02484(GpEnemy* arg0, Task* arg1)
     s32              state;
     s32              one;
 
-    obj   = arg1->extra;
+    obj   = arg1->extra.tmd;
     state = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
@@ -1508,7 +1508,7 @@ void Actor01500_Fn02A1C(Task* arg0)
 
     work          = arg0->work;
     objectSoundId = work->field_34C;
-    object        = ((TmdObject*)arg0->extra)->coords;
+    object        = arg0->extra.tmd->coords;
     if (objectSoundId != 0) {
         if ((s16)((s16)work->field_356 % 3) == 1) {
             soundId = objectSoundId | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
@@ -1533,7 +1533,7 @@ void Actor01500_Fn02B14(Task* arg0)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    coord  = &((TmdObject*)arg0->extra)->coords[1];
+    coord  = &arg0->extra.tmd->coords[1];
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
@@ -1555,7 +1555,7 @@ void Actor01500_Fn02B70(Task* arg0)
 
     head                 = SCRATCH_HEAD(VECTOR);
     work                 = arg0->work;
-    coord                = ((TmdObject*)arg0->extra)->coords;
+    coord                = arg0->extra.tmd->coords;
     SCRATCH_HEAD(VECTOR) = head - 1;
     vec                  = (VECTOR3*)(head - 1);
     if (work->field_35A != 5) {
@@ -1589,7 +1589,7 @@ void Actor01500_Fn02C34(Task* arg0)
     work                            = arg0->work;
     scratch                         = head - 1;
     SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = ((TmdObject*)arg0->extra)->coords;
+    coord                           = arg0->extra.tmd->coords;
     if (work->field_368 >= 0x201) {
         work->field_368 = (u16)work->field_368 - 0x50;
     }

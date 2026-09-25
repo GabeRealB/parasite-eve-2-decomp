@@ -135,11 +135,11 @@ void func_acropolis_west_elevator_hall_8017D5FC(Task* task)
     s32             i;
 
     owner = gameGetPtrSlot(3);
-    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
+    if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
         taskKill(task);
         return;
     }
-    extra = task->extra;
+    extra = task->extra.tmd;
     parts = extra->coords;
     if ((u32)task->spawnArg1 >= 2U) {
         taskKill(task);
@@ -244,7 +244,7 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
 
     width  = 0x1C0;
     work   = task->work;
-    extra  = task->extra;
+    extra  = task->extra.tmd;
     stage  = Mc_SaveData.at4.loc.stage;
     area   = Mc_SaveData.at4.loc.area;
     view   = Mc_SaveData.at4.loc.view;
@@ -320,7 +320,7 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
                 }
             }
         } else {
-            model         = task->extra;
+            model         = task->extra.tmd;
             model->flags &= ~0x80;
             if (stage == 1) {
                 switch (area) {
@@ -591,11 +591,11 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
 
     extra->flags = work->field_C;
     if (!(extra->flags & 0x80) && gGameSession->field_65 == 0) {
-        parts   = ((TmdObject*)task->extra)->coords;
+        parts   = task->extra.tmd->coords;
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
         if (owner != NULL) {
-            TmdObject*     src       = owner->extra;
+            TmdObject*     src       = owner->extra.tmd;
             GsCOORDINATE2* srcCoords = src->coords;
 
             parts->flg = 0;
@@ -724,9 +724,9 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
         GsCOORDINATE2* ownParts;
         MATRIX         mtx;
 
-        ownerParts  = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
-        ownerBody   = gameGetPtrSlot(3)->extra;
-        ownParts    = ((TmdObject*)task->extra)->coords;
+        ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
+        ownerBody   = gameGetPtrSlot(3)->extra.tmd;
+        ownParts    = task->extra.tmd->coords;
         work->light = *ownerBody->lightMtx;
         work->color = *ownerBody->colorMtx;
         Gp_UpdateCoord(ownParts);
@@ -761,17 +761,17 @@ void func_acropolis_west_elevator_hall_8017F134(Task* task)
         Task_CallExit(task);
     }
     mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &((TmdObject*)mirror->extra)->coords[D_acropolis_west_elevator_hall_801802A4[task->spawnArg1]];
+    mirrorPart  = &mirror->extra.tmd->coords[D_acropolis_west_elevator_hall_801802A4[task->spawnArg1]];
     work        = (RoomMirrorWork*)mirror->work;
-    mirrorExtra = mirror->extra;
+    mirrorExtra = mirror->extra.tmd;
     if (task->state == 0) {
-        src      = task->parent->extra;
+        src      = task->parent->extra.tmd;
         srcParts = src->coords;
         if (Gp_AttachTmd(task, src->source) == NULL) {
             Task_CallExit(task);
             return;
         }
-        extra        = task->extra;
+        extra        = task->extra.tmd;
         parts        = extra->coords;
         extra->tpage = src->tpage;
         tmdProcessStream(extra);
@@ -791,7 +791,7 @@ void func_acropolis_west_elevator_hall_8017F134(Task* task)
         parts->flg        = 0;
         task->state++;
     }
-    extra        = task->extra;
+    extra        = task->extra.tmd;
     flags        = mirrorExtra->flags;
     extra->flags = flags;
     if (task->spawnArg1 >= 2) {
@@ -917,7 +917,7 @@ void func_acropolis_west_elevator_hall_8017F64C(Task* task)
     GsCOORDINATE2*     coord;
     AwehElevatorState* work;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     coord = extra->coords;
     work  = (AwehElevatorState*)memCalloc(sizeof(AwehElevatorState), 0);
     if (work == NULL) {
@@ -946,7 +946,7 @@ void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     AwehElevatorState* work;
 
     work  = (AwehElevatorState*)task->work;
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     coord = extra->coords;
 
     work->field_0 += task->spawnArg1 * 0x14;
@@ -978,7 +978,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     SVECTOR        altPos;
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     switch (task->state) {
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
@@ -1071,7 +1071,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
     s32               pulse;
     s32               level;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     head = SCRATCH_HEAD(void);
@@ -1214,7 +1214,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     POLY_FT4*         prim;
     u16               vz;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
     scratch       = (void**)G_SCRATCH_HEAD;

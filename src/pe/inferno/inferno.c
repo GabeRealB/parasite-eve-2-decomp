@@ -48,7 +48,7 @@ void func_inferno_8012EF88(Task* arg0)
     s32            pan;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
@@ -202,7 +202,7 @@ void func_inferno_8012F530(Task* arg0)
 
     map   = (InfernoIdMap*)arg0->work;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }

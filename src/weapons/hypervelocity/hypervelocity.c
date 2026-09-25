@@ -76,7 +76,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
     slot  = &base->data.light;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -208,7 +208,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 work->scale = work->scale - 0x20;
                 work->angle = work->angle - 0x20;
             }
-            player      = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+            player      = (gameGetPtrSlot(3))->extra.tmd->coords;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gp_SpawnEff(0x60054, &player[((((u32)Gp_LcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
             if (work->age >= 0x6F || task->spawnArg1 < 0) {
@@ -259,7 +259,7 @@ void func_hypervelocity_8011D830(Task* task)
 
     beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     light = &base->data.coord;
     slot  = &base->data.light;
@@ -284,7 +284,7 @@ void func_hypervelocity_8011D830(Task* task)
                 return;
             }
             task->exitCallback = func_hypervelocity_8011F11C;
-            player             = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+            player             = (gameGetPtrSlot(3))->extra.tmd->coords;
             dstm               = (GpMtxWords*)&coord->coord;
             srcm               = (GpMtxWords*)&player->coord;
             dstm->m00_m01      = srcm->m00_m01;
@@ -803,7 +803,7 @@ void func_hypervelocity_8011F168(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -841,7 +841,7 @@ void func_hypervelocity_8011F270(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -881,8 +881,8 @@ void func_hypervelocity_8011F374(Task* arg0)
 
     parent      = arg0->parent;
     work        = gameGetPtrSlot(3);
-    extra       = (TmdObject*)arg0->extra;
-    playerExtra = work->extra;
+    extra       = arg0->extra.tmd;
+    playerExtra = work->extra.tmd;
     coord       = (GpCoordExt*)extra->coords;
 
     coord->flg      = 0;
@@ -944,7 +944,7 @@ void func_hypervelocity_8011F570(Task* arg0)
     TmdObject*     extra;
     GsCOORDINATE2* coord;
 
-    extra               = (TmdObject*)arg0->extra;
+    extra               = arg0->extra.tmd;
     coord               = (GsCOORDINATE2*)extra->coords;
     arg0->state        += 1;
     arg0->exitCallback  = func_hypervelocity_8011F6A0;
@@ -954,18 +954,18 @@ void func_hypervelocity_8011F570(Task* arg0)
     if (!(arg0->spawnArg1 & 0xF)) {
         child = Task_Spawn(7, 0x70, 1, 0);
         if (child != NULL) {
-            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
-            childExtra                                                = (TmdObject*)child->extra;
-            childExtra->colorMtx                                      = extra->colorMtx;
-            childExtra->lightMtx                                      = extra->lightMtx;
+            child->extra.tmd->coords->sub = coord;
+            childExtra                    = child->extra.tmd;
+            childExtra->colorMtx          = extra->colorMtx;
+            childExtra->lightMtx          = extra->lightMtx;
             Task_Reparent(arg0, child);
         }
         child = Task_Spawn(7, 0x74, 2, 0);
         if (child != NULL) {
-            ((GsCOORDINATE2*)((TmdObject*)child->extra)->coords)->sub = coord;
-            childExtra                                                = (TmdObject*)child->extra;
-            childExtra->colorMtx                                      = extra->colorMtx;
-            childExtra->lightMtx                                      = extra->lightMtx;
+            child->extra.tmd->coords->sub = coord;
+            childExtra                    = child->extra.tmd;
+            childExtra->colorMtx          = extra->colorMtx;
+            childExtra->lightMtx          = extra->lightMtx;
             Task_Reparent(arg0, child);
             coord->coord.t[0] = -6;
             coord->coord.t[1] = -0x3C;
@@ -1037,8 +1037,8 @@ void func_hypervelocity_8011F724(Task* arg0)
             actor->field_914->spawnArg1 = 1;
             actor->field_934            = 0;
             eff->spawnArg1             |= 0x10;
-            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160003, 0);
-            Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160005, 0);
+            Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
+            Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
             Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
@@ -1052,12 +1052,12 @@ void func_hypervelocity_8011F724(Task* arg0)
                     actor->field_934 = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160007, 1);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1 |= 0x20;
                     SndEvt_EnqueueType7(0x20160003, 1);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160002, 0);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160002, 0);
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
@@ -1066,7 +1066,7 @@ void func_hypervelocity_8011F724(Task* arg0)
                 eff->spawnArg1              = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);
                 SndEvt_EnqueueType7(0x20160005, 1);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20160004, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 3);
             }
             break;
@@ -1075,7 +1075,7 @@ void func_hypervelocity_8011F724(Task* arg0)
             actor->field_934 = step;
             if (step != 0) {
                 if (step < 0x13) {
-                    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+                    coord = arg0->extra.tmd->coords;
                     div   = 0x17A;
                     if (step == 0x12) {
                         div = 0xF4;

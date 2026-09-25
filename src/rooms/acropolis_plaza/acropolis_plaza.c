@@ -1135,7 +1135,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
 
-                coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->work)->slot3->extra)->coords;
+                coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
                 buf.place.pos.vx = coord->coord.t[0];
                 buf.place.pos.vy = coord->coord.t[1];
                 buf.place.pos.vz = coord->coord.t[2];
@@ -1901,7 +1901,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     slot       = task->spawnArg1;
     entry      = &Gp_RoomCoords[slot & 7];
     light      = &entry->data.light;
-    coord      = ((TmdObject*)task->extra)->coords;
+    coord      = task->extra.tmd->coords;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2;
     lightCoord = &light->head.u.coord;
     if (task->state == 0) {
@@ -2155,7 +2155,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     s32                         pulse;
     u32                         pulse2;
     s16                         level;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = (AcropolisPlazaBeamWork*)task->spawnArg2;
     if (task->state == 0) {
         yawInit     = (task->spawnArg1 & 1) << 11;
@@ -2333,7 +2333,7 @@ void func_acropolis_plaza_80182054(Task* task)
     s32                        brightness, shade0, shade1;
     s16                        red, green, blue;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     head = SCRATCH_HEAD(void);
     raw  = head - 0x14;
@@ -2407,7 +2407,7 @@ void func_acropolis_plaza_8018251C(Task* task)
     GsCOORDINATE2* coord;
     s32            i;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (task->state == 0) {
         for (i = 0xC; i < 0x13; i++) {
             Gp_SpawnEff(0x60096, coord, i, &D_acropolis_plaza_80198820[i]);

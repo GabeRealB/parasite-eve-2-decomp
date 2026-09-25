@@ -327,7 +327,7 @@ STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 /// out like that type's and, as on a model body, `coords` is where the
 /// coordinate is found. A 2D-display body has a single one, so that field points
 /// at the node's own `coord` rather than at an array of them.
-typedef struct {
+typedef struct GpDisp2d {
     TmdListHead* next;    // Following node of the list, or NULL past the last
     TmdListHead* prev;    // Preceding node, or the head at the front
     GpCoordExt*  coords;  // The body's coordinate, i.e. `&coord`

@@ -146,7 +146,7 @@ void func_actor_341300_80162278(Task* task)
     actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
-        self      = ((TmdObject*)player->extra)->coords;
+        self      = player->extra.tmd->coords;
         target    = &D_actor_341300_80165330;
         angle     = ratan2(target->vx - self->coord.t[0], target->vz - self->coord.t[2]);
         delta     = angle - actor->field_52;
@@ -265,7 +265,7 @@ const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 void func_actor_341300_801625AC(void)
 {
     SVECTOR        vec   = D_actor_341300_80161E64;
-    GsCOORDINATE2* coord = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[2];
+    GsCOORDINATE2* coord = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
 
     Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
     Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);
@@ -367,7 +367,7 @@ void func_actor_341300_80162878(Task* arg0)
     s32               v3;
 
     work  = (Actor341300Shard*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
             arg0->work = memCalloc(0x30, 0);
@@ -525,7 +525,7 @@ void func_actor_341300_801631D4(Task* arg0)
     s32               v3;
 
     work  = (Actor341300Shard*)arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
             arg0->work = memCalloc(0x30, 0);

@@ -87,22 +87,22 @@ void func_actor_213100_80149E3C(Task* task)
     s32              i;
 
     work  = (Actor213100Work*)task->work;
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->coords[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-        func_800D7A9C(extra, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
-        child = (TmdObject*)work->field_480->extra;
+        task->extra.tmd->coords[1].flg = 0;
+        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
+        child = work->field_480->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->at4.loc.view] != 0) {
             extra->flags &= ~0x80;
             child->flags &= ~0x80;
@@ -155,8 +155,8 @@ void func_actor_213100_8014A03C(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -221,9 +221,9 @@ void func_actor_213100_8014A118(Task* arg0)
         return;
     }
     func_actor_213100_8014A23C(arg0);
-    ext                    = arg0->extra;
+    ext                    = arg0->extra.tmd;
     ext->flags            |= 0x80;
-    ext                    = work->field_480->extra;
+    ext                    = work->field_480->extra.tmd;
     ext->flags            |= 0x80;
     preset.animBlock.index = 0;
     preset.field_4         = 5;
@@ -249,7 +249,7 @@ void func_actor_213100_8014A23C(Task* arg0)
     TmdObject*       ext;
     Actor213100Work* work;
 
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     work          = (Actor213100Work*)arg0->work;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
@@ -270,7 +270,7 @@ s32 func_actor_213100_8014A258(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
     s32              i;
 
     work = (Actor213100Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->field_43E) {
         work->field_43E = msg->animBlock.index;
         work->field_43D = -1;
@@ -304,7 +304,7 @@ s32 func_actor_213100_8014A390(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -330,9 +330,9 @@ s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode)
     Actor213100Work* work;
     s32              ret;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     work  = (Actor213100Work*)task->work;
-    other = (TmdObject*)work->field_480->extra;
+    other = work->field_480->extra.tmd;
     ret   = 0;
     switch (mode) {
         case 0:

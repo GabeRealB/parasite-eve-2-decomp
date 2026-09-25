@@ -401,7 +401,7 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
                 }
                 break;
         }
-        ((TmdObject*)task->extra)->coords->flg = 0;
+        task->extra.tmd->coords->flg = 0;
     }
 }
 
@@ -474,7 +474,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     MATRIX*              mat;
     u16*                 tbl;
 
-    coord = ((TmdObject*)arg1->extra)->coords;
+    coord = arg1->extra.tmd->coords;
     pwork = (Actor205200CtrlWork*)arg1->parent->work;
     part  = memCalloc(0x7CU, false);
     if (part == NULL) {
@@ -545,7 +545,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     s32                  clamped;
 
     vec   = SCRATCH_PUSH(VECTOR);
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     part  = (Actor205200Part*)arg0->work;
     enemy = arg0->spawnArg2;
     if (part->field_70 != 0) {
@@ -629,7 +629,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
     s32                  vol;
 
     part  = (Actor205200Part*)arg1->work;
-    coord = ((TmdObject*)arg1->extra)->coords;
+    coord = arg1->extra.tmd->coords;
     work  = (Actor205200CtrlWork*)arg1->parent->work;
     if (Gp_StateF0.field_4 != 0) {
         return;
@@ -828,6 +828,6 @@ void func_actor_205200_8014BA94(Task* arg0)
     timer          = part->field_74 - 1;
     part->field_74 = timer;
     if (!(timer & 0x3F)) {
-        func_800FDB18(7, ((TmdObject*)arg0->extra)->coords, NULL, &part->field_68);
+        func_800FDB18(7, arg0->extra.tmd->coords, NULL, &part->field_68);
     }
 }

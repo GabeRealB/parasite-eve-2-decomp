@@ -166,7 +166,7 @@ void func_actor_210700_80149F90(Task* task)
     Actor210700Anim  anim;
     VECTOR3          pos;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     work  = (Actor210700Work*)memCalloc(0x540, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
@@ -188,7 +188,7 @@ void func_actor_210700_80149F90(Task* task)
     anim.field_4 = 1;
     anim.field_8 = 0;
     func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
-    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     func_actor_210700_8014A208(task);
@@ -211,19 +211,19 @@ void func_actor_210700_8014A0AC(Task* task)
     s32              i;
 
     work = (Actor210700Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->coords[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
+        task->extra.tmd->coords[1].flg = 0;
+        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     func_actor_210700_80149E30(task);
     count = work->field_53E;
@@ -250,7 +250,7 @@ void func_actor_210700_8014A208(Task* arg0)
     Actor210700Work* work;
 
     work          = (Actor210700Work*)arg0->work;
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
 }
@@ -270,7 +270,7 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
 
     work = (Actor210700Work*)task->work;
     id   = msg->field_0;
-    ext  = (TmdObject*)task->extra;
+    ext  = task->extra.tmd;
     if (id != work->field_47C) {
         work->field_478 = -1;
         work->field_47C = id;
@@ -305,7 +305,7 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
     GpCoordExt* coord;
     TmdObject*  extra;
 
-    extra               = (TmdObject*)task->extra;
+    extra               = task->extra.tmd;
     coord               = (GpCoordExt*)extra->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
@@ -332,7 +332,7 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
     Actor210700Work* work;
     s32              ret;
 
-    obj  = arg0->extra;
+    obj  = arg0->extra.tmd;
     work = (Actor210700Work*)((GameActor*)arg0->work);
     ret  = 0;
 

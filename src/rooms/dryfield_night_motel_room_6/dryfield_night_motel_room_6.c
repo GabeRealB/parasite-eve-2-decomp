@@ -1197,11 +1197,11 @@ void func_dryfield_night_motel_room_6_8017F498(Task* task)
     s32             i;
 
     owner = gameGetPtrSlot(3);
-    if (Gp_AttachTmd(task, ((TmdObject*)owner->extra)->source) == NULL) {
+    if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
         taskKill(task);
         return;
     }
-    extra = task->extra;
+    extra = task->extra.tmd;
     parts = extra->coords;
     if ((u32)task->spawnArg1 >= 2U) {
         taskKill(task);
@@ -1294,7 +1294,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
 
     width  = 0x1C0;
     work   = task->work;
-    extra  = task->extra;
+    extra  = task->extra.tmd;
     stage  = Mc_SaveData.at4.loc.stage;
     area   = Mc_SaveData.at4.loc.area;
     view   = Mc_SaveData.at4.loc.view;
@@ -1370,7 +1370,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
                 }
             }
         } else {
-            model         = task->extra;
+            model         = task->extra.tmd;
             model->flags &= ~0x80;
             if (stage == 1) {
                 switch (area) {
@@ -1641,11 +1641,11 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
 
     extra->flags = work->field_C;
     if (!(extra->flags & 0x80) && gGameSession->field_65 == 0) {
-        parts   = ((TmdObject*)task->extra)->coords;
+        parts   = task->extra.tmd->coords;
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
         if (owner != NULL) {
-            TmdObject*     src       = owner->extra;
+            TmdObject*     src       = owner->extra.tmd;
             GsCOORDINATE2* srcCoords = src->coords;
 
             parts->flg = 0;
@@ -1774,9 +1774,9 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
         GsCOORDINATE2* ownParts;
         MATRIX         mtx;
 
-        ownerParts  = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords;
-        ownerBody   = gameGetPtrSlot(3)->extra;
-        ownParts    = ((TmdObject*)task->extra)->coords;
+        ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
+        ownerBody   = gameGetPtrSlot(3)->extra.tmd;
+        ownParts    = task->extra.tmd->coords;
         work->light = *ownerBody->lightMtx;
         work->color = *ownerBody->colorMtx;
         Gp_UpdateCoord(ownParts);
@@ -1812,17 +1812,17 @@ void func_dryfield_night_motel_room_6_80180FD0(Task* task)
         Task_CallExit(task);
     }
     mirror      = (Task*)task->spawnArg2;
-    mirrorPart  = &((TmdObject*)mirror->extra)->coords[D_dryfield_night_motel_room_6_80182E70[task->spawnArg1]];
+    mirrorPart  = &mirror->extra.tmd->coords[D_dryfield_night_motel_room_6_80182E70[task->spawnArg1]];
     work        = (RoomMirrorWork*)mirror->work;
-    mirrorExtra = mirror->extra;
+    mirrorExtra = mirror->extra.tmd;
     if (task->state == 0) {
-        src      = task->parent->extra;
+        src      = task->parent->extra.tmd;
         srcParts = src->coords;
         if (Gp_AttachTmd(task, src->source) == NULL) {
             Task_CallExit(task);
             return;
         }
-        extra        = task->extra;
+        extra        = task->extra.tmd;
         parts        = extra->coords;
         extra->tpage = src->tpage;
         tmdProcessStream(extra);
@@ -1842,7 +1842,7 @@ void func_dryfield_night_motel_room_6_80180FD0(Task* task)
         parts->flg        = 0;
         task->state++;
     }
-    extra        = task->extra;
+    extra        = task->extra.tmd;
     flags        = mirrorExtra->flags;
     extra->flags = flags;
     if (task->spawnArg1 >= 2) {

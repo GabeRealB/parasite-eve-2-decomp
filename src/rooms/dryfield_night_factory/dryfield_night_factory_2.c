@@ -1200,7 +1200,7 @@ void func_dryfield_night_factory_801825F0(Task* task)
     s32 state;
 
     state = 1 << gGameSession->at4.loc.view;
-    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
+    Gp_UpdateCoord(task->extra.tmd->coords);
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
         func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
     }

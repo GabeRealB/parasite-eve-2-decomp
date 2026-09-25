@@ -658,7 +658,7 @@ void func_neo_ark_shrine_8017F4C8(Task* task)
     GsCOORDINATE2*    coord;
     NeoArkShrineFall* st;
 
-    extra      = (TmdObject*)task->extra;
+    extra      = task->extra.tmd;
     coord      = extra->coords;
     st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
@@ -687,7 +687,7 @@ void func_neo_ark_shrine_8017F578(Task* task)
     s32               y;
 
     st        = (NeoArkShrineFall*)task->work;
-    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord     = task->extra.tmd->coords;
     ticks     = st->ticks + 1;
     st->ticks = ticks;
     if ((s16)ticks == 4) {
@@ -723,7 +723,7 @@ void func_neo_ark_shrine_8017F688(Task* task)
     GsCOORDINATE2*    coord;
     NeoArkShrineFall* st;
 
-    extra      = (TmdObject*)task->extra;
+    extra      = task->extra.tmd;
     coord      = extra->coords;
     st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = (TaskIdMap*)st;
@@ -752,7 +752,7 @@ void func_neo_ark_shrine_8017F738(Task* task)
     s32               y;
 
     st        = (NeoArkShrineFall*)task->work;
-    coord     = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord     = task->extra.tmd->coords;
     ticks     = st->ticks + 1;
     st->ticks = ticks;
     if ((s16)ticks == 2) {
@@ -803,7 +803,7 @@ void func_neo_ark_shrine_8017F86C(Task* task)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    obj        = task->extra;
+    obj        = task->extra.tmd;
     coord      = obj->coords;
     coord->flg = 0;
     Gp_UpdateCoord(coord);
@@ -1000,7 +1000,7 @@ void func_neo_ark_shrine_8017FEA0(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1243,7 +1243,7 @@ void func_neo_ark_shrine_80180904(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1442,7 +1442,7 @@ void func_neo_ark_shrine_801811EC(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

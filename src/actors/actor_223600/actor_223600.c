@@ -687,7 +687,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     u32              flag;
     s32              hp;
 
-    obj        = (TmdObject*)task->extra;
+    obj        = task->extra.tmd;
     coord      = obj->coords;
     work       = memCalloc(sizeof(Actor223600Work), false);
     task->work = (TaskIdMap*)work;
@@ -705,7 +705,7 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->coord      = &((TmdObject*)task->extra)->coords[2];
+    enemy->coord      = &task->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
     enemy->node.state.b.flags = 1;
     enemy->hpMax              = 1;
@@ -742,18 +742,18 @@ void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
         work->field_184 -= enemy->placeKey >> 13;
     }
 
-    work->field_194 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->x;
-    work->field_196 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->y;
-    work->field_198 = ((GpCoordPos*)((TmdObject*)task->extra)->coords)->z;
+    work->field_194 = ((GpCoordPos*)task->extra.tmd->coords)->x;
+    work->field_196 = ((GpCoordPos*)task->extra.tmd->coords)->y;
+    work->field_198 = ((GpCoordPos*)task->extra.tmd->coords)->z;
 
-    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &dir);
+    Gfx_MatrixCol2(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     Actor223600_ScaleForward(&dir, 0x3E8);
 
     work->field_0 = 0;
     work->field_2 = -1;
 
-    D_actor_223600_80150B5C.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_223600_80150B5C.coord      = task->extra.tmd->coords;
     D_actor_223600_80150B5C.spawnArgLo = 0x100;
     D_actor_223600_80150B5C.spawnArgHi = 1;
     task->state++;
@@ -778,7 +778,7 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = (TmdObject*)task->extra;
+        obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 1;
         obj->flags                = 0;
         Tmd_AllocBuffers(obj);
@@ -789,34 +789,34 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
         mode = enemy->placeKey >> 12;
         switch (mode) {
             case 0:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0xA8C;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = 1;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA28;
+                task->extra.tmd->coords->coord.t[0] = 0xA8C;
+                task->extra.tmd->coords->coord.t[1] = 1;
+                task->extra.tmd->coords->coord.t[2] = 0xA28;
                 break;
             case 1:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0x384;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = mode;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0x960;
+                task->extra.tmd->coords->coord.t[0] = 0x384;
+                task->extra.tmd->coords->coord.t[1] = mode;
+                task->extra.tmd->coords->coord.t[2] = 0x960;
                 break;
         }
-        Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0, 1);
+        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
         work->field_174 = 2;
         work->field_170 = 2;
         func_actor_223600_8014B2F4(task);
-        ((TmdObject*)task->extra)->coords->flg = 0;
-        work->field_6                          = 0;
+        task->extra.tmd->coords->flg = 0;
+        work->field_6                = 0;
         return;
     }
 
     work->field_6++;
     head                          = SCRATCH_HEAD(Actor223600Turn);
-    head[-1].dx                   = work->field_19C - ((GpCoordPos*)((TmdObject*)task->extra)->coords)->x;
+    head[-1].dx                   = work->field_19C - ((GpCoordPos*)task->extra.tmd->coords)->x;
     SCRATCH_HEAD(Actor223600Turn) = head - 1;
     turn                          = head - 1;
     turn->dy                      = 0;
-    turn->dz                      = work->field_1A0 - ((GpCoordPos*)((TmdObject*)task->extra)->coords)->z;
+    turn->dz                      = work->field_1A0 - ((GpCoordPos*)task->extra.tmd->coords)->z;
 
-    coord     = ((TmdObject*)task->extra)->coords;
+    coord     = task->extra.tmd->coords;
     turn->yaw = actorNormalizeYaw(ratan2(head[-1].dx, turn->dz) -
                                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (turn->yaw > 0x10) {
@@ -825,13 +825,13 @@ void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
     if (turn->yaw < -0x10) {
         turn->yaw = -0x10;
     }
-    turn->yaw += ratan2(-((TmdObject*)task->extra)->coords->coord.m[2][0],
-                        ((TmdObject*)task->extra)->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, turn->yaw, 1);
-    Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 5);
+    turn->yaw += ratan2(-task->extra.tmd->coords->coord.m[2][0],
+                        task->extra.tmd->coords->coord.m[2][2]);
+    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, turn->yaw, 1);
+    Actor223600_MoveForward(task->extra.tmd->coords, 5);
     func_actor_223600_8014B2F4(task);
     SCRATCH_POP(Actor223600Turn);
-    ((TmdObject*)task->extra)->coords->flg = 0;
+    task->extra.tmd->coords->flg = 0;
 }
 
 /// Parked state of this enemy. On the frame it is entered (`field_4` set) it
@@ -865,38 +865,38 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
 
     work = (Actor223600Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = (TmdObject*)task->extra;
+        obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 1;
         obj->flags                = 0;
         Tmd_AllocBuffers(obj);
         mode = enemy->placeKey >> 12;
         switch (mode) {
             case 0:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0xA1E;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = -0x384;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0x1590;
-                Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0x7D0, 1);
+                task->extra.tmd->coords->coord.t[0] = 0xA1E;
+                task->extra.tmd->coords->coord.t[1] = -0x384;
+                task->extra.tmd->coords->coord.t[2] = 0x1590;
+                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, 1);
                 work->field_6   = -0xA;
                 work->field_212 = 0xB4;
                 work->field_174 = 2;
                 work->field_170 = 2;
                 break;
             case 1:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0x12C;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = -0x4C4;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0x1194;
-                Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0x3E8, 1);
+                task->extra.tmd->coords->coord.t[0] = 0x12C;
+                task->extra.tmd->coords->coord.t[1] = -0x4C4;
+                task->extra.tmd->coords->coord.t[2] = 0x1194;
+                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, 1);
                 work->field_212 = 0xBE;
                 work->field_6   = 0;
                 work->field_174 = 2;
                 work->field_170 = 2;
                 break;
             case 2:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0x104A;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = -0x384;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0xFE6;
-                Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, -0x400, 1);
-                Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 0x15E);
+                task->extra.tmd->coords->coord.t[0] = 0x104A;
+                task->extra.tmd->coords->coord.t[1] = -0x384;
+                task->extra.tmd->coords->coord.t[2] = 0xFE6;
+                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x400, 1);
+                Actor223600_MoveForward(task->extra.tmd->coords, 0x15E);
                 work->field_6   = 0x3C;
                 work->field_212 = 0x50;
                 work->field_176 = 0x40;
@@ -910,7 +910,7 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                 break;
         }
         func_actor_223600_8014B2F4(task);
-        ((TmdObject*)task->extra)->coords->flg = 0;
+        task->extra.tmd->coords->flg = 0;
         return;
     }
 
@@ -935,26 +935,26 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
             if ((enemy->placeKey >> 12) != 2) {
                 if (work->field_6 < 0x32) {
                     if (work->field_6 >= 0x28) {
-                        Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 0x16);
+                        Actor223600_MoveForward(task->extra.tmd->coords, 0x16);
                     } else if (work->field_6 >= 0x23) {
-                        Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 0xA);
+                        Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
                     } else if (work->field_6 >= 0x13) {
-                        Actor223600_MoveForward(((TmdObject*)task->extra)->coords, 0xA);
+                        Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
                     }
                 }
             }
             frame = (u16)work->field_6;
             if (frame >= 0x28) {
                 if ((u16)(frame % 5) < 2) {
-                    ((TmdObject*)task->extra)->coords->coord.t[1] += work->field_212 - (frame - 0x28) / 4;
+                    task->extra.tmd->coords->coord.t[1] += work->field_212 - (frame - 0x28) / 4;
                 } else {
-                    ((TmdObject*)task->extra)->coords->coord.t[1] += work->field_212 + (frame - 0x28) / 2;
+                    task->extra.tmd->coords->coord.t[1] += work->field_212 + (frame - 0x28) / 2;
                 }
-                if (((TmdObject*)task->extra)->coords->coord.t[1] >= 2) {
-                    ((TmdObject*)task->extra)->coords->coord.t[1] = 1;
+                if (task->extra.tmd->coords->coord.t[1] >= 2) {
+                    task->extra.tmd->coords->coord.t[1] = 1;
                 }
             }
-            if (((TmdObject*)task->extra)->coords->coord.t[1] > 0) {
+            if (task->extra.tmd->coords->coord.t[1] > 0) {
                 work->field_174 = 0xF;
                 work->field_170 = 2;
                 work->field_6   = 0;
@@ -963,41 +963,41 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
         case 0xF:
             work->field_176 = 0x10;
             if (work->field_6 < 0xB) {
-                Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, vec);
+                Gfx_MatrixCol2(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(0x23);
                 gte_ldsv(gte);
                 gte_gpf12();
                 gte_stsv(gte);
-                ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
-                ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
-                ((TmdObject*)task->extra)->coords->coord.t[2] += vec->vz;
+                task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                task->extra.tmd->coords->coord.t[1] += vec->vy;
+                task->extra.tmd->coords->coord.t[2] += vec->vz;
             }
             if ((u32)((u16)work->field_6 - 5) < 9) {
-                Gfx_MatrixCol1(&((TmdObject*)task->extra)->coords->coord, vec);
+                Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(-0x14);
                 gte_ldsv(gte);
                 gte_gpf12();
                 gte_stsv(gte);
-                ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
-                ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
-                ((TmdObject*)task->extra)->coords->coord.t[2] += vec->vz;
-                Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord,
+                task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                task->extra.tmd->coords->coord.t[1] += vec->vy;
+                task->extra.tmd->coords->coord.t[2] += vec->vz;
+                Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord,
                                -((work->field_6 - 4) * 0xCC), 0);
             }
             if ((enemy->placeKey >> 12) == 0) {
                 if ((u32)((u16)work->field_6 - 0xE) < 0x17) {
-                    Gfx_MatrixCol1(&((TmdObject*)task->extra)->coords->coord, vec);
+                    Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
-                    ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
-                    ((TmdObject*)task->extra)->coords->coord.t[2] += vec->vz;
-                    Gfx_MatrixCol0(&((TmdObject*)task->extra)->coords->coord, vec);
+                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[1] += vec->vy;
+                    task->extra.tmd->coords->coord.t[2] += vec->vz;
+                    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);
@@ -1011,54 +1011,54 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                         case 5:
                         case 7:
                         case 9:
-                            ((TmdObject*)task->extra)->coords->coord.t[0] -= gte->vx;
-                            ((TmdObject*)task->extra)->coords->coord.t[1] -= gte->vy;
-                            ((TmdObject*)task->extra)->coords->coord.t[2] -= gte->vz;
-                            Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, -0x800, 0);
-                            Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[1].coord,
+                            task->extra.tmd->coords->coord.t[0] -= gte->vx;
+                            task->extra.tmd->coords->coord.t[1] -= gte->vy;
+                            task->extra.tmd->coords->coord.t[2] -= gte->vz;
+                            Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                            Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                            (work->field_6 - 0xD) * 0x55 - 0x6E, 0);
                             break;
                         default:
-                            ((TmdObject*)task->extra)->coords->coord.t[0] += gte->vx;
-                            ((TmdObject*)task->extra)->coords->coord.t[1] += gte->vy;
-                            ((TmdObject*)task->extra)->coords->coord.t[2] += gte->vz;
-                            Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, -0x800, 0);
-                            Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[1].coord,
+                            task->extra.tmd->coords->coord.t[0] += gte->vx;
+                            task->extra.tmd->coords->coord.t[1] += gte->vy;
+                            task->extra.tmd->coords->coord.t[2] += gte->vz;
+                            Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                            Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                            (work->field_6 - 0xD) * 0x55, 0);
                             break;
                     }
                 }
                 if (work->field_6 >= 0x25) {
-                    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, -0x800, 0);
-                    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[1].coord, 0x800, 0);
+                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, 0);
                 }
             } else {
                 if ((u32)((u16)work->field_6 - 0xE) < 0x10) {
-                    Gfx_MatrixCol1(&((TmdObject*)task->extra)->coords->coord, vec);
+                    Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
-                    ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
-                    ((TmdObject*)task->extra)->coords->coord.t[2] += vec->vz;
-                    Gfx_MatrixCol0(&((TmdObject*)task->extra)->coords->coord, vec);
+                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[1] += vec->vy;
+                    task->extra.tmd->coords->coord.t[2] += vec->vz;
+                    Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(-0x1D);
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    ((TmdObject*)task->extra)->coords->coord.t[0] += head[-1].dx;
-                    ((TmdObject*)task->extra)->coords->coord.t[1] += vec->vy;
-                    ((TmdObject*)task->extra)->coords->coord.t[2] += vec->vz;
-                    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, -0x800, 0);
-                    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[1].coord,
+                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[1] += vec->vy;
+                    task->extra.tmd->coords->coord.t[2] += vec->vz;
+                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord,
                                    (work->field_6 - 0xD) * 0x78, 0);
                 }
                 if (work->field_6 >= 0x1E) {
-                    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords[1].coord, -0x800, 0);
-                    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords[1].coord, 0x800, 0);
+                    Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, 0);
+                    Gfx_RotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, 0);
                 }
             }
             break;
@@ -1066,9 +1066,9 @@ void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
             work->field_176 = 0x20;
             break;
     }
-    ((TmdObject*)task->extra)->coords->flg = 0;
-    ((TmdObject*)task->extra)->coords->flg = 0;
-    pop                                    = (Actor223600Turn**)SCRATCH_HEAD_ADDR;
+    task->extra.tmd->coords->flg = 0;
+    task->extra.tmd->coords->flg = 0;
+    pop                          = (Actor223600Turn**)SCRATCH_HEAD_ADDR;
     SCRATCH_POP_AT(pop, Actor223600Turn);
     work->field_6++;
 }
@@ -1110,16 +1110,16 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     switch (Gp_StateF0.field_4) {
         case 0:
             if (work->field_0 != 0) {
-                ((TmdObject*)task->extra)->flags = 0;
+                task->extra.tmd->flags = 0;
             }
             break;
         case 1:
             if (work->field_0 != 0) {
-                ((TmdObject*)task->extra)->flags = 0;
+                task->extra.tmd->flags = 0;
             }
             return;
         case 2:
-            ((TmdObject*)task->extra)->flags = 0x80;
+            task->extra.tmd->flags = 0x80;
             return;
     }
 
@@ -1134,19 +1134,19 @@ void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
         cue = reaction | (((u16)enemy->placeKey >> 12) << 8);
-        pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
+        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(
             cue, pan,
-            (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
+            (s8)gpGetObjDepth(task->extra.tmd->coords));
     }
     if (work->field_20C != 0) {
-        func_800D7A9C((TmdObject*)task->extra,
-                      (VECTOR*)((TmdObject*)task->extra)->coords->workm.t, 0, 3);
+        func_800D7A9C(task->extra.tmd,
+                      (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
     }
     if (gGameSession->viewReady != 0) {
-        ((TmdObject*)task->extra)->coords->flg = 0;
+        task->extra.tmd->coords->flg = 0;
     }
-    if (((TmdObject*)task->extra)->coords->flg == 0) {
+    if (task->extra.tmd->coords->flg == 0) {
         work->field_20C = 1;
         return;
     }
@@ -1169,7 +1169,7 @@ const GpEnemyTaskFuncTable3 D_actor_223600_80149E58 = {
 /// 2, and 3 clears then sets bit 2. Only case 1 keeps `arg2` as the state.
 s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject*       obj  = task->extra;
+    TmdObject*       obj  = task->extra.tmd;
     Actor223600Work* work = (Actor223600Work*)task->work;
 
     switch (arg2) {
@@ -1232,13 +1232,13 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
 /// `Z`, and the coordinate is marked dirty. Always returns 1.
 s32 func_actor_223600_8014CD54(Task* task, s32 arg1, GpXformArg* placement)
 {
-    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->coords->flg = 0;
+    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
+    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
+    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
+    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
+    task->extra.tmd->coords->flg = 0;
     return 1;
 }
 
@@ -1289,7 +1289,7 @@ void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor223600Work*)arg1->work)->field_4 != 0) {
-        model                    = (TmdObject*)arg1->extra;
+        model                    = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
         model->flags             = 0x80;
     }

@@ -59,7 +59,7 @@ void func_actor_503500_80132778(Task* task)
     SVECTOR*            pos;
     u8                  done;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (task->state == 0) {
         pos               = &D_actor_503500_8014B97C[task->spawnArg1];
         coord->coord.t[0] = pos->vx;
@@ -278,7 +278,7 @@ void func_actor_503500_80132DEC(void)
     SVECTOR*       rot;
 
     slot3 = gameGetPtrSlot(3);
-    coord = ((TmdObject*)slot3->extra)->coords;
+    coord = slot3->extra.tmd->coords;
 
     D_actor_503500_8017655C.pos.vx = coord->coord.t[0];
     D_actor_503500_8017655C.pos.vy = coord->coord.t[1];

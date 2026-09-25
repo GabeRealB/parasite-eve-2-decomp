@@ -40,7 +40,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
     s32            flags;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -192,7 +192,7 @@ void func_tonfa_baton_8011DA48(Task* arg0)
     TmdObject* extra;
     s32*       ptr;
 
-    extra              = (TmdObject*)arg0->extra;
+    extra              = arg0->extra.tmd;
     ptr                = extra->coords;
     arg0->state        = arg0->state + 1;
     arg0->exitCallback = func_tonfa_baton_8011DB78;
@@ -207,11 +207,11 @@ void func_tonfa_baton_8011DA74(Task* arg0)
     GameActor*  actor;
     s32         mode;
 
-    extra        = (TmdObject*)arg0->extra;
+    extra        = arg0->extra.tmd;
     coord        = (GpCoordExt*)extra->coords;
     actor        = gameGetPtrSlot(3)->work;
     coord->flg   = 0;
-    extra->flags = ((TmdObject*)(gameGetPtrSlot(3))->extra)->flags;
+    extra->flags = (gameGetPtrSlot(3))->extra.tmd->flags;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;
@@ -321,9 +321,9 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                     actor->field_91C->spawnArg1 = 1;
                     actor->field_12A           |= 0x8000;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130001, 0);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
-                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                      actor->field_91C->extra.tmd->coords,
                                       0, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);
@@ -332,7 +332,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 1;
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130003, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 actor->field_12A &= 0x7FFF;
@@ -342,7 +342,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                     func_80106518(0x13);
                     actor->field_124 = 0x21315;
                     eff              = Gp_SpawnEff(
-                        0x6003A, (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 1,
+                        0x6003A, actor->field_91C->extra.tmd->coords, 1,
                         NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);
@@ -365,7 +365,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 if (step == 3) {
                     actor->field_12A |= 0x8000;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130002, 0);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130002, 0);
                 } else if (step == 0) {
                     actor->field_95E            = 4;
                     actor->field_934            = 9;
@@ -384,7 +384,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             if (actor->field_93E != 2 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                 actor->field_93E = 2;
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20130004, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130004, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);
@@ -401,7 +401,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             break;
     }
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     Gfx_MatrixCol2(&coord->coord, &swing->dir);
     swing->vx          = (s16)(swing->dir.vx / 84) * swinging;
     swing->vy          = (s16)(swing->dir.vy / 84) * swinging;

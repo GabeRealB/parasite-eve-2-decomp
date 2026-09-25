@@ -370,7 +370,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     GpAnimSlot*               slotB;
     GsCOORDINATE2*            endCoords;
 
-    extra            = (TmdObject*)task->extra;
+    extra            = task->extra.tmd;
     parts            = extra->coords;
     task->spawnArg1 &= 0xFFFF0000;
     work             = (ActorsShared80138efcWork*)memCalloc(sizeof(ActorsShared80138efcWork), 0);
@@ -440,8 +440,8 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     work->field_B92 = hp;
     enemy->hp       = hp;
     SOFT_USE_REG(enemy);
-    ((TmdObject*)task->extra)->coords[1].sub = (GsCOORDINATE2*)work;
-    ((TmdObject*)task->extra)->coords[1].flg = 0;
+    task->extra.tmd->coords[1].sub = (GsCOORDINATE2*)work;
+    task->extra.tmd->coords[1].flg = 0;
 
     i = 1;
     do {
@@ -490,7 +490,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
     }
 
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    endCoords               = ((TmdObject*)task->extra)->coords;
+    endCoords               = task->extra.tmd->coords;
     work->effArg.spawnArgLo = 0x400;
     work->effArg.spawnArgHi = 3;
     work->effArg.coord      = endCoords + 4;
@@ -518,7 +518,7 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if (CdCmd_IsIdle() & 0xFFFF) {
         Gp_LinkNode(&enemy->node);
         obj           = &work->objs[0];
-        obj->coord    = ((TmdObject*)task->extra)->coords;
+        obj->coord    = task->extra.tmd->coords;
         obj->ctx.recs = &work->contacts[0][0];
         obj->pos.vx   = 0;
         obj->pos.vy   = -0x1D8;
@@ -531,7 +531,7 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         Gp_InitRec18Table(obj->ctx.recs, 3, 0);
 
         obj           = &work->objs[3];
-        obj->coord    = &((TmdObject*)task->extra)->coords[3];
+        obj->coord    = &task->extra.tmd->coords[3];
         obj->ctx.recs = &work->contacts[3][0];
         obj->pos.vx   = 0;
         obj->pos.vy   = 0;
@@ -555,7 +555,7 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             if (i == 0) {
                 idx = 0xC;
             }
-            obj->coord    = &((TmdObject*)task->extra)->coords[idx];
+            obj->coord    = &task->extra.tmd->coords[idx];
             obj->ctx.recs = (GpRec18*)((u8*)work + recOff);
             do {
                 if (i == 0) {
@@ -577,10 +577,10 @@ void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             } while (0);
         } while (i < 2);
 
-        enemy->recs                      = &work->contacts[3][0];
-        task->exitCallback               = Actor01100_Fn0668C;
-        ((TmdObject*)task->extra)->flags = (u16)(((TmdObject*)task->extra)->flags & 0xFF7F);
-        task->msgTable                   = &Actor01100_D15660;
+        enemy->recs            = &work->contacts[3][0];
+        task->exitCallback     = Actor01100_Fn0668C;
+        task->extra.tmd->flags = (u16)(task->extra.tmd->flags & 0xFF7F);
+        task->msgTable         = &Actor01100_D15660;
         task->state++;
         enemy->reactionFlags = 0;
     }
@@ -727,13 +727,13 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
         timer           = (u16)work->field_BBE - 1;
         work->field_BBE = timer;
         if (!(timer & 7)) {
-            func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
-            func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+            func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
+            func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
         }
     }
     hitKey = _actor01100FindClass2Contact(&arg->vec, work->contacts[3]);
     if (hitKey != 0) {
-        dist = Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords);
+        dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
         for (i = 0; i < 3; i++) {
             key = work->contacts[3][i].key;
             if (key != 0) {
@@ -742,7 +742,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
             }
         }
         dist = SquareRoot0(dist);
-        yaw  = Actor01100_Fn06954(((TmdObject*)task->extra)->coords, (sourceKey >> 7) & 1);
+        yaw  = Actor01100_Fn06954(task->extra.tmd->coords, (sourceKey >> 7) & 1);
         if (yaw < 0) {
             yaw = -yaw;
         }
@@ -766,7 +766,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
     if (enemy->reactionFlags & 0xC) {
         dotDamage = Gp_TickObjFlag4(enemy);
         if (dotDamage > 0) {
-            Gp_SpawnEff(0x60055, &((TmdObject*)task->extra)->coords[4], 0x11112400, 0);
+            Gp_SpawnEff(0x60055, &task->extra.tmd->coords[4], 0x11112400, 0);
             damage += dotDamage;
         }
     }
@@ -826,7 +826,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                 }
                 break;
             case 3:
-                Gp_SpawnEff(0x60055, &((TmdObject*)task->extra)->coords[4], 0x11112400, 0);
+                Gp_SpawnEff(0x60055, &task->extra.tmd->coords[4], 0x11112400, 0);
                 Gp_SetObjFlag4(enemy, sourceKey, 0);
                 break;
             case 5:
@@ -853,16 +853,16 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                 } else {
                     damage += (s32)damage / 2;
                 }
-                Gp_SpawnEff(0x60070, &((TmdObject*)task->extra)->coords[4], 0x80023300, 0);
+                Gp_SpawnEff(0x60070, &task->extra.tmd->coords[4], 0x80023300, 0);
                 kind7 = 1;
-                Gp_SpawnEff(0x60070, &((TmdObject*)task->extra)->coords[4], 0x80023300, 0);
+                Gp_SpawnEff(0x60070, &task->extra.tmd->coords[4], 0x80023300, 0);
                 break;
             case 8:
             case 9:
                 break;
         }
         if (sparkLevel >= 0) {
-            Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->coords[4], sparkLevel, 0);
+            Gp_SpawnEff(0x6009C, &task->extra.tmd->coords[4], sparkLevel, 0);
         }
         if ((reaction == 1) && (work->field_BA6 == 0)) {
             reaction = 2;
@@ -943,7 +943,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                     SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
                 }
                 work->field_BAE = fromBehind;
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
             case 2:
                 if (work->field_B92 > 0) {
@@ -956,7 +956,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                 work->field_BA6 = 2;
                 work->field_BA8 = 0;
                 work->field_BAE = fromBehind;
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
             case 3:
                 if (work->field_B92 > 0) {
@@ -973,7 +973,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                 work->field_BA6 = 2;
                 work->field_BA8 = 0;
                 work->field_BAE = fromBehind;
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
             case 4:
                 if (work->field_B92 > 0) {
@@ -994,7 +994,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                 _actor01100ClearObjPair(work);
                 work->field_BA6 = 2;
                 work->field_BA8 = 0;
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
             case 5:
                 if (work->field_B92 > 0) {
@@ -1002,7 +1002,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                     sndId |= (u8)work->actorId << 8;
                     SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
                 }
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
             case 6:
                 if (work->field_B92 > 0) {
@@ -1010,12 +1010,12 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wor
                     sndId |= (u8)work->actorId << 8;
                     SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
                 }
-                func_800FDB18((u16)work->field_BC0, &((TmdObject*)task->extra)->coords[4], NULL, &work->effArg);
+                func_800FDB18((u16)work->field_BC0, &task->extra.tmd->coords[4], NULL, &work->effArg);
                 break;
         }
     }
     world  = work->contacts[0];
-    coord  = ((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     savedY = coord->coord.t[1];
     moved  = _actor01100PushOut(coord, world);
     if (moved != 0) {
@@ -1069,7 +1069,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     s16         walk;
 
     flag = 0;
-    dist = Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords);
+    dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
     walk = work->field_B8E;
     if (walk >= 0x11) {
         work->field_B8E = (s16)((u16)work->field_B8E - 0x10);
@@ -1108,7 +1108,7 @@ void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     lockNode                            = &enemy->node;
     enemy->node.state.b.flags           = 0;
-    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
@@ -1146,7 +1146,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     register s32   t asm("v1");
 
     walk = work->field_B8E;
-    part = ((TmdObject*)task->extra)->coords + 4;
+    part = task->extra.tmd->coords + 4;
     if (walk < -0x600) {
         walk = -0x600;
     } else if (walk >= 0x601) {
@@ -1182,7 +1182,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         register s32      inv asm("a0");
 
         scale  = t + 0x1000;
-        coords = ((TmdObject*)task->extra)->coords;
+        coords = task->extra.tmd->coords;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
         sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
         arg->pos.vz = scale;
@@ -1229,7 +1229,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         register s32      inv asm("a0");
 
         scale  = t + 0x1000;
-        coords = ((TmdObject*)task->extra)->coords;
+        coords = task->extra.tmd->coords;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(sv));
         sv          = *(SVECTOR**)((u8*)sv + 0x3FC);
         arg->pos.vz = scale;
@@ -1271,7 +1271,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         GsCOORDINATE2* c;
 
         sv = &arg->vec;
-        c  = ((TmdObject*)task->extra)->coords;
+        c  = task->extra.tmd->coords;
         m  = &c[6].coord;
         SCALE_COL(m, sv, 0, 6, 12, work->field_B96 + 0x1000);
         SCALE_COL(m, sv, 2, 8, 14, (work->field_B96 >> 2) + 0x1000);
@@ -1285,7 +1285,7 @@ void Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         GsCOORDINATE2* c;
 
         sv = &arg->vec;
-        c  = ((TmdObject*)task->extra)->coords;
+        c  = task->extra.tmd->coords;
         m  = &c[10].coord;
         SCALE_COL(m, sv, 0, 6, 12, work->field_B94 + 0x1000);
         SCALE_COL(m, sv, 2, 8, 14, (work->field_B94 >> 2) + 0x1000);
@@ -1371,7 +1371,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     if (work->field_BA0 != 0) {
         return;
     }
-    Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[3]);
+    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
     if (Gp_StateF0.field_4 == 0) {
         randBit         = rand() & 1;
         work->field_BA9 = 0;
@@ -1453,7 +1453,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         if (work->slots[1].flags & 1) {
             work->field_BA9 = 1;
         }
-        part               = ((TmdObject*)task->extra)->coords;
+        part               = task->extra.tmd->coords;
         part              += 1;
         *(s16*)&arg->pan   = Gp_GetObjPan(part);
         *(s16*)&arg->depth = gpGetObjDepth(part);
@@ -1468,13 +1468,13 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                 GpLinkNode*    lockNode;
 
                 enemy->node.state.b.flags           = 0;
-                c                                   = ((TmdObject*)task->extra)->coords;
+                c                                   = task->extra.tmd->coords;
                 lockNode                            = &enemy->node;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1 == 0 && work->field_BC9 == 1 && work->field_BA9 == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
                     i   = 0;
                     off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                     do {
@@ -1527,7 +1527,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                         }
                     }
                 }
-                c                                   = ((TmdObject*)task->extra)->coords;
+                c                                   = task->extra.tmd->coords;
                 lockNode                            = &enemy->node;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
@@ -1542,7 +1542,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             if (!(D_80070F70 & 0xF)) {
                 GsCOORDINATE2* c;
 
-                c           = ((TmdObject*)task->extra)->coords;
+                c           = task->extra.tmd->coords;
                 arg->vec.vx = 0;
                 arg->vec.vy = -0x1E0;
                 arg->vec.vz = 0;
@@ -1556,7 +1556,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
             if (work->field_BB9 != 0 || (u8)arg->field_64 != 0) {
                 eff  = 0x11402300;
-                part = &((TmdObject*)task->extra)->coords[work->field_BBA];
+                part = &task->extra.tmd->coords[work->field_BBA];
                 Gp_UpdateCoord(part);
                 arg->vec.vx = 0;
                 arg->vec.vy = 0;
@@ -1595,7 +1595,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
         }
     } else if (Gp_StateF0.field_4 == 1) {
-        root   = ((TmdObject*)task->extra)->coords;
+        root   = task->extra.tmd->coords;
         savedY = root->coord.t[1];
         Gp_UpdateCoord(root);
         if (_actor01100PushOut(root, work->contacts[0])) {
@@ -1604,14 +1604,14 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         root->coord.t[1] = savedY;
         Gp_ClearRec18Occupied(work->contacts[0]);
     }
-    root = ((TmdObject*)task->extra)->coords;
+    root = task->extra.tmd->coords;
     Gp_UpdateCoord(root);
     arg->pos.vx = root->workm.t[0];
     arg->pos.vy = root->workm.t[1] - 0x320;
     arg->pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &arg->pos, 0, 0);
-    if (!(((TmdObject*)task->extra)->flags & 2)) {
-        Gp_DrawFloorQuad(((TmdObject*)task->extra)->coords, 0x600, NULL);
+    if (!(task->extra.tmd->flags & 2)) {
+        Gp_DrawFloorQuad(task->extra.tmd->coords, 0x600, NULL);
     }
     if (work->field_BA6 >= 0x10) {
         Task_CallExit(task);
@@ -1746,7 +1746,7 @@ void Actor01100_Fn0389C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     u32         rng;
     u16         angle;
 
-    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)task->extra.tmd->coords;
     if (work->field_BA8 == 0) {
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
@@ -1803,12 +1803,12 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     ActorBearingScratch* vec;
     void*                matrix;
 
-    self = ((TmdObject*)task->extra)->coords;
+    self = task->extra.tmd->coords;
     if (Gp_ActorSlots[0] == NULL) {
         SCHED_BARRIER();
         angle = 0;
     } else {
-        other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+        other     = Gp_ActorSlots[0]->extra.tmd->coords;
         selfWorkm = &self->workm;
         __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
         head   = *(ActorBearingScratch**)((u8*)head + 0x3FC);
@@ -1902,12 +1902,12 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 1;
-        self0           = ((TmdObject*)task->extra)->coords;
+        self0           = task->extra.tmd->coords;
         if (Gp_ActorSlots[0] == NULL) {
             SCHED_BARRIER();
             angle = 0;
         } else {
-            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+            other     = Gp_ActorSlots[0]->extra.tmd->coords;
             selfWorkm = &self0->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head0) : "r"(other));
             head0   = *(ActorBearingScratch**)((u8*)head0 + 0x3FC);
@@ -1981,12 +1981,12 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 
     if (work->field_BA8 == 3) {
-        self = ((TmdObject*)task->extra)->coords;
+        self = task->extra.tmd->coords;
         if (Gp_ActorSlots[0] == NULL) {
             SCHED_BARRIER();
             angle3 = 0;
         } else {
-            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+            other     = Gp_ActorSlots[0]->extra.tmd->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head3) : "r"(other));
             head3   = *(ActorBearingScratch**)((u8*)head3 + 0x3FC);
@@ -2063,12 +2063,12 @@ void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                     state = 0xB;
                 }
             } else {
-                self2  = ((TmdObject*)task->extra)->coords;
+                self2  = task->extra.tmd->coords;
                 player = gameGetPtrSlot(3);
                 if (player == NULL) {
                     dist = 0x7FFFFFFF;
                 } else {
-                    playerObj = (TmdObject*)player->extra;
+                    playerObj = player->extra.tmd;
                     TOUCH_REG(playerObj);
                     other  = playerObj->coords;
                     xSelf  = (u16)self2->workm.t[0];
@@ -2138,7 +2138,7 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     delta = work->field_B90;
     lt    = delta < 0x11;
-    yaw   = ((TmdObject*)task->extra)->coords;
+    yaw   = task->extra.tmd->coords;
     if (lt == 0) {
         angle = (u16)((GpCoordExt*)yaw)->param.rot.vy + 0x10;
     } else if (delta < -0x10) {
@@ -2168,12 +2168,12 @@ void Actor01100_Fn041BC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         return;
     }
 
-    coord  = ((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     player = gameGetPtrSlot(3);
     if (player == NULL) {
         dist = 0x7FFFFFFF;
     } else {
-        other  = ((TmdObject*)player->extra)->coords;
+        other  = player->extra.tmd->coords;
         selfT  = (u16)coord->workm.t[0];
         otherT = (u16)other->workm.t[0];
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
@@ -2265,8 +2265,8 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             work->field_B9E = 0;
         } else {
             vec          = &arg->vec;
-            actorCoords  = ((TmdObject*)task->extra)->coords;
-            playerCoords = ((TmdObject*)player->extra)->coords;
+            actorCoords  = task->extra.tmd->coords;
+            playerCoords = player->extra.tmd->coords;
             arg->vec.vx  = 0x12C;
             arg->vec.vy  = 0;
             arg->vec.vz  = 0;
@@ -2293,7 +2293,7 @@ void Actor01100_Fn04410(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     work->field_B8C = (u16)work->field_B8C + 1;
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)task->extra.tmd->coords;
     if (yaw >= 0x11) {
         pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
@@ -2441,8 +2441,8 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             work->field_B9E = 0;
         } else {
             vec          = &arg->vec;
-            actorCoords  = ((TmdObject*)task->extra)->coords;
-            playerCoords = ((TmdObject*)player->extra)->coords;
+            actorCoords  = task->extra.tmd->coords;
+            playerCoords = player->extra.tmd->coords;
             arg->vec.vx  = 0x12C;
             arg->vec.vy  = 0;
             arg->vec.vz  = 0;
@@ -2468,7 +2468,7 @@ void Actor01100_Fn048C8(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
     Actor01100_Fn039D0(enemy, task, work, arg);
     yaw  = work->field_B90;
-    pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    pose = (GpCoordExt*)task->extra.tmd->coords;
     if (yaw >= 0x11) {
         pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
     } else if (yaw < -0x10) {
@@ -2621,11 +2621,11 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
     work->field_B9A = work->field_B98;
     if (work->field_B8C == 0x20) {
-        self = ((TmdObject*)task->extra)->coords;
+        self = task->extra.tmd->coords;
         if (Gp_ActorSlots[0] == NULL) {
             bridge = 0;
         } else {
-            other     = ((TmdObject*)Gp_ActorSlots[0]->extra)->coords;
+            other     = Gp_ActorSlots[0]->extra.tmd->coords;
             selfWorkm = &self->workm;
             __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(other));
             head   = *(ActorBearingScratch**)((u8*)head + 0x3FC);
@@ -2679,7 +2679,7 @@ void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
                     dir = (u32)~yaw >> 31;
                 }
                 j    = 0;
-                part = &((TmdObject*)task->extra)->coords[4];
+                part = &task->extra.tmd->coords[4];
                 if (nInner != 0) {
                     do {
                         arg->vec.vx = (dir != 0) ? 0x12C : -0x12C;
@@ -2732,7 +2732,7 @@ static __inline__ void Actor104900_ScratchWrite(u8* p)
         if (slot == NULL) {                                           \
             out = 0x7FFFFFFF;                                         \
         } else {                                                      \
-            coord   = ((TmdObject*)slot->extra)->coords;              \
+            coord   = slot->extra.tmd->coords;                        \
             head    = Actor104900_ScratchRead();                      \
             vec     = (SVECTOR*)(head - 8);                           \
             vec->vx = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0]; \
@@ -2813,7 +2813,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     u32            rng;
 
     if (work->field_BA8 == 0) {
-        actorCoords = ((TmdObject*)task->extra)->coords;
+        actorCoords = task->extra.tmd->coords;
         Actor104900_DistToPlayer(actorCoords, dist);
         if ((task->spawnArg1 == 0) && (dist <= 0xA62B0F)) {
             rand();
@@ -2852,7 +2852,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     Actor01100_Fn039D0(enemy, task, work, arg);
     if ((u32)((u8)work->field_BAD - 1) < 0x2EU) {
         turn = work->field_B90;
-        pose = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+        pose = (GpCoordExt*)task->extra.tmd->coords;
         if (turn >= 0x11) {
             pose->param.rot.vy = (u16)pose->param.rot.vy + 0x10;
         } else if (turn < -0x10) {
@@ -2866,7 +2866,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         pose->flg = 0;
         frame     = work->field_BAD;
         scale     = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
-        coords    = ((TmdObject*)task->extra)->coords;
+        coords    = task->extra.tmd->coords;
         if (Mc_SaveData.field_5C1 == 0) {
             Actor104900_MatrixCol2(&coords->coord, (volatile SVECTOR*)&arg->vec, scale);
             coords->coord.t[0] += arg->vec.vx;
@@ -2884,7 +2884,7 @@ void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         SndEvt_EnqueueType6((work->field_BB8 << 22) | snd | ((u8)work->actorId << 8), arg->pan, arg->depth);
     }
     if (work->field_BAD == 0x2E) {
-        actorCoords = ((TmdObject*)task->extra)->coords;
+        actorCoords = task->extra.tmd->coords;
         Actor104900_DistToPlayer(actorCoords, dist2);
         if (rand() & 7) {
             if (work->field_BAC < 0xBU) {
@@ -2949,7 +2949,7 @@ void Actor01100_Fn05678(
     u8*                        tmdB;
     u8*                        tmdC;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     if (((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
@@ -2984,10 +2984,10 @@ void Actor01100_Fn05678(
         if (enemy->spawnState == 3) {
             tmdA           = &Actor01100_D0D8F4;
             D_80067330.tmd = tmdA;
-            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
             if (eff != NULL) {
-                spawned    = (TmdObject*)task->extra;
-                tmd        = (TmdObject*)eff->task->extra;
+                spawned    = task->extra.tmd;
+                tmd        = eff->task->extra.tmd;
                 tmd->tpage = spawned->tpage;
                 tmd->clut  = spawned->clut;
                 if (tmd->buffer != NULL) {
@@ -2997,10 +2997,10 @@ void Actor01100_Fn05678(
             }
             tmdB           = &Actor01100_D0E4DC;
             D_80067330.tmd = tmdB;
-            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
             if (eff != NULL) {
-                spawned    = (TmdObject*)task->extra;
-                tmd        = (TmdObject*)eff->task->extra;
+                spawned    = task->extra.tmd;
+                tmd        = eff->task->extra.tmd;
                 tmd->tpage = spawned->tpage;
                 tmd->clut  = spawned->clut;
                 if (tmd->buffer != NULL) {
@@ -3010,10 +3010,10 @@ void Actor01100_Fn05678(
             }
             tmdC           = &Actor01100_D0D8F4;
             D_80067330.tmd = tmdC;
-            eff            = Gp_SpawnEff(0x10032, &((TmdObject*)task->extra)->coords[6], 0x200, 0);
+            eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
             if (eff != NULL) {
-                spawned    = (TmdObject*)task->extra;
-                tmd        = (TmdObject*)eff->task->extra;
+                spawned    = task->extra.tmd;
+                tmd        = eff->task->extra.tmd;
                 tmd->tpage = spawned->tpage;
                 tmd->clut  = spawned->clut;
                 if (tmd->buffer != NULL) {
@@ -3037,7 +3037,7 @@ void Actor01100_Fn05678(
         time            = (u16)work->field_B8C - 1;
         work->field_B8C = time;
         if (time == 0xC) {
-            Gp_SpawnEff(0x600A5, ((TmdObject*)task->extra)->coords, 5, 0);
+            Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
             extra->flags |= 2;
             Gp_SetLightMode(enemy, 2);
@@ -3050,7 +3050,7 @@ void Actor01100_Fn05678(
         time            = (u16)work->field_B8C - 1;
         work->field_B8C = time;
         if ((time << 16) == 0) {
-            spawned         = (TmdObject*)task->extra;
+            spawned         = task->extra.tmd;
             spawned->flags |= 0x80;
             latch           = (u8)work->field_BA8;
             __asm__("addiu %0, $zero, 4" : "=r"(nextTime) : "r"(latch), "m"(spawned->flags));
@@ -3078,7 +3078,7 @@ void Actor01100_Fn05678(
     saved         = enemy->spawnState;
     if (saved == 3) {
         sym    = &Actor01100_D000CC;
-        coords = ((TmdObject*)task->extra)->coords;
+        coords = task->extra.tmd->coords;
         __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
         scratch = *(u32*)(head + 0x3FC);
         scale   = *sym;
@@ -3230,7 +3230,7 @@ void Actor01100_Fn05E68(Task* task)
     u8*                       head;
     s32                       angle;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = memCalloc(0x58, 0);
     if (work == NULL) {
         Task_CallExit(task);
@@ -3330,7 +3330,7 @@ void Actor01100_Fn06198(Task* task)
     SOFT_TOUCH_REG(mask);
     map       &= mask;
     flag       = map == 0x03200000;
-    coord      = ((TmdObject*)task->extra)->coords;
+    coord      = task->extra.tmd->coords;
     soundCoord = (GsCOORDINATE2*)coord;
     d4         = &work->rec;
     if (Gp_StateF0.field_4 == 0) {
@@ -3389,7 +3389,7 @@ void Actor01100_Fn0638C(Task* task)
     GsCOORDINATE2*            coord;
     GpMtxWords*               rotation;
 
-    coord   = ((TmdObject*)task->extra)->coords;
+    coord   = task->extra.tmd->coords;
     area    = *(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
@@ -3500,7 +3500,7 @@ void Actor01100_Fn0668C(Task* task)
     for (i = 0; i < 4; i++) {
         Gp_UnlinkObj(&work->objs[i]);
     }
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     coord[1].sub = coord;
     Gp_DestroyEnemy(enemy, task);
 }
@@ -3528,7 +3528,7 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
 
     mode  = flags ^ 1;
     work  = (ActorsShared80138efcWork*)task->work;
-    model = (TmdObject*)task->extra;
+    model = task->extra.tmd;
     enemy = (GpEnemy*)task->spawnArg2;
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
@@ -3620,7 +3620,7 @@ s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
     if (actor == NULL) {
         return 0;
     }
-    coord = ((TmdObject*)actor->extra)->coords;
+    coord = actor->extra.tmd->coords;
     head  = SCRATCH_HEAD(ActorBearingScratch);
     blk   = head - 1;
 
@@ -3663,7 +3663,7 @@ s32 Actor01100_Fn06AC8(GsCOORDINATE2* arg0)
 
     task = gameGetPtrSlot(3);
     if (task != NULL) {
-        coord                          = ((TmdObject*)task->extra)->coords;
+        coord                          = task->extra.tmd->coords;
         scratch                        = SCRATCH_HEAD_ADDR;
         head                           = SCRATCH_HEAD_AT(scratch, void);
         vec                            = (SVECTOR*)(head - 8);
@@ -3723,14 +3723,14 @@ void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 
     lockNode                            = &enemy->node;
     enemy->node.state.b.flags           = 0;
-    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
     if ((Actor01100_Fn00F58(enemy, task, work, arg) == 0) && (task->spawnArg1 == 0)) {
         trigger = work->field_BC9;
         if ((trigger == 1) && (work->field_BA9 == trigger)) {
-            if (Actor01100_Fn06AC8(((TmdObject*)task->extra)->coords) > 0xA62B10) {
+            if (Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
                 i   = 0;
                 off = OFFSET_OF(ActorsShared80138efcWork, objs[1]);
                 do {
@@ -3796,7 +3796,7 @@ void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
         }
     }
     lockNode                            = &enemy->node;
-    GP_NODE_ENEMY(lockNode)->coord      = &((TmdObject*)task->extra)->coords[3];
+    GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
@@ -4081,7 +4081,7 @@ void Actor01100_Fn073DC(Task* task)
     s16                       countdown;
 
     work  = (ActorsShared80137fb8Work*)task->work;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
 
     if (Gp_StateF0.field_4 == 0) {
         if (task->killCountdown >= 0x15) {

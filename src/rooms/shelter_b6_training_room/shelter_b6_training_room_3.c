@@ -402,7 +402,7 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -669,7 +669,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1021,7 +1021,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1099,7 +1099,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
     GsCOORDINATE2* coord;
 
     mem   = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1);
         if (Gp_State1C->eventState < 4) {
@@ -1259,7 +1259,7 @@ void func_shelter_b6_training_room_80181930(Task* task)
     u8             rgb[3];
     u32            shade;
 
-    coord = ((TmdObject*)task->extra)->coords + 1;
+    coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
         D_shelter_b6_training_room_80185C94 = coord;
         shade                               = ((D_80070F70 & 1) << 4) + 0x40;
@@ -1271,7 +1271,7 @@ void func_shelter_b6_training_room_80181930(Task* task)
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (((Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }
@@ -1282,7 +1282,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
     GsCOORDINATE2* coord;
 
     mem   = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         coord->flg = 0;
@@ -1468,7 +1468,7 @@ void func_shelter_b6_training_room_8018245C(Task* task)
 
     mem        = task->spawnArg2;
     eventState = Gp_State1C->eventState;
-    coord      = ((TmdObject*)task->extra)->coords;
+    coord      = task->extra.tmd->coords;
     if (eventState != 0) {
         if (eventState < 4) {
             return;
@@ -1508,7 +1508,7 @@ void func_shelter_b6_training_room_801825C0(Task* task)
     GsCOORDINATE2* coord;
 
     mem   = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         if (task->state == 0) {
@@ -1540,7 +1540,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
     GsCOORDINATE2* coord;
 
     mem   = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         if (task->state == 0) {
@@ -1593,7 +1593,7 @@ void func_shelter_b6_training_room_8018294C(Task* task)
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (((Gp_LcgState >> 16) & 7) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x601AB, ((TmdObject*)task->extra)->coords + ((u16)((Gp_LcgState >> 16) % 18) + 1), 0, NULL);
+            Gp_SpawnEff(0x601AB, task->extra.tmd->coords + ((u16)((Gp_LcgState >> 16) % 18) + 1), 0, NULL);
         }
     }
 }

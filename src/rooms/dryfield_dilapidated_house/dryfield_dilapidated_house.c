@@ -1583,7 +1583,7 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
 
     i     = 0;
     count = rec->field_16;
-    src   = ((TmdObject*)task->extra)->source;
+    src   = task->extra.tmd->source;
     first = rec->field_14;
     from  = (u16*)&rec->field_8[first];
     nrm   = src->normals;
@@ -1651,8 +1651,8 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     s32            i;
 
     parent      = (Task*)task->spawnArg2;
-    obj         = (TmdObject*)task->extra;
-    parentObj   = (TmdObject*)parent->extra;
+    obj         = task->extra.tmd;
+    parentObj   = parent->extra.tmd;
     coord       = obj->coords;
     parentCoord = parentObj->coords;
     work        = (DdhCoordWork*)Mem_Malloc(0x6C, false);
@@ -1677,7 +1677,7 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     Task_Reparent(parent, task);
 
     rec    = &D_dryfield_dilapidated_house_8018669C;
-    source = ((TmdObject*)task->extra)->source;
+    source = task->extra.tmd->source;
     dst    = rec->field_8;
     dst2   = rec->field_C;
     verts  = source->verts;
@@ -1700,22 +1700,22 @@ void func_dryfield_dilapidated_house_80180B84(Task* task)
     table   = D_dryfield_dilapidated_house_80186854;
     spawned = Task_SpawnFromTable(table, 3, 9, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->coords;
+        childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 3, 0x11, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->coords;
+        childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 0, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->coords;
+        childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
     spawned = Task_SpawnFromTable(table, 2, 1, (s32)task);
     if (spawned != NULL) {
-        childCoord        = ((TmdObject*)spawned->extra)->coords;
+        childCoord        = spawned->extra.tmd->coords;
         childCoord->coord = work->mtx;
     }
 
@@ -1740,8 +1740,8 @@ void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
     s32           temp_v0;
 
     work = (DdhCoordWork*)arg0->work;
-    func_dryfield_dilapidated_house_801810F8((TmdObject*)arg0->extra,
-                                             (TmdObject*)((Task*)arg0->spawnArg2)->extra);
+    func_dryfield_dilapidated_house_801810F8(arg0->extra.tmd,
+                                             ((Task*)arg0->spawnArg2)->extra.tmd);
     func_dryfield_dilapidated_house_80181028(arg0);
     temp_v0       = func_dryfield_dilapidated_house_80180FD8(arg0);
     work->field_0 = temp_v0;
@@ -1786,9 +1786,9 @@ void func_dryfield_dilapidated_house_80181028(Task* task)
     GsCOORDINATE2* node;
     MATRIX*        mtx;
 
-    coord                = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord                = task->extra.tmd->coords;
     work                 = (DdhCoordWork*)task->work;
-    node                 = (GsCOORDINATE2*)((TmdObject*)((Task*)task->spawnArg2)->extra)->coords;
+    node                 = ((Task*)task->spawnArg2)->extra.tmd->coords;
     mtx                  = &work->mtx;
     *(s32*)&work->mtx    = ONE;
     *(s32*)&mtx->m[0][2] = 0;
@@ -1838,7 +1838,7 @@ void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     GsCOORDINATE2* coord;
     DdhModelWork*  work;
 
-    obj   = (TmdObject*)arg0->extra;
+    obj   = arg0->extra.tmd;
     coord = obj->coords;
     work  = (DdhModelWork*)Mem_Malloc(0x24, false);
     if (work == NULL) {
@@ -1885,14 +1885,14 @@ void func_dryfield_dilapidated_house_80181340(Task* arg0)
     GsCOORDINATE2* coord;
     void*          work;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = Mem_Malloc(4, false);
     if (work == NULL) {
         taskKill(arg0);
         return;
     }
     arg0->work = work;
-    coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords;
+    coord->sub = ((Task*)arg0->spawnArg2)->extra.tmd->coords;
     Task_Reparent((Task*)arg0->spawnArg2, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
@@ -1913,7 +1913,7 @@ void func_dryfield_dilapidated_house_8018142C(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord      = arg0->extra.tmd->coords;
     coord->sub = &gGfxViewCoord;
     taskKill(arg0);
 }
@@ -1940,7 +1940,7 @@ void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     GsCOORDINATE2* coord;
     s32            i;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = (DdhAngleStep*)Mem_Malloc(0x40, false);
     if (work == NULL) {
         taskKill(arg0);
@@ -1950,7 +1950,7 @@ void func_dryfield_dilapidated_house_801814B4(Task* arg0)
     for (i = 0; i < 0x10; i++) {
         work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
     }
-    coord->sub = (GsCOORDINATE2*)((TmdObject*)((Task*)arg0->spawnArg2)->extra)->coords;
+    coord->sub = ((Task*)arg0->spawnArg2)->extra.tmd->coords;
     Task_Reparent((Task*)arg0->spawnArg2, arg0);
     arg0->state += 1;
 }
@@ -1967,7 +1967,7 @@ void func_dryfield_dilapidated_house_801815B8(Task* arg0)
 {
     GsCOORDINATE2* coord;
 
-    coord      = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord      = arg0->extra.tmd->coords;
     coord->sub = &gGfxViewCoord;
     taskKill(arg0);
 }
@@ -2124,7 +2124,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     s32            i;
 
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2295,7 +2295,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     u8             rgb[3];
 
     work           = task->spawnArg2;
-    coord          = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord          = task->extra.tmd->coords;
     tick           = work->field_22;
     tick1          = tick + 1;
     work->field_22 = tick1;
@@ -2715,7 +2715,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     s32            mask;
 
     mask  = 1 << (u8)gGameSession->at4.loc.view;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);
     }
@@ -2755,7 +2755,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         mem->field_26 = 0x100;
         arg0->state   = 1;
     }
-    func_dryfield_dilapidated_house_80182A18(((TmdObject*)arg0->extra)->coords, mem->field_26, mem->field_24);
+    func_dryfield_dilapidated_house_80182A18(arg0->extra.tmd->coords, mem->field_26, mem->field_24);
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
     angle        += 0x40;
@@ -2785,7 +2785,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

@@ -2276,8 +2276,8 @@ static __inline__ s16 actorPositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* 
 {
     GsCOORDINATE2* coord;
     s32            angle;
-    actorConfigPositionDelta(config, ((TmdObject*)actor->extra)->coords, pos);
-    coord = ((TmdObject*)actor->extra)->coords;
+    actorConfigPositionDelta(config, actor->extra.tmd->coords, pos);
+    coord = actor->extra.tmd->coords;
     angle = ratan2(pos->vx, pos->vz);
     return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
@@ -2381,7 +2381,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR*       head;
     SVECTOR*       vec;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Mc_SaveData.field_5C1 != 1) {
         head                  = SCRATCH_HEAD(SVECTOR);
         vec                   = head - 1;
@@ -2537,7 +2537,7 @@ static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
     if (eff != NULL) {
         sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
         raw        = enemy->placeKey;
-        model      = (TmdObject*)eff->task->extra;
+        model      = eff->task->extra.tmd;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
@@ -2573,8 +2573,8 @@ static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* 
     GsCOORDINATE2* coord;
     s32            angle;
 
-    actorMatrixPositionDelta(m, ((TmdObject*)actor->extra)->coords, pos);
-    coord = ((TmdObject*)actor->extra)->coords;
+    actorMatrixPositionDelta(m, actor->extra.tmd->coords, pos);
+    coord = actor->extra.tmd->coords;
     angle = ratan2(pos->vx, pos->vz);
     return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
@@ -2659,7 +2659,7 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
     u8*            head;
     VECTOR*        block;
 
-    coord                          = &((TmdObject*)arg0->extra)->coords[1];
+    coord                          = &arg0->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = (VECTOR*)(head - 0x10);

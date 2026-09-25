@@ -61,7 +61,7 @@ void func_antibody_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
@@ -258,7 +258,7 @@ void func_antibody_8012F734(Task* arg0)
     s16            idx;
 
     mem        = arg0->spawnArg2;
-    coord      = ((TmdObject*)arg0->extra)->coords;
+    coord      = arg0->extra.tmd->coords;
     mem->age   = mem->age + 1;
     coord->flg = 0;
     switch (arg0->state) {
@@ -518,7 +518,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32                 ang2;
     u16                 vz;
 
-    player                                      = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
+    player                                      = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
     head                                        = SCRATCH_HEAD(u8);
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];
     block                                       = (AntibodyArcScratch*)(head - 0x28);

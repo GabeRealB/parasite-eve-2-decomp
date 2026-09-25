@@ -55,7 +55,7 @@ merge:
         task->exitCallback = taskKill;
         task->priority     = priority;
         flags_lo           = (u8)desc->flags;
-        task->extra        = extra;
+        task->extra.node   = extra;
         task->spawnArg1    = arg1;
         task->spawnArg2    = (void*)arg2;
         task->parent       = NULL;
@@ -98,7 +98,7 @@ void taskKill(Task* task)
     TaskNode*  saved;
     TaskNode** pp;
     TaskNode*  prev;
-    void*      extra;
+    TaskBody   extra;
     s32        type;
     s32        t;
     Task*      p;
@@ -152,15 +152,15 @@ void taskKill(Task* task)
         goto def_case;
 
     case1:
-        ((TmdObject*)task->extra)->flags |= 0x80;
-        task->killCountdown               = 2;
-        task->callback                    = taskCountdownCallback;
-        task->state                       = 0;
-        task->exitCallback                = textNoopCallback;
+        task->extra.tmd->flags |= 0x80;
+        task->killCountdown     = 2;
+        task->callback          = taskCountdownCallback;
+        task->state             = 0;
+        task->exitCallback      = textNoopCallback;
         return;
 
     case2:
-        gpUnlinkDisp2d(task->extra);
+        gpUnlinkDisp2d(task->extra.node);
         task->killCountdown = 1;
         task->callback      = textNoopCallback;
         task->exitCallback  = textNoopCallback;
@@ -194,12 +194,12 @@ void taskKill(Task* task)
 
     cu1:
         extra = task->extra;
-        gpUnlinkTmd(extra);
-        gpFreeTmd(extra);
+        gpUnlinkTmd(extra.node);
+        gpFreeTmd(extra.tmd);
         goto cu_def;
 
     cu2:
-        gpFreeDisp2d(task->extra);
+        gpFreeDisp2d(task->extra.disp2d);
 
     cu_def:
         task->spawnType = 0xFF;
@@ -216,13 +216,13 @@ void taskKill(Task* task)
     goto imm_unlink;
 
 imm1:
-    gpUnlinkTmd(task->extra);
-    gpFreeTmd(task->extra);
+    gpUnlinkTmd(task->extra.node);
+    gpFreeTmd(task->extra.tmd);
     goto imm_unlink;
 
 imm2:
-    gpUnlinkDisp2d(task->extra);
-    gpFreeDisp2d(task->extra);
+    gpUnlinkDisp2d(task->extra.node);
+    gpFreeDisp2d(task->extra.disp2d);
 
 imm_unlink:
     saved           = gTaskActiveList;
@@ -606,7 +606,7 @@ end:
 
 void taskCountdownCallback(Task* task)
 {
-    void* temp_s0;
+    TaskBody temp_s0;
 
     task->killCountdown--;
     if (task->killCountdown != 0) {
@@ -616,12 +616,12 @@ void taskCountdownCallback(Task* task)
     switch (task->spawnType) {
         case 1:
             temp_s0 = task->extra;
-            gpUnlinkTmd(temp_s0);
-            gpFreeTmd(temp_s0);
+            gpUnlinkTmd(temp_s0.node);
+            gpFreeTmd(temp_s0.tmd);
             task->spawnType = 0xFF;
             break;
         case 2:
-            gpFreeDisp2d(task->extra);
+            gpFreeDisp2d(task->extra.disp2d);
             task->spawnType = 0xFF;
             break;
         default:

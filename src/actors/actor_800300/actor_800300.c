@@ -79,7 +79,7 @@ void func_actor_800300_80161E80(Task* arg0)
     s8              fcc;
 
     actor = arg0->work;
-    extra = arg0->extra;
+    extra = arg0->extra.tmd;
     d4    = actor->field_910;
     addr  = &extra->coords;
     coord = *addr;
@@ -120,7 +120,7 @@ void func_actor_800300_80161E80(Task* arg0)
     Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
     obj->flags     |= 0xC200;
     obj             = (GpObj*)actor->field_CC;
-    next            = ((TmdObject*)arg0->extra)->coords;
+    next            = arg0->extra.tmd->coords;
     obj->ctx.dir    = (GpObjDirRec*)actor->field_94;
     obj->coord      = next + 4;
     actor->field_9C = (s32)recs;
@@ -159,7 +159,7 @@ void func_actor_800300_80162064(Task* arg0)
 
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
-    obj                            = arg0->extra;
+    obj                            = arg0->extra.tmd;
     SCRATCH_HEAD_AT(scratch, void) = head - 0x18;
     extra                          = obj;
     sc                             = (Actor800300VecScratch*)(head - 0x18);
@@ -372,7 +372,7 @@ void func_actor_800300_80162658(Task* arg0)
     sp    = D_actor_800300_80161E40;
     actor = arg0->work;
     d4    = actor->field_910;
-    obj   = ((TmdObject*)arg0->extra)->coords;
+    obj   = arg0->extra.tmd->coords;
     if (d4->decisionTimer > 0) {
         d4->decisionTimer = (u16)d4->decisionTimer - 1;
     }
@@ -438,8 +438,8 @@ void func_actor_800300_801628D0(Task* arg0)
     s32            angle;
     s32            arg;
 
-    coord  = ((TmdObject*)arg0->extra)->coords;
-    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    coord  = arg0->extra.tmd->coords;
+    target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
     switch (actor->field_95E) {
         case 0:
@@ -517,7 +517,7 @@ void func_actor_800300_80162A98(Task* arg0)
     s32            flag;
 
     actor            = arg0->work;
-    extra            = (TmdObject*)(gameGetPtrSlot(3))->extra;
+    extra            = (gameGetPtrSlot(3))->extra.tmd;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x10;
     vec              = (VECTOR3*)(head - 0x10);
@@ -584,8 +584,8 @@ void func_actor_800300_80162C98(Task* arg0)
     s32            val;
 
     actor  = arg0->work;
-    coord  = ((TmdObject*)arg0->extra)->coords;
-    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    coord  = arg0->extra.tmd->coords;
+    target = (gameGetPtrSlot(3))->extra.tmd->coords;
     if (((GameActor*)arg0->work)->field_910->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0x14, 0x3F);
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
@@ -614,8 +614,8 @@ void func_actor_800300_80162D74(Task* arg0)
     VECTOR3*       vec;
     u16            state;
 
-    coord            = ((TmdObject*)arg0->extra)->coords;
-    target           = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
+    target           = (gameGetPtrSlot(3))->extra.tmd->coords;
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x10;
     vec              = (VECTOR3*)(head - 0x10);
@@ -667,7 +667,7 @@ void func_actor_800300_80162F24(Task* arg0)
     s32            flag;
 
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {
         case 0:
             flag               = 1;

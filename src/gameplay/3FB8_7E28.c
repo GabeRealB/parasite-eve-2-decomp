@@ -30,7 +30,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     s32                     len;
     s32                     code;
 
-    extra                                   = arg0->extra;
+    extra                                   = arg0->extra.tmd;
     head                                    = SCRATCH_HEAD(u8);
     coord                                   = (GsCOORDINATE2*)extra->coords;
     mem                                     = arg0->spawnArg2;
@@ -189,7 +189,7 @@ void Gp_EffSprTask81(Task* arg0)
     s16            flag;
     s32            one;
 
-    extra  = arg0->extra;
+    extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2;
     flag   = Gp_State1C->eventState;
     coord  = (GsCOORDINATE2*)extra->coords;

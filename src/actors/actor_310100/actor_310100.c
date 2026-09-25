@@ -126,7 +126,7 @@ s32 func_actor_310100_80161E24(Task* task)
     u16              step;
 
     work = (Actor310100Work*)task->work;
-    obj  = ((TmdObject*)task->extra)->coords;
+    obj  = task->extra.tmd->coords;
     rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec != work->field_4EC) {
         if (rec != NULL) {
@@ -253,7 +253,7 @@ void func_actor_310100_801620FC(Task* task)
             while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
-            obj               = (TmdObject*)modelTask->extra;
+            obj               = modelTask->extra.tmd;
             coord             = obj->coords;
             coord->coord.t[0] = place->x;
             coord->coord.t[1] = place->y;
@@ -317,7 +317,7 @@ void func_actor_310100_80162284(Task* task)
             while (place->entryId != 0xFF && place->entryId != mode) {
                 place++;
             }
-            obj               = (TmdObject*)modelTask->extra;
+            obj               = modelTask->extra.tmd;
             coord             = obj->coords;
             coord->coord.t[0] = place->x;
             coord->coord.t[1] = place->y;
@@ -350,8 +350,8 @@ void func_actor_310100_80162414(Task* task, s32 arg1)
     u8               id;
     s32              i;
 
-    coord      = ((TmdObject*)task->extra)->coords;
-    obj        = (TmdObject*)task->extra;
+    coord      = task->extra.tmd->coords;
+    obj        = task->extra.tmd;
     work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
     mode       = arg1;
     task->work = (TaskIdMap*)work;
@@ -410,8 +410,8 @@ void func_actor_310100_801625E4(Task* task, s32 arg1)
     u8               id;
     s32              i;
 
-    coord      = ((TmdObject*)task->extra)->coords;
-    obj        = (TmdObject*)task->extra;
+    coord      = task->extra.tmd->coords;
+    obj        = task->extra.tmd;
     work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
     mode       = arg1;
     task->work = (TaskIdMap*)work;
@@ -500,7 +500,7 @@ void func_actor_310100_801627BC(Task* task)
                 }
                 child             = Task_SpawnFromTable(&D_actor_310100_801798FC, 2, 1, 0);
                 work->field_4E4   = child;
-                coord             = ((TmdObject*)child->extra)->coords;
+                coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
                 coord->coord.t[2] = place->z;
@@ -578,7 +578,7 @@ void func_actor_310100_801629FC(Task* task)
                 }
                 child             = Task_SpawnFromTable(&D_actor_310100_80179920, 2, work->field_504, 0);
                 work->field_4E4   = child;
-                coord             = ((TmdObject*)child->extra)->coords;
+                coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
                 coord->coord.t[2] = place->z;
@@ -711,7 +711,7 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, GpXformArg* placement)
     GsCOORDINATE2*   coord;
 
     work              = (Actor310100Work*)task->work;
-    coord             = ((TmdObject*)work->field_4E4->extra)->coords;
+    coord             = work->field_4E4->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
@@ -759,7 +759,7 @@ void func_actor_310100_80162F88(Task* task)
             rot.vx = 0;
             rot.vy = 0x380;
             rot.vz = 0;
-            Gp_DrawFloorQuad(&((TmdObject*)task->extra)->coords[1], 0x300, &rot);
+            Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
             switch (work->field_4F0) {
                 case 0:
                     break;
@@ -770,10 +770,10 @@ void func_actor_310100_80162F88(Task* task)
                 default:
                     return;
             }
-            extra  = (TmdObject*)task->extra;
+            extra  = task->extra.tmd;
             vec.vx = extra->coords[1].workm.t[0];
-            vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
-            vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+            vec.vy = task->extra.tmd->coords[1].workm.t[1];
+            vec.vz = task->extra.tmd->coords[1].workm.t[2];
             func_800D7A9C(extra, &vec, 0, 3);
             break;
     }
@@ -803,7 +803,7 @@ void func_actor_310100_8016309C(Task* task)
             rot.vx = 0;
             rot.vy = 0x380;
             rot.vz = 0;
-            Gp_DrawFloorQuad(&((TmdObject*)task->extra)->coords[1], 0x300, &rot);
+            Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
             switch (work->field_4F0) {
                 case 0:
                     break;
@@ -814,10 +814,10 @@ void func_actor_310100_8016309C(Task* task)
                 default:
                     return;
             }
-            extra  = (TmdObject*)task->extra;
+            extra  = task->extra.tmd;
             vec.vx = extra->coords[1].workm.t[0];
-            vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
-            vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+            vec.vy = task->extra.tmd->coords[1].workm.t[1];
+            vec.vz = task->extra.tmd->coords[1].workm.t[2];
             func_800D7A9C(extra, &vec, 0, 3);
             break;
     }
@@ -837,11 +837,11 @@ void func_actor_310100_801631B0(Task* task)
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, 0x6C);
-            Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-            extra      = (TmdObject*)task->extra;
+            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            extra      = task->extra.tmd;
             pos.vec.vx = extra->coords[1].workm.t[0];
-            pos.vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
-            pos.vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+            pos.vec.vy = task->extra.tmd->coords[1].workm.t[1];
+            pos.vec.vz = task->extra.tmd->coords[1].workm.t[2];
             func_800D7A9C(extra, &pos.vec, 0, 3);
             task->state++;
             break;
@@ -850,7 +850,7 @@ void func_actor_310100_801631B0(Task* task)
                 pos.rot.vx = 0;
                 pos.rot.vy = 0x380;
                 pos.rot.vz = 0;
-                Gp_DrawFloorQuad(&((TmdObject*)task->extra)->coords[1], 0x300, &pos.rot);
+                Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &pos.rot);
             }
             break;
     }
@@ -870,11 +870,11 @@ void func_actor_310100_801632B0(Task* task)
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, 0x6D);
-            Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-            extra      = (TmdObject*)task->extra;
+            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            extra      = task->extra.tmd;
             pos.vec.vx = extra->coords[1].workm.t[0];
-            pos.vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
-            pos.vec.vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+            pos.vec.vy = task->extra.tmd->coords[1].workm.t[1];
+            pos.vec.vz = task->extra.tmd->coords[1].workm.t[2];
             func_800D7A9C(extra, &pos.vec, 0, 3);
             task->state++;
             break;
@@ -885,7 +885,7 @@ void func_actor_310100_801632B0(Task* task)
                     pos.rot.vx = 0;
                     pos.rot.vy = 0x380;
                     pos.rot.vz = 0;
-                    Gp_DrawFloorQuad(&((TmdObject*)task->extra)->coords[1], 0x300, &pos.rot);
+                    Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &pos.rot);
                     break;
             }
             break;

@@ -76,7 +76,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
     ShelterElevatorCar* car;
     VECTOR              vec;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     switch (task->state) {
         case 0:

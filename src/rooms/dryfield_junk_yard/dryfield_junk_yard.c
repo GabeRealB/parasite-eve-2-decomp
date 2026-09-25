@@ -75,7 +75,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     s32         flag;
 
     obj        = (GpItemObj8*)task->spawnArg2;
-    tmd        = (TmdObject*)task->extra;
+    tmd        = task->extra.tmd;
     flag       = Gp_GetCurBit2Flag(obj->field_8);
     tmd->flags = 0;
     if (flag == 2) {
@@ -95,7 +95,7 @@ void func_dryfield_junk_yard_8017D658(Task* task)
     GsCOORDINATE2*        coord;
     TmdObject*            tmd;
 
-    tmd   = (TmdObject*)task->extra;
+    tmd   = task->extra.tmd;
     coord = tmd->coords;
     if ((tmd->flags & 0x80) == 0 && tmd->buffer != 0) {
         scratch                            = SCRATCH_HEAD(DjyGroundQuadScratch) - 1;
@@ -275,7 +275,7 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg)
     }
     if (msg->field_2 == 2) {
         player = gameGetPtrSlot(0xA);
-        if ((player != NULL) && (((TmdObject*)(player->extra))->coords->coord.t[0] >= 0x5209) &&
+        if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
             (GameFlag_GetNibble(0x38) == 1)) {
             GameFlag_SetNibble(0x38, 2);
             func_800E8634((s32)&D_dryfield_junk_yard_8017E160, 0, (s32)&D_dryfield_junk_yard_8017E2B0);

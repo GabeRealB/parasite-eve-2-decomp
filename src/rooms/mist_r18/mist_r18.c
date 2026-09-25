@@ -561,8 +561,8 @@ void func_mist_r18_8017E320(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -696,7 +696,7 @@ void func_mist_r18_8017E6D8(s32 idx)
         task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, (s32)gameGetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
-            ((TmdObject*)task->extra)->flags &= 0xFF7F;
+            task->extra.tmd->flags &= 0xFF7F;
         }
     }
 }
@@ -806,7 +806,7 @@ void func_mist_r18_8017EA98(Task* task)
     TmdObject*  obj;
 
     if (task->state == 0) {
-        coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+        coord               = (GpCoordExt*)task->extra.tmd->coords;
         coord->coord.t[0]   = -0x1496;
         coord->coord.t[1]   = -0x2DA;
         coord->coord.t[2]   = 0xB90;
@@ -815,7 +815,7 @@ void func_mist_r18_8017EA98(Task* task)
         coord->param.rot.vz = -0x333;
         RotMatrixZYX(&coord->param.rot, &coord->coord);
         coord->flg    = 0;
-        obj           = (TmdObject*)task->extra;
+        obj           = task->extra.tmd;
         obj->otOffset = -8;
         obj->flags   &= 0xFF7F;
         task->state++;

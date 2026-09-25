@@ -839,7 +839,7 @@ void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_dryfield_night_main_street_8017F3B0(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s32            vz;
     s16            f2a;
     u32            rng2;
@@ -1000,7 +1000,7 @@ void func_dryfield_night_main_street_8017FA68(Task* task)
     s32            lifetime;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1336,7 +1336,7 @@ void func_dryfield_night_main_street_801807B0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1423,7 +1423,7 @@ void func_dryfield_night_main_street_80180B48(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1834,7 +1834,7 @@ void func_dryfield_night_main_street_80181F58(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;

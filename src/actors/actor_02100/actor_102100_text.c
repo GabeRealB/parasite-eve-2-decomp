@@ -236,7 +236,7 @@ void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     s16*                      column2;
     MATRIX*                   matrix;
 
-    extra = arg1->extra;
+    extra = arg1->extra.tmd;
     coord = extra->coords;
     work  = memCalloc(sizeof(Actor02100Work), false);
     if (work == NULL) {
@@ -382,7 +382,7 @@ void Actor02100_Fn004C4(Task* arg0)
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x18;
     scratch          = (Actor02100Fn014E4Scratch*)SCRATCH_HEAD(u8);
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     work             = arg0->work;
     enemy            = arg0->spawnArg2;
 
@@ -402,7 +402,7 @@ void Actor02100_Fn004C4(Task* arg0)
             if (work->field_60.key & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
             } else if ((((u32)work->field_60.key >> 8) & 0x3F) < 0x21U) {
-                src             = ((TmdObject*)Gp_ActorSlots[((u32)work->field_60.key >> 7) & 1]->extra)->coords;
+                src             = Gp_ActorSlots[((u32)work->field_60.key >> 7) & 1]->extra.tmd->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
@@ -542,7 +542,7 @@ void Actor02100_Fn00ADC(Task* arg0)
     s32             sound;
 
     work  = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     one   = 1;
     work->field_16E++;
     state = work->field_16C;
@@ -657,7 +657,7 @@ void Actor02100_Fn00DCC(Task* arg0)
     u32              dist;
     s32              mode;
 
-    self = ((TmdObject*)arg0->extra)->coords;
+    self = arg0->extra.tmd->coords;
     work = arg0->work;
 
     if (gGameSession->viewReady == 1) {
@@ -678,9 +678,9 @@ void Actor02100_Fn00DCC(Task* arg0)
     blk              = (Actor02100Sight*)(head - 0x20);
 
     if (work->field_178 == 4) {
-        target = &((TmdObject*)gameGetPtrSlot(3)->extra)->coords[0];
+        target = &gameGetPtrSlot(3)->extra.tmd->coords[0];
     } else {
-        target = &((TmdObject*)gameGetPtrSlot(3)->extra)->coords[3];
+        target = &gameGetPtrSlot(3)->extra.tmd->coords[3];
     }
     target->flg = 0;
     Gp_UpdateCoord(target);
@@ -771,7 +771,7 @@ void Actor02100_Fn011C4(Task* arg0)
     s32                       dist;
 
     list  = gameGetPtrSlot(4);
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     head  = (Task*)list->firstChild;
     work  = arg0->work;
     if (head != NULL) {
@@ -845,7 +845,7 @@ s32 Actor02100_Fn014E4(Task* arg0)
     s32                       state;
 
     work   = arg0->work;
-    coord  = ((TmdObject*)arg0->extra)->coords;
+    coord  = arg0->extra.tmd->coords;
     result = 0;
     if (work->field_140 == NULL) {
         return result;
@@ -869,9 +869,9 @@ s32 Actor02100_Fn014E4(Task* arg0)
 
 case1:
     if (work->field_178 == 4) {
-        targetCoord = ((TmdObject*)work->field_140->extra)->coords;
+        targetCoord = work->field_140->extra.tmd->coords;
     } else {
-        targetCoord = &((TmdObject*)work->field_140->extra)->coords[3];
+        targetCoord = &work->field_140->extra.tmd->coords[3];
     }
     vec->vx = targetCoord->workm.t[0];
     vec->vy = targetCoord->workm.t[1];
@@ -932,7 +932,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     u8*                       head1;
     u8*                       head2;
 
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     head0            = SCRATCH_HEAD(u8);
     scratch          = (Actor02100Fn01FF0Scratch*)(head0 - 0x28);
     SCRATCH_HEAD(u8) = (u8*)scratch;
@@ -1077,7 +1077,7 @@ void Actor02100_Fn016EC(Task* arg0)
     SCRATCH_PUSH_BYTES(0x48);
     work    = arg0->work;
     state   = work->field_174;
-    coord   = ((TmdObject*)arg0->extra)->coords;
+    coord   = arg0->extra.tmd->coords;
     flagBit = 0x20000;
     sound   = 0;
 
@@ -1208,7 +1208,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
     GsCOORDINATE2*            coord;
     u8*                       head;
 
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     head             = SCRATCH_HEAD(u8);
     work             = arg0->work;
     scratch          = (Actor02100Fn01FF0Scratch*)(head - 0x28);
@@ -1355,7 +1355,7 @@ void Actor02100_Fn01FF0(Task* arg0)
     root             = (Actor02100Fn01FF0Block*)rootHead;
     work             = arg0->work;
     state            = work->field_174;
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
 
     switch (state) {
         case 0:
@@ -1691,7 +1691,7 @@ void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
     s32             mode;
     s32             one;
 
-    obj   = arg1->extra;
+    obj   = arg1->extra.tmd;
     mode  = Gp_StateF0.field_4;
     work  = arg1->work;
     coord = obj->coords;
@@ -1803,7 +1803,7 @@ void Actor02100_Fn03488(Task* arg0)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    coord  = ((TmdObject*)arg0->extra)->coords;
+    coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
@@ -1825,7 +1825,7 @@ void Actor02100_Fn034E0(Task* arg0)
     work             = arg0->work;
     SCRATCH_HEAD(u8) = head - 8;
     scratch          = (Actor02100Screen*)SCRATCH_HEAD(u8);
-    coord            = ((TmdObject*)arg0->extra)->coords;
+    coord            = arg0->extra.tmd->coords;
     for (i = 0; i < 2; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_SetTransMatrix(&coord->workm);
@@ -1857,7 +1857,7 @@ void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
     }
     goto epilogue;
 case0:
-    ((TmdObject*)arg1->extra)->flags = 0x80;
+    arg1->extra.tmd->flags = 0x80;
     Gp_UnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_40);
     Gp_UnlinkObj(&work->field_78);

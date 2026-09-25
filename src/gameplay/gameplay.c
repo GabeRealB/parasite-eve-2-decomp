@@ -1028,14 +1028,14 @@ void* Gp_AttachTmd(Task* task, TmdSource* src)
 
     node = (TmdListHead*)Tmd_Create(src, 0);
     if (node != NULL) {
-        list            = &gTmdList;
-        last            = list->prev;
-        node->next      = last->next;
-        last->next      = node;
-        node->prev      = last;
-        list->prev      = node;
-        task->extra     = node;
-        task->spawnType = 1;
+        list             = &gTmdList;
+        last             = list->prev;
+        node->next       = last->next;
+        last->next       = node;
+        node->prev       = last;
+        list->prev       = node;
+        task->extra.node = node;
+        task->spawnType  = 1;
     }
     return node;
 }
@@ -1075,7 +1075,7 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         last->next                = (TmdListHead*)node;
         node->prev                = last;
         list->prev                = (TmdListHead*)node;
-        task->extra               = node;
+        task->extra.disp2d        = node;
         task->spawnType           = 2;
     } else {
         printf(gGpStrNewDisp2dNull);
@@ -1091,14 +1091,14 @@ void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
 
     node = (TmdListHead*)Tmd_Create(src, flags);
     if (node != NULL) {
-        list            = &gTmdList;
-        last            = list->prev;
-        node->next      = last->next;
-        last->next      = node;
-        node->prev      = last;
-        list->prev      = node;
-        task->extra     = node;
-        task->spawnType = 1;
+        list             = &gTmdList;
+        last             = list->prev;
+        node->next       = last->next;
+        last->next       = node;
+        node->prev       = last;
+        list->prev       = node;
+        task->extra.node = node;
+        task->spawnType  = 1;
     }
     return node;
 }
@@ -1373,7 +1373,7 @@ Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
             found = 0;
             switch (task->spawnType) {
                 case 1:
-                    extra = task->extra;
+                    extra = task->extra.tmd;
                     count = extra->partCount;
                     coord = extra->coords;
                     for (i = 0; i < count; i++) {
@@ -1385,7 +1385,7 @@ Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
                     }
                     break;
                 case 2:
-                    extra = task->extra;
+                    extra = task->extra.tmd;
                     coord = extra->coords;
                     if (coord == arg0) {
                         found = 1;
@@ -7359,7 +7359,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         head                          = SCRATCH_HEAD(u8);
         newhead                       = head - 0x60;
         sc                            = (GpCircleScratch*)newhead;
-        coord                         = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
+        coord                         = slot->extra.tmd->coords;
         sc->rx                        = arg1;
         sc->ry                        = arg2;
         base                          = gDisplayState.animFrame << 4;
@@ -7367,7 +7367,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
-        other      = &((TmdObject*)slot->extra)->coords[4];
+        other      = &slot->extra.tmd->coords[4];
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;
@@ -8448,7 +8448,7 @@ void Gp_UpdateLinkXforms(void)
         if (slot == NULL) {
             return;
         }
-        extra   = (TmdObject*)slot->extra;
+        extra   = slot->extra.tmd;
         head    = SCRATCH_HEAD(u8);
         player  = (GsCOORDINATE2*)extra->coords;
         newhead = head - 0x48;
@@ -9123,7 +9123,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
         return 0;
     }
     task->work = (TaskIdMap*)pos;
-    coord      = ((TmdObject*)task->extra)->coords;
+    coord      = task->extra.tmd->coords;
     if (arg1 != NULL) {
         pos->vx = arg1->vx;
         pos->vy = arg1->vy;
@@ -9176,7 +9176,7 @@ void func_800A8654(Task* task)
 
     i              = 0;
     c1             = &Gfx_ViewOffsetCoord;
-    extra          = task->extra;
+    extra          = task->extra.tmd;
     vec            = (VECTOR*)task->work;
     src            = extra->coords;
     c1->coord.t[0] = vec->vx;

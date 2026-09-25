@@ -194,7 +194,7 @@ void func_actor_503500_80144E8C(Task* arg0)
     GpMtxWords*        m2;
     s32                pan;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
@@ -277,7 +277,7 @@ void func_actor_503500_801450A0(Task* arg0)
                 if (arg0->spawnArg1 == 0) {
                     work->head.obj.flags |= 0x8000;
                 }
-                coord = ((TmdObject*)arg0->extra)->coords;
+                coord = arg0->extra.tmd->coords;
                 pan   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(0x4023000B, pan, (s8)(gpGetObjDepth(coord) / 2));
                 work->field_C6 = 0;
@@ -381,7 +381,7 @@ void func_actor_503500_80145428(Task* arg0)
             return;
         }
     }
-    coord      = ((TmdObject*)arg0->extra)->coords;
+    coord      = arg0->extra.tmd->coords;
     coord->flg = 0;
     func_actor_503500_801454E0(arg0);
     func_actor_503500_801450A0(arg0);
@@ -393,7 +393,7 @@ void func_actor_503500_80145480(Task* arg0)
 
     func_actor_503500_801372AC(6);
     SndEvt_EnqueueType7(0x4023000B, 1);
-    ext                                = arg0->extra;
+    ext                                = arg0->extra.tmd;
     ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
@@ -441,7 +441,7 @@ void func_actor_503500_801455A4(Task* arg0)
     Task*              child;
     s32                pan;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
@@ -456,7 +456,7 @@ void func_actor_503500_801455A4(Task* arg0)
     m->m20_m21 = 0;
     m->m22     = 0x1000;
 
-    work->head.obj.coord    = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    work->head.obj.coord    = (gameGetPtrSlot(3))->extra.tmd->coords;
     work->head.obj.ctx.recs = &work->head.rec;
     work->head.obj.pos.vx   = D_actor_503500_801715D4.vx;
     work->head.obj.pos.vy   = D_actor_503500_801715D4.vy;
@@ -503,11 +503,11 @@ void func_actor_503500_80145754(Task* arg0)
                     work->field_3C = 0;
                     work->field_40++;
                 } else if (work->field_3C == 0x3E) {
-                    coord = ((TmdObject*)arg0->extra)->coords;
+                    coord = arg0->extra.tmd->coords;
                     pan   = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(0x40230014, pan, (s8)(gpGetObjDepth(coord) / 2));
                 } else if (work->field_3C == 0x5A) {
-                    coord2 = ((TmdObject*)arg0->extra)->coords;
+                    coord2 = arg0->extra.tmd->coords;
                     pan2   = (s8)Gp_GetObjPan(coord2);
                     SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(gpGetObjDepth(coord2) / 2));
                 }
@@ -530,7 +530,7 @@ void func_actor_503500_801458F8(Task* arg0)
     GsCOORDINATE2* coord;
     s32            state;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
@@ -548,7 +548,7 @@ void func_actor_503500_80145950(Task* arg0)
 
     SndEvt_EnqueueType7(0x4023000C, 1);
     func_actor_503500_801372AC(6);
-    ext                                = arg0->extra;
+    ext                                = arg0->extra.tmd;
     ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
@@ -588,7 +588,7 @@ void func_actor_503500_80145A2C(Task* arg0)
     s32                pan;
     s32                pan2;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
@@ -666,7 +666,7 @@ void func_actor_503500_80145C50(Task* arg0)
             }
             if (gGameSession->eventState == 0) {
                 work->head.obj.flags |= 0x8000;
-                coord                 = ((TmdObject*)arg0->extra)->coords;
+                coord                 = arg0->extra.tmd->coords;
                 pan                   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(0x4023000F, pan, (s8)(gpGetObjDepth(coord) / 2));
             }
@@ -699,7 +699,7 @@ void func_actor_503500_80145E1C(Task* arg0)
     GsCOORDINATE2* coord;
     s32            state;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     state = Gp_StateF0.field_4;
     if (state < 3) {
         if (state != 0) {
@@ -722,7 +722,7 @@ void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(0x4023000E, 1);
     SndEvt_EnqueueType7(0x40230013, 1);
     SndEvt_EnqueueType7(0x4023000F, 1);
-    ext                                = arg0->extra;
+    ext                                = arg0->extra.tmd;
     ((GsCOORDINATE2*)ext->coords)->sub = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500ObjWork*)arg0->work)->obj);
     taskKill(arg0);
@@ -768,14 +768,14 @@ const TaskFuncTable3 D_actor_503500_80132230 = {
 void func_actor_503500_80145FDC(Task* task)
 {
     VECTOR                pos;
-    TmdObject*            ext      = task->extra;
+    TmdObject*            ext      = task->extra.tmd;
     Actor503500Effect4CC* work     = (Actor503500Effect4CC*)task->work;
     TaskFunc              funcs[2] = { func_actor_503500_80146524, func_actor_503500_8014618C };
     GsCOORDINATE2*        coord;
     s32                   i;
 
     funcs[work->field_4C0](task);
-    coord              = ((TmdObject*)task->extra)->coords;
+    coord              = task->extra.tmd->coords;
     work->field_4A0   += work->field_4B0;
     work->field_4A4   += work->field_4B4;
     work->field_4A8   += work->field_4B8;
@@ -826,10 +826,10 @@ void func_actor_503500_8014618C(Task* arg0)
 
     // `extra` is read twice on purpose: the second read is what leaves the
     // target's `move s2, v0` copy.
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     work  = (Actor503500Effect4CC*)arg0->work;
     enemy = arg0->spawnArg2;
-    ext   = arg0->extra;
+    ext   = arg0->extra.tmd;
     switch (work->field_4C2) {
         case 0:
             work->field_4C4 = 0;
@@ -901,7 +901,7 @@ void func_actor_503500_8014642C(Task* arg0)
     GpEnemy*              enemy;
 
     enemy = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
 
     work = memCalloc(sizeof(Actor503500Effect4CC), false);
     if (work == NULL) {
@@ -942,7 +942,7 @@ void func_actor_503500_80146508(Task* arg0)
     Actor503500Effect4CC* work;
 
     work          = (Actor503500Effect4CC*)arg0->work;
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -958,7 +958,7 @@ s32 func_actor_503500_8014652C(Task* task, s32 arg1, GpAnimArg* msg)
     s32                   i;
 
     work = (Actor503500Effect4CC*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank   = msg->animBlock.index;
         work->model.animId = -1;
@@ -991,7 +991,7 @@ s32 func_actor_503500_80146664(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -1008,7 +1008,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     TmdObject* ext;
     s32        ret;
 
-    ext = task->extra;
+    ext = task->extra.tmd;
     ret = 0;
     switch (mode) {
         case 0:

@@ -69,7 +69,7 @@ void func_shelter_1f_vehicular_airlock_80180290(GsCOORDINATE2* arg0, s16 arg1, u
 /// argument names reads 2, and clears it otherwise.
 void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
 {
-    TmdObject* obj = task->extra;
+    TmdObject* obj = task->extra.tmd;
 
     if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2)->flagId) == 2) {
         obj->flags |= 0x80;
@@ -613,7 +613,7 @@ void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -854,7 +854,7 @@ void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1055,7 +1055,7 @@ void func_shelter_1f_vehicular_airlock_80180008(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

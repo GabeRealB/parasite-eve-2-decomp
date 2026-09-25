@@ -258,7 +258,7 @@ void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if ((GameFlag_GetNibble(0xA) & 2) ||
         (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
@@ -296,7 +296,7 @@ void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     work  = (Actor311900Work*)task->work;
     coord = obj->coords;
     func_actor_311900_80161E3C(task, 2, 0);
@@ -352,7 +352,7 @@ void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (GameFlag_GetNibble(1) >= 3 ||
         (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
@@ -376,7 +376,7 @@ void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)task->extra;
+    obj = task->extra.tmd;
     func_actor_311900_80161E3C(task, 4, 2);
     if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
         obj->flags = 0;
@@ -442,7 +442,7 @@ void func_actor_311900_8016278C(Task* task)
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
-    ext   = task->extra;
+    ext   = task->extra.tmd;
     light = (OverlayMat*)&work->light;
     color = (OverlayMat*)&work->color;
 
@@ -495,7 +495,7 @@ void func_actor_311900_8016281C(Task* task)
     Actor311900Work* work;
 
     work  = (Actor311900Work*)task->work;
-    ext   = task->extra;
+    ext   = task->extra.tmd;
     light = (OverlayMat*)&work->light;
     color = (OverlayMat*)&work->color;
 

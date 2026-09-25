@@ -55,7 +55,7 @@ void func_mp5a5_8011D1E0(Task* task)
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     slot  = &base->data.light;
 
@@ -315,7 +315,7 @@ void func_mp5a5_8011DDA4(Task* arg0)
     SCRATCH_PUSH_BYTES(0x50);
     spot  = SCRATCH_HEAD(GsCOORDINATE2);
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;
@@ -354,9 +354,9 @@ void func_mp5a5_8011DDA4(Task* arg0)
                     rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     Gp_SpawnEff(0x6002B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                actor->field_91C->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
@@ -368,10 +368,10 @@ void func_mp5a5_8011DDA4(Task* arg0)
                     rec->end0Radius   = 0xC00;
                     actor->field_12A &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20000005 | (WEAPON_ID << 16), 0);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000005 | (WEAPON_ID << 16), 0);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 0x101);
                     eff = Gp_SpawnEff(0x60041,
-                                      (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                      actor->field_91C->extra.tmd->coords,
                                       WEAPON_ID, NULL);
                     if (eff != NULL) {
                         Task_Reparent(actor->field_91C, eff->task);

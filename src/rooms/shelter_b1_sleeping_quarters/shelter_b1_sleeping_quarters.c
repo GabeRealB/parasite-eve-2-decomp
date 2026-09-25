@@ -20,7 +20,7 @@ extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
 /// reads 2, and shows it otherwise.
 void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
-    TmdObject* obj = task->extra;
+    TmdObject* obj = task->extra.tmd;
 
     if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2)->flagId) == 2) {
         obj->flags |= 0x80;

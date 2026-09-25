@@ -582,7 +582,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     u8             rgb[3];
     u32            shade;
 
-    coord = ((TmdObject*)task->extra)->coords + 1;
+    coord = task->extra.tmd->coords + 1;
     if (Gp_State1C->eventState == 0) {
         shade  = ((D_80070F70 & 1) << 4) + 0x40;
         rgb[0] = shade;
@@ -593,7 +593,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (((Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x600E0, ((TmdObject*)task->extra)->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }
@@ -607,7 +607,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 
     mem        = task->spawnArg2;
     eventState = Gp_State1C->eventState;
-    coord      = ((TmdObject*)task->extra)->coords;
+    coord      = task->extra.tmd->coords;
     if (eventState != 0) {
         if (eventState < 4) {
             return;

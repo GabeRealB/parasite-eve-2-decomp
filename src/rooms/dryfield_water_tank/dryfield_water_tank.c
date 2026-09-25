@@ -316,7 +316,7 @@ void func_dryfield_water_tank_8017DB48(void)
 s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 {
     DwtColorMtx*   work  = (DwtColorMtx*)arg0->work;
-    GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
+    GsCOORDINATE2* coord = arg0->extra.tmd->coords;
     GsCOORDINATE2* effCoord;
     SVECTOR        pos;
 
@@ -330,7 +330,7 @@ s32 func_dryfield_water_tank_8017DB98(Task* arg0)
             if (coord->coord.t[2] > D_dryfield_water_tank_8017FD60[1].pos.vz) {
                 work->field_4C++;
             }
-            effCoord = ((TmdObject*)arg0->extra)->coords;
+            effCoord = arg0->extra.tmd->coords;
             if (arg0->killCountdown >= 0xA) {
                 arg0->killCountdown = 0;
             } else {
@@ -374,7 +374,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            extra      = (TmdObject*)arg0->extra;
+            extra      = arg0->extra.tmd;
             coord      = extra->coords;
             mtx        = (DwtColorMtx*)Mem_Malloc(0x58, 0);
             arg0->work = (TaskIdMap*)mtx;
@@ -402,10 +402,10 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
             break;
     }
 
-    mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords->workm.t[0];
+    pos.vy = arg0->extra.tmd->coords->workm.t[1];
+    pos.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -494,7 +494,7 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)task->extra;
+    obj = task->extra.tmd;
     if (arg2 != 0) {
         obj->flags = obj->flags & 0xFF7F;
         return;
@@ -511,7 +511,7 @@ void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placeme
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;

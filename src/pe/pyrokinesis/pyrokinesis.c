@@ -77,7 +77,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
 
     work     = (PyroWork*)arg0->work;
     mem      = arg0->spawnArg2;
-    tmdo     = arg0->extra;
+    tmdo     = arg0->extra.tmd;
     coord    = tmdo->coords;
     mem->age = mem->age + 1;
     base     = Gp_RoomCoords;
@@ -103,7 +103,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            player        = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+            player        = (gameGetPtrSlot(3))->extra.tmd->coords;
             dstm          = (GpMtxWords*)&coord->coord;
             srcm          = (GpMtxWords*)&player->coord;
             dstm->m00_m01 = srcm->m00_m01;
@@ -388,7 +388,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
     s32            state;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         scene = Gp_State1C->battleState;
         if (scene == 1) {
@@ -773,7 +773,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
     s32            y;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;
         if (flag < 4) {
@@ -883,7 +883,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;
         if (flag < 4) {
@@ -1111,7 +1111,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_StateC08.field_3 != -2) {
         flag = Gp_State1C->fadeState;
         if (flag < 4) {
@@ -1125,7 +1125,7 @@ void func_pyrokinesis_80131CE4(Task* arg0)
                 arg0->state = 1;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_8012FC34(((TmdObject*)arg0->extra)->coords, mem->angle, mem->scale);
+            func_pyrokinesis_8012FC34(arg0->extra.tmd->coords, mem->angle, mem->scale);
             angle      = (u16)mem->angle;
             scale      = (u16)mem->scale;
             angle     += 0x40;

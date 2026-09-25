@@ -676,7 +676,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     ctl       = gameGetPtrSlot(3);
     splash    = arg0->spawnArg2;
     mask      = 1 << gGameSession->at4.loc.view;
-    ctlCoords = ((TmdObject*)ctl->extra)->coords;
+    ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
         case 0:
             if (GameFlag_GetNibble(0xB8) == 0) {
@@ -685,7 +685,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
             }
             arg0->state = 1;
             for (i = 0; i < 2; i++) {
-                part                                       = &((TmdObject*)ctl->extra)->coords[14 + i * 3];
+                part                                       = &ctl->extra.tmd->coords[14 + i * 3];
                 D_dryfield_night_water_hole_801809F4[i].vx = part->workm.t[0];
                 D_dryfield_night_water_hole_801809F4[i].vy = part->workm.t[1];
                 D_dryfield_night_water_hole_801809F4[i].vz = part->workm.t[2];
@@ -696,7 +696,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                 gGameSession->waterY < ctlCoords->coord.t[1]) {
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
-                    part = &((TmdObject*)ctl->extra)->coords[14 + i * 3];
+                    part = &ctl->extra.tmd->coords[14 + i * 3];
                     Gp_UpdateCoord(part);
                     splash->strength = ABS(D_dryfield_night_water_hole_801809F4[i].vx - part->workm.t[0]) +
                                        ABS(D_dryfield_night_water_hole_801809F4[i].vy - part->workm.t[1]) +
@@ -891,7 +891,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_night_water_hole_8017F3A8(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1028,7 +1028,7 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

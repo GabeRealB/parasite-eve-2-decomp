@@ -71,7 +71,7 @@ void func_actor_342400_80162084(Task* arg0)
         enemy->placeKey = D_actor_342400_80173AAC << 12;
         D_actor_342400_80173AAC++;
         task       = enemy->task;
-        obj        = task->extra;
+        obj        = task->extra.tmd;
         obj->tpage = 3;
         obj->clut  = 5;
         enemy->hp  = 1;
@@ -81,7 +81,7 @@ void func_actor_342400_80162084(Task* arg0)
         enemy->placeKey = D_actor_342400_80173AAC << 12;
         D_actor_342400_80173AAC++;
         task       = enemy->task;
-        obj        = task->extra;
+        obj        = task->extra.tmd;
         obj->tpage = 3;
         obj->clut  = 5;
         enemy->hp  = 1;
@@ -101,7 +101,7 @@ void func_actor_342400_801621D8(Task* arg0)
     if (work->enemy0 != NULL) {
         enemy = work->enemy0;
         task  = enemy->task;
-        coord = ((TmdObject*)task->extra)->coords;
+        coord = task->extra.tmd->coords;
         if (enemy->hp <= 0) {
             work->enemy0 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -117,7 +117,7 @@ void func_actor_342400_801621D8(Task* arg0)
     if (work->enemy1 != NULL) {
         enemy = work->enemy1;
         task  = enemy->task;
-        coord = ((TmdObject*)task->extra)->coords;
+        coord = task->extra.tmd->coords;
         if (enemy->hp <= 0) {
             work->enemy1 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
@@ -170,7 +170,7 @@ void func_actor_342400_80162324(Task* arg0)
 
 s16 func_actor_342400_801624A4(void)
 {
-    GsCOORDINATE2* coord = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
+    GsCOORDINATE2* coord = (*Gp_ActorSlots)->extra.tmd->coords;
     s16            x     = coord->coord.t[0];
     s16            z     = coord->coord.t[2];
 
@@ -397,7 +397,7 @@ void func_actor_342400_80162C10(Task* arg0)
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->frames > 60) {
-        obj                = task->extra;
+        obj                = task->extra.tmd;
         obj->clut          = 2;
         obj->tpage         = 0;
         enemy->workType    = 0x900;
@@ -424,7 +424,7 @@ void func_actor_342400_80162CBC(Task* arg0)
 
     enemy = work->enemy;
     task  = enemy->task;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
@@ -455,7 +455,7 @@ void func_actor_342400_80162DA0(Task* arg0)
             work->enemy                                                  = enemy;
             enemy->placeKey                                              = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
-            obj        = enemy->task->extra;
+            obj        = enemy->task->extra.tmd;
             obj->tpage = 2;
             obj->clut  = 4;
             arg0->state++;
@@ -476,7 +476,7 @@ void func_actor_342400_80162E6C(Task* arg0)
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->frames > 60) {
-        obj                = task->extra;
+        obj                = task->extra.tmd;
         obj->tpage         = 2;
         obj->clut          = 4;
         enemy->workType    = 0x900;
@@ -503,7 +503,7 @@ void func_actor_342400_80162F1C(Task* arg0)
 
     enemy = work->enemy;
     task  = enemy->task;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].status = 2;
         taskKill(arg0);
@@ -535,7 +535,7 @@ void func_actor_342400_80163010(Task* arg0)
     enemy = work->enemy0;
     if (enemy != NULL) {
         task               = enemy->task;
-        obj                = task->extra;
+        obj                = task->extra.tmd;
         obj->tpage         = 3;
         obj->clut          = 5;
         enemy->workType    = 0x900;
@@ -563,7 +563,7 @@ void func_actor_342400_801630A4(Task* arg0)
             return;
         }
         task               = work->enemy1->task;
-        obj                = task->extra;
+        obj                = task->extra.tmd;
         obj->tpage         = 3;
         obj->clut          = 5;
         enemy->workType    = 0x900;

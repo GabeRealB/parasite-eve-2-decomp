@@ -19,7 +19,7 @@ void Gp_EffSprTask46(Task* arg0)
     s32            param;
 
     mem   = arg0->spawnArg2;
-    extra = arg0->extra;
+    extra = arg0->extra.tmd;
     flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)extra->coords;
     if (flag != 0) {

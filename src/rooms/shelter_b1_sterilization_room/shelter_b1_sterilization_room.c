@@ -1560,7 +1560,7 @@ void func_shelter_b1_sterilization_room_80180340(s32 arg0)
     } else {
         D_shelter_b1_sterilization_room_80184E82 = 0x2710;
     }
-    func_shelter_b1_sterilization_room_80180570(((TmdObject*)task->extra)->coords, &D_shelter_b1_sterilization_room_80184E80);
+    func_shelter_b1_sterilization_room_80180570(task->extra.tmd->coords, &D_shelter_b1_sterilization_room_80184E80);
 }
 
 s32 func_shelter_b1_sterilization_room_801803E4(void)
@@ -1879,7 +1879,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
                         if (D_80073BA0 > 0) {
-                            coord = ((TmdObject*)player->extra)->coords;
+                            coord = player->extra.tmd->coords;
                             Gp_DispatchMsg(player, 0x3F7, (s32)&D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624);
                             Gp_DispatchMsg(player, 0x3E8, (s32)&D_shelter_b1_sterilization_room_80188624, 0);

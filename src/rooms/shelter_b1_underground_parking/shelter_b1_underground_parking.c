@@ -2707,7 +2707,7 @@ void func_shelter_b1_underground_parking_801826C0(void)
 
     task  = gameGetPtrSlot(3);
     actor = (GameActor*)task->work;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (gGameSession->at4.loc.room >= 7) &&
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];

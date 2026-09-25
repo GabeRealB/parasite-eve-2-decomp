@@ -786,12 +786,12 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     u16                      oldc;
 
     actor  = arg0->parent;
-    coords = ((TmdObject*)actor->extra)->coords;
+    coords = actor->extra.tmd->coords;
     center = &coords[8];
     if (Gp_StateF0.field_4 == 0) {
         head    = SCRATCH_HEAD(u8);
         scratch = (Actor403600ChainScratch*)(SCRATCH_HEAD(u8) = head - sizeof(Actor403600ChainScratch));
-        Gp_UpdateCoord(&((TmdObject*)actor->extra)->coords[11]);
+        Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
         if (arg2->chainsSet == 0) {
             /* The view matrix is the view coordinate's own `workm`, so
              * naming it through `gGfxViewCoord` lets the coordinate's
@@ -846,7 +846,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             local0     = &local;
             part0      = 15;
             do {
-                coord0 = &((TmdObject*)actor->extra)->coords[part0];
+                coord0 = &actor->extra.tmd->coords[part0];
                 Gp_UpdateCoord(coord0);
                 scratch->b.vx = (u16)coord0->workm.t[0] - (u16)viewCoord0->workm.t[0];
                 scratch->b.vy = (u16)coord0->workm.t[1] - (u16)viewCoord0->workm.t[1];
@@ -965,7 +965,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 saved3 = (SVECTOR*)(i * sizeof(SVECTOR) + (u32)scratch);
                 SOFT_TOUCH_REG_USE(saved3, actor);
                 saved3 += 12;
-                coord3  = &((TmdObject*)actor->extra)->coords[i + 9];
+                coord3  = &actor->extra.tmd->coords[i + 9];
                 gte_SetRotMatrix(&Gfx_ViewWorldMtx);
                 gte_ldv0(saved3);
                 gte_rtv0();
@@ -1043,7 +1043,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
             saved4 = &scratch->a;
             part4  = 15;
             do {
-                node4 = actor->extra;
+                node4 = actor->extra.tmd;
                 SOFT_USE_REG(node4);
                 coord4 = &node4->coords[part4];
                 TransposeMatrix(&Gfx_ViewWorldMtx, basis4);
@@ -1265,7 +1265,7 @@ void func_actor_403600_80134398(Task* arg0)
     SVECTOR*                      temp_v1;
     SVECTOR*                      point;
 
-    coord  = ((TmdObject*)arg0->extra)->coords;
+    coord  = arg0->extra.tmd->coords;
     var_fp = (s32)&sp10;
     sp10   = D_actor_403600_80131E24;
     /* Order the vector copy and actor load without fencing the stack address. */
@@ -1351,9 +1351,9 @@ void func_actor_403600_80134398(Task* arg0)
             SOFT_USE_REG(firstVector);
 
             if (arg0->spawnArg1 == 0x1100) {
-                Gp_CopyCoordOffset(arg0, &((TmdObject*)owner->extra)->coords[14], (SVECTOR*)var_fp);
+                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], (SVECTOR*)var_fp);
             } else {
-                Gp_CopyCoordOffset(arg0, &((TmdObject*)owner->extra)->coords[18], (SVECTOR*)var_fp);
+                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[18], (SVECTOR*)var_fp);
             }
             if (arg0->spawnArg1 < 0x1000) {
                 Gp_SpawnEff(0x601BB, coord, 0x20, 0);
@@ -1403,7 +1403,7 @@ void func_actor_403600_80134398(Task* arg0)
     }
 block_22:
     work   = arg0->work;
-    target = &((TmdObject*)player->extra)->coords[1];
+    target = &player->extra.tmd->coords[1];
     Gp_UpdateCoord(target);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->viewRot);
     view            = &gGfxViewCoord;
@@ -1514,7 +1514,7 @@ block_22:
                     if (temp_v1_5 == 3) {
                         motionParent = arg0->spawnArg2;
                         if ((s16)arg0->killCountdown >= 7) {
-                            var_a1_2 = &((TmdObject*)motionParent->extra)->coords[18];
+                            var_a1_2 = &motionParent->extra.tmd->coords[18];
                             Gp_CopyCoordOffset(arg0, var_a1_2, &sp10);
                             var_s4 = 0;
                             do {
@@ -1530,9 +1530,9 @@ block_22:
                     } else {
                         temp_a0_3 = arg0->spawnArg2;
                         if (arg0->spawnArg1 == 0x1000) {
-                            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_a0_3->extra)->coords[18], &sp10);
+                            Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
                         } else {
-                            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_a0_3->extra)->coords[14], &sp10);
+                            Gp_CopyCoordOffset(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
                         }
                     block_51:
                         shared += 1;
@@ -2026,10 +2026,10 @@ void func_actor_403600_80135C28(Task* arg0)
 
     temp_a0 = arg0->spawnArg2;
     temp_v1 = temp_a0->work;
-    temp_s4 = ((TmdObject*)arg0->extra)->coords;
+    temp_s4 = arg0->extra.tmd->coords;
     temp_s2 = temp_v1->field_710;
     if (temp_v1->field_742 == 1) {
-        temp_v0                 = temp_a0->extra;
+        temp_v0                 = temp_a0->extra.tmd;
         D_actor_403600_801606A0 = NULL;
         temp_v0->flags          = (u16)(temp_v0->flags & 0xFF7F);
         Task_CallExit(arg0);
@@ -2041,7 +2041,7 @@ void func_actor_403600_80135C28(Task* arg0)
             arg0->work          = (TaskIdMap*)temp_v0_2;
             temp_v0_2->field_E0 = 0;
             sp10                = D_actor_403600_80131E2C;
-            Gp_CopyCoordOffset(arg0, &((TmdObject*)temp_s2->parent->extra)->coords[1], &sp10);
+            Gp_CopyCoordOffset(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
             temp_a0_2                      = &temp_v0_2->field_90.coord.m[0][0];
             *(s32*)&temp_a0_2[0]           = 0x1000;
             *(s32*)&temp_a0_2[2]           = 0;
@@ -2170,7 +2170,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_v0_9         = temp_s0->field_E4 - 1;
                 temp_s0->field_E4 = temp_v0_9;
                 if (temp_v0_9 == 0) {
-                    temp_a0_5               = ((Task*)arg0->spawnArg2)->extra;
+                    temp_a0_5               = ((Task*)arg0->spawnArg2)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
                     goto block_57;
@@ -2186,7 +2186,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v1_10 != 0) {
                     goto block_52;
                 }
-                temp_a1                 = ((Task*)arg0->spawnArg2)->extra;
+                temp_a1                 = ((Task*)arg0->spawnArg2)->extra.tmd;
                 temp_a0_6               = (s16*)&temp_s0->field_90;
                 D_actor_403600_801606A0 = temp_a0_6;
                 temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);

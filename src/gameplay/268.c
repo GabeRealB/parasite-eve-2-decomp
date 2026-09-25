@@ -3186,7 +3186,7 @@ s32 Gp_SumScanQty(GpItemScan* arg0, s32 arg1)
 
 void func_800BB7B4(Task* arg0)
 {
-    ((TmdObject*)arg0->extra)->flags = 0;
+    arg0->extra.tmd->flags = 0;
 }
 
 void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
@@ -3323,7 +3323,7 @@ void Gp_SavePlayerPos(void)
     PlayerStatus*  cfg;
     McSaveData*    save;
 
-    coord  = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    coord  = (gameGetPtrSlot(3))->extra.tmd->coords;
     temp   = (u16)coord->coord.t[0];
     p      = &Player_Status.pos;
     p->x   = temp;
@@ -3353,7 +3353,7 @@ GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
     if (enemy != NULL) {
         task = enemy->task;
         if (task->spawnType != 0) {
-            extra               = (TmdObject*)task->extra;
+            extra               = task->extra.tmd;
             coord               = (GpCoordExt*)extra->coords;
             enemy->placeKey     = arg1->field_0 | (arg1->field_4 << 8);
             enemy->workType     = arg1->field_2;
@@ -3374,7 +3374,7 @@ void func_800BBB54(Task* arg0)
 {
     TmdObject* extra;
 
-    extra = arg0->extra;
+    extra = arg0->extra.tmd;
     if (arg0->state == 0) {
         extra->flags = 0x88;
         arg0->state += 1;
@@ -3406,7 +3406,7 @@ void Gp_WaitItemFlag2(Task* arg0)
 {
     TmdObject* extra;
 
-    extra = arg0->extra;
+    extra = arg0->extra.tmd;
     if (arg0->state == 0) {
         extra->flags = 8;
         arg0->state += 1;

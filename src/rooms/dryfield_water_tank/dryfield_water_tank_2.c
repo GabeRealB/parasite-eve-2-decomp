@@ -511,8 +511,8 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
-    obj   = (TmdObject*)arg0->extra;
+    coord = arg0->extra.tmd->coords;
+    obj   = arg0->extra.tmd;
     switch (arg0->state) {
         case 0:
             obj->flags        = 0;

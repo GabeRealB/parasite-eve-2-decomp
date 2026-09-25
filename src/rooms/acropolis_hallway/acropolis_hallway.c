@@ -328,7 +328,7 @@ void func_acropolis_hallway_8017E120(Task* task)
     s32         flag;
 
     obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
+    tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if (task->state == 0) {
         tmd->flags    = 8;
@@ -355,7 +355,7 @@ void func_acropolis_hallway_8017E1C0(Task* task)
     s32         flag;
 
     obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
+    tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {

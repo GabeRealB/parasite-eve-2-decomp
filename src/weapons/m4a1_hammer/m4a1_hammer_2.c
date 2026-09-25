@@ -41,7 +41,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
     u16            flags;
 
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
     spot = SCRATCH_HEAD(GsCOORDINATE2);
@@ -96,7 +96,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                     hammer->spawnArg1 = 2;
                 }
                 Gp_ConsumeSlotQty(0x98, 0x101);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20190005, 1);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
                 break;
             }
@@ -113,9 +113,9 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20190004, 1);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                actor->field_91C->extra.tmd->coords,
                                 0x19, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;

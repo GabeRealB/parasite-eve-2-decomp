@@ -575,7 +575,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
     GpAreaKey*     sess;
     s32            i;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (task->state == 0) {
         for (i = 0; i < 6; i++) {
             Gp_SpawnEff(0x6008B, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
@@ -614,7 +614,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
     s32            idx;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (arg0->state != 0) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -680,7 +680,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 
     mem   = arg0->spawnArg2;
     quad  = D_acropolis_sanctuary_80182320[arg0->spawnArg1].quad;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     Gp_UpdateCoord(coord);
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -863,7 +863,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     SVECTOR*          sv;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (mem->age >= 0x3D || mem->index >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
         return;
@@ -1017,7 +1017,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
     s16               y;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1 & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
@@ -1087,7 +1087,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 /// (returns 0).
 s32 func_acropolis_sanctuary_8017F918(Task* task)
 {
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
 
     Gp_SpawnEff(0x60078, coord, 0, &vec);
@@ -1304,7 +1304,7 @@ s32 func_acropolis_sanctuary_8017FB18(GsCOORDINATE2* coord, GpRec18* recs, s16 c
 void func_acropolis_sanctuary_80180264(Task* task)
 {
     GpItemObj8* obj = task->spawnArg2;
-    TmdObject*  tmd = task->extra;
+    TmdObject*  tmd = task->extra.tmd;
     s32         flag;
     s32         view;
 
@@ -1328,7 +1328,7 @@ void func_acropolis_sanctuary_801802E0(Task* task)
     s32         flag;
 
     obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
+    tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {

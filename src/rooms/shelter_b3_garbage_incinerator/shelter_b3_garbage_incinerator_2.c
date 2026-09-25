@@ -259,8 +259,8 @@ s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
     GpXformArg     msg;
     _DescentWork*  work  = arg0->work;
-    GsCOORDINATE2* coord = ((TmdObject*)arg0->extra)->coords;
-    GsCOORDINATE2* ref   = ((TmdObject*)work->target->extra)->coords;
+    GsCOORDINATE2* coord = arg0->extra.tmd->coords;
+    GsCOORDINATE2* ref   = work->target->extra.tmd->coords;
 
     switch (work->state) {
         case 0:
@@ -336,7 +336,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     }
     switch (task->state) {
         case 0:
-            obj        = task->extra;
+            obj        = task->extra.tmd;
             coord      = obj->coords;
             work       = memCalloc(0x68, 0);
             task->work = work;
@@ -412,7 +412,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             break;
         case 2:
-            lift              = ((TmdObject*)task->extra)->coords;
+            lift              = task->extra.tmd->coords;
             lift->flg         = 0;
             lift->coord.t[1] -= 3;
             if (lift->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
@@ -459,10 +459,10 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     }
     work = task->work;
     if (gGameSession->at4.loc.room != work->room) {
-        tail   = task->extra;
+        tail   = task->extra.tmd;
         pos.vx = tail->coords->workm.t[0];
-        pos.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
-        pos.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
+        pos.vy = task->extra.tmd->coords->workm.t[1];
+        pos.vz = task->extra.tmd->coords->workm.t[2];
         func_800D7A9C(tail, &pos, 0, 3);
         work->room = gGameSession->at4.loc.room;
     }
@@ -475,7 +475,7 @@ void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     switch (arg2) {
         case 0:
             extra->flags = (extra->flags | 0x80) & 0xFFFB;
@@ -497,7 +497,7 @@ void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformA
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -862,8 +862,8 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
         case 0:
             idx                                                 &= 3;
             D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
-            D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+            D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
             arg0->state++;
             return;
         case 1:
@@ -873,8 +873,8 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
                 }
                 idx                                                 &= 3;
                 D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x10;
-                D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-                func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+                D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+                func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
                 return;
             }
             if (gDisplayState.animFrame & 7) {
@@ -882,8 +882,8 @@ void func_shelter_b3_garbage_incinerator_8017F410(Task* arg0)
             }
             idx                                                 &= 0xF;
             D_shelter_b3_garbage_incinerator_80186F90.spawnArgLo = 0x100;
-            D_shelter_b3_garbage_incinerator_80186F90.coord      = &((TmdObject*)slot->extra)->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
-            func_800FDB18(3, ((TmdObject*)slot->extra)->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
+            D_shelter_b3_garbage_incinerator_80186F90.coord      = &slot->extra.tmd->coords[D_shelter_b3_garbage_incinerator_80186F98[idx]];
+            func_800FDB18(3, slot->extra.tmd->coords, NULL, &D_shelter_b3_garbage_incinerator_80186F90);
             return;
     }
 }

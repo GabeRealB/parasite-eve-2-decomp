@@ -264,13 +264,13 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         if (cfg->field_18 == 1) {
             goto exit;
         }
-        body = cfg->subject->extra;
+        body = cfg->subject->extra.tmd;
         if (Gp_AttachTmd(task, body->source) == NULL) {
         exit:
             Task_CallExit(task);
             return;
         }
-        model        = task->extra;
+        model        = task->extra.tmd;
         parts        = model->coords;
         model->clut  = body->clut;
         model->tpage = body->tpage;
@@ -288,7 +288,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     }
 
     scratch = (_MirrorScratch*)SCRATCH_PUSH_BYTES(0x8C);
-    model   = task->extra;
+    model   = task->extra.tmd;
     work    = task->work;
     parts   = model->coords;
     cfg     = &work->cfg;
@@ -455,8 +455,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     }
 
     if (cfg->active == 1) {
-        src           = cfg->subject->extra;
-        refPart       = &((TmdObject*)task->extra)->coords[1];
+        src           = cfg->subject->extra.tmd;
+        refPart       = &task->extra.tmd->coords[1];
         from          = src->coords;
         model->flags &= ~0x80;
         work->light   = *src->lightMtx;

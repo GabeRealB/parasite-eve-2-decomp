@@ -657,7 +657,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     s32            mask;
     s32            i;
 
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {

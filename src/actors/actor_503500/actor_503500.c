@@ -53,7 +53,7 @@ void func_actor_503500_8013223C(Task* arg0)
     DVECTOR_XZ*          p;
     VECTOR               pos;
 
-    ext   = arg0->extra;
+    ext   = arg0->extra.tmd;
     work  = (Actor503500ColorMtx*)arg0->work;
     enemy = arg0->spawnArg2;
     coord = ext->coords;
@@ -116,7 +116,7 @@ void func_actor_503500_80132430(Task* arg0)
     TmdObject*           ext;
     Actor503500ColorMtx* work;
 
-    ext  = arg0->extra;
+    ext  = arg0->extra.tmd;
     work = memCalloc(sizeof(Actor503500ColorMtx), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
@@ -145,7 +145,7 @@ void func_actor_503500_801324EC(Task* arg0)
     TmdObject*           ext;
     Actor503500ColorMtx* work;
 
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     work          = (Actor503500ColorMtx*)arg0->work;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
@@ -160,7 +160,7 @@ s32 func_actor_503500_80132508(Task* task, s32 arg1, GpXformArg* args)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
     coord->coord.t[1]   = args->pos.vy;
     coord->coord.t[2]   = args->pos.vz;
@@ -177,7 +177,7 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
     TmdObject* obj;
     s32        ret;
 
-    obj = task->extra;
+    obj = task->extra.tmd;
     ret = 0;
     switch (mode) {
         case 0:
@@ -217,14 +217,14 @@ s32 func_actor_503500_80132664(Task* task, s32 arg1, GpCmdArg* msg)
             Display_ClampField126(0);
             break;
         case 1:
-            work->field_45                      = 1;
-            work->field_40                      = 0;
-            ((TmdObject*)task->extra)->otOffset = 0x15;
+            work->field_45            = 1;
+            work->field_40            = 0;
+            task->extra.tmd->otOffset = 0x15;
             break;
         case 2:
-            work->field_45                      = 2;
-            work->field_40                      = 0;
-            ((TmdObject*)task->extra)->otOffset = 0x14;
+            work->field_45            = 2;
+            work->field_40            = 0;
+            task->extra.tmd->otOffset = 0x14;
             break;
         case 3:
             work->field_45 = 0;

@@ -209,7 +209,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     SVECTOR*       vec;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (task->state != 0) {
         return;
     }
@@ -256,7 +256,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     u16            rnd;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (D_acropolis_cafeteria_80184CFC == 0) {
         Gp_ReleaseState1CMem(work, task);
         return;
@@ -311,7 +311,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     u16                            vz;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (D_acropolis_cafeteria_80184CFC != 0) {
         mode = gGameSession->at4.loc.view;
         if (mode == 9) {
@@ -418,7 +418,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     s32            k; // one variable for both branches' LCG addend; literal constants allocate differently
     s32            pan;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     work  = (GpEffWork*)task->spawnArg2;
     state = Gp_State1C->eventState;
     coord = obj->coords;
@@ -548,7 +548,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     GsCOORDINATE2* coord;
 
-    coord                          = ((TmdObject*)task->extra)->coords;
+    coord                          = task->extra.tmd->coords;
     D_acropolis_cafeteria_80184CFC = arg2;
     if (arg2 != 0) {
         Gp_SpawnEff(0x6009D, coord, 0, NULL);
@@ -568,7 +568,7 @@ void func_acropolis_cafeteria_8017F948(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -805,7 +805,7 @@ void func_acropolis_cafeteria_801803AC(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1001,7 +1001,7 @@ void func_acropolis_cafeteria_80180C94(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {
@@ -1211,7 +1211,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     AcropolisCafeteriaDebris* work;
     GsCOORDINATE2*            player;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     work  = memCalloc(0xD8, 0);
     if (work == NULL) {
@@ -1227,7 +1227,7 @@ void func_acropolis_cafeteria_801818DC(Task* task)
     obj->flags = 0;
     RotMatrix(&work->field_C4, &coord->coord);
     work->field_B0     = (rand() & 0xFFF) + 0x3000;
-    player             = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    player             = gameGetPtrSlot(3)->extra.tmd->coords;
     coord->coord.t[0]  = player->coord.t[0];
     coord->coord.t[1]  = player->coord.t[1] - 0x800;
     coord->coord.t[2]  = player->coord.t[2] + 0x800;
@@ -1255,7 +1255,7 @@ void func_acropolis_cafeteria_80181A3C(Task* task)
     head                 = SCRATCH_HEAD(MATRIX);
     SCRATCH_HEAD(MATRIX) = head - 1;
     work                 = (AcropolisCafeteriaDebris*)task->work;
-    coord                = ((TmdObject*)task->extra)->coords;
+    coord                = task->extra.tmd->coords;
     work->field_B0--;
     coord->flg         = 0;
     coord->coord.t[1] += 0x80;
@@ -1561,7 +1561,7 @@ void func_acropolis_cafeteria_801827C4(Task* task)
     TmdObject*  tmd;
 
     obj = (GpItemObj8*)task->spawnArg2;
-    tmd = (TmdObject*)task->extra;
+    tmd = task->extra.tmd;
     if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
         tmd->lightMtx = &D_acropolis_cafeteria_8018D5C0;
         tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
@@ -1588,14 +1588,14 @@ void func_acropolis_cafeteria_8018286C(Task* task)
     s32         flag;
 
     obj  = (GpItemObj8*)task->spawnArg2;
-    tmd  = (TmdObject*)task->extra;
+    tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
         tmd->flags = 0x80;
         return;
     }
     if (obj->field_8 == 0xA) {
-        Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, 0x400, 1);
+        Gfx_RotMatrixX(&task->extra.tmd->coords->coord, 0x400, 1);
     }
     tmd->lightMtx = &D_acropolis_cafeteria_8018D600;
     tmd->colorMtx = &D_acropolis_cafeteria_8018D5E0;
@@ -1612,7 +1612,7 @@ void func_acropolis_cafeteria_80182954(Task* task)
 {
     TmdObject* tmd;
 
-    tmd = (TmdObject*)task->extra;
+    tmd = task->extra.tmd;
     if ((Gp_GetViewIndex() & 0xFF) != 9) {
         tmd->flags = 0x80;
         return;
@@ -1626,13 +1626,13 @@ void func_acropolis_cafeteria_80182954(Task* task)
         tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, 0x400, 1);
+    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, 0x400, 1);
 }
 void func_acropolis_cafeteria_80182A08(Task* task)
 {
     TmdObject* tmd;
 
-    tmd = (TmdObject*)task->extra;
+    tmd = task->extra.tmd;
     switch (Gp_GetViewIndex() & 0xFF) {
         case 6:
         case 7:

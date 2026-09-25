@@ -1797,7 +1797,7 @@ void Gp_DebugPanTask(Task* arg0)
         return;
     }
 
-    extra = slot->extra;
+    extra = slot->extra.tmd;
     coord = &((GsCOORDINATE2*)extra->coords)[1];
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
@@ -1883,7 +1883,7 @@ void Gp_DebugPanTask(Task* arg0)
         do {
             task = (&actor->field_920)[i];
             if (task != NULL) {
-                extra           = task->extra;
+                extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
                 extra->colorMtx = &Gp_DefaultMtx2;
             }
@@ -1893,7 +1893,7 @@ void Gp_DebugPanTask(Task* arg0)
         do {
             task = (&actor->field_918)[i];
             if (task != NULL) {
-                extra           = task->extra;
+                extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
                 extra->colorMtx = &Gp_DefaultMtx2;
             }
@@ -1908,7 +1908,7 @@ void Gp_DebugPanTask(Task* arg0)
                register; the non-volatile asm keeps that copy without acting as
                a scheduling barrier. */
             register TmdObject* e asm("v0");
-            e      = work->extra;
+            e      = work->extra.tmd;
             actor2 = work->work;
             SOFT_TOUCH_REG(e);
             extra = e;
@@ -1927,7 +1927,7 @@ void Gp_DebugPanTask(Task* arg0)
             do {
                 task = (&actor2->field_920)[i];
                 if (task != NULL) {
-                    extra           = task->extra;
+                    extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
                     extra->colorMtx = &D_80114EF8;
                 }
@@ -1937,7 +1937,7 @@ void Gp_DebugPanTask(Task* arg0)
             do {
                 task = (&actor2->field_918)[i];
                 if (task != NULL) {
-                    extra           = task->extra;
+                    extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
                     extra->colorMtx = &D_80114EF8;
                 }
@@ -2036,7 +2036,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     s32             w0;
     s32             w1;
 
-    extra    = (TmdObject*)arg0->task->extra;
+    extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
     if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
@@ -2543,7 +2543,7 @@ void Gp_BindDefaultMtx(Task* arg0)
     register s32 addr asm("v0");
 
     slot  = gameGetPtrSlot(3);
-    extra = slot->extra;
+    extra = slot->extra.tmd;
     if (slot != NULL) {
         result = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
         i      = 0;
@@ -2565,7 +2565,7 @@ void Gp_BindDefaultMtx(Task* arg0)
         Gp_OverrideVec2Flag = 0;
         D_80114F28          = 0;
         do {
-            extra           = (&actor->field_920)[i]->extra;
+            extra           = (&actor->field_920)[i]->extra.tmd;
             extra->lightMtx = mtxA;
             extra->colorMtx = mtxB;
             i++;
@@ -2770,7 +2770,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         block   = (GpLockScanScratch*)newhead;
     }
     actor                           = arg0->work;
-    coord                           = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord                           = arg0->extra.tmd->coords;
     block->src.vx                   = *(u16*)&coord->coord.t[0];
     block->src.vy                   = *(u16*)&coord->coord.t[1] - 1000;
     block->src.vz                   = *(u16*)&coord->coord.t[2];
@@ -3459,7 +3459,7 @@ s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
     TmdObject* extra;
     s32        x;
 
-    extra = (TmdObject*)arg0->extra;
+    extra = arg0->extra.tmd;
     ret   = 0;
     if (arg1 != NULL) {
         arg1->rect.x = ((s8)extra->tpage << 6) + (x = (arg2->x + 1) / 2 + 0x180);
@@ -6782,7 +6782,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     blk->world.vy = arg0->coord->workm.t[1] + blk->world.vy;
     blk->world.vz = arg0->coord->workm.t[2] + blk->world.vz;
 
-    pcoord                        = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
+    pcoord                        = slot->extra.tmd->coords;
     ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
     blk->local.vy                 = blk->world.vy - pcoord->workm.t[1];
     blk->local.vz                 = blk->world.vz - pcoord->workm.t[2];

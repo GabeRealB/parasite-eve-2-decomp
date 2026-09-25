@@ -656,7 +656,7 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
 
     mask     = 1 << gGameSession->at4.loc.view;
     poseMask = mask & 0x24C;
-    coord    = ((TmdObject*)arg0->extra)->coords;
+    coord    = arg0->extra.tmd->coords;
     if (poseMask != 0) {
         func_dryfield_warehouse_8017E414(coord, 8);
     }

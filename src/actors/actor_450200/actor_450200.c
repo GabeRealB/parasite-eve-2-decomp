@@ -54,7 +54,7 @@ void func_actor_450200_80131E24(Task* task)
     s16            countdown;
 
     slot  = gameGetPtrSlot(0xA);
-    coord = &((TmdObject*)slot->extra)->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
+    coord = &slot->extra.tmd->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
     switch (task->state) {
         case 0:
             task->killCountdown = 0x64;
@@ -175,8 +175,8 @@ void func_actor_450200_8013219C(void)
     GsCOORDINATE2* target;
     GsCOORDINATE2* looker;
 
-    target = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
-    looker = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
+    looker = (gameGetPtrSlot(3))->extra.tmd->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(looker);
     D_actor_450200_80137DC4.rot.vy =

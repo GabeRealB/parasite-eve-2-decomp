@@ -843,7 +843,7 @@ void func_mine_mesa_8017EAC0(void)
 
     slot = gameGetPtrSlot(0xA);
     if (slot != NULL) {
-        Gp_SpawnEff(0x6002B, &((TmdObject*)slot->extra)->coords[8], 0x21, NULL);
+        Gp_SpawnEff(0x6002B, &slot->extra.tmd->coords[8], 0x21, NULL);
         SndEvt_EnqueueType6(0x40650001, 0, 0);
     }
 }
@@ -1088,7 +1088,7 @@ void func_mine_mesa_8017F230(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1333,7 +1333,7 @@ void func_mine_mesa_8017FC94(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1530,7 +1530,7 @@ void func_mine_mesa_8018057C(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {
@@ -1842,17 +1842,17 @@ void func_mine_mesa_80181358(Task* arg0)
                 pick = MINE_MESA_RAND() & 3;
                 break;
         }
-        table                                                                  = D_mine_mesa_80189AFC;
-        pt                                                                     = &table[(s16)pick];
-        ((TmdObject*)D_mine_mesa_80189B74[i]->task->extra)->coords->coord.t[0] = pt->x;
-        ((TmdObject*)D_mine_mesa_80189B74[i]->task->extra)->coords->coord.t[1] = pt->y;
-        ((TmdObject*)D_mine_mesa_80189B74[i]->task->extra)->coords->coord.t[2] = pt->z;
-        tmd                                                                    = (TmdObject*)D_mine_mesa_80189B74[i]->task->extra;
-        loc                                                                    = &gGameSession->at4.loc;
-        key.stage                                                              = loc->stage;
-        key.area                                                               = loc->area;
-        key.room                                                               = loc->room;
-        key.view                                                               = gGameSession->at4.loc.view;
+        table                                                        = D_mine_mesa_80189AFC;
+        pt                                                           = &table[(s16)pick];
+        D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord.t[0] = pt->x;
+        D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord.t[1] = pt->y;
+        D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord.t[2] = pt->z;
+        tmd                                                          = D_mine_mesa_80189B74[i]->task->extra.tmd;
+        loc                                                          = &gGameSession->at4.loc;
+        key.stage                                                    = loc->stage;
+        key.area                                                     = loc->area;
+        key.room                                                     = loc->room;
+        key.view                                                     = gGameSession->at4.loc.view;
         Gp_SyncAreaKeyIndex(&key);
         place      = (GpAreaPlace*)Gp_GetNestedAreaRec(&key)->field_0;
         tmd->tpage = place->tpage;
@@ -1864,9 +1864,9 @@ void func_mine_mesa_80181358(Task* arg0)
             tmdProcessStream(tmd);
             tmdProcessStream(tmd);
         }
-        Gfx_RotMatrixY(&((TmdObject*)D_mine_mesa_80189B74[i]->task->extra)->coords->coord,
+        Gfx_RotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
                        pt->yaw, 1);
-        coords               = ((TmdObject*)D_mine_mesa_80189B74[i]->task->extra)->coords;
+        coords               = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
         D_mine_mesa_80189B6E = 0x50;
         coords->flg          = 0;
     }

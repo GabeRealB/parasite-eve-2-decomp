@@ -97,7 +97,7 @@ void func_shelter_b2_pod_bottom_8017D850(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_shelter_b2_pod_bottom_8017DECC(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -477,7 +477,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         coord->flg = 0;
         tick       = work->age;
@@ -642,7 +642,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -854,7 +854,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1002,7 +1002,7 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1131,7 +1131,7 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
     u32            rnd;
 
     work  = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             rnd         = Gp_LcgState * 5 + 0x71357911;
@@ -1297,7 +1297,7 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0)
     if (Gp_State1C->eventState == 0) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
-        coord       = &((TmdObject*)arg0->extra)->coords[(u16)((rnd >> 16) % 18) + 2];
+        coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
         Gp_SpawnEff(0x600E0, coord, 0x10300, 0);
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
@@ -1315,7 +1315,7 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     if (Gp_State1C->eventState == 0) {
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
-        coord       = &((TmdObject*)arg0->extra)->coords[(u16)((rnd >> 16) % 18) + 2];
+        coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
         Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
         rnd         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rnd;
@@ -1332,7 +1332,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
     s16            y;
 
     work  = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState >= 4) {
         Gp_ReleaseState1CMem(work, arg0);
         return;

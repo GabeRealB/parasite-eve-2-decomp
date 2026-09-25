@@ -396,12 +396,12 @@ void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     u32              rng2;
     u32              hi;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     r     = rand();
     idx   = D_actor_460200_8013FCCC[(r * 11) >> 15];
     work  = (Actor160600Work*)task->work;
-    sub   = ((TmdObject*)task->extra)->coords + idx;
+    sub   = task->extra.tmd->coords + idx;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
@@ -448,7 +448,7 @@ void func_actor_460200_801325FC(Task* task)
         } while (0);
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            actorMoveForward(task->extra.tmd->coords, 0xC);
             work->st.travel = (u16)work->st.travel - 1;
             if (work->st.travel == 0) {
                 work->animArg   = 0xA;
@@ -484,7 +484,7 @@ void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     MATRIX*          mtx;
     VECTOR           vec;
 
-    obj     = task->extra;
+    obj     = task->extra.tmd;
     coord   = obj->coords;
     workMem = memCalloc(0x4F8, 0);
     work    = (Actor160600Work*)workMem;
@@ -530,7 +530,7 @@ void func_actor_460200_80132978(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -635,10 +635,10 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
     TmdObject*       self;
     TmdObject*       other;
 
-    self = (TmdObject*)task->extra;
+    self = task->extra.tmd;
     work = (Actor160600Work*)task->work;
     if (task->spawnArg1 != 0) {
-        other = (TmdObject*)work->pairTask->extra;
+        other = work->pairTask->extra.tmd;
     } else {
         other = self;
     }
@@ -665,7 +665,7 @@ s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
     Actor160600Work* work;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor160600Work*)task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
@@ -706,7 +706,7 @@ s32 func_actor_460200_80132CAC(Task* task, s32 arg1, GpXformArg* target)
     s32              dz;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor160600Work*)task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];
@@ -725,8 +725,8 @@ void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     GpEnemy*         spawned;
 
-    coord      = ((TmdObject*)task->extra)->coords;
-    obj        = task->extra;
+    coord      = task->extra.tmd->coords;
+    obj        = task->extra.tmd;
     work       = (Actor161500Work*)memCalloc(0x4FC, false);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
@@ -790,7 +790,7 @@ void func_actor_460200_80132F0C(Task* task)
         } while (0);
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(((TmdObject*)task->extra)->coords, 0x1E);
+            actorMoveForward(task->extra.tmd->coords, 0x1E);
             work->st.travel = (u16)work->st.travel - 1;
             if (work->st.travel == 0) {
                 work->st.state  = 1;
@@ -822,7 +822,7 @@ void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     VECTOR           vec;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     work  = (Actor161500Work*)task->work;
     Gp_UpdateCoord(coord);
@@ -860,7 +860,7 @@ void func_actor_460200_80133254(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -960,10 +960,10 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
     TmdObject*       self;
     TmdObject*       other;
 
-    self = (TmdObject*)task->extra;
+    self = task->extra.tmd;
     work = (Actor161500Work*)task->work;
     if (task->spawnArg1 != 0) {
-        other = (TmdObject*)work->pairTask->extra;
+        other = work->pairTask->extra.tmd;
     } else {
         other = self;
     }
@@ -990,7 +990,7 @@ s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
     Actor161500Work* work;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor161500Work*)task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
@@ -1024,7 +1024,7 @@ s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
     s32              dz;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor161500Work*)task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];
@@ -1043,9 +1043,9 @@ s32 func_actor_460200_80133580(Task* task, s32 arg1, GpXformArg* target)
 void func_actor_460200_8013364C(Task* task)
 {
     Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra;
+    TmdObject*     obj    = task->extra.tmd;
     GsCOORDINATE2* coord  = obj->coords;
-    GsCOORDINATE2* sub    = &((TmdObject*)parent->extra)->coords[7];
+    GsCOORDINATE2* sub    = &parent->extra.tmd->coords[7];
     MATRIX*        work   = (MATRIX*)parent->work;
 
     switch (task->state) {
@@ -1089,7 +1089,7 @@ void func_actor_460200_801336B4(Task* task)
         } while (0);
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
+            actorMoveForward(task->extra.tmd->coords, 0xC);
             work->st.travel = (u16)work->st.travel - 1;
             if (work->st.travel == 0) {
                 work->animArg   = 0xA;
@@ -1122,7 +1122,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     MATRIX*          mtx;
     VECTOR           vec;
 
-    obj     = task->extra;
+    obj     = task->extra.tmd;
     coord   = obj->coords;
     workMem = memCalloc(0x4F8, 0);
     work    = (Actor160600Work*)workMem;
@@ -1160,7 +1160,7 @@ void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
@@ -1185,7 +1185,7 @@ void func_actor_460200_80133AB0(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -1280,10 +1280,10 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
     TmdObject*       self;
     TmdObject*       other;
 
-    self = (TmdObject*)task->extra;
+    self = task->extra.tmd;
     work = (Actor160600Work*)task->work;
     if (task->spawnArg1 != 0) {
-        other = (TmdObject*)work->pairTask->extra;
+        other = work->pairTask->extra.tmd;
     } else {
         other = self;
     }
@@ -1310,7 +1310,7 @@ s32 func_actor_460200_80133D4C(Task* task, s32 arg1, GpXformArg* placement)
     Actor160600Work* work;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor160600Work*)task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
@@ -1340,7 +1340,7 @@ s32 func_actor_460200_80133DCC(Task* task, s32 arg1, GpXformArg* target)
     s32              dz;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor160600Work*)task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];

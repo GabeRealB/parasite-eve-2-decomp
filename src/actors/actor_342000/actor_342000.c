@@ -34,7 +34,7 @@
 /// `field_2A4` is the coordinate node the actor's model is re-parented to:
 /// `func_actor_342000_80162158` seeds it with `&gGfxViewCoord`, and the exit
 /// callback `func_actor_342000_80163F88` writes it back into
-/// `((GsCOORDINATE2*)((TmdObject*)task->extra)->field_8)->sub`.
+/// `task->extra.tmd->coords->sub`.
 ///
 /// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
 /// builds `coord.coord` from the euler angles below it (`Gfx_RotMatrixY` of
@@ -207,7 +207,7 @@ void func_actor_342000_8016201C(Task* arg0)
     VECTOR        pos;
 
     if (arg0->state == 0) {
-        extra      = (TmdObject*)arg0->extra;
+        extra      = arg0->extra.tmd;
         mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
         arg0->work = (TaskIdMap*)mtx;
         if (mtx == NULL) {
@@ -219,19 +219,19 @@ void func_actor_342000_8016201C(Task* arg0)
             if (arg0->spawnArg1 != 0) {
                 extra->otOffset = 0x1F;
             }
-            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
-            extra->colorMtx                        = &mtx->color;
-            extra->lightMtx                        = &mtx->light;
-            arg0->msgTable                         = D_actor_342000_801648A8;
+            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+            extra->colorMtx              = &mtx->color;
+            extra->lightMtx              = &mtx->light;
+            arg0->msgTable               = D_actor_342000_801648A8;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state += 1;
     }
 
-    mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords->workm.t[0];
+    pos.vy = arg0->extra.tmd->coords->workm.t[1];
+    pos.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -251,20 +251,20 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     GsCOORDINATE2* coord;
     OverlayMat*    mtx;
 
-    coord                                  = &w->coord;
-    coord->sub                             = ((Actor342000Work*)arg0->work)->field_2A4;
-    ((TmdObject*)arg0->extra)->coords->sub = coord;
-    coord->coord.t[0]                      = 0;
-    coord->coord.t[1]                      = 0;
-    coord->coord.t[2]                      = 0;
-    mtx                                    = (OverlayMat*)&w->coord.coord;
-    mtx->ident.m00_m01                     = 0x1000;
-    mtx->ident.m02_m10                     = 0;
-    mtx->ident.m11_m12                     = 0x1000;
-    mtx->ident.m20_m21                     = 0;
-    mtx->ident.m22                         = 0x1000;
-    w->coord.flg                           = 0;
-    ((TmdObject*)arg0->extra)->coords->flg = 0;
+    coord                        = &w->coord;
+    coord->sub                   = ((Actor342000Work*)arg0->work)->field_2A4;
+    arg0->extra.tmd->coords->sub = coord;
+    coord->coord.t[0]            = 0;
+    coord->coord.t[1]            = 0;
+    coord->coord.t[2]            = 0;
+    mtx                          = (OverlayMat*)&w->coord.coord;
+    mtx->ident.m00_m01           = 0x1000;
+    mtx->ident.m02_m10           = 0;
+    mtx->ident.m11_m12           = 0x1000;
+    mtx->ident.m20_m21           = 0;
+    mtx->ident.m22               = 0x1000;
+    w->coord.flg                 = 0;
+    arg0->extra.tmd->coords->flg = 0;
 }
 
 /// Spawn tick shared by the actor and its child model tasks: allocates and
@@ -288,7 +288,7 @@ void func_actor_342000_80162158(Task* arg0)
     GpAreaPlace*     rec;
     u16              i;
 
-    extra      = (TmdObject*)arg0->extra;
+    extra      = arg0->extra.tmd;
     work       = (Actor342000Work*)Mem_Malloc(0x2AC, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
@@ -322,7 +322,7 @@ void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 1:
-            w->field_2A4 = ((TmdObject*)w->field_298->extra)->coords;
+            w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_29C = arg0;
             func_800B3F84(&w->ctx, D_actor_342000_80164800, extra, &w->pad_154, w->slots);
@@ -335,7 +335,7 @@ void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 2:
-            w->field_2A4 = ((TmdObject*)w->field_298->extra)->coords;
+            w->field_2A4 = w->field_298->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
             ((Actor342000Work*)w->field_298->work)->field_2A0 = arg0;
             func_800B3F84(&w->ctx, D_actor_342000_80164808, extra, &w->pad_154, w->slots);
@@ -346,7 +346,7 @@ void func_actor_342000_80162158(Task* arg0)
             }
             break;
         default:
-            w->field_2A4 = &((TmdObject*)w->field_298->extra)->coords[D_actor_342000_80164900[arg0->spawnArg1].pad];
+            w->field_2A4 = &w->field_298->extra.tmd->coords[D_actor_342000_80164900[arg0->spawnArg1].pad];
             Actor342000_InitCoord(arg0, w);
             break;
     }
@@ -388,7 +388,7 @@ void func_actor_342000_801625D8(Task* arg0)
         case 0:
             func_actor_342000_80162158(arg0);
             work              = (Actor342000Work*)arg0->work;
-            coord             = ((TmdObject*)arg0->extra)->coords;
+            coord             = arg0->extra.tmd->coords;
             coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1].vx;
             coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1].vy;
             coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1].vz;
@@ -473,11 +473,11 @@ void func_actor_342000_801625D8(Task* arg0)
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
             break;
     }
-    ((TmdObject*)arg0->extra)->flags = ((TmdObject*)work->field_298->extra)->flags;
-    extra                            = (TmdObject*)arg0->extra;
-    pos.vx                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-    pos.vy                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    pos.vz                           = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    arg0->extra.tmd->flags = work->field_298->extra.tmd->flags;
+    extra                  = arg0->extra.tmd;
+    pos.vx                 = arg0->extra.tmd->coords[1].workm.t[0];
+    pos.vy                 = arg0->extra.tmd->coords[1].workm.t[1];
+    pos.vz                 = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(extra, &pos, 0, 3);
 }
 
@@ -601,10 +601,10 @@ void func_actor_342000_801628C8(Task* arg0)
             func_actor_342000_80161EA4(arg0, 8);
             func_actor_342000_80161EA4(data->field_29C, 4);
             func_actor_342000_80161EA4(data->field_2A0, 4);
-            extra  = (TmdObject*)arg0->extra;
-            pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-            pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-            pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+            extra  = arg0->extra.tmd;
+            pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+            pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+            pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
             func_800D7A9C(extra, &pos, 0, 3);
     }
 }
@@ -1208,7 +1208,7 @@ void func_actor_342000_80163F88(Task* task)
     Actor342000Work* work;
     GsCOORDINATE2*   coord;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = (Actor342000Work*)task->work;
 
     coord->sub = work->field_2A4;
@@ -1222,7 +1222,7 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)arg0->extra;
+    extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
             extra->flags = (extra->flags | 0x80) & 0xFFFB;
@@ -1245,7 +1245,7 @@ void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = arg2->pos.vx;
     coord->coord.t[1] = arg2->pos.vy;
     mtx               = &coord->coord;

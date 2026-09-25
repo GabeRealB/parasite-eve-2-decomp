@@ -72,7 +72,7 @@ void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     u32            raw;
     u8             areaByte0;
 
-    obj        = task->extra;
+    obj        = task->extra.tmd;
     coord      = obj->coords;
     task->work = (TaskIdMap*)(D_actor_202900_80156E54 = memCalloc(0x564, false));
     if (D_actor_202900_80156E54 == NULL) {
@@ -92,7 +92,7 @@ void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     D_actor_202900_80156E5C      = spawned;
     sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
     raw                          = enemy->placeKey;
-    model                        = spawned->extra;
+    model                        = spawned->extra.tmd;
     key.stage                    = sessionKey->stage;
     key.area                     = sessionKey->area;
     key.room                     = sessionKey->room;
@@ -152,8 +152,8 @@ void func_actor_202900_8014A088(Task* arg0)
     GsCOORDINATE2* coord;
     TmdObject*     extra;
 
-    extra        = arg0->extra;
-    parent       = ((TmdObject*)D_actor_202900_80156E58->extra)->coords;
+    extra        = arg0->extra.tmd;
+    parent       = D_actor_202900_80156E58->extra.tmd->coords;
     coord        = extra->coords;
     coord->flg   = 0;
     extra->flags = 0;
@@ -170,7 +170,7 @@ void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         pos;
 
-    obj    = (TmdObject*)task->extra;
+    obj    = task->extra.tmd;
     coord  = obj->coords;
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 0x320;
@@ -323,8 +323,8 @@ s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags)
     TmdObject* actorModel;
     TmdObject* taskModel;
 
-    actorModel = D_actor_202900_80156E58->extra;
-    taskModel  = (TmdObject*)D_actor_202900_80156E5C->extra;
+    actorModel = D_actor_202900_80156E58->extra.tmd;
+    taskModel  = D_actor_202900_80156E5C->extra.tmd;
     if (flags & 1) {
         actorModel->flags = 0;
         taskModel->flags  = 0;

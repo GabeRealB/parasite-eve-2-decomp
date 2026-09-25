@@ -526,7 +526,7 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vx             = 0;
                     vec.vy             = 0x2BC;
                     if (Gp_State1C->roomEffectMode == 2) {
-                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80002220, &vec);
+                        Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002220, &vec);
                     }
                     return 0x40010002;
                 }
@@ -545,7 +545,7 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx             = 0;
                         vec.vy             = 0x2BC;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[7], 0x80002220, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002220, &vec);
                         }
                         return 0x40010001;
                     }
@@ -564,7 +564,7 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx              = 0;
                         vec.vy              = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[14], 0x80002220, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80002220, &vec);
                         }
                         return 0x40010002;
                     }
@@ -583,7 +583,7 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx              = 0;
                         vec.vy              = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[17], 0x80002220, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80002220, &vec);
                         }
                         return 0x40010001;
                     }
@@ -604,7 +604,7 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vx             = 0;
                     vec.vy             = 0;
                     if (Gp_State1C->roomEffectMode == 2) {
-                        Gp_SpawnEff(0x60054, ((TmdObject*)task->extra)->coords, 0x80004A00, &vec);
+                        Gp_SpawnEff(0x60054, task->extra.tmd->coords, 0x80004A00, &vec);
                     }
                     return 0x40010005;
                 }
@@ -652,13 +652,13 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                     vec.vx             = 0;
                     vec.vy             = 0x2BC;
                     if (Gp_State1C->roomEffectMode == 2) {
-                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80003200, &vec);
+                        Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80003200, &vec);
                     }
                     vec.vz = 0;
                     vec.vx = 0;
                     vec.vy = 0x2BC;
                     if (Gp_State1C->roomEffectMode == 2) {
-                        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[7], 0x80003200, &vec);
+                        Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80003200, &vec);
                     }
                     return 0;
                 }
@@ -677,13 +677,13 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx             = 0;
                         vec.vy             = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[14], 0x80004480, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80004480, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[17], 0x80004480, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80004480, &vec);
                         }
                         return 0;
                     }
@@ -702,27 +702,27 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx             = 0;
                         vec.vy             = 0x2BC;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80002200, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002200, &vec);
                         }
                         CSE_STEER(steer);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x2BC;
                         if (steer == 0 && Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[7], 0x80002240, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002240, &vec);
                         }
                         CSE_STEER(steer);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
                         if (steer == 0 && Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[14], 0x80003300, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80003300, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[17], 0x80003340, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80003340, &vec);
                         }
                         return 0;
                     }
@@ -741,13 +741,13 @@ s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
                         vec.vx             = 0;
                         vec.vy             = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[14], 0x80002200, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80002200, &vec);
                         }
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 0x258;
                         if (Gp_State1C->roomEffectMode == 2) {
-                            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[17], 0x80002300, &vec);
+                            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80002300, &vec);
                         }
                         return 0;
                     }
@@ -899,12 +899,12 @@ void func_actor_323400_80163B58(Task* task)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        func_actor_323400_80161E8C(&((TmdObject*)task->extra)->coords[2], thirdAngle);
-        ((TmdObject*)task->extra)->coords[2].flg = 0;
-        func_actor_323400_80161E8C(&((TmdObject*)task->extra)->coords[3], thirdAngle);
-        ((TmdObject*)task->extra)->coords[3].flg = 0;
-        func_actor_323400_80161E8C(&((TmdObject*)task->extra)->coords[4], (s16)clampedAngle / 2);
-        ((TmdObject*)task->extra)->coords[4].flg = 0;
+        func_actor_323400_80161E8C(&task->extra.tmd->coords[2], thirdAngle);
+        task->extra.tmd->coords[2].flg = 0;
+        func_actor_323400_80161E8C(&task->extra.tmd->coords[3], thirdAngle);
+        task->extra.tmd->coords[3].flg = 0;
+        func_actor_323400_80161E8C(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        task->extra.tmd->coords[4].flg = 0;
     }
     turnWork     = (Actor323000Work*)task->work;
     targetTurn   = (u16)turnWork->field_83E;
@@ -937,12 +937,12 @@ void func_actor_323400_80163B58(Task* task)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    func_actor_323400_80161E8C(&((TmdObject*)task->extra)->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
-    ((TmdObject*)task->extra)->coords[10].flg = 0;
-    sound                                     = func_actor_323400_80163448(task, work);
+    func_actor_323400_80161E8C(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    task->extra.tmd->coords[10].flg = 0;
+    sound                           = func_actor_323400_80163448(task, work);
     if (sound != 0) {
-        pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
+        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(task->extra.tmd->coords));
     }
 }
 
@@ -964,7 +964,7 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
     Actor323000Work* work2;
     Actor323000Work* mem;
 
-    obj        = (TmdObject*)task->extra;
+    obj        = task->extra.tmd;
     coord      = obj->coords;
     mem        = (Actor323000Work*)memCalloc(0x934, 0);
     work       = mem;
@@ -975,15 +975,15 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
     }
     task->exitCallback = func_actor_323400_80164A78;
     work2              = (Actor323000Work*)task->work;
-    tmd                = (TmdObject*)task->extra;
+    tmd                = task->extra.tmd;
     tmd->lightMtx      = &work2->light;
     tmd->colorMtx      = &work2->color;
-    enemy->field_4     = &((TmdObject*)task->extra)->coords->coord;
+    enemy->field_4     = &task->extra.tmd->coords->coord;
     enemy->field_48    = 0;
     enemy->bodyPos.vx  = 0;
     enemy->bodyPos.vy  = 0;
     enemy->bodyPos.vz  = 0;
-    enemy->coord       = &((TmdObject*)task->extra)->coords[2];
+    enemy->coord       = &task->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
     enemy->node.state.b.flags = 1;
     enemy->param              = &D_actor_323400_80164D5C;
@@ -1008,7 +1008,7 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    D_actor_323400_80171228.coord      = ((TmdObject*)task->extra)->coords;
+    D_actor_323400_80171228.coord      = task->extra.tmd->coords;
     D_actor_323400_80171228.spawnArgLo = 0x100;
     D_actor_323400_80171228.spawnArgHi = 2;
     work->field_0                      = 0;
@@ -1034,7 +1034,7 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = (TmdObject*)task->extra;
+        obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 1;
         obj->flags                = 0;
         Tmd_AllocBuffers(obj);
@@ -1054,7 +1054,7 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             p->vx      = 0;
             p->vy      = 0x2BC;
             if (Gp_State1C->roomEffectMode == 2) {
-                Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80002400, p);
+                Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002400, p);
             }
             break;
         }
@@ -1064,11 +1064,11 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             p->vx      = 0;
             p->vy      = 0x2BC;
             if (Gp_State1C->roomEffectMode == 2) {
-                Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[7], 0x80002400, p);
+                Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002400, p);
             }
             id  = ((enemy->placeKey >> 12) << 8) | 0x4001000E;
-            pan = (s8)Gp_GetObjPan(((TmdObject*)task->extra)->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(((TmdObject*)task->extra)->coords));
+            pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
             break;
         }
         case 12: {
@@ -1077,7 +1077,7 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             p->vx      = 0;
             p->vy      = 0x258;
             if (Gp_State1C->roomEffectMode == 2) {
-                Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[14], 0x80003600, p);
+                Gp_SpawnEff(0x60054, &task->extra.tmd->coords[14], 0x80003600, p);
             }
             break;
         }
@@ -1087,23 +1087,23 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
             p->vx      = 0;
             p->vy      = 0x258;
             if (Gp_State1C->roomEffectMode == 2) {
-                Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[17], 0x80004500, p);
+                Gp_SpawnEff(0x60054, &task->extra.tmd->coords[17], 0x80004500, p);
             }
             ofs.vz = 0;
             p->vx  = 0;
             p->vy  = 0x2BC;
             if (Gp_State1C->roomEffectMode == 2) {
-                Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[9], 0x80002480, p);
+                Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80002480, p);
             }
             ofs2.vy = 0x3E8;
             ofs2.vx = 0;
             ofs2.vz = -0x12C;
-            Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[1], 0x80005900, &ofs2);
+            Gp_SpawnEff(0x60054, &task->extra.tmd->coords[1], 0x80005900, &ofs2);
             break;
         }
     }
     func_actor_323400_80163B58(task);
-    ((TmdObject*)task->extra)->coords->flg = 0;
+    task->extra.tmd->coords->flg = 0;
 }
 
 /// Per-frame driver of the live actor: brings the model root's coordinate up
@@ -1123,15 +1123,15 @@ void func_actor_323400_801644C4(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     gameGetPtrSlot(3);
-    sp                                     = D_actor_323400_80161E24;
-    ((TmdObject*)task->extra)->coords->flg = 0;
-    head                                   = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)                       = head - 0x1C;
-    scratch                                = (Actor323000TickScratch*)(head - 0x1C);
-    Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
-    scratch->pos.vx = ((TmdObject*)task->extra)->coords->workm.t[0];
-    scratch->pos.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
-    scratch->pos.vz = ((TmdObject*)task->extra)->coords->workm.t[2];
+    sp                           = D_actor_323400_80161E24;
+    task->extra.tmd->coords->flg = 0;
+    head                         = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)             = head - 0x1C;
+    scratch                      = (Actor323000TickScratch*)(head - 0x1C);
+    Gp_UpdateCoord(task->extra.tmd->coords);
+    scratch->pos.vx = task->extra.tmd->coords->workm.t[0];
+    scratch->pos.vy = task->extra.tmd->coords->workm.t[1];
+    scratch->pos.vz = task->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &scratch->pos, 0, 0);
     if (work->field_2 != work->field_0) {
         work->field_4 = 1;
@@ -1149,7 +1149,7 @@ void func_actor_323400_801644C4(GpEnemy* enemy, Task* task)
         s32      flag;
         SVECTOR* localp = &local;
 
-        walker   = &((TmdObject*)task->extra)->coords[2];
+        walker   = &task->extra.tmd->coords[2];
         pos      = &scratch->local;
         local.vx = scratch->local.vx;
         local.vy = pos->vy;
@@ -1197,7 +1197,7 @@ s32 func_actor_323400_80164764(Task* task, s32 arg1, s32 arg2)
     TmdObject*       obj;
     Actor323000Work* work;
 
-    obj  = (TmdObject*)task->extra;
+    obj  = task->extra.tmd;
     work = (Actor323000Work*)task->work;
     switch (arg2) {
         case 0:
@@ -1236,7 +1236,7 @@ s32 func_actor_323400_80164824(Task* task)
         return 1;
     }
 
-    flags   = ((TmdObject*)task->extra)->flags;
+    flags   = task->extra.tmd->flags;
     mask80  = flags;
     mask80 &= 0x80;
     mask2   = flags & 2;
@@ -1262,16 +1262,16 @@ s32 func_actor_323400_80164874(Task* task, s32 arg1, GpXformArg* placement)
 {
     Actor323000Work* work;
 
-    work                                          = (Actor323000Work*)task->work;
-    ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
-    ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
-    ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, placement->rot.vy, 1);
-    Gfx_RotMatrixX(&((TmdObject*)task->extra)->coords->coord, placement->rot.vx, 0);
-    Gfx_RotMatrixZ(&((TmdObject*)task->extra)->coords->coord, placement->rot.vz, 0);
-    ((TmdObject*)task->extra)->coords->flg = 0;
-    work->field_16                         = ratan2(-((TmdObject*)task->extra)->coords->coord.m[2][0],
-                                                    ((TmdObject*)task->extra)->coords->coord.m[2][2]);
+    work                                = (Actor323000Work*)task->work;
+    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
+    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
+    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
+    Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
+    task->extra.tmd->coords->flg = 0;
+    work->field_16               = ratan2(-task->extra.tmd->coords->coord.m[2][0],
+                                          task->extra.tmd->coords->coord.m[2][2]);
     return 1;
 }
 
@@ -1295,11 +1295,11 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
         mode = msg->command;
         switch (mode) {
             case 1:
-                ((TmdObject*)task->extra)->coords->coord.t[0] = 0x4330;
-                ((TmdObject*)task->extra)->coords->coord.t[1] = mode;
-                ((TmdObject*)task->extra)->coords->coord.t[2] = 0xA8C;
-                ((TmdObject*)task->extra)->coords->flg        = 0;
-                work->field_0                                 = 2;
+                task->extra.tmd->coords->coord.t[0] = 0x4330;
+                task->extra.tmd->coords->coord.t[1] = mode;
+                task->extra.tmd->coords->coord.t[2] = 0xA8C;
+                task->extra.tmd->coords->flg        = 0;
+                work->field_0                       = 2;
                 break;
             case 0:
             case 2:
@@ -1372,7 +1372,7 @@ void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2)
     }
 
     if (Gp_State1C->roomEffectMode == 2 && spawn == 1) {
-        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[arg1], arg2 | 0x80000000, &sp10);
+        Gp_SpawnEff(0x60054, &task->extra.tmd->coords[arg1], arg2 | 0x80000000, &sp10);
     }
 }
 
@@ -1387,7 +1387,7 @@ void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1)
 
     work = (Actor323000Work*)arg1->work;
     if (work->field_4 != 0) {
-        obj                      = (TmdObject*)arg1->extra;
+        obj                      = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
         obj->flags              |= 0x80;
     }
@@ -1404,7 +1404,7 @@ void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = (TmdObject*)task->extra;
+        obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 0;
         obj->flags                = 0;
         Tmd_AllocBuffers(obj);
@@ -1430,7 +1430,7 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
 
     work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = (TmdObject*)task->extra;
+        obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 1;
         obj->flags                = 0;
         Tmd_AllocBuffers(obj);
@@ -1442,7 +1442,7 @@ void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
         func_actor_323400_80163B58(task);
     } else {
         func_actor_323400_80163B58(task);
-        ((TmdObject*)task->extra)->coords->flg = 0;
+        task->extra.tmd->coords->flg = 0;
     }
 }
 

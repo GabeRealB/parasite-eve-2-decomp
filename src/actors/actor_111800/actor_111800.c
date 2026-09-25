@@ -96,7 +96,7 @@ void func_actor_111800_8013214C(Task* task)
 
     i     = 1;
     work  = (Actor111800Work*)task->work;
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     ctx   = work;
     coord = obj->coords;
     do {
@@ -199,8 +199,8 @@ void func_actor_111800_80132390(Task* task)
     GpAreaPlace*     place;
     s32              i;
 
-    coord      = ((TmdObject*)task->extra)->coords;
-    obj        = (TmdObject*)task->extra;
+    coord      = task->extra.tmd->coords;
+    obj        = task->extra.tmd;
     task->work = (TaskIdMap*)memCalloc(0x498, false);
     if (task->work == NULL) {
         taskKill(task);
@@ -318,7 +318,7 @@ void func_actor_111800_8013251C(Task* task)
             }
             break;
     }
-    extra  = (TmdObject*)task->extra;
+    extra  = task->extra.tmd;
     angle  = *(u16*)&work->field_494;
     coords = extra->coords;
     part   = coords + 5;
@@ -328,12 +328,12 @@ void func_actor_111800_8013251C(Task* task)
     Mem_CopyUnaligned(&mtx, &part->coord, 0x12U);
     part->flg = 0;
     Gp_UpdateCoord(part);
-    func_actor_111800_80131E40(((TmdObject*)task->extra)->coords + 5, work->field_48C);
-    obj                 = (TmdObject*)task->extra;
+    func_actor_111800_80131E40(task->extra.tmd->coords + 5, work->field_48C);
+    obj                 = task->extra.tmd;
     work2               = (Actor111800Work*)task->work;
     ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];
-    ((VECTOR*)&mtx)->vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
-    ((VECTOR*)&mtx)->vz = ((TmdObject*)task->extra)->coords[1].workm.t[2];
+    ((VECTOR*)&mtx)->vy = task->extra.tmd->coords[1].workm.t[1];
+    ((VECTOR*)&mtx)->vz = task->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(obj, (VECTOR*)&mtx, 0, 3);
     ((VECTOR*)&mtx)->vz = 0x555;
     ((VECTOR*)&mtx)->vy = 0x555;

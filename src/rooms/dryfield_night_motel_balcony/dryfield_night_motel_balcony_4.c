@@ -81,7 +81,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     SVECTOR        ofs;
 
     work                    = task->spawnArg2;
-    coord                   = ((TmdObject*)task->extra)->coords;
+    coord                   = task->extra.tmd->coords;
     Gp_State1C->groundShade = 0xFF;
     hi                      = 0;
     if (gGameSession->at4.loc.view < 0x20) {
@@ -502,7 +502,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     MATRIX*        m;
     s32            half;
     SVECTOR        delta;
@@ -654,7 +654,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
     GpEffWork*       work  = task->spawnArg2;
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*   coord = task->extra.tmd->coords;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -721,7 +721,7 @@ void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 void func_dryfield_night_motel_balcony_80180580(Task* task)
 {
     void*          work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s32            i;
 
     if (Gp_State1C->eventState != 0) {
@@ -819,7 +819,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 
     work  = task->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (flag >= 2) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -908,7 +908,7 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
     s16            xy;
     u16            vz;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
 
     head                                    = SCRATCH_HEAD(void);
@@ -983,7 +983,7 @@ void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unuse
 void func_dryfield_night_motel_balcony_80181024(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s32            lo;
     s32            arg;
 
@@ -1085,7 +1085,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 void func_dryfield_night_motel_balcony_8018158C(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     MATRIX*        m;
     s32            half; // default drift length and the centre of the wide drift rolls
 
@@ -1201,7 +1201,7 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
     s16            xy;
     u16            vz;
 
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     work  = task->spawnArg2;
 
     head                                    = SCRATCH_HEAD(void);
@@ -1270,7 +1270,7 @@ void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     MATRIX*        m;
     s32            seed;
     s16            tick;
@@ -1383,7 +1383,7 @@ void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
     u16            vz;
 
     frame = work->index % 10;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
 
     head                                    = SCRATCH_HEAD(void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
@@ -1463,7 +1463,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
     s32            i;
 
     task  = gameGetPtrSlot(4);
-    coord = ((TmdObject*)task->firstChild->extra)->coords + 3;
+    coord = task->firstChild->extra.tmd->coords + 3;
 
     for (i = 0; i < 8; i++) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1499,7 +1499,7 @@ void func_dryfield_night_motel_balcony_80182730(void)
     if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
         task        = gameGetPtrSlot(4);
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_SpawnEff(0x6007E, ((TmdObject*)task->firstChild->extra)->coords + 3,
+        Gp_SpawnEff(0x6007E, task->firstChild->extra.tmd->coords + 3,
                     (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x80000100,
                     &D_dryfield_night_motel_balcony_80182D20);
     }

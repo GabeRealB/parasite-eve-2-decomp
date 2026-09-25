@@ -291,7 +291,7 @@ void func_actor_120500_801322A0(Task* arg0)
     s32              i;
     u8               id;
 
-    tmd        = arg0->extra;
+    tmd        = arg0->extra.tmd;
     coord      = tmd->coords;
     map        = Mem_Malloc(0x4CC, 0);
     arg0->work = map;
@@ -408,7 +408,7 @@ loop_slots:
 
     if (work->field_4C0 != 0) {
         if (work->field_4C0 == 1) {
-            Tmd_AllocBuffers(arg0->extra);
+            Tmd_AllocBuffers(arg0->extra.tmd);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
             Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_actor_120500_801380C0, 0);
         }
@@ -444,10 +444,10 @@ clear_4C8:
     w->field_4C8 = 0;
 done_4C8:
 
-    mdl         = (TmdObject*)arg0->extra;
-    args.pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-    args.pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    args.pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    mdl         = arg0->extra.tmd;
+    args.pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    args.pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    args.pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(mdl, &args.pos, 0, 3);
 }
 
@@ -603,7 +603,7 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)task->extra;
+    extra = task->extra.tmd;
     switch (arg2) {
         case 2:
             extra->flags = extra->flags | 4;
@@ -626,7 +626,7 @@ void func_actor_120500_80132A74(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->sub        = &gGfxViewCoord;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;

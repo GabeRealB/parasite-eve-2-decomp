@@ -148,7 +148,7 @@ s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1)
     SVECTOR     vec;
     GpCoordPos* coord;
 
-    coord  = (GpCoordPos*)((TmdObject*)arg0->extra)->coords;
+    coord  = (GpCoordPos*)arg0->extra.tmd->coords;
     vec.vx = arg1->vx - coord->x;
     vec.vy = 0;
     vec.vz = arg1->vz - coord->z;

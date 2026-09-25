@@ -315,7 +315,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         GsCOORDINATE2* coord;
         SVECTOR        vec;
 
-        coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+        coord = task->extra.tmd->coords;
         memset(&vec, 0, sizeof(vec));
         mem->field_C = arg3;
         if (arg3 == NULL) {
@@ -349,7 +349,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         GsCOORDINATE2* coord;
         SVECTOR        vec;
 
-        coord = (GsCOORDINATE2*)((TmdObject*)task->extra)->coords;
+        coord = task->extra.tmd->coords;
         memset(&vec, 0, sizeof(vec));
         mem->field_C = arg3;
         if (arg3 == NULL) {

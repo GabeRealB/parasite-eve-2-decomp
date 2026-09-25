@@ -275,7 +275,7 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     u8               areaByte0;
     u32              idx;
 
-    obj                     = task->extra;
+    obj                     = task->extra.tmd;
     coord                   = obj->coords;
     work                    = memCalloc(0x4EC, 0);
     D_actor_146300_80142828 = work;
@@ -296,7 +296,7 @@ void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     helper                       = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
     idx                          = enemy->placeKey >> 0xC;
-    model                        = helper->extra;
+    model                        = helper->extra.tmd;
     D_actor_146300_80142830      = helper;
     key.stage                    = sessionKey->stage;
     key.area                     = sessionKey->area;
@@ -362,7 +362,7 @@ void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         vec;
 
-    obj   = task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
@@ -474,8 +474,8 @@ s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
     TmdObject* self;
     TmdObject* other;
 
-    self  = D_actor_146300_8014282C->extra;
-    other = (TmdObject*)D_actor_146300_80142830->extra;
+    self  = D_actor_146300_8014282C->extra.tmd;
+    other = D_actor_146300_80142830->extra.tmd;
 
     if (flags & 1) {
         self->flags  = 0;
@@ -500,7 +500,7 @@ s32 func_actor_146300_80132A98(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                           = ((TmdObject*)task->extra)->coords;
+    coord                           = task->extra.tmd->coords;
     D_actor_146300_80142828->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -522,9 +522,9 @@ s32 func_actor_146300_80132B14(void)
 /// point 0x320 above the actor model's root translation.
 void func_actor_146300_80132B1C(Task* task)
 {
-    TmdObject*     extra = task->extra;
+    TmdObject*     extra = task->extra.tmd;
     GsCOORDINATE2* coord = extra->coords;
-    GsCOORDINATE2* parts = ((TmdObject*)D_actor_146300_8014282C->extra)->coords;
+    GsCOORDINATE2* parts = D_actor_146300_8014282C->extra.tmd->coords;
     GsCOORDINATE2* part  = parts + 4;
     VECTOR         vec;
 

@@ -51,7 +51,7 @@ void func_energyshot_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
@@ -398,7 +398,7 @@ void func_energyshot_8012FFB8(Task* arg0)
     s32            y;
 
     mem      = arg0->spawnArg2;
-    coord    = ((TmdObject*)arg0->extra)->coords;
+    coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
         mem->move.vx = 0;

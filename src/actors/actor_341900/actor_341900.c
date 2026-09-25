@@ -295,29 +295,29 @@ void func_actor_341900_80162200(Task* arg0)
     VECTOR        pos;
 
     if (arg0->state == 0) {
-        extra      = (TmdObject*)arg0->extra;
+        extra      = arg0->extra.tmd;
         mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
         arg0->work = (TaskIdMap*)mtx;
         if (mtx == NULL) {
             taskKill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
-            mtx->field_40                          = (Task*)arg0->spawnArg2;
-            extra->flags                           = 0;
-            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
-            extra->lightMtx                        = &mtx->light;
-            extra->colorMtx                        = &mtx->color;
-            extra->otOffset                        = 0x1F;
-            arg0->msgTable                         = D_actor_341900_80163A38;
+            mtx->field_40                = (Task*)arg0->spawnArg2;
+            extra->flags                 = 0;
+            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+            extra->lightMtx              = &mtx->light;
+            extra->colorMtx              = &mtx->color;
+            extra->otOffset              = 0x1F;
+            arg0->msgTable               = D_actor_341900_80163A38;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state++;
     }
 
-    mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords->workm.t[0];
+    pos.vy = arg0->extra.tmd->coords->workm.t[1];
+    pos.vz = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -335,7 +335,7 @@ void func_actor_341900_80162330(Task* arg0)
     GpAreaPlace*         rec;
     u16                  i;
 
-    extra      = (TmdObject*)arg0->extra;
+    extra      = arg0->extra.tmd;
     work       = (Actor341900AnimWork*)Mem_Malloc(0x258, 0);
     arg0->work = (TaskIdMap*)work;
     if (work == NULL) {
@@ -405,10 +405,9 @@ void func_actor_341900_801625B4(Task* arg0)
         func_actor_341900_80162330(arg0);
         work = (Actor341900TaskWork*)arg0->work;
 
-        extra      = (TmdObject*)arg0->extra;
-        coord      = extra->coords;
-        coord->sub = &((TmdObject*)((Task*)work->field_248)->extra)
-                          ->coords[D_actor_341900_80163A98[arg0->spawnArg1].field_6];
+        extra             = arg0->extra.tmd;
+        coord             = extra->coords;
+        coord->sub        = &((Task*)work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1].field_6];
         coord->coord.t[0] = D_actor_341900_80163A98[arg0->spawnArg1].field_0;
         coord->coord.t[1] = D_actor_341900_80163A98[arg0->spawnArg1].field_2;
         coord->coord.t[2] = D_actor_341900_80163A98[arg0->spawnArg1].field_4;
@@ -416,13 +415,13 @@ void func_actor_341900_801625B4(Task* arg0)
         arg0->state++;
     }
 
-    ((TmdObject*)arg0->extra)->flags =
-        ((TmdObject*)((Task*)work->field_248)->extra)->flags;
+    arg0->extra.tmd->flags =
+        ((Task*)work->field_248)->extra.tmd->flags;
 
-    mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -442,7 +441,7 @@ void func_actor_341900_80162708(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_341900_80162330(arg0);
-            ((TmdObject*)arg0->extra)->coords->sub = &gGfxViewCoord;
+            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
             arg0->state++;
             return;
         case 1:
@@ -470,10 +469,10 @@ void func_actor_341900_80162708(Task* arg0)
     func_actor_341900_80161E58(work->field_24C, 4);
     func_actor_341900_80161E58(work->field_250, 4);
 
-    mdl    = (TmdObject*)arg0->extra;
-    pos.vx = ((TmdObject*)arg0->extra)->coords[1].workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
@@ -619,19 +618,19 @@ void func_actor_341900_80162AD4(Task* arg0)
                         ofs.vx = 0;
                         ofs.vy = -0x64;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->coords[2], 0x04402800, &ofs);
+                        Gp_SpawnEff(0x60196, &work->field_8->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = 0xC8;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->coords[2], 0x04402800, &ofs);
+                        Gp_SpawnEff(0x60196, &work->field_8->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = -0xC8;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->coords[2], 0x04402800, &ofs);
+                        Gp_SpawnEff(0x60196, &work->field_8->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = 0;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(0x60196, &((TmdObject*)work->field_8->extra)->coords[2], 0x04402800, &ofs);
+                        Gp_SpawnEff(0x60196, &work->field_8->extra.tmd->coords[2], 0x04402800, &ofs);
                         work->field_64 = 0;
                     }
                     break;
@@ -785,7 +784,7 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* extra;
 
-    extra = (TmdObject*)arg0->extra;
+    extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
             extra->flags = (extra->flags | 0x80) & 0xFFFB;
@@ -808,7 +807,7 @@ void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     MATRIX*        mtx;
 
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;

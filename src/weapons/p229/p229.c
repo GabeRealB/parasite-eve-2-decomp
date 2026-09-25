@@ -47,7 +47,7 @@ void func_p229_8011D1DC(Task* task)
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
     slot  = &base->data.light;
 
@@ -306,7 +306,7 @@ void func_p229_8011DDA0(Task* arg0)
     s16            frames;
 
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     /* The push must stay *after* the three loads above, or the `lui`/`ori`
        of the scratch-head address wins the ready list and reschedules the
@@ -344,9 +344,9 @@ void func_p229_8011DDA0(Task* arg0)
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20050004, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050004, 0);
                 Gp_SpawnEff(0x6002B,
-                            (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
+                            actor->field_91C->extra.tmd->coords, 5,
                             NULL);
                 Gp_AnimResetChildSlots(arg0, 0xA);
             } else {
@@ -357,9 +357,9 @@ void func_p229_8011DDA0(Task* arg0)
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x20050005, 0);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050005, 0);
                 eff = Gp_SpawnEff(0x60040,
-                                  (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords, 5,
+                                  actor->field_91C->extra.tmd->coords, 5,
                                   NULL);
                 if (eff != NULL) {
                     Task_Reparent(actor->field_91C, eff->task);

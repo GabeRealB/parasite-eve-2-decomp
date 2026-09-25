@@ -71,7 +71,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState >= 4)) {
         if ((arg0->state < 2) && (arg0->spawnArg1 != 0)) {
             Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
@@ -306,7 +306,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
     u16            spawn;
 
     mem      = arg0->spawnArg2;
-    coord    = ((TmdObject*)arg0->extra)->coords;
+    coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     state    = arg0->state;
     switch (state) {
@@ -374,7 +374,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
     VECTOR         vec;
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
@@ -411,7 +411,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     }
                 }
                 if (mem->age == 0xF) {
-                    player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
+                    player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
                     vec.vx = player->workm.t[0] - coord->workm.t[0];
                     vec.vy = player->workm.t[1] - coord->workm.t[1];
                     vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -457,7 +457,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                         }
                     }
                 }
-                player = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
+                player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -651,7 +651,7 @@ void func_lifedrain_801308C0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->fadeState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

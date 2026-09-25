@@ -253,8 +253,8 @@ void func_mist_parking_8018307C(Task* task)
 
     parent          = (Task*)task->spawnArg2;
     part            = task->spawnArg1;
-    extra           = (TmdObject*)task->extra;
-    parentExtra     = (TmdObject*)parent->extra;
+    extra           = task->extra.tmd;
+    parentExtra     = parent->extra.tmd;
     coord           = extra->coords;
     dest            = &parentExtra->coords[part];
     coord->flg      = 0;
@@ -311,7 +311,7 @@ void func_mist_parking_801831F0(s32 arg0)
         task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
-            obj         = (TmdObject*)task->extra;
+            obj         = task->extra.tmd;
             obj->flags &= ~0x80;
         }
     }

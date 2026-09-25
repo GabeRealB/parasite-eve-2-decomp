@@ -403,7 +403,7 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (task->spawnArg1 < 0) {
             func_shelter_b3_garbage_incinerator_80182F18(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -684,7 +684,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_garbage_incinerator_801837F8(coord, work->index, work->scale, work->angle);
         if (Gp_State1C->eventState >= 4) {

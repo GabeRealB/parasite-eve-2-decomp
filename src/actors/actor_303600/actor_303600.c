@@ -462,7 +462,7 @@ void func_actor_303600_801626C0(Task* task)
         return;
     }
     task->work        = (TaskIdMap*)work;
-    coord             = ((TmdObject*)task->extra)->coords;
+    coord             = task->extra.tmd->coords;
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
@@ -472,7 +472,7 @@ void func_actor_303600_801626C0(Task* task)
             break;
         }
         work->children[i]      = child;
-        childCoord             = ((TmdObject*)child->extra)->coords;
+        childCoord             = child->extra.tmd->coords;
         childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
         childCoord->coord.t[0] = 0;
         childCoord->coord.t[2] = 0;
@@ -492,7 +492,7 @@ void func_actor_303600_801626C0(Task* task)
 void func_actor_303600_801627B8(Task* task)
 {
     Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
-    GsCOORDINATE2*      coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*      coord = task->extra.tmd->coords;
     s32                 speed;
     s32                 angle;
     s32                 var;
@@ -589,9 +589,9 @@ void func_actor_303600_801628E4(Task* task)
 void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2;
-    TmdObject*            obj         = task->extra;
+    TmdObject*            obj         = task->extra.tmd;
     GsCOORDINATE2*        coord       = obj->coords;
-    TmdObject*            parentObj   = parent->extra;
+    TmdObject*            parentObj   = parent->extra.tmd;
     GsCOORDINATE2*        parentCoord = parentObj->coords;
     Actor303600LightMats* mats;
 
@@ -619,7 +619,7 @@ void func_actor_303600_80162A04(Task* task)
 void func_actor_303600_80162A0C(Task* task)
 {
     Actor303600LightMats* mats = (Actor303600LightMats*)task->work;
-    TmdObject*            obj  = task->extra;
+    TmdObject*            obj  = task->extra.tmd;
     GsF_LIGHT*            light;
     s32                   i;
 

@@ -358,7 +358,7 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
 {
     GsCOORDINATE2* coord;
 
-    coord = ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords;
+    coord = ((Task*)Gp_LookupSlot4(0))->extra.tmd->coords;
     switch (task->state) {
         case 0:
             Gp_DispatchMsg((Task*)Gp_LookupSlot4(0), 0x7D4, (s32)&D_acropolis_cafeteria_80182D28, 0);

@@ -40,7 +40,7 @@ void Gp_EffCtlTask2B(Task* arg0)
     s32            count;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
@@ -152,7 +152,7 @@ void Gp_EffCtlTask6A(Task* arg0)
 
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
@@ -227,7 +227,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     st    = Gp_State1C;
     if (st->eventState < 2) {
         mem->age++;
@@ -301,7 +301,7 @@ void func_800ED42C(Task* arg0)
     s32            i;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
@@ -492,7 +492,7 @@ void Gp_EffCtlTask6C(Task* arg0)
     s32            i;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
     slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
@@ -593,7 +593,7 @@ void Gp_EffSprTask34(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (mem->age == 0) {
@@ -676,7 +676,7 @@ void Gp_EffSprTask72(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -760,7 +760,7 @@ void Gp_EffLineTaskA3(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -922,7 +922,7 @@ void Gp_EffSprTask35(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1031,7 +1031,7 @@ void Gp_EffSprTask6F(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1141,7 +1141,7 @@ void Gp_EffModelTask(Task* arg0)
     u16            tz;
     s32            dz;
 
-    extra = (TmdObject*)arg0->extra;
+    extra = arg0->extra.tmd;
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
     coord = (GsCOORDINATE2*)extra->coords;
@@ -1455,7 +1455,7 @@ void Gp_EffCtlTask6E(Task* arg0)
     GsCOORDINATE2* coord;
     s32            rng;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2;
     if (arg0->state == 0) {
         if (arg0->spawnArg1 & 0xF0000) {
@@ -1501,7 +1501,7 @@ void Gp_EffCtlTask6D(Task* arg0)
 
     i                    = 0;
     one                  = ONE;
-    coord                = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord                = arg0->extra.tmd->coords;
     mem                  = arg0->spawnArg2;
     m                    = &coord->coord;
     *(s32*)&coord->coord = one;
@@ -1527,7 +1527,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     TILE*             prim;
     s16               c;
 
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     SCRATCH_PUSH_BYTES(0x14);
     block = SCRATCH_HEAD(GpEffTileScratch);
     mem   = arg0->spawnArg2;
@@ -1609,7 +1609,7 @@ void Gp_EffCtlTask3B(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
@@ -1722,7 +1722,7 @@ void Gp_EffSprTask5C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1875,7 +1875,7 @@ void func_800F289C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -2057,7 +2057,7 @@ void Gp_EffSprTask76(Task* arg0)
     s16                       scale;
     s32                       rng;
 
-    coord                         = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord                         = arg0->extra.tmd->coords;
     head                          = SCRATCH_HEAD(u8);
     vecp                          = (GpFxQuadScratch*)(head - 0x1C);
     block                         = vecp;
@@ -2147,7 +2147,7 @@ void Gp_EffSprTask7C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     param = 0x80;
     if (flag >= 2) {
         if (flag >= 4) {
@@ -2293,7 +2293,7 @@ void func_800F4308(Task* arg0)
     room      = &Gp_RoomCoords[1];
     slot      = &room->data.light;
     roomCoord = &slot->head.u.coord;
-    extra     = arg0->extra;
+    extra     = arg0->extra.tmd;
     mem       = arg0->spawnArg2;
     flag      = Gp_State1C->eventState;
     coord     = (GsCOORDINATE2*)extra->coords;
@@ -2528,7 +2528,7 @@ void Gp_EffLineTask92(Task* arg0)
     s16               val;
 
     SCRATCH_PUSH_BYTES(0x20);
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     block = SCRATCH_HEAD(GpEffLineScratch);
     mem   = arg0->spawnArg2;
     Gp_UpdateCoord(coord);
@@ -2624,7 +2624,7 @@ void Gp_EffPolyTask9C(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag < 4) {
         if (flag < 2) {
             if (arg0->state == 0) {
@@ -2780,7 +2780,7 @@ void Gp_EffSprTask9E(Task* arg0)
     u8                col;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
@@ -2882,7 +2882,7 @@ void Gp_EffSprTask54(Task* arg0)
     POLY_FT4*        prim;
 
     mem   = arg0->spawnArg2;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState >= 2) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -3145,16 +3145,16 @@ void Gp_EffSprTask53(Task* arg0)
     GsCOORDINATE2* parent;
 
     slot  = gameGetPtrSlot(3);
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (slot != NULL) {
         if (arg0->state == 0) {
-            parent     = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
+            parent     = slot->extra.tmd->coords;
             coord->flg = 0;
             coord->sub = parent + 1;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
         } else if (Gp_State1C->groundShade >= 0) {
-            if (!(((TmdObject*)slot->extra)->flags & 0x80)) {
+            if (!(slot->extra.tmd->flags & 0x80)) {
                 Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
                     Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->groundShade);
@@ -3186,10 +3186,10 @@ void Gp_EffAttachTask37(Task* arg0)
     u16            tz;
     s32            dz;
 
-    extra  = (TmdObject*)arg0->extra;
+    extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2;
     coord  = (GsCOORDINATE2*)extra->coords;
-    player = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    player = (gameGetPtrSlot(3))->extra.tmd->coords;
     flag   = Gp_State1C->eventState;
     if (flag != 0) {
         if (flag < 4) {

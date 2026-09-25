@@ -123,7 +123,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_r08_8017DEFC(coord, work->index, work->scale, work->angle);
         if (Gp_State1C->eventState >= 4) {

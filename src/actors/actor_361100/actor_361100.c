@@ -142,7 +142,7 @@ void func_actor_361100_80161E3C(Task* arg0)
 
     state   = (ActorEffectState*)arg0->work;
     modePtr = &gGameSession->at4.loc.view;
-    coord   = ((TmdObject*)arg0->extra)->coords;
+    coord   = arg0->extra.tmd->coords;
     if (D_8006D868 != -1) {
         streamLeft  = 0x18000 - D_8006D868;
         streamLeft &= ~7;
@@ -686,7 +686,7 @@ void func_actor_361100_80162B0C(void)
 /// `func_actor_361100_80163750` arms.
 void func_actor_361100_80162B18(Task* task)
 {
-    TmdObject*       ext  = task->extra;
+    TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
     GsCOORDINATE2*   coord;
     VECTOR           pos;
@@ -758,7 +758,7 @@ void func_actor_361100_80162D28(Task* arg0)
     GpEnemy*         enemy;
 
     enemy = arg0->spawnArg2;
-    coord = (GpCoordExt*)((TmdObject*)arg0->extra)->coords;
+    coord = (GpCoordExt*)arg0->extra.tmd->coords;
 
     work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
@@ -797,7 +797,7 @@ void func_actor_361100_80162E04(Task* arg0)
     Actor361100Work* work;
 
     work          = (Actor361100Work*)arg0->work;
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -821,7 +821,7 @@ s32 func_actor_361100_80162E20(Task* task, s32 arg1, GpAnimArg* msg)
     s32              i;
 
     work = (Actor361100Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank   = msg->animBlock.index;
         work->model.animId = -1;
@@ -859,7 +859,7 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, GpXformArg* placement)
     Actor361100Work* work;
 
     work                = (Actor361100Work*)task->work;
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -882,7 +882,7 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
     TmdObject* obj;
     s32        ret;
 
-    obj = task->extra;
+    obj = task->extra.tmd;
     ret = 0;
     switch (mode) {
         case 0:
@@ -964,7 +964,7 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, GpCmdArg* msg)
 /// (`TmdObject::coords[1]`) is re-read from `task`, not cached.
 void func_actor_361100_801631C4(Task* task)
 {
-    TmdObject*       ext  = task->extra;
+    TmdObject*       ext  = task->extra.tmd;
     Actor361100Work* work = (Actor361100Work*)task->work;
     GsCOORDINATE2*   coord;
     VECTOR3          pos;
@@ -995,12 +995,12 @@ void func_actor_361100_801631C4(Task* task)
         }
     }
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
-        ((TmdObject*)task->extra)->coords[1].flg = 0;
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-        func_800D7A9C(ext, (VECTOR*)((TmdObject*)task->extra)->coords[1].workm.t, 0, 3);
+        task->extra.tmd->coords[1].flg = 0;
+        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->field_4A2 >= 0) {
         if (work->field_4A2 == 0) {
@@ -1053,7 +1053,7 @@ void func_actor_361100_801634B4(Task* arg0)
     TmdObject*       ext;
     Actor361100Work* work;
 
-    ext           = arg0->extra;
+    ext           = arg0->extra.tmd;
     work          = (Actor361100Work*)arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -1073,7 +1073,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, GpAnimArg* msg)
     s32              i;
 
     work = (Actor361100Work*)task->work;
-    ext  = task->extra;
+    ext  = task->extra.tmd;
     if (msg->animBlock.index != work->model.bank) {
         work->model.bank   = msg->animBlock.index;
         work->model.animId = -1;
@@ -1106,7 +1106,7 @@ s32 func_actor_361100_801635F4(Task* task, s32 arg1, GpXformArg* placement)
 {
     GpCoordExt* coord;
 
-    coord               = (GpCoordExt*)((TmdObject*)task->extra)->coords;
+    coord               = (GpCoordExt*)task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -1123,7 +1123,7 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
     TmdObject* obj;
     s32        ret;
 
-    obj = task->extra;
+    obj = task->extra.tmd;
     ret = 0;
     switch (mode) {
         case 0:

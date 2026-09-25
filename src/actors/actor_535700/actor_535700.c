@@ -148,7 +148,7 @@ void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
 
-    obj                     = task->extra;
+    obj                     = task->extra.tmd;
     coord                   = obj->coords;
     work                    = memCalloc(0x4C0, 0);
     D_actor_535700_80146844 = work;
@@ -191,7 +191,7 @@ void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task)
 /// `footsteps` is set, plays the footsteps.
 void func_actor_535700_80132108(Task* task)
 {
-    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2*   coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
     if (D_actor_535700_80146844->st.state == 1) {
@@ -258,7 +258,7 @@ void func_actor_535700_801324D4(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         pos;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
@@ -290,7 +290,7 @@ void func_actor_535700_80132580(Task* task)
     s32              pan;
 
     work = (Actor151000Work*)task->work;
-    obj  = ((TmdObject*)task->extra)->coords + 1;
+    obj  = task->extra.tmd->coords + 1;
     rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
     if (rec == NULL || rec == work->stepRec) {
         return;
@@ -384,7 +384,7 @@ s32 func_actor_535700_8013284C(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
 
-    obj = (TmdObject*)D_actor_535700_80146848->extra;
+    obj = D_actor_535700_80146848->extra.tmd;
     if (arg2 & 1) {
         obj->flags = 0;
     } else {
@@ -404,7 +404,7 @@ s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                           = ((TmdObject*)task->extra)->coords;
+    coord                           = task->extra.tmd->coords;
     D_actor_535700_80146844->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
@@ -448,7 +448,7 @@ s32 func_actor_535700_80132960(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              dist;
     s32              angle;
 
-    coord                   = ((TmdObject*)task->extra)->coords;
+    coord                   = task->extra.tmd->coords;
     work                    = (Actor151000Work*)task->work;
     D_actor_535700_8014684C = mode;
     dx                      = target->vx - coord->coord.t[0];
@@ -485,7 +485,7 @@ void func_actor_535700_80132ABC(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -528,7 +528,7 @@ void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    obj        = task->extra;
+    obj        = task->extra.tmd;
     coord      = obj->coords;
     mem        = (Actor150400Work*)memCalloc(0x4C0, false);
     work       = mem;
@@ -546,7 +546,7 @@ void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
     obj->otOffset                = 1;
     mem->enemy                   = enemy;
     spawned                      = Gp_SpawnEnemyFromTable(D_actor_535700_80146810, 1, 0, enemy);
-    model                        = (TmdObject*)spawned->task->extra;
+    model                        = spawned->task->extra.tmd;
     raw                          = enemy->placeKey;
     sessionKey                   = (GpAreaKey*)&gGameSession->at4.loc;
     key.stage                    = sessionKey->stage;
@@ -645,7 +645,7 @@ void func_actor_535700_80132F74(GpEnemy* enemy, Task* task)
     GsCOORDINATE2* coord;
     VECTOR         pos;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
@@ -673,7 +673,7 @@ void func_actor_535700_80133020(Task* task)
     GsCOORDINATE2* coord;
     VECTOR3*       vec;
 
-    obj   = (TmdObject*)task->extra;
+    obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
@@ -769,8 +769,8 @@ s32 func_actor_535700_80133250(Task* task, s32 arg1, s32 flags)
     TmdObject* self;
     TmdObject* other;
 
-    self  = (TmdObject*)task->extra;
-    other = (TmdObject*)((Actor150400Work*)task->work)->pairTask->extra;
+    self  = task->extra.tmd;
+    other = ((Actor150400Work*)task->work)->pairTask->extra.tmd;
 
     if (flags & 1) {
         self->flags  = 0;
@@ -796,7 +796,7 @@ s32 func_actor_535700_801332B4(Task* task, s32 arg1, GpXformArg* placement)
     Actor150400Work* work;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor150400Work*)task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
@@ -825,7 +825,7 @@ s32 func_actor_535700_80133334(Task* task, s32 arg1, VECTOR* target)
     s32              dz;
     u16              yaw;
 
-    coord        = ((TmdObject*)task->extra)->coords;
+    coord        = task->extra.tmd->coords;
     work         = (Actor150400Work*)task->work;
     dx           = target->vx - coord->coord.t[0];
     dz           = target->vz - coord->coord.t[2];
@@ -845,9 +845,9 @@ void func_actor_535700_801333FC(Task* task)
 {
     char             pad[0x10];
     Task*            parent = task->parent;
-    TmdObject*       obj    = task->extra;
+    TmdObject*       obj    = task->extra.tmd;
     GsCOORDINATE2*   coord  = obj->coords;
-    GsCOORDINATE2*   sub    = &((TmdObject*)parent->extra)->coords[7];
+    GsCOORDINATE2*   sub    = &parent->extra.tmd->coords[7];
     Actor150400Work* work   = (Actor150400Work*)parent->work;
 
     switch (task->state) {

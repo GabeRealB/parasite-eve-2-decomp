@@ -549,8 +549,8 @@ void func_dryfield_main_street_8017E1C0(Task* task)
     actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
-        self      = ((TmdObject*)player->extra)->coords;
-        target    = &((TmdObject*)((Task*)work->field_0)->extra)->coords[1];
+        self      = player->extra.tmd->coords;
+        target    = &((Task*)work->field_0)->extra.tmd->coords[1];
         angle     = ratan2(target->coord.t[0] - self->coord.t[0], target->coord.t[2] - self->coord.t[2]);
         delta     = angle - actor->field_52;
         magnitude = ABS(delta);
@@ -696,7 +696,7 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 void func_dryfield_main_street_8017E830(Task* task)
 {
     GpEffWork*     work  = task->spawnArg2;
-    GsCOORDINATE2* coord = ((TmdObject*)task->extra)->coords;
+    GsCOORDINATE2* coord = task->extra.tmd->coords;
     s32            vz;
     s16            f2a;
     u32            rng2;
@@ -857,7 +857,7 @@ void func_dryfield_main_street_8017EEE8(Task* task)
     u8             rgb[3];
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1103,7 +1103,7 @@ void func_dryfield_main_street_8017F94C(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1304,7 +1304,7 @@ void func_dryfield_main_street_80180234(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {

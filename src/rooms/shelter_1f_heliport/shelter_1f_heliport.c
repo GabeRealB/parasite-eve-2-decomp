@@ -1547,7 +1547,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     } else {
         D_shelter_1f_heliport_80181204.vy = 0x2710;
     }
-    func_shelter_1f_heliport_8018085C(((TmdObject*)task->extra)->coords, &D_shelter_1f_heliport_80181204);
+    func_shelter_1f_heliport_8018085C(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
 s32 func_shelter_1f_heliport_80180334(s32 arg0, s32 arg1, s32 arg2)

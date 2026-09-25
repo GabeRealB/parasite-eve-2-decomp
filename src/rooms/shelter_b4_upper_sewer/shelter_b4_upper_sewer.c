@@ -596,7 +596,7 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
     GsCOORDINATE2* coord;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_upper_sewer_8017EA0C(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -730,7 +730,7 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
     s32            level;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -1151,7 +1151,7 @@ void func_shelter_b4_upper_sewer_80180110(Task* task)
     s32            lifetime;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1482,7 +1482,7 @@ void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1564,7 +1564,7 @@ void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1972,7 +1972,7 @@ void func_shelter_b4_upper_sewer_80182600(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -2005,7 +2005,7 @@ void func_shelter_b4_upper_sewer_80182734(Task* arg0)
 
     mem   = arg0->spawnArg2;
     flag  = Gp_State1C->eventState;
-    coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -2244,7 +2244,7 @@ void func_shelter_b4_upper_sewer_80183198(Task* task)
 
     coords   = (GsCOORDINATE2*)task->work;
     work     = (GpEffWork*)task->spawnArg2;
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2440,7 +2440,7 @@ void func_shelter_b4_upper_sewer_80183A80(Task* task)
     GpEffWork*     work;
     u8             rgb[4];
 
-    objCoord = ((TmdObject*)task->extra)->coords;
+    objCoord = task->extra.tmd->coords;
     work     = (GpEffWork*)task->spawnArg2;
 
     if (Gp_State1C->eventState != 0) {
@@ -2660,7 +2660,7 @@ void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
     u8             col[4];
 
     mem   = arg0->spawnArg2;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -2690,7 +2690,7 @@ void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &((TmdObject*)player->extra)->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -2769,7 +2769,7 @@ void func_shelter_b4_upper_sewer_80184C20(Task* task)
     VECTOR         delta;
 
     work   = task->spawnArg2;
-    coord  = ((TmdObject*)task->extra)->coords;
+    coord  = task->extra.tmd->coords;
     target = (GsCOORDINATE2*)task->spawnArg1;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -3071,7 +3071,7 @@ void func_shelter_b4_upper_sewer_80185880(Task* task)
     u16            temp;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);

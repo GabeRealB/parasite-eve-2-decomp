@@ -498,7 +498,7 @@ void Gp_PumpTmdStream(Task* task)
 {
     TmdObject* obj;
 
-    obj = task->extra;
+    obj = task->extra.tmd;
     if (task->spawnType == 1) {
         obj->tpage = 4;
         obj->clut  = 6;
@@ -791,7 +791,7 @@ void func_800AA548(s32 arg0)
         flags.field_2 = 0;
         Gp_SetupCompanionActor((GpActorArg*)&rec.field_14, &flags.field_0);
     }
-    model        = (gameGetPtrSlot(3))->extra;
+    model        = (gameGetPtrSlot(3))->extra.tmd;
     model->tpage = 6;
     model->clut  = 0;
     tmdProcessStream(model);

@@ -54,11 +54,11 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     u32            ang;
 
     work  = task->spawnArg2;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[1];
     light = &base->data.coord;
     slot  = &base->data.light;
-    if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
+    if ((gameGetPtrSlot(3)->extra.tmd->flags & 0x80) != 0) {
         return;
     }
     if (Gp_State1C->eventState >= 2) {
@@ -258,7 +258,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     beam  = (M4a1PykeBeam*)task->work;
     work  = task->spawnArg2;
     fade  = Gp_State1C->eventState;
-    coord = ((TmdObject*)task->extra)->coords;
+    coord = task->extra.tmd->coords;
     if (fade >= 4) {
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);
@@ -557,7 +557,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
     s32            spent;
 
     actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    coord = arg0->extra.tmd->coords;
     SCRATCH_PUSH_BYTES(0x50);
     spot = SCRATCH_HEAD(GsCOORDINATE2);
     switch (actor->field_95E) {
@@ -601,7 +601,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     beam->spawnArg1 = 2;
                 }
                 Gp_ConsumeSlotQty(0x9B, 0x101);
-                Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201C0005, 1);
+                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 2);
                 break;
             }
@@ -618,9 +618,9 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->field_93E = 0;
                     }
-                    Gp_PlayObjSfx(((TmdObject*)arg0->extra)->coords, 0x201C0004, 1);
+                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                (GsCOORDINATE2*)((TmdObject*)actor->field_91C->extra)->coords,
+                                actor->field_91C->extra.tmd->coords,
                                 0x1C, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
