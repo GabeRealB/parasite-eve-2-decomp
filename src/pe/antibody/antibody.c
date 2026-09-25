@@ -365,7 +365,6 @@ void func_antibody_8012F734(Task* arg0)
 /// projects off-screen.
 void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -374,13 +373,12 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u;
     s32              ang2;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -424,7 +422,7 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4`
@@ -437,7 +435,6 @@ void func_antibody_8012FBB0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// projection sets a negative `gte_stflg`.
 void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -448,13 +445,12 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u1;
     s32              ang2;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
 
@@ -509,7 +505,6 @@ void func_antibody_8012FFEC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// projection sets a negative `gte_stflg`.
 void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**              scratch;
     u8*                 head;
     AntibodyArcScratch* block;
     POLY_FT4*           prim;
@@ -524,8 +519,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     u16                 vz;
 
     player                                      = &((TmdObject*)(gameGetPtrSlot(3))->extra)->coords[1];
-    scratch                                     = (void**)G_SCRATCH_HEAD;
-    head                                        = *scratch;
+    head                                        = SCRATCH_HEAD(u8);
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = *(u16*)&arg0->workm.t[0];
     block                                       = (AntibodyArcScratch*)(head - 0x28);
     block->v0.vy                                = *(u16*)&arg0->workm.t[1];
@@ -533,7 +527,7 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     block->v1.vx                                = *(u16*)&player->workm.t[0];
     block->v1.vy                                = *(u16*)&player->workm.t[1];
     vz                                          = *(u16*)&player->workm.t[2];
-    *scratch                                    = block;
+    SCRATCH_HEAD(AntibodyArcScratch)            = block;
     block->v1.vz                                = vz;
     vec                                         = &block->v0;
 
@@ -591,7 +585,6 @@ void func_antibody_80130428(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// fading to black. A negative `gte_stflg` drops the wedge.
 void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     SVECTOR*       vec;
@@ -600,13 +593,12 @@ void func_antibody_801308D4(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32            ang2;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);

@@ -251,7 +251,6 @@ release:
 /// fading to black. A negative `gte_stflg` drops the wedge.
 void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     SVECTOR*       vec;
@@ -260,13 +259,12 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32            ang2;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -312,7 +310,6 @@ void func_energyshot_8012F750(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// and a negative `gte_stflg` drops the segment.
 void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
 {
-    void**         scratch;
     u8*            head;
     GpBandScratch* block;
     SVECTOR*       op;
@@ -325,12 +322,11 @@ void func_energyshot_8012FA50(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u8* arg3)
     s16            r0;
     s16            r1;
 
-    r1       = arg1 / 2 + 0x100;
-    r0       = arg1 + 0x400;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch;
-    *scratch = head - 0x118;
-    block    = (GpBandScratch*)(head - 0x118);
+    r1                 = arg1 / 2 + 0x100;
+    r0                 = arg1 + 0x400;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - 0x118;
+    block              = (GpBandScratch*)(head - 0x118);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         ang                = i << 8;

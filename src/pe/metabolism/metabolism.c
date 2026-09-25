@@ -300,7 +300,6 @@ void func_metabolism_8012F5A0(Task* arg0)
 /// negative `gte_stflg` drops the wedge.
 void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     SVECTOR*       vec;
@@ -310,17 +309,16 @@ void func_metabolism_8012F840(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32            color;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
     color                                   = arg3;
     SOFT_TOUCH_REG(color);
-    *scratch      = block;
-    block->vec.vz = vz;
-    vec           = &block->vec;
+    SCRATCH_HEAD(GpRingScratch) = block;
+    block->vec.vz               = vz;
+    vec                         = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);

@@ -264,7 +264,6 @@ release:
 
 void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
 {
-    void**           scratch;
     u8*              head;
     GpBandScratch*   block;
     SVECTOR*         op;
@@ -280,16 +279,15 @@ void func_plasma_8012F568(GpEffWork* arg0, GsCOORDINATE2* arg1, s32 arg2)
     u16              y;
     u16              f28;
 
-    row      = &D_plasma_8012FF34[arg2];
-    f28      = arg0->period;
-    r1       = arg0->angle;
-    y        = f28 + (u16)row->yOff;
-    r1      += (u16)row->rInner;
-    r0       = r1 + arg0->step + (u16)row->rExtra;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch;
-    *scratch = head - 0x118;
-    block    = (GpBandScratch*)(head - 0x118);
+    row                = &D_plasma_8012FF34[arg2];
+    f28                = arg0->period;
+    r1                 = arg0->angle;
+    y                  = f28 + (u16)row->yOff;
+    r1                += (u16)row->rInner;
+    r0                 = r1 + arg0->step + (u16)row->rExtra;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - 0x118;
+    block              = (GpBandScratch*)(head - 0x118);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         ang                = i << 8;

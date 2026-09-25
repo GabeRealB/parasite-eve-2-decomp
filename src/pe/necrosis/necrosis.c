@@ -231,7 +231,6 @@ void func_necrosis_8012F52C(Task* arg0)
 /// Same shape as `Gp_DrawFxQuad` with a wider texture cell and no CLUT table.
 void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -241,13 +240,12 @@ void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -286,7 +284,7 @@ void func_necrosis_8012F6EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_necrosis_8012FAF8(Task* arg0)

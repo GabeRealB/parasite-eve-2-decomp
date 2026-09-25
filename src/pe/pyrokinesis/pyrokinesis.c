@@ -448,7 +448,6 @@ L_release:
 /// negative `gte_stflg` drops the segment.
 void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -465,15 +464,14 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 
     /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
      * widening into an `andi`, where the ROM shifts the value up and back. */
-    ramp     = (u32)arg2 << 16;
-    red      = arg2;
-    grn      = ramp >> 17;
-    blu      = ramp >> 18;
-    r1       = arg1 + 0x100;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    ramp             = (u32)arg2 << 16;
+    red              = arg2;
+    grn              = ramp >> 17;
+    blu              = ramp >> 18;
+    r1               = arg1 + 0x100;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -545,7 +543,6 @@ void func_pyrokinesis_8012FC34(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// negative `gte_stflg` drops the whole ring.
 void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -554,8 +551,7 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     u16            vz;
     u16            red;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    head = SCRATCH_HEAD(u8);
     USE_REG(head);
     {
         register u16 vx asm("v0");
@@ -567,11 +563,11 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
-    red           = arg2;
+    block->vec.vy               = *(u16*)&arg0->workm.t[1];
+    vz                          = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD(GpRingScratch) = block;
+    block->vec.vz               = vz;
+    red                         = arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -622,7 +618,6 @@ void func_pyrokinesis_80130130(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 /// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
 void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**            scratch;
     register u8*      head asm("v1");
     GpQuadScratch*    block;
     register SVECTOR* v asm("a2");
@@ -631,10 +626,9 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
     POLY_FT4*         prim;
     s32               u;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x38;
-    block    = (GpQuadScratch*)head;
-    *scratch = head;
+    head             = SCRATCH_HEAD(u8) - 0x38;
+    block            = (GpQuadScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = block->vec;
@@ -708,7 +702,6 @@ void func_pyrokinesis_801304C4(GsCOORDINATE2* arg0, s32 arg1)
 /// A negative `gte_stflg` drops the quad.
 void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -718,13 +711,12 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
     s32              t;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -769,7 +761,7 @@ void func_pyrokinesis_80130848(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_pyrokinesis_80130C54(Task* arg0)
@@ -826,7 +818,6 @@ void func_pyrokinesis_80130C54(Task* arg0)
 /// `Gp_QuadClutX`.
 void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -836,14 +827,13 @@ void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
     block->vec.vz                             = vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -881,7 +871,7 @@ void func_pyrokinesis_80130DC0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_pyrokinesis_801311B8(Task* arg0)
@@ -931,7 +921,6 @@ void func_pyrokinesis_801311B8(Task* arg0)
 /// edge fades to black; a negative `gte_stflg` drops the segment.
 void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -942,11 +931,10 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
     s16            r0;
     s16            r1;
 
-    r1       = arg1 + arg2;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    r1               = arg1 + arg2;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -1020,7 +1008,6 @@ void func_pyrokinesis_801312B4(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s16 arg3
 /// `arg1`, and a negative `gte_stflg` drops the segment.
 void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -1036,10 +1023,9 @@ void func_pyrokinesis_80131784(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, s32 arg3
     u16            back;
     MATRIX*        rot;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     if (arg3 != 0) {
         back    = (arg2 << 1) + (arg1 << 8);
         hubSize = 0x80;

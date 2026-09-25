@@ -312,7 +312,6 @@ void func_healing_8012F5E4(Task* arg0)
 /// `Gp_EffSprTask8D`.
 void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -323,13 +322,12 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s16            y;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -401,5 +399,5 @@ void func_healing_8012F7FC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }

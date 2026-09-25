@@ -106,21 +106,19 @@ void func_pepper_spray_8012EF34(Task* arg0)
 
 void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**             scratch;
     u8*                head;
     GpEffFlareScratch* blk;
     GpEffFlareScratch* copy;
     POLY_FT4*          prim;
     s32                ang;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    blk         = (GpEffFlareScratch*)(head - 0x1C);
-    copy        = blk;
-    blk->vec.vx = *(u16*)&arg0->workm.t[0];
-    blk->vec.vy = *(u16*)&arg0->workm.t[1];
-    blk->vec.vz = *(u16*)&arg0->workm.t[2];
-    *scratch    = blk;
+    head                            = SCRATCH_HEAD(u8);
+    blk                             = (GpEffFlareScratch*)(head - 0x1C);
+    copy                            = blk;
+    blk->vec.vx                     = *(u16*)&arg0->workm.t[0];
+    blk->vec.vy                     = *(u16*)&arg0->workm.t[1];
+    blk->vec.vz                     = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD(GpEffFlareScratch) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
@@ -155,7 +153,7 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /* Every scratch vector address is computed off `head`, not off `blk`, so the
@@ -163,7 +161,6 @@ void func_pepper_spray_8012F21C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
    the `blk` register the way CSE off `blk` would. */
 void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**                     scratch;
     u8*                        head;
     OverlayFlaggedQuadScratch* blk;
     OverlayFlaggedQuadScratch* copy;
@@ -174,13 +171,12 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32                        depth;
     s16                        color;
 
-    depth    = -0x200;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
-    *scratch = blk;
-    copy     = blk;
-    color    = arg2;
+    depth                                   = -0x200;
+    head                                    = SCRATCH_HEAD(u8);
+    blk                                     = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
+    SCRATCH_HEAD(OverlayFlaggedQuadScratch) = blk;
+    copy                                    = blk;
+    color                                   = arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     ang = arg1;
 
@@ -259,7 +255,5 @@ void func_pepper_spray_8012F634(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz);
         }
     }
-    /* Restore through the symbol so `lui 0x1F80` can fill the `bltz` delay
-       slots. A live `scratch` pointer would keep the address in `$fp`. */
     SCRATCH_POP_BYTES(sizeof(OverlayFlaggedQuadScratch));
 }

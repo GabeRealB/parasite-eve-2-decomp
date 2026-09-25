@@ -327,7 +327,6 @@ release:
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
 void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
 {
-    void**             scratch;
     u8*                head;
     InfernoFanScratch* block;
     InfernoFanParam*   row;
@@ -345,15 +344,14 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     u16                h;
     u16                frame;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    tbl      = D_inferno_801304E4;
-    row      = &tbl[kind];
-    h        = mem->period + row->field_2;
-    inner    = mem->angle + row->field_0;
-    outer    = row->field_4 + (inner + mem->step);
-    head     = (u8*)*scratch;
-    *scratch = head - 0x70;
-    block    = (InfernoFanScratch*)(head - 0x70);
+    tbl                = D_inferno_801304E4;
+    row                = &tbl[kind];
+    h                  = mem->period + row->field_2;
+    inner              = mem->angle + row->field_0;
+    outer              = row->field_4 + (inner + mem->step);
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - 0x70;
+    block              = (InfernoFanScratch*)(head - 0x70);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         ang                = i * 0x2AA;
@@ -428,7 +426,6 @@ void func_inferno_8012F978(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
 void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, InfernoIdMap* map)
 {
-    void**             scratch;
     u8*                head;
     InfernoFanScratch* block;
     InfernoFanParam*   row;
@@ -446,15 +443,14 @@ void func_inferno_8012FF34(GpEffWork* mem, GsCOORDINATE2* coord, s32 kind, Infer
     u16                h;
     u16                frame;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    tbl      = D_inferno_801304E4;
-    row      = &tbl[kind];
-    inner    = mem->angle + row->field_0;
-    outer    = row->field_4 + (inner + mem->step);
-    h        = row->field_2;
-    head     = (u8*)*scratch;
-    *scratch = head - 0x70;
-    block    = (InfernoFanScratch*)(head - 0x70);
+    tbl                = D_inferno_801304E4;
+    row                = &tbl[kind];
+    inner              = mem->angle + row->field_0;
+    outer              = row->field_4 + (inner + mem->step);
+    h                  = row->field_2;
+    head               = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(void) = head - 0x70;
+    block              = (InfernoFanScratch*)(head - 0x70);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         ang                = i * 0x2AA;

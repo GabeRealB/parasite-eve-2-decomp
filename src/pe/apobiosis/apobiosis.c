@@ -540,7 +540,6 @@ void func_apobiosis_8013017C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// projection sets a negative `gte_stflg`.
 void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
 {
-    void**                 scratch;
     u8*                    head;
     u8*                    tmp;
     ApobiosisShardScratch* block;
@@ -559,9 +558,8 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
     s32                    t;
     s16                    extent;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
-    tmp     = head - 0x28;
+    head = SCRATCH_HEAD(u8);
+    tmp  = head - 0x28;
     SOFT_TOUCH_REG(tmp);
     vx                                             = *(u16*)&arg0->workm.t[0];
     block                                          = (ApobiosisShardScratch*)tmp;
@@ -575,12 +573,12 @@ void func_apobiosis_80130630(GsCOORDINATE2* arg0, s16* arg1, s16 arg2, s16 arg3)
     block->v1.vz                                   = vz;
     t                                              = vx;
     TOUCH_REG(t);
-    extent       = arg3;
-    t           += (u16)arg1[0];
-    block->v1.vx = t;
-    block->v1.vy = *(u16*)&block->v1.vy + (u16)arg1[1];
-    block->v1.vz = *(u16*)&block->v1.vz + (u16)arg1[2];
-    *scratch     = block;
+    extent                              = arg3;
+    t                                  += (u16)arg1[0];
+    block->v1.vx                        = t;
+    block->v1.vy                        = *(u16*)&block->v1.vy + (u16)arg1[1];
+    block->v1.vz                        = *(u16*)&block->v1.vz + (u16)arg1[2];
+    SCRATCH_HEAD(ApobiosisShardScratch) = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);

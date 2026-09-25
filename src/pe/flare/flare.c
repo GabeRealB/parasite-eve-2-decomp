@@ -150,7 +150,6 @@ void flareSparkTask(Task* arg0)
 
 void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -160,14 +159,13 @@ void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
     block->vec.vz                             = vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -205,5 +203,5 @@ void flareDrawSparkQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }

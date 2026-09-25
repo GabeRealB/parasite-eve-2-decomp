@@ -490,7 +490,6 @@ void func_lifedrain_8012FAF8(Task* arg0)
 /// 0x18-byte scratch and axis-aligned corners as gameplay `Gp_EffSprTask8D`.
 void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -501,13 +500,12 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -582,7 +580,7 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
@@ -592,7 +590,6 @@ void func_lifedrain_801301AC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// fading to black. A negative `gte_stflg` drops the wedge.
 void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     SVECTOR*       vec;
@@ -601,13 +598,12 @@ void func_lifedrain_801305C0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32            ang2;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);

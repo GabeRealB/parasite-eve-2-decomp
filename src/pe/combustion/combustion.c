@@ -227,7 +227,6 @@ void func_combustion_8012F2BC(Task* arg0)
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
 void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -238,13 +237,12 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -289,7 +287,7 @@ void func_combustion_8012F5EC(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
@@ -406,7 +404,6 @@ void func_combustion_8012F888(Task* arg0)
 /// `Gp_QuadClutX`.
 void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -416,14 +413,13 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
     block->vec.vz                             = vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -461,7 +457,7 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Links one frame of the combustion flame at `arg0`'s world position. The
@@ -473,7 +469,6 @@ void func_combustion_8012FB14(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// quad as gameplay `Gp_EffSprTask8D`.
 void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -485,13 +480,12 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -539,7 +533,7 @@ void func_combustion_8012FF0C(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 /// Draws one billboard quad of a combustion flame. The coordinate's world
@@ -640,7 +634,6 @@ void func_combustion_80130184(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// depth.
 void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -657,13 +650,12 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -708,7 +700,7 @@ void func_combustion_801305F8(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_combustion_801308E0(Task* arg0)

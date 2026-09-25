@@ -407,7 +407,6 @@ release:
 /// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
 void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -417,9 +416,8 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32            half;
     u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    color   = arg2;
-    head    = *scratch;
+    color = arg2;
+    head  = SCRATCH_HEAD(u8);
     USE_REG(head);
     {
         register u16 vx asm("v0");
@@ -431,10 +429,10 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy               = *(u16*)&arg0->workm.t[1];
+    vz                          = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD(GpRingScratch) = block;
+    block->vec.vz               = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -486,7 +484,6 @@ void func_energyball_8012FFD0(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
 void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
-    void**                    scratch;
     u8*                       head;
     GpFxQuadScratch*          block;
     register GpFxQuadScratch* p asm("v0");
@@ -495,8 +492,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32                       ang2;
     u16                       vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     vx                                        = *(u16*)&arg0->workm.t[0];
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = vx;
     p                                         = (GpFxQuadScratch*)(head - 0x1C);
@@ -504,7 +500,7 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
     block->vec.vz                             = vz;
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -560,7 +556,6 @@ void func_energyball_8013035C(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `(0x20, 0x30, 0x20)`.
 void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 {
-    void**                scratch;
     u8*                   head;
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
@@ -573,13 +568,12 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
     s32                   prod;
     s32                   rb;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = (u8*)*scratch - sizeof(OverlayGroundScratch);
+    head = SCRATCH_HEAD(u8) - sizeof(OverlayGroundScratch);
     /* Store the freshly computed head and keep a copy for the rest of the
        function; without the barrier GCC folds the two together. */
     SOFT_TOUCH_REG(head);
-    *scratch = head;
-    sc       = (OverlayGroundScratch*)head;
+    SCRATCH_HEAD(u8) = head;
+    sc               = (OverlayGroundScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     v   = sc->vec;
@@ -663,7 +657,6 @@ void func_energyball_801307D4(GsCOORDINATE2* arg0, s32 arg1)
 /// segment.
 void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -674,10 +667,9 @@ void func_energyball_80130B54(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
     s32            u;
     s16            idx;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         ang                = i << 8;
