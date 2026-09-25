@@ -444,7 +444,7 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
 {
     u8           param2[4];
     u8*          param1;
-    void*        head;
+    u8*          head;
     void*        temp;
     s32          c50;
     s32          c4;
@@ -461,15 +461,15 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
     c50                = 0x50;
     c4                 = 4;
     c6                 = 6;
-    head               = SCRATCH_HEAD(void);
-    temp               = (u8*)head - 8;
+    head               = SCRATCH_HEAD(u8);
+    temp               = head - 8;
     param1             = temp;
     SCRATCH_HEAD(void) = temp;
 
     gGameSession->field_80 = 0;
     param1[3]              = 0;
     param1[2]              = c50;
-    ((u8*)head)[-8]        = 0;
+    head[-8]               = 0;
     param2[0]              = arg0;
     param2[1]              = 0;
     param2[2]              = c4;
@@ -477,13 +477,13 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
     CdCmd_Enqueue(0x21, param1, param2);
 
     if ((u8)flag != 0) {
-        param1[3]       = 0;
-        param1[2]       = c50;
-        ((u8*)head)[-8] = saved1;
-        param2[0]       = arg0;
-        param2[1]       = 0;
-        param2[2]       = c4;
-        param2[3]       = c6;
+        param1[3] = 0;
+        param1[2] = c50;
+        head[-8]  = saved1;
+        param2[0] = arg0;
+        param2[1] = 0;
+        param2[2] = c4;
+        param2[3] = c6;
         CdCmd_Enqueue(0x21, param1, param2);
         if ((u8)flag == 5) {
             gGameSession->companionVariant = 3;

@@ -6111,7 +6111,8 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
                 if (count == 1) {
                     angle = 0;
                 }
-                val     = rsin(angle);
+                val = rsin(angle);
+                /* `buf` doubles as the byte offset of point i. */
                 dest    = (GpWheelPt*)((u8*)pts + (s32)buf);
                 dest->x = val;
                 dest->y = rcos(angle);
@@ -6135,6 +6136,8 @@ s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
                 if (count > 0) {
                     scan = points;
                     do {
+                        /* Reached by byte offset: indexing `points` adds the index
+                         * first, and the target adds the base first. */
                         {
                             s32        offset    = best * 4;
                             GpWheelPt* candidate = (GpWheelPt*)((u8*)points + offset);
@@ -7603,9 +7606,9 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 t = vec->vy;
                 if (t < 0x65 && t >= -arg2) {
                     if ((u32)(vec->vx * vec->vx + vec->vz * vec->vz) <= (u32)(arg1 * arg1)) {
-                        work  = (u8*)node - OFFSET_OF(GpEnemy, node);
-                        enemy = (GpEnemy*)work;
-                        claim = (GpEnemy*)work;
+                        work  = GP_NODE_ENEMY(node);
+                        enemy = work;
+                        claim = work;
                         if (arg0 == 0) {
                             enemy->colorMode |= 0x80;
                         } else {
