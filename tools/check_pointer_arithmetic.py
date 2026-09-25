@@ -18,8 +18,9 @@ Arithmetic written in a macro's argument is the caller's, and is reported where
 the argument is written. Arithmetic in a macro's body is reported at the
 macro's use, except for macros whose expansion is pointer arithmetic by design:
 the Psy-Q SDK's (`include/psyq`), the scratch-pad stack and its fixed address
-(`main/scratch.h`, `PSX_SCRATCH_ADDR`), and the link-node-to-enemy step
-(`GP_NODE_ENEMY`).
+(`main/scratch.h`, `PSX_SCRATCH_ADDR`), the step from an embedded member to
+the object holding it (`PARENT_OF`, `OFFSET_OF`), and the link-node-to-enemy
+step (`GP_NODE_ENEMY`).
 """
 
 import argparse
@@ -36,7 +37,7 @@ import cref  # noqa: E402
 import clang.cindex as ci  # noqa: E402
 
 SANCTIONED_PREFIXES = ("SCRATCH_",)
-SANCTIONED = {"GP_NODE_ENEMY", "PSX_SCRATCH_ADDR", "G_SCRATCH_HEAD", "GameResetScratchHead"}
+SANCTIONED = {"GP_NODE_ENEMY", "PSX_SCRATCH_ADDR", "G_SCRATCH_HEAD", "GameResetScratchHead", "PARENT_OF", "OFFSET_OF"}
 
 _WRAPPERS = {ci.CursorKind.PAREN_EXPR, ci.CursorKind.UNEXPOSED_EXPR}
 

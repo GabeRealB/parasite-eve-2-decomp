@@ -660,12 +660,12 @@ s32 Tmd_SumBufferBytes(void)
     s32        result;
 
     result = 0;
-    node   = (TmdObject*)gTmdList.next;
+    node   = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer != NULL) {
             result += node->source->halfSize * 2;
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
     return result;
 }
@@ -731,10 +731,10 @@ void Tmd_FlagAllNodes(Task* task)
 {
     TmdObject* node;
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         node->flags |= 0x80;
-        node         = (TmdObject*)node->next;
+        node         = PARENT_OF(node->link.next, TmdObject, link);
     }
     task->state++;
 }
@@ -743,13 +743,13 @@ void Tmd_FreeNodeBuffers(Task* task)
 {
     TmdObject* node;
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer != NULL) {
             memFreeFromHeap(node->buffer, 1);
             node->buffer = NULL;
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
     task->state++;
 }
@@ -766,7 +766,7 @@ void Gpu_ResetGraphAndOt(void)
 {
     TmdObject* node;
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
@@ -774,7 +774,7 @@ void Gpu_ResetGraphAndOt(void)
         if (node->buffer != NULL) {
             node->buffer = NULL;
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
 }
 
@@ -783,7 +783,7 @@ void Tmd_AllocMissingBuffers(void)
     TmdObject* node;
     void*      mem;
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     Mem_InitAux();
     CdCmd_SetupMdecBuffers();
     while (node != NULL) {
@@ -798,7 +798,7 @@ void Tmd_AllocMissingBuffers(void)
                 }
             }
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
 }
 
@@ -807,7 +807,7 @@ void Tmd_AllocNodeBuffers(Task* task)
     TmdObject* node;
     void*      mem;
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer == NULL) {
             mem = memCalloc(node->source->halfSize * 2, 1);
@@ -819,7 +819,7 @@ void Tmd_AllocNodeBuffers(Task* task)
                 tmdProcessStream(node);
             }
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
     taskKill(task);
 }
@@ -832,7 +832,7 @@ void Tmd_DrawFlaggedNodes(TmdObject* node)
                 Tmd_SetupDraw(node);
             }
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
 }
 
@@ -844,6 +844,6 @@ void Tmd_DrawActiveNodes(TmdObject* node)
                 Tmd_SetupDraw(node);
             }
         }
-        node = (TmdObject*)node->next;
+        node = PARENT_OF(node->link.next, TmdObject, link);
     }
 }

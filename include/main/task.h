@@ -12,12 +12,10 @@ struct Task;
 struct GpDisp2d;
 
 /// The body a task owns, whose kind its `spawnType` names: a model for 1, a 2D
-/// display for 2, nothing for 0. Both kinds sit on a list of their own, and are
-/// linked and unlinked as `node`, the pair of links they both begin with.
+/// display for 2, nothing for 0.
 typedef union TaskBody {
     TmdObject*       tmd;    // spawnType 1
     struct GpDisp2d* disp2d; // spawnType 2
-    TmdListHead*     node;   // Either kind, as its list links
 } TaskBody;
 
 /// A function the task system calls with the task that owns the slot.

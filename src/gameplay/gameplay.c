@@ -292,7 +292,7 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = (TmdObject*)gTmdDisp2dList.next;
+        node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link);
         flag = tmp & mask;
         bit  = tmp & 1;
     }
@@ -457,11 +457,11 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
             if (bit != 0) {
                 coord->flg |= 0x80000000;
             }
-            node = (TmdObject*)node->next;
+            node = PARENT_OF(node->link.next, TmdObject, link);
         } while (node != NULL);
     }
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     if (node != NULL) {
         do {
             coord = node->coords;
@@ -631,12 +631,12 @@ void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
                     coord++;
                 } while (++i < (u32)node->partCount);
             }
-            node = (TmdObject*)node->next;
+            node = PARENT_OF(node->link.next, TmdObject, link);
         } while (node != NULL);
     }
 
     D_80071210 += 1;
-    Tmd_DrawFlaggedNodes((TmdObject*)gTmdList.next);
+    Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
@@ -656,7 +656,7 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 
         mask = 0x7FFFFFFF;
         tmp  = D_80071210;
-        node = (TmdObject*)gTmdDisp2dList.next;
+        node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link);
         flag = tmp & mask;
         bit  = tmp & 1;
     }
@@ -821,11 +821,11 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
             if (bit != 0) {
                 coord->flg |= 0x80000000;
             }
-            node = (TmdObject*)node->next;
+            node = PARENT_OF(node->link.next, TmdObject, link);
         } while (node != NULL);
     }
 
-    node = (TmdObject*)gTmdList.next;
+    node = PARENT_OF(gTmdList.next, TmdObject, link);
     if (node != NULL) {
         do {
             coord = node->coords;
@@ -995,12 +995,12 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
                     coord++;
                 } while (++i < (u32)node->partCount);
             }
-            node = (TmdObject*)node->next;
+            node = PARENT_OF(node->link.next, TmdObject, link);
         } while (node != NULL);
     }
 
     D_80071210 += 1;
-    Tmd_DrawActiveNodes((TmdObject*)gTmdList.next);
+    Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
@@ -1030,10 +1030,10 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
     if (node != NULL) {
         list            = &gTmdList;
         last            = list->prev;
-        node->next      = last->next;
-        last->next      = (TmdListHead*)node;
-        node->prev      = last;
-        list->prev      = (TmdListHead*)node;
+        node->link.next = last->next;
+        last->next      = &node->link;
+        node->link.prev = last;
+        list->prev      = &node->link;
         task->extra.tmd = node;
         task->spawnType = 1;
     }
@@ -1071,10 +1071,10 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         coord->param.rot.vx       = 0;
         coord->flg                = 0;
         last                      = list->prev;
-        node->next                = last->next;
-        last->next                = (TmdListHead*)node;
-        node->prev                = last;
-        list->prev                = (TmdListHead*)node;
+        node->link.next           = last->next;
+        last->next                = &node->link;
+        node->link.prev           = last;
+        list->prev                = &node->link;
         task->extra.disp2d        = node;
         task->spawnType           = 2;
     } else {
@@ -1093,10 +1093,10 @@ TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
     if (node != NULL) {
         list            = &gTmdList;
         last            = list->prev;
-        node->next      = last->next;
-        last->next      = (TmdListHead*)node;
-        node->prev      = last;
-        list->prev      = (TmdListHead*)node;
+        node->link.next = last->next;
+        last->next      = &node->link;
+        node->link.prev = last;
+        list->prev      = &node->link;
         task->extra.tmd = node;
         task->spawnType = 1;
     }

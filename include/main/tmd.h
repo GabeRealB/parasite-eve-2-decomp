@@ -51,8 +51,9 @@ typedef struct {
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
-/// One node of one of the TMD lists: the link pair a head and every element on
-/// it carry as their first two fields.
+/// One node of one of the TMD lists: a list's head, or the link every element
+/// on it embeds as its first member, from which `PARENT_OF` recovers the
+/// element.
 ///
 /// A head is a bare node belonging to no element. Its `next` is the first node
 /// and its `prev` the last, which is the head itself while the list is empty,
@@ -79,8 +80,7 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// pass reads the half it writes: `bufferIndex` selects the half in use and
 /// each pass flips it.
 typedef struct {
-    TmdListHead*   next;        // Following node of the list, or NULL past the last
-    TmdListHead*   prev;        // Preceding node, or the head at the front
+    TmdListHead    link;        // Its place on `gTmdList`
     GsCOORDINATE2* coords;      // Per-part coordinate array, part of this object's own block
     u16            flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
     s8             otOffset;    // Ordering-table offset the model's primitives are linked at

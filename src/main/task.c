@@ -27,7 +27,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
     if (type == 1) {
         goto case1;
     }
-    extra.node = NULL;
+    extra.tmd = NULL;
     if (type < 2) {
         goto merge;
     }
@@ -49,7 +49,7 @@ case2:
     extra.disp2d = gpAttachDisp2d(task);
 
 merge:
-    if (((u8)desc->flags == 0) || (extra.node != NULL)) {
+    if (((u8)desc->flags == 0) || (extra.tmd != NULL)) {
         task->callback     = desc->callback;
         priority           = *(u8*)&desc->priority;
         task->exitCallback = taskKill;
@@ -98,7 +98,7 @@ void taskKill(Task* task)
     TaskNode*  saved;
     TaskNode** pp;
     TaskNode*  prev;
-    TaskBody   extra;
+    TmdObject* model;
     s32        type;
     s32        t;
     Task*      p;
@@ -160,7 +160,7 @@ void taskKill(Task* task)
         return;
 
     case2:
-        gpUnlinkDisp2d(task->extra.node);
+        gpUnlinkDisp2d(&task->extra.disp2d->link);
         task->killCountdown = 1;
         task->callback      = textNoopCallback;
         task->exitCallback  = textNoopCallback;
@@ -193,9 +193,9 @@ void taskKill(Task* task)
         goto cu_def;
 
     cu1:
-        extra = task->extra;
-        gpUnlinkTmd(extra.node);
-        gpFreeTmd(extra.tmd);
+        model = task->extra.tmd;
+        gpUnlinkTmd(&model->link);
+        gpFreeTmd(model);
         goto cu_def;
 
     cu2:
@@ -216,12 +216,12 @@ void taskKill(Task* task)
     goto imm_unlink;
 
 imm1:
-    gpUnlinkTmd(task->extra.node);
+    gpUnlinkTmd(&task->extra.tmd->link);
     gpFreeTmd(task->extra.tmd);
     goto imm_unlink;
 
 imm2:
-    gpUnlinkDisp2d(task->extra.node);
+    gpUnlinkDisp2d(&task->extra.disp2d->link);
     gpFreeDisp2d(task->extra.disp2d);
 
 imm_unlink:
@@ -606,7 +606,7 @@ end:
 
 void taskCountdownCallback(Task* task)
 {
-    TaskBody temp_s0;
+    TmdObject* model;
 
     task->killCountdown--;
     if (task->killCountdown != 0) {
@@ -615,9 +615,9 @@ void taskCountdownCallback(Task* task)
 
     switch (task->spawnType) {
         case 1:
-            temp_s0 = task->extra;
-            gpUnlinkTmd(temp_s0.node);
-            gpFreeTmd(temp_s0.tmd);
+            model = task->extra.tmd;
+            gpUnlinkTmd(&model->link);
+            gpFreeTmd(model);
             task->spawnType = 0xFF;
             break;
         case 2:

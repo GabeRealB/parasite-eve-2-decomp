@@ -19,6 +19,11 @@
 
 #define OFFSET_OF(st, m) ((size_t)&(((st*)0)->m))
 
+/// The `type` object that `ptr`, a pointer to its `member`, lies inside: for
+/// code that holds a pointer to an embedded part, such as a list link, and
+/// needs the whole object it belongs to.
+#define PARENT_OF(ptr, type, member) ((type*)((u8*)(ptr) - OFFSET_OF(type, member)))
+
 #define ALIGN(x, a) (((u32)(x) + ((a) - 1)) & ~((a) - 1))
 
 #define SECTION(x) __attribute__((section(x)))

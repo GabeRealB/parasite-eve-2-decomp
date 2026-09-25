@@ -328,11 +328,10 @@ STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
 /// coordinate is found. A 2D-display body has a single one, so that field points
 /// at the node's own `coord` rather than at an array of them.
 typedef struct GpDisp2d {
-    TmdListHead* next;    // Following node of the list, or NULL past the last
-    TmdListHead* prev;    // Preceding node, or the head at the front
-    GpCoordExt*  coords;  // The body's coordinate, i.e. `&coord`
-    s32          field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
-    GpCoordExt   coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
+    TmdListHead link;    // Its place on `gTmdDisp2dList`
+    GpCoordExt* coords;  // The body's coordinate, i.e. `&coord`
+    s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
+    GpCoordExt  coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
