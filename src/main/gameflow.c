@@ -4,6 +4,7 @@
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
+#include "main/mem.h"
 #include "main/gameflow.h"
 #include "main/gamemain.h"
 #include "main/pad.h"
@@ -18,8 +19,6 @@ void GameFlow_StateByField34(Task* arg0)
     CdCmdQueue*   p;
     register s32  saved asm("s1");
     s8            one;
-    u8*           ptr;
-    u32           i;
     DisplayState* ds;
 
     p = &CdCmd_Queue;
@@ -39,15 +38,7 @@ void GameFlow_StateByField34(Task* arg0)
                 gDisplayState.roomVariant = 1;
             }
             Title_RestoreDemoCard();
-            {
-                u8* clearPtr;
-                u32 clearI;
-
-                clearPtr = (u8*)gGameSession;
-                for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
-                    *clearPtr++ = 0;
-                }
-            }
+            MEM_CLEAR(gGameSession, sizeof(GameSession));
             ds                               = &gDisplayState;
             ds->at100.flags.pendingPlayerPos = 0;
             ds->gameRunning                  = 0;
@@ -68,10 +59,7 @@ void GameFlow_StateByField34(Task* arg0)
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
             saved = Mc_SaveData.vibration;
-            ptr   = (u8*)gGameSession;
-            for (i = 0; i < sizeof(GameSession); i++) {
-                *ptr++ = 0;
-            }
+            MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.at100.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                  = 1;
             p->field_248                               = 1;
@@ -83,15 +71,7 @@ void GameFlow_StateByField34(Task* arg0)
             } while (0);
             arg0->state = arg0->state + 1;
         } else {
-            {
-                u8* clearPtr;
-                u32 clearI;
-
-                clearPtr = (u8*)gGameSession;
-                for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
-                    *clearPtr++ = 0;
-                }
-            }
+            MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.gameRunning                  = 1;
             gDisplayState.at100.flags.pendingPlayerPos = 0;
             p->field_248                               = 1;
@@ -136,13 +116,8 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
 
 void Game_ClearSession(void)
 {
-    u8* ptr;
-    u32 i;
 
-    ptr = (u8*)gGameSession;
-    for (i = 0; i < sizeof(GameSession); i++) {
-        *ptr++ = 0;
-    }
+    MEM_CLEAR(gGameSession, sizeof(GameSession));
     gDisplayState.at100.flags.pendingPlayerPos = 0;
 }
 
@@ -156,17 +131,12 @@ void GameFlow_InitSystems(void)
 
 void Game_ResetSessionAndBuffers(Task* arg0)
 {
-    u8*         ptr;
-    u32         i;
     s32         saved;
     CdCmdQueue* p;
 
     p     = &CdCmd_Queue;
     saved = Mc_SaveData.vibration;
-    ptr   = (u8*)gGameSession;
-    for (i = 0; i < sizeof(GameSession); i++) {
-        *ptr++ = 0;
-    }
+    MEM_CLEAR(gGameSession, sizeof(GameSession));
     gDisplayState.at100.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                  = 1;
     p->field_248                               = 1;

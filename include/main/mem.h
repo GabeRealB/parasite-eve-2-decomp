@@ -28,6 +28,17 @@ STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 /// @param count Number of bytes to write into the destination buffer.
 void Mem_Set(void* dest, u32 ch, u32 count);
 
+/// Clears `size` bytes at `dst` one byte at a time, in place rather than
+/// through `Mem_Set`.
+#define MEM_CLEAR(dst, size)                             \
+    {                                                    \
+        u8* _clearPtr = (u8*)(dst);                      \
+        u32 _clearI;                                     \
+        for (_clearI = 0; _clearI < (size); _clearI++) { \
+            *_clearPtr++ = 0;                            \
+        }                                                \
+    }
+
 /// Initializes the primary and the auxiliary heap.
 void Mem_Init(void);
 
