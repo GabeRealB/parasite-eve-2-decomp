@@ -230,6 +230,7 @@ s32        Gp_PackPair(void* pair, s32 index);
 void       Actor02000_Fn02294(Actor02000* actor);
 
 void               Gp_ArmStateF0(s32 arg0);
+void               Gp_ClearRec18Occupied(GpRec18* arg0);
 void               Actor02000_Fn00CD0(Actor02000* arg0);
 s32                Gp_TickObjFlag2(void* arg0);
 s32                Gp_GetObjPan(void* arg0);

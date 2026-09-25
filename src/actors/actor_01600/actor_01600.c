@@ -540,9 +540,10 @@ void func_800E2C78(void*, s32, s32, s32);
 void Gp_SetObjFlag1(void*);
 void Gp_SetObjFlag2(void*, s32, s32);
 void Gp_SetObjFlag4(void*, s32, s32);
-/// Value-returning here, unlike the gameplay header's `void`: the actor was
-/// built against a declaration with a result, which keeps `$v0` live across
-/// the call that ends `Actor01600_Fn04C64`.
+/// Value-returning here although the gameplay definition returns nothing: this
+/// actor was compiled against a declaration with a result. Declared `void`,
+/// the code after the call that ends `Actor01600_Fn04C64` takes different
+/// registers and the overlay no longer matches.
 s32     Gp_ClearRec18Occupied(void*);
 s32     Gp_FindRec18(void*, s32);
 void    func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, void* arg3);
