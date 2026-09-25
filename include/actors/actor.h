@@ -645,6 +645,34 @@ typedef struct Actor350500Work {
 } Actor350500Work;
 STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
 
+/// Work block of the enemy whose code both actor_160700 and actor_215100
+/// carry, allocated zeroed at its full size and kept at `Task::work`: the
+/// light and colour matrices its model draws with, the animation context and
+/// slots, the animation state, and the yaw and remaining travel the placement
+/// commands leave. `field_4F0` is the task of the enemy spawned alongside it
+/// and `enemy` the enemy its own task belongs to.
+typedef struct Actor160700Work {
+    MATRIX     light;
+    MATRIX     color;
+    GpAnimCtx  anim;
+    GpAnimSlot slots[0x14];
+    byte       field_374;
+    byte       pad_375[0x13F];
+    s16        state;
+    s16        appliedAnimId;
+    s16        animId;
+    s16        field_4BA;
+    byte       pad_4BC[0x2A];
+    u16        yaw;
+    byte       pad_4E8[0x2];
+    s16        travel;
+    s16        animArg;
+    byte       pad_4EE[0x2];
+    Task*      field_4F0;
+    GpEnemy*   enemy;
+} Actor160700Work;
+STATIC_ASSERT_SIZEOF(Actor160700Work, 0x4F8);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the

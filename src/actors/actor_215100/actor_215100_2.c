@@ -1357,8 +1357,8 @@ void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
-    Actor215100Work* work;
-    Actor215100Work* mem;
+    Actor160700Work* work;
+    Actor160700Work* mem;
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
@@ -1373,8 +1373,8 @@ void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    mem        = (Actor215100Work*)memCalloc(0x4F8, false);
-    work       = (Actor215100Work*)mem;
+    mem        = (Actor160700Work*)memCalloc(0x4F8, false);
+    work       = (Actor160700Work*)mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
@@ -1434,10 +1434,10 @@ void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 /// left, switching to clip 1 when it runs out, and ticks the slots.
 void func_actor_215100_8014C874(Task* task)
 {
-    Actor215100Work* work;
+    Actor160700Work* work;
     s16              animId;
 
-    work = (Actor215100Work*)task->work;
+    work = (Actor160700Work*)task->work;
     if (work->state == 1) {
         func_actor_215100_8014CC7C(task);
         work->state = 3;
@@ -1530,10 +1530,10 @@ void func_actor_215100_8014CB2C(Task* task)
 /// Ticks animation slots 1..0x13.
 void func_actor_215100_8014CBB8(Task* task)
 {
-    Actor215100Work* work;
+    Actor160700Work* work;
     s32              i;
 
-    work = (Actor215100Work*)task->work;
+    work = (Actor160700Work*)task->work;
     i    = 1;
     do {
         Gp_AnimTickIndex(&work->anim, i);
@@ -1545,10 +1545,10 @@ void func_actor_215100_8014CBB8(Task* task)
 /// applied clip.
 void func_actor_215100_8014CC04(Task* task)
 {
-    Actor215100Work* work;
+    Actor160700Work* work;
     s32              i;
 
-    work = (Actor215100Work*)task->work;
+    work = (Actor160700Work*)task->work;
     i    = 1;
     do {
         work->slots[i].rate = 1;
@@ -1562,10 +1562,10 @@ void func_actor_215100_8014CC04(Task* task)
 /// and records the clip as the applied one.
 void func_actor_215100_8014CC7C(Task* task)
 {
-    Actor215100Work* work;
+    Actor160700Work* work;
     s32              i;
 
-    work = (Actor215100Work*)task->work;
+    work = (Actor160700Work*)task->work;
     i    = 1;
     do {
         func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
@@ -1580,9 +1580,9 @@ void func_actor_215100_8014CC7C(Task* task)
 /// straight away.
 s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, Actor215100AnimArgs* args)
 {
-    Actor215100Work* work;
+    Actor160700Work* work;
 
-    work = (Actor215100Work*)task->work;
+    work = (Actor160700Work*)task->work;
     if (args->animId >= 0x19) {
         return -1;
     }
@@ -1610,7 +1610,7 @@ s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
     TmdObject* other;
 
     self  = (TmdObject*)task->extra;
-    other = (TmdObject*)((Actor215100Work*)task->work)->field_4F0->extra;
+    other = (TmdObject*)((Actor160700Work*)task->work)->field_4F0->extra;
 
     if (flags & 1) {
         self->flags  = 0;
@@ -1632,11 +1632,11 @@ s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
 s32 func_actor_215100_8014CDB0(Task* task, s32 arg1, ActorsShared80132614Placement* placement)
 {
     GsCOORDINATE2*   coord;
-    Actor215100Work* work;
+    Actor160700Work* work;
     u16              yaw;
 
     coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor215100Work*)task->work;
+    work      = (Actor160700Work*)task->work;
     yaw       = placement->rot.vy;
     work->yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
@@ -1659,13 +1659,13 @@ s32 func_actor_215100_8014CE28(void)
 s32 func_actor_215100_8014CE30(Task* task, s32 arg1, ActorsShared801326acTarget* target)
 {
     GsCOORDINATE2*   coord;
-    Actor215100Work* work;
+    Actor160700Work* work;
     s32              dx;
     s32              dz;
     u16              yaw;
 
     coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor215100Work*)task->work;
+    work      = (Actor160700Work*)task->work;
     dx        = target->pos.vx - coord->coord.t[0];
     dz        = target->pos.vz - coord->coord.t[2];
     yaw       = ratan2(dx, dz);
@@ -1687,7 +1687,7 @@ void func_actor_215100_8014CEF8(Task* task)
     TmdObject*       obj    = task->extra;
     GsCOORDINATE2*   coord  = obj->coords;
     GsCOORDINATE2*   sub    = &((TmdObject*)parent->extra)->coords[4];
-    Actor215100Work* work   = (Actor215100Work*)parent->work;
+    Actor160700Work* work   = (Actor160700Work*)parent->work;
 
     switch (task->state) {
         case 0:
