@@ -33,19 +33,6 @@ typedef struct Actor401800Waypoint {
     /* 0x2 */ s16 z;
 } Actor401800Waypoint;
 
-/// 0xC-byte row of `D_actor_401800_8013E700`; the init body copies the four
-/// halfwords of the row picked by the spawn argument's low nibble into
-/// `Actor401800Work.field_C08..field_C0E`. Same shape as
-/// `Actor01900TintRow`.
-typedef struct Actor401800TintRow {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  field_4;
-    /* 0x6 */ s16  field_6;
-    /* 0x8 */ byte pad_8[4];
-} Actor401800TintRow;
-STATIC_ASSERT_SIZEOF(Actor401800TintRow, 0xC);
-
 /// Private work block of the actor 401800 task, hanging off `Task::work`.
 ///
 /// Only the fields the decompiled code touches are named, so the struct is
@@ -275,10 +262,10 @@ extern s32 D_actor_401800_80155938;
 /// `D_actor_401300_80141FA0` plays for actor 401300.
 extern GpPairSrcE D_actor_401800_8013E6F0;
 
-/// The three `Actor401800TintRow` variants the init body picks from by the
+/// The three `ActorSpawnParamRow` variants the init body picks from by the
 /// spawn argument's low nibble: `[0]` when it is 2, `[2]` when it is 1, `[1]`
 /// otherwise. Same table shape as `Actor01900_D0AC64`.
-extern Actor401800TintRow D_actor_401800_8013E700[];
+extern ActorSpawnParamRow D_actor_401800_8013E700[];
 
 /// Handler table the actor's task receives in `Task::msgTable`; same role
 /// `Actor01900_D1728C` plays for actor 01900.

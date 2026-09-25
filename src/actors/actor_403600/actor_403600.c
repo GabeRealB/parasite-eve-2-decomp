@@ -22,21 +22,8 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "actors/actor.h"
 #include "actors/actor_403600.h"
-
-typedef struct Actor403600EffectState {
-    /* 0x00 */ s16           field_0[0x20];
-    /* 0x40 */ s16           field_40[0x20];
-    /* 0x80 */ s32           field_80;
-    /* 0x84 */ s32           field_84;
-    /* 0x88 */ s32           field_88;
-    /* 0x8C */ s16           field_8C;
-    /* 0x8E */ s16           field_8E;
-    /* 0x90 */ GsCOORDINATE2 field_90;
-    /* 0xE0 */ s32           field_E0;
-    /* 0xE4 */ s32           field_E4;
-} Actor403600EffectState;
-STATIC_ASSERT_SIZEOF(Actor403600EffectState, 0xE8);
 
 /// 0x1C-byte scratch block used while building the screen transition grid.
 typedef struct Actor403600ScreenScratch {
@@ -251,7 +238,7 @@ extern const CVECTOR D_actor_403600_80131E34;
 // Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
 #define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
 
-void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1);
+void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1);
 void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, TaskIdMap* arg2, TaskIdMap* arg3);
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Work* arg2);
 
@@ -1693,7 +1680,7 @@ block_22:
     *(void**)0x1F8003FC = *(void**)0x1F8003FC + 0x54;
 }
 
-void func_actor_403600_801353D0(Actor403600EffectState* arg0, GsCOORDINATE2* arg1)
+void func_actor_403600_801353D0(ActorEffectState* arg0, GsCOORDINATE2* arg1)
 {
     s32                       radii[16];
     s32                       heights[16];
@@ -1935,54 +1922,54 @@ const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 
 void func_actor_403600_80135C28(Task* arg0)
 {
-    SVECTOR                 sp10;
-    s16*                    temp_a0_2;
-    s16*                    temp_a0_6;
-    Actor403600EffectState* temp_s0;
-    s16*                    temp_v0_11;
-    s16*                    temp_v0_13;
-    Actor403600EffectState* temp_v0_2;
-    s16*                    temp_v0_4;
-    s16*                    temp_v0_7;
-    s16*                    temp_v1_5;
-    s16*                    temp_v1_8;
-    s16*                    var_a0_2;
-    GsCOORDINATE2*          temp_s4;
-    s32                     temp_a0_3;
-    s32                     temp_a0_4;
-    s32                     temp_a0_7;
-    s32                     temp_v0_10;
-    s32                     temp_v0_12;
-    s32                     temp_v0_3;
-    s32                     temp_v0_5;
-    s32                     temp_v0_6;
-    s32                     temp_v0_8;
-    s32                     temp_v0_9;
-    s32                     temp_v1_10;
-    s32                     temp_v1_11;
-    s32                     temp_v1_12;
-    s32                     temp_v1_2;
-    s32                     temp_v1_3;
-    s32                     temp_v1_4;
-    s32                     temp_v1_6;
-    s32                     temp_v1_7;
-    s32                     temp_v1_9;
-    s32                     var_a1;
-    s32                     var_a1_2;
-    s32                     var_v0;
-    s32                     var_v0_2;
-    s32                     var_v0_3;
-    s32                     var_v0_4;
-    s32                     var_v0_5;
-    s32                     var_v0_6;
-    s32                     var_v0_7;
-    s32                     var_v1;
-    Task*                   temp_a0;
-    TmdObject*              temp_a0_5;
-    TmdObject*              temp_a1;
-    Task*                   temp_s2;
-    TmdObject*              temp_v0;
-    Actor403600Work*        temp_v1;
+    SVECTOR           sp10;
+    s16*              temp_a0_2;
+    s16*              temp_a0_6;
+    ActorEffectState* temp_s0;
+    s16*              temp_v0_11;
+    s16*              temp_v0_13;
+    ActorEffectState* temp_v0_2;
+    s16*              temp_v0_4;
+    s16*              temp_v0_7;
+    s16*              temp_v1_5;
+    s16*              temp_v1_8;
+    s16*              var_a0_2;
+    GsCOORDINATE2*    temp_s4;
+    s32               temp_a0_3;
+    s32               temp_a0_4;
+    s32               temp_a0_7;
+    s32               temp_v0_10;
+    s32               temp_v0_12;
+    s32               temp_v0_3;
+    s32               temp_v0_5;
+    s32               temp_v0_6;
+    s32               temp_v0_8;
+    s32               temp_v0_9;
+    s32               temp_v1_10;
+    s32               temp_v1_11;
+    s32               temp_v1_12;
+    s32               temp_v1_2;
+    s32               temp_v1_3;
+    s32               temp_v1_4;
+    s32               temp_v1_6;
+    s32               temp_v1_7;
+    s32               temp_v1_9;
+    s32               var_a1;
+    s32               var_a1_2;
+    s32               var_v0;
+    s32               var_v0_2;
+    s32               var_v0_3;
+    s32               var_v0_4;
+    s32               var_v0_5;
+    s32               var_v0_6;
+    s32               var_v0_7;
+    s32               var_v1;
+    Task*             temp_a0;
+    TmdObject*        temp_a0_5;
+    TmdObject*        temp_a1;
+    Task*             temp_s2;
+    TmdObject*        temp_v0;
+    Actor403600Work*  temp_v1;
 
     temp_a0 = arg0->spawnArg2;
     temp_v1 = temp_a0->work;
@@ -2122,7 +2109,7 @@ void func_actor_403600_80135C28(Task* arg0)
             return;
         }
     }
-    temp_s0 = (Actor403600EffectState*)arg0->work;
+    temp_s0 = (ActorEffectState*)arg0->work;
     if (Gp_StateF0.field_4 == 0) {
         temp_v1_9 = arg0->spawnArg1;
         switch (temp_v1_9) { /* switch 1; irregular */

@@ -30,19 +30,6 @@ typedef struct Actor401000Waypoint {
     /* 0x2 */ s16 z;
 } Actor401000Waypoint;
 
-/// One 0xC-byte combat-parameter record `func_actor_401000_80133274` selects
-/// with `Task::spawnArg1 & 0xF` and copies into `Actor401000Work.field_C10`
-/// through `field_C16`; the four halfwords are the frame bias, the turn step,
-/// a third parameter and the radius, and the tail is not copied.
-typedef struct Actor401000SeedRec {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  field_4;
-    /* 0x6 */ s16  field_6;
-    /* 0x8 */ byte pad_8[4];
-} Actor401000SeedRec;
-STATIC_ASSERT_SIZEOF(Actor401000SeedRec, 0xC);
-
 /// Animation view of `Actor401000Work`'s prefix. `func_800B3F84` is handed the
 /// context, the pose buffer just past its slot array, and the array itself;
 /// the work block's own fields at 0x898 and up are not repeated here. Same
@@ -271,7 +258,7 @@ extern GpPairSrcE D_actor_401000_8013E09C;
 
 /// Three combat-parameter records `func_actor_401000_80133274` picks between
 /// with `Task::spawnArg1 & 0xF`.
-extern Actor401000SeedRec D_actor_401000_8013E0AC[3];
+extern ActorSpawnParamRow D_actor_401000_8013E0AC[3];
 
 /// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
 extern s32 D_actor_401000_80154F90;

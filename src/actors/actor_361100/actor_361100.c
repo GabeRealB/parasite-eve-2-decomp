@@ -62,32 +62,6 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
-/// State block `func_actor_361100_80161E3C` allocates with `memCalloc(0xE8)`
-/// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
-/// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
-/// to the shared state tick and its coordinate upload, which this package calls
-/// as the absolute imports at 0x80138C9C and 0x801353D0. Those are the same two
-/// functions `actor_403600` decompiles as `func_actor_403600_80138C9C` /
-/// `func_actor_403600_801353D0` (its own packages sit lower in the family's
-/// load window, so it names them in-package and calls them directly), and their
-/// `Actor403600EffectState` is this record: the same 0xE8 total, the two
-/// 0x20-entry `s16` arrays, the ramp scalars at 0x80..0x8E, the coordinate at
-/// 0x90 and the pair of words above it. The fields this body does not touch are
-/// named from that twin.
-typedef struct Actor361100EffectState {
-    /* 0x00 */ s16           field_0[0x20];
-    /* 0x40 */ s16           field_40[0x20];
-    /* 0x80 */ s32           field_80;
-    /* 0x84 */ s32           field_84;
-    /* 0x88 */ s32           field_88;
-    /* 0x8C */ s16           field_8C;
-    /* 0x8E */ s16           field_8E;
-    /* 0x90 */ GsCOORDINATE2 field_90;
-    /* 0xE0 */ s32           field_E0;
-    /* 0xE4 */ s32           field_E4;
-} Actor361100EffectState;
-STATIC_ASSERT_SIZEOF(Actor361100EffectState, 0xE8);
-
 extern u8  D_801156F9;
 extern s32 D_8007107C;
 extern s32 D_8016069C;
@@ -106,8 +80,8 @@ extern GpMsgEntry D_actor_361100_8016BAF0[];
 extern void*      D_actor_361100_80171BA8[];
 extern u8         D_actor_361100_80171BB8[];
 
-void func_80138C9C(Actor361100EffectState* state);
-void func_801353D0(Actor361100EffectState* state, GsCOORDINATE2* coord);
+void func_80138C9C(ActorEffectState* state);
+void func_801353D0(ActorEffectState* state, GsCOORDINATE2* coord);
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -148,7 +122,7 @@ const TaskFuncTable3 D_actor_361100_80161E30 = {
 /// (half the remaining 0x18000-byte window past the write pointer, times the
 /// per-chunk rate) and uploads the coordinate, and 10 exits the task.
 ///
-/// State 0 allocates the `Actor361100EffectState` trail block into
+/// State 0 allocates the `ActorEffectState` trail block into
 /// `Task::work`, seeds its `field_8E` / `field_E0` halfwords and ticks it 0x1E
 /// times, then resets the actor's root matrix to identity with the fixed
 /// translation (0x1CA2, 0x712, 0x189C) and parks the view coordinate in its
@@ -157,16 +131,16 @@ const TaskFuncTable3 D_actor_361100_80161E30 = {
 /// the original.
 void func_actor_361100_80161E3C(Task* arg0)
 {
-    Actor361100EffectState* state;
-    GsCOORDINATE2*          coord;
-    MATRIX*                 mtx;
-    s32                     i;
-    s32                     writePtr;
-    u32                     streamLeft;
-    u8*                     modePtr;
-    u8                      mode;
+    ActorEffectState* state;
+    GsCOORDINATE2*    coord;
+    MATRIX*           mtx;
+    s32               i;
+    s32               writePtr;
+    u32               streamLeft;
+    u8*               modePtr;
+    u8                mode;
 
-    state   = (Actor361100EffectState*)arg0->work;
+    state   = (ActorEffectState*)arg0->work;
     modePtr = &gGameSession->at4.loc.view;
     coord   = ((TmdObject*)arg0->extra)->coords;
     if (D_8006D868 != -1) {
@@ -174,7 +148,7 @@ void func_actor_361100_80161E3C(Task* arg0)
         streamLeft &= ~7;
         writePtr    = (s32)D_8005C374 + D_8006D868;
         if (arg0->state == 0) {
-            state = memCalloc(sizeof(Actor361100EffectState), false);
+            state = memCalloc(sizeof(ActorEffectState), false);
             if (state == NULL) {
                 Task_CallExit(arg0);
                 i = 0;

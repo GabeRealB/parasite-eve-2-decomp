@@ -384,6 +384,37 @@ typedef struct ActorZone {
 } ActorZone;
 STATIC_ASSERT_SIZEOF(ActorZone, 0xA);
 
+/// The state of the effect actor_403600's `func_actor_403600_80138C9C` and
+/// `func_actor_403600_801353D0` drive, which actor_361100 also runs through
+/// those two functions: two tables of 0x20 halfwords, the ramp words and
+/// halfwords after them, the coordinate the effect hangs off, and two more
+/// words.
+typedef struct ActorEffectState {
+    s16           field_0[0x20];
+    s16           field_40[0x20];
+    s32           field_80;
+    s32           field_84;
+    s32           field_88;
+    s16           field_8C;
+    s16           field_8E;
+    GsCOORDINATE2 field_90;
+    s32           field_E0;
+    s32           field_E4;
+} ActorEffectState;
+STATIC_ASSERT_SIZEOF(ActorEffectState, 0xE8);
+
+/// A row of a small table the spawn argument's low nibble selects; its four
+/// halfwords are copied into the work block when the enemy is set up, and
+/// the tail is not copied.
+typedef struct ActorSpawnParamRow {
+    s16  field_0;
+    s16  field_2;
+    s16  field_4;
+    s16  field_6;
+    byte pad_8[0x4];
+} ActorSpawnParamRow;
+STATIC_ASSERT_SIZEOF(ActorSpawnParamRow, 0xC);
+
 /* Tables. */
 
 /// One row of a per-room height clamp: when `field_0` / `field_2` match the

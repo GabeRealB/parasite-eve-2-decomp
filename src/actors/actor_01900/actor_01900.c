@@ -144,25 +144,13 @@ typedef struct Actor01900StateTable {
 } Actor01900StateTable;
 STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
 
-/// 0xC-byte row of `Actor01900_D0AC64`; `Actor01900_Fn02018` copies the four
-/// halfwords of the row picked by the spawn argument's low nibble into
-/// `Actor01900Work.field_C2C..field_C32`.
-typedef struct Actor01900TintRow {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ s16  field_4;
-    /* 0x6 */ s16  field_6;
-    /* 0x8 */ byte pad_8[4];
-} Actor01900TintRow;
-STATIC_ASSERT_SIZEOF(Actor01900TintRow, 0xC);
-
-extern GpPairSrcE        Actor01900_D0AC54;
-extern Actor01900TintRow Actor01900_D0AC64[];
-extern u8                Actor01900_D17174[];
-extern void*             Actor01900_D1728C;
-extern char              Actor01900_D16960;
-extern void*             Actor01900_D171B4;
-extern ActorHeightClamp  Actor01900_D172CC[];
+extern GpPairSrcE         Actor01900_D0AC54;
+extern ActorSpawnParamRow Actor01900_D0AC64[];
+extern u8                 Actor01900_D17174[];
+extern void*              Actor01900_D1728C;
+extern char               Actor01900_D16960;
+extern void*              Actor01900_D171B4;
+extern ActorHeightClamp   Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
 extern SVECTOR Actor01900_D1722C[];
