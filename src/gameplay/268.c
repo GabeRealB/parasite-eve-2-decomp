@@ -1575,6 +1575,7 @@ static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1,
     register s32        end asm("v1");
     register s32        loop_end asm("a1");
     register s32        newQty asm("v1");
+    s32                 n;
 
     item = arg1->itemId;
     if (item < 0xA0) {
@@ -1582,6 +1583,7 @@ static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1,
         arg1->qty        = 0;
         arg1->attachSlot = 0;
     } else {
+        n = arg2;
         switch (arg0->table) {
             case 2:
                 tmp = Gp_ItemTable2;
@@ -1619,10 +1621,10 @@ static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1,
         }
     after_loop:
         if (i != arg0->firstRow + arg0->rowCount) {
-            if (arg2 < 0) {
-                arg2 = qty;
+            if (n < 0) {
+                n = qty;
             }
-            newQty = qty - arg2;
+            newQty = qty - n;
             if (newQty < 0) {
                 newQty = 0;
             }
@@ -1637,122 +1639,97 @@ static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1,
     }
 }
 
+/// Level of mod item `item` (0x60-0x7F): its base level plus the bonus
+/// accumulated in the save, capped at 10. Any other item has level 0.
+static inline s32 _gpGetModLevel(s32 item)
+{
+    s32         ret;
+    s32         idx;
+    GpItemAttr* p;
+
+    idx = item - 0x60;
+    ret = 0;
+    if ((u32)idx < 0x20) {
+        p    = &Gp_ItemAttrs[item];
+        ret  = p->field_5;
+        ret += Mc_SaveData.itemLevelBonus[idx];
+        if (ret >= 0xB) {
+            ret = 0xA;
+        }
+    }
+    return ret;
+}
+
+/// Draws the prompt `str` at (x, y), followed on the same line by the
+/// highlighted name of `item`.
+static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 item, s32 color, s32 one)
+{
+    s32 width;
+
+    Text_DrawPrompt(obj, x, y, str, color, one, 0);
+    width = Text_MeasureWidth(str) + 4;
+    Text_DrawPrompt(obj, x + width, y, Gp_GetItemText(item, 0, 0), 0x37A78, one, 0);
+}
+
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
-    UiObject*    obj;
-    Task*        task;
-    register s32 sel asm("a0");
-    s32          color;
-    register s32 y0 asm("s4");
-    s32          one;
-    s32          x;
-    register s32 y asm("s1");
     s32          item;
-    s32          level;
     s32          width;
     s32          other;
     s32          saved;
-    u8*          str;
-    char*        text;
-    GpItemAttr*  p;
-    UiObject*    a0obj;
-    char*        notice;
+    s32          x;
+    s32          y;
+    s32          color;
+    register s32 row asm("s1");
+    s32          one;
 
-    obj  = arg0;
-    sel  = Player_Status.armor;
-    task = arg1;
-    item = sel + 0x5F;
-    if (task->state == 0) {
-        task->status = 0xFF;
-        sel          = sel - 1;
-        level        = 0;
-        if ((u32)sel < 0x20U) {
-            p      = &Gp_ItemAttrs[item];
-            level  = p->field_5;
-            level += Mc_SaveData.itemLevelBonus[sel];
-            USE_REG(sel);
-            if (level >= 0xB) {
-                level = 0xA;
-            }
-        }
-        if (level < 0xA) {
-            s32         idx;
-            McSaveData* save;
-            save                             = &Mc_SaveData;
-            idx                              = item - 0x60;
-            *(u8*)&save->itemLevelBonus[idx] = (u8)save->itemLevelBonus[idx] + 1;
+    item = Player_Status.armor + 0x5F;
+    if (arg1->state == 0) {
+        arg1->status = 0xFF;
+        if (_gpGetModLevel(item) < 0xA) {
+            Mc_SaveData.itemLevelBonus[item - 0x60]++;
         } else {
-            task->status = 0x1A;
+            arg1->status = 0x1A;
         }
-        if (task->status != 0xFF) {
-            goto error;
+        if (arg1->status == 0xFF) {
+            width = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + Text_MeasureWidth(Gp_StrMore) + 4;
+            other = Text_MeasureWidth(Gp_StrAttachAvail);
+            if (width < other) {
+                width = other;
+            }
+            Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
+            ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
+            ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
+            func_800B996C_RemoveItem(&Mc_SaveData.carriedItems, Gp_SelItemRec, 1);
+            arg1->killCountdown = 0xBC;
+            arg1->state++;
         }
-        width = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + Text_MeasureWidth(Gp_StrMore) + 4;
-        other = Text_MeasureWidth(Gp_StrAttachAvail);
-        if (width < other) {
-            width = other;
-        }
-        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
-        {
-            register s32 tx asm("v1");
-            s32          ty;
-            tx = (-((UiPanel*)obj)->field_C.w) >> 1;
-            ty = ((-((UiPanel*)obj)->field_C.h) >> 1) - 0x14;
-            USE_REG(obj);
-            ((UiPanel*)obj)->field_C.y = ty;
-            ((UiPanel*)obj)->field_C.x = tx;
-        }
-        func_800B996C_RemoveItem(&Mc_SaveData.carriedItems, Gp_SelItemRec, 1);
-        task->killCountdown = 0xBC;
-        task->state         = task->state + 1;
     }
-    if (task->status != 0xFF) {
-    error:
-        saved           = task->spawnArg1;
-        task->spawnArg1 = task->status;
-        Gp_NoticePanelTask(task);
-        task->spawnArg1 = saved;
+    if (arg1->status != 0xFF) {
+        saved           = arg1->spawnArg1;
+        arg1->spawnArg1 = arg1->status;
+        Gp_NoticePanelTask(arg1);
+        arg1->spawnArg1 = saved;
         return;
     }
 
-    a0obj = obj;
-    TOUCH_REG(a0obj);
-    notice = Gp_StrNotice2;
-    color  = 0x606060;
-    TOUCH_REG(color);
-    x  = obj->field_1C;
-    y0 = (s16)obj->field_18;
-    Ui_DrawText((UiPanel*)a0obj, notice);
-    x = x + 2;
-    TOUCH_REG(x);
-    y   = y0 + 0xF;
-    str = Gp_StrMore;
-    one = 1;
-    Text_DrawPrompt(obj, x, y, str, color, one, 0);
-    {
-        s32          w;
-        register s32 a0item asm("a0");
-        register s32 za asm("a1");
-        register s32 zb asm("a2");
-        w      = Text_MeasureWidth(str);
-        a0item = item;
-        za     = 0;
-        zb     = za;
-        USE_REG5(str, za, zb, w, a0item);
-        width = w + 4;
-        text  = Gp_GetItemText(a0item, za, zb);
-    }
-    Text_DrawPrompt(obj, x + width, y, text, 0x37A78, one, 0);
-    Text_DrawPrompt(obj, x, y0 + 0x1E, Gp_StrAttachAvail, color, one, 0);
+    x = arg0->field_1C + 2;
+    y = (s16)arg0->field_18;
+    Ui_DrawText((UiPanel*)arg0, Gp_StrNotice2);
+    color = 0x606060;
+    one   = 1;
+    row   = y + 0xF;
+    _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, one);
+    Text_DrawPrompt(arg0, x, y + 0x1E, Gp_StrAttachAvail, color, one, 0);
 
-    if (obj->status == one) {
-        task->killCountdown = task->killCountdown - 1;
-        if ((task->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->field_2E       = 9;
-            task->killCountdown = 0x7FFF;
+    if (arg0->status == one) {
+        arg1->killCountdown--;
+        if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            arg0->field_2E      = 9;
+            arg1->killCountdown = 0x7FFF;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E       = -1;
-            task->killCountdown = 0x7FFF;
+            arg0->field_2E      = -1;
+            arg1->killCountdown = 0x7FFF;
         }
     }
 }
@@ -3720,21 +3697,7 @@ void Gp_AgeFlag119Void(void)
 
 s32 Gp_GetModLevel(s32 arg0)
 {
-    s32         ret;
-    s32         idx;
-    GpItemAttr* p;
-
-    idx = arg0 - 0x60;
-    ret = 0;
-    if ((u32)idx < 0x20) {
-        p    = &Gp_ItemAttrs[arg0];
-        ret  = p->field_5;
-        ret += Mc_SaveData.itemLevelBonus[idx];
-        if (ret >= 0xB) {
-            ret = 0xA;
-        }
-    }
-    return ret;
+    return _gpGetModLevel(arg0);
 }
 
 void Gp_TickBoostPanel(Task* arg0)

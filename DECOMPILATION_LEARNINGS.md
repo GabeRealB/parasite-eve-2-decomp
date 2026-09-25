@@ -140877,3 +140877,22 @@ rank. A `do { } while` under `if (count != 0)` rewritten as
 `for (i = 0; i < count; i++)` adds one (the same `beqz`, because `count` is a
 zero-extended `u8`), and indexing `table[i]` instead of walking `table++` adds
 more through `loop.c`'s giv setup, all with byte-identical output.
+
+## An inline parameter the body assigns is copied at the call site; copy it into a local where it is used instead (Gp_UiBoostAttach)
+
+**Symptom.** A helper called with a constant (`removeItem(scan, rec, 1)`) and
+containing `if (n < 0) n = qty;` emits its `li a3,1` at the head of the block
+that holds the inline expansion. sched1 is free to hoist it above unrelated
+code there, and `reload_cse_regs` then rewrites any nearby `sra x,1` as
+`srav x,x,a3` using it. The target has the `li` in the delay slot of the
+helper's first branch instead.
+
+**Cause.** `expand_inline_function` copies an argument through a fresh pseudo
+whenever the formal is not read-only - that is, whenever the body assigns it.
+A formal the body only reads maps straight onto the argument, so a constant is
+substituted where it is used.
+
+**Fix.** Leave the parameter unassigned and copy it into a local in the arm
+that needs a mutable count (`n = arg2;` at the top of the `else`). The `li` is
+then born inside that arm, and the compare still stays a register test because
+CSE loses the value at the loop's exit label.
