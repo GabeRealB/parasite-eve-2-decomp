@@ -61,15 +61,6 @@ typedef union Actor403100Flags {
 } Actor403100Flags;
 STATIC_ASSERT_SIZEOF(Actor403100Flags, 0x4);
 
-typedef struct Actor403100Light {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } field_4;
-} Actor403100Light;
-STATIC_ASSERT_SIZEOF(Actor403100Light, 0x64);
-
 /// Rotation matrix with aligned word stores for identity initialization.
 typedef union Actor403100Matrix {
     MATRIX mat;
@@ -475,8 +466,7 @@ extern Actor403100AnimTable D_actor_403100_8015570C;
 extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  Gp_WeaponIdBase[];
 
-extern Actor403100Light D_80114FF8;
-extern u32              Gp_LcgState;
+extern u32 Gp_LcgState;
 
 extern s16 D_80073BA0;
 extern u8  D_801153F4;
@@ -5322,26 +5312,28 @@ void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 void func_actor_403100_8013D11C(Task* arg0)
 {
     GsCOORDINATE2* coords;
+    GpCoord64*     slot;
     GpObj44*       light;
     s16            value;
     u32            random;
 
-    coords                       = ((TmdObject*)arg0->extra)->coords;
-    D_80114FF8.field_0           = 8;
-    light                        = &D_80114FF8.field_4.light;
-    light->field_58              = 0x300;
-    random                       = Gp_LcgState * 5 + 0x71357911;
-    light->field_5C              = 0x3000;
-    value                        = ((random >> 16) & 0x700) + 0x800;
-    light->field_50              = value;
-    light->field_52              = value >> 3;
-    light->field_54              = value >> 4;
-    coords                      += 3;
-    light->field_18.vx           = coords->coord.t[0];
-    light->field_18.vy           = coords->coord.t[1];
-    light->field_18.vz           = coords->coord.t[2];
-    Gp_LcgState                  = random;
-    D_80114FF8.field_4.coord.flg = 0;
+    coords               = ((TmdObject*)arg0->extra)->coords;
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 8;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    random               = Gp_LcgState * 5 + 0x71357911;
+    light->field_5C      = 0x3000;
+    value                = ((random >> 16) & 0x700) + 0x800;
+    light->field_50      = value;
+    light->field_52      = value >> 3;
+    light->field_54      = value >> 4;
+    coords              += 3;
+    light->field_18.vx   = coords->coord.t[0];
+    light->field_18.vy   = coords->coord.t[1];
+    light->field_18.vz   = coords->coord.t[2];
+    Gp_LcgState          = random;
+    slot->data.coord.flg = 0;
 }
 void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {
