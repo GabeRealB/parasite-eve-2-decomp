@@ -165,15 +165,15 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
 /// and links its two collision nodes.
 void func_m4a1_grenade_8011D654(Task* arg0)
 {
-    void**           scratch;
-    u8*              head;
-    SVECTOR*         blk;
-    SVECTOR*         vec;
-    MATRIX*          mtx;
-    TmdObject*       extra;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   muzzle;
-    M4a1GrenadeWork* work;
+    void**             scratch;
+    u8*                head;
+    SVECTOR*           blk;
+    SVECTOR*           vec;
+    MATRIX*            mtx;
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     muzzle;
+    WeaponGrenadeWork* work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     extra    = arg0->extra;
@@ -182,7 +182,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     blk      = (SVECTOR*)(head - 0x28);
     *scratch = blk;
     muzzle   = coord->sub;
-    work     = memCalloc(sizeof(M4a1GrenadeWork), 0);
+    work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
@@ -192,7 +192,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = func_m4a1_grenade_8011DE24;
     arg0->state++;
-    Mem_Set(work, 0, sizeof(M4a1GrenadeWork));
+    Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx     = 0;
     blk->vy     = 0x220;
     blk->vz     = 0x28;
@@ -261,7 +261,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
 void func_m4a1_grenade_8011D994(Task* arg0)
 {
     M4a1GrenadeScratch* blk;
-    M4a1GrenadeWork*    work;
+    WeaponGrenadeWork*  work;
     GsCOORDINATE2*      coord;
     GpItemSlot*         slot;
     GpRec18*            rec;
@@ -274,7 +274,7 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     s32                 sfxbase;
     s32                 sfxarg;
 
-    work  = (M4a1GrenadeWork*)arg0->work;
+    work  = (WeaponGrenadeWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
     head  = *(u8**)G_SCRATCH_HEAD;
@@ -371,8 +371,8 @@ move:
 /// state 3 once it runs out. Grenade Pistol and MM1 carry identical copies.
 void func_m4a1_grenade_8011DDF8(Task* task)
 {
-    M4a1GrenadeWork* work  = task->work;
-    s32              timer = work->field_88.w - 1;
+    WeaponGrenadeWork* work  = task->work;
+    s32                timer = work->field_88.w - 1;
 
     work->field_88.w = timer;
     if (timer <= 0) {
@@ -384,7 +384,7 @@ void func_m4a1_grenade_8011DDF8(Task* task)
 /// the task. Grenade Pistol and MM1 carry identical copies.
 void func_m4a1_grenade_8011DE24(Task* task)
 {
-    M4a1GrenadeWork* work = task->work;
+    WeaponGrenadeWork* work = task->work;
 
     Gp_UnlinkObj(&work->obj);
     Gp_UnlinkObj(&work->obj2);

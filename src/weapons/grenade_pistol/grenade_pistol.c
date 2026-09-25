@@ -85,24 +85,24 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
     }
 }
 
-/// Spawn state of the projectile: allocates the 0xA0 `M4a1GrenadeWork` block,
+/// Spawn state of the projectile: allocates the 0xA0 `WeaponGrenadeWork` block,
 /// places the projectile at the per-ammo muzzle offset from `D_grenade_pistol_8012B420`, parents it
 /// to the world coordinate, sets its launch speed from `D_grenade_pistol_8012B438` and links its two
 /// collision nodes. The Grenade Pistol and MM1 share it by being one source.
 void func_grenade_pistol_8011D3A0(Task* arg0)
 {
-    void**           scratch;
-    u8*              head;
-    SVECTOR*         blk;
-    SVECTOR*         vec;
-    MATRIX*          mtx;
-    TmdObject*       extra;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   muzzle;
-    M4a1GrenadeWork* work;
-    s32              idx;
-    s32              flags;
-    s32              speed;
+    void**             scratch;
+    u8*                head;
+    SVECTOR*           blk;
+    SVECTOR*           vec;
+    MATRIX*            mtx;
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     muzzle;
+    WeaponGrenadeWork* work;
+    s32                idx;
+    s32                flags;
+    s32                speed;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -112,7 +112,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord    = extra->coords;
     muzzle   = coord->sub;
-    work     = memCalloc(sizeof(M4a1GrenadeWork), 0);
+    work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
@@ -122,7 +122,7 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
     arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = func_grenade_pistol_8011DB8C;
     arg0->state++;
-    Mem_Set(work, 0, sizeof(M4a1GrenadeWork));
+    Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx     = D_grenade_pistol_8012B420[idx].vx;
     blk->vy     = D_grenade_pistol_8012B420[idx].vy;
     blk->vz     = D_grenade_pistol_8012B420[idx].vz;
@@ -197,8 +197,8 @@ void func_grenade_pistol_8011D3A0(Task* arg0)
 /// `0x40660002` clip instead.
 void func_grenade_pistol_8011D6FC(Task* arg0)
 {
-    GrenadePistolScratch* blk;
-    M4a1GrenadeWork*      work;
+    WeaponGrenadeScratch* blk;
+    WeaponGrenadeWork*    work;
     GsCOORDINATE2*        coord;
     GpRec18*              rec;
     GpRoomParamRec*       param;
@@ -210,14 +210,14 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work  = (M4a1GrenadeWork*)arg0->work;
+    work  = (WeaponGrenadeWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     head  = *(u8**)G_SCRATCH_HEAD;
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`
        handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
-    *(void**)G_SCRATCH_HEAD = head - sizeof(GrenadePistolScratch);
-    blk                     = (GrenadePistolScratch*)(head - sizeof(GrenadePistolScratch));
+    *(void**)G_SCRATCH_HEAD = head - sizeof(WeaponGrenadeScratch);
+    blk                     = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
     coord->flg              = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
@@ -241,7 +241,7 @@ void func_grenade_pistol_8011D6FC(Task* arg0)
         }
         work->field_88.w        = clip;
         work->obj.flags        &= 0xBFFF;
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GrenadePistolScratch);
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
         work->obj.radius        = D_grenade_pistol_8012B430[blk->sfx - 0xA];
         return;
     }
@@ -304,15 +304,15 @@ move:
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GrenadePistolScratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
 }
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to
 /// state 3 once it runs out. The M4A1 Grenade carries an identical copy.
 void func_grenade_pistol_8011DB60(Task* task)
 {
-    M4a1GrenadeWork* work  = task->work;
-    s32              timer = work->field_88.w - 1;
+    WeaponGrenadeWork* work  = task->work;
+    s32                timer = work->field_88.w - 1;
 
     work->field_88.w = timer;
     if (timer <= 0) {
@@ -324,7 +324,7 @@ void func_grenade_pistol_8011DB60(Task* task)
 /// the task.
 void func_grenade_pistol_8011DB8C(Task* task)
 {
-    M4a1GrenadeWork* work = task->work;
+    WeaponGrenadeWork* work = task->work;
 
     Gp_UnlinkObj(&work->obj);
     Gp_UnlinkObj(&work->obj2);

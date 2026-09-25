@@ -21,18 +21,18 @@
 /// muzzle coordinate and links its two `GpObj` nodes.
 void func_kyle_800102_80167A84(Task* arg0)
 {
-    void**          scratch;
-    u8*             head;
-    SVECTOR*        blk;
-    SVECTOR*        vec;
-    MATRIX*         mtx;
-    TmdObject*      extra;
-    GsCOORDINATE2*  coord;
-    GsCOORDINATE2*  muzzle;
-    Kyle800102Work* work;
-    s32             idx;
-    s32             flags;
-    s32             speed;
+    void**             scratch;
+    u8*                head;
+    SVECTOR*           blk;
+    SVECTOR*           vec;
+    MATRIX*            mtx;
+    TmdObject*         extra;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     muzzle;
+    WeaponGrenadeWork* work;
+    s32                idx;
+    s32                flags;
+    s32                speed;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -42,7 +42,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     idx      = ((u32)arg0->spawnArg1 >> 16) & 0xF;
     coord    = extra->coords;
     muzzle   = coord->sub;
-    work     = memCalloc(sizeof(Kyle800102Work), 0);
+    work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
         *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
@@ -52,7 +52,7 @@ void func_kyle_800102_80167A84(Task* arg0)
     arg0->work         = (TaskIdMap*)work;
     arg0->exitCallback = func_kyle_800102_80168270;
     arg0->state++;
-    Mem_Set(work, 0, sizeof(Kyle800102Work));
+    Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx     = D_kyle_800102_80177424[idx].vx;
     blk->vy     = D_kyle_800102_80177424[idx].vy;
     blk->vz     = D_kyle_800102_80177424[idx].vz;
@@ -127,24 +127,24 @@ void func_kyle_800102_80167A84(Task* arg0)
 /// `0x40660002` clip instead.
 void func_kyle_800102_80167DE0(Task* arg0)
 {
-    Kyle800102Scratch* blk;
-    Kyle800102Work*    work;
-    GsCOORDINATE2*     coord;
-    GpRec18*           rec;
-    GpRoomParamRec*    param;
-    u8*                head;
-    s32                idx;
-    s32                count;
-    s32                clip;
-    s32                step;
-    s32                sfxarg;
-    s32                sfxbase;
+    WeaponGrenadeScratch* blk;
+    WeaponGrenadeWork*    work;
+    GsCOORDINATE2*        coord;
+    GpRec18*              rec;
+    GpRoomParamRec*       param;
+    u8*                   head;
+    s32                   idx;
+    s32                   count;
+    s32                   clip;
+    s32                   step;
+    s32                   sfxarg;
+    s32                   sfxbase;
 
-    work                    = (Kyle800102Work*)arg0->work;
+    work                    = (WeaponGrenadeWork*)arg0->work;
     coord                   = ((TmdObject*)arg0->extra)->coords;
     head                    = *(u8**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = head - sizeof(Kyle800102Scratch);
-    blk                     = (Kyle800102Scratch*)(head - sizeof(Kyle800102Scratch));
+    *(void**)G_SCRATCH_HEAD = head - sizeof(WeaponGrenadeScratch);
+    blk                     = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
     coord->flg              = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
@@ -165,7 +165,7 @@ void func_kyle_800102_80167DE0(Task* arg0)
         }
         work->field_88.w        = clip;
         work->obj.flags        &= 0xBFFF;
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Kyle800102Scratch);
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
         work->obj.radius        = D_kyle_800102_80177434[blk->sfx - 0xA];
         return;
     }
@@ -221,13 +221,13 @@ move:
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Kyle800102Scratch);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(WeaponGrenadeScratch);
 }
 
 void func_kyle_800102_80168244(Task* arg0)
 {
-    Kyle800102Work* work  = (Kyle800102Work*)arg0->work;
-    s32             timer = work->field_88.w - 1;
+    WeaponGrenadeWork* work  = (WeaponGrenadeWork*)arg0->work;
+    s32                timer = work->field_88.w - 1;
 
     work->field_88.w = timer;
     if (timer <= 0) {
@@ -237,7 +237,7 @@ void func_kyle_800102_80168244(Task* arg0)
 
 void func_kyle_800102_80168270(Task* arg0)
 {
-    Kyle800102Work* work = (Kyle800102Work*)arg0->work;
+    WeaponGrenadeWork* work = (WeaponGrenadeWork*)arg0->work;
 
     Gp_UnlinkObj(&work->obj);
     Gp_UnlinkObj(&work->obj2);

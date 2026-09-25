@@ -7,31 +7,7 @@
 #include "gameplay/3FB8.h"
 #include "main/session.h"
 #include "main/task.h"
-
-/// 0xA0 work block the grenade's spawn state allocates with `memCalloc` and
-/// parks in `Task::work`. It leads with the two `GpObj` list nodes
-/// the exit callback hands back to `Gp_UnlinkObj` on teardown: `obj` is
-/// a `flags & 7 == 1` node whose `ctx.recs` is `rec0` directly, `obj2` is a
-/// `flags & 7 == 3` node whose `ctx.d4rec` is `d4rec`, reaching `rec1` through
-/// the shape's `recs`. `field_88` is the flight countdown
-/// the flight state decrements, and `dir` is the launch direction:
-/// column 2 of the muzzle matrix pitched up 0x400, normalized. `field_88` is
-/// 16.16: the whole word is the flight timer, while its high half is the
-/// per-frame divisor `func_m4a1_grenade_8011D994` steps `dir` by, so the
-/// grenade slows as the timer counts up.
-typedef struct M4a1GrenadeWork {
-    /* 0x00 */ GpObj        obj;
-    /* 0x20 */ GpObj        obj2;
-    /* 0x40 */ GpRec18      rec0[1];
-    /* 0x58 */ GpRec18      rec1[1];
-    /* 0x70 */ GpActorD4Rec d4rec;
-    /* 0x88 */ GpFixed16    field_88;
-    /* 0x8C */ s32          field_8C;
-    /* 0x90 */ s32          field_90;
-    /* 0x94 */ SVECTOR      dir;
-    /* 0x9C */ byte         pad_9C[4];
-} M4a1GrenadeWork;
-STATIC_ASSERT_SIZEOF(M4a1GrenadeWork, 0xA0);
+#include "weapons/weapon.h"
 
 /// 0x34-byte scratch the flight state takes from `G_SCRATCH_HEAD`. The
 /// `GpDeltaScratch` at 0x20 is handed to `func_800E0FEC` and also holds the

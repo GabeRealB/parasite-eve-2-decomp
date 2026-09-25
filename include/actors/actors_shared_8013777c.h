@@ -12,7 +12,7 @@
 /// `GpDeltaScratch` at 0x20 is the one `func_800E0C10` fills with the 16.16
 /// translation toward the collision response; the block is handed out whole so
 /// the walk's own `GpSlideScratch`, taken below the head, stays clear of it.
-/// Same shape as `GrenadePistolScratch`.
+/// Same shape as `WeaponGrenadeScratch`.
 typedef struct ActorsShared8013777cScratch {
     /* 0x00 */ byte           pad_0[0x20];
     /* 0x20 */ GpDeltaScratch delta;
