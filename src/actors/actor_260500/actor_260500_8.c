@@ -27,11 +27,11 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->field_4AE         = angle;
+    work->yaw               = angle;
     if (D_actor_260500_80159E54 == 1) {
-        work->field_4AE = angle + 0x800;
+        work->yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->field_4AE, 1);
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (D_actor_260500_80159E54) {
         case 0:

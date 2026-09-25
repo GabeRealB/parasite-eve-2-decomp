@@ -13,15 +13,15 @@ INCLUDE_ASM("actors/nonmatchings/actor_260500/actor_260500_6", func_actor_260500
 s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, Actor260500AnimPreset* preset)
 {
     if (preset->field_4 < 0x24) {
-        ActorsShared80131f9cWork->field_480 = preset->field_4;
+        D_actor_260500_80159E4C->field_480 = preset->field_4;
         if (preset->field_8 != 0) {
-            ActorsShared80131f9cWork->field_47C = 1;
-            D_actor_260500_80159D7C             = preset->field_C;
+            D_actor_260500_80159E4C->field_47C = 1;
+            D_actor_260500_80159D7C            = preset->field_C;
         } else {
-            ActorsShared80131f9cWork->field_47C = 2;
+            D_actor_260500_80159E4C->field_47C = 2;
         }
-        ActorsShared80131f9cWork->field_482 = 0;
-        func_actor_260500_8014A110(ActorsShared801326b4Task);
+        D_actor_260500_80159E4C->field_482 = 0;
+        func_actor_260500_8014A110(D_actor_260500_80159E50);
         return 0;
     }
     return -1;
