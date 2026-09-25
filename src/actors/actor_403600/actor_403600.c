@@ -2902,151 +2902,101 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+/// Scratch-pad frame of a triangle pass that works in the frame of a reference
+/// coordinate: the GTE state the pass restores on exit, the model-to-reference
+/// matrix it builds, and the element being worked on.
+typedef struct {
+    VECTOR  trans;    // GTE translation on entry
+    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
+    SVECTOR verts[3]; // The element's vertices in the reference frame, clamped to y <= 0
+    s32     index[3]; // The element's vertex indices
+    MATRIX  savedRot; // GTE rotation on entry
+    MATRIX  local;    // Model-to-reference transform
+} _Actor403600TriScratch;
+
+/// Rotates `v` in place by `m`.
+static inline void _actor403600RotateSv(MATRIX* m, SVECTOR* v)
 {
-    CVECTOR          color;
-    SVECTOR          local;
-    u8*              head;
-    u8*              scratch;
-    MATRIX*          saved;
-    register MATRIX* transposed asm("s0");
-    MATRIX*          active;
-    MATRIX*          projected;
-    u32*             stream;
-    u16*             record;
-    u8*              verts;
-    u8*              norms;
-    u8*              coord;
-    u8*              local_stack;
-    u8*              local_addr;
-    POLY_GT3*        poly;
-    register s32*    opz asm("s1");
-    register u32     mask asm("t2");
-    u32              mask_hi;
-    u32              ds_high;
-    DisplayState*    ds;
-    s32              i;
-    s32              offset;
-    register u8*     index asm("a0");
-    register u8*     clamp asm("a1");
+    SVECTOR in;
 
-    __asm__("move %0,%1" : "=r"(stream) : "r"(arg2), "r"(D_actor_403600_801606A0));
+    in = *v;
+    gte_ApplyMatrixSV(m, &in, v);
+}
+
+u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+{
+    CVECTOR                 color;
+    u8*                     head;
+    _Actor403600TriScratch* sc;
+    GpCoord*                coord;
+    POLY_GT3*               poly;
+    u16*                    rec;
+    s32                     i;
+
     if (D_actor_403600_801606A0 != NULL) {
-        poly    = (POLY_GT3*)arg0->primWrite;
-        color   = D_actor_403600_80131E34;
-        head    = SCRATCH_HEAD(u8);
-        scratch = (SCRATCH_HEAD(u8) = head - 0x7C);
-        gte_sttr(scratch);
-        saved = (MATRIX*)(head - 0x40);
-        gte_ReadRotMatrix(saved);
-        transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, transposed);
-
-        coord                   = (u8*)D_actor_403600_801606A0;
-        *(s16*)(scratch + 0x10) = *(u16*)(head - 0x7C) - *(u16*)(coord + 0x38);
-        *(s16*)(scratch + 0x12) = *(u16*)(scratch + 0x04) - *(u16*)(coord + 0x3C);
-        *(s16*)(scratch + 0x14) = *(u16*)(scratch + 0x08) - *(u16*)(coord + 0x40);
-
-        local_stack = (u8*)&local;
-        local_addr  = head - 0x6C;
-        local       = *(SVECTOR*)local_addr;
-        gte_SetRotMatrix(transposed);
-        gte_ldv0(local_stack);
-        gte_rtv0();
-        gte_stsv(local_addr);
-
-        gte_SetRotMatrix(transposed);
-        gte_ldclmv(saved);
-        gte_rtir();
-        gte_stclmv(transposed);
-        gte_ldclmv(head - 0x3E);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][1]);
-        gte_ldclmv(head - 0x3C);
-        gte_rtir();
-        gte_stclmv(&transposed->m[0][2]);
-
-        *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
-        *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
-        *(s32*)(scratch + 0x78) = *(s16*)(scratch + 0x14);
+        poly  = (POLY_GT3*)ws->primWrite;
+        color = D_actor_403600_80131E34;
+        head  = SCRATCH_HEAD(u8);
+        sc    = SCRATCH_HEAD(_Actor403600TriScratch) =
+            (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
+        gte_sttr(&sc->trans);
+        gte_ReadRotMatrix(&sc->savedRot);
+        TransposeMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm, &sc->local);
+        coord         = (GpCoord*)D_actor_403600_801606A0;
+        sc->offset.vx = sc->trans.vx - coord->workm.t[0];
+        sc->offset.vy = sc->trans.vy - coord->workm.t[1];
+        sc->offset.vz = sc->trans.vz - coord->workm.t[2];
+        _actor403600RotateSv(&sc->local, &sc->offset);
+        gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
+        sc->local.t[0] = sc->offset.vx;
+        sc->local.t[1] = sc->offset.vy;
+        sc->local.t[2] = sc->offset.vz;
         gte_ldrgb(&color);
-        if (arg0->elemCount-- > 0) {
-            __asm__("move %0,%1" : "=r"(active) : "r"(transposed));
-            projected = (MATRIX*)(head - 0x64);
-            opz       = &arg0->gteResult;
-            __asm__("lui %0,%%hi(gDisplayState)" : "=r"(ds_high));
-            __asm__("addiu %0,%1,%%lo(gDisplayState)" : "=&r"(ds) : "r"(ds_high));
-            mask    = 0xFFFFFF;
-            mask_hi = 0xFF000000;
-            do {
-                record = (u16*)stream;
-                gte_SetTransMatrix(active);
-                gte_SetRotMatrix(active);
-                i                       = 0;
-                clamp                   = scratch;
-                *(s32*)(scratch + 0x30) = record[0] >> 3;
-                offset                  = 0x18;
-                *(s32*)(scratch + 0x34) = record[1] >> 3;
-                *(s32*)(scratch + 0x38) = record[2] >> 3;
-                __asm__("move %0,%1" : "=r"(index) : "r"(scratch));
-                do {
-                    verts = (u8*)arg0->verts;
-                    gte_ldv0(verts + (*(s32*)(index + 0x30) << 3));
-                    gte_rtv0tr();
-                    gte_stsv(scratch + offset);
-                    if (*(s16*)(clamp + 0x1A) > 0) {
-                        *(s16*)(clamp + 0x1A) = 0;
-                    }
-                    clamp  += 8;
-                    offset += 8;
-                    i++;
-                    index += 4;
-                } while (i < 3);
-
-                gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
-                gte_ldv3(projected, scratch + 0x20, scratch + 0x28);
-                gte_rtpt();
-                gte_stflg(&arg0->gteFlag);
-                if (arg0->gteFlag >= 0) {
-                    gte_nclip();
-                    gte_stopz(opz);
-                    if (arg0->gteResult > 0) {
-                        gte_stsxy3_gt3(poly);
-                        gte_avsz3();
-                        norms = (u8*)arg0->normals;
-                        gte_ldv3(norms + (record[3] & 0xFFF8),
-                                 norms + (record[4] & 0xFFF8),
-                                 norms + (record[5] & 0xFFF8));
-                        gte_ncct();
-                        gte_strgb3_gt3(poly);
-                        setlen(poly, 9);
-                        setcode(poly, 0x34);
-                        gte_stotz(opz);
-                        poly->tag = (poly->tag & mask_hi) |
-                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                                 0xFFC) +
-                                                (s32)arg0->ot) &
-                                     mask);
-                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->ot) =
-                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->ot) &
-                             mask_hi) |
-                            ((u32)poly & mask);
-                    }
+        for (; ws->elemCount-- > 0; poly++, stream += ws->elemStride) {
+            rec = (u16*)stream;
+            gte_SetTransMatrix(&sc->local);
+            gte_SetRotMatrix(&sc->local);
+            sc->index[0] = rec[0] >> 3;
+            sc->index[1] = rec[1] >> 3;
+            sc->index[2] = rec[2] >> 3;
+            for (i = 0; i < 3; i++) {
+                gte_ldv0(&ws->verts[sc->index[i]]);
+                gte_rtv0tr();
+                gte_stsv(&sc->verts[i]);
+                if (sc->verts[i].vy > 0) {
+                    sc->verts[i].vy = 0;
                 }
-                poly++;
-                stream += arg0->elemStride;
-            } while (arg0->elemCount-- > 0);
+            }
+            gte_SetRotMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_SetTransMatrix(&((GpCoord*)D_actor_403600_801606A0)->workm);
+            gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
+            gte_rtpt();
+            gte_stflg(&ws->gteFlag);
+            if (ws->gteFlag & 0x80000000) {
+                continue;
+            }
+            gte_nclip();
+            gte_stopz(&ws->gteResult);
+            if (ws->gteResult <= 0) {
+                continue;
+            }
+            gte_stsxy3_gt3(poly);
+            gte_avsz3();
+            gte_ldv3(&ws->normals[rec[3] >> 3], &ws->normals[rec[4] >> 3], &ws->normals[rec[5] >> 3]);
+            gte_ncct();
+            gte_strgb3_gt3(poly);
+            setlen(poly, 9);
+            setcode(poly, 0x34);
+            gte_stotz(&ws->gteResult);
+            addPrim(&ws->ot[((u32)ws->gteResult << gDisplayState.otDepthShift) >> 4 & 0x3FF], poly);
         }
-        arg0->primWrite = (u8*)poly;
-        gte_SetTransVector(scratch);
-        gte_SetRotMatrix(scratch + 0x3C);
-        SCRATCH_POP_BYTES(0x7C);
+        ws->primWrite = (u8*)poly;
+        gte_SetTransVector(&sc->trans);
+        gte_SetRotMatrix(&sc->savedRot);
+        SCRATCH_POP_BYTES(sizeof(_Actor403600TriScratch));
         return stream;
     }
-    return tmdDrawStreamGt3(arg0, arg1, stream);
+    return tmdDrawStreamGt3(ws, flags, stream);
 }
 
 /// Scratch-pad frame of a quad pass that draws the model in the frame of a
@@ -3060,15 +3010,6 @@ typedef struct {
     MATRIX  savedRot; // GTE rotation on entry
     MATRIX  local;    // Model-to-reference transform
 } _Actor403600QuadScratch;
-
-/// Rotates `v` in place by `m`.
-static inline void _actor403600RotateSv(MATRIX* m, SVECTOR* v)
-{
-    SVECTOR in;
-
-    in = *v;
-    gte_ApplyMatrixSV(m, &in, v);
-}
 
 u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
@@ -3161,17 +3102,6 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream
     }
     return tmdDrawStreamGt4(ws, flags, stream);
 }
-
-/// Scratch-pad frame of a triangle pass that works in the frame of a reference
-/// coordinate: the quad frame with room for three vertices.
-typedef struct {
-    VECTOR  trans;    // GTE translation on entry
-    SVECTOR offset;   // Entry translation relative to the reference, rotated into its frame
-    SVECTOR verts[3]; // The element's vertices in the reference frame, clamped to y <= 0
-    s32     index[3]; // The element's vertex indices
-    MATRIX  savedRot; // GTE rotation on entry
-    MATRIX  local;    // Model-to-reference transform
-} _Actor403600TriScratch;
 
 u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
