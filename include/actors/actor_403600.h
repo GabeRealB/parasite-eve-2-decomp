@@ -9,11 +9,12 @@
 #include "main/task.h"
 
 #include "gameplay/3A34.h"
+#include "actors/actor.h"
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here).
 typedef struct Actor403600Work {
-    /* 0x000 */ byte            pad_0[0x474];
+    /* 0x000 */ ActorAnimRig20  rig;
     /* 0x474 */ MATRIX          field_474;
     /* 0x494 */ MATRIX          field_494;
     /* 0x4B4 */ struct GpEnemy* field_4B4;

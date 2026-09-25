@@ -255,9 +255,6 @@ extern Actor403600Pair      D_actor_403600_801606B8;
 extern Task*                D_actor_403600_801606AC;
 extern s32                  D_actor_403600_801606BC;
 
-// Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
-#define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
-
 void func_actor_403600_80141598(Task* arg0);
 void func_actor_403600_8014174C(Task* arg0);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -421,171 +418,162 @@ u8* func_actor_403600_80138DCC(Task* arg0)
     return restore;
 }
 
-/// Spawns this actor. `enemy` is the task's spawn argument and the 0x7B8-byte
-/// work block is parked in `task->work`; on allocation failure the enemy is
-/// destroyed. The coordinate at `((TmdObject*)task->extra)->field_8` takes the
-/// work block's `field_4B8` as its `sub`, both are reset to the identity with
-/// the coordinate's translation raised to 0x744, and the coordinate's three
-/// s32 at 0x18 are copied into the work block's 0x4D0 vector. The enemy is
-/// then linked on its 0x10 node and three `GpObj` nodes are linked with
-/// `Gp_LinkObj` (kinds 2 and 3) over the 0x508 / 0x588 / 0x5C0 records, each
-/// seeded through `Gp_InitRec18Table` from the 0x528 / 0x5A8 / 0x5F8 tables.
-/// `enemy->hp` and `field_78A` take the `hpMax` of `D_actor_403600_80150EC8`
-/// scaled by the spawn multiplier in `gGameSession`, slots 1..0x13 are reset,
-/// the model is faced along the world coordinate through `Gfx_MatrixCol2` /
-/// `ratan2` / `RotMatrix`, and the display task is spawned from
-/// `D_actor_403600_801421A0` and reparented.
+/// Spawns this actor: parks its work block in `task->work`, destroying the
+/// enemy if there is none, hangs the model's root coordinate under the block's
+/// world coordinate, links the enemy and its three collision bodies, sets its
+/// hit points from the kind's `hpMax` raised by the session's
+/// `bossPartsHpSum`, builds the animation rig, turns the actor to the heading
+/// its model already had, and spawns its display task above it.
 void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
 {
-    SVECTOR rot;
-    s16     temp_a0_2;
-    s16     temp_s0_5;
-    s32     temp_s5;
-    Task*   temp_v0_4;
-    s32     var_s0;
-    void*   temp_a0;
-    void*   temp_s0;
-    void*   temp_s0_2;
-    void*   temp_s0_3;
-    void*   temp_s0_4;
-    void*   temp_s2;
-    void*   temp_v0;
-    void*   temp_v0_2;
-    void*   temp_v0_3;
-    void*   gpSess;
+    SVECTOR          rot;
+    s16              temp_a0_2;
+    s16              temp_s0_5;
+    GsCOORDINATE2*   temp_s5;
+    Task*            temp_v0_4;
+    s32              var_s0;
+    GsCOORDINATE2*   temp_a0;
+    GsCOORDINATE2*   temp_s0;
+    GpRec18*         temp_s0_2;
+    GpRec18*         temp_s0_3;
+    GpRec18*         temp_s0_4;
+    TmdObject*       temp_s2;
+    Actor403600Work* temp_v0;
+    GpMtxWords*      temp_v0_2;
+    GpMtxWords*      temp_v0_3;
+    GameSession*     gpSess;
 
     temp_s2 = task->extra;
-    temp_s0 = ACTOR_FIELD(temp_s2, void**, 8);
+    temp_s0 = temp_s2->coords;
     temp_v0 = memCalloc(0x7B8, 0);
-    temp_s5 = temp_s0 + 0x50;
+    temp_s5 = &temp_s0[1];
     if (temp_v0 == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work                                   = (TaskIdMap*)temp_v0;
-    ACTOR_FIELD(temp_v0, GsCOORDINATE2**, 0x504) = &gGfxViewCoord;
-    temp_v0_2                                    = temp_v0 + 0x4BC;
-    ACTOR_FIELD(temp_v0, s32*, 0x4BC)            = 0x1000;
-    ACTOR_FIELD(temp_v0_2, s32*, 4)              = 0;
-    ACTOR_FIELD(temp_v0_2, s32*, 8)              = 0x1000;
-    ACTOR_FIELD(temp_v0_2, s32*, 0xC)            = 0;
-    ACTOR_FIELD(temp_v0_2, s16*, 0x10)           = 0x1000;
-    ACTOR_FIELD(temp_v0, s32*, 0x4D0)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x18);
-    ACTOR_FIELD(temp_v0, s32*, 0x4D4)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x1C);
-    temp_a0                                      = temp_v0 + 0x4B8;
-    ACTOR_FIELD(temp_v0, s32*, 0x4D8)            = (s32)ACTOR_FIELD(temp_s0, s32*, 0x20);
-    temp_v0_3                                    = temp_s0 + 4;
-    ACTOR_FIELD(temp_s0, void**, 0x4C)           = temp_a0;
-    ACTOR_FIELD(temp_s0, s32*, 4)                = 0x1000;
-    ACTOR_FIELD(temp_v0_3, s32*, 4)              = 0;
-    ACTOR_FIELD(temp_v0_3, s32*, 8)              = 0x1000;
-    ACTOR_FIELD(temp_v0_3, s32*, 0xC)            = 0;
-    ACTOR_FIELD(temp_v0_3, s16*, 0x10)           = 0x1000;
-    ACTOR_FIELD(temp_s0, s32*, 0x18)             = 0;
-    ACTOR_FIELD(temp_s0, s32*, 0x1C)             = 0x744;
-    ACTOR_FIELD(temp_s0, s32*, 0x20)             = 0;
-    ACTOR_FIELD(temp_v0, s32*, 0x4B8)            = 0;
-    Gp_UpdateCoord((GsCOORDINATE2*)temp_a0);
-    ACTOR_FIELD(temp_s0, s32*, 0) = 0;
-    Gp_UpdateCoord((GsCOORDINATE2*)temp_s0);
-    ACTOR_FIELD(temp_s2, s16*, 0xC)    = 0x80;
-    ACTOR_FIELD(temp_s0, s32*, 0)      = 0;
-    ACTOR_FIELD(temp_s2, void**, 0x1C) = (void*)(temp_v0 + 0x494);
-    ACTOR_FIELD(temp_s2, void**, 0x20) = (void*)(temp_v0 + 0x474);
-    enemy->field_4                     = (MATRIX*)(temp_s0 + 0x54);
-    enemy->field_48                    = 0;
+    task->work                                        = temp_v0;
+    temp_v0->field_4B8.sub                            = &gGfxViewCoord;
+    temp_v0_2                                         = (GpMtxWords*)&temp_v0->field_4B8.coord;
+    ((GpMtxWords*)&temp_v0->field_4B8.coord)->m00_m01 = 0x1000;
+    temp_v0_2->m02_m10                                = 0;
+    temp_v0_2->m11_m12                                = 0x1000;
+    temp_v0_2->m20_m21                                = 0;
+    temp_v0_2->m22                                    = 0x1000;
+    temp_v0->field_4B8.coord.t[0]                     = temp_s0->coord.t[0];
+    temp_v0->field_4B8.coord.t[1]                     = temp_s0->coord.t[1];
+    temp_a0                                           = &temp_v0->field_4B8;
+    temp_v0->field_4B8.coord.t[2]                     = temp_s0->coord.t[2];
+    temp_v0_3                                         = (GpMtxWords*)&temp_s0->coord;
+    temp_s0->sub                                      = temp_a0;
+    ((GpMtxWords*)&temp_s0->coord)->m00_m01           = 0x1000;
+    temp_v0_3->m02_m10                                = 0;
+    temp_v0_3->m11_m12                                = 0x1000;
+    temp_v0_3->m20_m21                                = 0;
+    temp_v0_3->m22                                    = 0x1000;
+    temp_s0->coord.t[0]                               = 0;
+    temp_s0->coord.t[1]                               = 0x744;
+    temp_s0->coord.t[2]                               = 0;
+    temp_v0->field_4B8.flg                            = 0;
+    Gp_UpdateCoord(temp_a0);
+    temp_s0->flg = 0;
+    Gp_UpdateCoord(temp_s0);
+    temp_s2->flags    = 0x80;
+    temp_s0->flg      = 0;
+    temp_s2->lightMtx = &temp_v0->field_494;
+    temp_s2->colorMtx = &temp_v0->field_474;
+    enemy->field_4    = &temp_s0[1].coord;
+    enemy->field_48   = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags         = 1;
-    enemy->bodyPos.vy                 = -0x1F4;
-    gpSess                            = gGameSession;
-    enemy->coord                      = (GsCOORDINATE2*)temp_s5;
-    enemy->bodyPos.vx                 = 0;
-    enemy->bodyPos.vz                 = 0;
-    enemy->param                      = &D_actor_403600_80150EC8;
-    enemy->recs                       = (GpRec18*)(temp_v0 + 0x528);
-    temp_a0_2                         = ACTOR_FIELD(&D_actor_403600_80150EC8, u16*, 4) + ((ACTOR_FIELD(gpSess, u16*, 0x12A) * 0x4B) / 100);
-    enemy->hp                         = temp_a0_2;
-    ACTOR_FIELD(temp_v0, s16*, 0x78A) = temp_a0_2;
-    var_s0                            = 1;
-    ACTOR_FIELD(temp_v0, s16*, 0x798) = (s16)((temp_a0_2 * 0x3C) / 100);
-    ACTOR_FIELD(temp_v0, s16*, 0x79A) = (s16)((ACTOR_FIELD(temp_v0, s16*, 0x78A) * 0x23) / 100);
-    func_800B3F84((GpAnimCtx*)temp_v0, D_actor_403600_8016057C, temp_s2,
-                  temp_v0 + 0x334, (GpAnimSlot*)(temp_v0 + 0x14));
+    enemy->node.state.b.flags = 1;
+    enemy->bodyPos.vy         = -0x1F4;
+    gpSess                    = gGameSession;
+    enemy->coord              = temp_s5;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->param              = &D_actor_403600_80150EC8;
+    enemy->recs               = temp_v0->field_528;
+    temp_a0_2                 = D_actor_403600_80150EC8.hpMax + (((u16)gpSess->bossPartsHpSum * 0x4B) / 100);
+    enemy->hp                 = temp_a0_2;
+    temp_v0->field_78A        = temp_a0_2;
+    var_s0                    = 1;
+    temp_v0->field_798        = (s16)((temp_a0_2 * 0x3C) / 100);
+    temp_v0->field_79A        = (s16)(((s16)temp_v0->field_78A * 0x23) / 100);
+    func_800B3F84(&temp_v0->rig.anim, D_actor_403600_8016057C, temp_s2, temp_v0->rig.poses, temp_v0->rig.slots);
     do {
-        Gp_AnimResetSlot(temp_v0, var_s0, 1);
+        Gp_AnimResetSlot(&temp_v0->rig.anim, var_s0, 1);
         var_s0 += 1;
     } while (var_s0 < 0x14);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
-    ACTOR_FIELD(temp_v0, s16*, 0x736)   = 1;
-    ACTOR_FIELD(temp_v0, void**, 0x658) = (void*)(temp_v0 + 0x4B8);
-    ACTOR_FIELD(temp_v0, s16*, 0x65C)   = 0x600;
-    ACTOR_FIELD(temp_v0, s16*, 0x65E)   = 2;
-    ACTOR_FIELD(temp_v0, s16*, 0x6EA)   = -0x1F4;
-    temp_s0_2                           = temp_v0 + 0x528;
-    ACTOR_FIELD(temp_v0, s16*, 0x738)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x744)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x6E8)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x6EC)   = 0xC8;
-    ACTOR_FIELD(temp_v0, s32*, 0x510)   = temp_s5;
-    ACTOR_FIELD(temp_v0, void**, 0x514) = temp_s0_2;
-    ACTOR_FIELD(temp_v0, s16*, 0x518)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x51A)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x51C)   = 0;
-    ACTOR_FIELD(temp_v0, s32*, 0x520)   = 0x30024;
-    ACTOR_FIELD(temp_v0, s16*, 0x524)   = 0x3E8;
-    ACTOR_FIELD(temp_v0, u16*, 0x526)   = 1U;
-    Gp_LinkObj(2, (GpObj*)((u8*)temp_v0 + 0x508));
-    Gp_InitRec18Table((GpRec18*)temp_s0_2, 4, 0);
-    temp_s0_3                           = temp_v0 + 0x5A8;
-    ACTOR_FIELD(temp_v0, s32*, 0x590)   = temp_s5;
-    ACTOR_FIELD(temp_v0, void**, 0x594) = temp_s0_3;
-    ACTOR_FIELD(temp_v0, s16*, 0x598)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x59A)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x59C)   = 0x3E8;
-    ACTOR_FIELD(temp_v0, u16*, 0x526)   = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x526) | 0xC200);
-    ACTOR_FIELD(temp_v0, s32*, 0x5A0)   = Gp_PackPair(&D_actor_403600_80150E9C, 1);
-    ACTOR_FIELD(temp_v0, s16*, 0x5A4)   = 0x5DC;
-    ACTOR_FIELD(temp_v0, u16*, 0x5A6)   = 1U;
-    Gp_LinkObj(3, (GpObj*)((u8*)temp_v0 + 0x588));
-    Gp_InitRec18Table((GpRec18*)temp_s0_3, 1, 0);
-    temp_s0_4                           = temp_v0 + 0x5F8;
-    ACTOR_FIELD(temp_v0, s32*, 0x5C8)   = temp_s5;
-    ACTOR_FIELD(temp_v0, void**, 0x5CC) = temp_s0_4;
-    ACTOR_FIELD(temp_v0, s16*, 0x5D0)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x5D4)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x5D2)   = 0x7D0;
-    ACTOR_FIELD(temp_v0, s32*, 0x5D8)   = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x5DC)   = 0x64;
-    ACTOR_FIELD(temp_v0, u16*, 0x5DE)   = 1U;
-    ACTOR_FIELD(temp_v0, u16*, 0x5A6)   = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x5A6) & 0x7FFF);
-    Gp_LinkObj(3, (GpObj*)((u8*)temp_v0 + 0x5C0));
-    Gp_InitRec18Table((GpRec18*)temp_s0_4, 4, 0);
-    ACTOR_FIELD(temp_v0, u16*, 0x5DE) = (u16)(ACTOR_FIELD(temp_v0, u16*, 0x5DE) & 0x3FFF);
-    Gfx_MatrixCol2((SVECTOR*)(ACTOR_FIELD(ACTOR_FIELD(task, void**, 0x2C), void**, 8) + 4), &rot);
+    temp_v0->field_736            = 1;
+    temp_v0->field_658.coord      = &temp_v0->field_4B8;
+    temp_v0->field_658.spawnArgLo = 0x600;
+    temp_v0->field_658.spawnArgHi = 2;
+    temp_v0->field_6E8.vy         = -0x1F4;
+    temp_s0_2                     = temp_v0->field_528;
+    temp_v0->field_738            = 0;
+    temp_v0->field_744            = 0;
+    temp_v0->field_6E8.vx         = 0;
+    temp_v0->field_6E8.vz         = 0xC8;
+    temp_v0->field_508.coord      = temp_s5;
+    temp_v0->field_508.ctx.recs   = temp_s0_2;
+    temp_v0->field_508.pos.vx     = 0;
+    temp_v0->field_508.pos.vy     = 0;
+    temp_v0->field_508.pos.vz     = 0;
+    temp_v0->field_508.key        = 0x30024;
+    temp_v0->field_508.radius     = 0x3E8;
+    temp_v0->field_508.flags      = 1U;
+    Gp_LinkObj(2, &temp_v0->field_508);
+    Gp_InitRec18Table(temp_s0_2, 4, 0);
+    temp_s0_3                   = temp_v0->field_5A8;
+    temp_v0->field_588.coord    = temp_s5;
+    temp_v0->field_588.ctx.recs = temp_s0_3;
+    temp_v0->field_588.pos.vx   = 0;
+    temp_v0->field_588.pos.vy   = 0;
+    temp_v0->field_588.pos.vz   = 0x3E8;
+    temp_v0->field_508.flags    = temp_v0->field_508.flags | 0xC200;
+    temp_v0->field_588.key      = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+    temp_v0->field_588.radius   = 0x5DC;
+    temp_v0->field_588.flags    = 1U;
+    Gp_LinkObj(3, &temp_v0->field_588);
+    Gp_InitRec18Table(temp_s0_3, 1, 0);
+    temp_s0_4                   = temp_v0->field_5F8;
+    temp_v0->field_5C0.coord    = temp_s5;
+    temp_v0->field_5C0.ctx.recs = temp_s0_4;
+    temp_v0->field_5C0.pos.vx   = 0;
+    temp_v0->field_5C0.pos.vz   = 0;
+    temp_v0->field_5C0.pos.vy   = 0x7D0;
+    temp_v0->field_5C0.key      = 0;
+    temp_v0->field_5C0.radius   = 0x64;
+    temp_v0->field_5C0.flags    = 1U;
+    temp_v0->field_588.flags    = temp_v0->field_588.flags & 0x7FFF;
+    Gp_LinkObj(3, &temp_v0->field_5C0);
+    Gp_InitRec18Table(temp_s0_4, 4, 0);
+    temp_v0->field_5C0.flags = temp_v0->field_5C0.flags & 0x3FFF;
+    Gfx_MatrixCol2(&((TmdObject*)task->extra)->coords->coord, &rot);
     temp_s0_5 = ratan2(rot.vx, rot.vz);
     rot.vx    = 0;
     rot.vy    = temp_s0_5;
     rot.vz    = 0;
-    RotMatrix(&rot, (MATRIX*)(temp_v0 + 0x4BC));
-    ACTOR_FIELD(temp_v0, s16*, 0x748) = temp_s0_5;
-    temp_v0_4                         = Task_SpawnFromTable(&D_actor_403600_801421A0, 0, 0, 0);
-    D_actor_403600_801606AC           = temp_v0_4;
+    RotMatrix(&rot, &temp_v0->field_4B8.coord);
+    temp_v0->field_748      = temp_s0_5;
+    temp_v0_4               = Task_SpawnFromTable(&D_actor_403600_801421A0, 0, 0, 0);
+    D_actor_403600_801606AC = temp_v0_4;
     if (temp_v0_4 != 0) {
         Task_Reparent(task, temp_v0_4);
     }
-    ACTOR_FIELD(temp_v0, s32*, 0x4B4) = 0;
-    D_actor_403600_801606A8           = task;
-    ACTOR_FIELD(temp_v0, s16*, 0x78C) = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x796) = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x7A0) = 0;
-    ACTOR_FIELD(temp_v0, s16*, 0x7AE) = 0;
+    temp_v0->field_4B4      = 0;
+    D_actor_403600_801606A8 = task;
+    temp_v0->field_78C      = 0;
+    temp_v0->field_796      = 0;
+    temp_v0->field_7A0      = 0;
+    temp_v0->field_7AE      = 0;
     func_actor_403600_8014174C(task);
     D_actor_403600_8016056C                = 0;
     D_actor_403600_801606B8.fields.field_2 = 0;
     D_actor_403600_801606B8.fields.field_0 = 0;
     task->msgTable                         = D_actor_403600_80160504;
     task->exitCallback                     = func_actor_403600_80141598;
-    ACTOR_FIELD(temp_v0, s16*, 0x730)      = 0;
+    temp_v0->field_730                     = 0;
     D_actor_403600_801606BC                = 0;
     task->state                            = (s32)(task->state + 1);
 }
@@ -4193,11 +4181,10 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     enemy->param              = &D_actor_403600_80150ED8;
     enemy->recs               = (s32)work->field_528;
     enemy->hp                 = (s16)D_actor_403600_80150ED8.hpMax;
-    func_800B3F84((GpAnimCtx*)work, D_actor_403600_8016057C, model,
-                  (u8*)work + 0x334, (GpAnimSlot*)((u8*)work + 0x14));
+    func_800B3F84(&work->rig.anim, D_actor_403600_8016057C, model, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->rig.anim, i, 1);
         i += 1;
     } while (i < 0x14);
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
@@ -4267,7 +4254,7 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
             animWork->field_738 = (s16)(u16)animWork->field_736;
             animWork->field_73A = 0U;
             do {
-                func_800B4114((GpAnimCtx*)animWork, animIndex,
+                func_800B4114(&animWork->rig.anim, animIndex,
                               (s32)animWork->field_736, 0,
                               (s32)animWork->field_756);
                 animIndex += 1;
@@ -4275,10 +4262,14 @@ void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
         } else {
             TOUCH_REG(animIndex);
             animWork->field_73A += animIndex;
-            anim                 = (u8*)animWork + 0x28;
+            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
+             * +0x1D. The slot index is hidden from the compiler for the update
+             * above, so indexing `rig.slots` would derive the cursor from it with
+             * a multiply instead of this constant start. */
+            anim = (u8*)animWork + 0x28;
             do {
                 anim[0x1D] = (u8)animWork->field_778;
-                Gp_AnimTickIndex((GpAnimCtx*)animWork, animIndex);
+                Gp_AnimTickIndex(&animWork->rig.anim, animIndex);
                 animIndex += 1;
                 anim      += sizeof(GpAnimSlot);
             } while (animIndex < 0x14);
@@ -4374,17 +4365,21 @@ default_body:
             temp_s1->field_738 = (s16)(u16)temp_s1->field_736;
             temp_s1->field_73A = 0U;
             do {
-                func_800B4114((GpAnimCtx*)temp_s1, var_s0, temp_s1->field_736, 0,
+                func_800B4114(&temp_s1->rig.anim, var_s0, temp_s1->field_736, 0,
                               (s32)temp_s1->field_756);
                 var_s0 += 1;
             } while (var_s0 < 0x14);
         } else {
             TOUCH_REG(var_s0);
             temp_s1->field_73A += var_s0;
-            var_s2              = (u8*)temp_s1 + 0x28;
+            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
+             * +0x1D. The slot index is hidden from the compiler for the update
+             * above, so indexing `rig.slots` would derive the cursor from it with
+             * a multiply instead of this constant start. */
+            var_s2 = (u8*)temp_s1 + 0x28;
             do {
                 var_s2[0x1D] = (u8)temp_s1->field_778;
-                Gp_AnimTickIndex((GpAnimCtx*)temp_s1, var_s0);
+                Gp_AnimTickIndex(&temp_s1->rig.anim, var_s0);
                 var_s0 += 1;
                 var_s2 += 0x28;
             } while (var_s0 < 0x14);
@@ -4700,16 +4695,20 @@ common:
             commonWork->field_738 = commonWork->field_736;
             commonWork->field_73A = 0;
             do {
-                func_800B4114((GpAnimCtx*)commonWork, i, commonWork->field_736, 0, commonWork->field_756);
+                func_800B4114(&commonWork->rig.anim, i, commonWork->field_736, 0, commonWork->field_756);
                 i++;
             } while (i < 0x14);
         } else {
             TOUCH_REG(i);
             commonWork->field_73A += i;
-            anim                   = &commonWork->pad_0[0x28];
+            /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
+             * +0x1D. The slot index is hidden from the compiler for the update
+             * above, so indexing `rig.slots` would derive the cursor from it with
+             * a multiply instead of this constant start. */
+            anim = (u8*)commonWork + 0x28;
             do {
                 anim[0x1D] = (u8)commonWork->field_778;
-                Gp_AnimTickIndex((GpAnimCtx*)commonWork, i);
+                Gp_AnimTickIndex(&commonWork->rig.anim, i);
                 i++;
                 anim += sizeof(GpAnimSlot);
             } while (i < 0x14);
@@ -5169,7 +5168,7 @@ void func_actor_403600_801411D4(Task* arg0, s32 arg1)
             if (i < masked1) {
                 limit1 = masked1;
                 do {
-                    func_800B4114((GpAnimCtx*)work, i, work->field_736, 0, work->field_756);
+                    func_800B4114(&work->rig.anim, i, work->field_736, 0, work->field_756);
                     i++;
                 } while (i < limit1);
             }
@@ -5179,10 +5178,14 @@ void func_actor_403600_801411D4(Task* arg0, s32 arg1)
             work->field_73A += i;
             if (i < masked2) {
                 limit2 = masked2;
-                anim   = &work->pad_0[0x28];
+                /* A byte cursor 0x28 bytes into the block reaches each slot's `rate` at
+                 * +0x1D. The slot index is hidden from the compiler for the update
+                 * above, so indexing `rig.slots` would derive the cursor from it with
+                 * a multiply instead of this constant start. */
+                anim = (u8*)work + 0x28;
                 do {
                     anim[0x1D] = (u8)work->field_778;
-                    Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                    Gp_AnimTickIndex(&work->rig.anim, i);
                     i++;
                     anim += 0x28;
                 } while (i < limit2);
