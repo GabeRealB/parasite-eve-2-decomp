@@ -2363,7 +2363,7 @@ s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2)
         idx    = arg2 - 0x80;
         do {
             temp = i + idx * 4;
-            item = ((GpItemQty*)(temp + (s32)table0))->field_1;
+            item = ((GpItemQty*)(temp + (s32)table0))->related[0];
             qty  = Gp_ScanStackQty(arg0, item);
             qty -= Gp_CountEquippedRelated(arg0, item);
             if (qty > 0) {
@@ -2383,7 +2383,7 @@ s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2)
             idx    = arg2 - 0x80;
             do {
                 temp = i + idx * 4;
-                item = ((GpItemQty*)(temp + (s32)table1))->field_1;
+                item = ((GpItemQty*)(temp + (s32)table1))->related[0];
                 qty  = Gp_ScanStackQty(arg0, item);
                 qty -= Gp_CountEquippedRelated(arg0, item);
                 if (qty > 0) {

@@ -4162,149 +4162,121 @@ success:
     return 0;
 }
 
+/// How much of `item` the rows `scan` selects hold: the stack count for
+/// stackable ids (0xA0 and up), otherwise 1 if any row carries it and 0 if not.
+static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item)
+{
+    s32 index;
+    s32 found;
+    s32 i;
+
+    found = 0;
+    if (item >= 0xA0) {
+        index = scan->firstRow;
+        return Gp_FindScanQty(table, scan, &index, item);
+    }
+    for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
+        if (table[i].itemId == item) {
+            found = 1;
+            break;
+        }
+    }
+    return found;
+}
+
+/// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
+/// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
+static inline s32 _gpRelatedQty(s32 item, s32 bank)
+{
+    s32 ret;
+
+    item -= 0x80;
+    ret   = 0;
+    if ((u32)item < 0x20) {
+        if (bank == 0) {
+            ret = Gp_RelatedQty0[item].field_0;
+        } else {
+            ret = Gp_RelatedQty1[item].field_0;
+        }
+    }
+    return ret;
+}
+
 s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32         index;
-    s32         index2;
     McItemRec*  table;
     McItemSlot* slot;
-    s32         found;
+    GpItemQty*  row;
+    s32         maxQty;
     s32         have;
     s32         useSecond;
-    s32         shifted;
+    s32         i;
 
-    table = Gp_GetItemTable(arg0);
-    if ((u32)(arg2 - 0xA0) >= 0x20U) {
-        goto fail;
-    }
+    table     = Gp_GetItemTable(arg0);
     useSecond = 0;
-    TOUCH_REG(useSecond);
-    if ((u32)(arg1 - 0x80) >= 0x20U) {
-        goto fail;
-    }
-    found = 0;
-    if (arg1 >= 0xA0) {
-        index   = arg0->firstRow;
-        shifted = Gp_FindScanQty(table, arg0, &index, arg1);
-        shifted = shifted << 16;
-    } else {
-        s32                 i;
-        register s32        count asm("v0");
-        register s32        end asm("a0");
-        register s32        off asm("v0");
-        s32                 limit;
-        register McItemRec* rec asm("a0");
-
-        i     = arg0->firstRow;
-        count = arg0->rowCount;
-        end   = i + count;
-        if (i < end) {
-            off   = i << 2;
-            limit = end;
-            rec   = (McItemRec*)(off + (s32)table);
-            for (; i < limit; i++, rec++) {
-                if (rec->itemId == arg1) {
-                    found = 1;
-                    break;
-                }
-            }
-        }
-        shifted = found;
-        TOUCH_REG(shifted);
-        shifted = shifted << 16;
-    }
-    if (shifted <= 0) {
-    fail:
-        SCHED_BARRIER();
+    if ((u32)(arg2 - 0xA0) >= 0x20 || (u32)(arg1 - 0x80) >= 0x20) {
         return -1;
     }
-    {
-        register s32 off asm("v0");
-        GpItemQty*   qtyTable;
-        s32          maxQty;
-        register s32 clamped asm("a0");
-        s32          i;
-        register s32 idx asm("a0");
-        GpItemQty*   row;
-
-        off      = arg1 << 2;
-        qtyTable = Gp_QtyById0;
-        TOUCH_REG(qtyTable);
-        row    = (GpItemQty*)(off + (s32)qtyTable);
-        idx    = arg1 - 0x80;
-        maxQty = 0;
-        if ((u32)idx < 0x20U) {
-            off    = idx << 2;
-            maxQty = *(u8*)((s32)qtyTable + off + 0x200);
+    if (_gpScanHeldQty(table, arg0, arg1) <= 0) {
+        return -1;
+    }
+    row    = &Gp_RelatedQty0[arg1 - 0x80];
+    maxQty = _gpRelatedQty(arg1, 0);
+    for (i = 0; i < 3; i++) {
+        if (row->related[i] == arg2) {
+            break;
         }
-        clamped = maxQty;
-        i       = 0;
-        for (; i < 3; i++) {
-            if (((u8*)((s32)row + i))[1] == arg2) {
+    }
+    if (i == 3) {
+        useSecond = 1;
+        row       = &Gp_RelatedQty1[arg1 - 0x80];
+        maxQty    = _gpRelatedQty(arg1, 1);
+        for (i = 0; i < 3; i++) {
+            if (row->related[i] == arg2) {
                 break;
             }
         }
         if (i == 3) {
-            off       = arg1 << 2;
-            useSecond = 1;
-            qtyTable  = Gp_QtyById1;
-            TOUCH_REG(qtyTable);
-            row    = (GpItemQty*)(off + (s32)qtyTable);
-            idx    = arg1 - 0x80;
-            maxQty = 0;
-            if ((u32)idx < 0x20U) {
-                off    = idx << 2;
-                maxQty = *(u8*)((s32)qtyTable + off + 0x200);
-            }
-            clamped = maxQty;
-            i       = 0;
-            for (; i < 3; i++) {
-                if (((u8*)((s32)row + i))[1] == arg2) {
-                    break;
-                }
-            }
-            if (i == 3) {
-                return -1;
-            }
-        }
-        if (arg3 < 0) {
-            arg3 = clamped;
-        }
-        if (clamped < arg3) {
-            arg3 = clamped;
-        }
-        index2 = arg0->firstRow;
-        slot   = &((McItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg1];
-        have   = (s16)Gp_FindScanQty(table, arg0, &index2, arg2);
-        have  -= Gp_CountEquippedRelated(arg0, arg2);
-        if (slot->ammoId == arg2) {
-            have += slot->ammoQty;
-        }
-        if (slot->attachId == arg2) {
-            have += slot->attachQty;
-        }
-        if (have <= 0) {
             return -1;
         }
-        if (arg3 != 0) {
-            if (have < arg3) {
-                arg3 = have;
-            }
-            if (useSecond == 0) {
-                slot->ammoId  = arg2;
-                slot->ammoQty = arg3;
-            } else if (slot->attachId != 0xFF) {
-                slot->attachId  = arg2;
-                slot->attachQty = arg3;
-            }
-            goto join;
+    }
+    if (arg3 < 0) {
+        arg3 = maxQty;
+    }
+    if (maxQty < arg3) {
+        arg3 = maxQty;
+    }
+    index = arg0->firstRow;
+    slot  = &Mc_SaveData.weaponItems[arg1 - 0x80];
+    have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
+    have -= Gp_CountEquippedRelated(arg0, arg2);
+    if (slot->ammoId == arg2) {
+        have += slot->ammoQty;
+    }
+    if (slot->attachId == arg2) {
+        have += slot->attachQty;
+    }
+    if (have <= 0) {
+        return -1;
+    }
+    if (arg3 != 0) {
+        if (have < arg3) {
+            arg3 = have;
         }
+        if (useSecond == 0) {
+            slot->ammoId  = arg2;
+            slot->ammoQty = arg3;
+        } else if (slot->attachId != 0xFF) {
+            slot->attachId  = arg2;
+            slot->attachQty = arg3;
+        }
+    } else {
         asm volatile("" : "=r"(arg3));
         arg3 = 0;
-    join:
-        if (arg3 > 0) {
-            Gp_SetItemSeenBit(arg2, 1);
-        }
-        return arg3;
     }
+    if (arg3 > 0) {
+        Gp_SetItemSeenBit(arg2, 1);
+    }
+    return arg3;
 }

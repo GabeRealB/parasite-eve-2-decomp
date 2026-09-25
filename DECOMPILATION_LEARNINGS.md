@@ -140827,3 +140827,22 @@ static inline void rotateSv(MATRIX* m, SVECTOR* v)
 **Fix.** `gDisplayState.screenDistance = h; gte_SetGeomScreen(gDisplayState.screenDistance);`. The field is addressed twice, so CSE keeps `&gDisplayState` in a pseudo and addresses both through it; the read-back itself is then satisfied from the stored register and emits no load. The same pair of statements in gameplay's view loaders reads the value from a record instead, which is why they fold.
 
 The in-place random-radius trick above (`rnd = (u16)(rnd >> 16); rnd &= mask;`) keeps a wanted `sll 16; sra 16`, but the in-place set adds an anti-dependence on the `Gp_LcgState` store. That lengthens the radius chain's sched1 priority, so an independent computation next to it (here the angle drawn from the previous LCG step) is scheduled after the chain instead of before it. Where the target computes that neighbour first, the trick does not fit, and the extension stays a hack.
+## `addu base,idx` against a constant table: CSE puts a known constant second, so the base must be a real array indexed by an offset variable (Gp_EquipRelatedItem, 2026-09-26)
+
+`fold_rtx` (cse.c, "place any constant second") swaps a commutative operation
+whenever its first operand is a register CSE knows to equal a constant. Any
+table pointer loaded with `lui/addiu` in the same extended block is such a
+register, so `tbl[idx].f` - pointer or global, `ARRAY_REF` or not - always
+comes out `addu v0,shift,tbl`. The pins in the old body (`TOUCH_REG(qtyTable)`
+plus integer adds) existed only to hide the constant.
+
+When the target has `addu v0,tbl,shift ; lbu 0x200(v0)` with `tbl` being the
+same register another address uses as `shift+tbl`, check whether splat's
+symbol is a *virtual base*: here `Gp_QtyById0` is `Gp_RelatedQty0 - 0x200`,
+pointing into unrelated data, and the real object is the 32-entry array.
+Indexing that array with a separate offset variable, the way
+`Gp_GetRelatedQty` does (`item -= 0x80; Gp_RelatedQty0[item].field_0`),
+makes CSE rebuild it from the base register as `(tbl + 0x200)` via its
+related-value lookup, with the order the target has; `&Gp_RelatedQty0[item -
+0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
+both places instead lets `fold` merge the two addresses into one.

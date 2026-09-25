@@ -292,7 +292,7 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
             scan       = &Mc_SaveData.carriedItems;
             weaponIdx  = &Player_Status.weapon;
             row        = &Gp_QtyById0[item];
-            ammo       = row->field_1;
+            ammo       = row->related[0];
             *weaponIdx = item - 0x7F;
             Gp_ResetScanDefault();
             Gp_ClearScanItems(scan);

@@ -1408,7 +1408,7 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
                 item = item - 0x7F;
                 do {
                     temp = i + off;
-                    if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg2) {
+                    if (((GpItemQty*)(temp + (s32)table0))->related[0] == arg2) {
                         if (rec2->attachSlot > 0) {
                             arg1--;
                         } else if (cfg->weapon == item) {
@@ -1426,7 +1426,7 @@ s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
                 item = item - 0x7F;
                 do {
                     temp = i + off;
-                    if (((GpItemQty*)(temp + (s32)table1))->field_1 == arg2) {
+                    if (((GpItemQty*)(temp + (s32)table1))->related[0] == arg2) {
                         if (rec2->attachSlot > 0) {
                             goto decrement;
                         }

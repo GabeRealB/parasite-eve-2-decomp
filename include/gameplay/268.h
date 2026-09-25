@@ -25,17 +25,16 @@ STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
 /// 4-byte entry in `Gp_RelatedQty1` / `Gp_RelatedQty0` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`Gp_GetRelatedQty` / `Gp_ApplyItemMap`);
-/// field_1–3 are related item ids (`Gp_BuildAttachList` / `Gp_NthRelatedId` /
-/// `Gp_NthStockRelated` / `Gp_EquipRelatedBank`).
+/// `related` holds the item ids the weapon accepts, searched in order
+/// (`Gp_BuildAttachList` / `Gp_NthRelatedId` / `Gp_NthStockRelated` /
+/// `Gp_EquipRelatedBank` / `Gp_EquipRelatedItem`).
 /// `Gp_RelatedQty0` is the first `McItemSlot` pair (arg0 == 0);
 /// `Gp_RelatedQty1` is the second.
 /// `Gp_QtyById0` / `Gp_QtyById1` are the same tables indexed by raw item id
 /// (`Gp_RelatedQty0` is `Gp_QtyById0 + 0x200`).
 typedef struct _GpItemQty {
     /* 0x00 */ u8 field_0;
-    /* 0x01 */ u8 field_1;
-    /* 0x02 */ u8 field_2;
-    /* 0x03 */ u8 field_3;
+    /* 0x01 */ u8 related[3];
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
@@ -155,7 +154,7 @@ STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
 
 extern GpBit2Bank Gp_Bit2Banks[];
 /// Qty table indexed by raw item id. `Gp_RelatedQty1` is the 0x80–0x9F slice
-/// at +0x200 (`Gp_EquipRelatedBank` / `Gp_EquipRelatedItem`).
+/// at +0x200 (`Gp_EquipRelatedBank`).
 extern GpItemQty  Gp_QtyById1[];
 extern GpItemQty  Gp_RelatedQty1[];
 extern GpItemMap  Gp_ItemMaps[];
@@ -172,7 +171,7 @@ extern McItemScan* D_8010D55C;
 extern GpStatRow   Gp_StatRows[];
 extern GpItemAttr  Gp_ItemAttrs[];
 /// Qty table indexed by raw item id. `Gp_RelatedQty0` is the 0x80–0x9F slice
-/// at +0x200 (`Gp_EquipRelatedBank` / `Gp_EquipRelatedItem`).
+/// at +0x200 (`Gp_EquipRelatedBank`).
 extern GpItemQty  Gp_QtyById0[];
 extern GpItemQty  Gp_RelatedQty0[];
 extern GpItemAttr Gp_ModStatAttrs[];

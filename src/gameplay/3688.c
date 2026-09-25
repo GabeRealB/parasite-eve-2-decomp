@@ -795,7 +795,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         icon = 9;
         kind = 3;
     } else if (arg3 < 0xA0) {
-        rel = Gp_RelatedQty0[arg3 - 0x80].field_1;
+        rel = Gp_RelatedQty0[arg3 - 0x80].related[0];
         if (rel == 0) {
             icon = 2;
         } else {
@@ -1959,7 +1959,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg1) {
+                    if (((GpItemQty*)(temp + (s32)table0))->related[0] == arg1) {
                         if (rec2->attachSlot > 0) {
                             count++;
                         } else if (cfg->weapon == item) {
@@ -1977,7 +1977,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 item = item - 0x7F;
                 do {
                     temp = j + off;
-                    if (((GpItemQty*)(temp + (s32)table1))->field_1 == arg1) {
+                    if (((GpItemQty*)(temp + (s32)table1))->related[0] == arg1) {
                         if (rec2->attachSlot > 0) {
                             goto increment;
                         }
@@ -5632,7 +5632,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         dst = Gp_AttachListIds;
         do {
             temp = i + off;
-            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty0))->field_1;
+            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty0))->related[0];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
@@ -5656,7 +5656,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         dst  = &Gp_AttachListIds[count];
         do {
             temp = i + off2;
-            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty1))->field_1;
+            item = ((GpItemQty*)(temp + (s32)Gp_RelatedQty1))->related[0];
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
