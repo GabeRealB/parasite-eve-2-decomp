@@ -140359,3 +140359,33 @@ earlier C `const`), it believes it is still in `.rodata` and emits the next
 **Fix.** Do not let a C `const` follow an `INCLUDE_RODATA` with no function in
 between. Defining each table beside its user usually does that; otherwise put
 the `INCLUDE_RODATA` after a function, or define the included data in C too.
+
+## A constant-index element of a global array keeps `%hi(arr+off)` only through a pointer local (Gp_RoomCoords, 2026-09-25)
+
+**Symptom.** Replacing a global named by address (`D_80114FF8`) with the
+array element it really is (`Gp_RoomCoords[2]`) changed the code, although
+both name the same address:
+
+```
+lui   a3,%hi(D_80114FF8)          ; target
+sw    v0,%lo(D_80114FF8)(a3)
+addiu a3,a3,%lo(D_80114FF8)
+```
+```
+lui   a3,%hi(Gp_RoomCoords)       ; Gp_RoomCoords[2].f = 2; p = &Gp_RoomCoords[2].g;
+addiu a3,a3,%lo(Gp_RoomCoords)
+sw    v0,200(a3)
+```
+
+**Fix.** Take the element's address into a pointer local and go through it:
+
+```c
+slot             = &Gp_RoomCoords[2];
+slot->framesLeft = 2;
+light            = &slot->data.light;
+```
+
+This compiles to `lui %hi(Gp_RoomCoords+200)` / `sw %lo(Gp_RoomCoords+200)`,
+byte-identical after linking to the target. `(&Gp_RoomCoords[2])->f` works too,
+but the named local is the natural spelling. Written directly, two accesses at
+different offsets into the element share the array base in a register instead.
