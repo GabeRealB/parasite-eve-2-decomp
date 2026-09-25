@@ -140670,3 +140670,14 @@ through a `u16` helper parameter, not an `s32` one, and the recorded `$v0` no
 longer equals the `SImode` constant. The store-then-barrier-then-loop shape
 itself was an inline "set animation" helper whose slot walk was a
 `do { for (...) } while (0)` macro.
+
+## `addiu v0,%lo(tbl); lh 4(v0)` instead of `lh %lo(tbl+4)(v0)`: the row index was an inline helper's parameter (func_actor_403100_80133E88, 2026-09-26)
+
+Symptom: a constant row of `s16 tbl[N][2]` is read through the table's base
+address with the row offset in the load, and the reads stay after an unrelated
+pointer load that sched1 would otherwise hoist them above; the seed pinned both
+with `USE_REG`. Writing `tbl[1][0]` directly folds to `%lo(tbl+4)`, and passing
+the row as a pointer (`helper(coord, tbl[1])`) folds the same way. What the
+target needs is `helper(coord, 1)` with `tbl[i][0]` / `tbl[i][1]` inside the
+`static inline` body: the offset stays in the load and the helper's statements
+keep their place after the caller's `coord = ...`.
