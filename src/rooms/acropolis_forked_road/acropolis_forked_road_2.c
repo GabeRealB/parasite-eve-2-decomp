@@ -28,13 +28,10 @@
 
 extern TaskDesc D_acropolis_forked_road_80180F44;
 
-/// The camera-target matrix the streamed scene walks along its path table.
-extern MATRIX* D_80073B8C;
-
 /// Set to 1 by the fade-out task once the scene has finished.
 extern s16 D_80071076;
 
-/// Per-frame path the streamed scene walks `D_80073B8C` along, indexed by
+/// Per-frame path the streamed scene walks `Player_Status.coordMtx` along, indexed by
 /// `CdCmd_Queue::field_1EA - 1` for the 0x78 frames the ride lasts.
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
@@ -76,7 +73,7 @@ void func_acropolis_forked_road_80180554(GsCOORDINATE2* arg0, s16 arg1, u8* arg2
 
 /// The forked road's streamed-scene task. State 0 allocates the
 /// `RoomStreamWork` block, restarts the stream frame counter, cues the stream
-/// (slot-6 msg 0xFA4), captures the camera-target matrix and slot 3 in the
+/// (slot-6 msg 0xFA4), captures the player's coordinate matrix and slot 3 in the
 /// block and warps slot 3 to the head of the path with a 0x3E9 placement.
 /// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
 /// go idle (msg 0x3F0) and then queues the stream's CD read. State 3 waits for
@@ -107,7 +104,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             queue->field_1EA = 1;
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4                    = 2;
-            ((RoomStreamWork*)task->work)->mtx    = D_80073B8C;
+            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
@@ -177,13 +174,13 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// the far end (`0x3B - CdCmd_Queue::field_1EA`).
 ///
 /// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
-/// camera-target matrix (`Player_Status::field_4`) in it, cues the stream
+/// player's coordinate matrix (`Player_Status.coordMtx`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
-/// (`CdCmd_Queue::field_1FA`), moves the camera target to the head of the
+/// (`CdCmd_Queue::field_1FA`), moves the player to the head of the
 /// path, starts the script pair, reparents this task under it and blanks the
 /// display. State 2 drives the ride: it un-blanks after two frames, walks the
-/// camera target along the path, and lets the pad spawn the skip task. Once
+/// player along the path, and lets the pad spawn the skip task. Once
 /// that task reports done it warps slot 3 to the path's end with a 0x3E9 and
 /// arms the ride's exit; otherwise the ride ends on its own when the path runs
 /// down to its last 11 entries, which is sent as a 0x3F2. State 3 waits for

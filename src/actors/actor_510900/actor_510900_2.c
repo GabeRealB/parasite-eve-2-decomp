@@ -264,9 +264,6 @@ extern s32 D_80187D34;
 extern s32 D_80187D3C;
 extern s16 D_80073BA0;
 
-/// The player's world matrix; its third column is the direction they face.
-extern MATRIX* D_80073B8C;
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -846,8 +843,8 @@ s32 func_actor_510900_8013691C(Task* arg0)
     if (work->field_5A8 != work->field_5AA) {
         return 0;
     }
-    if (D_80073B8C->m[0][2] * coord->coord.m[0][2] +
-            D_80073B8C->m[2][2] * coord->coord.m[2][2] <
+    if (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] +
+            Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2] <
         0) {
         dist = work->field_5AC;
         if (dist < 0xAF0) {

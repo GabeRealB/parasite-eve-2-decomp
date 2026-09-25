@@ -25,6 +25,7 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_dumping_hole.h"
@@ -306,7 +307,6 @@ extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
 extern u8                     D_80071075;
 extern s8                     D_80114C12;
 extern s8                     D_8007272D[];
-extern MATRIX*                D_80073B8C;
 extern s32                    D_shelter_b3_dumping_hole_801880A0[];
 extern s32                    D_shelter_b3_dumping_hole_80188640;
 extern s32                    D_shelter_b3_dumping_hole_80188A78;
@@ -1190,7 +1190,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            if (D_80114C12 == 1 || D_80071075 != 0 || D_80073B8C->t[0] < 0x36B1) {
+            if (D_80114C12 == 1 || D_80071075 != 0 || Player_Status.coordMtx->t[0] < 0x36B1) {
                 break;
             }
             w2 = (DumpingHoleEntity*)arg0->work;

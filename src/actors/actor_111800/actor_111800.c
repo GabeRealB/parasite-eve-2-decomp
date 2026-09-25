@@ -15,6 +15,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
@@ -29,7 +30,7 @@ typedef struct Actor111800Work {
     /* 0x43C */ MATRIX     field_43C;
     /* 0x45C */ MATRIX     field_45C;
     /* 0x47C */ void*      field_47C; // gameGetPtrSlot(3)
-    /* 0x480 */ MATRIX*    field_480; // D_80073B8C, the view matrix
+    /* 0x480 */ MATRIX*    field_480; // Player_Status.coordMtx, the player's coordinate matrix
     /* 0x484 */ u16        field_484; // sequence step the per-frame handler switches on
     /* 0x486 */ byte       pad_486[2];
     /* 0x488 */ u16        field_488; // frames spent in the current step
@@ -44,16 +45,6 @@ STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 /// Animation bank `func_800B3F84` builds the work block's clip context from;
 /// the actor hands it over whole, so it is only ever a byte address here.
 extern u8 D_actor_111800_8013A448[];
-
-/// View matrix every actor walks its model against. Declared as a one-element
-/// aggregate on purpose: an array element access marks the load's MEM
-/// `in_struct`, which is what keeps `true_dependence` (`sched.c:846`) from
-/// dropping the dependence between this load and the in-struct store to
-/// `Actor111800Work::field_480` that precedes it -- as a bare `extern MATRIX*`
-/// the load is a non-struct MEM at a `lo_sum` address, the suppression clause
-/// fires, sched1 hoists the load above the store and local-alloc can no longer
-/// reuse `$v0` after the `sw $v0, 0x47C` store.
-extern MATRIX* D_80073B8C[1];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
@@ -227,7 +218,7 @@ void func_actor_111800_80132390(Task* task)
     func_800B3F84(&work->anim, D_actor_111800_8013A448, obj, work->field_30C,
                   &work->slots[0]);
     work->field_47C  = gameGetPtrSlot(3);
-    work->field_480  = D_80073B8C[0];
+    work->field_480  = Player_Status.coordMtx;
     i                = 1;
     work2            = (Actor111800Work*)task->work;
     work2->field_492 = 0;
@@ -275,7 +266,7 @@ static __inline__ s32 Actor111800_Accumulate(GsCOORDINATE2* arg0, MATRIX* arg1, 
 
 /// Per-frame state machine. State 0 waits until no cutscene is up, then runs
 /// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
-/// `field_492`, and advances after `func_80182360` when the view matrix is in
+/// `field_492`, and advances after `func_80182360` when the player is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
 /// `field_494`, writes it back, yaws it through `func_actor_111800_80131E40`, and

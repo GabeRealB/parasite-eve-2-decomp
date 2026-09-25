@@ -363,8 +363,6 @@ typedef struct Actor403200Work {
 } Actor403200Work;
 STATIC_ASSERT_SIZEOF(Actor403200Work, 0xF24);
 
-extern MATRIX* D_80073B8C;
-
 /// Exit callback of the boss task, installed by its spawn state.
 void func_actor_403200_80141018(Task* arg0);
 
@@ -615,12 +613,12 @@ static __inline__ void Actor403200_ShrinkRotation(GsCOORDINATE2* coord)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
 }
 
-/// Gap from `coord` to the camera target `D_80073B8C`, into `out`.
+/// Gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, into `out`.
 static __inline__ void Actor403200_GapToCamera(GsCOORDINATE2* coord, SVECTOR* out)
 {
-    out->vx = D_80073B8C->t[0] - coord->coord.t[0];
-    out->vy = D_80073B8C->t[1] - coord->coord.t[1];
-    out->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    out->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    out->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    out->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 }
 
 void func_actor_403200_80141800(GpEnemy* arg0, Task* arg1);
@@ -1417,10 +1415,10 @@ s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = ((TmdObject*)arg0->extra)->coords;
-    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
-    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -1483,10 +1481,10 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = ((TmdObject*)arg0->extra)->coords;
-    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
-    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -1537,10 +1535,10 @@ s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
     task   = (Task*)gameGetPtrSlot(3);
     vp     = &vec;
     coords = ((TmdObject*)arg0->extra)->coords;
-    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
-    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -1678,10 +1676,10 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = ((TmdObject*)arg0->extra)->coords;
-    vp->vx = D_80073B8C->t[0] - coords->coord.t[0];
-    vp->vy = D_80073B8C->t[1] - coords->coord.t[1];
+    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = D_80073B8C->t[2] - coords->coord.t[2];
+    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -1754,10 +1752,10 @@ s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     p      = &pos;
     coords = ((TmdObject*)arg0->extra)->coords;
-    p->vx  = D_80073B8C->t[0] - coords->coord.t[0];
-    p->vy  = D_80073B8C->t[1] - coords->coord.t[1];
+    p->vx  = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    p->vy  = Player_Status.coordMtx->t[1] - coords->coord.t[1];
     dist   = pos.vx * pos.vx;
-    p->vz  = D_80073B8C->t[2] - coords->coord.t[2];
+    p->vz  = Player_Status.coordMtx->t[2] - coords->coord.t[2];
     dist  += pos.vy * pos.vy;
     dist   = SquareRoot0(dist + (pos.vz * pos.vz));
     switch (arg1) {
@@ -2738,7 +2736,7 @@ const GpEnemyTaskFuncTable4 D_actor_403200_80131F04 = {
 /// `D_actor_403200_8015E70C`, mapping the two low bits of the LCG onto group
 /// 1, 1, 2 and 0. `work->target` is then the host model's position pushed out
 /// by 0x1B58, 0x2710 or 0x32C8 -- whichever ring the host is on, measured
-/// against the camera target -- plus the `[group][spawnArg1]` entry of
+/// against the player -- plus the `[group][spawnArg1]` entry of
 /// `D_actor_403200_8015E7C0`, with a 0..0x7F jitter on z. `spawnArg1` 4 drops
 /// on the player instead. The model itself is stood up beside the host at the
 /// `D_actor_403200_8015E780` offset, its work coordinate is parented to
@@ -6725,9 +6723,9 @@ void func_actor_403200_8013F700(Task* arg0)
     }
     coord = ((TmdObject*)arg0->extra)->coords;
     v     = &vec;
-    v->vx = D_80073B8C->t[0] - coord->coord.t[0];
-    v->vy = D_80073B8C->t[1] - coord->coord.t[1];
-    v->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    v->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    v->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    v->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     rot   = ((TmdObject*)arg0->extra)->coords;
     angle = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
     if (angle < 0) {

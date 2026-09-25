@@ -18,6 +18,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Psy-Q `RotMatrixY`.
 void func_8004BFF8(s16 angle, MATRIX* matrix);
@@ -75,10 +76,6 @@ STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
 extern GpPairSrcE D_actor_311500_801692C0;
 extern u8         D_actor_311500_801692F4[];
 extern u32        D_actor_311500_80169330;
-
-/// Declared as an array: indexing it keeps the load after the preceding
-/// work-field store, as the ROM orders them.
-extern MATRIX* D_80073B8C[1];
 
 extern s32 D_80181E74;
 extern s32 D_80181EC4;
@@ -313,7 +310,7 @@ void func_actor_311500_801629D8(Task* arg0)
     func_800B3F84(&work2->anim, D_actor_311500_801692F4, tmd, work2->pad_30C,
                   &work2->slots[0]);
     work2->field_4B4 = gameGetPtrSlot(3);
-    work2->field_4B8 = D_80073B8C[0];
+    work2->field_4B8 = Player_Status.coordMtx;
     rate             = 0x10;
     i                = 1;
     work3            = (Actor311500Work*)arg0->work;

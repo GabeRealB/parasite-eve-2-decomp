@@ -310,11 +310,10 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0;
 
-extern u8      D_80071075;
-extern s8      D_8007218A;
-extern MATRIX* D_80073B8C[1];
-extern u8      D_80073BA9;
-extern s8      D_80114C12;
+extern u8 D_80071075;
+extern s8 D_8007218A;
+extern u8 D_80073BA9;
+extern s8 D_80114C12;
 
 void func_actor_560800_80133970(Task* arg0);
 void func_actor_560800_80134258(Task* arg0);
@@ -1228,7 +1227,7 @@ static inline void Actor560800_SpawnSparksB(Task* task)
 ///
 /// Shape notes, all needed for the match: helpers take only the arguments that
 /// vary, because an inlined parameter is copied to a pseudo even when constant
-/// and CSE would then share it; `D_80073B8C` is read as an array so the load is
+/// and CSE would then share it; `Player_Status.coordMtx` is read as a struct member so the load is
 /// in-struct and schedules after the `field_2C` store; the explicit clears in 19,
 /// 28 and the last step of 35 decide which anim tails cross-jump together.
 void func_actor_560800_80133970(Task* arg0)
@@ -1266,8 +1265,8 @@ void func_actor_560800_80133970(Task* arg0)
                     return;
                 case 1:
                     if (work->field_2C < 100) {
-                        work->field_2C      += 5;
-                        D_80073B8C[0]->t[0] -= 5;
+                        work->field_2C               += 5;
+                        Player_Status.coordMtx->t[0] -= 5;
                         return;
                     }
                     Actor560800_PlayAnimB(arg0, 0xC, 0xA);
@@ -1646,8 +1645,8 @@ void func_actor_560800_80134BFC(Task* arg0)
                     return;
                 case 1:
                     if (work->field_44 < 300) {
-                        work->field_44      += 5;
-                        D_80073B8C[0]->t[0] -= 5;
+                        work->field_44               += 5;
+                        Player_Status.coordMtx->t[0] -= 5;
                         return;
                     }
                     Actor560800_PlayAnimB(arg0, 2, 0xA);

@@ -296,10 +296,6 @@ extern GpXformArg D_actor_401800_80155AD8;
 /// for actor 01900.
 extern u16 D_actor_401800_80155AC0;
 
-/// Camera-target matrix `func_actor_401800_8013A034` measures the actor's root
-/// coordinate against for its proximity test. Same global `Actor401300` reads.
-extern MATRIX* D_80073B8C;
-
 /// The block `func_actor_401800_8013A034` posts into `D_actor_401800_80155978`
 /// when the actor's live flag is set, taking over the animation the actor had
 /// been running. Same pair `Actor401300` keeps as `D_actor_401300_80158878` /
@@ -3094,7 +3090,7 @@ void func_actor_401800_80139B18(Task* arg0)
 /// copies the root coordinate over its `field_BC0` home and restarts the step
 /// counter in state 0xE. The counter then runs to 0x961, rerolling the LCG each
 /// frame past it and bailing for that frame on every 0xF-th draw; the surviving
-/// frames re-test the squared XZ offset to the camera target against
+/// frames re-test the squared XZ offset to the player against
 /// `field_C0E` and arm `Gp_StateF0` state 6 on a miss — bit 0x50000 there arms
 /// it the same way. After the shared per-frame tick the body flips between
 /// states 0xE and 0xF, one LCG draw per attempt, on the two `field_68` mask
@@ -3138,9 +3134,9 @@ void func_actor_401800_80139D60(Task* arg0)
     }
     coord    = ((TmdObject*)arg0->extra)->coords;
     d        = &delta;
-    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!Actor401800_OutOfRange(d, work->field_C0E)) {
         work->field_0 = 6;
     }
@@ -3172,7 +3168,7 @@ void func_actor_401800_80139D60(Task* arg0)
 /// 0x51030008 spawn sound once on the first frame. After the shared per-frame
 /// tick, a `field_5A` state of 4 that differs from the last handled one
 /// (`field_8B4`) sends the 0x200-scale effect for the second coordinate part.
-/// Then, if the squared XZ offset to the camera target fits inside
+/// Then, if the squared XZ offset to the player fits inside
 /// `field_C0E`, the actor plays 0x51030008 and arms `Gp_StateF0` in state 6 —
 /// bit 0x50000 of `Gp_StateF0` arms it the same way. Same shape as
 /// `Actor01900_Fn06B4C` and `func_actor_401300_801397F8`.
@@ -3220,9 +3216,9 @@ void func_actor_401800_8013A034(Task* arg0)
     work->field_8B4 = work->field_5A & 0x3FF;
     coord           = ((TmdObject*)arg0->extra)->coords;
     d               = &delta;
-    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx        = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!Actor401800_OutOfRange(d, work->field_C0E)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);

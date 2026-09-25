@@ -289,7 +289,6 @@ extern SVECTOR D_actor_503500_8016F2EC[];
 /// `func_actor_503500_8013D1CC`'s spawn offset and rotation for its one child.
 extern SVECTOR D_actor_503500_8016F258;
 extern SVECTOR D_actor_503500_8016F260;
-extern MATRIX* D_80073B8C;
 /// The same pair for `func_actor_503500_8013E740`: nine effect offsets, one
 /// picked by frame and one by `Gp_LcgState`, and the rect it moves on frame 8.
 extern SVECTOR D_actor_503500_8016F31C[];
@@ -2023,7 +2022,7 @@ void func_actor_503500_8013E384(Task* arg0)
             }
         case 2:
             idx  = work->field_EA - 0x42;
-            arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000;
+            arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-Player_Status.coordMtx->t[1] << 24) / 1000;
             task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
             if (task != NULL) {
                 Gp_ComposeParentWorld(coord, &m, &pos);

@@ -218,7 +218,7 @@ typedef struct Actor401000Work {
     /// the `spawnArg1`-selected record; not read anywhere yet.
     /* 0xC14 */ s16 field_C14;
     /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
-    /// test the actor's distance from `D_80073B8C` against.
+    /// test the actor's distance from `Player_Status.coordMtx` against.
     /* 0xC16 */ u16 field_C16;
     /// The three bytes `func_actor_401000_8013D958` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
@@ -275,8 +275,6 @@ typedef struct Actor401000ChaseScratch {
     /* 0xE */ s16     angle;
 } Actor401000ChaseScratch;
 STATIC_ASSERT_SIZEOF(Actor401000ChaseScratch, 0x10);
-
-extern MATRIX* D_80073B8C;
 
 /// Animation bank `func_actor_401000_80133274` hands to both `func_800B3F84`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
@@ -2389,7 +2387,7 @@ void func_actor_401000_801378DC(Task* arg0)
     }
     func_actor_401000_80132EF0(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
-        angle = actorMatrixPositionYaw(arg0, &delta, D_80073B8C);
+        angle = actorMatrixPositionYaw(arg0, &delta, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
@@ -2789,7 +2787,7 @@ void func_actor_401000_80138D08(Task* arg0)
 /// buffers, restores the saved pose matrix `field_BA8` over the live
 /// `field_BC8`, and restarts the 0xE / 0x898 animation slots; the body is then
 /// gated on the `field_6` countdown and a 0-15 `Gp_LcgState` draw. The XZ
-/// offset to `D_80073B8C` is probed against `field_C16`, and an armed
+/// offset to `Player_Status.coordMtx` is probed against `field_C16`, and an armed
 /// `Gp_StateF0` bit 0x50000, each dropping the actor to state 6. The tail runs
 /// `func_actor_401000_80132EF0` and swaps `field_89E` between 0xE and 0xF on
 /// `flags_68` bits 1 and 2, re-running the tick after each swap.
@@ -2831,9 +2829,9 @@ void func_actor_401000_80138F50(Task* arg0)
     }
     coord    = ((TmdObject*)arg0->extra)->coords;
     d        = &delta;
-    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->field_C16)) {
         work->field_0 = 6;
     }
@@ -2901,9 +2899,9 @@ void func_actor_401000_8013922C(Task* arg0)
     work->field_8B4 = work->field_5A & 0x3FF;
     coord           = ((TmdObject*)arg0->extra)->coords;
     d               = &delta;
-    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx        = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->field_C16)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);

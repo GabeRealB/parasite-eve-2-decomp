@@ -102,11 +102,6 @@ typedef struct Actor403600TargetScratch {
 } Actor403600TargetScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
 
-typedef struct Actor403600MatrixRef {
-    /* 0x00 */ MATRIX* matrix;
-} Actor403600MatrixRef;
-STATIC_ASSERT_SIZEOF(Actor403600MatrixRef, 0x4);
-
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;
@@ -241,7 +236,6 @@ extern Task*    D_actor_403600_801606B4;
 
 extern u8                   D_80071075;
 extern TaskDesc             D_8016E468;
-extern MATRIX*              D_80073B8C;
 extern s16                  D_80073BA0;
 extern u8                   D_actor_403600_80150ED4;
 extern TaskDesc             D_actor_403600_801421A0;
@@ -1560,7 +1554,7 @@ void func_actor_403600_8013A444(Task* arg0)
                     if ((D_actor_403600_801605DC.vy - 0x3E8) < temp_s3->field_4B8.coord.t[1]) {
                         Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
                         var_s2 = 0;
-                        if (D_80073B8C->t[1] < -0xF3B) {
+                        if (Player_Status.coordMtx->t[1] < -0xF3B) {
                             temp_s4_4                       = &temp_s3->field_4B8;
                             D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EA4;
                             func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
@@ -1712,7 +1706,7 @@ void func_actor_403600_8013A444(Task* arg0)
                     temp_s3->field_73C = 0x4B0U;
                     temp_s3->field_74A = 0;
                     if (temp_s3->field_732 == 1) {
-                        temp_s3->field_6F0.vy = (s32)(D_80073B8C->t[1] - 0x258);
+                        temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x258);
                     }
                     temp_s3->field_746 = 1;
                     if (func_actor_403600_8013DFE0(arg0) < 0x7D1) {
@@ -1883,11 +1877,11 @@ void func_actor_403600_8013A444(Task* arg0)
                     }
                     temp_s3->field_746 = 1;
                     temp_s1            = func_actor_403600_8013DFE0(arg0);
-                    temp_v1_5          = D_80073B8C->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_v1_5          = Player_Status.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
                     temp_lo            = temp_v1_5 * temp_v1_5;
-                    temp_v1_6          = D_80073B8C->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_v1_6          = Player_Status.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
                     temp_lo_2          = temp_v1_6 * temp_v1_6;
-                    temp_v1_7          = D_80073B8C->t[2] - temp_s3->field_4B8.coord.t[2];
+                    temp_v1_7          = Player_Status.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
                     temp_v0_18         = SquareRoot0(temp_lo + temp_lo_2 + (temp_v1_7 * temp_v1_7));
                     sp10               = temp_v0_18;
                     if (temp_v0_18 < 0x76DU) {
@@ -1966,7 +1960,7 @@ void func_actor_403600_8013A444(Task* arg0)
                 case 0:
                     temp_s3->field_746 = 1;
                     temp_s3->field_73C = 0xC8U;
-                    adjusted_y0        = ((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] + 0x1F4;
+                    adjusted_y0        = Player_Status.coordMtx->t[1] + 0x1F4;
                     temp_s3->field_74A = (s16)((adjusted_y0 - temp_s3->field_4B8.coord.t[1]) / 25);
                     if (func_actor_403600_8013DDF4(arg0, 0xB0) < 0x3E9) {
                         temp_s3->field_73C = 0U;
@@ -2143,11 +2137,11 @@ void func_actor_403600_8013A444(Task* arg0)
                         func_actor_403600_8013DFE0(arg0);
                         Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 2, arg0);
                     }
-                    temp_v0_26 = D_80073B8C->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_v0_26 = Player_Status.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
                     temp_lo_3  = temp_v0_26 * temp_v0_26;
-                    temp_v0_27 = D_80073B8C->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_v0_27 = Player_Status.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
                     temp_lo_4  = temp_v0_27 * temp_v0_27;
-                    temp_v0_28 = D_80073B8C->t[2] - temp_s3->field_4B8.coord.t[2];
+                    temp_v0_28 = Player_Status.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
                     var_a0_2   = SquareRoot0(temp_lo_3 + temp_lo_4 + (temp_v0_28 * temp_v0_28));
                     sp10       = var_a0_2;
                     if (temp_s3->field_73A >= 8) {
@@ -2223,7 +2217,7 @@ void func_actor_403600_8013A444(Task* arg0)
                     temp_s3->field_746 = 0;
                     func_actor_403600_8013DDF4(arg0, 0xA0);
                     temp_s3->field_73C = 0x12CU;
-                    adjusted_y1        = ((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] + 0x1F4;
+                    adjusted_y1        = Player_Status.coordMtx->t[1] + 0x1F4;
                     temp_s3->field_74A = (s16)((adjusted_y1 - temp_s3->field_4B8.coord.t[1]) / 25);
                     func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
                     if ((sp10 < 0x1389U) && (temp_s3->field_74A < 0x12D)) {
@@ -2386,7 +2380,7 @@ void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_73C = 0x50U;
                     }
                     adjusted_y2        = temp_s3->field_4B8.coord.t[1] + 0x3E8;
-                    temp_a0_2          = (D_80073B8C->t[1] - adjusted_y2) / 25;
+                    temp_a0_2          = (Player_Status.coordMtx->t[1] - adjusted_y2) / 25;
                     temp_s3->field_74A = temp_a0_2;
                     if (sp10 < 0x7D1U) {
                         var_v0_12 = sp14;
@@ -2545,8 +2539,8 @@ void func_actor_403600_8013C864(Task* arg0)
             __asm__ volatile("sw %0, 40(%1)" : : "r"(var_v0_2), "r"(temp_s5) : "memory");
         }
         __asm__ volatile(
-            "lui $2, %%hi(D_80073B8C)\n\t"
-            "lw $3, %%lo(D_80073B8C)($2)\n\t"
+            "lui $2, %%hi(Player_Status + 4)\n\t"
+            "lw $3, %%lo(Player_Status + 4)($2)\n\t"
             "nop\n\t"
             "lw $2, 20($3)\n\t"
             "nop\n\t"
@@ -2600,7 +2594,7 @@ void func_actor_403600_8013C864(Task* arg0)
         } else {
         block_17:
             temp_s3->field_6F0.vx = (s32)D_actor_403600_801605D4.vx;
-            temp_s3->field_6F0.vy = (s32)(((Actor403600MatrixRef*)&D_80073B8C)->matrix->t[1] - 0x3E8);
+            temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
             SOFT_BARRIER();
             temp_s3->field_6F0.vz = (s32)D_actor_403600_801605D4.vz;
         }
@@ -2640,7 +2634,7 @@ void func_actor_403600_8013C864(Task* arg0)
         gte_stsv(temp_s5);
         temp_s3->field_4B8.coord.t[0] = (s32)((temp_s4 - 1)->vector.vx + D_actor_403600_801605D4.vx);
         SOFT_BARRIER();
-        temp_s3->field_4B8.coord.t[1] = (s32)(D_80073B8C->t[1] - 0x3E8);
+        temp_s3->field_4B8.coord.t[1] = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
         temp_z0                       = (s32)temp_s6->vector.vz;
         temp_z1                       = (s32)D_actor_403600_801605D4.vz;
         SOFT_BARRIER();
@@ -2761,7 +2755,7 @@ void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     do {
         temp_s4->field_6F0.vx = temp_v1_10->x;
     } while (0);
-    temp_s4->field_6F0.vy = D_80073B8C->t[1] - 0x258;
+    temp_s4->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x258;
     *(void**)0x1F8003FC   = (u8*)*(void**)0x1F8003FC + 0x24;
     temp_s4->field_6F0.vz = temp_v1_10->z;
 }
@@ -3720,7 +3714,7 @@ void func_actor_403600_8013EA04(Task* arg0)
             var_a2 = 2;
         }
     } else {
-        temp_v1 = D_80073B8C->t[1];
+        temp_v1 = Player_Status.coordMtx->t[1];
         if (temp_v1 >= -0x7D0) {
             temp_a0            = (Gp_LcgState * 5) + 0x71357911;
             temp_s2->field_772 = 2;
@@ -3741,8 +3735,8 @@ void func_actor_403600_8013EA04(Task* arg0)
                 }
             }
         } else if (temp_v1 >= -0x1004) {
-            if (((u32)(D_80073B8C->t[0] - 0xFA0) < 0x1F41U) &&
-                ((u32)(D_80073B8C->t[2] - 0xBB8) < 0x1F41U)) {
+            if (((u32)(Player_Status.coordMtx->t[0] - 0xFA0) < 0x1F41U) &&
+                ((u32)(Player_Status.coordMtx->t[2] - 0xBB8) < 0x1F41U)) {
                 temp_a1            = (Gp_LcgState * 5) + 0x71357911;
                 temp_s2->field_772 = 1;
                 temp_threshold     = temp_t0->hp;
@@ -4521,7 +4515,7 @@ void func_actor_403600_801400BC(Task* arg0)
             func_actor_403600_8013DDF4(arg0, 0);
             temp_s1->field_736 = 2;
             temp_s1->field_73C = temp_s1->field_750;
-            temp_v1_2          = D_80073B8C->t[1];
+            temp_v1_2          = Player_Status.coordMtx->t[1];
             temp_v0            = temp_s1->field_4B8.coord.t[1] + 0x3E8;
             temp_s1->field_74A = (s16)((temp_v1_2 - temp_v0) / 25);
             func_actor_403600_8013E470(&temp_s1->field_4B8, (s32*)&sp10, &sp14);

@@ -25,8 +25,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-extern void*   D_80067704[1];
-extern MATRIX* D_80073B8C[1];
+extern void* D_80067704[1];
 
 extern u8            Actor05500_D05F18[];
 extern GpU16Pair     Actor05500_D08958;
@@ -528,7 +527,7 @@ void Actor05500_Fn00A94(Task* arg0)
             break;
         case 1:
             work->field_3A0 = (u16)work->field_3A0 + ((u16)work->field_35C.vy - (u16)coord->coord.t[1]);
-            if (((D_80073B8C[0]->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
+            if (((Player_Status.coordMtx->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
                 work->field_39C = 2;
                 work->field_392 = 9;
                 work->field_3BC = 0x2D;

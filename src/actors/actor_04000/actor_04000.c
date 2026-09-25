@@ -115,7 +115,7 @@ typedef struct Actor104000HitScratch {
 STATIC_ASSERT_SIZEOF(Actor104000HitScratch, 0x18);
 
 /// 0xC-byte scratch taken from `0x1F8003FC` by the walking state: the offset
-/// to the spawn point (later the camera target) and the clamped new yaw.
+/// to the spawn point (later the player) and the clamped new yaw.
 typedef struct Actor104000TurnScratch {
     /* 0x0 */ SVECTOR d;
     /* 0x8 */ s16     angle;
@@ -148,8 +148,7 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
-extern u8      D_80072729;
-extern MATRIX* D_80073B8C;
+extern u8 D_80072729;
 
 extern Task* Actor04000_D0C710[2];
 extern Task* Actor04000_D0C718[6];
@@ -1012,7 +1011,7 @@ void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
 
 /// Restarts the actor when `field_4` is set; otherwise steps it, occasionally
 /// switches to state 3 on a random roll, and arms the player state when the
-/// camera target comes within 2000 units.
+/// player comes within 2000 units.
 void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 {
     Actor104000Work* work;
@@ -1045,9 +1044,9 @@ void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
     }
     coord    = ((TmdObject*)arg1->extra)->coords;
     d        = &delta;
-    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
@@ -1055,7 +1054,7 @@ void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 }
 
 /// Chasing state: restarts the actor when `field_4` is set; otherwise turns
-/// toward the camera target by at most 0x10 a frame and steps forward, counting
+/// toward the player by at most 0x10 a frame and steps forward, counting
 /// frames spent more than 1000 units away (state 8 after 240), and switches to
 /// state 10 within 600 units and an eighth turn of the facing.
 void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
@@ -1528,7 +1527,7 @@ found:
 /// Patrol state: restarts the actor when `field_4` is set; otherwise turns the
 /// model toward the current patrol point by at most 0x20 a frame and steps it
 /// forward, swapping patrol points within 400 units or after 97 blocked frames,
-/// switching to state 4 when the camera target is within 2000 units and either
+/// switching to state 4 when the player is within 2000 units and either
 /// inside a quarter turn of the facing or within 1000 units, and occasionally to
 /// state 1 once `field_17C` passes 20.
 void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
@@ -1612,7 +1611,7 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
 /// Walking state: restarts the actor when `field_4` is set; otherwise turns the
 /// model toward its spawn point by at most 0x10 a frame and steps it forward,
 /// switching to state 1 within 80 units of the spawn point and to state 4 when
-/// the camera target is within 2000 units and either inside a quarter turn of
+/// the player is within 2000 units and either inside a quarter turn of
 /// the facing or within 1000 units.
 void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
 {

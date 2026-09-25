@@ -5,6 +5,7 @@
 #include "actors/actor_400100.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/wipsys.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
 
@@ -57,13 +58,11 @@ static __inline__ s16 Actor00100_HasRecord10(Task* actor)
     return found;
 }
 
-extern MATRIX* D_80073B8C;
-
 static __inline__ void Actor00100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = D_80073B8C->t[0] - coord->coord.t[0];
-    pos->vy = D_80073B8C->t[1] - coord->coord.t[1];
-    pos->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 }
 
 static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)

@@ -25,6 +25,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+#include "main/wipsys.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -289,9 +290,6 @@ extern GpViewRec D_acropolis_plaza_8018F9B4[][2];
 /// The plaza's camera table: one world position per stream view, indexed by
 /// `CdCmd_Queue.field_1EE - 1`.
 extern VECTOR3 D_acropolis_plaza_801907C4[];
-
-/// The view matrix the scene task measures the player against.
-extern MATRIX* D_80073B8C;
 
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
 /// three effect bursts index this table with the same slot number they pass to
@@ -823,7 +821,7 @@ L_case0:
     } else {
         q->field_1F6 = 0;
     }
-    ((AcropolisPlazaSceneWork*)task->work)->mtx = D_80073B8C;
+    ((AcropolisPlazaSceneWork*)task->work)->mtx = Player_Status.coordMtx;
     work->field_2E                              = 1;
     task->state                                 = task->state + 1;
     goto L_tail;

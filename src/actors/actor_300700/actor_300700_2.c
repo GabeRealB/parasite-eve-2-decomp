@@ -44,8 +44,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-/// `D_80073B8C` is the camera-target matrix positions are measured from.
-extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
 extern u16 D_actor_300700_80165B78[];
 
@@ -534,7 +532,7 @@ pop:
 }
 
 /// Three-state launcher. State 0 arms the timer from `Gp_LcgState` and stores
-/// the direction from the camera target to the model's root coordinate into
+/// the direction from the player to the model's root coordinate into
 /// `field_370` with `VectorNormalS`; state 1 pushes the coordinate along that
 /// normal while `field_382` is below `0xF`, runs the `field_38C` countdown and
 /// hands over to the teardown state 3 (or 2) when it expires; state 2 clears
@@ -567,9 +565,9 @@ void func_actor_300700_801643D0(Task* arg0)
             work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
             Gp_LcgState     = rng;
             posX            = coord->coord.t[0];
-            vec.vx          = D_80073B8C->t[0] - posX;
-            vec.vy          = D_80073B8C->t[1] - coord->coord.t[1];
-            vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
+            vec.vx          = Player_Status.coordMtx->t[0] - posX;
+            vec.vy          = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+            vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
             VectorNormalS(&vec, &work->field_370);
             return;
         case 1:

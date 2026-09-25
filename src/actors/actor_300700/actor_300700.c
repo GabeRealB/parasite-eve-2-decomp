@@ -84,8 +84,6 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-/// `D_80073B8C` is the camera-target matrix positions are measured from.
-extern MATRIX* D_80073B8C;
 /// Per-variant base speed, indexed by `GpAreaPlace::rowIndex`.
 extern u16 D_actor_300700_80165B78[];
 
@@ -522,7 +520,7 @@ void func_actor_300700_801628C8(Task* arg0)
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
-            base               = D_80073B8C->t[1] - 0x4B0;
+            base               = Player_Status.coordMtx->t[1] - 0x4B0;
             random2            = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
             y                  = coord->coord.t[1];
             if (y >= base + 400) {

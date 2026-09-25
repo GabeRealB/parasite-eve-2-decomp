@@ -268,8 +268,6 @@ typedef struct Actor401300LungeScratch {
 } Actor401300LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
-extern MATRIX* D_80073B8C;
-
 /// Movement freeze flag: `actorMoveForward` skips its step when it is 1.
 extern u8 D_80072729;
 
@@ -2555,7 +2553,7 @@ void func_actor_401300_80138160(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
-        angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
+        angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.animBlock.ptr = &D_actor_401300_801588F0;
             work->field_D00               = 8;
@@ -2916,9 +2914,9 @@ void func_actor_401300_80139520(Task* arg0)
     }
     coord    = ((TmdObject*)arg0->extra)->coords;
     d        = &delta;
-    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
@@ -2986,9 +2984,9 @@ void func_actor_401300_801397F8(Task* arg0)
     work->field_8BC = work->field_5E & 0x3FF;
     coord           = ((TmdObject*)arg0->extra)->coords;
     d               = &delta;
-    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx        = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 3000)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);

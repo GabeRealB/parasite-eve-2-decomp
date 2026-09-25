@@ -44,7 +44,6 @@ extern s16        Actor02600_D08A16;
 extern s16        Actor02600_D08A18;
 extern s16        Actor02600_D08A30[][2];
 extern s16        Actor02600_D08A54[][2];
-extern MATRIX*    D_80073B8C[1];
 extern GpU16Pair  Actor02600_D08950;
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
@@ -505,7 +504,7 @@ void Actor02600_Fn00A94(Task* arg0)
             break;
         case 1:
             work->field_3A0 = (u16)work->field_3A0 + ((u16)work->field_35C.vy - (u16)coord->coord.t[1]);
-            if (((D_80073B8C[0]->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
+            if (((Player_Status.coordMtx->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
                 work->field_39C = 2;
                 work->field_392 = 9;
                 work->field_3BC = 0x2D;

@@ -60,7 +60,6 @@ typedef struct Actor521100FireScratch {
 } Actor521100FireScratch;
 STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
 
-extern MATRIX*  D_80073B8C;
 extern s16      D_actor_521100_8015F570[];
 extern u16      D_actor_521100_8015F564;
 extern u8       D_actor_521100_8015F7CC[];
@@ -1151,7 +1150,7 @@ void func_actor_521100_801339B0(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else if ((s16)work->field_68A == 0xC) {
-                flag                  = (D_80073B8C->m[0][2] * coord->coord.m[0][2] + D_80073B8C->m[1][2] * coord->coord.m[1][2] + D_80073B8C->m[2][2] * coord->coord.m[2][2]);
+                flag                  = (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] + Player_Status.coordMtx->m[1][2] * coord->coord.m[1][2] + Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2]);
                 work->field_6A4       = (u32)flag >> 31;
                 sc->msg.animBlock.ptr = (void*)&D_actor_521100_8015F7CC;
                 sc->msg.field_4       = work->field_6A4 ? 2 : 6;

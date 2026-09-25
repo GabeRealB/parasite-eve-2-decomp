@@ -36,7 +36,6 @@ extern u8  D_80072728;
 extern u8  D_80072729;
 /// Table of 0x80-byte actor config blocks; `Player_Status` is entry 1.
 extern PlayerStatus D_80073B08[];
-extern MATRIX*      D_80073B8C;
 extern s16          D_80114D08;
 extern s32          D_80115738;
 extern s32          D_8011574C;
@@ -4427,10 +4426,10 @@ void func_acropolis_bridge_80187078(Task* task)
         rsin((D_80070F70 << 5) + ((TmdObject*)task->extra)->coords->coord.t[0]) >> 6;
     if (bridge_rec_kind1(work->recs) != 0) {
         coord  = ((TmdObject*)task->extra)->coords;
-        dir.vx = D_80073B8C->t[0] - coord->coord.t[0];
+        dir.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
         d      = &dir;
-        d->vy  = D_80073B8C->t[1] - coord->coord.t[1];
-        d->vz  = D_80073B8C->t[2] - coord->coord.t[2];
+        d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+        d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
         Gfx_RotMatrixY(&((TmdObject*)task->extra)->coords->coord, 0x10, 0);
         VectorNormalSS(d, d);
         gte_lddp(-0x10);

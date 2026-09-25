@@ -17,6 +17,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
@@ -191,10 +192,7 @@ extern GpMsgEntry D_actor_503500_8016EA2C[];
 /// in `GpEnemy::param` and seed the enemy's HP from its `hpMax`.
 extern GpPairSrcE D_actor_503500_8016E7EC[];
 void              func_actor_503500_80136228(Task* arg0);
-/// Main-executable matrix the scene tracks (`acropolis_forked_road.h` calls it
-/// the camera target); no module header owns it yet.
-extern MATRIX* D_80073B8C;
-extern u32     Gp_LcgState;
+extern u32        Gp_LcgState;
 /// Attack lists for `func_actor_503500_801338E8`, indexed by the phase bit
 /// (`field_774` bit 3), the height band `field_7DC` and the yaw bucket
 /// `field_7DE`; each entry points at a NULL-terminated `Actor503500Step` run.
@@ -473,7 +471,7 @@ void func_actor_503500_80133270(Task* arg0)
 
 /// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
 /// boss is in state 0, rolls `field_7C8` from `Gp_LcgState`, stores the yaw to
-/// `D_80073B8C` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
+/// `Player_Status.coordMtx` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
 /// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
 /// node per `field_7E2`.
 void func_actor_503500_801334CC(Task* arg0)
@@ -499,9 +497,9 @@ void func_actor_503500_801334CC(Task* arg0)
     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
     work->field_7C8 = Gp_LcgState >> 16;
     coord           = ((TmdObject*)arg0->extra)->coords;
-    vec.vx          = D_80073B8C->t[0] - coord->coord.t[0];
+    vec.vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     vec.vy          = 0;
-    vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
+    vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     angle           = work->field_7D2 + ratan2(vec.vx, vec.vz);
     while (angle >= 0x800) {
         angle -= 0x1000;
@@ -579,7 +577,7 @@ s32 func_actor_503500_80133684(Task* arg0)
     return ret;
 }
 
-/// Boss attack picker. Every frame it stores the camera target's yaw
+/// Boss attack picker. Every frame it stores the player's yaw
 /// relative to the boss (wrapped into [-0x800, 0x800)) in `field_7BA`. Step 0
 /// updates the height band `field_7DC` from the target's Y with hysteresis,
 /// buckets `|yaw|` into `field_7DE`, then walks that bucket's weighted list
@@ -602,7 +600,7 @@ void func_actor_503500_801338E8(Task* arg0)
 
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(Player_Status.coordMtx->t[0] - coord->coord.t[0], Player_Status.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
@@ -616,19 +614,19 @@ void func_actor_503500_801338E8(Task* arg0)
             work->field_7DF = work->field_7DE;
             switch (work->field_7DD) {
                 case 0:
-                    if (D_80073B8C->t[1] >= -0xAEF) {
+                    if (Player_Status.coordMtx->t[1] >= -0xAEF) {
                         work->field_7DC = 1;
                     }
                     break;
                 case 1:
-                    if (D_80073B8C->t[1] >= -0x31F) {
+                    if (Player_Status.coordMtx->t[1] >= -0x31F) {
                         work->field_7DC = 2;
-                    } else if (D_80073B8C->t[1] < -0xC80) {
+                    } else if (Player_Status.coordMtx->t[1] < -0xC80) {
                         work->field_7DC = 0;
                     }
                     break;
                 case 2:
-                    if (D_80073B8C->t[1] < -0x4B0) {
+                    if (Player_Status.coordMtx->t[1] < -0x4B0) {
                         work->field_7DC = 1;
                     }
                     break;
@@ -1549,7 +1547,7 @@ void func_actor_503500_80135644(Task* arg0)
 
     work  = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
-    angle = ratan2(D_80073B8C->t[0] - coord->coord.t[0], D_80073B8C->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(Player_Status.coordMtx->t[0] - coord->coord.t[0], Player_Status.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
@@ -1565,7 +1563,7 @@ void func_actor_503500_80135644(Task* arg0)
     } else if (angle < -0x300 && angle > -0x480) {
         dirMask = 0x40;
     }
-    y          = D_80073B8C->t[1];
+    y          = Player_Status.coordMtx->t[1];
     heightMask = 4;
     if (y < -999) {
         heightMask = 2;
@@ -1933,7 +1931,7 @@ void func_actor_503500_8013611C(s32 arg0)
     D_actor_503500_80176D64[arg0] = 0;
 }
 
-/// Yaw from the actor's first part to `D_80073B8C`'s translation, relative to
+/// Yaw from the actor's first part to `Player_Status.coordMtx`'s translation, relative to
 /// the part's own heading, wrapped into [-0x800, 0x800).
 s16 func_actor_503500_80136134(Task* arg0)
 {
@@ -1942,9 +1940,9 @@ s16 func_actor_503500_80136134(Task* arg0)
     s16            angle;
 
     coord  = ((TmdObject*)arg0->extra)->coords;
-    vec.vx = D_80073B8C->t[0] - coord->coord.t[0];
+    vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     vec.vy = 0;
-    vec.vz = D_80073B8C->t[2] - coord->coord.t[2];
+    vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     angle  = ratan2(vec.vx, vec.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     while (angle >= 0x800) {
         angle -= 0x1000;
@@ -3352,7 +3350,7 @@ void func_actor_503500_80138A30(Task* arg0)
 
 /// Sub-state of the 0x2EC enemies: passes (0x11, 0x10) to the parent through
 /// `func_actor_503500_80135FB4`, then waits for `field_2E8`, meanwhile (for up
-/// to 90 frames) pointing `field_29C` at the camera target raised by 1000, in
+/// to 90 frames) pointing `field_29C` at the player raised by 1000, in
 /// the frame `Gp_ComposeParentWorld` composes for `coord->sub`. Ten frames
 /// later, if the chain tip `pts[8]` is within 3000 of the target on the ground
 /// plane, it spawns `D_actor_503500_8016E9F0` 0x640 along `coord[8]`'s Z axis;
@@ -3396,9 +3394,9 @@ void func_actor_503500_80138C08(Task* arg0)
             }
             mat = &m;
             Gp_ComposeParentWorld(coord->sub, mat, &ofs);
-            pos.vx = D_80073B8C->t[0] - ofs.vx;
-            pos.vy = D_80073B8C->t[1] - ofs.vy - 1000;
-            pos.vz = D_80073B8C->t[2] - ofs.vz;
+            pos.vx = Player_Status.coordMtx->t[0] - ofs.vx;
+            pos.vy = Player_Status.coordMtx->t[1] - ofs.vy - 1000;
+            pos.vz = Player_Status.coordMtx->t[2] - ofs.vz;
             TRANSPOSE_ROT(mat, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&pos);
@@ -3407,8 +3405,8 @@ void func_actor_503500_80138C08(Task* arg0)
             break;
         case 2:
             if (++work->field_2DE >= 0xB) {
-                pos.vx = D_80073B8C->t[0] - work->pts[8].vx;
-                pos.vz = D_80073B8C->t[2] - work->pts[8].vz;
+                pos.vx = Player_Status.coordMtx->t[0] - work->pts[8].vx;
+                pos.vz = Player_Status.coordMtx->t[2] - work->pts[8].vz;
                 dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
                 if (dist < 3000) {
                     task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 0, dist * 3000);

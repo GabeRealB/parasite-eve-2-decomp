@@ -121,8 +121,7 @@ STATIC_ASSERT_SIZEOF(Actor01200TurnScratch, 0xC);
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-extern MATRIX* D_80073B8C;
-extern u8      D_80072729;
+extern u8 D_80072729;
 
 extern GpPairSrcE Actor01200_D04034;
 extern s32        Actor01200_D04044;
@@ -600,9 +599,9 @@ void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
     }
     coord    = ((TmdObject*)arg1->extra)->coords;
     d        = &delta;
-    delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
@@ -1106,7 +1105,7 @@ found:
 /// Patrol between the two `patrol` points: turn at most 0x20 toward the current
 /// one, step 5 units, and swap points within 400 units or after 0x60 blocked
 /// frames; state 6 when `Actor01200_Fn00130` reports 1, state 4 when the
-/// camera target is within 2000 units and inside a quarter turn or 1000 units.
+/// player is within 2000 units and inside a quarter turn or 1000 units.
 void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 {
     Actor01200Work*        work;

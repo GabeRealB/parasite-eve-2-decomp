@@ -165,7 +165,6 @@ extern u8                Actor01900_D17174[];
 extern void*             Actor01900_D1728C;
 extern char              Actor01900_D16960;
 extern void*             Actor01900_D171B4;
-extern MATRIX*           D_80073B8C;
 extern ActorHeightClamp  Actor01900_D172CC[];
 /// Twelve preset hit-reaction directions `Actor01900_Fn02664` copies from;
 /// `pad` carries the index of the coordinate the effect is attached to.
@@ -2593,9 +2592,9 @@ void Actor01900_Fn06B4C(Task* arg0)
     work->field_894 = work->field_5A & 0x3FF;
     coord           = ((TmdObject*)arg0->extra)->coords;
     d               = &delta;
-    delta.vx        = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy           = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz           = D_80073B8C->t[2] - coord->coord.t[2];
+    delta.vx        = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->field_C32)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {

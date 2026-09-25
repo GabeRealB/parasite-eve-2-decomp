@@ -415,9 +415,6 @@ extern GpCmdArg D_actor_444000_80161888;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80172604;
 
-/// Camera-target matrix the scene walks the player along; the fight yaws the
-/// boss at its translation.
-extern MATRIX* D_80073B8C;
 /// Global freeze flag: 1 while the game is halted, which stops the run below
 /// from advancing the model.
 extern u8         D_80072729;
@@ -3063,13 +3060,13 @@ void func_actor_444000_8013928C(GpEnemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 }
 
-/// Horizontal gap from `coord` to the camera target `D_80073B8C`, as an
+/// Horizontal gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, as an
 /// `SVECTOR` the caller supplies.
 static __inline__ void Actor444000_GapToCamera(GsCOORDINATE2* coord, SVECTOR* out)
 {
-    out->vx = D_80073B8C->t[0] - coord->coord.t[0];
-    out->vy = D_80073B8C->t[1] - coord->coord.t[1];
-    out->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    out->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    out->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    out->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F1C`:
@@ -3079,7 +3076,7 @@ static __inline__ void Actor444000_GapToCamera(GsCOORDINATE2* coord, SVECTOR* ou
 /// `D_actor_444000_80161690`, mapping the two low bits of the LCG onto group
 /// 1, 1, 2 and 0. `work->target` is then the host model's position pushed out
 /// by 0x1B58, 0x2710 or 0x32C8 -- whichever ring the host is on, measured
-/// against the camera target -- plus the `[group][spawnArg1]` entry of
+/// against the player -- plus the `[group][spawnArg1]` entry of
 /// `D_actor_444000_80161744`, with a 0..0x7F jitter on z. `spawnArg1` 4 drops
 /// on the player instead. The model itself is stood up beside the host at the
 /// `D_actor_444000_80161704` offset, its work coordinate is parented to
@@ -6346,8 +6343,8 @@ void func_actor_444000_8014105C(Task* arg0)
 }
 
 /// Idle/approach tick of the arena fight: re-arms the block on request, keeps
-/// the boss yawed at `D_80073B8C` (the camera-target matrix the player walks
-/// along) and then picks the state to run next.
+/// the boss yawed at `Player_Status.coordMtx` (the player's coordinate matrix)
+/// and then picks the state to run next.
 ///
 /// `field_7C4` is that yaw, relative to the host part's own facing and wrapped
 /// into +/-0x800. `field_F10` is a stagger countdown -- while it is positive the
@@ -6394,9 +6391,9 @@ void func_actor_444000_801411C8(Task* arg0)
 
     d      = &vec;
     coord  = ((TmdObject*)arg0->extra)->coords;
-    d->vx  = D_80073B8C->t[0] - coord->coord.t[0];
-    d->vy  = D_80073B8C->t[1] - coord->coord.t[1];
-    d->vz  = D_80073B8C->t[2] - coord->coord.t[2];
+    d->vx  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     facing = ((TmdObject*)arg0->extra)->coords;
     angle  = ratan2(d->vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
@@ -6699,7 +6696,7 @@ out:
 
 /// Runs the arena attack sequence: restores the host and escort models, handles
 /// animation cues and spawns the additional escort, then keeps the host facing
-/// the camera-target matrix through the shared drive step.
+/// the player's coordinate matrix through the shared drive step.
 void func_actor_444000_80141DFC(Task* arg0)
 {
     Actor444000Work* work;
@@ -6815,9 +6812,9 @@ void func_actor_444000_80141DFC(Task* arg0)
     }
     coord     = ((TmdObject*)arg0->extra)->coords;
     v         = &vec;
-    v->vx     = D_80073B8C->t[0] - coord->coord.t[0];
-    v->vy     = D_80073B8C->t[1] - coord->coord.t[1];
-    v->vz     = D_80073B8C->t[2] - coord->coord.t[2];
+    v->vx     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    v->vy     = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    v->vz     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     headCoord = ((TmdObject*)arg0->extra)->coords;
     angle     = ratan2(v->vx, v->vz) - ratan2(-headCoord->coord.m[2][0], headCoord->coord.m[2][2]);
     if (angle < 0) {

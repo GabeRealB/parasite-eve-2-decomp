@@ -204,8 +204,6 @@ STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 
 void func_800B4114(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern MATRIX* D_80073B8C;
-
 extern Actor00700TexEntry Actor00700_D075BC[];
 
 extern s16 Actor00700_D06DF0[];
@@ -845,9 +843,9 @@ case0:
     work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
     Gp_LcgState     = rng;
     posX            = coord->coord.t[0];
-    vec.vx          = D_80073B8C->t[0] - posX;
-    vec.vy          = D_80073B8C->t[1] - coord->coord.t[1];
-    vec.vz          = D_80073B8C->t[2] - coord->coord.t[2];
+    vec.vx          = Player_Status.coordMtx->t[0] - posX;
+    vec.vy          = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     VectorNormalS(&vec, &work->field_370);
     goto pop;
 case1:
@@ -1858,7 +1856,7 @@ void Actor00700_Fn02A28(Task* arg0)
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
-            base               = D_80073B8C->t[1] - 0x4B0;
+            base               = Player_Status.coordMtx->t[1] - 0x4B0;
             random2            = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
             y                  = coord->coord.t[1];
             if (y >= base + 400) {

@@ -281,10 +281,6 @@ void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// The player's coordinate, as `Actor401300` / `Actor01900` name it. The
-/// overlay keeps its own copy like those two do.
-extern MATRIX* D_80073B8C;
-
 /// Movement-freeze flag: when it is 1 the root coordinate is left alone, so
 /// `func_actor_356100_8016804C`'s two collision pushes are skipped entirely.
 /// Same slot and role as `actorMoveForwardNonzero`'s guard.
@@ -293,9 +289,9 @@ extern u8 D_80072729;
 /// Player-to-`coord` vector, in the 16-bit `SVECTOR` view of both matrices.
 static __inline__ void Actor356100_PositionDelta(GsCOORDINATE2* coord, SVECTOR* pos)
 {
-    pos->vx = D_80073B8C->t[0] - coord->coord.t[0];
-    pos->vy = D_80073B8C->t[1] - coord->coord.t[1];
-    pos->vz = D_80073B8C->t[2] - coord->coord.t[2];
+    pos->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    pos->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+    pos->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 }
 
 /// 0x10-byte `G_SCRATCH_HEAD` block `func_actor_356100_80168E44` takes: the
@@ -1847,7 +1843,7 @@ void func_actor_356100_80166018(Task* arg0)
     }
     func_actor_356100_80163508(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
-        angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
+        angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173230;

@@ -133,8 +133,7 @@ void func_actor_503500_80146508(Task* arg0);
 extern GpMsgEntry D_actor_503500_80176530[];
 /// Main-executable counter the actor paces periodic effects by (its value
 /// modulo 6 or 12, its low bits).
-extern s32     D_80070F70;
-extern MATRIX* D_80073B8C;
+extern s32 D_80070F70;
 /// Row of `Gp_PackPair` arguments, one slot per effect task
 /// (`func_actor_503500_801448E8` takes the slot before this one). Declared as
 /// an array because the read has to alias the struct stores around it: GCC
@@ -505,7 +504,7 @@ void func_actor_503500_80145754(Task* arg0)
             case 0:
                 work->field_3C++;
                 if (work->field_3C >= 0x5F) {
-                    if (D_80073B8C->t[1] < -1000) {
+                    if (Player_Status.coordMtx->t[1] < -1000) {
                         work->head.obj.flags |= 0x8000;
                     }
                     work->field_3C = 0;

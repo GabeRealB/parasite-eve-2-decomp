@@ -397,10 +397,6 @@ extern void* D_80114B78[1];
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
-/// Camera-target matrix the actor measures its offset from; see
-/// `D_80073B8C[0]->t[]` in the other enemy overlays.
-extern MATRIX* D_80073B8C;
-
 /// Non-1 while the model is being aimed rather than left alone; the guards
 /// `func_actor_421600_80138D24` runs around its gte scale are the same test
 /// `actorMoveForward` makes before touching a coordinate.
@@ -3450,7 +3446,7 @@ void func_actor_421600_80138D24(Task* arg0)
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
 /// then walks the 0xB8C `GpRec18` table through `func_actor_421600_8013285C`.
 /// Takes two `SVECTOR`s off `G_SCRATCH_HEAD` and fills the XZ offset of the
-/// model coordinate from `Player_Status.coordMtx` (the camera target matrix),
+/// model coordinate from `Player_Status.coordMtx` (the player's coordinate matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
 /// matrix), wraps it into `[-0x800, 0x800]` into `field_840` and re-aims the
 /// coordinate with `Gfx_RotMatrixY`. Ends by writing the view index into
@@ -3534,9 +3530,9 @@ void func_actor_421600_8013903C(Task* arg0)
 /// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
 /// two `GpRec18` movement tables 0x90C and 0xA4C through
 /// `func_actor_421600_80132310`. `field_0` becomes 0x22 when either walk
-/// reports a hit, and again when the squared XZ offset from `D_80073B8C` is
+/// reports a hit, and again when the squared XZ offset from `Player_Status.coordMtx` is
 /// under the squared 0x5DC radius, so the actor only takes the state while the
-/// camera target is close. Ends by clearing the model's `flg`.
+/// player is close. Ends by clearing the model's `flg`.
 void func_actor_421600_801392A8(Task* arg0)
 {
     Actor421600Work*     work;
@@ -3571,7 +3567,7 @@ void func_actor_421600_801392A8(Task* arg0)
     if (((func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((func_actor_421600_80132310(((TmdObject*)arg0->extra)->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
         work->field_0 = 0x22;
     }
-    target                         = D_80073B8C;
+    target                         = Player_Status.coordMtx;
     coord                          = ((TmdObject*)arg0->extra)->coords;
     vec.vx                         = (u16)target->t[0] - (u16)coord->coord.t[0];
     dir                            = &vec;
