@@ -1850,7 +1850,7 @@ void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2)
     for (i = 0; i < 0x32; i++) {
         if (D_8006C338[i].field_0 == 3) {
             if (count == arg2) {
-                func_shelter_b3_garbage_incinerator_8017FC5C((GpCapFile*)D_8006C338[i].field_4);
+                func_shelter_b3_garbage_incinerator_8017FC5C(D_8006C338[i].field_4);
                 break;
             }
             count++;

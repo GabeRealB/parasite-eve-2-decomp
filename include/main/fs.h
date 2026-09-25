@@ -310,9 +310,9 @@ STATIC_ASSERT_SIZEOF(FsWorkEntry, 0x8);
 /// Per-folder slot cleared by `Fs_PrepareFolderLoad` (50 entries, parallel to
 /// `Fs_FolderTable`). Only the first byte is written by the init path.
 typedef struct _FsFolderSlot {
-    u8  field_0;
-    u8  pad_1[3];
-    s32 field_4;
+    u8    field_0;
+    u8    pad_1[3];
+    void* field_4; // The folder's loaded data; its type depends on the file
 } FsFolderSlot;
 STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
 
@@ -599,23 +599,23 @@ extern FsFolderSlot D_8006C338[50];
 /// overlays hand to `Fs_LoadImageChunk`. Splat splits each overlay against its
 /// own symbol table, so this address gets a name of its own there — the actor
 /// sources must reference `D_8006C454`, not the slot it sits in.
-extern FsImageChunk* D_8006C454;
+
 /// `D_8006C338[36].field_4` (that is `D_8006C454` + 8): the second chunk the
 /// actor overlays hand to `Fs_LoadImageChunk`, on the same terms — the sources
 /// reference `D_8006C45C`, not the slot it sits in.
-extern FsImageChunk* D_8006C45C;
-extern u8*           Fs_ChunkReadPtr;
-extern u8            D5B498_8006C233;
-extern u8            D5B498_8006C234;
-extern u8            D5B498_8006D4E0[0x10];
-extern u16           D5B498_8006D748;
-extern void*         D5B498_8006D850;
-extern u16           D5B498_8006D858;
-extern u16           D5B498_8006D85A;
-extern u_long        D5B498_8006D870[0x460];
-extern u16           D5B498_8006EA1A;
-extern u16           D5B498_8006EBB0;
-extern s16           D5B498_8006EBF0;
+
+extern u8*    Fs_ChunkReadPtr;
+extern u8     D5B498_8006C233;
+extern u8     D5B498_8006C234;
+extern u8     D5B498_8006D4E0[0x10];
+extern u16    D5B498_8006D748;
+extern void*  D5B498_8006D850;
+extern u16    D5B498_8006D858;
+extern u16    D5B498_8006D85A;
+extern u_long D5B498_8006D870[0x460];
+extern u16    D5B498_8006EA1A;
+extern u16    D5B498_8006EBB0;
+extern s16    D5B498_8006EBF0;
 
 // Args used by Fs_OnCdError
 #define FS_ERROR_SOFT 0x0

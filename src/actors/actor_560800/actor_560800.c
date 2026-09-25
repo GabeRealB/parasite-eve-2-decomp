@@ -2174,7 +2174,7 @@ void func_actor_560800_80136548(void)
     rect.h = 0x100;
     MoveImage(&rect, 0x280, 0x100);
     D5B498_8006C234 = 5;
-    Fs_LoadImageChunk(D_8006C454, 1);
+    Fs_LoadImageChunk(D_8006C338[35].field_4, 1);
     D5B498_8006C234 = 0;
 }
 
@@ -2243,7 +2243,7 @@ void func_actor_560800_801366B0(Task* arg0)
             rect.h = 0x100;
             MoveImage(&rect, 0x200, 0x100);
             D5B498_8006C234 = 8;
-            Fs_LoadImageChunk(D_8006C45C, 1);
+            Fs_LoadImageChunk(D_8006C338[36].field_4, 1);
             D5B498_8006C234 = 0;
             taskKill(arg0);
             Display_ResetHeapWrapper();

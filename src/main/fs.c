@@ -555,7 +555,7 @@ u8 Fs_ProcessChunkHeader(void)
             qq = pp + 0xC;
             do {
                 sl->field_0 = *pp;
-                sl->field_4 = *(s32*)(qq - 4);
+                sl->field_4 = *(void**)(qq - 4);
                 tmp         = *(s32*)qq;
                 if (tmp != 0) {
                     __asm__("sh %0, %%lo(D_8006ADE8)(%1)" : : "r"(one), "r"(ade_hi));

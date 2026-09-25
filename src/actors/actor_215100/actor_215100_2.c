@@ -1313,7 +1313,7 @@ void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
     for (i = 0; i < 0x32; i++) {
         if (D_8006C338[i].field_0 == 3) {
             if (count == arg2) {
-                func_actor_215100_8014B1B0((GpCapFile*)D_8006C338[i].field_4);
+                func_actor_215100_8014B1B0(D_8006C338[i].field_4);
                 break;
             }
             count++;
