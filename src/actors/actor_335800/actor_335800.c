@@ -105,30 +105,6 @@ typedef struct Actor335800MainWork {
 } Actor335800MainWork;
 STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 
-/// Per-view state the actor reaches through the sprite table
-/// (`Gp_SprtTables[stage - 1][room - 1].field_0[view - 1]->field_1CC`).
-/// `func_actor_335800_801622C0` writes both bytes to the same value -- 0 for
-/// its 0 argument, otherwise the argument itself, alongside game flag 0x7F
-/// nibble 1. The byte at 0x14 is the one the room family carrying the same
-/// object writes (`DwtwSprtViewState.field_C`'s neighbour); 0x1C is written
-/// with it, the pair the views' two sprite commands are gated on.
-typedef struct Actor335800SprtView {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ u8   field_14;
-    /* 0x15 */ byte pad_15[0x7];
-    /* 0x1C */ u8   field_1C;
-} Actor335800SprtView;
-
-/// The record `Gp_SprtTables[stage - 1][room - 1].field_0[view - 1]` really
-/// points at: a view-sized block, far larger than the 0xC-byte `GpSprtRec` the
-/// table's element type declares, so the caller reaches its tail through a
-/// cast -- as the rooms carrying the same record do (`DwtwSprtRec`,
-/// `MineForkedTunnelSprtRec`). Its tail is the `Actor335800SprtView` pointer.
-typedef struct Actor335800SprtRec {
-    /* 0x000 */ byte                 pad_0[0x1CC];
-    /* 0x1CC */ Actor335800SprtView* field_1CC;
-} Actor335800SprtRec;
-
 /// Optional start animation for `func_actor_335800_80162C80`: the preset's
 /// `field_4` and the `field_477` byte. Absent, the defaults are 0xD and 1.
 typedef struct Actor335800SpawnAnim {
@@ -424,26 +400,29 @@ void func_actor_335800_8016224C(void)
     }
 }
 
+/// Sets `GpSprtCmd::field_4` on two sprite commands of the area's 39th view
+/// record: 1 keeps their sprites out of the ordering table and also sets game
+/// flag 0x7F's nibble to 1, 0 draws them again.
 void func_actor_335800_801622C0(s32 arg0)
 {
-    GameSession*         g;
-    GpAreaKey*           sess;
-    Actor335800SprtRec*  rec;
-    Actor335800SprtView* view;
+    GameSession* g;
+    GpAreaKey*   sess;
+    GpSprtRec*   rec;
+    GpSprtCmd*   cmd;
 
     g    = gGameSession;
     sess = &g->at4.loc;
-    rec  = (Actor335800SprtRec*)Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
-            view           = rec->field_1CC;
-            view->field_14 = 0;
-            view->field_1C = 0;
+            cmd            = rec[38].field_4;
+            cmd[2].field_4 = 0;
+            cmd[3].field_4 = 0;
             break;
         case 1:
-            view           = rec->field_1CC;
-            view->field_14 = arg0;
-            view->field_1C = arg0;
+            cmd            = rec[38].field_4;
+            cmd[2].field_4 = arg0;
+            cmd[3].field_4 = arg0;
             GameFlag_SetNibble(0x7F, 1);
             break;
     }
