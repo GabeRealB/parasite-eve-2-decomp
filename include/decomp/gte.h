@@ -339,4 +339,30 @@
 #define gte_ldSZ2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
 #define gte_ldSZ3(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
 
+/// Writes the transpose of `src`'s rotation into `dst`, one column of `src` to
+/// one row of `dst` at a time through `$12`-`$14`: the sequence of libgte's
+/// `TransposeMatrix`, inlined. The translation is left alone.
+#define gte_TransposeMatrix(src, dst)                     \
+    __asm__ volatile("lhu $12,0(%0);"                     \
+                     "lhu $13,6(%0);"                     \
+                     "lhu $14,12(%0);"                    \
+                     "sh $12,0(%1);"                      \
+                     "sh $13,2(%1);"                      \
+                     "sh $14,4(%1);"                      \
+                     "lhu $12,2(%0);"                     \
+                     "lhu $13,8(%0);"                     \
+                     "lhu $14,14(%0);"                    \
+                     "sh $12,6(%1);"                      \
+                     "sh $13,8(%1);"                      \
+                     "sh $14,10(%1);"                     \
+                     "lhu $12,4(%0);"                     \
+                     "lhu $13,10(%0);"                    \
+                     "lhu $14,16(%0);"                    \
+                     "sh $12,12(%1);"                     \
+                     "sh $13,14(%1);"                     \
+                     "sh $14,16(%1);"                     \
+                     :                                    \
+                     : "r"(src), "r"(dst)                 \
+                     : "$12", "$13", "$14", "memory")
+
 #endif

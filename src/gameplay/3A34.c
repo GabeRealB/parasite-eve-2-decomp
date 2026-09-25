@@ -1326,30 +1326,6 @@ static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, s32 obj, G
         Gp_InsertRankedSlot(slots, val, kind, obj, 2);
     }
 }
-static __inline__ void solve_transpose(MATRIX* src, volatile MATRIX* dst)
-{
-    __asm__ volatile(
-        "lhu $12,0(%0);"
-        "lhu $13,6(%0);"
-        "lhu $14,12(%0);"
-        "sh $12,0(%1);"
-        "sh $13,2(%1);"
-        "sh $14,4(%1);"
-        "lhu $12,2(%0);"
-        "lhu $13,8(%0);"
-        "lhu $14,14(%0);"
-        "sh $12,6(%1);"
-        "sh $13,8(%1);"
-        "sh $14,10(%1);"
-        "lhu $12,4(%0);"
-        "lhu $13,10(%0);"
-        "lhu $14,16(%0);"
-        "sh $12,12(%1);"
-        "sh $13,14(%1);"
-        "sh $14,16(%1);"
-        : : "r"(src), "r"(dst) : "$12", "$13", "$14", "memory");
-}
-
 void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 {
 
@@ -1448,7 +1424,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->local.vy = (u16)pos->vy - (u16)world->workm.t[1];
         block->local.vz = (u16)pos->vz - (u16)world->workm.t[2];
 
-        solve_transpose(src, &block->mtx);
+        gte_TransposeMatrix(src, &block->mtx);
     }
 
     solve_loadrot(&block->mtx, &block->local);

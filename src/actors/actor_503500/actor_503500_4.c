@@ -617,7 +617,7 @@ void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, GpRec18* rec,
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = rec[i].point.vx - coord->workm.t[0];
         pos.vy = rec[i].point.vy - coord->workm.t[1];
         pos.vz = rec[i].point.vz - coord->workm.t[2];
@@ -1092,7 +1092,7 @@ void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -1434,7 +1434,7 @@ void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -1954,7 +1954,7 @@ void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -2387,7 +2387,7 @@ void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec18* arg2
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -2868,7 +2868,7 @@ void func_actor_503500_801400A4(Task* arg0)
             v.vx = work->field_370.vx - pos.vx;
             v.vy = work->field_370.vy - pos.vy - 5000;
             v.vz = work->field_370.vz - pos.vz;
-            TRANSPOSE_ROT(&mtx, &rot);
+            gte_TransposeMatrix(&mtx, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&v);
             gte_rtv0();
@@ -2886,7 +2886,7 @@ void func_actor_503500_801400A4(Task* arg0)
                 v.vx = work->field_370.vx - pos.vx;
                 v.vy = work->field_370.vy - pos.vy + 500;
                 v.vz = work->field_370.vz - pos.vz;
-                TRANSPOSE_ROT(&mtx, &rot);
+                gte_TransposeMatrix(&mtx, &rot);
                 gte_SetRotMatrix(&rot);
                 gte_ldv0(&v);
                 gte_rtv0();
@@ -3239,7 +3239,7 @@ void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
                     break;
             }
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -3435,7 +3435,7 @@ void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords)
         gte_ldclmv((char*)&coords[i].coord + 4);
         gte_rtir();
         gte_stclmv((char*)&s->world + 4);
-        TRANSPOSE_ROT(&s->world, inv);
+        gte_TransposeMatrix(&s->world, inv);
         gte_SetRotMatrix(inv);
         gte_ldv0(&s->diff);
         gte_rtv0();
@@ -4274,7 +4274,7 @@ void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             func_actor_503500_80144238(arg0, 2);
             crit = 2;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -4354,7 +4354,7 @@ void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
                     coord = &arg0->parent->extra.tmd->coords[11];
                 }
                 Gp_ComposeParentWorld(coord, &world, &vec);
-                TRANSPOSE_ROT(&pcoord->coord, &rot);
+                gte_TransposeMatrix(&pcoord->coord, &rot);
                 gte_SetRotMatrix(&rot);
                 gte_ldv0(&vec);
                 gte_rtv0();

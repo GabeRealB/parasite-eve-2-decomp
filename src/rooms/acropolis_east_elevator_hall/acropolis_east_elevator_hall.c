@@ -24,29 +24,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-#define gte_TransposeMatrix(src, dst)     \
-    __asm__ volatile("lhu $12,0(%0);"     \
-                     "lhu $13,6(%0);"     \
-                     "lhu $14,12(%0);"    \
-                     "sh $12,0(%1);"      \
-                     "sh $13,2(%1);"      \
-                     "sh $14,4(%1);"      \
-                     "lhu $12,2(%0);"     \
-                     "lhu $13,8(%0);"     \
-                     "lhu $14,14(%0);"    \
-                     "sh $12,6(%1);"      \
-                     "sh $13,8(%1);"      \
-                     "sh $14,10(%1);"     \
-                     "lhu $12,4(%0);"     \
-                     "lhu $13,10(%0);"    \
-                     "lhu $14,16(%0);"    \
-                     "sh $12,12(%1);"     \
-                     "sh $13,14(%1);"     \
-                     "sh $14,16(%1);"     \
-                     :                    \
-                     : "r"(src), "r"(dst) \
-                     : "$12", "$13", "$14", "memory")
-
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 

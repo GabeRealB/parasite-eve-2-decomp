@@ -2936,7 +2936,7 @@ void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
                 Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -3373,7 +3373,7 @@ void func_actor_503500_80138C08(Task* arg0)
             pos.vx = Player_Status.coordMtx->t[0] - ofs.vx;
             pos.vy = Player_Status.coordMtx->t[1] - ofs.vy - 1000;
             pos.vz = Player_Status.coordMtx->t[2] - ofs.vz;
-            TRANSPOSE_ROT(mat, &rot);
+            gte_TransposeMatrix(mat, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&pos);
             gte_rtv0();
@@ -3756,7 +3756,7 @@ void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
                     break;
             }
         }
-        TRANSPOSE_ROT(&coord->workm, &rot);
+        gte_TransposeMatrix(&coord->workm, &rot);
         pos.vx = arg2[i].point.vx - coord->workm.t[0];
         pos.vy = arg2[i].point.vy - coord->workm.t[1];
         pos.vz = arg2[i].point.vz - coord->workm.t[2];
@@ -3963,7 +3963,7 @@ void func_actor_503500_8013A470(SVECTOR* pts, GpCoord* coords, s32 phase)
         gte_ldclmv((char*)&coords[i].coord + 4);
         gte_rtir();
         gte_stclmv((char*)&s->world + 4);
-        TRANSPOSE_ROT(&s->world, &s->inv);
+        gte_TransposeMatrix(&s->world, &s->inv);
         gte_SetRotMatrix(&s->inv);
         gte_ldv0(&s->diff);
         gte_rtv0();

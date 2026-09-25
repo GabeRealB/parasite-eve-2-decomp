@@ -321,29 +321,6 @@ s32  func_800A7550(void);
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Writes the transpose of the 3x3 rotation part of `s` into `d`.
-/// Needs `t4` / `t5` / `t6` in scope (the target reads a whole column
-/// before storing it back as a row).
-#define TRANSPOSE_ROT_3X3(d, s)  \
-    t4           = (s)->m[0][0]; \
-    t5           = (s)->m[1][0]; \
-    t6           = (s)->m[2][0]; \
-    (d)->m[0][0] = t4;           \
-    (d)->m[0][1] = t5;           \
-    (d)->m[0][2] = t6;           \
-    t4           = (s)->m[0][1]; \
-    t5           = (s)->m[1][1]; \
-    t6           = (s)->m[2][1]; \
-    (d)->m[1][0] = t4;           \
-    (d)->m[1][1] = t5;           \
-    (d)->m[1][2] = t6;           \
-    t4           = (s)->m[0][2]; \
-    t5           = (s)->m[1][2]; \
-    t6           = (s)->m[2][2]; \
-    (d)->m[2][0] = t4;           \
-    (d)->m[2][1] = t5;           \
-    (d)->m[2][2] = t6;
-
 static void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity,
                                GpCoord* root);
 void        func_800A4904(s32 arg0);
@@ -8265,9 +8242,6 @@ s32 Gp_SpendMp(s32 arg0)
 /// `out->t`.
 static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 {
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
     _GpRelMatScratch* tmp;
     register MATRIX*  rootm asm("a3");
     register MATRIX*  world asm("a2");
@@ -8285,7 +8259,7 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
     SCRATCH_HEAD(void) = tmp;
     TOUCH_REG3(tmp, rootm, head);
 
-    TRANSPOSE_ROT_3X3(&tmp->rot, rootm)
+    gte_TransposeMatrix(rootm, &tmp->rot);
 
     gte_MulMatrix0(&tmp->rot, world, out);
 
@@ -8305,9 +8279,6 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, MATRIX* out)
 /// root space with `coordToRoot`.
 void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 {
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
     register MATRIX*  rot asm("t0");
     MATRIX*           localMtx;
     register MATRIX*  relMtx asm("s0");
@@ -8331,7 +8302,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
         localMtx = &arg0->coord;
         rot      = &gGfxViewRotCoord.coord;
         TOUCH_REG2(localMtx, rot);
-        TRANSPOSE_ROT_3X3(rot, localMtx)
+        gte_TransposeMatrix(localMtx, rot);
 
         root->coord.t[0] = -arg0->coord.t[0];
         root->coord.t[1] = -arg0->coord.t[1];
@@ -8342,7 +8313,7 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
         rot    = &gGfxViewRotCoord.coord;
         relMtx = &rel.coord;
         TOUCH_REG2(rot, relMtx);
-        TRANSPOSE_ROT_3X3(rot, relMtx)
+        gte_TransposeMatrix(relMtx, rot);
 
         root->coord.t[0] = -rel.coord.t[0];
         root->coord.t[1] = -rel.coord.t[1];
@@ -8360,9 +8331,6 @@ void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
 /// world offset stored in the task's 0x10-byte payload.
 s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
 {
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
     MATRIX*           localMtx;
     register MATRIX*  relMtx asm("s0");
     register MATRIX*  dstMtx asm("v0");
@@ -8400,7 +8368,7 @@ s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
         localMtx = &arg0->coord;
         dstMtx   = &coord->coord;
         TOUCH_REG2(localMtx, dstMtx);
-        TRANSPOSE_ROT_3X3(dstMtx, localMtx)
+        gte_TransposeMatrix(localMtx, dstMtx);
 
         coord->coord.t[0] = -arg0->coord.t[0];
         coord->coord.t[1] = -arg0->coord.t[1];
@@ -8412,7 +8380,7 @@ s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
         dstMtx = &coord->coord;
         relMtx = &rel.coord;
         TOUCH_REG2(dstMtx, relMtx);
-        TRANSPOSE_ROT_3X3(dstMtx, relMtx)
+        gte_TransposeMatrix(relMtx, dstMtx);
 
         coord->coord.t[0] = -rel.coord.t[0];
         coord->coord.t[1] = -rel.coord.t[1];
@@ -8504,9 +8472,6 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     u8*               head;
     register MATRIX*  src asm("a3");
     _GpRelMatScratch* tmp;
-    register short    t4 asm("t4");
-    register short    t5 asm("t5");
-    register short    t6 asm("t6");
     VECTOR*           vec;
     VECTOR*           out;
 
@@ -8516,26 +8481,7 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     SCRATCH_HEAD(_GpRelMatScratch) = tmp;
     TOUCH_REG3(tmp, src, head);
 
-    t4               = src->m[0][0];
-    t5               = src->m[1][0];
-    t6               = src->m[2][0];
-    tmp->rot.m[0][0] = t4;
-    tmp->rot.m[0][1] = t5;
-    tmp->rot.m[0][2] = t6;
-
-    t4               = src->m[0][1];
-    t5               = src->m[1][1];
-    t6               = src->m[2][1];
-    tmp->rot.m[1][0] = t4;
-    tmp->rot.m[1][1] = t5;
-    tmp->rot.m[1][2] = t6;
-
-    t4               = src->m[0][2];
-    t5               = src->m[1][2];
-    t6               = src->m[2][2];
-    tmp->rot.m[2][0] = t4;
-    tmp->rot.m[2][1] = t5;
-    tmp->rot.m[2][2] = t6;
+    gte_TransposeMatrix(src, &tmp->rot);
 
     gte_MulMatrix0(&tmp->rot, arg1, arg2);
 

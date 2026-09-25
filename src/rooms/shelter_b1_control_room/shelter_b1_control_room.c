@@ -19,29 +19,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-#define gte_TransposeMatrix(src, dst)     \
-    __asm__ volatile("lhu $12,0(%0);"     \
-                     "lhu $13,6(%0);"     \
-                     "lhu $14,12(%0);"    \
-                     "sh $12,0(%1);"      \
-                     "sh $13,2(%1);"      \
-                     "sh $14,4(%1);"      \
-                     "lhu $12,2(%0);"     \
-                     "lhu $13,8(%0);"     \
-                     "lhu $14,14(%0);"    \
-                     "sh $12,6(%1);"      \
-                     "sh $13,8(%1);"      \
-                     "sh $14,10(%1);"     \
-                     "lhu $12,4(%0);"     \
-                     "lhu $13,10(%0);"    \
-                     "lhu $14,16(%0);"    \
-                     "sh $12,12(%1);"     \
-                     "sh $13,14(%1);"     \
-                     "sh $14,16(%1);"     \
-                     :                    \
-                     : "r"(src), "r"(dst) \
-                     : "$12", "$13", "$14", "memory")
-
 /// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
 /// whenever the view moves. `active` other than 1 hides the reflection.
 /// `copyPending` set to 1 makes the next frame copy the frame buffer into the

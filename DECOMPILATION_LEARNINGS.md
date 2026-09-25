@@ -68945,14 +68945,16 @@ does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
 `func_actor_503500_801437D0` transposes the player's `coord` rotation into a
 stack `MATRIX` as `addiu v1,s3,4; addiu v0,sp,0x38` followed by three groups of
 `lhu $t4/$t5/$t6` + `sh` through `0(v1)`/`0(v0)`, and then reuses `v0` for
-`gte_SetRotMatrix`. gameplay's pinned-C `TRANSPOSE_ROT_3X3` (`register short
-t4 asm("t4")` ...) gets the registers but not the bases: GCC folds the stack
-destination into `sh t4,0x38(sp)` and the source into `lhu t4,4(s1)`, and
-computes `addiu v0,sp,0x38` only for the GTE load (94.9%). One `__asm__
-volatile` holding all 18 loads and stores with `"r"(src), "r"(dst)` inputs
-and `$12`-`$14` clobbered - the shape of `solve_transpose` in
-`src/gameplay/3A34.c` - puts both addresses in registers, and CSE shares the
-destination with `gte_SetRotMatrix(&rot)` (100%). Same function: a 4-word
+`gte_SetRotMatrix`. A pinned-C transpose (`register short t4 asm("t4")` ...)
+gets the registers but not the bases: GCC folds the stack destination into
+`sh t4,0x38(sp)` and the source into `lhu t4,4(s1)`, and computes
+`addiu v0,sp,0x38` only for the GTE load (94.9%). The shared
+`gte_TransposeMatrix(src, dst)` in `include/decomp/gte.h` - one `__asm__
+volatile` holding all 18 loads and stores with `"r"(src), "r"(dst)` inputs and
+`$12`-`$14` clobbered, libgte's `TransposeMatrix` sequence inlined - puts both
+addresses in registers, and CSE shares the destination with
+`gte_SetRotMatrix(&rot)` (100%). Every transpose in the tree uses it; the
+pinned-C copies matched with it too once their pins were removed. Same function: a 4-word
 copy loop that walks a source *and* a destination pointer needs both written
 as walking pointers (`*dst++ = *src++`); `work->w[j] = src[j]` walks the
 work pointer itself and stores to `0x40(a0)`.

@@ -506,34 +506,6 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
     return obj;
 }
 
-/// Writes the transpose of `src`'s rotation into `dst`, a column at a time
-/// through `$12`-`$14` in the manner of the libgte inline macros.
-static inline void _tmdTransposeRot(MATRIX* src, MATRIX* dst)
-{
-    __asm__ volatile(
-        "lhu $12,0(%0);"
-        "lhu $13,6(%0);"
-        "lhu $14,12(%0);"
-        "sh $12,0(%1);"
-        "sh $13,2(%1);"
-        "sh $14,4(%1);"
-        "lhu $12,2(%0);"
-        "lhu $13,8(%0);"
-        "lhu $14,14(%0);"
-        "sh $12,6(%1);"
-        "sh $13,8(%1);"
-        "sh $14,10(%1);"
-        "lhu $12,4(%0);"
-        "lhu $13,10(%0);"
-        "lhu $14,16(%0);"
-        "sh $12,12(%1);"
-        "sh $13,14(%1);"
-        "sh $14,16(%1);"
-        :
-        : "r"(src), "r"(dst)
-        : "$12", "$13", "$14", "memory");
-}
-
 void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
@@ -584,7 +556,7 @@ void Tmd_SetupDraw(TmdObject* obj)
     gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
 
     flags = obj->flags;
-    _tmdTransposeRot(&gGfxViewCoord.workm, &ws->mat);
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &ws->mat);
 
     gte_SetRotMatrix(obj->lightMtx);
     gte_ldclmv(&ws->mat.m[0][0]);

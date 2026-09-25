@@ -27,29 +27,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-#define gte_TransposeMatrix(src, dst)     \
-    __asm__ volatile("lhu $12,0(%0);"     \
-                     "lhu $13,6(%0);"     \
-                     "lhu $14,12(%0);"    \
-                     "sh $12,0(%1);"      \
-                     "sh $13,2(%1);"      \
-                     "sh $14,4(%1);"      \
-                     "lhu $12,2(%0);"     \
-                     "lhu $13,8(%0);"     \
-                     "lhu $14,14(%0);"    \
-                     "sh $12,6(%1);"      \
-                     "sh $13,8(%1);"      \
-                     "sh $14,10(%1);"     \
-                     "lhu $12,4(%0);"     \
-                     "lhu $13,10(%0);"    \
-                     "lhu $14,16(%0);"    \
-                     "sh $12,12(%1);"     \
-                     "sh $13,14(%1);"     \
-                     "sh $14,16(%1);"     \
-                     :                    \
-                     : "r"(src), "r"(dst) \
-                     : "$12", "$13", "$14", "memory")
-
 /// Scratch state of an elevator-car task, stored at `Task::work`.
 /// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
 /// `memCalloc(4, 0)`, so the size below is the allocation and not a guess.

@@ -54,7 +54,7 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag);
 void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1);
-void Gfx_TransposeRot(MATRIX* arg0, volatile MATRIX* arg1);
+void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
 void Gfx_MatrixCol0(MATRIX* arg0, volatile SVECTOR* arg1);
 void Gfx_MatrixCol1(MATRIX* arg0, volatile SVECTOR* arg1);
 void Gfx_MatrixCol2(MATRIX* arg0, volatile SVECTOR* arg1);
