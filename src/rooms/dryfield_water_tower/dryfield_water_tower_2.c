@@ -1368,19 +1368,19 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// the halfword itself.
 void func_dryfield_water_tower_8017F700(s32 arg0)
 {
-    GpRec14 rec;
-    s32     weaponId;
-    s32     id;
-    s32     value;
+    GpAnimArg rec;
+    s32       weaponId;
+    s32       id;
+    s32       value;
 
-    weaponId     = D_80073BA9;
-    id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    value        = arg0 & 0xFFFF;
-    rec.field_0  = id;
-    rec.field_4  = 1;
-    rec.field_8  = value != 0;
-    rec.field_C  = value;
-    rec.field_10 = 0;
+    weaponId            = D_80073BA9;
+    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    value               = arg0 & 0xFFFF;
+    rec.animBlock.index = id;
+    rec.field_4         = 1;
+    rec.field_8         = value != 0;
+    rec.field_C         = value;
+    rec.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
 }
 

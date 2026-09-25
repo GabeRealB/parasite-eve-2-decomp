@@ -199,8 +199,8 @@ typedef struct AcropolisPlazaCutWork {
 /// the shared buffer, which is what makes that buffer 0x1C rather than 0x18
 /// bytes long.
 typedef struct AcropolisPlazaWeaponMsg {
-    /* 0x00 */ byte    pad_0[0x8];
-    /* 0x08 */ GpRec14 rec;
+    /* 0x00 */ byte      pad_0[0x8];
+    /* 0x08 */ GpAnimArg rec;
 } AcropolisPlazaWeaponMsg;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
 
@@ -1056,9 +1056,9 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 {
     GpXformArg              place;
     GpXformArg              warp;
-    GpRec14                 script;
+    GpAnimArg               script;
     AcropolisPlazaTailMsg   buf;
-    GpRec14*                rec;
+    GpAnimArg*              rec;
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
@@ -1094,11 +1094,11 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
-            script.field_0  = (s32)&D_801797FC;
-            script.field_4  = 0xB;
-            script.field_8  = 0;
-            script.field_C  = 0;
-            script.field_10 = 1;
+            script.animBlock.ptr = &D_801797FC;
+            script.field_4       = 0xB;
+            script.field_8       = 0;
+            script.field_C       = 0;
+            script.field_10      = 1;
             Gp_DispatchMsg(work->slot3, 0x3F4, (s32)&script, 0);
             task->state = task->state + 1;
             return;
@@ -1127,14 +1127,14 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             return;
         case 5:
             if (q->field_1EA >= 0x60) {
-                rec                     = &buf.weapon.rec;
-                weaponId                = D_80073BA9;
-                id                      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.weapon.rec.field_0  = id;
-                rec->field_4            = 1;
-                buf.weapon.rec.field_8  = 0;
-                rec->field_C            = 0xA;
-                buf.weapon.rec.field_10 = 0;
+                rec                            = &buf.weapon.rec;
+                weaponId                       = D_80073BA9;
+                id                             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.weapon.rec.animBlock.index = id;
+                rec->field_4                   = 1;
+                buf.weapon.rec.field_8         = 0;
+                rec->field_C                   = 0xA;
+                buf.weapon.rec.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.weapon.rec, 0);
 
                 coord            = ((TmdObject*)((AcropolisPlazaWarpWork*)task->work)->slot3->extra)->coords;
@@ -1193,7 +1193,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     GpXformArg                 warp;
     u8                         slot[4];
     GpXformArg                 placeBack;
-    GpRec14                    roomRec;
+    GpAnimArg                  roomRec;
     AcropolisPlazaOpeningBuf   buf;
     CdCmdQueue*                q    = &CdCmd_Queue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
@@ -1284,19 +1284,19 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             placeBack.pos.vz = 0x439E;
             Gp_DispatchMsg(
                 ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, (s32)&placeBack, 0);
-            roomRec.field_0  = 1;
-            roomRec.field_4  = 8;
-            roomRec.field_8  = 0;
-            roomRec.field_C  = 0xA;
-            roomRec.field_10 = 0;
-            sessionKey       = &gGameSession->at4.loc;
-            buf.key.stage    = sessionKey->stage;
-            buf.key.area     = sessionKey->area;
-            buf.key.room     = gGameSession->sprtVariant;
-            buf.key.view     = gGameSession->at4.loc.view;
-            buf.key.place    = sessionKey->place;
-            entry            = (GpAreaPlace*)Gp_GetNestedAreaRec(&buf.key)->field_0;
-            idx              = 0;
+            roomRec.animBlock.index = 1;
+            roomRec.field_4         = 8;
+            roomRec.field_8         = 0;
+            roomRec.field_C         = 0xA;
+            roomRec.field_10        = 0;
+            sessionKey              = &gGameSession->at4.loc;
+            buf.key.stage           = sessionKey->stage;
+            buf.key.area            = sessionKey->area;
+            buf.key.room            = gGameSession->sprtVariant;
+            buf.key.view            = gGameSession->at4.loc.view;
+            buf.key.place           = sessionKey->place;
+            entry                   = (GpAreaPlace*)Gp_GetNestedAreaRec(&buf.key)->field_0;
+            idx                     = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
                first exit test into the loop preheader and the walk stops
                matching. */
@@ -1452,7 +1452,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 /// session is out of its transition.
 void func_acropolis_plaza_8017F48C(Task* task)
 {
-    GpRec14     rec;
+    GpAnimArg   rec;
     CdCmdQueue* q = &CdCmd_Queue;
     s32         state;
     s32         weaponId;
@@ -1461,13 +1461,13 @@ void func_acropolis_plaza_8017F48C(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            weaponId     = D_80073BA9;
-            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_0  = id;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0xA;
-            rec.field_10 = 0;
+            weaponId            = D_80073BA9;
+            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = id;
+            rec.field_4         = 1;
+            rec.field_8         = 0;
+            rec.field_C         = 0xA;
+            rec.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
             task->state = task->state + 1;
             break;
@@ -1504,20 +1504,20 @@ void func_acropolis_plaza_8017F48C(Task* task)
 /// slot 3 (msg 0x3F1) and kills itself.
 void func_acropolis_plaza_8017F620(Task* task)
 {
-    GpRec14     rec;
+    GpAnimArg   rec;
     CdCmdQueue* q = &CdCmd_Queue;
     s32         weaponId;
     s32         id;
 
     switch (task->state) {
         case 0:
-            weaponId     = D_80073BA9;
-            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_0  = id;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0xA;
-            rec.field_10 = 0;
+            weaponId            = D_80073BA9;
+            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = id;
+            rec.field_4         = 1;
+            rec.field_8         = 0;
+            rec.field_C         = 0xA;
+            rec.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
             task->state = task->state + 1;
             break;

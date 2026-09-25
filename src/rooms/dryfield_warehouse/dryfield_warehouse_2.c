@@ -76,7 +76,7 @@ extern s16 D_dryfield_warehouse_8017FBAC[];
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
 /// turns the display back on and, while `DwhWork::playerEffActive` is up, ends
 /// the weapon effect and re-sends the player-weapon record. The owner is then
-/// handed that same 0x3E8 record -- `GpRec14` field 0 is the equipped weapon's
+/// handed that same 0x3E8 record -- `GpAnimArg::animBlock.index` is the equipped weapon's
 /// animation id, `D_80073BA9` plus 1 or 0x22 depending on `D_8007218A`, with 1
 /// and 0 padding it out -- followed by the room's placement as msg 0x3E9.
 ///
@@ -86,10 +86,10 @@ extern s16 D_dryfield_warehouse_8017FBAC[];
 /// flag is one callee-saved value because both outlive the dispatches.
 void func_dryfield_warehouse_8017DA58(s32 arg0)
 {
-    DwhWork* work;
-    GpRec14  rec;
-    s32      weaponId;
-    s32      anim;
+    DwhWork*  work;
+    GpAnimArg rec;
+    s32       weaponId;
+    s32       anim;
 
     switch (arg0) {
         case 0:
@@ -103,13 +103,13 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 work->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId     = D_80073BA9;
-            anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_0  = anim;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0;
-            rec.field_10 = 1;
+            weaponId            = D_80073BA9;
+            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = anim;
+            rec.field_4         = 1;
+            rec.field_8         = 0;
+            rec.field_C         = 0;
+            rec.field_10        = 1;
             Gp_DispatchMsg((Task*)work->owner, 0x3E8, (s32)&rec, 0);
             Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData.at4.loc.room != 2) {
@@ -142,8 +142,8 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
     DwhWork* shared;
     DwhWork* cur;
     union {
-        GpRec14 rec;
-        SVECTOR pos;
+        GpAnimArg rec;
+        SVECTOR   pos;
     } msg;
     s32 weaponId;
     s32 anim;
@@ -161,11 +161,11 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     work->playerEffActive = 1;
                     cur                   = (DwhWork*)arg0->work;
                     if (cur->owner != NULL) {
-                        msg.rec.field_0  = (s32)&D_dryfield_warehouse_8017F848;
-                        msg.rec.field_4  = 1;
-                        msg.rec.field_8  = 0;
-                        msg.rec.field_C  = 0;
-                        msg.rec.field_10 = 0;
+                        msg.rec.animBlock.ptr = &D_dryfield_warehouse_8017F848;
+                        msg.rec.field_4       = 1;
+                        msg.rec.field_8       = 0;
+                        msg.rec.field_C       = 0;
+                        msg.rec.field_10      = 0;
                         Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F850, 0);
@@ -190,13 +190,13 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 shared->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId         = D_80073BA9;
-            anim             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.rec.field_0  = anim;
-            msg.rec.field_4  = 1;
-            msg.rec.field_8  = 0;
-            msg.rec.field_C  = 0;
-            msg.rec.field_10 = 1;
+            weaponId                = D_80073BA9;
+            anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.rec.animBlock.index = anim;
+            msg.rec.field_4         = 1;
+            msg.rec.field_8         = 0;
+            msg.rec.field_C         = 0;
+            msg.rec.field_10        = 1;
             Gp_DispatchMsg((Task*)shared->owner, 0x3E8, (s32)&msg.rec, 0);
             Gp_DispatchMsg((Task*)shared->owner, 0x3E9, (s32)&D_dryfield_warehouse_8017F868, 0);
             switch (work->field_6) {
@@ -287,7 +287,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
 /// fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
 ///
-/// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpRec14`
+/// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpAnimArg`
 /// field 0 is the equipped weapon's animation id, `D_80073BA9` plus 1 or 0x22
 /// depending on `D_8007218A`, and 1 and 0 pad it out. It is dispatched to a
 /// freshly fetched slot 3, not to the work block's owner.
@@ -297,10 +297,10 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
 /// has torn down (`gGameSession->eventState`), otherwise runs the script.
 void func_dryfield_warehouse_8017E090(Task* arg0)
 {
-    DwhWork* work;
-    GpRec14  rec;
-    s32      weaponId;
-    s32      anim;
+    DwhWork*  work;
+    GpAnimArg rec;
+    s32       weaponId;
+    s32       anim;
 
     switch (arg0->state) {
         case 0:
@@ -314,13 +314,13 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     work->owner                   = gameGetPtrSlot(3);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
-                weaponId     = D_80073BA9;
-                anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.field_0  = anim;
-                rec.field_4  = 1;
-                rec.field_8  = 0;
-                rec.field_C  = 0;
-                rec.field_10 = 0;
+                weaponId            = D_80073BA9;
+                anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                rec.animBlock.index = anim;
+                rec.field_4         = 1;
+                rec.field_8         = 0;
+                rec.field_C         = 0;
+                rec.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;

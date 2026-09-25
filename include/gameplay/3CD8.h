@@ -112,18 +112,6 @@ typedef struct _GpOverlayIds {
 } GpOverlayIds;
 STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
-/// The field-numbered spelling of `GpAnimArg` that room code still declares
-/// its animation payloads with. It is the same record; new code uses
-/// `GpAnimArg`.
-typedef struct _GpRec14 {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} GpRec14;
-STATIC_ASSERT_SIZEOF(GpRec14, 0x14);
-
 /// 4-byte volume-fade payload at `Task::spawnArg2` for `Gp_VolFadeTask`.
 /// `field_0` is the target volume passed to `Snd_ApplyVolumeTable`.
 /// `field_2` is the fade duration in frames (`0` applies immediately).

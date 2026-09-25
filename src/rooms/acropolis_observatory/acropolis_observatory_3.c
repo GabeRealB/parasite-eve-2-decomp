@@ -92,9 +92,9 @@ extern u16     D_acropolis_observatory_8017FEB8[8];
 /// as a second 0x3F4 record, unless that entry is negative.
 void func_acropolis_observatory_8017E19C(Task* task)
 {
-    GpRec14       rec;
-    GpRec14       arg;
-    GpRec14*      msg;
+    GpAnimArg     rec;
+    GpAnimArg     arg;
+    GpAnimArg*    msg;
     AobSceneWork* work;
     AobSceneWork* tail;
     AobSceneWork* dest;
@@ -122,11 +122,11 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             work = (AobSceneWork*)task->work;
             if (work->target != NULL) {
-                rec.field_0  = (s32)&D_acropolis_observatory_8017FE60;
-                rec.field_4  = 1;
-                rec.field_8  = 0;
-                rec.field_C  = 0;
-                rec.field_10 = 1;
+                rec.animBlock.ptr = &D_acropolis_observatory_8017FE60;
+                rec.field_4       = 1;
+                rec.field_8       = 0;
+                rec.field_C       = 0;
+                rec.field_10      = 1;
                 Gp_DispatchMsg(work->target, 0x3F4, (s32)&rec, 0);
             }
             D_8011540A = 0;
@@ -143,13 +143,13 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             break;
         case 5:
-            weaponId     = D_80073BA9;
-            id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_0  = id;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0;
-            rec.field_10 = 0;
+            weaponId            = D_80073BA9;
+            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = id;
+            rec.field_4         = 1;
+            rec.field_8         = 0;
+            rec.field_C         = 0;
+            rec.field_10        = 0;
             Gp_DispatchMsg(work->target, 0x3E8, (s32)&rec, 0);
             D_8007216D                  = 1;
             gGameSession->at4.loc.room  = 1;
@@ -172,11 +172,11 @@ void func_acropolis_observatory_8017E19C(Task* task)
         if (temp >= 0) {
             dest = (AobSceneWork*)task->work;
             if (dest->target != NULL) {
-                arg.field_0   = (s32)&D_acropolis_observatory_8017FE60;
-                arg.field_4   = entry;
-                msg->field_8  = 1;
-                msg->field_C  = 0xA;
-                msg->field_10 = 1;
+                arg.animBlock.ptr = &D_acropolis_observatory_8017FE60;
+                arg.field_4       = entry;
+                msg->field_8      = 1;
+                msg->field_C      = 0xA;
+                msg->field_10     = 1;
                 Gp_DispatchMsg(dest->target, 0x3F4, (s32)msg, 0);
             }
         }

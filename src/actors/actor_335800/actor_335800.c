@@ -168,8 +168,8 @@ extern u8       D_8007216C;
 extern u8       D_8007216D;
 extern TaskDesc D_80182834;
 
-extern TaskDesc D_actor_335800_80164DE0;
-extern GpRec14  D_actor_335800_80164E7C;
+extern TaskDesc  D_actor_335800_80164DE0;
+extern GpAnimArg D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
 /// `func_actor_335800_801621B4` selects `n * 3` 8-byte units of it.
@@ -515,7 +515,7 @@ void func_actor_335800_801624DC(Task* arg0)
 
     if (gGameSession->field_126 != 0) {
         slot = gameGetPtrSlot(3);
-        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.field_0);
+        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.animBlock.index);
         Gp_DispatchMsg(slot, 0x3E8, (s32)&D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }

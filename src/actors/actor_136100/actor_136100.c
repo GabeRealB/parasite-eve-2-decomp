@@ -151,7 +151,7 @@ s32 func_actor_136100_80131EC4(Task* arg0)
 {
     Actor136100Work* work;
     Actor136100Work* msgWork;
-    GpRec14          rec;
+    GpAnimArg        rec;
     s16*             sel;
     s32              i;
     u16              idx;
@@ -179,15 +179,15 @@ s32 func_actor_136100_80131EC4(Task* arg0)
     }
     idx = (u16)*sel + 0x2FU;
 
-    msgWork            = (Actor136100Work*)arg0->work;
-    weaponId           = D_80073BA9;
-    id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.field_0        = id;
-    msgWork->field_4DE = idx;
-    rec.field_4        = idx;
-    rec.field_8        = 1;
-    rec.field_C        = 0xA;
-    rec.field_10       = 0;
+    msgWork             = (Actor136100Work*)arg0->work;
+    weaponId            = D_80073BA9;
+    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.animBlock.index = id;
+    msgWork->field_4DE  = idx;
+    rec.field_4         = idx;
+    rec.field_8         = 1;
+    rec.field_C         = 0xA;
+    rec.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
     return 1;
 }
@@ -335,28 +335,28 @@ void func_actor_136100_80132284(Task* arg0)
     }
 }
 
-/// Build the 0x3E8 weapon record (`GpRec14`) for `anim` from the equip-slot
+/// Build the 0x3E8 weapon record (`GpAnimArg`) for `anim` from the equip-slot
 /// addend (`D_80073BA9`), arm `field_4DE` with it and send it to slot 3.
 ///
 /// A macro rather than an inline: the record must be one frame slot shared by
 /// every expansion, while the work pointer and the id stay per-expansion
 /// pseudos -- shared, they globalise into one register across the switch.
-#define func_actor_136100_SendWeaponRec(task, anim, a, b)                        \
-    {                                                                            \
-        Actor136100Work* msgWork;                                                \
-        s32              weaponId;                                               \
-        s32              id;                                                     \
-                                                                                 \
-        msgWork            = (Actor136100Work*)(task)->work;                     \
-        weaponId           = D_80073BA9;                                         \
-        id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
-        rec.field_0        = id;                                                 \
-        msgWork->field_4DE = anim;                                               \
-        rec.field_4        = anim;                                               \
-        rec.field_8        = a;                                                  \
-        rec.field_C        = b;                                                  \
-        rec.field_10       = 0;                                                  \
-        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);               \
+#define func_actor_136100_SendWeaponRec(task, anim, a, b)                         \
+    {                                                                             \
+        Actor136100Work* msgWork;                                                 \
+        s32              weaponId;                                                \
+        s32              id;                                                      \
+                                                                                  \
+        msgWork             = (Actor136100Work*)(task)->work;                     \
+        weaponId            = D_80073BA9;                                         \
+        id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
+        rec.animBlock.index = id;                                                 \
+        msgWork->field_4DE  = anim;                                               \
+        rec.field_4         = anim;                                               \
+        rec.field_8         = a;                                                  \
+        rec.field_C         = b;                                                  \
+        rec.field_10        = 0;                                                  \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -367,7 +367,7 @@ void func_actor_136100_80132284(Task* arg0)
 void func_actor_136100_801323F8(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpRec14          rec;
+    GpAnimArg        rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
@@ -423,7 +423,7 @@ void func_actor_136100_801323F8(Task* arg0)
         Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
                                                                         \
         if (animWork->field_4C0 != NULL) {                              \
-            rec.field_0         = (s32) & D_actor_136100_8013F1D4;      \
+            rec.animBlock.ptr   = &D_actor_136100_8013F1D4;             \
             animWork->field_4E2 = anim;                                 \
             rec.field_4         = anim;                                 \
             rec.field_8         = blend;                                \
@@ -448,7 +448,7 @@ static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
 void func_actor_136100_80132748(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpRec14          rec;
+    GpAnimArg        rec;
 
     func_actor_136100_80131FBC(arg0);
     switch ((u16)work->field_4CC) {
@@ -610,7 +610,7 @@ void func_actor_136100_80132BC0(Task* arg0)
 void func_actor_136100_80132E78(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
-    GpRec14          rec;
+    GpAnimArg        rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
@@ -816,7 +816,7 @@ void func_actor_136100_80133558(Task* arg0)
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
 /// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
-/// (`GpRec14`) built from the equip-slot addend (`D_80073BA9`), the pair
+/// (`GpAnimArg`) built from the equip-slot addend (`D_80073BA9`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
 /// way past.
 ///
@@ -832,7 +832,7 @@ void func_actor_136100_80133690(void)
     Actor136100Work* animWork;
     Actor136100Work* msgWork;
     SVECTOR          unused;
-    GpRec14          rec;
+    GpAnimArg        rec;
     s32              i;
     s32              weaponId;
     s32              id;
@@ -853,22 +853,22 @@ void func_actor_136100_80133690(void)
 
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_136100_8013F31C, 0);
 
-    msgWork            = (Actor136100Work*)task->work;
-    weaponId           = D_80073BA9;
-    id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.field_0        = id;
-    msgWork->field_4DE = 1;
-    rec.field_4        = 1;
-    rec.field_8        = 0;
-    rec.field_C        = 0;
-    rec.field_10       = 0;
+    msgWork             = (Actor136100Work*)task->work;
+    weaponId            = D_80073BA9;
+    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.animBlock.index = id;
+    msgWork->field_4DE  = 1;
+    rec.field_4         = 1;
+    rec.field_8         = 0;
+    rec.field_C         = 0;
+    rec.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
 }
 
 /// Second half of the cutscene actor's re-arm: clears the first two
 /// value/countdown pairs, sends the 0x7D4 cue to the host task, re-arms all
 /// nineteen animation slots with the work block's slot count at 3, then re-sends
-/// the two placement cues and the 0x3E8 weapon record (`GpRec14`) built from the
+/// the two placement cues and the 0x3E8 weapon record (`GpAnimArg`) built from the
 /// equip-slot addend (`D_80073BA9`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
@@ -884,7 +884,7 @@ void func_actor_136100_8013379C(s32 arg0)
     Actor136100Work* animWork;
     Actor136100Work* msgWork;
     SVECTOR          unused;
-    GpRec14          rec;
+    GpAnimArg        rec;
     s32              i;
     s32              weaponId;
     s32              id;
@@ -907,15 +907,15 @@ void func_actor_136100_8013379C(s32 arg0)
 
     Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)D_actor_136100_8013F334, 0);
 
-    msgWork            = (Actor136100Work*)task->work;
-    weaponId           = D_80073BA9;
-    id                 = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.field_0        = id;
-    msgWork->field_4DE = 1;
-    rec.field_4        = 1;
-    rec.field_8        = 0;
-    rec.field_C        = 0;
-    rec.field_10       = 0;
+    msgWork             = (Actor136100Work*)task->work;
+    weaponId            = D_80073BA9;
+    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.animBlock.index = id;
+    msgWork->field_4DE  = 1;
+    rec.field_4         = 1;
+    rec.field_8         = 0;
+    rec.field_C         = 0;
+    rec.field_10        = 0;
     Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32)&rec, 0);
 
     Gp_DispatchMsg(work->field_4C0, 0x3E9, (s32)&D_actor_136100_8013F40C, 0);
@@ -1067,7 +1067,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
         Actor136100Work* animWork = (Actor136100Work*)(task)->work;     \
                                                                         \
         if (animWork->field_4C0 != NULL) {                              \
-            rec.field_0         = (s32) & D_actor_136100_8013F1D4;      \
+            rec.animBlock.ptr   = &D_actor_136100_8013F1D4;             \
             animWork->field_4E2 = anim;                                 \
             rec.field_4         = anim;                                 \
             rec.field_8         = 0;                                    \
@@ -1088,8 +1088,8 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
         while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {         \
             n += 1;                                                \
         }                                                          \
-        rec.field_0 = (s32) & D_actor_136100_8013F180[0];          \
-        rec.field_4 = n & 0xFFFF;                                  \
+        rec.animBlock.index = (s32) & D_actor_136100_8013F180[0];  \
+        rec.field_4         = n & 0xFFFF;                          \
         Gp_DispatchMsg(msgWork->field_4B4, 0x3F7, (s32) & rec, 0); \
     }
 
@@ -1121,7 +1121,7 @@ void func_actor_136100_80133BC8(Task* arg0)
 {
     Actor136100Work* work = (Actor136100Work*)arg0->work;
     SVECTOR          unused;
-    GpRec14          rec;
+    GpAnimArg        rec;
     s32              cue;
     u16              evtId;
     u8               evtKind;
@@ -1328,17 +1328,17 @@ void func_actor_136100_80134588(Task* arg0)
 
 void func_actor_136100_8013467C(void)
 {
-    GpRec14 rec;
-    s32     weaponId;
-    s32     id;
+    GpAnimArg rec;
+    s32       weaponId;
+    s32       id;
 
-    weaponId     = D_80073BA9;
-    id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.field_0  = id;
-    rec.field_4  = 1;
-    rec.field_8  = 0;
-    rec.field_C  = 0;
-    rec.field_10 = 0;
+    weaponId            = D_80073BA9;
+    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.animBlock.index = id;
+    rec.field_4         = 1;
+    rec.field_8         = 0;
+    rec.field_C         = 0;
+    rec.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
 }
 

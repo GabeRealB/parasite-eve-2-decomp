@@ -318,7 +318,7 @@ void func_acropolis_promenade_8017DB48(Task* task)
 /// (0xFA5), records the room in the save and kills the task.
 void func_acropolis_promenade_8017DB9C(Task* task)
 {
-    GpRec14         rec;
+    GpAnimArg       rec;
     GpXformArg      place;
     s32             killed;
     RoomStreamWork* work;
@@ -341,7 +341,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.field_0                           = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index                   = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4                           = 1;
             rec.field_8                           = 0;
             rec.field_C                           = 0;

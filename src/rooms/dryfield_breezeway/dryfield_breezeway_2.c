@@ -133,11 +133,11 @@ extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
 
 /// The one scratch buffer `func_dryfield_breezeway_8017E390` builds both of its
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
-/// slot-3 weapon record msg 0x3E8 takes (the `GpRec14` `Gp_MsgPlayerWeapon`
+/// slot-3 weapon record msg 0x3E8 takes (the `GpAnimArg` `Gp_MsgPlayerWeapon`
 /// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
 /// zeroed), and `msg` the `RoomActorMsg` the 0x7DA prompt takes right after it.
 typedef union DbwMsgBuf {
-    /* 0x0 */ GpRec14      rec;
+    /* 0x0 */ GpAnimArg    rec;
     /* 0x0 */ RoomActorMsg msg;
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
@@ -291,7 +291,7 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
     RoomActorMsg msg;
     DbwMsgBuf    buf;
-    GpRec14*     rec;
+    GpAnimArg*   rec;
     DbwWork*     work;
     s32          state;
     s32          id;
@@ -316,13 +316,13 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
             D_8007216C = Gp_FindViewIndex(4);
             break;
         case 2:
-            rec              = &buf.rec;
-            id               = D_80073BA9;
-            buf.rec.field_0  = (D_8007218A == 1) ? id + 1 : id + 0x22;
-            rec->field_4     = 9;
-            rec->field_8     = 1;
-            rec->field_C     = 0xA;
-            buf.rec.field_10 = 0;
+            rec                     = &buf.rec;
+            id                      = D_80073BA9;
+            buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            rec->field_4            = 9;
+            rec->field_8            = 1;
+            rec->field_C            = 0xA;
+            buf.rec.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
             break;
     }
@@ -374,7 +374,7 @@ extern s32 D_dryfield_breezeway_80181F90;
 /// otherwise it returns having done nothing, which retires the task on the
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
-/// slot-3 msg 0x3E8 (`GpRec14`, the record `Gp_MsgPlayerWeapon` also builds:
+/// slot-3 msg 0x3E8 (`GpAnimArg`, the record `Gp_MsgPlayerWeapon` also builds:
 /// `field_0` off the equipped-weapon index in `D_80073BA9`, `field_4` and
 /// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
 /// opening cutscene through `func_800E8634`, which is what raises
@@ -385,9 +385,9 @@ extern s32 D_dryfield_breezeway_80181F90;
 /// state goes straight to the sequencer.
 void func_dryfield_breezeway_8017E114(Task* arg0)
 {
-    GpRec14  buf;
-    DbwWork* work;
-    s32      id;
+    GpAnimArg buf;
+    DbwWork*  work;
+    s32       id;
 
     switch (arg0->state) {
         case 0:
@@ -407,12 +407,12 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
-            id           = D_80073BA9;
-            buf.field_0  = (D_8007218A == 1) ? id + 1 : id + 0x22;
-            buf.field_4  = 1;
-            buf.field_8  = 1;
-            buf.field_C  = 0xA;
-            buf.field_10 = 0;
+            id                  = D_80073BA9;
+            buf.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            buf.field_4         = 1;
+            buf.field_8         = 1;
+            buf.field_C         = 0xA;
+            buf.field_10        = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
             func_800E8634((s32)&D_dryfield_breezeway_80181E70, 0, (s32)&D_dryfield_breezeway_80181F90);
             arg0->state += 1;
@@ -460,12 +460,12 @@ void func_dryfield_breezeway_8017E390(void)
     DbwWork*  work;
     s32       id;
 
-    id               = D_80073BA9;
-    buf.rec.field_0  = (D_8007218A == 1) ? id + 1 : id + 0x22;
-    buf.rec.field_4  = 9;
-    buf.rec.field_8  = 0;
-    buf.rec.field_C  = 0;
-    buf.rec.field_10 = 0;
+    id                      = D_80073BA9;
+    buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+    buf.rec.field_4         = 9;
+    buf.rec.field_8         = 0;
+    buf.rec.field_C         = 0;
+    buf.rec.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf, 0);
 
     work                   = (DbwWork*)D_dryfield_breezeway_801843C0->work;

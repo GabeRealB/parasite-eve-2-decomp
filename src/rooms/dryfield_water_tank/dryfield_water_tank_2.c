@@ -248,14 +248,14 @@ void func_dryfield_water_tank_8017E78C(Task* task)
     DwtWork* work;
     DwtWork* cur;
     union {
-        GpRec14    rec;
+        GpAnimArg  rec;
         GpXformArg warp;
     } msg;
-    GpRec14  script;
-    GpRec14* rec;
-    u16      step;
-    s32      weaponId;
-    s32      idx;
+    GpAnimArg  script;
+    GpAnimArg* rec;
+    u16        step;
+    s32        weaponId;
+    s32        idx;
 
     work = (DwtWork*)task->work;
     switch ((u16)work->field_4) {
@@ -268,11 +268,11 @@ void func_dryfield_water_tank_8017E78C(Task* task)
                 case 0:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.field_0  = (s32)&D_dryfield_water_tank_801804EC;
-                        msg.rec.field_4  = 0;
-                        msg.rec.field_8  = 0;
-                        msg.rec.field_C  = 0;
-                        msg.rec.field_10 = 0;
+                        msg.rec.animBlock.ptr = &D_dryfield_water_tank_801804EC;
+                        msg.rec.field_4       = 0;
+                        msg.rec.field_8       = 0;
+                        msg.rec.field_C       = 0;
+                        msg.rec.field_10      = 0;
                         Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
                     }
                     work->field_6++;
@@ -280,11 +280,11 @@ void func_dryfield_water_tank_8017E78C(Task* task)
                 case 1:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.field_0  = (s32)&D_dryfield_water_tank_801804EC;
-                        msg.rec.field_4  = step;
-                        msg.rec.field_8  = step;
-                        msg.rec.field_C  = 0xF;
-                        msg.rec.field_10 = 0;
+                        msg.rec.animBlock.ptr = &D_dryfield_water_tank_801804EC;
+                        msg.rec.field_4       = step;
+                        msg.rec.field_8       = step;
+                        msg.rec.field_C       = 0xF;
+                        msg.rec.field_10      = 0;
                         Gp_DispatchMsg((Task*)cur->owner, 0x3F4, (s32)&msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
@@ -315,13 +315,13 @@ void func_dryfield_water_tank_8017E78C(Task* task)
                     Gp_DispatchMsg((Task*)work->owner, 0x3E9, (s32)&D_dryfield_water_tank_801804F4, 0);
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
-                    rec             = &script;
-                    weaponId        = D_80073BA9;
-                    script.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                    rec->field_4    = 1;
-                    script.field_8  = 0;
-                    script.field_C  = 0;
-                    script.field_10 = 0;
+                    rec                    = &script;
+                    weaponId               = D_80073BA9;
+                    script.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                    rec->field_4           = 1;
+                    script.field_8         = 0;
+                    script.field_C         = 0;
+                    script.field_10        = 0;
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
                     gGameSession->viewDirty = 1;
                     break;
@@ -346,10 +346,10 @@ void func_dryfield_water_tank_8017E78C(Task* task)
 /// state 5 asks to be killed.
 void func_dryfield_water_tank_8017E9F8(Task* task)
 {
-    DwtWork* work;
-    GpRec14  script;
-    s32      weaponId;
-    s32      anim;
+    DwtWork*  work;
+    GpAnimArg script;
+    s32       weaponId;
+    s32       anim;
 
     switch (task->state) {
         case 0:
@@ -378,13 +378,13 @@ L_case0:
             work->owner                    = gameGetPtrSlot(3);
             D_dryfield_water_tank_80188D50 = task;
         }
-        weaponId        = D_80073BA9;
-        anim            = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-        script.field_0  = anim;
-        script.field_4  = 1;
-        script.field_8  = 1;
-        script.field_C  = 0xA;
-        script.field_10 = 0;
+        weaponId               = D_80073BA9;
+        anim                   = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+        script.animBlock.index = anim;
+        script.field_4         = 1;
+        script.field_8         = 1;
+        script.field_C         = 0xA;
+        script.field_10        = 0;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&script, 0);
         func_800E8634((s32)&D_dryfield_water_tank_8018050C, 0,
                       (s32)&D_dryfield_water_tank_8018068C);
@@ -421,19 +421,19 @@ void func_dryfield_water_tank_8017EB80(s16 arg0)
 
 void func_dryfield_water_tank_8017EBA0(void)
 {
-    GpRec14 rec;
-    s32     weaponId;
-    s32     anim;
+    GpAnimArg rec;
+    s32       weaponId;
+    s32       anim;
 
     Gp_DispatchMsg(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                    (s32)&D_dryfield_water_tank_801804F4, 0);
-    weaponId     = D_80073BA9;
-    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.field_0  = anim;
-    rec.field_4  = 1;
-    rec.field_8  = 0;
-    rec.field_C  = 0;
-    rec.field_10 = 0;
+    weaponId            = D_80073BA9;
+    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.animBlock.index = anim;
+    rec.field_4         = 1;
+    rec.field_8         = 0;
+    rec.field_C         = 0;
+    rec.field_10        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
     SetDispMask(1);
 }

@@ -153,7 +153,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1,
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-/// Animation-bank table indexed by `GpAnimArg::field_0`.
+/// Animation-bank table indexed by `GpAnimArg::animBlock.index`.
 extern void* D_actor_503500_8016EAB8[];
 void         func_actor_503500_80136450(Task* arg0);
 void         func_actor_503500_801369E4(Task* arg0);

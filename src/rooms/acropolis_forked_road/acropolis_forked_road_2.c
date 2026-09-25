@@ -197,7 +197,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// view and the session's ride flag and kills this task.
 void func_acropolis_forked_road_8017DD60(Task* task)
 {
-    GpRec14         rec;
+    GpAnimArg       rec;
     GpXformArg      place;
     s32             sp40;
     RoomStreamWork* work;
@@ -218,12 +218,12 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            weaponId     = Player_Status.weapon;
-            rec.field_0  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.field_4  = 1;
-            rec.field_8  = 0;
-            rec.field_C  = 0;
-            rec.field_10 = 0;
+            weaponId            = Player_Status.weapon;
+            rec.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.field_4         = 1;
+            rec.field_8         = 0;
+            rec.field_C         = 0;
+            rec.field_10        = 0;
             Gp_DispatchMsg(((RoomStreamWork*)task->work)->target, 0x3E8, (s32)&rec, 0);
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4 = 2;

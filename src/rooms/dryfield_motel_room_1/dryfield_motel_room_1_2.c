@@ -34,7 +34,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
     s32           anim;
     s32           weaponId;
     Dmr1DriverBuf buf;
-    GpRec14*      rec;
+    GpAnimArg*    rec;
 
     switch (work->field_2C) {
         case 1:
@@ -83,11 +83,11 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim = weapon + 0x22;
                         }
-                        buf.shifted.rec.field_0  = anim;
-                        rec->field_4             = 5;
-                        rec->field_8             = 1;
-                        rec->field_C             = 5;
-                        buf.shifted.rec.field_10 = 0;
+                        buf.shifted.rec.animBlock.index = anim;
+                        rec->field_4                    = 5;
+                        rec->field_8                    = 1;
+                        rec->field_C                    = 5;
+                        buf.shifted.rec.field_10        = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.shifted.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
@@ -98,11 +98,11 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim = weaponId + 0x22;
                         }
-                        buf.rec.field_0  = anim;
-                        buf.rec.field_4  = 6;
-                        buf.rec.field_8  = 1;
-                        buf.rec.field_C  = 5;
-                        buf.rec.field_10 = 0;
+                        buf.rec.animBlock.index = anim;
+                        buf.rec.field_4         = 6;
+                        buf.rec.field_8         = 1;
+                        buf.rec.field_C         = 5;
+                        buf.rec.field_10        = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
@@ -118,11 +118,11 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.field_0  = anim;
-                        buf.rec.field_4  = 1;
-                        buf.rec.field_8  = 1;
-                        buf.rec.field_C  = 3;
-                        buf.rec.field_10 = 0;
+                        buf.rec.animBlock.index = anim;
+                        buf.rec.field_4         = 1;
+                        buf.rec.field_8         = 1;
+                        buf.rec.field_C         = 3;
+                        buf.rec.field_10        = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
@@ -140,11 +140,11 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.field_0  = anim;
-                        buf.rec.field_4  = 1;
-                        buf.rec.field_8  = 1;
-                        buf.rec.field_C  = 3;
-                        buf.rec.field_10 = 0;
+                        buf.rec.animBlock.index = anim;
+                        buf.rec.field_4         = 1;
+                        buf.rec.field_8         = 1;
+                        buf.rec.field_C         = 3;
+                        buf.rec.field_10        = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
@@ -161,11 +161,11 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         } else {
                             anim += 0x22;
                         }
-                        buf.rec.field_0  = anim;
-                        buf.rec.field_4  = 9;
-                        buf.rec.field_8  = 1;
-                        buf.rec.field_C  = 10;
-                        buf.rec.field_10 = 0;
+                        buf.rec.animBlock.index = anim;
+                        buf.rec.field_4         = 9;
+                        buf.rec.field_8         = 1;
+                        buf.rec.field_C         = 10;
+                        buf.rec.field_10        = 0;
                         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
                         work->field_2C = 0;
                     }
@@ -214,13 +214,13 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
         case 0:
             if ((D_80114C12 != 1) && (D_80071075 == 0)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
-                weaponId         = D_80073BA9;
-                anim             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.rec.field_0  = anim;
-                buf.rec.field_4  = 1;
-                buf.rec.field_8  = 1;
-                buf.rec.field_C  = 5;
-                buf.rec.field_10 = 0;
+                weaponId                = D_80073BA9;
+                anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                buf.rec.animBlock.index = anim;
+                buf.rec.field_4         = 1;
+                buf.rec.field_8         = 1;
+                buf.rec.field_C         = 5;
+                buf.rec.field_10        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&buf.rec, 0);
                 func_800E8634((s32)&D_dryfield_motel_room_1_8017E160, 0,
                               (s32)&D_dryfield_motel_room_1_8017E340);

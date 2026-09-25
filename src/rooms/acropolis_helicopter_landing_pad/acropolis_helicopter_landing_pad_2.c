@@ -62,7 +62,7 @@ extern s32        D_acropolis_helicopter_landing_pad_801837B0;
 extern s32        D_acropolis_helicopter_landing_pad_8018467C;
 extern s32        D_acropolis_helicopter_landing_pad_80184CF4;
 extern AhlpMsg7D3 D_acropolis_helicopter_landing_pad_80184E28;
-extern GpRec14    D_acropolis_helicopter_landing_pad_80184E3C;
+extern GpAnimArg  D_acropolis_helicopter_landing_pad_80184E3C;
 
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[];
 extern s32        D_acropolis_helicopter_landing_pad_801837E0[];
@@ -141,8 +141,8 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D8, 0x28, (s32)&spawned);
             Gp_DispatchMsg(spawned, 0x7D3, (s32)&D_acropolis_helicopter_landing_pad_80184E28, 0);
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9, (s32)&D_acropolis_helicopter_landing_pad_801837B0, 0);
-            D_acropolis_helicopter_landing_pad_80184E3C.field_4 = 9;
-            D_acropolis_helicopter_landing_pad_80184E3C.field_0 = D_80073BA9 + 1;
+            D_acropolis_helicopter_landing_pad_80184E3C.field_4         = 9;
+            D_acropolis_helicopter_landing_pad_80184E3C.animBlock.index = D_80073BA9 + 1;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = ((TmdObject*)spawned->extra)->coords;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F5, (s32)coord, 0);

@@ -51,7 +51,7 @@ STATIC_ASSERT_SIZEOF(AcsCutsceneWork, 0xC);
 /// flight, and the union is what makes the 0x18-byte frame slot the two share
 /// explicit.
 typedef union AcsMsgArg {
-    /* 0x0 */ GpRec14    rec;
+    /* 0x0 */ GpAnimArg  rec;
     /* 0x0 */ GpXformArg place;
 } AcsMsgArg;
 STATIC_ASSERT_SIZEOF(AcsMsgArg, 0x18);
@@ -158,8 +158,8 @@ extern s8  D_80114C12;
 
 extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
 extern GpXformArg     D_acropolis_sanctuary_801808BC;
-extern GpRec14        D_acropolis_sanctuary_801809F8;
-extern GpRec14        D_acropolis_sanctuary_80180A0C;
+extern GpAnimArg      D_acropolis_sanctuary_801809F8;
+extern GpAnimArg      D_acropolis_sanctuary_80180A0C;
 extern s32            D_acropolis_sanctuary_80180AE8;
 extern s32            D_acropolis_sanctuary_80180B0C;
 extern s32            D_acropolis_sanctuary_80181664;
@@ -332,10 +332,10 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (D_80073BA9 == 2) {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.field_0);
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.animBlock.index);
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_801809F8, 0);
     } else {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.field_0);
+        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.animBlock.index);
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&D_acropolis_sanctuary_80180A0C, 0);
     }
 }
@@ -416,11 +416,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weaponId = D_80073BA9;
                 idx      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
 
-                weapon.rec.field_0  = idx;
-                weapon.rec.field_4  = 1;
-                weapon.rec.field_8  = 1;
-                weapon.rec.field_C  = 0xF;
-                weapon.rec.field_10 = 0;
+                weapon.rec.animBlock.index = idx;
+                weapon.rec.field_4         = 1;
+                weapon.rec.field_8         = 1;
+                weapon.rec.field_C         = 0xF;
+                weapon.rec.field_10        = 0;
                 Gp_DispatchMsg(slot->target, 0x3E8, (s32)&weapon, 0);
                 SndEvt_EnqueueType6(0x510C0007, 0, 0);
                 func_800E8634((s32)&D_acropolis_sanctuary_801820F0, 0, (s32)&D_acropolis_sanctuary_801821C8);
@@ -451,11 +451,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         Gp_KillPlayerEffs();
                         target = (AcsCutsceneWork*)arg0->work;
                         if (target->target != NULL) {
-                            rec.rec.field_0   = (s32)&D_acropolis_sanctuary_801820E4;
-                            rec.rec.field_4   = 0;
-                            rec.rec.field_8   = 0;
-                            msg->rec.field_C  = 0xF;
-                            msg->rec.field_10 = 1;
+                            rec.rec.animBlock.ptr = &D_acropolis_sanctuary_801820E4;
+                            rec.rec.field_4       = 0;
+                            rec.rec.field_8       = 0;
+                            msg->rec.field_C      = 0xF;
+                            msg->rec.field_10     = 1;
                             Gp_DispatchMsg(target->target, 0x3F4, (s32)msg, 0);
                         }
                         rec.place.pos.vx  = -0x1DB0;

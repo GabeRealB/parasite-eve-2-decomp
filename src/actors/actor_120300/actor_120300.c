@@ -1014,7 +1014,7 @@ void func_actor_120300_80132C60(Task* arg0)
 /// slots 1..19 to the 8 it first parks in `field_4D4`.
 /// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
 /// zero argument additionally hands the task at 0x4B4 the player-weapon record
-/// (`GpRec14`, built from the equip-slot addend `D_80073BA9`), lifts
+/// (`GpAnimArg`, built from the equip-slot addend `D_80073BA9`), lifts
 /// `field_4E0` to 0x1000 and drops the pending overlay replacement.  The
 /// request codes at 0x4C0 and 0x4C8 are cleared either way, so any phase
 /// counter armed alongside them restarts from the top.
@@ -1024,7 +1024,7 @@ void func_actor_120300_80133330(s32 arg0)
     Actor120300Work* work;
     Actor120300Work* animWork;
     SVECTOR          unused;
-    GpRec14          rec;
+    GpAnimArg        rec;
     s32              i;
     s32              weaponId;
     s32              id;
@@ -1047,13 +1047,13 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
     Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_120300_80140B5C, 0);
     if (arg0 == 0) {
-        weaponId     = D_80073BA9;
-        id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
-        rec.field_0  = id;
-        rec.field_4  = 1;
-        rec.field_8  = 0;
-        rec.field_C  = 0;
-        rec.field_10 = 1;
+        weaponId            = D_80073BA9;
+        id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+        rec.animBlock.index = id;
+        rec.field_4         = 1;
+        rec.field_8         = 0;
+        rec.field_C         = 0;
+        rec.field_10        = 1;
         Gp_DispatchMsg(work->field_4B4, 0x3E8, (s32)&rec, 0);
         Gp_DispatchMsg(work->field_4B4, 0x3E9, (s32)&D_actor_120300_80140ACC, 0);
         work->field_4E0 = 0x1000;
@@ -1196,7 +1196,7 @@ void func_actor_120300_801337C4(Task* arg0)
             SVECTOR rot;
             VECTOR  vec;
         } draw;
-        GpRec14 rec;
+        GpAnimArg rec;
     } scratch;
     Actor120300Work* work;
     Actor120300Work* temp;
@@ -1231,11 +1231,11 @@ void func_actor_120300_801337C4(Task* arg0)
                     } else {
                         weaponId = weaponId + 0x22;
                     }
-                    scratch.rec.field_0  = weaponId;
-                    scratch.rec.field_4  = 1;
-                    scratch.rec.field_8  = 0;
-                    scratch.rec.field_C  = 0;
-                    scratch.rec.field_10 = 0;
+                    scratch.rec.animBlock.index = weaponId;
+                    scratch.rec.field_4         = 1;
+                    scratch.rec.field_8         = 0;
+                    scratch.rec.field_C         = 0;
+                    scratch.rec.field_10        = 0;
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&scratch.rec, 0);
                     GameFlag_SetNibble(0x2C, 1);
                     GameFlag_SetNibble(0x2D, 1);
