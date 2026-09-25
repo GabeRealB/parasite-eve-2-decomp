@@ -858,8 +858,8 @@ void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 }
 
 /// Per-tick handler and state dispatcher, called with the task second. The
-/// handler table is built in place - the show handler at index 0, the tick
-/// handler at index 1 - and `field_0` selects from it, unless the global
+/// handler table is built in place - `func_actor_312200_80163778` at index 0,
+/// the tick handler at index 1 - and `field_0` selects from it, unless the global
 /// `D_801153F4` holds the actor. `field_4` records whether the state moved
 /// before it is re-latched into `field_2`. The tail clears the display node's
 /// `GpRec18` record while occupied, re-propagates the root coordinate's
