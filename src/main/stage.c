@@ -905,8 +905,8 @@ void Mdec_ProcessDecode(void)
                             D5B498_8006C233 = -8;
                         }
                         Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->field_4[i]));
-                        while ((Fs_LoadImageStrip(1) & 0xFF) != 1) {
-                            r = Fs_LoadImageStrip(1) & 0xFF;
+                        while (Fs_LoadImageStrip(1) != 1) {
+                            r = Fs_LoadImageStrip(1);
                             if (r == 1) {
                                 break;
                             }
@@ -924,7 +924,7 @@ void Mdec_ProcessDecode(void)
                             Fs_ChunkMode    = 2;
                             D5B498_8006C234 = -3;
                         }
-                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->field_10[i]), 1) & 0xFF) {
+                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->field_10[i]), 1)) {
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C234 = 0;

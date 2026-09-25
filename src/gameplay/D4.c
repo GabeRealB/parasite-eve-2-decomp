@@ -231,7 +231,7 @@ void Gp_LoadViewImages(void)
         if (table[(u8)i].field_0 == type2) {
             if (target == (u8)i) {
                 slot = &table[(u8)i];
-                while (Fs_LoadImageChunk(slot->field_4, 1) & 0xFF) {
+                while (Fs_LoadImageChunk(slot->field_4, 1)) {
                 }
                 break;
             }
@@ -356,7 +356,7 @@ void Gp_LoadViewAndCd(s32 arg0)
         if (table[(u8)i].field_0 == type2) {
             if (target == (u8)i) {
                 slot = &table[(u8)i];
-                while (Fs_LoadImageChunk(slot->field_4, 1) & 0xFF) {
+                while (Fs_LoadImageChunk(slot->field_4, 1)) {
                 }
                 break;
             }

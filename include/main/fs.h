@@ -140,10 +140,10 @@ STATIC_ASSERT_SIZEOF(FsCdfChunk, FS_SECTOR_BYTE_SIZE);
 
 /// Contents of a CD sector.
 typedef union _FsSector {
-    u8               bytes[FS_SECTOR_BYTE_SIZE];
-    u32              words[FS_SECTOR_WORD_SIZE];
-    FsCdfFolderList  folderList;
-    FsCdfChunkHeader chunk;
+    u8              bytes[FS_SECTOR_BYTE_SIZE];
+    u32             words[FS_SECTOR_WORD_SIZE];
+    FsCdfFolderList folderList;
+    FsCdfChunk      chunk;
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
@@ -441,8 +441,8 @@ void Fs_ScanIsoDirectory(s32 mode);
 
 /// Load an image chunk into VRAM (BreakDraw / LoadImage2 path).
 /// `retryNonzero` disables timeout aborts when non-zero.
-s32 Fs_LoadImageStrip(s32 arg0);
-s32 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
+u8 Fs_LoadImageStrip(s32 arg0);
+u8 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
 
 /// Copy a terminated FsWorkEntry list into Fs_WorkEntries and set up
 /// Fs_ImageRect / load state for the following image transfer.

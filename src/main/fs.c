@@ -275,468 +275,187 @@ end:
 
 u8 Fs_ProcessChunkHeader(void)
 {
-    s32          s2;
-    FsSector*    sec;
-    register s32 endSect asm("a2");
-    s32          type;
-    s32          endFlag;
-    s32          status;
-    s32          tmp;
-    s32*         sp;
-    s32          f2;
-    s32          d748;
+    s32               i = 0;
+    FsCdfChunkHeader* hdr;
+    s32               status;
 
-    /*
-     * Pure C prologue: sw s1 / lui s1 / sw s0 / addiu s0,s1,lo / move a0 /
-     * sw ra / jal.  Absolute Fs_CdSector.chunk.type after setup keeps s1=%hi.
-     */
-    s2  = 0;
-    sec = &Fs_CdSector;
-    CdGetSector(sec->bytes, 0x200);
+    CdGetSector(&Fs_CdSector, 0x200);
+    D_8006C4D4        = Fs_CdSector.bytes;
+    hdr               = (FsCdfChunkHeader*)D_8006C4D4;
+    Fs_ChunkWritePtr  = hdr->loadAddr;
+    Fs_ChunkEndSector = Fs_ReqSector - 1 + hdr->size;
+    Fs_ChunkEndFlag   = hdr->endFlag;
+    D_8006C4D4       += hdr->field_2;
 
-    /* Setup through endFlag; a1=%hi(D_8006C4D4) kept live (not clobbered). */
-    {
-        register s32 d4_hi asm("a1");
-        __asm__ volatile(
-            ".set\tnoreorder\n\t"
-            "lui\t%1, %%hi(D_8006C4D4)\n\t"
-            "lui\t$2, %%hi(Fs_ChunkWritePtr)\n\t"
-            "lw\t$3, 8(%2)\n\t"
-            "lui\t$4, %%hi(Fs_ChunkEndSector)\n\t"
-            "sw\t%2, %%lo(D_8006C4D4)(%1)\n\t"
-            "sw\t$3, %%lo(Fs_ChunkWritePtr)($2)\n\t"
-            "lui\t$3, %%hi(Fs_ReqSector)\n\t"
-            "lw\t$2, 4(%2)\n\t"
-            "lw\t$7, %%lo(Fs_ReqSector)($3)\n\t"
-            "addiu\t$2, $2, -1\n\t"
-            "addu\t%0, $7, $2\n\t"
-            "sw\t%0, %%lo(Fs_ChunkEndSector)($4)\n\t"
-            "lbu\t$4, 1(%2)\n\t"
-            "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-            "sb\t$4, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-            ".set\treorder"
-            : "=&r"(endSect), "=&r"(d4_hi)
-            : "r"(sec)
-            : "v0", "a0", "a3", "memory");
-
-        /* lhu field_2; lbu type via absolute chunk.type; addu; sw via a1 */
-        f2   = sec->chunk.field_2;
-        type = Fs_CdSector.chunk.type;
-        __asm__ volatile(
-            ".set\tnoreorder\n\t"
-            "addu\t%0, %0, %2\n\t"
-            "sw\t%0, %%lo(D_8006C4D4)(%1)\n\t"
-            ".set\treorder"
-            : "+r"(f2)
-            : "r"(d4_hi), "r"(sec)
-            : "memory");
-    }
-
-    switch (type) {
+    switch (Fs_CdSector.chunk.header.type) {
         case 0:
-            if (Fs_ChunkWritePtr == 0) {
-                goto ret0;
+            if (Fs_ChunkWritePtr == NULL) {
+                break;
             }
-            if (Fs_ChunkMode == 1) {
-                goto phase_ff;
-            }
-            if (Fs_ChunkMode == 4) {
-                goto phase_ff;
+            if (Fs_ChunkMode == 1 || Fs_ChunkMode == 4) {
+                Fs_LoadPhase = 0xFF;
+                return 1;
             }
             D5B498_8006EA1A = 0;
             D5B498_8006EBB0 = 0;
             D5B498_8006D858 = 1;
             D5B498_8006D850 = 0;
             D5B498_8006D748 = 0;
-            Fs_ChunkReadPtr = Fs_CdSector.bytes + 0x10;
+            Fs_ChunkReadPtr = Fs_CdSector.chunk.data.bytes;
             Fs_DecompressChunk();
-            d748 = D5B498_8006D748;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "ori\t$2, $0, 0xFFFF\n\t"
-                "beq\t%0, $2, %3\n\t"
-                "addiu\t$17, $0, 1\n\t"
-                "beqz\t%0, 1f\n\t"
-                "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-                "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-                "j\t%1\n\t"
-                "addiu\t$2, $0, 0xFF\n\t"
-                "1:\n\t"
-                "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-                "sb\t$17, %%lo(Fs_LoadPhase)($2)\n\t"
-                "lui\t$2, %%hi(Fs_Streaming)\n\t"
-                "j\t%2\n\t"
-                "sb\t$17, %%lo(Fs_Streaming)($2)\n\t"
-                ".set\treorder"
-                :
-                : "r"(d748), "i"(&&check_end_ff), "i"(&&ret0), "i"(&&soft_error)
-                : "v0", "s1", "memory");
+            if (D5B498_8006D748 == 0xFFFF) {
+                Fs_OnCdError(0);
+                break;
+            }
+            if (D5B498_8006D748 != 0) {
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+                break;
+            }
+            Fs_LoadPhase = 1;
+            Fs_Streaming = 1;
+            break;
 
-        case 1: {
-            s32 ff;
-            Fs_CopyWorkEntries((FsWorkEntry*)(Fs_CdSector.bytes + 0x10));
-            status = Fs_LoadImageStrip(0) & 0xFF;
-            ff     = 0xFF;
-            if (status == ff) {
-                goto soft_error;
+        case 1:
+            Fs_CopyWorkEntries((FsWorkEntry*)Fs_CdSector.chunk.data.bytes);
+            status = Fs_LoadImageStrip(0);
+            if (status == 0xFF || status == 0x7F) {
+                Fs_OnCdError(0);
+                break;
             }
-            if (status == 0x7F) {
-                goto soft_error;
+            if (status == 1) {
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+            } else {
+                Fs_LoadPhase = 2;
+                Fs_Streaming = 1;
             }
-            {
-                register s32 one asm("a0");
-                s32          st;
-                one = 1;
-                st  = status;
-                __asm__ volatile(
-                    ".set\tnoreorder\n\t"
-                    "bne\t%0, %1, %2\n\t"
-                    "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-                    ".set\treorder"
-                    :
-                    : "r"(st), "r"(one), "i"(&&case1_phase2)
-                    : "v0");
-            }
-            endFlag = Fs_ChunkEndFlag;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "bne\t%0, %1, %2\n\t"
-                "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-                "j\t%3\n\t"
-                "sb\t%0, %%lo(Fs_LoadPhase)($2)\n\t"
-                ".set\treorder"
-                :
-                : "r"(endFlag), "r"(ff), "i"(&&ret0), "i"(&&ret1)
-                : "v0", "memory");
-        case1_phase2:
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "li\t$3, 2\n\t"
-                "sb\t$3, %%lo(Fs_LoadPhase)($2)\n\t"
-                "lui\t$2, %%hi(Fs_Streaming)\n\t"
-                "j\t%0\n\t"
-                "sb\t$4, %%lo(Fs_Streaming)($2)\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&ret0)
-                : "v1", "memory");
-        }
+            break;
 
-        case 2: {
-            s32 ff;
-            /* Force: bne phase3; delay lui LoadPhase (matches target) */
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "lui\t$2, %%hi(Fs_ChunkEndSector)\n\t"
-                "lui\t$3, %%hi(Fs_ReqSector)\n\t"
-                "lw\t$4, %%lo(Fs_ChunkEndSector)($2)\n\t"
-                "lw\t$2, %%lo(Fs_ReqSector)($3)\n\t"
-                "nop\n\t"
-                "bne\t$4, $2, %0\n\t"
-                "lui\t$3, %%hi(Fs_LoadPhase)\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&case2_phase3)
-                : "v0", "v1", "a0", "memory");
-            /* equal path */
-            status = Fs_LoadImageChunk((FsImageChunk*)(Fs_CdSector.bytes + 0x10), 0) & 0xFF;
-            ff     = 0xFF;
-            if (status == ff) {
-                goto soft_error;
+        case 2:
+            if (Fs_ChunkEndSector == Fs_ReqSector) {
+                status = Fs_LoadImageChunk((FsImageChunk*)Fs_CdSector.chunk.data.bytes, 0);
+                if (status == 0xFF || status == 0x7F) {
+                    Fs_OnCdError(0);
+                    break;
+                }
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+            } else {
+                Fs_LoadPhase = 3;
+                Fs_Streaming = 1;
             }
-            if (status == 0x7F) {
-                goto soft_error;
-            }
-            endFlag = Fs_ChunkEndFlag;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "bne\t%0, %1, %2\n\t"
-                "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-                "j\t%3\n\t"
-                "sb\t%0, %%lo(Fs_LoadPhase)($2)\n\t"
-                ".set\treorder"
-                :
-                : "r"(endFlag), "r"(ff), "i"(&&ret0), "i"(&&ret1)
-                : "v0", "memory");
-        case2_phase3:
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "j\t%0\n\t"
-                "li\t$2, 3\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&set_phase_stream)
-                : "v0");
-        }
+            break;
 
         case 3: {
-            register s32 mode asm("v1");
-            mode = Fs_ChunkMode;
-            if (mode == 1) {
-                goto phase_ff;
+            u32* src;
+            u32* dst;
+            if (Fs_ChunkMode == 1 || Fs_ChunkMode == 4) {
+                Fs_LoadPhase = 0xFF;
+                return 1;
             }
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "addiu\t$2, $0, 4\n\t"
-                "beq\t%0, $2, %1\n\t"
-                "lui\t$3, %%hi(Fs_ChunkWritePtr)\n\t"
-                ".set\treorder"
-                :
-                : "r"(mode), "i"(&&phase_ff)
-                : "v0", "v1");
-            {
-                register u32  wp_hi asm("v1");
-                register s32* srcp;
-                s32*          dstp;
-                srcp = (s32*)(Fs_CdSector.bytes + 0x10 + s2);
-                s2   = 0;
-                __asm__("lw %0, %%lo(Fs_ChunkWritePtr)(%1)" : "=r"(dstp) : "r"(wp_hi));
-                sp = srcp;
-                do {
-                    tmp = *sp;
-                    sp++;
-                    s2++;
-                    *dstp = tmp;
-                    dstp++;
-                } while (s2 < 0x1FC);
+            src = (u32*)&Fs_CdSector.chunk.data.bytes[i];
+            dst = (u32*)Fs_ChunkWritePtr;
+            for (i = 0; i < 0x1FC; i++) {
+                dst[i] = src[i];
             }
             Fs_ChunkWritePtr += 0x7F0;
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
-                __asm__ volatile(
-                    ".set\tnoreorder\n\t"
-                    "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-                    "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-                    "j\t%0\n\t"
-                    "addiu\t$2, $0, 0xFF\n\t"
-                    ".set\treorder"
-                    :
-                    : "i"(&&check_end_ff)
-                    : "v0", "v1");
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+            } else {
+                Fs_LoadPhase = 0;
+                Fs_Streaming = 1;
             }
-            Fs_LoadPhase = 0;
-            Fs_Streaming = 1;
-            goto ret0;
+            break;
         }
 
-        case 4:
-            if (Fs_ChunkMode == 1) {
-                goto phase_ff;
+        case 4: {
+            FsCdfChunkHeader* entry;
+            if (Fs_ChunkMode == 1 || Fs_ChunkMode == 4) {
+                Fs_LoadPhase = 0xFF;
+                return 1;
             }
-            s2 = 0;
-            if (Fs_ChunkMode != 4) {
-                goto case4_body;
-            }
-        phase_ff:
-            Fs_LoadPhase = 0xFF;
-            return 1;
-        case4_body: {
-            s32           one;
-            u32           ade_hi;
-            FsUnkADE8*    ade;
-            u8*           pp;
-            FsFolderSlot* sl;
-            register u8*  qq asm("v1");
-            u32           vtmp;
-            __asm__(
-                "lui %0, %%hi(Fs_CdSector)\n\t"
-                "addiu %1, %0, %%lo(Fs_CdSector+0x10)"
-                : "=&r"(vtmp), "=r"(pp));
-            __asm__(
-                "lui %0, %%hi(D_8006ADE8)\n\t"
-                "addiu %1, %0, %%lo(D_8006ADE8)"
-                : "=&r"(ade_hi), "=r"(ade));
-            one = 1;
-            __asm__(
-                "lui %0, %%hi(D_8006C338)\n\t"
-                "addiu %1, %0, %%lo(D_8006C338)"
-                : "=&r"(vtmp), "=r"(sl));
-            qq = pp + 0xC;
-            do {
-                sl->field_0 = *pp;
-                sl->field_4 = *(void**)(qq - 4);
-                tmp         = *(s32*)qq;
-                if (tmp != 0) {
-                    __asm__("sh %0, %%lo(D_8006ADE8)(%1)" : : "r"(one), "r"(ade_hi));
-                    ade->field_4 = *(u16*)(qq - 0xA);
-                    ade->field_8 = *(u32*)qq;
+            entry = (FsCdfChunkHeader*)Fs_CdSector.chunk.data.bytes;
+            for (i = 0; i < 50; i++) {
+                D_8006C338[i].field_0 = entry->type;
+                D_8006C338[i].field_4 = entry->loadAddr;
+                if (entry->padding != 0) {
+                    D_8006ADE8.field_0 = 1;
+                    D_8006ADE8.field_4 = entry->field_2;
+                    D_8006ADE8.field_8 = entry->padding;
                 }
-                qq += 0x10;
-                pp += 0x10;
-                s2++;
-                sl++;
-            } while (s2 < 0x32);
-        }
-            {
-                register u32 ade asm("v0");
-                u32          lph;
-                __asm__(
-                    "lui %0, %%hi(D_8006ADE8)\n\t"
-                    "lui %1, %%hi(Fs_LoadPhase)"
-                    : "=&r"(ade), "=r"(lph));
-                __asm__ volatile(
-                    ".set\tnoreorder\n\t"
-                    "sh\t$0, %%lo(D_8006ADE8+2)(%0)\n\t"
-                    "j\t%1\n\t"
-                    "li\t$2, 4\n\t"
-                    ".set\treorder"
-                    :
-                    : "r"(ade), "i"(&&set_phase_stream)
-                    : "v0", "memory");
+                entry++;
             }
+            D_8006ADE8.field_2 = 0;
+            Fs_LoadPhase       = 4;
+            Fs_Streaming       = 1;
+            break;
+        }
 
         case 5: {
-            register s32 mode5 asm("v1");
-            mode5 = Fs_ChunkMode;
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "addiu\t$2, $0, 3\n\t"
-                "beq\t%0, $2, %1\n\t"
-                "lui\t$3, %%hi(Fs_LoadPhase)\n\t"
-                ".set\treorder"
-                :
-                : "r"(mode5), "i"(&&case5_join)
-                : "v0", "v1");
-            CdCmd_RequestVlcRebuild();
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "lui\t$2, %%hi(D_8006ADF8)\n\t"
-                "move\t$4, $2\n\t"
-                "lui\t$2, %%hi(Fs_ImgBuffers)\n\t"
-                "lw\t$5, %%lo(Fs_ImgBuffers)($2)\n\t"
-                "lui\t$2, %%hi(Fs_CdSector)\n\t"
-                "addiu\t$6, $2, %%lo(Fs_CdSector)\n\t"
-                "sw\t$0, %%lo(D_8006ADF8)($4)\n\t"
-                "2:\n\t"
-                "lw\t$3, %%lo(D_8006ADF8)($4)\n\t"
-                "nop\n\t"
-                "addu\t$2, $3, $6\n\t"
-                "lbu\t$2, 16($2)\n\t"
-                "addu\t$3, $5, $3\n\t"
-                "sb\t$2, 0($3)\n\t"
-                "lw\t$2, %%lo(D_8006ADF8)($4)\n\t"
-                "nop\n\t"
-                "addiu\t$2, $2, 1\n\t"
-                "sw\t$2, %%lo(D_8006ADF8)($4)\n\t"
-                "sltiu\t$2, $2, 2032\n\t"
-                "bnez\t$2, 2b\n\t"
-                "lui\t$3, 0x8007\n\t"
-                ".set\treorder"
-                :
-                :
-                : "v0", "v1", "a0", "a1", "a2", "memory");
-        case5_join:
-            /* shared by mode==3 and loop exit (after lui 0x8007 delay) */
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "j\t%0\n\t"
-                "li\t$2, 5\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&set_phase_stream)
-                : "v0");
+            u8* buf;
+            if (Fs_ChunkMode != 3) {
+                CdCmd_RequestVlcRebuild();
+                buf = (u8*)Fs_ImgBuffers;
+                for (D_8006ADF8 = 0; (u32)D_8006ADF8 < 0x7F0; D_8006ADF8++) {
+                    buf[D_8006ADF8] = Fs_CdSector.chunk.data.bytes[D_8006ADF8];
+                }
+            }
+            Fs_LoadPhase = 5;
+            Fs_Streaming = 1;
+            break;
         }
 
-        case 6: {
-            register s32 feed_r asm("v1");
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "lui\t$2, %%hi(Fs_ChunkMode)\n\t"
-                "lbu\t$2, %%lo(Fs_ChunkMode)($2)\n\t"
-                "nop\n\t"
-                "addiu\t$2, $2, -4\n\t"
-                "sltiu\t$2, $2, 2\n\t"
-                "bnez\t$2, %0\n\t"
-                "lui\t$3, %%hi(Fs_LoadPhase)\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&set_phase_ff)
-                : "v0", "v1");
-
+        case 6:
+            if (Fs_ChunkMode == 4 || Fs_ChunkMode == 5) {
+                Fs_LoadPhase = 0xFF;
+                Fs_Streaming = 1;
+                break;
+            }
             SndLoad_BeginFromBuffer(0, Fs_CdSector.bytes);
-            feed_r = SndLoad_FeedSector(Fs_CdSector.bytes);
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "li\t$2, 5\n\t"
-                "bne\t%0, $2, %1\n\t"
-                "li\t$2, -1\n\t"
-                "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-                "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-                "j\t%2\n\t"
-                "addiu\t$2, $0, 0xFF\n\t"
-                ".set\treorder"
-                :
-                : "r"(feed_r), "i"(&&case6_not5), "i"(&&check_end_ff)
-                : "v0", "v1", "memory");
-        case6_not5:
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "bne\t%0, $2, %1\n\t"
-                "lui\t$3, %%hi(Fs_LoadPhase)\n\t"
-                ".set\treorder"
-                :
-                : "r"(feed_r), "i"(&&case6_phase6)
-                : "v0", "v1");
-        soft_error:
-            Fs_OnCdError(0);
-            return 0;
-        case6_phase6:
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "j\t%0\n\t"
-                "li\t$2, 6\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&set_phase_stream)
-                : "v0");
-        }
+            status = SndLoad_FeedSector(Fs_CdSector.bytes);
+            if (status == 5) {
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+            } else if (status == -1) {
+                Fs_OnCdError(0);
+                break;
+            } else {
+                Fs_LoadPhase = 6;
+                Fs_Streaming = 1;
+            }
+            break;
 
         case 7:
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "lui\t$2, %%hi(Fs_ChunkEndFlag)\n\t"
-                "lbu\t$3, %%lo(Fs_ChunkEndFlag)($2)\n\t"
-                "j\t%0\n\t"
-                "addiu\t$2, $0, 0xFF\n\t"
-                ".set\treorder"
-                :
-                : "i"(&&check_end_ff)
-                : "v0", "v1");
+            if (Fs_ChunkEndFlag == 0xFF) {
+                Fs_LoadPhase = 0xFF;
+                return 1;
+            }
+            break;
 
-        default: {
-            register s32 req_live asm("a3");
-            register s32 ef_live asm("a0");
-            __asm__ volatile(
-                ".set\tnoreorder\n\t"
-                "bne\t%0, %1, %2\n\t"
-                "lui\t$3, %%hi(Fs_LoadPhase)\n\t"
-                "andi\t$3, %3, 0xFF\n\t"
-                "addiu\t$2, $0, 0xFF\n\t"
-                ".set\treorder"
-                :
-                : "r"(endSect), "r"(req_live), "i"(&&set_phase_ff), "r"(ef_live)
-                : "v0", "v1");
-        }
+        default:
+            if (Fs_ChunkEndSector == Fs_ReqSector) {
+                if (Fs_ChunkEndFlag == 0xFF) {
+                    Fs_LoadPhase = 0xFF;
+                    return 1;
+                }
+            } else {
+                Fs_LoadPhase = 0xFF;
+                Fs_Streaming = 1;
+            }
+            break;
     }
-
-check_end_ff:
-    __asm__ volatile(
-        ".set\tnoreorder\n\t"
-        "bne\t$3, $2, %0\n\t"
-        "lui\t$2, %%hi(Fs_LoadPhase)\n\t"
-        "sb\t$3, %%lo(Fs_LoadPhase)($2)\n\t"
-        ".set\treorder"
-        :
-        : "i"(&&ret0)
-        : "v0", "memory");
-ret1:
-    return 1;
-
-set_phase_ff:
-    __asm__ volatile("li $2, 0xFF" ::: "v0");
-set_phase_stream:
-    __asm__ volatile("sb $2, %%lo(Fs_LoadPhase)($3)" ::: "memory");
-    Fs_Streaming = 1;
-ret0:
     return 0;
 }
 
@@ -808,7 +527,7 @@ u8 Fs_ProcessChunkData(void)
 
         case 2:
             CdGetSector(Fs_CdSector.bytes, 0x200);
-            status = Fs_LoadImageStrip(0) & 0xFF;
+            status = Fs_LoadImageStrip(0);
             ff     = 0xFF;
             if (status == ff) {
                 goto hard_error;
@@ -830,7 +549,7 @@ u8 Fs_ProcessChunkData(void)
 
         case 3:
             CdGetSector(D_8006CCD8, 0x200);
-            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - 0x7F0), 0) & 0xFF;
+            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - 0x7F0), 0);
             ff     = 0xFF;
             if (status != ff) {
                 goto case3_ok;
@@ -1568,7 +1287,7 @@ restart:
     }
 }
 
-s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
+u8 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 {
     u_long*       ot;
     register s32  retry asm("s1");
@@ -1722,7 +1441,7 @@ loop:
     D5B498_8006D4E0[D5B498_8006ADF4] = 0;
 }
 
-s32 Fs_LoadImageStrip(s32 mode)
+u8 Fs_LoadImageStrip(s32 mode)
 {
     u_long*      ot;
     s32          none;
