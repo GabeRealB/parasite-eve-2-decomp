@@ -150,8 +150,10 @@ typedef struct Actor335800AnimPreset {
 } Actor335800AnimPreset;
 STATIC_ASSERT_SIZEOF(Actor335800AnimPreset, 0x14);
 
-/// Spawn placement `func_actor_335800_80162C80` copies into the parent block:
-/// the position into `target`, the rotation into `field_4F0..field_4F4`.
+/// Position and Euler angles carried by messages 0x7D4 and 0x7DD. The 0x7D4
+/// handlers place the root part there directly; `func_actor_335800_80162C80`
+/// (0x7DD) copies them into the parent block, the position into `target`, the
+/// rotation into `field_4F0..field_4F4`, and its child-block twin does the same.
 typedef struct Actor335800Placement {
     /* 0x00 */ VECTOR  pos;
     /* 0x10 */ SVECTOR rot;

@@ -107,7 +107,24 @@ s32 func_actor_335800_801632A4(Task* task, s32 arg1, Actor335800AnimPreset* msg,
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_801633C0);
+/// Message 0x7D4 handler of the parent block: places the root part at the
+/// message's position and Euler angles, rebuilding the rotation from them and
+/// clearing `flg` so the world matrix is recomputed. Returns 0.
+s32 func_actor_335800_801633C0(Task* task, s32 arg1, Actor335800Placement* args)
+{
+    Actor335800Coord* coord;
+
+    coord             = (Actor335800Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
 {
@@ -317,7 +334,25 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, Actor335800Placement* place
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163A34);
+/// Spawn, tick and teardown handlers of the child block.
+extern TaskFuncTable3 D_actor_335800_80161E5C;
+
+/// Global freeze byte in the main executable; the state dispatchers run
+/// nothing while it is non-zero.
+extern u8 D_801153F4;
+
+/// State dispatcher of the child block: copies its three-handler table onto
+/// the stack and, unless the game is frozen, runs the entry `Task::state`
+/// selects.
+void func_actor_335800_80163A34(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_335800_80161E5C;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 /// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
 /// every later handler reads through `Task::work`, seeds the two -1 bytes,
@@ -370,4 +405,17 @@ void func_actor_335800_80163B70(Task* arg0)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_4", func_actor_335800_80163B78);
+/// Motion handlers of the child block, indexed by `field_4C2`.
+extern TaskFuncTable4 D_actor_335800_80161E68;
+
+/// Motion handler 1 of the child block: copies the four-handler table onto
+/// the stack and runs the entry `field_4C2` selects.
+void func_actor_335800_80163B78(Task* arg0)
+{
+    TaskFuncTable4   sp;
+    Actor335800Work* work;
+
+    work = (Actor335800Work*)arg0->work;
+    sp   = D_actor_335800_80161E68;
+    sp.funcs[(s16)work->field_4C2](arg0);
+}

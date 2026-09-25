@@ -20,6 +20,13 @@ extern TaskDesc D_80182834;
 
 extern s8 D_8007272D;
 
+/// Spawn, tick and teardown handlers of the parent block.
+extern TaskFuncTable3 D_actor_335800_80161E30;
+
+/// Global freeze byte in the main executable; the state dispatchers run
+/// nothing while it is non-zero.
+extern u8 D_801153F4;
+
 void func_actor_335800_80162E8C(Task* task)
 {
     Task*          parent;
@@ -47,7 +54,18 @@ void func_actor_335800_80162F08(void)
 {
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_335800/actor_335800_3", func_actor_335800_80162F10);
+/// State dispatcher of the parent block: copies its three-handler table onto
+/// the stack and, unless the game is frozen, runs the entry `Task::state`
+/// selects.
+void func_actor_335800_80162F10(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_335800_80161E30;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_335800_80162F7C(Task* arg0)
 {
