@@ -537,6 +537,29 @@ def ninja_setup_list_add_source(
                 source_path,
             )
         source_target_path = re.sub(r".c$", r".s", source_target_path)
+        # A variant unit compiles another package's shared source, so the
+        # source path names the wrong package's assembly. The unit's own
+        # assembly sits at its object path; prefer that when it exists.
+        version_name = GAME_VERSIONS[game_version_idx].version_name
+        unit_target_path = (
+            re.sub(
+                rf"^build[\\/]{version_name}[\\/]src",
+                lambda _: f"asm{os.sep}{version_name}",
+                target_path,
+            )
+            + ".s"
+        )
+        # The base package's assembly then supplies the function names the
+        # shared source compiles to (target_asm.py renames by position).
+        base_asm = None
+        if (
+            source_path.startswith("src")
+            and os.path.exists(unit_target_path)
+            and unit_target_path != source_target_path
+        ):
+            if os.path.exists(source_target_path):
+                base_asm = source_target_path
+            source_target_path = unit_target_path
         if PLATFORM == Platform.Windows:
             expected_path = re.sub(
                 rf"^build\\{GAME_VERSIONS[game_version_idx].version_name}\\src",
@@ -564,8 +587,8 @@ def ninja_setup_list_add_source(
                     outputs=f"{expected_path}.s.o",
                     rule="objdiff-as",
                     inputs=source_target_path,
-                    implicit=[str(OBJDIFF_TARGET_ASM)],
-                    variables={"DLFLAG": DL_OVL_FLAGS},
+                    implicit=[str(OBJDIFF_TARGET_ASM)] + ([base_asm] if base_asm else []),
+                    variables={"DLFLAG": DL_OVL_FLAGS, "BASEASM": base_asm or ""},
                 )
         else:
             return
@@ -929,7 +952,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "objdiff-as",
         description="objdiff-as $in",
-        command=f"{PYTHON} {OBJDIFF_TARGET_ASM} $in > $out.s && {AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $out.s",
+        command=f"{PYTHON} {OBJDIFF_TARGET_ASM} $in $BASEASM > $out.s && {AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $out.s",
         depfile="$out.d",
         deps="gcc",
     )

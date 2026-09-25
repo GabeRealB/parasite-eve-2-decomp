@@ -103,7 +103,7 @@ id = 30
 objects = [
   { kind = "packageId" },
   { unit = "gunblade/gunblade_2", rodata = "0x4", text = "0xE80" },
-  { unit = "gunblade/gunblade", rodata = "0x4", text = "0x24", data = "0x1544" },
+  { unit = "gunblade/gunblade", text = "0x24", data = "0x1544" },
   { kind = "model", at = "0x1554" },
   { kind = "data", at = "0x1D14" },
   { unit = "gunblade/gunblade_work", data = "0x11084" },
