@@ -15,13 +15,15 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-#include "actors/actor_100300.h"
 #include "main/display.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
+
+/// Main-executable counter whose lowest bit the flicker alternates on.
+extern s32 D_80070F70;
 
 /// 0x44 bytes `func_actor_105100_80133CE4` carves from `G_SCRATCH_HEAD`: the
 /// 0x3F4 animation argument, the 0x3E9 position/rotation pair, and the

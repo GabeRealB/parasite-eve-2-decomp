@@ -6,7 +6,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actor_100300.h"
 #include "actors/actors_shared_80132074.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -19,6 +18,9 @@
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
+
+/// Main-executable counter whose lowest bit the flicker alternates on.
+extern s32 D_80070F70;
 
 /* Byte access view; preserves struct-store ordering in GCC 2.8.1. */
 typedef struct Actor00300ByteView {

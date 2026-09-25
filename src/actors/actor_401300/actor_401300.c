@@ -309,14 +309,6 @@ typedef struct Actor401300LungeScratch {
 } Actor401300LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
-/// 0x18-byte `G_SCRATCH_HEAD` block `Actor401300_ScaleMatrix` scales a matrix
-/// and its translation in. Same shape as `Actor00100ScaleScratch`.
-typedef struct Actor401300ScaleScratch {
-    /* 0x00 */ VECTOR  scale;
-    /* 0x10 */ SVECTOR trans;
-} Actor401300ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor401300ScaleScratch, 0x18);
-
 extern MATRIX* D_80073B8C;
 
 /// Movement freeze flag: `actorMoveForward` skips its step when it is 1.
@@ -4288,12 +4280,12 @@ void func_actor_401300_8013E930(Task* arg0)
 /// Scale `m` uniformly by `scale` (4.12), translation included.
 static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
 {
-    Actor401300ScaleScratch* head;
-    Actor401300ScaleScratch* blk;
+    ActorScaleMatrixScratch* head;
+    ActorScaleMatrixScratch* blk;
 
-    head                                       = *(Actor401300ScaleScratch**)G_SCRATCH_HEAD;
+    head                                       = *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD;
     blk                                        = head - 1;
-    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD = blk;
+    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD = blk;
     blk->scale.vz                              = scale;
     blk->scale.vy                              = scale;
     head[-1].scale.vx                          = scale;
@@ -4307,7 +4299,7 @@ static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
     gte_stsv(&blk->trans);
     m->t[0]                                     = blk->trans.vx;
     m->t[1]                                     = blk->trans.vy;
-    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD += 1;
     m->t[2]                                     = blk->trans.vz;
 }
 
@@ -4445,7 +4437,7 @@ void func_actor_401300_8013F628(Task* arg0)
             work->field_0 = 0x18;
             break;
     }
-    *(Actor401300ScaleScratch**)G_SCRATCH_HEAD += 1;
+    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD += 1;
 }
 
 void func_actor_401300_80140300(Task* arg0)

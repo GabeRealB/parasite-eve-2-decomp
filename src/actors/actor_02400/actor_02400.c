@@ -6,7 +6,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actor_100300.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -21,6 +20,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+/// Main-executable counter whose lowest bit the flicker alternates on.
+extern s32 D_80070F70;
 
 /// Work block of the main body, hung off `Task::work` by its spawn handler
 /// (`memCalloc(0x154)`).

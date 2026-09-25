@@ -161,6 +161,14 @@ typedef struct ActorScaleScratch {
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 
+/// Scaling a matrix uniformly with its translation: the scale vector handed
+/// to `ScaleMatrix`, and the translation scaled on the GTE.
+typedef struct ActorScaleMatrixScratch {
+    VECTOR  scale;
+    SVECTOR trans;
+} ActorScaleMatrixScratch;
+STATIC_ASSERT_SIZEOF(ActorScaleMatrixScratch, 0x18);
+
 /// Turning an actor to face the player: the offset from the actor to the
 /// player, flattened to the XZ plane, and the rotation built from its
 /// bearing.

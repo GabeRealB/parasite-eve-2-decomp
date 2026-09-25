@@ -5,7 +5,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actor_400100_motion.h"
 #include "actors/actors_shared_80164954.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"

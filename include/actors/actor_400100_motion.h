@@ -14,37 +14,31 @@ extern u8 D_80071075;
 
 void func_801811C4(s32 amount);
 
-typedef struct Actor00100ScaleScratch {
-    /* 0x00 */ VECTOR  scale;
-    /* 0x10 */ SVECTOR translation;
-} Actor00100ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor00100ScaleScratch, 0x18);
-
 static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
 {
-    Actor00100ScaleScratch* head;
-    Actor00100ScaleScratch* scratch;
-    SVECTOR*                vec;
+    ActorScaleMatrixScratch* head;
+    ActorScaleMatrixScratch* scratch;
+    SVECTOR*                 vec;
 
-    head                                      = *(Actor00100ScaleScratch**)G_SCRATCH_HEAD;
-    scratch                                   = head - 1;
-    *(Actor00100ScaleScratch**)G_SCRATCH_HEAD = scratch;
-    scratch->scale.vz                         = amount;
-    scratch->scale.vy                         = amount;
-    head[-1].scale.vx                         = amount;
+    head                                       = *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD;
+    scratch                                    = head - 1;
+    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD = scratch;
+    scratch->scale.vz                          = amount;
+    scratch->scale.vy                          = amount;
+    head[-1].scale.vx                          = amount;
     ScaleMatrix(matrix, &scratch->scale);
-    scratch->translation.vx = matrix->t[0];
-    scratch->translation.vy = matrix->t[1];
-    scratch->translation.vz = matrix->t[2];
+    scratch->trans.vx = matrix->t[0];
+    scratch->trans.vy = matrix->t[1];
+    scratch->trans.vz = matrix->t[2];
     gte_lddp(amount);
     vec = (SVECTOR*)head - 1;
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    matrix->t[0]                               = scratch->translation.vx;
-    matrix->t[1]                               = scratch->translation.vy;
-    matrix->t[2]                               = scratch->translation.vz;
-    *(Actor00100ScaleScratch**)G_SCRATCH_HEAD += 1;
+    matrix->t[0]                                = scratch->trans.vx;
+    matrix->t[1]                                = scratch->trans.vy;
+    matrix->t[2]                                = scratch->trans.vz;
+    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD += 1;
 }
 
 static __inline__ s16 Actor00100_HasRecord10(Task* actor)
