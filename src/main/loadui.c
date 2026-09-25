@@ -11,19 +11,19 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
     s8             param2[4];
     u8*            param1;
-    void*          head;
+    u8*            head;
     register void* temp asm("v0");
     u8             f74;
 
-    head               = SCRATCH_HEAD(void);
-    temp               = (u8*)head - 8;
+    head               = SCRATCH_HEAD(u8);
+    temp               = head - 8;
     param1             = temp;
     SCRATCH_HEAD(void) = temp;
 
-    param1[2]       = 2;
-    param1[3]       = 0;
-    ((u8*)head)[-8] = arg1;
-    param2[0]       = arg0;
+    param1[2] = 2;
+    param1[3] = 0;
+    head[-8]  = arg1;
+    param2[0] = arg0;
 
     if ((u8)arg2 < 5) {
         switch ((u8)arg2) {

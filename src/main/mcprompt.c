@@ -357,43 +357,37 @@ void func_80030AB0(McWork* work)
     *(u16*)&Mc_SaveData.bufferChecksumInv = 0xFFFF;
 }
 
-/* Overlay: DIRENTRY.size/head at McWork+0x48/0x50 when walk starts at McWork. */
-typedef struct {
-    u8  _pad[0x48];
-    s32 size;
-    s32 _pad4C;
-    s32 head;
-} McDirWalk;
-
 void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 {
-    s32                 ret;
-    s32                 one;
-    s32                 j;
-    UiObject*           obj;
-    McPromptPair*       prompt;
-    McPromptPair*       base;
-    s32                 idx;
-    s32                 i;
-    register McDirWalk* walk asm("t0");
-    s32                 val;
-    u8*                 p;
-    s32                 fill;
-    register s32        size asm("v0");
-    s32                 head;
-    register s32        headAdj asm("a2");
-    register s32        sizeAdj asm("v1");
-    register s32        blocks asm("a1");
-    register s32        start asm("a0");
-    s32                 new28c;
-    register s32        n asm("v1");
+    s32           ret;
+    s32           one;
+    s32           j;
+    UiObject*     obj;
+    McPromptPair* prompt;
+    McPromptPair* base;
+    s32           idx;
+    s32           i;
+    s32           val;
+    u8*           p;
+    s32           fill;
+    register s32  size asm("v0");
+    s32           head;
+    register s32  headAdj asm("a2");
+    register s32  sizeAdj asm("v1");
+    register s32  blocks asm("a1");
+    register s32  start asm("a0");
+    s32           new28c;
+    register s32  n asm("v1");
 
     arg1->field_4 -= 1;
     if (arg1->field_4 == 0) {
         arg1->field_288 = 0;
         val             = -1;
         i               = 0xE;
-        p               = (u8*)arg1 + i;
+        /* Clears field_A24 through a byte cursor on the work base: indexing the
+         * member hoists its offset into the cursor, where this keeps it in the
+         * store. */
+        p = (u8*)arg1 + i;
         do {
             p[0xA24] = val;
             i       -= 1;
@@ -402,7 +396,7 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 
         i = 0xF;
         MemCardGetDirentry(
-            arg1->field_C, D_80013A5C, (struct DIRENTRY*)arg1->field_30, &arg1->field_288, 0,
+            arg1->field_C, D_80013A5C, arg1->field_30, &arg1->field_288, 0,
             i);
 
         arg1->field_28C = 0;
@@ -410,10 +404,9 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
             i = 0;
             if (arg1->field_288 > 0) {
                 fill = -2;
-                walk = (McDirWalk*)arg1;
                 do {
-                    size = walk->size;
-                    head = walk->head;
+                    size = arg1->field_30[i].size;
+                    head = arg1->field_30[i].head;
 
                     sizeAdj = size;
                     if (size < 0) {
@@ -436,7 +429,6 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
                         } while (j < blocks);
                     }
 
-                    walk            = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
                     i              += 1;
                     new28c          = arg1->field_28C + blocks;
                     n               = arg1->field_288;
@@ -475,7 +467,7 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
 
     arg1->field_288 = 0;
     MemCardGetDirentry(
-        arg1->field_C, (char*)D_80060DC8, (struct DIRENTRY*)arg1->field_30, &arg1->field_288, 0,
+        arg1->field_C, (char*)D_80060DC8, arg1->field_30, &arg1->field_288, 0,
         0xF);
     temp_v0         = arg1->field_28C - arg1->field_288;
     arg1->field_28C = temp_v0;
@@ -491,7 +483,7 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
                 var_s0 = 0;
                 if (temp_v0_2 > 0) {
                     do {
-                        if (strncmp(arg1->field_30[var_s0], (char*)Mc_FileName, 0x14) == 0) {
+                        if (strncmp(arg1->field_30[var_s0].name, (char*)Mc_FileName, 0x14) == 0) {
                             arg1->field_290 = var_s0;
                             break;
                         }
@@ -519,7 +511,7 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
             s32          temp_v0_4;
 
             for (var_a0 = 0; var_a0 < arg1->field_288; var_a0++) {
-                temp_v0_4 = ((struct DIRENTRY*)arg1->field_30)[var_a0].head;
+                temp_v0_4 = arg1->field_30[var_a0].head;
                 var_v1    = temp_v0_4;
                 if (temp_v0_4 < 0) {
                     var_v1 = temp_v0_4 + 0x3F;
@@ -608,7 +600,7 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                         s32 i;
                         s32 j;
 
-                        src        = (u8*)arg1->field_30[saved->field_2C];
+                        src        = (u8*)arg1->field_30[saved->field_2C].name;
                         name       = Mc_FileName;
                         matchCount = 0x14;
                         walk       = name;

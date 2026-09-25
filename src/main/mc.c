@@ -666,7 +666,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
                 Ui_TeardownTree(childObj, childObj->owner);
                 saved->status = 1;
                 if (saved->field_2C >= 0) {
-                    src = (u8*)work->field_30[saved->field_2C];
+                    src = (u8*)work->field_30[saved->field_2C].name;
                     dst = Mc_FileName;
                     i   = 0;
                     do {
@@ -2396,7 +2396,7 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     openIdx = a1->field_A14;
     MemCardClose();
     a0           = arg0;
-    openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx], 1);
+    openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx].name, 1);
     a1->field_14 = openResult;
     if (openResult == 0) {
         a1->field_4 = 0;
@@ -2907,7 +2907,7 @@ void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
     if (arg1->field_4 == 0) {
         arg1->field_288 = 0;
         MemCardGetDirentry(
-            arg1->field_C, (char*)D_80060DC8, (struct DIRENTRY*)arg1->field_30, &arg1->field_288, 0,
+            arg1->field_C, (char*)D_80060DC8, arg1->field_30, &arg1->field_288, 0,
             0xF);
         if (arg1->field_288 != 0) {
             arg1->field_290 = 0;
@@ -2945,7 +2945,7 @@ void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
     openIdx = a1->field_A14;
     MemCardClose();
     a0           = arg0;
-    openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx], 1);
+    openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx].name, 1);
     a1->field_14 = openResult;
     if (openResult == 0) {
         a1->field_4 = 0;

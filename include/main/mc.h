@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/kernel.h>
+
 #include "main/session.h"
 #include "main/task.h"
 
@@ -26,7 +28,7 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// field_18 is a source buffer pointer for Mc_WriteDataChecksum when mode != 0
 /// and the adrs for MemCardWriteData. field_1C is the sector/offset (shifted
 /// left by 7 for MemCardWriteData ofs); field_20 is the byte count.
-/// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
+/// field_30 is the memory card directory listing
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
 /// field_A14 walks (Mc_StateOpenNext / Mc_StateWalkDirectory). field_28C is free-block
 /// count (updated as field_28C - field_288 after a directory listing in
@@ -41,29 +43,29 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// (index = DIRENTRY.head / 64); field_A20 is a separate word flag (Mc_ResetWork
 /// / Mc_StateInitWorkDefaults) whose high byte is the first map slot.
 typedef struct _McWork {
-    /* 0x000 */ s32           field_0;
-    /* 0x004 */ s32           field_4;
-    /* 0x008 */ s32           field_8;
-    /* 0x00C */ s32           field_C;
-    /* 0x010 */ s32           field_10;
-    /* 0x014 */ s32           field_14;
-    /* 0x018 */ s32           field_18;
-    /* 0x01C */ s32           field_1C;
-    /* 0x020 */ s32           field_20;
-    /* 0x024 */ s32           field_24;
-    /* 0x028 */ s32           field_28;
-    /* 0x02C */ s32           field_2C;
-    /* 0x030 */ char          field_30[15][0x28];
-    /* 0x288 */ s32           field_288;
-    /* 0x28C */ s32           field_28C;
-    /* 0x290 */ s32           field_290;
-    /* 0x294 */ unsigned long field_294[15][0x20];
-    /* 0xA14 */ s32           field_A14;
-    /* 0xA18 */ s32           field_A18;
-    /* 0xA1C */ u16           field_A1C;
-    /* 0xA1E */ u16           field_A1E;
-    /* 0xA20 */ s32           field_A20;
-    /* 0xA24 */ u8            field_A24[0x10];
+    /* 0x000 */ s32             field_0;
+    /* 0x004 */ s32             field_4;
+    /* 0x008 */ s32             field_8;
+    /* 0x00C */ s32             field_C;
+    /* 0x010 */ s32             field_10;
+    /* 0x014 */ s32             field_14;
+    /* 0x018 */ s32             field_18;
+    /* 0x01C */ s32             field_1C;
+    /* 0x020 */ s32             field_20;
+    /* 0x024 */ s32             field_24;
+    /* 0x028 */ s32             field_28;
+    /* 0x02C */ s32             field_2C;
+    /* 0x030 */ struct DIRENTRY field_30[15];
+    /* 0x288 */ s32             field_288;
+    /* 0x28C */ s32             field_28C;
+    /* 0x290 */ s32             field_290;
+    /* 0x294 */ unsigned long   field_294[15][0x20];
+    /* 0xA14 */ s32             field_A14;
+    /* 0xA18 */ s32             field_A18;
+    /* 0xA1C */ u16             field_A1C;
+    /* 0xA1E */ u16             field_A1E;
+    /* 0xA20 */ s32             field_A20;
+    /* 0xA24 */ u8              field_A24[0x10];
 } McWork;
 
 /// One row of an item table: the item it holds, the attachment slot that item
