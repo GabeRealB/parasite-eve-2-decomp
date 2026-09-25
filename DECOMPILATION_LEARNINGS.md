@@ -140525,3 +140525,15 @@ The same function was also an inline helper shared three times: each draw
 pass's per-coordinate block was `_gpUpdateCoordTree`'s body inlined with
 `root = NULL`, and the helper's parameter copies were what the pins had been
 imitating (the block-scoped macro form scored 90-93%).
+
+## Merged branch tails look like hand-written gotos; `break` vs `return` decides which copy survives (Fs_ProcessChunkHeader, 2026-09-25)
+
+A switch whose target shares one error tail between several cases was matched
+with gotos and some twenty asm blocks carrying the control flow. The sharing
+is GCC's cross-jumping (`jump.c`), which merges identical code at the end of
+branches: write each case out in full and let the compiler merge them. Which
+copy survives depends on how the paths leave: with `Fs_OnCdError(0); break;`
+the cases fold into the last case's copy as in the target, while `return 0;`
+keeps the first case's copy instead. Ordinary exits `break` to one return after
+the switch. When the target has one shared tail that several cases jump to,
+suspect cross-jumping before writing gotos.
