@@ -386,7 +386,6 @@ extern s32                    D_shelter_b3_dumping_hole_8018F4D8;
 extern s32                    D_shelter_b3_dumping_hole_8018965C;
 extern s32                    D_shelter_b3_dumping_hole_8018968C;
 extern s32                    D_shelter_b3_dumping_hole_801899A4;
-extern u16                    D_801153F6;
 extern TaskDesc               D_shelter_b3_dumping_hole_8018AFBC;
 extern DumpingHoleSpawnElem*  D_shelter_b3_dumping_hole_8018F4BC;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
@@ -2174,7 +2173,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
     DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
     if (p->field_9C == 0) {
         Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 0x20);
-        D_801153F6               = 0;
+        Gp_StateF0.field_6       = 0;
         gGameSession->flowFlags |= 0x80;
         p->field_9C              = 1;
     }

@@ -30,8 +30,6 @@
 extern s32 D_80115738;
 extern s32 D_8011574C;
 
-extern u16 D_801153F6;
-
 /// The room's frame countdown at `D_neo_ark_woodland_path_8018498E`. Signed,
 /// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
 /// it, `func_...80180DDC` counts it down): a load whose result is truncated by
@@ -880,7 +878,7 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
                 if (D_neo_ark_woodland_path_8018494C[0] < v) {
                     ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_8018494C[0];
                 }
-                if (D_801153F6 >= 2) {
+                if (Gp_StateF0.field_6 >= 2) {
                     Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     D_neo_ark_woodland_path_80184996 = 1;
@@ -955,11 +953,11 @@ void func_neo_ark_woodland_path_801806D8(Task* task)
     if (D_neo_ark_woodland_path_8018498E > 0) {
         D_neo_ark_woodland_path_8018498E--;
     }
-    if (D_neo_ark_woodland_path_80184996 == 1 && D_801153F6 >= 2) {
+    if (D_neo_ark_woodland_path_80184996 == 1 && Gp_StateF0.field_6 >= 2) {
         D_neo_ark_woodland_path_80184996 = 0;
         Gp_ReleaseStateF0(task, 0xD);
     }
-    if (D_801153F6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
+    if (Gp_StateF0.field_6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
         D_neo_ark_woodland_path_8018498E = 0x96;
         a                                = GameFlag_GetNibble(0x168);
         b                                = GameFlag_GetNibble(0x10C);
@@ -1140,7 +1138,7 @@ void func_neo_ark_woodland_path_80180DDC(Task* task)
     if (D_neo_ark_woodland_path_8018498E > 0) {
         D_neo_ark_woodland_path_8018498E--;
     }
-    if (D_801153F6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
+    if (Gp_StateF0.field_6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {

@@ -38,7 +38,6 @@ extern u8  D_80072729;
 extern PlayerStatus D_80073B08[];
 extern MATRIX*      D_80073B8C;
 extern s16          D_80114D08;
-extern u16          D_801153F6;
 extern s32          D_80115738;
 extern s32          D_8011574C;
 
@@ -3824,7 +3823,7 @@ void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker)
 /// (the bridge is being lowered) restores the model's default flag set while
 /// the enemy is still in one of its first three spawn variants, and message
 /// 0x0E01/2 (the bridge run has ended) decides whether the enemy is armed for
-/// this variant: variant 0 needs `D_801153F6` to be set at all, variant 1 needs
+/// this variant: variant 0 needs `Gp_StateF0.field_6` to be set at all, variant 1 needs
 /// it to be at least 2 and variant 2 at least 3. When it is, the enemy and the
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
@@ -3853,19 +3852,19 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, AcropolisBridgeMsg7DB*
             variant = enemy->placeKey >> 12;
             switch (variant) {
                 case 0:
-                    if (D_801153F6 != 0) {
+                    if (Gp_StateF0.field_6 != 0) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 1:
-                    if (D_801153F6 >= 2) {
+                    if (Gp_StateF0.field_6 >= 2) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 2:
-                    if (D_801153F6 < 3) {
+                    if (Gp_StateF0.field_6 < 3) {
                         goto reset;
                     }
                     break;
@@ -4119,7 +4118,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     head3                 = *(u8**)(head3 + 0x3FC);
     *(u8**)G_SCRATCH_HEAD = head3 + 0x10;
     axisY                 = 1;
-    if (D_801153F6 < 3) {
+    if (Gp_StateF0.field_6 < 3) {
         ((void (*)(s32))Gp_IncStateF0Ref)(0);
     }
     if (gGameSession->at4.loc.room == 2) {
@@ -4892,7 +4891,7 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         if (work->field_10C > 0) {
             return;
         }
-        if (D_801153F6 != 0) {
+        if (Gp_StateF0.field_6 != 0) {
             Gp_ReleaseStateF0Add(task, 0x29);
         }
         if (work->field_10C > 0) {
@@ -5055,7 +5054,7 @@ hitTaken:
     D_acropolis_bridge_8019175C[work->field_0](task);
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->hitRecs[0]);
-    if (D_801153F6 == 0) {
+    if (Gp_StateF0.field_6 == 0) {
         if ((u32)((u16)work->field_0 - 5) >= 2U) {
             work->field_0 = 0;
         }

@@ -15,8 +15,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern u16 D_801153F6;
-
 /// Four-byte payload of message 0x7DB: a sender id, which the room writes as
 /// two bytes (0x05, 0x0B for its spawn messages) and its own handler reads as
 /// one halfword (0xB05), followed by a halfword command.
@@ -136,7 +134,7 @@ void func_neo_ark_forest_zone_801803B4(Task* task, s32 arg1, s32 arg2)
                 if (D_neo_ark_forest_zone_80182D20[0] < v) {
                     ((s16*)D_neo_ark_forest_zone_80182E54)[i] = D_neo_ark_forest_zone_80182D20[0];
                 }
-                if (D_801153F6 >= 2) {
+                if (Gp_StateF0.field_6 >= 2) {
                     Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     D_neo_ark_forest_zone_80182D6A = 1;
@@ -209,11 +207,11 @@ void func_neo_ark_forest_zone_80180620(Task* task)
     if (D_neo_ark_forest_zone_80182D62 > 0) {
         D_neo_ark_forest_zone_80182D62--;
     }
-    if (D_neo_ark_forest_zone_80182D6A == 1 && D_801153F6 >= 2) {
+    if (D_neo_ark_forest_zone_80182D6A == 1 && Gp_StateF0.field_6 >= 2) {
         D_neo_ark_forest_zone_80182D6A = 0;
         Gp_ReleaseStateF0(task, 0xD);
     }
-    if (D_801153F6 == 0 && D_neo_ark_forest_zone_80182DC4 > 0) {
+    if (Gp_StateF0.field_6 == 0 && D_neo_ark_forest_zone_80182DC4 > 0) {
         D_neo_ark_forest_zone_80182D62 = 0x96;
         a                              = GameFlag_GetNibble(0x168);
         b                              = GameFlag_GetNibble(0x10C);
@@ -382,7 +380,7 @@ void func_neo_ark_forest_zone_80180D24(Task* arg0)
     if (D_neo_ark_forest_zone_80182D62 > 0) {
         D_neo_ark_forest_zone_80182D62--;
     }
-    if (D_801153F6 == 0 && D_neo_ark_forest_zone_80182DC4 > 0) {
+    if (Gp_StateF0.field_6 == 0 && D_neo_ark_forest_zone_80182DC4 > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {

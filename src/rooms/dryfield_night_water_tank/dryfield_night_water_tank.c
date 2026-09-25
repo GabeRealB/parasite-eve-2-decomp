@@ -51,7 +51,6 @@ extern _DryfieldNightWaterTankLayout D_dryfield_night_water_tank_8017F4B0;
 extern GpAreaApplyRec D_dryfield_night_water_tank_801808B0;
 
 /// Main-executable halfword the second state waits on before it may advance.
-extern u16 D_801153F6;
 
 /// Script blobs handed to `func_800E8634` (which forwards them to `Task_Spawn`)
 /// as raw addresses.
@@ -95,7 +94,7 @@ void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 /// Exit task of the night water-tank room, in the shape the other rooms' wait
 /// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of
 /// `gGameSession::flowFlags` once `Gp_StateF0` has reached 1, then advances;
-/// state 1 advances to 2 as soon as the halfword at `D_801153F6` clears; state
+/// state 1 advances to 2 as soon as the halfword at `Gp_StateF0.field_6` clears; state
 /// 2 runs the room's ending -- apply the area records, set flags 0x7B, 0x83,
 /// 0x155 and 3, spawn the script `func_800E8634` is handed -- and kills the
 /// task, or, while `gGameSession::field_126` is still clear, just ticks
@@ -113,7 +112,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
             }
             return;
         case 1:
-            if (D_801153F6 == 0) {
+            if (Gp_StateF0.field_6 == 0) {
                 task->state = 2;
                 return;
             }

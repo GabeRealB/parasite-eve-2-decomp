@@ -55,7 +55,6 @@ extern s8  D_8007106B;
 extern s8  D_8007217B;
 extern s8  D_8007218B;
 extern s8  D_80114C12;
-extern s16 D_801153F6;
 extern u8  D_80115690;
 extern u8  D_801156F9;
 extern s32 D_8011572C;
@@ -1875,10 +1874,10 @@ void func_mine_mesa_80181358(Task* arg0)
         return;
     }
 end:
-    D_8007217B      = 0;
-    arg0->spawnArg2 = &result;
-    result.param    = NULL;
-    D_801153F6      = 1;
+    D_8007217B         = 0;
+    arg0->spawnArg2    = &result;
+    result.param       = NULL;
+    Gp_StateF0.field_6 = 1;
     Gp_ReleaseStateF0(arg0, 0);
     D_80062735 = 1;
     arg0->state++;
