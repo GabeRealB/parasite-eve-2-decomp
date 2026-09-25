@@ -327,8 +327,8 @@ typedef struct _GpFxQuadScratch {
     /* 0x0C */ s32     flag;
     /* 0x10 */ s32     dx;
     /* 0x14 */ s32     dy;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
 } GpFxQuadScratch;
 STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
 
@@ -342,8 +342,8 @@ typedef struct _GpArcScratch {
     /* 0x0C */ s32     flag;
     /* 0x10 */ s32     inner;
     /* 0x14 */ s32     outer;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
 } GpArcScratch;
 STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
 

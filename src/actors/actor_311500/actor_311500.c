@@ -592,23 +592,23 @@ s32 func_actor_311500_801630A4(Task* arg0)
                 scale.vz = 0x1000;
                 ScaleMatrix(&mtx, &scale);
 
-                m22                  = *(u16*)&mtx.m[0][0];
+                m22                  = (u16)mtx.m[0][0];
                 coord->coord.m[0][0] = m22;
-                m22                  = *(u16*)&mtx.m[0][1];
+                m22                  = (u16)mtx.m[0][1];
                 coord->coord.m[0][1] = m22;
-                m22                  = *(u16*)&mtx.m[0][2];
+                m22                  = (u16)mtx.m[0][2];
                 coord->coord.m[0][2] = m22;
-                m22                  = *(u16*)&mtx.m[1][0];
+                m22                  = (u16)mtx.m[1][0];
                 coord->coord.m[1][0] = m22;
-                m22                  = *(u16*)&mtx.m[1][1];
+                m22                  = (u16)mtx.m[1][1];
                 coord->coord.m[1][1] = m22;
-                m22                  = *(u16*)&mtx.m[1][2];
+                m22                  = (u16)mtx.m[1][2];
                 coord->coord.m[1][2] = m22;
-                m22                  = *(u16*)&mtx.m[2][0];
+                m22                  = (u16)mtx.m[2][0];
                 coord->coord.m[2][0] = m22;
-                m22                  = *(u16*)&mtx.m[2][1];
+                m22                  = (u16)mtx.m[2][1];
                 coord->coord.m[2][1] = m22;
-                m22                  = *(u16*)&mtx.m[2][2];
+                m22                  = (u16)mtx.m[2][2];
                 coord->flg           = 0;
                 coord->coord.m[2][2] = m22;
             }

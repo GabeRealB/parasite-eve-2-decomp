@@ -275,17 +275,17 @@ void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* a
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec0.vz = *(u16*)&block->vec0.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec0.vx = (u16)block->vec0.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec0.vy = (u16)block->vec0.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec0.vz = (u16)block->vec0.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec1.vz = *(u16*)&block->vec1.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec1.vx = (u16)block->vec1.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec1.vy = (u16)block->vec1.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec1.vz = (u16)block->vec1.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
@@ -415,17 +415,17 @@ void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* a
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec0.vz = *(u16*)&block->vec0.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec0.vx = (u16)block->vec0.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec0.vy = (u16)block->vec0.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec0.vz = (u16)block->vec0.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec1.vz = *(u16*)&block->vec1.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec1.vx = (u16)block->vec1.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec1.vy = (u16)block->vec1.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec1.vz = (u16)block->vec1.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);

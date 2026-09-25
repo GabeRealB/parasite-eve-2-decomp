@@ -514,9 +514,9 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             s32 t1e     = W->field_1E + 1;
             W->field_1E = t1e;
             if (D_shelter_b3_dumping_hole_80188154[W->field_1C] < (s16)t1e) {
-                *(u16*)&W->field_1C = *(u16*)&W->field_1C + 1;
-                W->field_1E         = 0;
-                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                (u16) W->field_1C = (u16)W->field_1C + 1;
+                W->field_1E       = 0;
+                if ((u16)D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
                     taskKill((Task*)arg0);
                     return;
                 }
@@ -566,7 +566,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     s16                  scale = 0x1000;
     s32                  otz   = 0x3E8;
 
-    if (*(u16*)&((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_44 == 1) {
+    if ((u16)((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_44 == 1) {
         taskKill(arg0);
         return;
     }
@@ -598,9 +598,9 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
             s32 t1e     = W->field_1E + 1;
             W->field_1E = t1e;
             if (D_shelter_b3_dumping_hole_8018816C[W->field_1C] < (s16)t1e) {
-                *(u16*)&W->field_1C = *(u16*)&W->field_1C + 1;
-                W->field_1E         = 0;
-                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                (u16) W->field_1C = (u16)W->field_1C + 1;
+                W->field_1E       = 0;
+                if ((u16)D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
                     taskKill(arg0);
                     return;
                 }
@@ -660,7 +660,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
     s16                  var0;
     s16                  delta;
 
-    if (*(u16*)&((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_48 == 1) {
+    if ((u16)((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_48 == 1) {
         taskKill(arg0);
         return;
     }
@@ -703,10 +703,10 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             } else {
                 if (sa1 < 0) {
                     Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = *(u16*)&work->field_18 + ((u16)arg0->spawnArg1 - ((Gp_LcgState >> 16) & 1));
+                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1 - ((Gp_LcgState >> 16) & 1));
                 } else {
                     Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = *(u16*)&work->field_18 + ((u16)arg0->spawnArg1 + ((Gp_LcgState >> 16) & 1));
+                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1 + ((Gp_LcgState >> 16) & 1));
                 }
                 work->field_18 = delta;
             }
@@ -726,9 +726,9 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             s32 t1e        = work->field_1E + 1;
             work->field_1E = t1e;
             if (D_shelter_b3_dumping_hole_80188184[work->field_1C] < (s16)t1e) {
-                *(u16*)&work->field_1C = *(u16*)&work->field_1C + 1;
-                work->field_1E         = 0;
-                if (*(u16*)&D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0 == 0xFFFF) {
+                (u16) work->field_1C = (u16)work->field_1C + 1;
+                work->field_1E       = 0;
+                if ((u16)D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0 == 0xFFFF) {
                     taskKill(arg0);
                     return;
                 }
@@ -3970,17 +3970,17 @@ void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s1
         setUV4(prim, u0, v0 + 0x68, u0 + 0x2F, v0 + 0x68, u0, v0 - 0x69, u0 + 0x2F, v0 - 0x69);
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -4039,17 +4039,17 @@ void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s1
         setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -4233,17 +4233,17 @@ void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s1
         setUV4(prim, u0, v, u1, v, u0, 0xFF, u1, 0xFF);
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
         ang2      = ang + 0x400;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -4317,14 +4317,14 @@ void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
         prim->u0    = tex;
         prim->u2    = tex;
         block->step = (t - sarg) / block->otz;
-        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        xy          = (u16)block->sx - *(u16*)&block->step;
         prim->x0 = prim->x2 = xy;
-        xy                  = *(u16*)&block->sx + *(u16*)&block->step;
+        xy                  = (u16)block->sx + *(u16*)&block->step;
         prim->x1 = prim->x3 = xy;
-        xy                  = (*(u16*)&block->sy - *(u16*)&block->step) - (block->step >> 1);
+        xy                  = ((u16)block->sy - *(u16*)&block->step) - (block->step >> 1);
         ds                  = &gDisplayState;
         prim->y0 = prim->y1 = xy;
-        xy                  = *(u16*)&block->sy + (block->step >> 1);
+        xy                  = (u16)block->sy + (block->step >> 1);
         prim->y2 = prim->y3 = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),

@@ -315,17 +315,17 @@ void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
         span      = (s16)arg2 * 0x2F;
         block->dx = ((span / block->otz) * sine) >> 12;
         block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
         block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -402,17 +402,17 @@ void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
         span      = (s16)arg2 * 0x2F;
         block->dx = ((span / block->otz) * sine) >> 12;
         block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
         block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

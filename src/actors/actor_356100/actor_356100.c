@@ -831,17 +831,17 @@ s32 func_actor_356100_80162C90(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
+            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
-            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
+            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
-            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
 
             d = st->angle[st->i];
             if (st->angle[st->i] < 0) {
@@ -2192,17 +2192,17 @@ void func_actor_356100_80167358(Task* arg0)
             blk->scale.vy = (s32)(s16)sy;
             blk->scale.vz = k;
             ScaleMatrix(&blk->m, &((ActorScaleRotScratch*)(head - 0x34))->scale);
-            coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
-            coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
-            coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
-            coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
-            coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
-            coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
-            coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
-            coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+            coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
+            coord->coord.m[0][1] = (u16)blk->m.m[0][1];
+            coord->coord.m[0][2] = (u16)blk->m.m[0][2];
+            coord->coord.m[1][0] = (u16)blk->m.m[1][0];
+            coord->coord.m[1][1] = (u16)blk->m.m[1][1];
+            coord->coord.m[1][2] = (u16)blk->m.m[1][2];
+            coord->coord.m[2][0] = (u16)blk->m.m[2][0];
+            coord->coord.m[2][1] = (u16)blk->m.m[2][1];
             __asm__ volatile("lui %0, 0x1F80" : "=r"(tail));
             tail       = *(u8**)(tail + 0x3FC);
-            m22        = *(u16*)&blk->m.m[2][2];
+            m22        = (u16)blk->m.m[2][2];
             coord->flg = 0;
             tail       = tail + 0x34;
             __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");

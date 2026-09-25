@@ -188,17 +188,17 @@ void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
         block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

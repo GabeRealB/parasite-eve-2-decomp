@@ -329,15 +329,15 @@ void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(t)) >> 12);
+            prim->x1 = block->sx + ((block->inner * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->inner * rcos(t)) >> 12);
+            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->outer * rsin(t)) >> 12);
+            prim->y3 = block->sy + ((block->outer * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -510,17 +510,17 @@ void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -576,8 +576,8 @@ void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
     extent                              = arg3;
     t                                  += (u16)arg1[0];
     block->v1.vx                        = t;
-    block->v1.vy                        = *(u16*)&block->v1.vy + (u16)arg1[1];
-    block->v1.vz                        = *(u16*)&block->v1.vz + (u16)arg1[2];
+    block->v1.vy                        = (u16)block->v1.vy + (u16)arg1[1];
+    block->v1.vz                        = (u16)block->v1.vz + (u16)arg1[2];
     SCRATCH_HEAD(ApobiosisShardScratch) = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -619,17 +619,17 @@ void func_apobiosis_80130630(GpCoord* arg0, s16* arg1, s16 arg2, s16 arg3)
             ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
             block->dx = (((extent * 0x17) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((extent * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = *(u16*)&block->sx0 + *(u16*)&block->dx;
-            prim->x3  = *(u16*)&block->sx1 - *(u16*)&block->dx;
-            prim->y0  = *(u16*)&block->sy0 - *(u16*)&block->dy;
+            prim->x0  = (u16)block->sx0 + *(u16*)&block->dx;
+            prim->x3  = (u16)block->sx1 - *(u16*)&block->dx;
+            prim->y0  = (u16)block->sy0 - *(u16*)&block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = *(u16*)&block->sy1 + *(u16*)&block->dy;
+            prim->y3  = (u16)block->sy1 + *(u16*)&block->dy;
             block->dx = (((extent * 0x17) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((extent * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = *(u16*)&block->sx1 + *(u16*)&block->dx;
-            prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
-            prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
-            prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sx1 + *(u16*)&block->dx;
+            prim->x2  = (u16)block->sx0 - *(u16*)&block->dx;
+            prim->y1  = (u16)block->sy1 - *(u16*)&block->dy;
+            prim->y2  = (u16)block->sy0 + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

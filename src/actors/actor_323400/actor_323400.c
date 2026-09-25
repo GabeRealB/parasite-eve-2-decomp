@@ -372,17 +372,17 @@ s32 func_actor_323400_80162BD0(GpCoord* coord, GpRec18* recs, s16 count, s16 pus
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
+            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
-            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
+            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
-            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
 
             d = st->angle[st->i];
             if (st->angle[st->i] < 0) {

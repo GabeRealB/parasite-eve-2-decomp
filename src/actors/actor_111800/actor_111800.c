@@ -319,7 +319,7 @@ void func_actor_111800_8013251C(Task* task)
             break;
     }
     extra  = task->extra.tmd;
-    angle  = *(u16*)&work->field_494;
+    angle  = (u16)work->field_494;
     coords = extra->coords;
     part   = coords + 5;
     Actor111800_Accumulate(part, &mtx, &coords[5].coord);

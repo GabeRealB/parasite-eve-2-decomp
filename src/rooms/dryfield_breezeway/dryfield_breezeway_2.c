@@ -1571,9 +1571,9 @@ void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 ar
     gte_ldv0(data);
     gte_rtv0();
     gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
-    block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&coord->workm.t[0];
-    block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&coord->workm.t[1];
-    block->vec.vz = *(u16*)&block->vec.vz + *(u16*)&coord->workm.t[2];
+    block->vec.vx = (u16)block->vec.vx + *(u16*)&coord->workm.t[0];
+    block->vec.vy = (u16)block->vec.vy + *(u16*)&coord->workm.t[1];
+    block->vec.vz = (u16)block->vec.vz + *(u16*)&coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -1977,16 +1977,16 @@ void func_dryfield_breezeway_80181938(Task* task, u8* color)
         prim->v3    = 0xFF;
         block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz)) >> 12;
         block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz)) >> 12;
-        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0    = block->sx + *(u16*)&block->dx;
+        prim->x3    = block->sx - *(u16*)&block->dx;
+        prim->y0    = block->sy - *(u16*)&block->dy;
+        prim->y3    = block->sy + *(u16*)&block->dy;
         block->dx   = (((work->pos.vx * 0x17) / block->otz) * rsin(work->pos.vz + 0x400)) >> 12;
         block->dy   = (((work->pos.vx * 0x17) / block->otz) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + *(u16*)&block->dx;
+        prim->x2    = block->sx - *(u16*)&block->dx;
+        prim->y1    = block->sy - *(u16*)&block->dy;
+        prim->y2    = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     SCRATCH_POP_BYTES(0x1C);

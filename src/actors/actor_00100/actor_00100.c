@@ -2040,7 +2040,7 @@ void Actor00100_Fn04270(Task* argx)
         blk->scale.vy = (s16)sy;
         blk->scale.vz = k1000;
         ScaleMatrix(&blk->m, &blk->scale);
-        coords[0].coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(h - 0x34))->m.m[0][0];
+        coords[0].coord.m[0][0] = (u16)((ActorScaleRotScratch*)(h - 0x34))->m.m[0][0];
     } else {
         register u8* h2 asm("s2");
         TmdObject*   o2;
@@ -2060,15 +2060,15 @@ void Actor00100_Fn04270(Task* argx)
         blk->scale.vy = 0;
         blk->scale.vz = 0x1000;
         ScaleMatrix(&blk->m, &blk->scale);
-        coords[0].coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)(h2 - 0x34))->m.m[0][0];
+        coords[0].coord.m[0][0] = (u16)((ActorScaleRotScratch*)(h2 - 0x34))->m.m[0][0];
     }
-    coords[0].coord.m[0][1] = *(u16*)&blk->m.m[0][1];
-    coords[0].coord.m[0][2] = *(u16*)&blk->m.m[0][2];
-    coords[0].coord.m[1][0] = *(u16*)&blk->m.m[1][0];
-    coords[0].coord.m[1][1] = *(u16*)&blk->m.m[1][1];
-    coords[0].coord.m[1][2] = *(u16*)&blk->m.m[1][2];
-    coords[0].coord.m[2][0] = *(u16*)&blk->m.m[2][0];
-    coords[0].coord.m[2][1] = *(u16*)&blk->m.m[2][1];
+    coords[0].coord.m[0][1] = (u16)blk->m.m[0][1];
+    coords[0].coord.m[0][2] = (u16)blk->m.m[0][2];
+    coords[0].coord.m[1][0] = (u16)blk->m.m[1][0];
+    coords[0].coord.m[1][1] = (u16)blk->m.m[1][1];
+    coords[0].coord.m[1][2] = (u16)blk->m.m[1][2];
+    coords[0].coord.m[2][0] = (u16)blk->m.m[2][0];
+    coords[0].coord.m[2][1] = (u16)blk->m.m[2][1];
     {
         register u8* h3;
         u8*          top;
@@ -2076,7 +2076,7 @@ void Actor00100_Fn04270(Task* argx)
 
         h3                      = PSX_SCRATCH;
         top                     = *(u8**)(h3 + 0x3FC);
-        m22                     = *(u16*)&blk->m.m[2][2];
+        m22                     = (u16)blk->m.m[2][2];
         coords[0].flg           = 0;
         SCRATCH_HEAD(u8)        = top + 0x34;
         coords[0].coord.m[2][2] = m22;

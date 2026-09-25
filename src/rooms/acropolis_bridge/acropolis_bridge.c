@@ -2121,10 +2121,10 @@ void func_acropolis_bridge_801819C8(Task* task)
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);
-        *(u16*)&block->vec[i].vx = *(u16*)&coord->workm.t[0];
+        (u16) block->vec[i].vx = *(u16*)&coord->workm.t[0];
         i++;
-        *(u16*)&v->vy = *(u16*)&coord->workm.t[1];
-        *(u16*)&v->vz = *(u16*)&coord->workm.t[2];
+        (u16) v->vy = *(u16*)&coord->workm.t[1];
+        (u16) v->vz = *(u16*)&coord->workm.t[2];
     } while (i < 4);
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2430,10 +2430,10 @@ void func_acropolis_bridge_801827EC(GpCoord* arg0, s32 arg1, s16 arg2)
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
-        *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
+        (u16) blk->v[i].vx = (u16)blk->v[i].vx + *(u16*)&coord->workm.t[0];
+        (u16) sv->vy       = (u16)sv->vy + *(u16*)&coord->workm.t[1];
         i++;
-        *(u16*)&sv->vz = *(u16*)&sv->vz + *(u16*)&coord->workm.t[2];
+        (u16) sv->vz = (u16)sv->vz + *(u16*)&coord->workm.t[2];
     } while (i < 4);
 
     gte_SetRotMatrix(&GsWSMATRIX);

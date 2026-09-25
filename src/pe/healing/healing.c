@@ -357,16 +357,16 @@ void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->v0    = 0;
         prim->v1    = 0;
         block->step = (arg2 * 0x17) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -383,16 +383,16 @@ void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setRGB0(prim, arg3, arg3, arg3);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
         block->step = ((arg2 >> 1) * 0x37) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +

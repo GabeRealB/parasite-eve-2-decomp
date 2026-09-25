@@ -902,11 +902,11 @@ void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + *(u16*)&arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + *(u16*)&arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -936,14 +936,14 @@ void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
         prim->u3 = 0x37;
         prim->v3 = 0x6F;
         setSemiTrans(prim, 1);
-        prim->x0 = *(u16*)&block->sxy0.vx;
-        prim->y0 = *(u16*)&block->sxy0.vy;
-        prim->x1 = *(u16*)&block->sxy1.vx;
-        prim->y1 = *(u16*)&block->sxy1.vy;
-        prim->x2 = *(u16*)&block->sxy2.vx;
-        prim->y2 = *(u16*)&block->sxy2.vy;
-        prim->x3 = *(u16*)&block->sxy3.vx;
-        prim->y3 = *(u16*)&block->sxy3.vy;
+        prim->x0 = (u16)block->sxy0.vx;
+        prim->y0 = (u16)block->sxy0.vy;
+        prim->x1 = (u16)block->sxy1.vx;
+        prim->y1 = (u16)block->sxy1.vy;
+        prim->x2 = (u16)block->sxy2.vx;
+        prim->y2 = (u16)block->sxy2.vy;
+        prim->x3 = (u16)block->sxy3.vx;
+        prim->y3 = (u16)block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1116,17 +1116,17 @@ void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s
         setUV4(prim, u0, 0xE0, u0 + 0x1F, 0xE0, u0, 0xFF, u0 + 0x1F, 0xFF);
         block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang)) >> 12;
         block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -1205,18 +1205,18 @@ void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2)
         prim->u2    = tex;
         prim->u3    = u1;
         block->step = (t - sarg) / block->otz;
-        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        xy          = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        xy          = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        v1          = (*(u16*)&block->sy - *(u16*)&block->step) - (block->step >> 1);
+        v1          = ((u16)block->sy - *(u16*)&block->step) - (block->step >> 1);
         xy          = v1;
         ds          = &gDisplayState;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + (block->step >> 1);
+        xy          = (u16)block->sy + (block->step >> 1);
         prim->y3    = xy;
         prim->y2    = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
@@ -1448,16 +1448,16 @@ void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
         setRGB0(prim, blend, blend, blend);
         ((RoomDraw25Scratch*)tmp)->radius =
             (t - sarg) / ((RoomDraw25Scratch*)(head - 0xC))->otz;
-        xy       = *(u16*)&((RoomDraw25Scratch*)tmp)->sx - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
         prim->x2 = xy;
         prim->x0 = xy;
-        xy       = *(u16*)&((RoomDraw25Scratch*)tmp)->sx + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sx + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
         prim->x3 = xy;
         prim->x1 = xy;
-        xy       = *(u16*)&((RoomDraw25Scratch*)tmp)->sy - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy - *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
         prim->y1 = xy;
         prim->y0 = xy;
-        xy       = *(u16*)&((RoomDraw25Scratch*)tmp)->sy + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
+        xy       = ((RoomDraw25Scratch*)tmp)->sy + *(u16*)&((RoomDraw25Scratch*)tmp)->radius;
         prim->y3 = xy;
         prim->y2 = xy;
         addPrim((u_long*)(((((u32)((RoomDraw25Scratch*)(head - 0xC))->otz << ds->otDepthShift) >> 2) & 0xFFC) +
@@ -1607,15 +1607,15 @@ void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -1688,16 +1688,16 @@ void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->radius * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->radius * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->radius * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -2054,16 +2054,16 @@ void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -2075,14 +2075,14 @@ void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0], arg2[1], arg2[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
@@ -2099,15 +2099,15 @@ void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
             u        = ang - 0x400;
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             u        = ang + 0x400;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -2119,15 +2119,15 @@ void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(u)) >> 11);
+            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
+            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
             u        = ang + 0x800;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);

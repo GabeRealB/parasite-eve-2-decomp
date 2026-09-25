@@ -318,9 +318,9 @@ void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw35Scratch*)(head - 0x14))->vec);
-    block->vec.vx = *(u16*)&block->vec.vx + *(u16*)&arg0->workm.t[0];
-    block->vec.vy = *(u16*)&block->vec.vy + *(u16*)&arg0->workm.t[1];
-    block->vec.vz = *(u16*)&block->vec.vz + *(u16*)&arg0->workm.t[2];
+    block->vec.vx = (u16)block->vec.vx + *(u16*)&arg0->workm.t[0];
+    block->vec.vy = (u16)block->vec.vy + *(u16*)&arg0->workm.t[1];
+    block->vec.vz = (u16)block->vec.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -357,16 +357,16 @@ void func_dryfield_saloon_g_r_8017DBB4(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s
         prim->g0         = rgb;
         prim->b0         = rgb;
         block->halfWidth = (sv * 0x27) / block->otz;
-        xy               = *(u16*)&block->sx - *(u16*)&block->halfWidth;
+        xy               = block->sx - *(u16*)&block->halfWidth;
         prim->x2         = xy;
         prim->x0         = xy;
-        xy               = *(u16*)&block->sx + *(u16*)&block->halfWidth;
+        xy               = block->sx + *(u16*)&block->halfWidth;
         prim->x3         = xy;
         prim->x1         = xy;
-        xy               = *(u16*)&block->sy - *(u16*)&block->halfWidth;
+        xy               = block->sy - *(u16*)&block->halfWidth;
         prim->y1         = xy;
         prim->y0         = xy;
-        xy               = *(u16*)&block->sy + *(u16*)&block->halfWidth;
+        xy               = block->sy + *(u16*)&block->halfWidth;
         prim->y3         = xy;
         prim->y2         = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +
@@ -412,50 +412,50 @@ void func_dryfield_saloon_g_r_8017DEC4(GpCoord* coord)
     gte_ldv0(&D_dryfield_saloon_g_r_8017ED54);
     gte_rtv0();
     gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootA);
-    *(u16*)&block->rootA.vx = *(u16*)&block->rootA.vx + *(u16*)&coord->workm.t[0];
-    *(u16*)&block->rootA.vy = *(u16*)&block->rootA.vy + *(u16*)&coord->workm.t[1];
-    *(u16*)&block->rootA.vz = *(u16*)&block->rootA.vz + *(u16*)&coord->workm.t[2];
+    (u16) block->rootA.vx = (u16)block->rootA.vx + *(u16*)&coord->workm.t[0];
+    (u16) block->rootA.vy = (u16)block->rootA.vy + *(u16*)&coord->workm.t[1];
+    (u16) block->rootA.vz = (u16)block->rootA.vz + *(u16*)&coord->workm.t[2];
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_saloon_g_r_8017ED6C);
     gte_rtv0();
     gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootB);
-    *(u16*)&block->rootB.vx = *(u16*)&block->rootB.vx + *(u16*)&coord->workm.t[0];
-    *(u16*)&block->rootB.vy = *(u16*)&block->rootB.vy + *(u16*)&coord->workm.t[1];
-    *(u16*)&block->rootB.vz = *(u16*)&block->rootB.vz + *(u16*)&coord->workm.t[2];
+    (u16) block->rootB.vx = (u16)block->rootB.vx + *(u16*)&coord->workm.t[0];
+    (u16) block->rootB.vy = (u16)block->rootB.vy + *(u16*)&coord->workm.t[1];
+    (u16) block->rootB.vz = (u16)block->rootB.vz + *(u16*)&coord->workm.t[2];
 
     for (i = 0; i < 2; i++) {
-        j                      = i + 15;
-        dirA                   = &D_dryfield_saloon_g_r_8017ECE4[j];
-        *(u16*)&block->tipA.vx = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vx +
-                                 (*(u16*)&dirA->vx - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vx) * 4;
-        *(u16*)&block->tipA.vy = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vy +
-                                 (*(u16*)&dirA->vy - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vy) * 4;
-        *(u16*)&block->tipA.vz = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vz +
-                                 (*(u16*)&dirA->vz - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[14].vz) * 4;
+        j                    = i + 15;
+        dirA                 = &D_dryfield_saloon_g_r_8017ECE4[j];
+        (u16) block->tipA.vx = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vx +
+                               ((u16)dirA->vx - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vx) * 4;
+        (u16) block->tipA.vy = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vy +
+                               ((u16)dirA->vy - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vy) * 4;
+        (u16) block->tipA.vz = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vz +
+                               ((u16)dirA->vz - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vz) * 4;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
         gte_rtv0();
         gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
-        *(u16*)&block->tipA.vx = *(u16*)&block->tipA.vx + *(u16*)&coord->workm.t[0];
-        *(u16*)&block->tipA.vy = *(u16*)&block->tipA.vy + *(u16*)&coord->workm.t[1];
-        *(u16*)&block->tipA.vz = *(u16*)&block->tipA.vz + *(u16*)&coord->workm.t[2];
+        (u16) block->tipA.vx = (u16)block->tipA.vx + *(u16*)&coord->workm.t[0];
+        (u16) block->tipA.vy = (u16)block->tipA.vy + *(u16*)&coord->workm.t[1];
+        (u16) block->tipA.vz = (u16)block->tipA.vz + *(u16*)&coord->workm.t[2];
 
-        j                      = i + 18;
-        dirB                   = &D_dryfield_saloon_g_r_8017ECE4[j];
-        *(u16*)&block->tipB.vx = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vx +
-                                 (*(u16*)&dirB->vx - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vx) * 4;
-        *(u16*)&block->tipB.vy = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vy +
-                                 (*(u16*)&dirB->vy - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vy) * 4;
-        *(u16*)&block->tipB.vz = *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vz +
-                                 (*(u16*)&dirB->vz - *(u16*)&D_dryfield_saloon_g_r_8017ECE4[17].vz) * 4;
+        j                    = i + 18;
+        dirB                 = &D_dryfield_saloon_g_r_8017ECE4[j];
+        (u16) block->tipB.vx = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vx +
+                               ((u16)dirB->vx - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vx) * 4;
+        (u16) block->tipB.vy = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vy +
+                               ((u16)dirB->vy - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vy) * 4;
+        (u16) block->tipB.vz = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vz +
+                               ((u16)dirB->vz - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vz) * 4;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
         gte_rtv0();
         gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        *(u16*)&block->tipB.vx = *(u16*)&block->tipB.vx + *(u16*)&coord->workm.t[0];
-        *(u16*)&block->tipB.vy = *(u16*)&block->tipB.vy + *(u16*)&coord->workm.t[1];
-        *(u16*)&block->tipB.vz = *(u16*)&block->tipB.vz + *(u16*)&coord->workm.t[2];
+        (u16) block->tipB.vx = (u16)block->tipB.vx + *(u16*)&coord->workm.t[0];
+        (u16) block->tipB.vy = (u16)block->tipB.vy + *(u16*)&coord->workm.t[1];
+        (u16) block->tipB.vz = (u16)block->tipB.vz + *(u16*)&coord->workm.t[2];
 
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&block->rootA);
@@ -527,17 +527,17 @@ void func_dryfield_saloon_g_r_8017E430(GpCoord* arg0, SVECTOR* arg1, SVECTOR* ar
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec0.vz = *(u16*)&block->vec0.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec0.vx = (u16)block->vec0.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec0.vy = (u16)block->vec0.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec0.vz = (u16)block->vec0.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec1.vz = *(u16*)&block->vec1.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec1.vx = (u16)block->vec1.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec1.vy = (u16)block->vec1.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec1.vz = (u16)block->vec1.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);

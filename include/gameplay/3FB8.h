@@ -329,8 +329,8 @@ typedef struct _GpEffFlareScratch {
     /* 0x08 */ s32     dy;
     /* 0x0C */ s32     flag;
     /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
 } GpEffFlareScratch;
 STATIC_ASSERT_SIZEOF(GpEffFlareScratch, 0x1C);
 

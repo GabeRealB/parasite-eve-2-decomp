@@ -171,17 +171,17 @@ void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
         setcode(prim, getcode(prim) | 3);
         blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
         blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
-        prim->x0 = *(u16*)&blk->sxy.vx + *(u16*)&blk->dx;
-        prim->x3 = *(u16*)&blk->sxy.vx - *(u16*)&blk->dx;
-        prim->y0 = *(u16*)&blk->sxy.vy - *(u16*)&blk->dy;
+        prim->x0 = (u16)blk->sxy.vx + *(u16*)&blk->dx;
+        prim->x3 = (u16)blk->sxy.vx - *(u16*)&blk->dx;
+        prim->y0 = (u16)blk->sxy.vy - *(u16*)&blk->dy;
         ang      = ang + 0x400;
-        prim->y3 = *(u16*)&blk->sxy.vy + *(u16*)&blk->dy;
+        prim->y3 = (u16)blk->sxy.vy + *(u16*)&blk->dy;
         blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
         blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
-        prim->x1 = *(u16*)&blk->sxy.vx + *(u16*)&blk->dx;
-        prim->x2 = *(u16*)&blk->sxy.vx - *(u16*)&blk->dx;
-        prim->y1 = *(u16*)&blk->sxy.vy - *(u16*)&blk->dy;
-        prim->y2 = *(u16*)&blk->sxy.vy + *(u16*)&blk->dy;
+        prim->x1 = (u16)blk->sxy.vx + *(u16*)&blk->dx;
+        prim->x2 = (u16)blk->sxy.vx - *(u16*)&blk->dx;
+        prim->y1 = (u16)blk->sxy.vy - *(u16*)&blk->dy;
+        prim->y2 = (u16)blk->sxy.vy + *(u16*)&blk->dy;
         addPrim((u_long*)(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -225,9 +225,9 @@ void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
     gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    *(u16*)&blk->v[0].vx = *(u16*)&blk->v[0].vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&blk->v[0].vy = *(u16*)&blk->v[0].vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&blk->v[0].vz = *(u16*)&blk->v[0].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[0].vx = (u16)blk->v[0].vx + *(u16*)&arg0->workm.t[0];
+    (u16) blk->v[0].vy = (u16)blk->v[0].vy + *(u16*)&arg0->workm.t[1];
+    (u16) blk->v[0].vz = (u16)blk->v[0].vz + *(u16*)&arg0->workm.t[2];
 
     /* Corner 1: the far tip, a full 0x600 out and 0x200 towards the camera. */
     len          = 0x600;
@@ -238,9 +238,9 @@ void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
     gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
-    *(u16*)&blk->v[1].vx = *(u16*)&blk->v[1].vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&blk->v[1].vy = *(u16*)&blk->v[1].vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&blk->v[1].vz = *(u16*)&blk->v[1].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[1].vx = (u16)blk->v[1].vx + *(u16*)&arg0->workm.t[0];
+    (u16) blk->v[1].vy = (u16)blk->v[1].vy + *(u16*)&arg0->workm.t[1];
+    (u16) blk->v[1].vz = (u16)blk->v[1].vz + *(u16*)&arg0->workm.t[2];
 
     /* Corner 2: on the small circle, straight along the flash direction. This
        is the only lit corner. */
@@ -251,10 +251,10 @@ void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
     gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
-    *(u16*)&blk->v[2].vx = *(u16*)&blk->v[2].vx + *(u16*)&arg0->workm.t[0];
-    ang                  = ang + 0xC0;
-    *(u16*)&blk->v[2].vy = *(u16*)&blk->v[2].vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&blk->v[2].vz = *(u16*)&blk->v[2].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[2].vx = (u16)blk->v[2].vx + *(u16*)&arg0->workm.t[0];
+    ang                = ang + 0xC0;
+    (u16) blk->v[2].vy = (u16)blk->v[2].vy + *(u16*)&arg0->workm.t[1];
+    (u16) blk->v[2].vz = (u16)blk->v[2].vz + *(u16*)&arg0->workm.t[2];
 
     /* Corner 3: on the small circle, 0xC0 ahead of the flash direction. */
     blk->v[3].vx = (u32)rsin(ang) >> 4;
@@ -264,9 +264,9 @@ void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
     gte_rtv0();
     gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    *(u16*)&blk->v[3].vx = *(u16*)&blk->v[3].vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&blk->v[3].vy = *(u16*)&blk->v[3].vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&blk->v[3].vz = *(u16*)&blk->v[3].vz + *(u16*)&arg0->workm.t[2];
+    (u16) blk->v[3].vx = (u16)blk->v[3].vx + *(u16*)&arg0->workm.t[0];
+    (u16) blk->v[3].vy = (u16)blk->v[3].vy + *(u16*)&arg0->workm.t[1];
+    (u16) blk->v[3].vz = (u16)blk->v[3].vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);

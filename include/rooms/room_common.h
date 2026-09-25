@@ -628,8 +628,8 @@ typedef struct _RoomDraw04Scratch {
     /* 0x08 */ s32     otz;
     /* 0x0C */ s32     radius;
     /* 0x10 */ s32     flag;
-    /* 0x14 */ s16     sx;
-    /* 0x16 */ s16     sy;
+    /* 0x14 */ u16     sx;
+    /* 0x16 */ u16     sy;
 } RoomDraw04Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw04Scratch, 0x18);
 
@@ -644,8 +644,8 @@ typedef struct _RoomDraw09Scratch {
     /* 0x0C */ s32     rOuter;
     /* 0x10 */ s32     rInner;
     /* 0x14 */ s32     flag;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
 } RoomDraw09Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw09Scratch, 0x1C);
 
@@ -692,8 +692,8 @@ typedef struct _RoomDraw02Scratch {
     /* 0x08 */ s32     rInner;
     /* 0x0C */ s32     flag;
     /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ s16     sx;
-    /* 0x1A */ s16     sy;
+    /* 0x18 */ u16     sx;
+    /* 0x1A */ u16     sy;
 } RoomDraw02Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw02Scratch, 0x1C);
 

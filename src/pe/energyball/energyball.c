@@ -454,16 +454,16 @@ void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, half, color, half);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+            prim->x0 = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
             ang2     = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
+            prim->x1 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y1 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x2 = (u16)block->sx;
+            prim->y2 = (u16)block->sy;
             ang2     = ang + 0x200;
-            prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x3 = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y3 = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
             ang      = ang2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -528,17 +528,17 @@ void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         }
         block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = arg3 + 0x400;
         block->dx = (((arg2 * 55) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 55) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -589,11 +589,11 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + *(u16*)&arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + *(u16*)&arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -632,14 +632,14 @@ void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = *(u16*)&sc->sxy0.vx;
-        prim->y0    = *(u16*)&sc->sxy0.vy;
-        prim->x1    = *(u16*)&sc->sxy1.vx;
-        prim->y1    = *(u16*)&sc->sxy1.vy;
-        prim->x2    = *(u16*)&sc->sxy2.vx;
-        prim->y2    = *(u16*)&sc->sxy2.vy;
-        prim->x3    = *(u16*)&sc->sxy3.vx;
-        prim->y3    = *(u16*)&sc->sxy3.vy;
+        prim->x0    = (u16)sc->sxy0.vx;
+        prim->y0    = (u16)sc->sxy0.vy;
+        prim->x1    = (u16)sc->sxy1.vx;
+        prim->y1    = (u16)sc->sxy1.vy;
+        prim->x2    = (u16)sc->sxy2.vx;
+        prim->y2    = (u16)sc->sxy2.vy;
+        prim->x3    = (u16)sc->sxy3.vx;
+        prim->y3    = (u16)sc->sxy3.vy;
         addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -680,9 +680,9 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&arg0->workm.t[2];
         block->outer[i].vx = (u32)(rsin(ang) * 3) >> 5;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -691,9 +691,9 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
-        op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
-        op->vz             = *(u16*)&op->vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&arg0->workm.t[0];
+        op->vy             = (u16)op->vy + *(u16*)&arg0->workm.t[1];
+        op->vz             = (u16)op->vz + *(u16*)&arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -718,14 +718,14 @@ void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
             setRGB0(prim, arg2 >> 1, arg2, arg2 >> 1);
             setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
             setSemiTrans(prim, 1);
-            prim->x0 = *(u16*)&block->sxy0.vx;
-            prim->y0 = *(u16*)&block->sxy0.vy;
-            prim->x1 = *(u16*)&block->sxy1.vx;
-            prim->y1 = *(u16*)&block->sxy1.vy;
-            prim->x2 = *(u16*)&block->sxy2.vx;
-            prim->y2 = *(u16*)&block->sxy2.vy;
-            prim->x3 = *(u16*)&block->sxy3.vx;
-            prim->y3 = *(u16*)&block->sxy3.vy;
+            prim->x0 = (u16)block->sxy0.vx;
+            prim->y0 = (u16)block->sxy0.vy;
+            prim->x1 = (u16)block->sxy1.vx;
+            prim->y1 = (u16)block->sxy1.vy;
+            prim->x2 = (u16)block->sxy2.vx;
+            prim->y2 = (u16)block->sxy2.vy;
+            prim->x3 = (u16)block->sxy3.vx;
+            prim->y3 = (u16)block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

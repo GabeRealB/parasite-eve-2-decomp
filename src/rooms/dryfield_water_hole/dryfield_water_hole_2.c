@@ -195,17 +195,17 @@ void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 ar
         setUV4(prim, u0, 0xE0, u0 + 0x1F, 0xE0, u0, 0xFF, u0 + 0x1F, 0xFF);
         block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang)) >> 12;
         block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         ang2      = ang + 0x400;
         block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
         block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -285,18 +285,18 @@ void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
         prim->u2    = tex;
         prim->u3    = u1;
         block->step = (t - sarg) / block->otz;
-        xy          = *(u16*)&block->sx - *(u16*)&block->step;
+        xy          = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = xy;
         prim->x0    = xy;
-        xy          = *(u16*)&block->sx + *(u16*)&block->step;
+        xy          = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = xy;
         prim->x1    = xy;
-        v1          = (*(u16*)&block->sy - *(u16*)&block->step) - (block->step >> 1);
+        v1          = ((u16)block->sy - *(u16*)&block->step) - (block->step >> 1);
         xy          = v1;
         ds          = &gDisplayState;
         prim->y1    = xy;
         prim->y0    = xy;
-        xy          = *(u16*)&block->sy + (block->step >> 1);
+        xy          = (u16)block->sy + (block->step >> 1);
         prim->y3    = xy;
         prim->y2    = xy;
         addPrim((u_long*)(((((u32)block->otz << ds->otDepthShift) >> 2) & 0xFFC) +

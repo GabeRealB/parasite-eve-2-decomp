@@ -377,16 +377,16 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             prim->v3  = (quot / 5) * 48 + 47;
             block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale)) >> 12;
             block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale)) >> 12;
-            prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-            prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-            prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-            prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            prim->x0  = (u16)block->sxy.vx + *(u16*)&block->dx;
+            prim->x3  = (u16)block->sxy.vx - *(u16*)&block->dx;
+            prim->y0  = (u16)block->sxy.vy - *(u16*)&block->dy;
+            prim->y3  = (u16)block->sxy.vy + *(u16*)&block->dy;
             block->dx = (((work->angle * 47) / block->otz) * rsin(work->scale + 0x400)) >> 12;
             block->dy = (((work->angle * 47) / block->otz) * rcos(work->scale + 0x400)) >> 12;
-            prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
-            prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
-            prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
-            prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sxy.vx + *(u16*)&block->dx;
+            prim->x2  = (u16)block->sxy.vx - *(u16*)&block->dx;
+            prim->y1  = (u16)block->sxy.vy - *(u16*)&block->dy;
+            prim->y2  = (u16)block->sxy.vy + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             SCRATCH_POP_BYTES(0x18);
@@ -692,15 +692,15 @@ void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rg
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color[0], color[1], color[2]);
             setRGB3(prim, color[0], color[1], color[2]);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             t        = ang + 0x100;
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
-            prim->x2 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(t)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(t)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x3 = block->sx + ((block->rInner * rsin(t)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(t)) >> 12);
             ang      = t;
             maskLo   = 0xFFFFFF;
             maskHi   = 0xFF000000;
@@ -772,16 +772,16 @@ void func_acropolis_cafeteria_80180018(GpCoord* arg0, s32 arg1, u8* rgb)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, rgb[0], rgb[1], rgb[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->radius * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->radius * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->radius * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
@@ -1121,16 +1121,16 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
             t2       = ang + 0x200;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1142,14 +1142,14 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0], arg2[1], arg2[2]);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rOuter * rcos(t2)) >> 13);
+            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
+            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
+            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
+            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
             ang      = t2;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
@@ -1166,15 +1166,15 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
             u        = ang - 0x400;
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
             u        = ang + 0x400;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 13);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
@@ -1186,15 +1186,15 @@ void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = *(u16*)&block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = *(u16*)&block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = *(u16*)&block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = *(u16*)&block->sy + ((block->rOuter * rcos(u)) >> 11);
+            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
+            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
             u        = ang + 0x800;
-            prim->x2 = *(u16*)&block->sx;
-            prim->y2 = *(u16*)&block->sy;
-            prim->x3 = *(u16*)&block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = *(u16*)&block->sy + ((block->rInner * rcos(u)) >> 12);
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
+            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
             ang      = u;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
@@ -1457,17 +1457,17 @@ s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, 
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
+            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
-            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
+            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
-            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
 
             d = st->angle[st->i];
             if (st->angle[st->i] < 0) {

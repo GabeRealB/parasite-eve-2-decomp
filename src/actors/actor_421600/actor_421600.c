@@ -2478,15 +2478,15 @@ static __inline__ void Actor421600_ShrinkCoord(GpCoord* coord, s16 y)
     blk->scale.vz = 0x1000;
     ScaleMatrix(&blk->m, &blk->scale);
 
-    coord->coord.m[0][0] = *(u16*)&(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
-    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
-    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
-    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
-    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
-    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
-    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
-    m22                  = *(u16*)&blk->m.m[2][2];
+    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
+    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
+    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
+    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
+    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
+    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
+    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
+    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
+    m22                  = (u16)blk->m.m[2][2];
     SCRATCH_POP(ActorScaleRotScratch);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;

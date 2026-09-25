@@ -337,13 +337,13 @@ void func_metabolism_8012F840(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
         block->step = ((s16)arg1 * 128) / block->otz;
         ang         = (s16)arg2;
         ang2        = ang - 0x20;
-        prim->x0    = *(u16*)&block->sx;
-        prim->y0    = *(u16*)&block->sy;
-        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        prim->x0    = (u16)block->sx;
+        prim->y0    = (u16)block->sy;
+        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
         ang        += 0x20;
-        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

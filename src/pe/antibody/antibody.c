@@ -407,17 +407,17 @@ void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->u3    = u + 0x27;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->x0    = block->sx + *(u16*)&block->dx;
+        prim->x3    = block->sx - *(u16*)&block->dx;
+        prim->y0    = block->sy - *(u16*)&block->dy;
         ang2        = arg3 + 0x400;
-        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->y3    = block->sy + *(u16*)&block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + *(u16*)&block->dx;
+        prim->x2    = block->sx - *(u16*)&block->dx;
+        prim->y1    = block->sy - *(u16*)&block->dy;
+        prim->y2    = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -475,17 +475,17 @@ void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0  = *(u16*)&block->sy - *(u16*)&block->dy;
+        prim->x0  = block->sx + *(u16*)&block->dx;
+        prim->x3  = block->sx - *(u16*)&block->dx;
+        prim->y0  = block->sy - *(u16*)&block->dy;
         ang2      = arg3 + 0x400;
-        prim->y3  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->y3  = block->sy + *(u16*)&block->dy;
         block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
         block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2  = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1  = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1  = block->sx + *(u16*)&block->dx;
+        prim->x2  = block->sx - *(u16*)&block->dx;
+        prim->y1  = block->sy - *(u16*)&block->dy;
+        prim->y2  = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -559,17 +559,17 @@ void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
             ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
             block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang)) >> 12;
             block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = *(u16*)&block->sx0 + *(u16*)&block->dx;
-            prim->x3  = *(u16*)&block->sx1 - *(u16*)&block->dx;
-            prim->y0  = *(u16*)&block->sy0 - *(u16*)&block->dy;
+            prim->x0  = (u16)block->sx0 + *(u16*)&block->dx;
+            prim->x3  = (u16)block->sx1 - *(u16*)&block->dx;
+            prim->y0  = (u16)block->sy0 - *(u16*)&block->dy;
             ang2      = ang + 0x400;
-            prim->y3  = *(u16*)&block->sy1 + *(u16*)&block->dy;
+            prim->y3  = (u16)block->sy1 + *(u16*)&block->dy;
             block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang2)) >> 12;
             block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = *(u16*)&block->sx1 + *(u16*)&block->dx;
-            prim->x2  = *(u16*)&block->sx0 - *(u16*)&block->dx;
-            prim->y1  = *(u16*)&block->sy1 - *(u16*)&block->dy;
-            prim->y2  = *(u16*)&block->sy0 + *(u16*)&block->dy;
+            prim->x1  = (u16)block->sx1 + *(u16*)&block->dx;
+            prim->x2  = (u16)block->sx0 - *(u16*)&block->dx;
+            prim->y1  = (u16)block->sy1 - *(u16*)&block->dy;
+            prim->y2  = (u16)block->sy0 + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);
@@ -619,13 +619,13 @@ void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->step = ((s16)arg1 * 128) / block->otz;
         ang         = (s16)arg2;
         ang2        = ang - 0x20;
-        prim->x0    = *(u16*)&block->sx;
-        prim->y0    = *(u16*)&block->sy;
-        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        prim->x0    = (u16)block->sx;
+        prim->y0    = (u16)block->sy;
+        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
         ang        += 0x20;
-        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

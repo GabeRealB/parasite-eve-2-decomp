@@ -285,13 +285,13 @@ void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->step = ((s16)arg1 * 128) / block->otz;
         ang         = (s16)arg2;
         ang2        = ang - 0x20;
-        prim->x0    = *(u16*)&block->sx;
-        prim->y0    = *(u16*)&block->sy;
-        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        prim->x0    = (u16)block->sx;
+        prim->y0    = (u16)block->sy;
+        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
         ang        += 0x20;
-        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);
@@ -337,9 +337,9 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&arg0->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&arg0->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&arg0->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&arg0->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&arg0->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&arg0->workm.t[2];
         block->outer[i].vx = (rsin(ang) * r1) >> 12;
         op                 = &block->inner[i] + 16;
         op->vy             = 0;
@@ -348,9 +348,9 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&arg0->workm.t[0];
-        op->vy             = *(u16*)&op->vy + *(u16*)&arg0->workm.t[1];
-        op->vz             = *(u16*)&op->vz + *(u16*)&arg0->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&arg0->workm.t[0];
+        op->vy             = (u16)op->vy + *(u16*)&arg0->workm.t[1];
+        op->vz             = (u16)op->vz + *(u16*)&arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
@@ -375,14 +375,14 @@ void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
             prim->clut  = 0x42C1;
             u           = idx * 0x28;
             setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = *(u16*)&block->sxy0.vx;
-            prim->y0 = *(u16*)&block->sxy0.vy;
-            prim->x1 = *(u16*)&block->sxy1.vx;
-            prim->y1 = *(u16*)&block->sxy1.vy;
-            prim->x2 = *(u16*)&block->sxy2.vx;
-            prim->y2 = *(u16*)&block->sxy2.vy;
-            prim->x3 = *(u16*)&block->sxy3.vx;
-            prim->y3 = *(u16*)&block->sxy3.vy;
+            prim->x0 = (u16)block->sxy0.vx;
+            prim->y0 = (u16)block->sxy0.vy;
+            prim->x1 = (u16)block->sxy1.vx;
+            prim->y1 = (u16)block->sxy1.vy;
+            prim->x2 = (u16)block->sxy2.vx;
+            prim->y2 = (u16)block->sxy2.vy;
+            prim->x3 = (u16)block->sxy3.vx;
+            prim->y3 = (u16)block->sxy3.vy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                               (s32)gGpuCurrentOt),
                     prim);

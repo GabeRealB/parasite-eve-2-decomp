@@ -624,11 +624,11 @@ void func_acropolis_patio_8017E730(Task* task)
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                 anchors       = D_acropolis_patio_80182DDC;
                 dir           = &work->move;
-                work->move.vx = *(u16*)&anchors[task->spawnArg1].vx -
+                work->move.vx = (u16)anchors[task->spawnArg1].vx -
                                 *(u16*)&coord->coord.t[0];
-                work->move.vy = *(u16*)&anchors[task->spawnArg1].vy -
+                work->move.vy = (u16)anchors[task->spawnArg1].vy -
                                 *(u16*)&coord->coord.t[1];
-                work->move.vz = *(u16*)&anchors[task->spawnArg1].vz -
+                work->move.vz = (u16)anchors[task->spawnArg1].vz -
                                 *(u16*)&coord->coord.t[2];
                 VectorNormalSS(dir, dir);
                 gte_lddp(0x20);

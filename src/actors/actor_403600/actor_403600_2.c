@@ -5625,7 +5625,7 @@ void func_actor_403600_80141C7C(Task* arg0, s32 arg1)
 
     enemy     = arg0->spawnArg2;
     work      = arg0->work;
-    enemy->hp = *(u16*)&enemy->hp - arg1;
+    enemy->hp = (u16)enemy->hp - arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->hp <= 0) {
         work->field_742 = 1;

@@ -487,17 +487,17 @@ void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* ar
     gte_ldv0(arg1);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    *(u16*)&block->vec0.vx = *(u16*)&block->vec0.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec0.vy = *(u16*)&block->vec0.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec0.vz = *(u16*)&block->vec0.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec0.vx = (u16)block->vec0.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec0.vy = (u16)block->vec0.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec0.vz = (u16)block->vec0.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(arg2);
     gte_rtv0();
     gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&arg0->workm.t[0];
-    *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&arg0->workm.t[1];
-    *(u16*)&block->vec1.vz = *(u16*)&block->vec1.vz + *(u16*)&arg0->workm.t[2];
+    (u16) block->vec1.vx = (u16)block->vec1.vx + *(u16*)&arg0->workm.t[0];
+    (u16) block->vec1.vy = (u16)block->vec1.vy + *(u16*)&arg0->workm.t[1];
+    (u16) block->vec1.vz = (u16)block->vec1.vz + *(u16*)&arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
@@ -668,11 +668,11 @@ void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
-        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->workm.t[0];
+        (u16) v->vx = (u16)v->vx + *(u16*)&arg0->workm.t[0];
         tbl++;
-        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->workm.t[1];
+        (u16) v->vy = (u16)v->vy + *(u16*)&arg0->workm.t[1];
         i++;
-        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->workm.t[2];
+        (u16) v->vz = (u16)v->vz + *(u16*)&arg0->workm.t[2];
         v++;
     } while (i < 4);
 
@@ -702,14 +702,14 @@ void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
         prim->u3 = 0x37;
         prim->v3 = 0x6F;
         setSemiTrans(prim, 1);
-        prim->x0 = *(u16*)&block->sxy0.vx;
-        prim->y0 = *(u16*)&block->sxy0.vy;
-        prim->x1 = *(u16*)&block->sxy1.vx;
-        prim->y1 = *(u16*)&block->sxy1.vy;
-        prim->x2 = *(u16*)&block->sxy2.vx;
-        prim->y2 = *(u16*)&block->sxy2.vy;
-        prim->x3 = *(u16*)&block->sxy3.vx;
-        prim->y3 = *(u16*)&block->sxy3.vy;
+        prim->x0 = (u16)block->sxy0.vx;
+        prim->y0 = (u16)block->sxy0.vy;
+        prim->x1 = (u16)block->sxy1.vx;
+        prim->y1 = (u16)block->sxy1.vy;
+        prim->x2 = (u16)block->sxy2.vx;
+        prim->y2 = (u16)block->sxy2.vy;
+        prim->x3 = (u16)block->sxy3.vx;
+        prim->y3 = (u16)block->sxy3.vy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

@@ -534,16 +534,16 @@ void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
         prim->v0    = 0;
         prim->v1    = 0;
         block->step = (arg2 * 0x17) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -564,16 +564,16 @@ void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
         prim->u2    = 0x38;
         prim->u3    = 0x6F;
         block->step = ((s16)((arg2 * 2) / 3) * 0x37) / block->otz;
-        x           = *(u16*)&block->sx - *(u16*)&block->step;
+        x           = (u16)block->sx - *(u16*)&block->step;
         prim->x2    = x;
         prim->x0    = x;
-        x           = *(u16*)&block->sx + *(u16*)&block->step;
+        x           = (u16)block->sx + *(u16*)&block->step;
         prim->x3    = x;
         prim->x1    = x;
-        y           = *(u16*)&block->sy - *(u16*)&block->step;
+        y           = (u16)block->sy - *(u16*)&block->step;
         prim->y1    = y;
         prim->y0    = y;
-        y           = *(u16*)&block->sy + *(u16*)&block->step;
+        y           = (u16)block->sy + *(u16*)&block->step;
         prim->y3    = y;
         prim->y2    = y;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
@@ -624,13 +624,13 @@ void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->step = ((s16)arg1 * 128) / block->otz;
         ang         = (s16)arg2;
         ang2        = ang - 0x20;
-        prim->x0    = *(u16*)&block->sx;
-        prim->y0    = *(u16*)&block->sy;
-        prim->x1    = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+        prim->x0    = (u16)block->sx;
+        prim->y0    = (u16)block->sy;
+        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
+        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
         ang        += 0x20;
-        prim->x2    = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
+        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

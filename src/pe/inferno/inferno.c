@@ -362,9 +362,9 @@ void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&coord->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&coord->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&coord->workm.t[2];
         block->outer[i].vx = (rsin(ang) * inner) >> 12;
         op                 = &block->inner[i] + 6;
         op->vy             = 0;
@@ -373,9 +373,9 @@ void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
-        op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
-        op->vz             = *(u16*)&op->vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&coord->workm.t[0];
+        op->vy             = (u16)op->vy + *(u16*)&coord->workm.t[1];
+        op->vz             = (u16)op->vz + *(u16*)&coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
@@ -461,9 +461,9 @@ void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
         gte_ldv0(&block->inner[i]);
         gte_rtv0();
         gte_stsv(&block->inner[i]);
-        block->inner[i].vx = *(u16*)&block->inner[i].vx + *(u16*)&coord->workm.t[0];
-        block->inner[i].vy = *(u16*)&block->inner[i].vy + *(u16*)&coord->workm.t[1];
-        block->inner[i].vz = *(u16*)&block->inner[i].vz + *(u16*)&coord->workm.t[2];
+        block->inner[i].vx = (u16)block->inner[i].vx + *(u16*)&coord->workm.t[0];
+        block->inner[i].vy = (u16)block->inner[i].vy + *(u16*)&coord->workm.t[1];
+        block->inner[i].vz = (u16)block->inner[i].vz + *(u16*)&coord->workm.t[2];
         block->outer[i].vx = (rsin(ang) * inner) >> 12;
         op                 = &block->inner[i] + 6;
         op->vy             = 0;
@@ -472,9 +472,9 @@ void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMa
         gte_ldv0(&block->outer[i]);
         gte_rtv0();
         gte_stsv(&block->outer[i]);
-        block->outer[i].vx = *(u16*)&block->outer[i].vx + *(u16*)&coord->workm.t[0];
-        op->vy             = *(u16*)&op->vy + *(u16*)&coord->workm.t[1];
-        op->vz             = *(u16*)&op->vz + *(u16*)&coord->workm.t[2];
+        block->outer[i].vx = (u16)block->outer[i].vx + *(u16*)&coord->workm.t[0];
+        op->vy             = (u16)op->vy + *(u16*)&coord->workm.t[1];
+        op->vz             = (u16)op->vz + *(u16*)&coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {

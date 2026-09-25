@@ -235,16 +235,16 @@ void func_m4a1_hammer_8011D904(s32* arg0, u16 arg1, u16 arg2, s16 arg3)
         prim->v3    = 0x9F;
         block->dx   = (((arg2 * 23) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 23) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0    = block->sx + *(u16*)&block->dx;
+        prim->x3    = block->sx - *(u16*)&block->dx;
+        prim->y0    = block->sy - *(u16*)&block->dy;
+        prim->y3    = block->sy + *(u16*)&block->dy;
         block->dx   = (((arg2 * 23) / block->otz) * rsin(arg3 + 0x400)) >> 12;
         block->dy   = (((arg2 * 23) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + *(u16*)&block->dx;
+        prim->x2    = block->sx - *(u16*)&block->dx;
+        prim->y1    = block->sy - *(u16*)&block->dy;
+        prim->y2    = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -340,16 +340,16 @@ void func_m4a1_hammer_8011DE60(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
         prim->v3    = 0x5F;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x3    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y0    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y3    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x0    = block->sx + *(u16*)&block->dx;
+        prim->x3    = block->sx - *(u16*)&block->dx;
+        prim->y0    = block->sy - *(u16*)&block->dy;
+        prim->y3    = block->sy + *(u16*)&block->dy;
         block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
         block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = *(u16*)&block->sx + *(u16*)&block->dx;
-        prim->x2    = *(u16*)&block->sx - *(u16*)&block->dx;
-        prim->y1    = *(u16*)&block->sy - *(u16*)&block->dy;
-        prim->y2    = *(u16*)&block->sy + *(u16*)&block->dy;
+        prim->x1    = block->sx + *(u16*)&block->dx;
+        prim->x2    = block->sx - *(u16*)&block->dx;
+        prim->y1    = block->sy - *(u16*)&block->dy;
+        prim->y2    = block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
     SCRATCH_POP_BYTES(0x1C);
@@ -404,16 +404,16 @@ void func_m4a1_hammer_8011E29C(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3
             ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
-            prim->x0    = *(u16*)&block->sxy0.vx + *(u16*)&block->dx;
-            prim->x3    = *(u16*)&block->sxy1.vx - *(u16*)&block->dx;
-            prim->y0    = *(u16*)&block->sxy0.vy - *(u16*)&block->dy;
-            prim->y3    = *(u16*)&block->sxy1.vy + *(u16*)&block->dy;
+            prim->x0    = (u16)block->sxy0.vx + *(u16*)&block->dx;
+            prim->x3    = (u16)block->sxy1.vx - *(u16*)&block->dx;
+            prim->y0    = (u16)block->sxy0.vy - *(u16*)&block->dy;
+            prim->y3    = (u16)block->sxy1.vy + *(u16*)&block->dy;
             block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
             block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1    = *(u16*)&block->sxy1.vx + *(u16*)&block->dx;
-            prim->x2    = *(u16*)&block->sxy0.vx - *(u16*)&block->dx;
-            prim->y1    = *(u16*)&block->sxy1.vy - *(u16*)&block->dy;
-            prim->y2    = *(u16*)&block->sxy0.vy + *(u16*)&block->dy;
+            prim->x1    = (u16)block->sxy1.vx + *(u16*)&block->dx;
+            prim->x2    = (u16)block->sxy0.vx - *(u16*)&block->dx;
+            prim->y1    = (u16)block->sxy1.vy - *(u16*)&block->dy;
+            prim->y2    = (u16)block->sxy0.vy + *(u16*)&block->dy;
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }

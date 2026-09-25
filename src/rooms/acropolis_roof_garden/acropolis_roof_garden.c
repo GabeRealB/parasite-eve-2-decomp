@@ -790,10 +790,10 @@ void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
         gte_ldv0(&blk->v[i]);
         gte_rtv0();
         gte_stsv(&blk->v[i]);
-        *(u16*)&blk->v[i].vx = *(u16*)&blk->v[i].vx + *(u16*)&coord->workm.t[0];
-        *(u16*)&sv->vy       = *(u16*)&sv->vy + *(u16*)&coord->workm.t[1];
+        (u16) blk->v[i].vx = (u16)blk->v[i].vx + *(u16*)&coord->workm.t[0];
+        (u16) sv->vy       = (u16)sv->vy + *(u16*)&coord->workm.t[1];
         i++;
-        *(u16*)&sv->vz = *(u16*)&sv->vz + *(u16*)&coord->workm.t[2];
+        (u16) sv->vz = (u16)sv->vz + *(u16*)&coord->workm.t[2];
     } while (i < 4);
 
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -929,17 +929,17 @@ s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
+            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
-            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
+            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
-            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
 
             d = st->angle[st->i];
             if (st->angle[st->i] < 0) {

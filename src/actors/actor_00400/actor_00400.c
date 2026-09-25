@@ -598,17 +598,17 @@ void Actor00400_Fn005DC(GpCoord* arg0, u16 arg1, u16 arg2, s32 arg3)
         ang      = (s16)arg3;
         blk->dx  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
         blk->dy  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x0 = *(u16*)&blk->sx + *(u16*)&blk->dx;
-        prim->x3 = *(u16*)&blk->sx - *(u16*)&blk->dx;
-        prim->y0 = *(u16*)&blk->sy - *(u16*)&blk->dy;
-        prim->y3 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        prim->x0 = blk->sx + *(u16*)&blk->dx;
+        prim->x3 = blk->sx - *(u16*)&blk->dx;
+        prim->y0 = blk->sy - *(u16*)&blk->dy;
+        prim->y3 = blk->sy + *(u16*)&blk->dy;
         ang      = ang + 0x400;
         blk->dx  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
         blk->dy  = (((arg2 * 0x27) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x1 = *(u16*)&blk->sx + *(u16*)&blk->dx;
-        prim->x2 = *(u16*)&blk->sx - *(u16*)&blk->dx;
-        prim->y1 = *(u16*)&blk->sy - *(u16*)&blk->dy;
-        prim->y2 = *(u16*)&blk->sy + *(u16*)&blk->dy;
+        prim->x1 = blk->sx + *(u16*)&blk->dx;
+        prim->x2 = blk->sx - *(u16*)&blk->dx;
+        prim->y1 = blk->sy - *(u16*)&blk->dy;
+        prim->y2 = blk->sy + *(u16*)&blk->dy;
         addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
                           (s32)gGpuCurrentOt),
                 prim);

@@ -702,9 +702,9 @@ void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
-    blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
-    blk->b.vz = *(u16*)&blk->b.vz + *(u16*)&coord->workm.t[2];
+    blk->b.vx = (u16)blk->b.vx + *(u16*)&coord->workm.t[0];
+    blk->b.vy = (u16)blk->b.vy + *(u16*)&coord->workm.t[1];
+    blk->b.vz = (u16)blk->b.vz + *(u16*)&coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -777,9 +777,9 @@ void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
     gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = *(u16*)&blk->b.vx + *(u16*)&coord->workm.t[0];
-    blk->b.vy = *(u16*)&blk->b.vy + *(u16*)&coord->workm.t[1];
-    blk->b.vz = *(u16*)&blk->b.vz + *(u16*)&coord->workm.t[2];
+    blk->b.vx = (u16)blk->b.vx + *(u16*)&coord->workm.t[0];
+    blk->b.vy = (u16)blk->b.vy + *(u16*)&coord->workm.t[1];
+    blk->b.vz = (u16)blk->b.vz + *(u16*)&coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(vec);
@@ -1145,17 +1145,17 @@ s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
-            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
+            dz               = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
             st->angle[st->i] = ratan2(st->delta.vx, dz);
 
-            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
-            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
-            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
+            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
+            dz               = (u16)st->aim.vz - (u16)st->eye.vz;
             st->delta.vz     = dz;
-            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, dz);
 
             d = st->angle[st->i];
             if (st->angle[st->i] < 0) {
