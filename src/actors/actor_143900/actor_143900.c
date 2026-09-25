@@ -41,7 +41,6 @@ typedef struct Actor143900Work {
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
@@ -286,12 +285,12 @@ void func_actor_143900_8013242C(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }
 
@@ -616,12 +615,12 @@ void func_actor_143900_80132F14(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }
 

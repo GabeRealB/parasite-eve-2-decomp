@@ -2403,10 +2403,10 @@ void func_actor_560800_80136AA8(Task* arg0)
     s16                      speed;
     s32                      a;
 
-    top  = *(Actor560800ChainScratch**)0x1F8003FC;
+    top  = SCRATCH_HEAD(Actor560800ChainScratch);
     work = (Actor560800ModelWork*)arg0->work;
-    s = *(Actor560800ChainScratch**)0x1F8003FC = top - 1;
-    target                                     = (Actor560800PartsWork*)work->field_26C->work;
+    s = SCRATCH_HEAD(Actor560800ChainScratch) = top - 1;
+    target                                    = (Actor560800PartsWork*)work->field_26C->work;
     Mem_Set(s, 0, sizeof(Actor560800ChainScratch));
     Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
     if (work->field_280 & 1) {
@@ -2571,7 +2571,7 @@ void func_actor_560800_80136AA8(Task* arg0)
             }
             break;
     }
-    *(Actor560800ChainScratch**)0x1F8003FC += 1;
+    SCRATCH_POP(Actor560800ChainScratch);
 }
 
 /// Sets up the animated model part the spawn argument names: allocates its

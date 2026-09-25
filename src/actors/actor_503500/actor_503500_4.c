@@ -22,7 +22,6 @@
 #include "main/wipsys.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Matrix table of the 0x3D8 block, which runs from 0x40 up to the block's
 /// `obj160` display node: `func_actor_503500_80141FC8`'s sub-state 0 resets
@@ -3417,7 +3416,7 @@ void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords)
     s32                      i;
     s32                      j;
 
-    s        = (Actor503500ChainScratch*)(SCRATCH_SP -= sizeof(Actor503500ChainScratch));
+    s        = (Actor503500ChainScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor503500ChainScratch));
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
@@ -3449,7 +3448,7 @@ void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords)
         coords[j].coord.t[1] = s->pos.vy;
         coords[j].coord.t[2] = s->pos.vz;
     }
-    SCRATCH_SP += sizeof(Actor503500ChainScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor503500ChainScratch));
 }
 
 /// Same cubic Bezier evaluation as `func_actor_503500_8013A7B0`: control points

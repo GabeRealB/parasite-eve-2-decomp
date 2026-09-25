@@ -20,7 +20,6 @@
 #include "main/tmd.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
@@ -250,12 +249,12 @@ void func_actor_160700_8013243C(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }
 

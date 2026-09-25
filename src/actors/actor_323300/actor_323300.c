@@ -839,8 +839,8 @@ void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(angle, rotation);
     RotMatrixX(angle / 2, rotation);
@@ -848,7 +848,7 @@ void func_actor_323300_80163188(GsCOORDINATE2* coord, s16 angle)
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 void func_actor_323300_801634B0(Task* arg0)

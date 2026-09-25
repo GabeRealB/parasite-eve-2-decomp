@@ -27,7 +27,6 @@
 #include "main/tmd.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Eight-byte character appearance record `func_actor_215100_8014AA54` parks in
 /// `D_actor_215100_8015E678` before it starts the actor's caption script.
@@ -1496,12 +1495,12 @@ void func_actor_215100_8014CB2C(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }
 

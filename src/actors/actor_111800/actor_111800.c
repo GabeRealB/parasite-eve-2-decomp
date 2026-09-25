@@ -66,15 +66,15 @@ void func_actor_111800_80131E40(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].curRec`

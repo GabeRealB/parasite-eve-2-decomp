@@ -20,7 +20,6 @@
 #include "main/wipsys.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
 /// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
@@ -3948,7 +3947,7 @@ void func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase)
     s32                      i;
     s32                      j;
 
-    s        = (Actor503500ChainScratch*)(SCRATCH_SP -= sizeof(Actor503500ChainScratch));
+    s        = (Actor503500ChainScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor503500ChainScratch));
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
@@ -3983,7 +3982,7 @@ void func_actor_503500_8013A470(SVECTOR* pts, GsCOORDINATE2* coords, s32 phase)
             coords[j].coord.t[2] = (s->pos.vz * scale) >> 12;
         }
     }
-    SCRATCH_SP += sizeof(Actor503500ChainScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor503500ChainScratch));
 }
 
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points

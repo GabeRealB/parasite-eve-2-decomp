@@ -82,10 +82,10 @@ void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
     VECTOR*          block;
     s32              i;
 
-    work                    = (Actor110700Work*)task->work;
-    coord                   = &((TmdObject*)task->extra)->coords[1];
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x10;
-    block                   = (VECTOR*)*(void**)G_SCRATCH_HEAD;
+    work  = (Actor110700Work*)task->work;
+    coord = &((TmdObject*)task->extra)->coords[1];
+    SCRATCH_PUSH_BYTES(0x10);
+    block = (VECTOR*)SCRATCH_HEAD(void);
     if (work->animId != 0) {
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&work->rig.anim, i);
@@ -95,7 +95,7 @@ void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Message 0x7D3 handler: starts the animation the payload names, storing its

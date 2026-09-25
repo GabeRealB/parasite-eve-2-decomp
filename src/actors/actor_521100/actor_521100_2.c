@@ -310,7 +310,7 @@ void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     block->vz   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
     ScaleMatrixL(&work->color, block);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 /// Companion task body: the two tasks the `0x7DB` handler
 /// `func_actor_521100_80136AE0` spawns out of the `D_actor_521100_8016A388`
@@ -471,9 +471,9 @@ void func_actor_521100_801368B0(Task* task)
     Actor521100Work4B4* work;
     GsCOORDINATE2*      coord;
 
-    head    = *(MATRIX**)0x1F8003FC;
+    head    = SCRATCH_HEAD(MATRIX);
     work    = task->work;
-    scratch = (*(void**)0x1F8003FC = (ActorScaleScratch*)((u8*)head - 0x30));
+    scratch = (SCRATCH_HEAD(void) = (ActorScaleScratch*)((u8*)head - 0x30));
     coord   = ((TmdObject*)task->extra)->coords;
     if ((s16)work->field_488 >= 0x101) {
         work->field_488 = (u16)work->field_488 - 0x10;
@@ -491,8 +491,8 @@ void func_actor_521100_801368B0(Task* task)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 /// Animation-start handler: seeds the work block's `animId` with
 /// `args->field_4 + 1`, rejecting anything whose incremented id is 0xB or up,

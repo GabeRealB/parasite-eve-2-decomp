@@ -39,7 +39,6 @@ extern s16 D_actor_260500_80159D7C;
 extern s16 D_actor_260500_80159E54;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// `func_800B4114` is declared locally with a signed `arg2`; see the note in
 /// `include/gameplay/1BC.h`.
@@ -419,11 +418,11 @@ void func_actor_260500_8014A99C(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0xC0);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }

@@ -21,7 +21,6 @@
 #include "main/tmd.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
@@ -455,11 +454,11 @@ void func_actor_151000_80132A38(Task* task)
     obj   = (TmdObject*)task->extra;
     coord = obj->coords;
     if (!(obj->flags & 0x80) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)(SCRATCH_SP -= 0x18);
+        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, Gp_State1C->groundShade);
-        SCRATCH_SP += 0x18;
+        SCRATCH_POP_BYTES(0x18);
     }
 }

@@ -127,11 +127,11 @@ void func_actor_205200_80149E54(Task* arg0)
     s32 tpage0;
     s32 tpage1;
 
-    head                                  = *(OverlayWaveScratch**)G_SCRATCH_HEAD;
-    D_800691CA                            = 2;
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD = head - 1;
-    cols                                  = head[-1].cols;
-    scratch                               = head - 1;
+    head                             = SCRATCH_HEAD(OverlayWaveScratch);
+    D_800691CA                       = 2;
+    SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
+    cols                             = head[-1].cols;
+    scratch                          = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {
@@ -281,7 +281,7 @@ void func_actor_205200_80149E54(Task* arg0)
     gGpuPrimCursor = (u8*)(stp + 1);
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    *(OverlayWaveScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(OverlayWaveScratch);
 }
 
 void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
@@ -544,7 +544,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     s32                  hitTime;
     s32                  clamped;
 
-    vec   = --*(VECTOR**)0x1F8003FC;
+    vec   = SCRATCH_PUSH(VECTOR);
     coord = ((TmdObject*)arg0->extra)->coords;
     part  = (Actor205200Part*)arg0->work;
     enemy = arg0->spawnArg2;
@@ -613,7 +613,7 @@ void func_actor_205200_8014B048(Task* arg0, s32 arg1)
         }
     }
     Gp_ClearRec18Occupied(part->recs);
-    *(VECTOR**)0x1F8003FC += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)

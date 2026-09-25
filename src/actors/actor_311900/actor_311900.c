@@ -407,10 +407,10 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
     if (Mc_SaveData.field_5C1 == 1) {
         return 0;
     }
-    head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-    vec                        = head - 1;
-    gte                        = head - 1;
-    *(SVECTOR**)G_SCRATCH_HEAD = vec;
+    head                  = SCRATCH_HEAD(SVECTOR);
+    vec                   = head - 1;
+    gte                   = head - 1;
+    SCRATCH_HEAD(SVECTOR) = vec;
     if (arg1 != 0) {
         SOFT_TOUCH_REG(vec);
         Gfx_MatrixCol2(&arg0->coord, vec);
@@ -424,7 +424,7 @@ s32 func_actor_311900_80162658(GsCOORDINATE2* arg0, s16 arg1)
         arg0->coord.t[2] += vec->vz;
         arg0->flg         = 0;
     }
-    *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(SVECTOR);
     return arg1;
 }
 

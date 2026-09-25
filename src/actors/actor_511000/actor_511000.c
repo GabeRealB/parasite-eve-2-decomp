@@ -1334,13 +1334,13 @@ void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     s32                    j;
     s32                    flag;
 
-    extra                  = *(TmdObject**)&task->extra;
-    *(u32*)G_SCRATCH_HEAD -= 0x20;
-    work                   = (Actor511000ParentWork*)task->work;
-    coords                 = extra->coords;
-    coord                  = &coords[1];
-    flag                   = work->field_47C;
-    pos                    = (VECTOR*)*(u32*)G_SCRATCH_HEAD;
+    extra = *(TmdObject**)&task->extra;
+    SCRATCH_PUSH_BYTES(0x20);
+    work   = (Actor511000ParentWork*)task->work;
+    coords = extra->coords;
+    coord  = &coords[1];
+    flag   = work->field_47C;
+    pos    = SCRATCH_HEAD(VECTOR);
     if (flag != 0) {
         for (i = 1; i < 19; i++) {
             Gp_AnimTickIndex(&work->anim, i);
@@ -1374,8 +1374,8 @@ void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
         }
     }
     work->field_480++;
-    coords->flg             = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    coords->flg = 0;
+    SCRATCH_POP_BYTES(0x20);
 }
 
 /// Runs the enemy's current state handler, copying the table onto the stack
