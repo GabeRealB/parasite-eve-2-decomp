@@ -163,10 +163,10 @@ void func_actor_205200_8014BD4C(Task* arg0)
     s32              last;
     s32              n;
 
-    found                  = 0;
-    work                   = arg0->work;
-    last                   = 0;
-    *(u32*)G_SCRATCH_HEAD -= 0x10;
+    found = 0;
+    work  = arg0->work;
+    last  = 0;
+    SCRATCH_PUSH_BYTES(0x10);
     if (work->field_57C != 0) {
         if (--work->field_57C <= 0) {
             work->field_57C = 0;
@@ -209,7 +209,7 @@ end:
         }
         Gp_ClearRec18Occupied(&work->field_504);
     }
-    *(u32*)G_SCRATCH_HEAD += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Charge-handler sub-state machine. States 0 and 3 share a random roll: every
@@ -288,13 +288,13 @@ void func_actor_205200_8014C0C0(Task* arg0)
     s32                 sound;
     s32                 count;
 
-    work                    = arg0->work;
-    player                  = gameGetPtrSlot(3);
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - sizeof(ActorAttackScratch);
-    scratch                 = *(ActorAttackScratch**)G_SCRATCH_HEAD;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
-    target                  = ((TmdObject*)player->extra)->coords;
+    work               = arg0->work;
+    player             = gameGetPtrSlot(3);
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - sizeof(ActorAttackScratch);
+    scratch            = SCRATCH_HEAD(ActorAttackScratch);
+    coord              = ((TmdObject*)arg0->extra)->coords;
+    target             = ((TmdObject*)player->extra)->coords;
 
     switch (work->field_58A) {
         case 0:
@@ -376,7 +376,7 @@ void func_actor_205200_8014C0C0(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(ActorAttackScratch);
+    SCRATCH_POP_BYTES(sizeof(ActorAttackScratch));
 }
 
 /// Update of the actor's own task: runs the handler of

@@ -163,9 +163,9 @@ void func_actor_207200_8014A1C4(Task* arg0)
     s32                      id;
     GpEnemy*                 ctx;
 
-    work                   = (ActorShared8014df20Work*)arg0->work;
-    *(u8**)G_SCRATCH_HEAD -= 8;
-    obj                    = ((TmdObject*)arg0->extra)->coords;
+    work = (ActorShared8014df20Work*)arg0->work;
+    SCRATCH_PUSH_BYTES(8);
+    obj = ((TmdObject*)arg0->extra)->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
         Gp_StateF0.field_3 = 1;
         work->field_2AA    = 1;
@@ -250,7 +250,7 @@ void func_actor_207200_8014A1C4(Task* arg0)
             work->field_290 = 0;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 /// Per-frame hit handler. Applies the `func_800E0C10` push-back from the four
@@ -273,13 +273,13 @@ void func_actor_207200_8014A588(Task* arg0)
     u32                      damage;
     s32                      snd;
 
-    work                                 = (ActorShared8014df20Work*)arg0->work;
-    head                                 = *(ActorDeltaFrame38**)G_SCRATCH_HEAD;
-    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = head - 1;
-    sc                                   = head - 1;
-    obj                                  = arg0->extra;
-    coord                                = obj->coords;
-    enemy                                = arg0->spawnArg2;
+    work                            = (ActorShared8014df20Work*)arg0->work;
+    head                            = SCRATCH_HEAD(ActorDeltaFrame38);
+    SCRATCH_HEAD(ActorDeltaFrame38) = head - 1;
+    sc                              = head - 1;
+    obj                             = arg0->extra;
+    coord                           = obj->coords;
+    enemy                           = arg0->spawnArg2;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -368,7 +368,7 @@ void func_actor_207200_8014A588(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    *(ActorDeltaFrame38**)G_SCRATCH_HEAD = *(ActorDeltaFrame38**)G_SCRATCH_HEAD + 1;
+    SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
 }
 
 /// Dying-state tick of the small enemy, under the shared `Gp_StateF0.field_4` mode
@@ -615,7 +615,7 @@ void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Ramps the small enemy's light blend up or down depending on the flag at
@@ -675,11 +675,11 @@ void func_actor_207200_8014B128(Task* arg0)
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = (*(TmdObject**)&arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }
@@ -694,8 +694,8 @@ void func_actor_207200_8014B128(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Exit callback of the small enemy: detaches the enemy's hit records,

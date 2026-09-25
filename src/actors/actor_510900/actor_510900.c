@@ -454,7 +454,7 @@ void func_actor_510900_80132D4C(Task* arg0)
                 Gp_DrawEffSprite7C(&hit, (s32)(*(u16*)&mem->scale << 16) >> 17, (u8)col);
             }
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -559,7 +559,7 @@ void func_actor_510900_801332EC(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -671,7 +671,7 @@ void func_actor_510900_8013371C(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -774,7 +774,7 @@ void func_actor_510900_80133C84(Task* arg0)
             addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+        SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState != 0) {
             return;
         }
@@ -858,11 +858,11 @@ void func_actor_510900_80134284(Task* arg0)
     s16                      val;
     s16                      count;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(Actor510900TrailScratch);
-    block                   = (Actor510900TrailScratch*)*(void**)G_SCRATCH_HEAD;
-    eff                     = arg0->spawnArg2;
-    mode                    = Gp_State1C->eventState;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(sizeof(Actor510900TrailScratch));
+    block = (Actor510900TrailScratch*)SCRATCH_HEAD(void);
+    eff   = arg0->spawnArg2;
+    mode  = Gp_State1C->eventState;
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (mode != 0) {
         if (mode >= 4) {
             Gp_ReleaseState1CMem(eff, arg0);
@@ -931,10 +931,10 @@ void func_actor_510900_80134284(Task* arg0)
             Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz0 + block->otz1) >> 1);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(Actor510900TrailScratch);
-    eff->move.vy           += 6;
-    count                   = eff->age + 1;
-    eff->age                = count;
+    SCRATCH_POP_BYTES(sizeof(Actor510900TrailScratch));
+    eff->move.vy += 6;
+    count         = eff->age + 1;
+    eff->age      = count;
     if (count > eff->scale * 16 - 1) {
         Gp_ReleaseState1CMem(eff, arg0);
     }
@@ -1153,7 +1153,7 @@ void func_actor_510900_80134C90(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off

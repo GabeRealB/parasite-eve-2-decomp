@@ -977,7 +977,7 @@ void func_actor_206100_8014AB3C(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, s32 arg
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(GpEffFlareScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpEffFlareScratch));
 }
 
 void func_actor_206100_8014AF74(Task* task)
@@ -1633,15 +1633,15 @@ void func_actor_206100_8014BEC4(GsCOORDINATE2* coord, s16 yaw)
     MATRIX*        rotation;
     GsCOORDINATE2* out;
 
-    *(MATRIX**)G_SCRATCH_HEAD -= 1;
-    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    SCRATCH_PUSH(MATRIX);
+    rotation = SCRATCH_HEAD(MATRIX);
     Actor206100_AccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
     out = Actor206100_LocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
-    *(MATRIX**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(MATRIX);
 }
 
 /// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
@@ -1812,7 +1812,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     block->vz = coord->workm.t[2];
     *scratch  = block;
     Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// Keep the model load and its long-lived saved copy as separate values.
@@ -3302,11 +3302,11 @@ void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     Actor206100DistScratch* head;
     Actor206100DistScratch* scratch;
 
-    head                                      = *(Actor206100DistScratch**)G_SCRATCH_HEAD;
-    scratch                                   = head - 1;
-    *(Actor206100DistScratch**)G_SCRATCH_HEAD = scratch;
-    work                                      = (Actor206100Work*)task->work;
-    coord                                     = ((TmdObject*)task->extra)->coords;
+    head                                 = SCRATCH_HEAD(Actor206100DistScratch);
+    scratch                              = head - 1;
+    SCRATCH_HEAD(Actor206100DistScratch) = scratch;
+    work                                 = (Actor206100Work*)task->work;
+    coord                                = ((TmdObject*)task->extra)->coords;
     func_actor_206100_8014EA8C(task, arg1, work->field_43E);
     scratch->delta.vx = -(u16)coord->coord.t[0];
     scratch->delta.vz = -(u16)coord->coord.t[2];
@@ -3316,7 +3316,7 @@ void func_actor_206100_8014ED3C(Task* task, s16 arg1)
         coord->coord.t[0] = work->field_434;
         coord->coord.t[2] = work->field_438;
     }
-    *(Actor206100DistScratch**)G_SCRATCH_HEAD += 1;
+    SCRATCH_POP(Actor206100DistScratch);
 }
 
 extern TaskDesc D_80147E48;

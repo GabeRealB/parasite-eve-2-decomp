@@ -4459,7 +4459,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     u16            copyValue;
 
     coords    = ((TmdObject*)arg0->extra)->coords;
-    allocated = (MATRIX*)(*(u8**)0x1F8003FC - 0x88);
+    allocated = (MATRIX*)(SCRATCH_HEAD(u8) - 0x88);
     __asm__("move %0,%1" : "=r"(matrices) : "r"(allocated));
     angles                     = (SVECTOR*)((u8*)allocated + 0x80);
     *(s32*)&allocated->m[0][0] = 0x1000;
@@ -4468,7 +4468,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     *(s32*)&matrices->m[2][0]  = 0;
     matrices->m[2][2]          = 0x1000;
     root                       = ((TmdObject*)arg0->extra)->coords;
-    *(MATRIX**)0x1F8003FC      = matrices;
+    SCRATCH_HEAD(MATRIX)       = matrices;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &root[3].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
@@ -4535,18 +4535,18 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     SOFT_USE_REG(copyValue);
     dest = &head->coord;
     SOFT_TOUCH_REG(dest);
-    dest->m[0][1]      = copyValue;
-    dest->m[0][2]      = (u16)transpose->m[0][2];
-    dest->m[1][0]      = (u16)transpose->m[1][0];
-    dest->m[1][1]      = (u16)transpose->m[1][1];
-    dest->m[1][2]      = (u16)transpose->m[1][2];
-    dest->m[2][0]      = (u16)transpose->m[2][0];
-    dest->m[2][1]      = (u16)transpose->m[2][1];
-    dest->m[2][2]      = (u16)transpose->m[2][2];
-    *(u8**)0x1F8003FC += 0x88;
-    lower->flg         = 0;
-    middle->flg        = 0;
-    head->flg          = 0;
+    dest->m[0][1] = copyValue;
+    dest->m[0][2] = (u16)transpose->m[0][2];
+    dest->m[1][0] = (u16)transpose->m[1][0];
+    dest->m[1][1] = (u16)transpose->m[1][1];
+    dest->m[1][2] = (u16)transpose->m[1][2];
+    dest->m[2][0] = (u16)transpose->m[2][0];
+    dest->m[2][1] = (u16)transpose->m[2][1];
+    dest->m[2][2] = (u16)transpose->m[2][2];
+    SCRATCH_POP_BYTES(0x88);
+    lower->flg  = 0;
+    middle->flg = 0;
+    head->flg   = 0;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `field_5FA`.
 const TaskFuncTable6 D_actor_403100_80131F84 = {

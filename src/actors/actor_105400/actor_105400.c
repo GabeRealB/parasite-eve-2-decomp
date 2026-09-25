@@ -85,7 +85,7 @@ void func_actor_105400_80131E3C(Task* arg0)
     s32                snd;
     s32                i;
 
-    scr    = --*(Actor05300Scratch**)0x1F8003FC;
+    scr    = SCRATCH_PUSH(Actor05300Scratch);
     coord  = ((TmdObject*)arg0->extra)->coords;
     work   = arg0->work;
     enemy  = arg0->spawnArg2;
@@ -155,7 +155,7 @@ void func_actor_105400_80131E3C(Task* arg0)
     }
 end:
     Gp_ClearRec18Occupied(work->rec18);
-    *(Actor05300Scratch**)0x1F8003FC += 1;
+    SCRATCH_POP(Actor05300Scratch);
 }
 
 /// Idle schedule of the enemy, one of the steps the tick handler
@@ -550,7 +550,7 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
             arg0->node.state.b.flags = 1;
             return;
     }
-    vec = --*(VECTOR**)0x1F8003FC;
+    vec = SCRATCH_PUSH(VECTOR);
     if (part->field_40 != 0) {
         part->field_40--;
         if (part->field_40 <= 0) {
@@ -602,7 +602,7 @@ void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
         }
     }
     Gp_ClearRec18Occupied(part->rec18);
-    *(VECTOR**)0x1F8003FC += 1;
+    SCRATCH_POP(VECTOR);
 }
 
 /// Spawn/setup handler. It allocates the 0x340-byte work block and hangs it on
@@ -858,10 +858,10 @@ void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
     ActorScaleScratch* blk;
     GsCOORDINATE2*     coord;
 
-    head                    = *(void**)G_SCRATCH_HEAD;
-    *(void**)G_SCRATCH_HEAD = (u8*)head - 0x30;
-    blk                     = (ActorScaleScratch*)((u8*)head - 0x30);
-    coord                   = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(void);
+    SCRATCH_HEAD(void) = (u8*)head - 0x30;
+    blk                = (ActorScaleScratch*)((u8*)head - 0x30);
+    coord              = ((TmdObject*)arg0->extra)->coords;
 
     if (arg3 == 0) {
         blk->scale.vx = 0x1000;
@@ -883,8 +883,8 @@ void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
-    coord->flg              = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame

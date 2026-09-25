@@ -231,7 +231,7 @@ void func_actor_800300_80162064(Task* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, Gp_State1C->groundShade);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void func_actor_800300_801623F8(Task* arg0)
@@ -293,7 +293,7 @@ void func_actor_800300_801623F8(Task* arg0)
         }
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    SCRATCH_POP_BYTES(8);
 }
 
 void func_actor_800300_8016259C(Task* arg0)
@@ -516,13 +516,13 @@ void func_actor_800300_80162A98(Task* arg0)
     s32            arg;
     s32            flag;
 
-    actor             = arg0->work;
-    extra             = (TmdObject*)(gameGetPtrSlot(3))->extra;
-    head              = *(u8**)0x1F8003FC;
-    *(u8**)0x1F8003FC = head - 0x10;
-    vec               = (VECTOR3*)(head - 0x10);
-    node              = actor->field_90C;
-    src               = extra->coords;
+    actor            = arg0->work;
+    extra            = (TmdObject*)(gameGetPtrSlot(3))->extra;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x10;
+    vec              = (VECTOR3*)(head - 0x10);
+    node             = actor->field_90C;
+    src              = extra->coords;
     if (node != NULL) {
         if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
@@ -560,7 +560,7 @@ void func_actor_800300_80162A98(Task* arg0)
     }
     func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
     func_80105ED4(arg0);
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800300_80162C2C(Task* arg0)
@@ -614,13 +614,13 @@ void func_actor_800300_80162D74(Task* arg0)
     VECTOR3*       vec;
     u16            state;
 
-    coord             = ((TmdObject*)arg0->extra)->coords;
-    target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head              = *(u8**)0x1F8003FC;
-    *(u8**)0x1F8003FC = head - 0x10;
-    vec               = (VECTOR3*)(head - 0x10);
-    actor             = arg0->work;
-    lock              = actor->field_90C;
+    coord            = ((TmdObject*)arg0->extra)->coords;
+    target           = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0x10;
+    vec              = (VECTOR3*)(head - 0x10);
+    actor            = arg0->work;
+    lock             = actor->field_90C;
     if (lock != NULL) {
         if (!(lock->state.b.flags & 1)) {
             Gp_GetLockPos(lock, vec);
@@ -650,7 +650,7 @@ void func_actor_800300_80162D74(Task* arg0)
     func_8010BD88(arg0, vec);
     func_8010BE5C(arg0, vec);
     func_80105ED4(arg0);
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_actor_800300_80162EEC(Task* arg0)

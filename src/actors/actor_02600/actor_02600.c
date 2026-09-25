@@ -993,8 +993,6 @@ void Actor02600_Fn01B30(Task* arg0)
     *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) = *(SVECTOR**)PSX_SCRATCH_ADDR(0x3FC) + 1;
 }
 
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 /// Status-effect step, run every frame while `field_3B0` is set. `field_3B2`
 /// cycles through 0x50 frames; every 12 frames effect 3 is spawned, alternating
 /// between model nodes 3 and 5; every 0x24 frames sound 0x401A0005 is played
@@ -1057,7 +1055,7 @@ void Actor02600_Fn02214(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+    sc    = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     coord = ((TmdObject*)arg0->extra)->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1109,10 +1107,8 @@ done:
     sc->rot.vy = work->field_3A2;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_SP += 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }
-
-#undef SCRATCH_SP
 
 /// Dying sequence, the actor task's third state. While the global mode is 1
 /// only the colour is updated, and mode 2 sets the model's `field_C` to 0x80.
@@ -1996,11 +1992,11 @@ void Actor02600_Fn03B58(Task* arg0)
     ActorScaleScratch* scratch;
     Actor105500Work*   work;
 
-    head                = *(MATRIX**)0x1F8003FC;
-    work                = arg0->work;
-    scratch             = (ActorScaleScratch*)((u8*)head - 0x30);
-    *(void**)0x1F8003FC = scratch;
-    coord               = ((TmdObject*)arg0->extra)->coords;
+    head               = SCRATCH_HEAD(MATRIX);
+    work               = arg0->work;
+    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    SCRATCH_HEAD(void) = scratch;
+    coord              = ((TmdObject*)arg0->extra)->coords;
     if (work->field_3A0 >= 0x201) {
         work->field_3A0 = (u16)work->field_3A0 - 0x50;
     }
@@ -2015,8 +2011,8 @@ void Actor02600_Fn03B58(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg         = 0;
-    *(u8**)0x1F8003FC += 0x30;
+    coord->flg = 0;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 void Actor02600_Fn03C4C(Task* actor)
@@ -2085,7 +2081,7 @@ void Actor02600_Fn03D38(Task* actor)
     blk->mat.ident.m22     = 0x1000;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord[2].coord, &blk->mat.mat);
-    *scratch = (u8*)*scratch + 0x30;
+    SCRATCH_POP_BYTES_AT(scratch, 0x30);
 }
 
 void Actor02600_Fn03DD0(Task* arg0)
