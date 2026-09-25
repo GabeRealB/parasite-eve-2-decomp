@@ -1,20 +1,204 @@
 #include "common.h"
 
-#include "actors/actor_317000.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/abs.h>
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+
+#include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
-#include <psyq/abs.h>
-#include <psyq/libgte.h>
+/// A 16.16 fixed-point word, read whole or as its fraction/integer halves.
+typedef union Actor317000Fixed {
+    s32 v;
+    struct {
+        u16 lo;
+        s16 hi;
+    } p;
+} Actor317000Fixed;
 
-void func_actor_317000_80162760(Task* task);
-void func_actor_317000_80162768(Task* task);
-void func_actor_317000_801621F4();
+/// Work block allocated by `func_actor_317000_8016267C` (`memCalloc(0x4CC)`)
+/// and parked in that task's `Task::work` slot -- that slot is not a
+/// `TaskIdMap` here. `func_actor_317000_80162744` republishes the two matrices
+/// onto `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
+/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
+///
+/// The size is the allocation, and the fields below are the ones the init
+/// seeds: the two `sb` bytes at 0x43D/0x43E and the `sh` at 0x4C8 are set to
+/// -1, and the three words at 0x4A0..0x4A8 are cleared. `field_4C0` is the
+/// state index `func_actor_317000_80161E68` dispatches on, `lh` scaled by 4
+/// into the two function pointers it builds at 0x18/0x1C of its frame:
+/// `func_actor_317000_80162458` latches 1 there, and
+/// `func_actor_317000_801620BC` clears it together with `field_4C2` when the
+/// actor is already facing its target.
+///
+/// The block opens with the actor's animation context -- `ctx` and the 0x13
+/// `GpAnimSlot`s `func_800B3F84` is handed as its fourth and fifth arguments --
+/// so the block pointer is also the `GpAnimCtx*` the animation helpers take:
+/// `func_actor_317000_80162458` passes it that way to `func_800B3F84`,
+/// `Gp_AnimResetSlot`, `Gp_AnimTickIndex` and `func_800B4114`.
+///
+/// `target` is the placement position `func_actor_317000_80162458` copies in;
+/// `step` is the local-space offset `ApplyMatrixLV` rotates into world space.
+typedef struct Actor317000Work {
+    /* 0x000 */ GpAnimCtx        ctx;
+    /* 0x014 */ GpAnimSlot       slots[0x13];  // slot array `func_800B3F84` is handed
+    /* 0x30C */ byte             poses[0x130]; // pose buffer `func_800B3F84` is handed
+    /* 0x43C */ s8               field_43C;    // non-zero while the animation slots tick
+    /* 0x43D */ s8               field_43D;
+    /* 0x43E */ s8               field_43E;
+    /* 0x43F */ s8               field_43F; // animation state re-applied by `func_actor_317000_80162950`
+    /* 0x440 */ MATRIX           light;
+    /* 0x460 */ MATRIX           color;
+    /* 0x480 */ VECTOR3          target;    // placement position copied in by `func_actor_317000_80162458`
+    /* 0x48C */ byte             pad_48C[0x4];
+    /* 0x490 */ VECTOR3          step;      // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x49C */ byte             pad_49C[0x4];
+    /* 0x4A0 */ Actor317000Fixed pos[3];    // 16.16 position, integer part added to the root coordinate
+    /* 0x4AC */ byte             pad_4AC[0xC];
+    /* 0x4B8 */ u16              field_4B8; // placement rotation copied in by `func_actor_317000_80162458`
+    /* 0x4BA */ u16              field_4BA; // target yaw `func_actor_317000_801627D0` steers toward
+    /* 0x4BC */ u16              field_4BC; // placement rotation copied in by `func_actor_317000_80162458`
+    /* 0x4BE */ byte             pad_4BE[0x2];
+    /* 0x4C0 */ u16              field_4C0;
+    /* 0x4C2 */ u16              field_4C2;
+    /* 0x4C4 */ s8               field_4C4;
+    /* 0x4C5 */ s8               field_4C5;
+    /* 0x4C6 */ s16              field_4C6;
+    /* 0x4C8 */ s16              field_4C8;
+    /* 0x4CA */ byte             pad_4CA[0x2];
+} Actor317000Work;
+STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
+
+/// 0x14-byte animation preset the overlay's state bodies build for
+/// `func_actor_317000_80162A10` (`func_actor_317000_801627D0` and
+/// `func_actor_317000_80162950`) and for its spawn body
+/// `func_actor_317000_80162458`, which is that same install written out
+/// in-line. `field_0` is compared against `Actor317000Work::field_43E` and
+/// `field_4` against `field_43D`, and whichever differs is latched through
+/// `func_800B3F84` and the `Gp_AnimResetSlot` / `Gp_AnimTickIndex` slot loops
+/// -- `field_0` also selects the bank in `D_actor_317000_8016CF40`. `field_0`
+/// is 0 and `field_8` is 1 and `field_C` is 5 in all three; `field_10` is 0 in
+/// the two state bodies and 1 in the spawn body, whose `field_4` is its
+/// optional start animation (the literal 2 when absent) -- the state bodies
+/// take the `field_43F` byte and the literal 2 there. The same five-word shape
+/// as `GpAnimArg`.
+typedef struct Actor317000AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor317000AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor317000AnimPreset, 0x14);
+
+/// Position and Euler angles carried by messages 0x7DD and 0x7D4.
+/// `func_actor_317000_80162458` copies them into its work block (the position
+/// into `Actor317000Work::target`, the rotation into `field_4B8..field_4BC`,
+/// the yaw being the turn-to-face target); `func_actor_317000_80162B48` places
+/// the root coordinate at them.
+typedef struct Actor317000Placement {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor317000Placement;
+STATIC_ASSERT_SIZEOF(Actor317000Placement, 0x18);
+
+/// Optional start animation for the same handler: the preset's `field_4` and
+/// the `field_43F` byte. Absent, the defaults are anim 2 and 1.
+typedef struct Actor317000SpawnAnim {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  field_4;
+} Actor317000SpawnAnim;
+
+/// Indexed by `Actor317000Work::field_43E` for `func_800B3F84`'s second
+/// argument by `func_actor_317000_80162458` and `func_actor_317000_80162A10`.
+/// Every preset the actor builds has `field_0` 0, so only the first word is
+/// ever read; the words after it (among them the address of
+/// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
+extern void* D_actor_317000_8016CF40[];
+
+/// A `MATRIX`'s word-wise view, for the identity splat
+/// `func_actor_317000_801627D0` writes over the root coordinate before
+/// `RotMatrix` overwrites the 3x3: five aligned stores rather than nine
+/// halfword ones.
+typedef struct Actor317000MatWords {
+    /* 0x00 */ s32 m00_m01;
+    /* 0x04 */ s32 m02_m10;
+    /* 0x08 */ s32 m11_m12;
+    /* 0x0C */ s32 m20_m21;
+    /* 0x10 */ s16 m22;
+} Actor317000MatWords;
+STATIC_ASSERT_SIZEOF(Actor317000MatWords, 0x14);
+
+/// Overlay of `GsCOORDINATE2` at `TmdObject::coords`. Offset 0x44 (libgs
+/// `param`) holds the facing `func_actor_317000_801620BC` derives from the
+/// actor's own and the slot 3 task's translation, the rotation `RotMatrix` is
+/// later rebuilt from, and where `func_actor_317000_80162B48` stores the
+/// placement's Euler angles before rebuilding the rotation from them.
+typedef struct Actor317000Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor317000Coord;
+
+/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
+/// its halfword at 0x2 selects the mode the handler latches.
+typedef struct Actor317000Msg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} Actor317000Msg;
+STATIC_ASSERT_SIZEOF(Actor317000Msg, 0x4);
+
+/// `func_800B4114` is not declared in `gameplay/1BC.h`; its callers here pass
+/// the animation id as a signed value.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
+extern GpMsgEntry D_actor_317000_8016CF50[];
+
+void func_actor_317000_80161E68(Task* task);
+void func_actor_317000_801620BC(Task* task);
+void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4);
+void func_actor_317000_8016267C(Task* arg0);
+void func_actor_317000_80162724(Task* arg0);
+void func_actor_317000_80162744(Task* arg0);
+void func_actor_317000_80162760(Task* arg0);
+void func_actor_317000_80162768(Task* arg0);
+void func_actor_317000_801627D0(Task* arg0);
+void func_actor_317000_801628D8(Task* task);
+void func_actor_317000_80162950(Task* arg0);
+s32  func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3);
+s32  func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
+
+/// The actor's three task states, which `func_actor_317000_80162624` runs by
+/// `Task::state`: spawn, per-frame tick and exit.
+const TaskFuncTable3 D_actor_317000_80161E24 = { {
+    func_actor_317000_8016267C,
+    func_actor_317000_80161E68,
+    func_actor_317000_80162724,
+} };
+
+/// The four step handlers `func_actor_317000_80162768` runs by
+/// `Actor317000Work::field_4C2`.
+const TaskFuncTable4 D_actor_317000_80161E30 = { {
+    func_actor_317000_801627D0,
+    func_actor_317000_801628D8,
+    func_actor_317000_80162950,
+    func_actor_317000_801620BC,
+} };
+
+/// The constant local-space offset `func_actor_317000_801628D8` rotates
+/// through the root coordinate into `Actor317000Work::step`.
+const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 /// Per-frame tick. Runs the state body `Actor317000Work::field_4C0` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
@@ -78,8 +262,7 @@ void func_actor_317000_80161E68(Task* task)
     }
 }
 
-/// Turn-toward-target body of the facing state `func_actor_317000_80161E68`
-/// dispatches on. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
+/// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
 /// `{ 0, yaw, 0 }` at `Actor317000Coord::rot`. The same yaw is then compared
@@ -88,7 +271,6 @@ void func_actor_317000_80161E68(Task* task)
 /// target already, which clears the work's dispatch index and its companion
 /// halfword; otherwise the matrix's yaw is stepped toward the target by that
 /// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
-/// `arg0->work` is the work block, not a `TaskIdMap`.
 void func_actor_317000_801620BC(Task* task)
 {
     Actor317000Work*  work;
@@ -137,10 +319,9 @@ void func_actor_317000_801620BC(Task* task)
     coord->flg = 0;
 }
 
-/// Aim body of the facing state `func_actor_317000_80161E68` dispatches on,
-/// which calls it with `gameGetPtrSlot(3)` (the player) as the second
-/// argument and passes three more it never reads (0x400, 0x200 and
-/// `Actor317000Work::field_4C6`). The delta from the actor's sixth coordinate
+/// Aim body the per-frame tick `func_actor_317000_80161E68` calls with
+/// `gameGetPtrSlot(3)` (the player) as `targetTask`; it never reads the three
+/// arguments after it (0x400, 0x200 and `Actor317000Work::field_4C6`). The delta from the actor's sixth coordinate
 /// (`coord[5]`) to the target's fifth is normalised, taken through the
 /// transpose of the actor's third coordinate's `workm`, and normalised again
 /// into `dir`. The three `ratan2`s reduce `dir` to an Euler triple -- the YZ,
@@ -153,10 +334,10 @@ void func_actor_317000_801620BC(Task* task)
 ///
 /// `coord[5]` is kept as its own `head` pointer and `coord[3].coord` as its
 /// own `arm` matrix rather than indexed off `coord`: the second and third
-/// reads of `arg0->extra->field_8` are re-derived rather than sharing the
+/// reads of `task->extra->coords` are re-derived rather than sharing the
 /// first, which is what keeps the task argument live in `$s1` across the
 /// calls and puts `&target[4]` in its own register.
-void func_actor_317000_801621F4(Task* task, Task* targetTask)
+void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
     GsCOORDINATE2*       coord;
     GsCOORDINATE2*       target;
@@ -213,12 +394,6 @@ void func_actor_317000_801621F4(Task* task, Task* targetTask)
     words->m22     = ONE;
     RotMatrix(&vec, &coord[5].coord);
 }
-
-/// `func_800B4114` is deliberately not declared in `gameplay/1BC.h`: the
-/// callee's own definition takes its animation id as `u16`, which would add a
-/// zero-extension at every call site. The callers declare it with a signed
-/// second argument instead, as the sibling actor libs do.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Message 0x7DD handler of the table `func_actor_317000_8016267C` installs,
 /// and the actor's spawn body. The placement's position and rotation are
@@ -292,4 +467,338 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, Actor317000Placement* place
     }
     return 0;
 }
-INCLUDE_RODATA("actors/nonmatchings/actor_317000/actor_317000", D_actor_317000_80161E24);
+
+/// Task callback of the actor: copies the three-handler table
+/// `D_actor_317000_80161E24` (spawn `func_actor_317000_8016267C`, per-frame
+/// tick `func_actor_317000_80161E68`, exit `func_actor_317000_80162724`) onto
+/// the stack and runs the entry `Task::state` selects.
+void func_actor_317000_80162624(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_317000_80161E24;
+    sp.funcs[task->state](task);
+}
+
+/// Spawn state of the enemy actor: allocates the 0x4CC-byte work block every
+/// later handler reads through `Task::work`, seeds the three -1 fields and the
+/// three cleared words the work's own init expects, republishes the light and
+/// colour matrices onto the display object, sets `TmdObject::flags` bit 0x80
+/// through the mode-0 call, then installs the message table and the exit
+/// handler. An allocation failure ends the task instead of leaving a
+/// half-built actor behind.
+void func_actor_317000_8016267C(Task* arg0)
+{
+    Actor317000Work* work;
+
+    work = memCalloc(sizeof(Actor317000Work), false);
+    if (work == NULL) {
+        Gp_EnemyTaskExit(arg0);
+        return;
+    }
+
+    arg0->work      = (TaskIdMap*)work;
+    work->field_43D = -1;
+    work->field_43E = -1;
+    work->field_4C8 = -1;
+    work->pos[0].v  = 0;
+    work->pos[1].v  = 0;
+    work->pos[2].v  = 0;
+
+    func_actor_317000_80162744(arg0);
+    func_actor_317000_80162BC4(arg0, 0x7D5, 0, 0);
+
+    arg0->msgTable     = D_actor_317000_8016CF50;
+    arg0->exitCallback = func_actor_317000_80162724;
+    arg0->state++;
+}
+
+/// Exit handler, both the third entry of `D_actor_317000_80161E24` and the
+/// `Task::exitCallback` `func_actor_317000_8016267C` installs: ends the task
+/// through `Gp_EnemyTaskExit`.
+void func_actor_317000_80162724(Task* arg0)
+{
+    Gp_EnemyTaskExit(arg0);
+}
+
+/// Points the display object's light and colour matrices at the work block's
+/// own copies, `Actor317000Work::light` and `color`.
+void func_actor_317000_80162744(Task* arg0)
+{
+    TmdObject*       ext;
+    Actor317000Work* work;
+
+    ext           = arg0->extra;
+    work          = (Actor317000Work*)arg0->work;
+    ext->lightMtx = &work->light;
+    ext->colorMtx = &work->color;
+}
+
+/// Index 0 of the two-entry table `func_actor_317000_80161E68` dispatches on
+/// `Actor317000Work::field_4C0`: does nothing.
+void func_actor_317000_80162760(Task* arg0)
+{
+}
+
+/// Index 1 of the two-entry table `func_actor_317000_80161E68` dispatches on
+/// `Actor317000Work::field_4C0`: copies the four step handlers
+/// `D_actor_317000_80161E30` onto the stack and runs the one
+/// `Actor317000Work::field_4C2` selects, read sign-extended.
+void func_actor_317000_80162768(Task* arg0)
+{
+    TaskFuncTable4   sp;
+    Actor317000Work* work;
+
+    work = (Actor317000Work*)arg0->work;
+    sp   = D_actor_317000_80161E30;
+    sp.funcs[(s16)work->field_4C2](arg0);
+}
+
+/// Step handler at index 0 of `D_actor_317000_80161E30`: Euler-extracts the
+/// root coordinate into `vec`, and while the yaw gap to the target
+/// `work->field_4BA` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
+/// the step is taken on an `s32` widening of the extracted yaw -- and
+/// otherwise snaps the yaw to the target and plays anim 0x7D3 with a preset
+/// whose `field_4` is the literal 2, clearing the `field_4C4` flag and
+/// advancing `field_4C2`. Either way the root coordinate is rebuilt as the
+/// identity matrix rotated by `vec`.
+void func_actor_317000_801627D0(Task* arg0)
+{
+    Actor317000Work*      work;
+    Actor317000MatWords*  words;
+    GsCOORDINATE2*        coord;
+    SVECTOR               vec;
+    Actor317000AnimPreset preset;
+    s32                   vy;
+    s16                   diff;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = (Actor317000Work*)arg0->work;
+
+    Gp_ExtractEuler(&vec, &coord->coord);
+    diff = (u16)work->field_4BA - (u16)vec.vy;
+    if (ABS(diff) >= 0x41) {
+        vy = vec.vy;
+        if (diff < 0) {
+            vec.vy = vy - 0x40;
+        } else {
+            vec.vy = vy + 0x40;
+        }
+    } else {
+        vec.vy          = work->field_4BA;
+        preset.field_0  = 0;
+        preset.field_4  = 2;
+        preset.field_8  = 1;
+        preset.field_C  = 5;
+        preset.field_10 = 0;
+        func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+        work->field_4C4 = 0;
+        work->field_4C2++;
+    }
+
+    words          = (Actor317000MatWords*)&coord->coord;
+    words->m00_m01 = ONE;
+    words->m02_m10 = 0;
+    words->m11_m12 = ONE;
+    words->m20_m21 = 0;
+    words->m22     = ONE;
+    RotMatrix(&vec, &coord->coord);
+    coord->flg = 0;
+}
+
+/// Step handler at index 1 of `D_actor_317000_80161E30`, reached by the
+/// `field_4C2` advance `func_actor_317000_801627D0` ends with: rotates the constant local-space
+/// offset `D_actor_317000_80161E40` through the root part's matrix into
+/// `work->step`, then raises the flag at 0x4C4 and moves the dispatcher on.
+void func_actor_317000_801628D8(Task* task)
+{
+    Actor317000Work* work;
+    GsCOORDINATE2*   coord;
+    VECTOR           vec;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    work  = (Actor317000Work*)task->work;
+
+    vec = D_actor_317000_80161E40;
+    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
+    work->field_4C4 = 1;
+    work->field_4C2++;
+}
+
+/// Step handler at index 2 of `D_actor_317000_80161E30`, the step after
+/// `func_actor_317000_801628D8` and reached by the `field_4C2` advance that
+/// body ends with. While the root coordinate's Y is below -0x30 it does
+/// nothing; above it the rise is over: the local-space `work->step` the
+/// previous body wrote is cleared, the animation is re-applied through message
+/// 0x7D3 with the latched `field_43F` state, and sound 0x400A000B is queued
+/// panned and attenuated from the root coordinate's matrix. The `field_4C4`
+/// flag the previous body raised is cleared and the dispatcher advances again.
+void func_actor_317000_80162950(Task* arg0)
+{
+    GsCOORDINATE2*        coord;
+    Actor317000Work*      work;
+    Actor317000AnimPreset preset;
+    s32                   pan;
+
+    coord = ((TmdObject*)arg0->extra)->coords;
+    work  = (Actor317000Work*)arg0->work;
+    if (coord->coord.t[1] < -0x30) {
+        return;
+    }
+    preset.field_0  = 0;
+    preset.field_4  = work->field_43F;
+    preset.field_8  = 1;
+    preset.field_C  = 5;
+    preset.field_10 = 0;
+    func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+    pan = (s8)Gp_GetObjPan(coord);
+    SndEvt_EnqueueType6(0x400A000B, pan, (s8)gpGetObjDepth(coord));
+
+    work->step.vx   = 0;
+    work->step.vy   = 0;
+    work->step.vz   = 0;
+    work->field_4C4 = 0;
+    work->field_4C2++;
+}
+
+/// Message 0x7D3 handler of `D_actor_317000_8016CF50`, also called directly by
+/// the step handlers `func_actor_317000_801627D0` and
+/// `func_actor_317000_80162950` with presets of their own. A preset `field_0`
+/// that differs from `Actor317000Work::field_43E` latches it, forgets the
+/// current animation (`field_43D` = -1) and re-seeds the slots through
+/// `func_800B3F84` from `D_actor_317000_8016CF40[field_43E]`. A `field_4` that
+/// differs from `field_43D` latches it and installs it on slots 1..0x12 --
+/// through `func_800B4114` with `field_C` when the preset's `field_8` is set and
+/// `field_43C` says the slots are already ticking, through `Gp_AnimResetSlot`
+/// otherwise -- then ticks each slot once and raises `field_43C`. Returns 0.
+s32 func_actor_317000_80162A10(Task* task, s32 arg1, Actor317000AnimPreset* msg, s32 arg3)
+{
+    Actor317000Work* work;
+    TmdObject*       ext;
+    s32              i;
+
+    work = (Actor317000Work*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->ctx, D_actor_317000_8016CF40[work->field_43E], ext, work->poses, work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->ctx, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->ctx, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->ctx, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
+
+/// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
+/// position into the root coordinate's translation and its Euler angles into
+/// `Actor317000Coord::rot`, rebuilds the rotation from them with `RotMatrix`
+/// and clears `flg` so the world matrix is recomputed. Returns 0.
+s32 func_actor_317000_80162B48(Task* task, s32 arg1, Actor317000Placement* args)
+{
+    Actor317000Coord* coord;
+
+    coord             = (Actor317000Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
+
+/// Message 0x7D5 handler of `D_actor_317000_8016CF50`, also called directly by
+/// the spawn state `func_actor_317000_8016267C` with mode 0. `mode` sets or
+/// clears bit 0x80 of `TmdObject::flags` and sets or clears bit 0x4:
+///
+///   mode 0  set 0x80, clear 0x4
+///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear 0x4
+///   mode 2  set 0x80, store 2 in the countdown `Actor317000Work::field_4C8`
+///           that `func_actor_317000_80161E68` ends in `Tmd_FreeBuffers`,
+///           set 0x4
+///   mode 3  clear 0x80, set 0x4
+///
+/// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
+s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
+{
+    TmdObject*       obj;
+    Actor317000Work* work;
+    s32              ret;
+
+    obj  = task->extra;
+    work = (Actor317000Work*)task->work;
+    ret  = 0;
+    switch (mode) {
+        case 0:
+            obj->flags |= 0x80;
+            obj->flags &= ~4;
+            break;
+        case 1:
+            obj->flags &= ~0x80;
+            Tmd_AllocBuffers(obj);
+            obj->flags &= ~4;
+            break;
+        case 2:
+            obj->flags     |= 0x80;
+            work->field_4C8 = mode;
+            obj->flags     |= 4;
+            break;
+        case 3:
+            obj->flags &= ~0x80;
+            obj->flags |= 4;
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
+
+/// Message 0x7DB handler of the table `func_actor_317000_8016267C` installs:
+/// latches the payload's halfword at 0x2 into `Actor317000Work::field_4C5` --
+/// 0 for mode 0, the mode itself for mode 1 -- and for any other mode dumps the
+/// root coordinate's matrix translation (`"pos"`) and the euler angles
+/// `Gp_ExtractEuler` derives from its rotation matrix (`"rot"`) through
+/// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
+/// either way.
+s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)
+{
+    Actor317000Work* work;
+    GsCOORDINATE2*   coord;
+    SVECTOR          rot;
+    s32              mode;
+
+    work  = (Actor317000Work*)task->work;
+    coord = ((TmdObject*)task->extra)->coords;
+    mode  = msg->field_2;
+    switch (mode) {
+        case 0:
+            work->field_4C5 = 0;
+            break;
+        case 1:
+            work->field_4C5 = mode;
+            break;
+        default:
+            GPU_printf("%s=(%d,%d,%d)\n", "pos", coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
+            Gp_ExtractEuler(&rot, &coord->coord);
+            GPU_printf("%s=(%d,%d,%d)\n", "rot", rot.vx, rot.vy, rot.vz);
+            break;
+    }
+    return 0;
+}
