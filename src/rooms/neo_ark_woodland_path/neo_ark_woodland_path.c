@@ -8,26 +8,13 @@
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
+#include "rooms/room.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
-
-/// Scratchpad block the ripple borrows from `G_SCRATCH_HEAD` for one call:
-/// the transposed view rotation, the camera-space row vector fed to the GTE
-/// (`row`) and its rotated result (`rowView`), the rotated view translation
-/// (`origin`) and the numerator of the per-row depth division (`depth`). The
-/// block is 0x4C bytes; nothing reads the tail.
-typedef struct {
-    MATRIX  mtx;
-    SVECTOR row;
-    SVECTOR rowView;
-    SVECTOR origin;
-    s32     depth;
-    u8      _pad[0x10];
-} _NeoArkWoodlandPathRippleScratch;
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -78,46 +65,46 @@ static inline void _neoArkWoodlandPathRotTrans(MATRIX* m, SVECTOR* v)
 /// scheduling the way the retail code needs.
 void func_neo_ark_woodland_path_8017D694(Task* task)
 {
-    s32                               buf;
-    s32                               sinArg;
-    s32                               cosArg;
-    s32                               kind;
-    s32                               scale;
-    s32                               zoff;
-    s32                               split;
-    s32                               splitX;
-    s32                               otzOff;
-    s32                               xLeft0;
-    s32                               xRight0;
-    s32                               xLeftS;
-    s32                               start;
-    s32                               end;
-    s32                               area;
-    POLY_FT4*                         prim;
-    _NeoArkWoodlandPathRippleScratch* scratch;
-    s32                               y;
-    s32                               y0;
-    s32                               xl;
-    s32                               xr;
-    s32                               passes;
-    s32                               pass;
-    s32                               wave;
-    s32                               sinv;
-    s32                               cosv;
-    s32                               w;
-    s32                               d;
-    s32                               z;
-    s32                               otz;
-    s32                               v;
-    s32                               dy;
-    s32                               xv;
-    s32                               x;
-    s32                               xe;
-    s32                               xMin;
-    s32                               xMax;
-    s32                               fadeLen;
-    s32                               one;
-    DisplayState*                     disp;
+    s32                buf;
+    s32                sinArg;
+    s32                cosArg;
+    s32                kind;
+    s32                scale;
+    s32                zoff;
+    s32                split;
+    s32                splitX;
+    s32                otzOff;
+    s32                xLeft0;
+    s32                xRight0;
+    s32                xLeftS;
+    s32                start;
+    s32                end;
+    s32                area;
+    POLY_FT4*          prim;
+    RoomRippleScratch* scratch;
+    s32                y;
+    s32                y0;
+    s32                xl;
+    s32                xr;
+    s32                passes;
+    s32                pass;
+    s32                wave;
+    s32                sinv;
+    s32                cosv;
+    s32                w;
+    s32                d;
+    s32                z;
+    s32                otz;
+    s32                v;
+    s32                dy;
+    s32                xv;
+    s32                x;
+    s32                xe;
+    s32                xMin;
+    s32                xMax;
+    s32                fadeLen;
+    s32                one;
+    DisplayState*      disp;
 
     kind    = 0;
     scale   = 0x1000;
@@ -319,10 +306,10 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         task->killCountdown += 0x20;
     }
-    sinArg                                              = task->killCountdown * 2;
-    cosArg                                              = task->killCountdown;
-    *(_NeoArkWoodlandPathRippleScratch**)G_SCRATCH_HEAD = *(_NeoArkWoodlandPathRippleScratch**)G_SCRATCH_HEAD - 1;
-    scratch                                             = *(_NeoArkWoodlandPathRippleScratch**)G_SCRATCH_HEAD;
+    sinArg                               = task->killCountdown * 2;
+    cosArg                               = task->killCountdown;
+    *(RoomRippleScratch**)G_SCRATCH_HEAD = *(RoomRippleScratch**)G_SCRATCH_HEAD - 1;
+    scratch                              = *(RoomRippleScratch**)G_SCRATCH_HEAD;
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];
@@ -554,7 +541,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
             cosArg += 0xC5;
         }
     }
-    *(_NeoArkWoodlandPathRippleScratch**)G_SCRATCH_HEAD += 1;
+    *(RoomRippleScratch**)G_SCRATCH_HEAD += 1;
 }
 
 /// Draws a rippling screen-distortion band for certain views of areas 12 and 30

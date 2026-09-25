@@ -16,18 +16,8 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Per-call work block carved from the scratchpad stack. Nothing in the body
-/// touches the last 0x10 bytes; the size is the amount the scratch head moves.
-typedef struct {
-    MATRIX  mtx;
-    SVECTOR in;
-    SVECTOR out;
-    SVECTOR trans;
-    s32     depth;
-    u8      _pad[0x10];
-} _ShelterR48RippleScratch;
 
 /// 0x2C-byte scratch block `func_shelter_r48_80181C14` takes from
 /// `G_SCRATCH_HEAD`: the coordinate's world position, the tip point offset from
@@ -103,48 +93,48 @@ static inline void _shelterR48RotTrans(MATRIX* m, SVECTOR* v)
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
-    DisplayState*              disp;
-    TmdObject*                 tmd;
-    _ShelterR48RippleScratch*  block;
-    _ShelterR48RippleScratch** slot;
-    POLY_FT4*                  prim;
-    u8*                        ptr;
-    s32                        otBuf;
-    s32                        view;
-    s32                        mode;
-    s32                        shift;
-    s32                        ang2;
-    s32                        ang;
-    s32                        y;
-    s32                        yTop;
-    s32                        x0;
-    s32                        x1;
-    s32                        nprims;
-    s32                        clip;
-    s32                        otOff;
-    s32                        fade;
-    s32                        scale;
-    s32                        xNeg;
-    s32                        wave;
-    s32                        wave1;
-    s32                        start;
-    s32                        end;
-    s32                        dist;
-    s32                        z;
-    s32                        otz;
-    s32                        i;
-    s32                        yOff;
-    s32                        fadeLen;
-    s32                        xMin;
-    s32                        xMax;
-    s32                        xLeft;
-    s32                        xRight;
-    s32                        xL;
-    s32                        xR;
-    s32                        v;
-    s32                        edge;
-    s32                        sine;
-    s32                        cosine;
+    DisplayState*       disp;
+    TmdObject*          tmd;
+    RoomRippleScratch*  block;
+    RoomRippleScratch** slot;
+    POLY_FT4*           prim;
+    u8*                 ptr;
+    s32                 otBuf;
+    s32                 view;
+    s32                 mode;
+    s32                 shift;
+    s32                 ang2;
+    s32                 ang;
+    s32                 y;
+    s32                 yTop;
+    s32                 x0;
+    s32                 x1;
+    s32                 nprims;
+    s32                 clip;
+    s32                 otOff;
+    s32                 fade;
+    s32                 scale;
+    s32                 xNeg;
+    s32                 wave;
+    s32                 wave1;
+    s32                 start;
+    s32                 end;
+    s32                 dist;
+    s32                 z;
+    s32                 otz;
+    s32                 i;
+    s32                 yOff;
+    s32                 fadeLen;
+    s32                 xMin;
+    s32                 xMax;
+    s32                 xLeft;
+    s32                 xRight;
+    s32                 xL;
+    s32                 xR;
+    s32                 v;
+    s32                 edge;
+    s32                 sine;
+    s32                 cosine;
 
     tmd   = (TmdObject*)arg0->extra;
     otBuf = D_8007107C;
@@ -219,23 +209,23 @@ void func_shelter_r48_8017D660(Task* arg0)
     }
     ang2  = arg0->killCountdown * 2;
     ang   = arg0->killCountdown;
-    slot  = (_ShelterR48RippleScratch**)G_SCRATCH_HEAD;
+    slot  = (RoomRippleScratch**)G_SCRATCH_HEAD;
     *slot = *slot - 1;
     block = *slot;
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-    block->trans.vx = gGfxViewCoord.workm.t[0];
-    block->trans.vy = gGfxViewCoord.workm.t[1];
-    block->trans.vz = gGfxViewCoord.workm.t[2];
-    _shelterR48RotTrans(&block->mtx, &block->trans);
-    block->depth  = block->trans.vy + 0xD02;
+    block->origin.vx = gGfxViewCoord.workm.t[0];
+    block->origin.vy = gGfxViewCoord.workm.t[1];
+    block->origin.vz = gGfxViewCoord.workm.t[2];
+    _shelterR48RotTrans(&block->mtx, &block->origin);
+    block->depth  = block->origin.vy + 0xD02;
     block->depth *= disp->screenDistance;
-    block->in.vx  = 0;
-    block->in.vz  = disp->screenDistance;
+    block->row.vx = 0;
+    block->row.vz = disp->screenDistance;
     gte_SetRotMatrix(&block->mtx);
     for (y = start; y < end; y++) {
-        yTop         = y - 0x78;
-        block->in.vy = yTop;
-        gte_ldv0(&block->in);
+        yTop          = y - 0x78;
+        block->row.vy = yTop;
+        gte_ldv0(&block->row);
         gte_rtv0();
         x0     = xMin;
         x1     = xMax;
@@ -287,9 +277,9 @@ void func_shelter_r48_8017D660(Task* arg0)
                 } while (0);
             }
         }
-        gte_stsv(&block->out);
-        if (block->out.vy > 0) {
-            otz   = block->depth / block->out.vy;
+        gte_stsv(&block->rowView);
+        if (block->rowView.vy > 0) {
+            otz   = block->depth / block->rowView.vy;
             otz >>= 2;
         } else {
             otz = 0x3FFF;
@@ -449,7 +439,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    *(u8**)G_SCRATCH_HEAD += sizeof(_ShelterR48RippleScratch);
+    *(u8**)G_SCRATCH_HEAD += sizeof(RoomRippleScratch);
 }
 
 s32 func_shelter_r48_8017DF50(s32 arg0, s32 arg1, s32 arg2)

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 /// A scripted event a room starts in answer to a message. The room's message
 /// handler builds the record, and if the event has not happened yet it copies
 /// the record into the room's own pending copy and spawns the room's event
@@ -94,5 +96,21 @@ typedef struct RoomDeparture {
     s32  sndEvent; // Sound event played before leaving; 0 for none
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
+
+/// The scratchpad block a room's screen-ripple drawer takes from
+/// `G_SCRATCH_HEAD` for one call. The drawer rotates each screen row's vector
+/// `row` through the transposed view rotation `mtx` into `rowView`, and divides
+/// `depth` by its height to find the row's ordering-table depth; `origin` is
+/// the view translation brought into the same frame. Nothing reads the tail;
+/// the block's size is how far the drawer moves the scratch head.
+typedef struct RoomRippleScratch {
+    MATRIX  mtx;
+    SVECTOR row;
+    SVECTOR rowView;
+    SVECTOR origin;
+    s32     depth;
+    u8      _pad[0x10];
+} RoomRippleScratch;
+STATIC_ASSERT_SIZEOF(RoomRippleScratch, 0x4C);
 
 #endif /* ROOMS_ROOM_H */
