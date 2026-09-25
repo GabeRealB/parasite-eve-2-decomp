@@ -22,21 +22,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017e4f8.h"
-
-/// Event parameters copied to the room's pending event `D_..._80187A20`, which
-/// the room's own event task (`func_neo_ark_pavilion_8017E854`) runs.
-/// `field_0` is the cap command handed to `Gp_RunCapCmd`, `field_4` the stage
-/// sound, `field_8` the game flag checked and set when the event starts, and
-/// a non-zero `field_A` makes the task start helper task 0x31.
-typedef struct NeoArkPavilionEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} NeoArkPavilionEvent;
-STATIC_ASSERT_SIZEOF(NeoArkPavilionEvent, 0xC);
 
 /// Scratchpad block the ripple borrows from `G_SCRATCH_HEAD` for one call:
 /// the transposed view rotation, the camera-space row vector fed to the GTE
@@ -94,8 +82,8 @@ extern GpStateBD8 D_neo_ark_pavilion_80187A0C;
 
 /// The save-location record and event the message handler latched for the
 /// room's event task.
-extern GpSaveLoc           D_neo_ark_pavilion_80187A14;
-extern NeoArkPavilionEvent D_neo_ark_pavilion_80187A20;
+extern GpSaveLoc        D_neo_ark_pavilion_80187A14;
+extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 
 /// Set by the message handler when its last message latched an event and
 /// spawned the room's event task; every such message clears it first.
@@ -843,13 +831,13 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_neo_ark_pavilion_80187A20.field_0, 0);
+            Gp_RunCapCmd(D_neo_ark_pavilion_80187A20.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_neo_ark_pavilion_80187A20.field_A != 0) {
+                if (D_neo_ark_pavilion_80187A20.fade != 0) {
                     D_neo_ark_pavilion_80187A0C.field_0 = 0;
                     D_neo_ark_pavilion_80187A0C.field_1 = 0;
                     D_neo_ark_pavilion_80187A0C.field_2 = 0x1E;
@@ -859,15 +847,15 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
             }
             break;
         case 2:
-            if (D_neo_ark_pavilion_80187A20.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_neo_ark_pavilion_80187A20.field_4, 0, 0);
+            if (D_neo_ark_pavilion_80187A20.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_neo_ark_pavilion_80187A20.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_pavilion_80187A20.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_pavilion_80187A20.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -888,15 +876,15 @@ s32 func_neo_ark_pavilion_8017E9EC(void)
     return 0;
 }
 
-static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, NeoArkPavilionEvent* event)
+static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_pavilion_80187A1C = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_neo_ark_pavilion_80187A14 = *dst;
             D_neo_ark_pavilion_80187A20 = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
             D_neo_ark_pavilion_80187A1C = 1;
@@ -912,17 +900,17 @@ static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, NeoArkPavilionEv
 /// hands it to `NeoArkPavilion_StartEvent`; every other message answers 1.
 s32 func_neo_ark_pavilion_8017E9F4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
-    NeoArkPavilionEvent event;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179B14(in, out);
     if (*(u16*)in != 0xC) {
         return 1;
     }
-    event.field_0 = 4;
-    event.field_4 = 0;
-    event.field_8 = 0x17E;
-    event.field_A = 0;
+    event.capCmd   = 4;
+    event.stageSnd = 0;
+    event.flagId   = 0x17E;
+    event.fade     = 0;
     return NeoArkPavilion_StartEvent(out, &event);
 }
 

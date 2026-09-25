@@ -5,23 +5,11 @@
 
 #include "gameplay/1A8.h"
 #include "main/task.h"
+#include "rooms/room.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-
-/// Event parameters copied to the room's pending event. The room's event
-/// state machine (`func_mine_mesa_8017D670`) runs the cap command in `field_0`
-/// and the stage sound in `field_4`; `field_8` is the game flag checked and set
-/// when the event starts, and `field_A` tells the state machine whether to
-/// spawn its helper task.
-typedef struct MineMesaEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} MineMesaEvent;
-STATIC_ASSERT_SIZEOF(MineMesaEvent, 0xC);
 
 /// One entry of the lists a `MineMesaLayout` points at: an x/y/z triple
 /// padded to 8 bytes.
@@ -54,9 +42,9 @@ typedef struct MineMesaLayout {
 extern MineMesaLayout D_mine_mesa_801864A4;
 extern MineMesaLayout D_mine_mesa_8018700C;
 
-extern GpSaveLoc     D_mine_mesa_80189B40;
-extern s8            D_mine_mesa_80189B48;
-extern MineMesaEvent D_mine_mesa_80189B60;
+extern GpSaveLoc        D_mine_mesa_80189B40;
+extern s8               D_mine_mesa_80189B48;
+extern RoomLatchedEvent D_mine_mesa_80189B60;
 
 /// The room's task descriptor table; its spawners pick an entry by index.
 extern TaskDesc D_mine_mesa_801842F4;

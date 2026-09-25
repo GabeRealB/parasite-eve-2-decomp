@@ -21,6 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// The twelve bytes the room's message handler stages before spawning a task
@@ -45,20 +46,6 @@ typedef struct ShelterB2MainCorridorEventDesc {
     /* 0x8 */ s32  field_8;
 } ShelterB2MainCorridorEventDesc;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorEventDesc, 0xC);
-
-/// Parameters of a room exit, staged by the room's message handler for the task
-/// spawned from `D_shelter_b2_main_corridor_80182C08`, which runs `capCmd`,
-/// plays `sndId` and then moves the player. `flag` names a game-flag nibble that
-/// is set once the exit has been taken; once set, the handler no longer claims
-/// the message. A non-zero `field_A` makes the exit task start helper task
-/// 0x31.
-typedef struct ShelterB2MainCorridorExit {
-    s32 capCmd;
-    s32 sndId;
-    s16 flag;
-    u8  field_A;
-} ShelterB2MainCorridorExit;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorExit, 0xC);
 
 /// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
 /// `depth` along Z. A list of them ends at an entry whose `end` is -1; `end`
@@ -116,7 +103,7 @@ extern u8 D_shelter_b2_main_corridor_8018965C;
 extern ShelterB2MainCorridorEventDesc D_shelter_b2_main_corridor_80189664;
 
 /// The exit being taken, read by the exit task.
-extern ShelterB2MainCorridorExit D_shelter_b2_main_corridor_80189674;
+extern RoomLatchedEvent D_shelter_b2_main_corridor_80189674;
 
 /// The staged event block, read by the task spawned from
 /// `D_shelter_b2_main_corridor_80182C44`.
@@ -259,7 +246,7 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_main_corridor_80189674.field_A != 0) {
+                if (D_shelter_b2_main_corridor_80189674.fade != 0) {
                     D_shelter_b2_main_corridor_8018964C.field_0 = 0;
                     D_shelter_b2_main_corridor_8018964C.field_1 = 0;
                     D_shelter_b2_main_corridor_8018964C.field_2 = 0x1E;
@@ -269,15 +256,15 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b2_main_corridor_80189674.sndId != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_main_corridor_80189674.sndId, 0, 0);
+            if (D_shelter_b2_main_corridor_80189674.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_main_corridor_80189674.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_main_corridor_80189674.sndId)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_main_corridor_80189674.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -295,11 +282,11 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
 
 s32 func_shelter_b2_main_corridor_8017D9C4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    ShelterB2MainCorridorExit  staged;
-    ShelterB2MainCorridorExit* p;
-    s32                        capCmd;
-    s16                        flag;
-    s32                        sndId;
+    RoomLatchedEvent  staged;
+    RoomLatchedEvent* p;
+    s32               capCmd;
+    s16               flag;
+    s32               sndId;
 
     *out = *in;
     func_80179A04(in, out);
@@ -328,44 +315,44 @@ s32 func_shelter_b2_main_corridor_8017D9C4(s32 arg0, s32 arg1, RoomEventMsg* in,
     }
     if (in->msgId == 0x22) {
         func_shelter_b2_main_corridor_8017E264(out);
-        sndId        = 0x54210001;
-        capCmd       = 0xA;
-        staged.sndId = sndId;
-        flag         = 0x133;
+        sndId           = 0x54210001;
+        capCmd          = 0xA;
+        staged.stageSnd = sndId;
+        flag            = 0x133;
     } else if (in->msgId == 0x20) {
         func_shelter_b2_main_corridor_8017E264(out);
-        sndId        = 0x54210001;
-        capCmd       = 9;
-        staged.sndId = sndId;
-        flag         = 0x134;
+        sndId           = 0x54210001;
+        capCmd          = 9;
+        staged.stageSnd = sndId;
+        flag            = 0x134;
     } else if (in->msgId == 0x1B) {
         func_shelter_b2_main_corridor_8017E264(out);
-        sndId        = 0x54210001;
-        capCmd       = 0xB;
-        staged.sndId = sndId;
-        flag         = 0x135;
+        sndId           = 0x54210001;
+        capCmd          = 0xB;
+        staged.stageSnd = sndId;
+        flag            = 0x135;
     } else if (in->msgId == 0x1F) {
         func_shelter_b2_main_corridor_8017E264(out);
-        sndId        = 0x54210001;
-        capCmd       = 0xC;
-        staged.sndId = sndId;
-        flag         = 0x136;
+        sndId           = 0x54210001;
+        capCmd          = 0xC;
+        staged.stageSnd = sndId;
+        flag            = 0x136;
     } else {
         return 1;
     }
     p                                   = &staged;
     staged.capCmd                       = capCmd;
-    staged.flag                         = flag;
-    staged.field_A                      = 0;
+    staged.flagId                       = flag;
+    staged.fade                         = 0;
     D_shelter_b2_main_corridor_8018965C = 0;
-    if (GameFlag_GetNibble(p->flag) == 0 || p->flag == 0) {
+    if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
         if (out->field_5 != 0) {
             return 2;
         }
         D_shelter_b2_main_corridor_80189654 = *out;
         D_shelter_b2_main_corridor_80189674 = staged;
-        if (p->flag != 0) {
-            GameFlag_SetNibble(p->flag, 1);
+        if (p->flagId != 0) {
+            GameFlag_SetNibble(p->flagId, 1);
         }
         Task_SpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
         D_shelter_b2_main_corridor_8018965C = 1;

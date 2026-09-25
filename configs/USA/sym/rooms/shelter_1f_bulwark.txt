@@ -1,2 +1,2 @@
 // Overlay-local symbols for shelter_1f_bulwark.
-D_shelter_1f_bulwark_80180ED0 = 0x80180ED0; // type:BulwarkEvent size:0xC
+D_shelter_1f_bulwark_80180ED0 = 0x80180ED0; // type:RoomLatchedEvent size:0xC

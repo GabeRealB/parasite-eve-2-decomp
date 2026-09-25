@@ -21,20 +21,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// An event the room's message handler starts, latched for the room's event
-/// task `func_shelter_1f_parking_garage_8017D958`. `field_0` is the CAP
-/// command the task runs, `field_4` the stage sound it then plays (0: none)
-/// and a non-zero `field_A` makes it spawn helper task 0x31. `flagId` is the
-/// game-flag nibble that records the event as done: a set nibble stops it
-/// firing again, and starting it sets the nibble (0 means no flag).
-typedef struct _Shelter1fParkingGarageEvent {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _Shelter1fParkingGarageEvent;
 
 /// Destination and effects of the room's exit task
 /// `func_shelter_1f_parking_garage_8017D7E8`: `field_0`..`field_3` are the
@@ -78,7 +66,7 @@ extern GpStateBD8                       D_shelter_1f_parking_garage_80181978;
 extern RoomEventMsg                     D_shelter_1f_parking_garage_8018197C;
 extern u8                               D_shelter_1f_parking_garage_80181984;
 extern _Shelter1fParkingGarageKeyRecord D_shelter_1f_parking_garage_80181988;
-extern _Shelter1fParkingGarageEvent     D_shelter_1f_parking_garage_80181998;
+extern RoomLatchedEvent                 D_shelter_1f_parking_garage_80181998;
 
 s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
 void func_shelter_1f_parking_garage_8017DE9C(Task* task);
@@ -94,7 +82,7 @@ void func_shelter_1f_parking_garage_801801E0(GsCOORDINATE2* arg0, s16 arg1, u8* 
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->field_5` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
-static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, _Shelter1fParkingGarageEvent* event)
+static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_parking_garage_80181984 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
@@ -268,7 +256,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
 
 /// The room's event task, spawned when the message handler starts an event.
 /// State 0 runs the latched event's CAP command; state 1 waits for it and,
-/// when the event's `field_A` asks for it, spawns helper task 0x31; states 2
+/// when the event's `fade` asks for it, spawns helper task 0x31; states 2
 /// and 3 play the event's stage sound, if any, and wait for it; state 4
 /// commits the latched message's area, warp and room to the save data, spawns
 /// task type 0x11 and kills itself.
@@ -278,13 +266,13 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_parking_garage_80181998.field_0, 0);
+            Gp_RunCapCmd(D_shelter_1f_parking_garage_80181998.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_parking_garage_80181998.field_A != 0) {
+                if (D_shelter_1f_parking_garage_80181998.fade != 0) {
                     D_shelter_1f_parking_garage_80181974.field_0 = 0;
                     D_shelter_1f_parking_garage_80181974.field_1 = 0;
                     D_shelter_1f_parking_garage_80181974.field_2 = 0x1E;
@@ -294,15 +282,15 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_1f_parking_garage_80181998.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_parking_garage_80181998.field_4, 0, 0);
+            if (D_shelter_1f_parking_garage_80181998.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_1f_parking_garage_80181998.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_parking_garage_80181998.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_parking_garage_80181998.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -392,17 +380,17 @@ s32 func_shelter_1f_parking_garage_8017DCEC(void)
 /// other message answers 1.
 s32 func_shelter_1f_parking_garage_8017DCF4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    _Shelter1fParkingGarageEvent event;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179B14(in, out);
     if (in->msgId != 5) {
         return 1;
     }
-    event.field_0 = 3;
-    event.field_4 = 0x55010001;
-    event.flagId  = 0x159;
-    event.field_A = 0;
+    event.capCmd   = 3;
+    event.stageSnd = 0x55010001;
+    event.flagId   = 0x159;
+    event.fade     = 0;
     return _shelter1fParkingGarageStartEvent(out, &event);
 }
 

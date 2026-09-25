@@ -20,19 +20,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Event parameters copied to the room's pending event `D_..._8018099C`, which
-/// the room's own event state machine runs: `field_0` is the cap command handed
-/// to `Gp_RunCapCmd`, `field_4` the stage sound, `field_8` the game flag checked
-/// and set when the event starts, and `field_A` the helper-spawn switch.
-typedef struct NeoArkSavannaZoneEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} NeoArkSavannaZoneEvent;
-STATIC_ASSERT_SIZEOF(NeoArkSavannaZoneEvent, 0xC);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -43,10 +32,10 @@ extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
 
-extern TaskDesc               D_neo_ark_savanna_zone_8017F9A0;
-extern GpSaveLoc              D_neo_ark_savanna_zone_80180990;
-extern s8                     D_neo_ark_savanna_zone_80180998;
-extern NeoArkSavannaZoneEvent D_neo_ark_savanna_zone_8018099C;
+extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
+extern GpSaveLoc        D_neo_ark_savanna_zone_80180990;
+extern s8               D_neo_ark_savanna_zone_80180998;
+extern RoomLatchedEvent D_neo_ark_savanna_zone_8018099C;
 
 /// Payload handed to the helper task 0x31 the event may start.
 extern GpStateBD8 D_neo_ark_savanna_zone_80180988;
@@ -76,13 +65,13 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_neo_ark_savanna_zone_8018099C.field_0, 0);
+            Gp_RunCapCmd(D_neo_ark_savanna_zone_8018099C.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_neo_ark_savanna_zone_8018099C.field_A != 0) {
+                if (D_neo_ark_savanna_zone_8018099C.fade != 0) {
                     D_neo_ark_savanna_zone_80180988.field_0 = 0;
                     D_neo_ark_savanna_zone_80180988.field_1 = 0;
                     D_neo_ark_savanna_zone_80180988.field_2 = 0x1E;
@@ -92,15 +81,15 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
             }
             break;
         case 2:
-            if (D_neo_ark_savanna_zone_8018099C.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_neo_ark_savanna_zone_8018099C.field_4, 0, 0);
+            if (D_neo_ark_savanna_zone_8018099C.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_neo_ark_savanna_zone_8018099C.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_savanna_zone_8018099C.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_savanna_zone_8018099C.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -122,15 +111,15 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
 /// effects to be suppressed, commits `dst` and the event and spawns the
 /// controller task. Answers 2 for a started event, 1 when `field_5` held it
 /// back.
-static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, NeoArkSavannaZoneEvent* event)
+static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
     D_neo_ark_savanna_zone_80180998 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_neo_ark_savanna_zone_80180990 = *dst;
             D_neo_ark_savanna_zone_8018099C = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_savanna_zone_8017F9A0, 0, 0, 0);
             D_neo_ark_savanna_zone_80180998 = 1;
@@ -147,31 +136,31 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, NeoArkSavanna
 /// other message is not consumed and answers 1.
 s32 func_neo_ark_savanna_zone_8017D77C(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
-    NeoArkSavannaZoneEvent event;
-    s32                    cmd;
-    s32                    snd;
-    s16                    flag;
+    RoomLatchedEvent event;
+    s32              cmd;
+    s32              snd;
+    s16              flag;
 
     *out = *in;
     func_80179B14(in, out);
     if (*(u16*)in != 0x13) {
         goto message15;
     }
-    snd           = 0x55120003;
-    cmd           = 3;
-    event.field_4 = snd;
-    flag          = 0x15E;
+    snd            = 0x55120003;
+    cmd            = 3;
+    event.stageSnd = snd;
+    flag           = 0x15E;
 start_event:
-    event.field_0 = cmd;
-    event.field_8 = flag;
-    event.field_A = 0;
+    event.capCmd = cmd;
+    event.flagId = flag;
+    event.fade   = 0;
     return NeoArkSavannaZone_StartEvent(out, &event);
 message15:
     if (*(u16*)in == 0x15) {
-        snd           = 0x55120001;
-        cmd           = 2;
-        event.field_4 = snd;
-        flag          = 0x15F;
+        snd            = 0x55120001;
+        cmd            = 2;
+        event.stageSnd = snd;
+        flag           = 0x15F;
         goto start_event;
     }
     return 1;

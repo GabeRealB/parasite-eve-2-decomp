@@ -23,20 +23,8 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// An event the message handler latches for the room's event task. The task
-/// runs the CAP command in `field_0`, then plays the stage sound in `field_4`
-/// if there is one, and starts helper task 0x31 when `field_A` is set.
-/// `field_8` is the game-flag nibble that marks the event as seen: the handler
-/// refuses the event once it is set, and sets it when latching (zero: none).
-typedef struct BulwarkEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} BulwarkEvent;
-STATIC_ASSERT_SIZEOF(BulwarkEvent, 0xC);
 
 extern s8  D_8007106B;
 extern s16 D_80071076;
@@ -48,19 +36,19 @@ extern s32 D_80115758;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern TaskDesc     D_shelter_1f_bulwark_80180320;
-extern GpMsgEntry   D_shelter_1f_bulwark_8018032C[];
-extern TaskDesc     D_shelter_1f_bulwark_80180354;
-extern TaskDesc     D_shelter_1f_bulwark_80180360;
-extern SVECTOR      D_shelter_1f_bulwark_80180378[];
-extern SVECTOR      D_shelter_1f_bulwark_80180398[];
-extern SVECTOR      D_shelter_1f_bulwark_801803A0[];
-extern SVECTOR      D_shelter_1f_bulwark_801803A8;
-extern GpStateBD8   D_shelter_1f_bulwark_80180EBC;
-extern GpStateBD8   D_shelter_1f_bulwark_80180EC0;
-extern GpSaveLoc    D_shelter_1f_bulwark_80180EC4;
-extern s8           D_shelter_1f_bulwark_80180ECC;
-extern BulwarkEvent D_shelter_1f_bulwark_80180ED0;
+extern TaskDesc         D_shelter_1f_bulwark_80180320;
+extern GpMsgEntry       D_shelter_1f_bulwark_8018032C[];
+extern TaskDesc         D_shelter_1f_bulwark_80180354;
+extern TaskDesc         D_shelter_1f_bulwark_80180360;
+extern SVECTOR          D_shelter_1f_bulwark_80180378[];
+extern SVECTOR          D_shelter_1f_bulwark_80180398[];
+extern SVECTOR          D_shelter_1f_bulwark_801803A0[];
+extern SVECTOR          D_shelter_1f_bulwark_801803A8;
+extern GpStateBD8       D_shelter_1f_bulwark_80180EBC;
+extern GpStateBD8       D_shelter_1f_bulwark_80180EC0;
+extern GpSaveLoc        D_shelter_1f_bulwark_80180EC4;
+extern s8               D_shelter_1f_bulwark_80180ECC;
+extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 void func_shelter_1f_bulwark_8017DBD4(Task* task);
 void func_shelter_1f_bulwark_8017DC18(Task* task);
@@ -81,13 +69,13 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_bulwark_80180ED0.field_0, 0);
+            Gp_RunCapCmd(D_shelter_1f_bulwark_80180ED0.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_bulwark_80180ED0.field_A != 0) {
+                if (D_shelter_1f_bulwark_80180ED0.fade != 0) {
                     D_shelter_1f_bulwark_80180EBC.field_0 = 0;
                     D_shelter_1f_bulwark_80180EBC.field_1 = 0;
                     D_shelter_1f_bulwark_80180EBC.field_2 = 0x1E;
@@ -97,15 +85,15 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_1f_bulwark_80180ED0.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_bulwark_80180ED0.field_4, 0, 0);
+            if (D_shelter_1f_bulwark_80180ED0.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_1f_bulwark_80180ED0.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_bulwark_80180ED0.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_bulwark_80180ED0.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -121,15 +109,15 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
     }
 }
 
-static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, BulwarkEvent* event)
+static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_bulwark_80180ECC = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_bulwark_80180EC4 = *dst;
             D_shelter_1f_bulwark_80180ED0 = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
             D_shelter_1f_bulwark_80180ECC = 1;
@@ -141,7 +129,7 @@ static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, BulwarkEvent* event)
 
 s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
-    BulwarkEvent event;
+    RoomLatchedEvent event;
 
     *dst = *src;
     func_80179B14(src, dst);
@@ -158,17 +146,17 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSa
             }
             return 0;
         }
-        event.field_0 = 1;
-        event.field_4 = 0x55030003;
-        event.field_8 = 0;
-        event.field_A = 1;
+        event.capCmd   = 1;
+        event.stageSnd = 0x55030003;
+        event.flagId   = 0;
+        event.fade     = 1;
         return Bulwark_StartEvent(dst, &event);
     }
     if (*(u16*)src == 2) {
-        event.field_0 = 6;
-        event.field_4 = 0x55030001;
-        event.field_8 = 0x15C;
-        event.field_A = 0;
+        event.capCmd   = 6;
+        event.stageSnd = 0x55030001;
+        event.flagId   = 0x15C;
+        event.fade     = 0;
         return Bulwark_StartEvent(dst, &event);
     }
     return 1;

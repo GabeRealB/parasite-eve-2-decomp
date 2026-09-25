@@ -7,33 +7,21 @@
 #include "main/mc.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// The room's pending event, latched by its message handler when an event
-/// starts and read by the event task. `field_0` is the CAP command the task
-/// runs and `field_4` the stage sound it then plays (0: none); `field_8` is
-/// the game flag checked and set as the event starts (0: none), and a
-/// non-zero `field_A` makes the task spawn helper task 0x31.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s16 field_8;
-    u8  field_A;
-} _ShelterB2PodAccessTunnelEvent;
-STATIC_ASSERT_SIZEOF(_ShelterB2PodAccessTunnelEvent, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern TaskDesc                       D_shelter_b2_pod_access_tunnel_80183BC0;
-extern GpMsgEntry                     D_shelter_b2_pod_access_tunnel_80183BCC[];
-extern TaskDesc                       D_shelter_b2_pod_access_tunnel_80183BFC;
-extern GpStateBD8                     D_shelter_b2_pod_access_tunnel_801856F8;
-extern RoomEventMsg                   D_shelter_b2_pod_access_tunnel_80185700;
-extern u8                             D_shelter_b2_pod_access_tunnel_80185708;
-extern _ShelterB2PodAccessTunnelEvent D_shelter_b2_pod_access_tunnel_8018570C;
-extern u8                             D_801153F4;
-extern u8                             D_80115690;
-extern s16                            D_80071076;
+extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BC0;
+extern GpMsgEntry       D_shelter_b2_pod_access_tunnel_80183BCC[];
+extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BFC;
+extern GpStateBD8       D_shelter_b2_pod_access_tunnel_801856F8;
+extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
+extern u8               D_shelter_b2_pod_access_tunnel_80185708;
+extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;
+extern u8               D_801153F4;
+extern u8               D_80115690;
+extern s16              D_80071076;
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks
@@ -48,13 +36,13 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b2_pod_access_tunnel_8018570C.field_0, 0);
+            Gp_RunCapCmd(D_shelter_b2_pod_access_tunnel_8018570C.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_pod_access_tunnel_8018570C.field_A != 0) {
+                if (D_shelter_b2_pod_access_tunnel_8018570C.fade != 0) {
                     D_shelter_b2_pod_access_tunnel_801856F8.field_0 = 0;
                     D_shelter_b2_pod_access_tunnel_801856F8.field_1 = 0;
                     D_shelter_b2_pod_access_tunnel_801856F8.field_2 = 0x1E;
@@ -64,15 +52,15 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b2_pod_access_tunnel_8018570C.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_pod_access_tunnel_8018570C.field_4, 0, 0);
+            if (D_shelter_b2_pod_access_tunnel_8018570C.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_pod_access_tunnel_8018570C.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_pod_access_tunnel_8018570C.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_pod_access_tunnel_8018570C.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -88,15 +76,15 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
     }
 }
 
-static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, _ShelterB2PodAccessTunnelEvent* event)
+static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_pod_access_tunnel_80185708 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_b2_pod_access_tunnel_80185700 = *dst;
             D_shelter_b2_pod_access_tunnel_8018570C = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
             D_shelter_b2_pod_access_tunnel_80185708 = 1;
@@ -108,7 +96,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, _Sh
 
 s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    _ShelterB2PodAccessTunnelEvent event;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179A04(in, out);
@@ -128,10 +116,10 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
             }
             return 2;
         }
-        event.field_0 = 5;
-        event.field_4 = 0x54230001;
-        event.field_8 = 0x132;
-        event.field_A = 0;
+        event.capCmd   = 5;
+        event.stageSnd = 0x54230001;
+        event.flagId   = 0x132;
+        event.fade     = 0;
         return _shelterB2PodAccessTunnelStartEvent(out, &event);
     }
     return 1;

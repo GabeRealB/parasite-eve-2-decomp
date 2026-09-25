@@ -16,19 +16,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// An event the room's message handler latches for its own event task. The
-/// handler builds it on the stack and copies it whole. `field_0` is the CAP
-/// command the task runs and `field_4` the stage sound it then plays;
-/// `flagId` is the game-flag nibble set once the event has fired (zero: none);
-/// a non-zero `field_A` makes the task start helper task 0x31.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _LatchedEvent;
 
 extern s16 D_80071076;
 extern u8  D_8007216D;
@@ -45,10 +34,10 @@ extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
-extern GpStateBD8    D_dryfield_driveway_80180680;
-extern RoomEventMsg  D_dryfield_driveway_80180688;
-extern u8            D_dryfield_driveway_80180690;
-extern _LatchedEvent D_dryfield_driveway_80180694;
+extern GpStateBD8       D_dryfield_driveway_80180680;
+extern RoomEventMsg     D_dryfield_driveway_80180688;
+extern u8               D_dryfield_driveway_80180690;
+extern RoomLatchedEvent D_dryfield_driveway_80180694;
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it and, when the
@@ -61,13 +50,13 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_driveway_80180694.field_0, 0);
+            Gp_RunCapCmd(D_dryfield_driveway_80180694.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_dryfield_driveway_80180694.field_A != 0) {
+                if (D_dryfield_driveway_80180694.fade != 0) {
                     D_dryfield_driveway_80180680.field_0 = 0;
                     D_dryfield_driveway_80180680.field_1 = 0;
                     D_dryfield_driveway_80180680.field_2 = 0x1E;
@@ -77,15 +66,15 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
             }
             break;
         case 2:
-            if (D_dryfield_driveway_80180694.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_driveway_80180694.field_4, 0, 0);
+            if (D_dryfield_driveway_80180694.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_dryfield_driveway_80180694.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_driveway_80180694.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_driveway_80180694.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -109,9 +98,9 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
 /// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
 s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    _LatchedEvent  req;
-    _LatchedEvent* p;
-    s32            fl;
+    RoomLatchedEvent  req;
+    RoomLatchedEvent* p;
+    s32               fl;
 
     *out = *in;
     if (in->msgId == 0x17 && in->field_5 == 0) {
@@ -164,10 +153,10 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
             }
             return 2;
         }
-        req.field_0                  = 9;
-        req.field_4                  = 0x52190003;
+        req.capCmd                   = 9;
+        req.stageSnd                 = 0x52190003;
         req.flagId                   = 0x11C;
-        req.field_A                  = 0;
+        req.fade                     = 0;
         p                            = &req;
         D_dryfield_driveway_80180690 = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {

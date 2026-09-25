@@ -17,21 +17,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Parameters of an event the access tunnel's message handler starts, latched
-/// into the room's pending copy when it fires and played back by the room's
-/// event task. `field_0` is the CAP command the task runs, `field_4` the stage
-/// sound it plays and waits for (0 for none), and a non-zero `field_A` makes it
-/// start helper task 0x31. `flagId` is the game-flag nibble that records the
-/// event as done: a set nibble stops it firing again, and starting it sets the
-/// nibble (0 means no flag).
-typedef struct _AccessTunnelEvent {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _AccessTunnelEvent;
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
@@ -72,7 +59,7 @@ extern u8           D_shelter_b1_access_tunnel_8017FF6C;
 /// lines the task `func_shelter_b1_access_tunnel_8017D760` plays.
 extern RoomEventReq D_shelter_b1_access_tunnel_8017FF70;
 
-extern _AccessTunnelEvent D_shelter_b1_access_tunnel_8017FF90;
+extern RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90;
 
 void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
 void func_shelter_b1_access_tunnel_8017DD00(Task* task);
@@ -194,13 +181,13 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b1_access_tunnel_8017FF90.field_0, 0);
+            Gp_RunCapCmd(D_shelter_b1_access_tunnel_8017FF90.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_b1_access_tunnel_8017FF90.field_A != 0) {
+                if (D_shelter_b1_access_tunnel_8017FF90.fade != 0) {
                     D_shelter_b1_access_tunnel_8017FF4C.field_0 = 0;
                     D_shelter_b1_access_tunnel_8017FF4C.field_1 = 0;
                     D_shelter_b1_access_tunnel_8017FF4C.field_2 = 0x1E;
@@ -210,15 +197,15 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b1_access_tunnel_8017FF90.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b1_access_tunnel_8017FF90.field_4, 0, 0);
+            if (D_shelter_b1_access_tunnel_8017FF90.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b1_access_tunnel_8017FF90.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_access_tunnel_8017FF90.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_access_tunnel_8017FF90.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -238,7 +225,7 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->field_5` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
-static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, _AccessTunnelEvent* event)
+static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_access_tunnel_8017FF6C = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
@@ -266,8 +253,8 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, _AccessTunnelEv
 /// flag 0x13F, and any other message answers 1.
 s32 func_shelter_b1_access_tunnel_8017DA68(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    RoomEventReq       req;
-    _AccessTunnelEvent event;
+    RoomEventReq     req;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179A04(in, out);
@@ -294,10 +281,10 @@ s32 func_shelter_b1_access_tunnel_8017DA68(s32 arg0, s32 arg1, RoomEventMsg* in,
         return func_shelter_b1_access_tunnel_8017D5FC(&req, out);
     }
     if (in->msgId == 0x14) {
-        event.field_0 = 4;
-        event.field_4 = 0x54130005;
-        event.flagId  = 0x13F;
-        event.field_A = 0;
+        event.capCmd   = 4;
+        event.stageSnd = 0x54130005;
+        event.flagId   = 0x13F;
+        event.fade     = 0;
         return _accessTunnelStartEvent(out, &event);
     }
     return 1;

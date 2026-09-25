@@ -1,2 +1,2 @@
 // Overlay-local symbols for shelter_1f_vehicular_airlock.
-D_shelter_1f_vehicular_airlock_80182AB4 = 0x80182AB4; // type:Shelter1fVehicularAirlockEvent size:0xC
+D_shelter_1f_vehicular_airlock_80182AB4 = 0x80182AB4; // type:RoomLatchedEvent size:0xC

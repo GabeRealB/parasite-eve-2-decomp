@@ -23,6 +23,7 @@
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 #include "rooms/mine_mesa.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 #include <psyq/inline_c.h>
@@ -135,7 +136,7 @@ void func_mine_mesa_8017D670(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_mine_mesa_80189B60.field_0, 0);
+            Gp_RunCapCmd(D_mine_mesa_80189B60.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
@@ -202,15 +203,15 @@ s32 func_mine_mesa_8017D8F0(void)
     return 0;
 }
 
-static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, MineMesaEvent* event)
+static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
     D_mine_mesa_80189B48 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_mine_mesa_80189B40 = *dst;
             D_mine_mesa_80189B60 = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_mine_mesa_801818F8, 0, 0, 0);
             D_mine_mesa_80189B48 = 1;
@@ -230,8 +231,8 @@ static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, MineMesaEvent* event)
 /// every other one.
 s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
-    MineMesaEvent event;
-    u8            field9;
+    RoomLatchedEvent event;
+    u8               field9;
 
     *out = *in;
     func_80179A04(in, out);
@@ -242,10 +243,10 @@ s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
     if (field9 == 1 && Gp_StateF0.field_0 == field9) {
         return 0;
     }
-    event.field_0 = 0xE;
-    event.field_4 = 0x54010001;
-    event.field_8 = 0x171;
-    event.field_A = 0;
+    event.capCmd   = 0xE;
+    event.stageSnd = 0x54010001;
+    event.flagId   = 0x171;
+    event.fade     = 0;
     return MineMesa_StartEvent(out, &event);
 }
 

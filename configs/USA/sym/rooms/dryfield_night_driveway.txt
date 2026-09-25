@@ -1,2 +1,2 @@
 // Overlay-local symbols for dryfield_night_driveway.
-D_dryfield_night_driveway_80182124 = 0x80182124; // type:DrivewayReq size:0xC
+D_dryfield_night_driveway_80182124 = 0x80182124; // type:RoomLatchedEvent size:0xC

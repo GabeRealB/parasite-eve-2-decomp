@@ -1,3 +1,3 @@
 // Overlay-local symbols for shelter_b2_main_corridor.
-D_shelter_b2_main_corridor_80189674 = 0x80189674; // type:ShelterB2MainCorridorExit size:0xC
+D_shelter_b2_main_corridor_80189674 = 0x80189674; // type:RoomLatchedEvent size:0xC
 D_shelter_b2_main_corridor_80189684 = 0x80189684; // type:ShelterB2MainCorridorEventDesc size:0xC

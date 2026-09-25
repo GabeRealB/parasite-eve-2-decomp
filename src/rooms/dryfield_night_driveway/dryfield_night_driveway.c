@@ -21,19 +21,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// An event the event gate latches for the room's event task. The gate builds
-/// it on the stack and copies it whole. `field_0` is the CAP command the task
-/// runs and `field_4` the stage sound it then plays; `flagId` is the game-flag
-/// nibble set once the event has fired (zero: none); a non-zero `field_A` makes
-/// the task start helper task 0x31.
-typedef struct {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 flagId;
-    /* 0xA */ u8  field_A;
-} DrivewayReq;
 
 extern s16 D_80071076;
 extern s8  D_8011540A;
@@ -70,9 +59,9 @@ extern GpStateBD8 D_dryfield_night_driveway_80182110;
 
 /// The message and the event the event gate latched for the event task, and
 /// the flag it sets when it latches one.
-extern RoomEventMsg D_dryfield_night_driveway_80182118;
-extern u8           D_dryfield_night_driveway_80182120;
-extern DrivewayReq  D_dryfield_night_driveway_80182124;
+extern RoomEventMsg     D_dryfield_night_driveway_80182118;
+extern u8               D_dryfield_night_driveway_80182120;
+extern RoomLatchedEvent D_dryfield_night_driveway_80182124;
 
 void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 void func_dryfield_night_driveway_8017DD7C(Task* task);
@@ -89,13 +78,13 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_night_driveway_80182124.field_0, 0);
+            Gp_RunCapCmd(D_dryfield_night_driveway_80182124.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_dryfield_night_driveway_80182124.field_A != 0) {
+                if (D_dryfield_night_driveway_80182124.fade != 0) {
                     D_dryfield_night_driveway_80182110.field_0 = 0;
                     D_dryfield_night_driveway_80182110.field_1 = 0;
                     D_dryfield_night_driveway_80182110.field_2 = 0x1E;
@@ -105,15 +94,15 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
             }
             break;
         case 2:
-            if (D_dryfield_night_driveway_80182124.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_night_driveway_80182124.field_4, 0, 0);
+            if (D_dryfield_night_driveway_80182124.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_dryfield_night_driveway_80182124.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_night_driveway_80182124.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_night_driveway_80182124.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -143,9 +132,9 @@ const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 s32 func_dryfield_night_driveway_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in,
                                           RoomEventMsg* out)
 {
-    DrivewayReq  req;
-    DrivewayReq* p;
-    s32          fl;
+    RoomLatchedEvent  req;
+    RoomLatchedEvent* p;
+    s32               fl;
 
     *out = *in;
     if (in->msgId == 0x17 && in->field_5 == 0) {
@@ -198,10 +187,10 @@ s32 func_dryfield_night_driveway_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in,
             }
             return 2;
         }
-        req.field_0                        = 9;
-        req.field_4                        = 0x52190003;
+        req.capCmd                         = 9;
+        req.stageSnd                       = 0x52190003;
         req.flagId                         = 0x11C;
-        req.field_A                        = 0;
+        req.fade                           = 0;
         p                                  = &req;
         D_dryfield_night_driveway_80182120 = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {

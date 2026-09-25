@@ -21,20 +21,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Parameters of an event the operating room's message handler starts, latched
-/// into the room's pending copy when it fires. `field_0` is the CAP command the
-/// room's event task runs and `field_4` the stage sound it then plays; `flagId`
-/// is the game-flag nibble that records the event as done: a set nibble stops
-/// it firing again, and starting it sets the nibble (0 means no flag). A
-/// non-zero `field_A` makes the event task start helper task 0x31.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _OperatingRoomEvent;
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
@@ -78,9 +66,9 @@ extern RoomEventReq D_shelter_b2_operating_room_80184238;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag saying the handler spawned it.
-extern RoomEventMsg        D_shelter_b2_operating_room_8018422C;
-extern u8                  D_shelter_b2_operating_room_80184234;
-extern _OperatingRoomEvent D_shelter_b2_operating_room_80184258;
+extern RoomEventMsg     D_shelter_b2_operating_room_8018422C;
+extern u8               D_shelter_b2_operating_room_80184234;
+extern RoomLatchedEvent D_shelter_b2_operating_room_80184258;
 
 void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2);
 void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -210,13 +198,13 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b2_operating_room_80184258.field_0, 0);
+            Gp_RunCapCmd(D_shelter_b2_operating_room_80184258.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_operating_room_80184258.field_A != 0) {
+                if (D_shelter_b2_operating_room_80184258.fade != 0) {
                     D_shelter_b2_operating_room_80184214.field_0 = 0;
                     D_shelter_b2_operating_room_80184214.field_1 = 0;
                     D_shelter_b2_operating_room_80184214.field_2 = 0x1E;
@@ -226,15 +214,15 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b2_operating_room_80184258.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_operating_room_80184258.field_4, 0, 0);
+            if (D_shelter_b2_operating_room_80184258.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_operating_room_80184258.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_operating_room_80184258.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_operating_room_80184258.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -254,7 +242,7 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->field_5` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
-static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, _OperatingRoomEvent* event)
+static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_operating_room_80184234 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
@@ -281,8 +269,8 @@ static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, _OperatingRoom
 /// message answers 1.
 s32 func_shelter_b2_operating_room_8017DA94(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    RoomEventReq        req;
-    _OperatingRoomEvent event;
+    RoomEventReq     req;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179A04(in, out);
@@ -303,17 +291,17 @@ s32 func_shelter_b2_operating_room_8017DA94(s32 arg0, s32 arg1, RoomEventMsg* in
         return 0;
     }
     if (in->msgId == 0x1C) {
-        event.field_0 = 0xE;
-        event.field_4 = 0x541D0001;
-        event.flagId  = 0x13A;
-        event.field_A = 0;
+        event.capCmd   = 0xE;
+        event.stageSnd = 0x541D0001;
+        event.flagId   = 0x13A;
+        event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
     if (in->msgId == 0x1F) {
-        event.field_0 = 0xD;
-        event.field_4 = 0x541D0005;
-        event.flagId  = 0x13B;
-        event.field_A = 0;
+        event.capCmd   = 0xD;
+        event.stageSnd = 0x541D0005;
+        event.flagId   = 0x13B;
+        event.fade     = 0;
         return _operatingRoomStartEvent(out, &event);
     }
     return 1;

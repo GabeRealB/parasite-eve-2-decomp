@@ -21,6 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "rooms/rooms_shared_8017ff88.h"
@@ -59,18 +60,6 @@
             } while (p[0] != 0xFF);                                     \
         }                                                               \
     }
-
-/// An event the room's message handler latches for its own event task. The
-/// handler builds it on the stack and copies it whole. `field_0` is the CAP
-/// command the task runs and `field_4` the stage sound it then plays;
-/// `flagId` is the game-flag nibble set once the event has fired (zero: none);
-/// a non-zero `field_A` makes the task start helper task 0x31.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _LatchedEvent;
 
 extern s32 D_80070F70;
 extern s16 D_80071076;
@@ -124,9 +113,9 @@ extern GpStateBD8 D_dryfield_night_main_street_80188BA4;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag it raises once it has spawned that task.
-extern RoomEventMsg  D_dryfield_night_main_street_80188BAC;
-extern s8            D_dryfield_night_main_street_80188BB4;
-extern _LatchedEvent D_dryfield_night_main_street_80188BC8;
+extern RoomEventMsg     D_dryfield_night_main_street_80188BAC;
+extern s8               D_dryfield_night_main_street_80188BB4;
+extern RoomLatchedEvent D_dryfield_night_main_street_80188BC8;
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg D_dryfield_night_main_street_80188BBC;
@@ -158,13 +147,13 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_night_main_street_80188BC8.field_0, 0);
+            Gp_RunCapCmd(D_dryfield_night_main_street_80188BC8.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_dryfield_night_main_street_80188BC8.field_A != 0) {
+                if (D_dryfield_night_main_street_80188BC8.fade != 0) {
                     D_dryfield_night_main_street_80188BA4.field_0 = 0;
                     D_dryfield_night_main_street_80188BA4.field_1 = 0;
                     D_dryfield_night_main_street_80188BA4.field_2 = 0x1E;
@@ -174,15 +163,15 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
             }
             break;
         case 2:
-            if (D_dryfield_night_main_street_80188BC8.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_night_main_street_80188BC8.field_4, 0, 0);
+            if (D_dryfield_night_main_street_80188BC8.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_dryfield_night_main_street_80188BC8.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_night_main_street_80188BC8.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_night_main_street_80188BC8.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -319,9 +308,9 @@ const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 /// 0x10F / 0x112 for 0x113. Anything else is not consumed.
 s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
-    RoomEventReq  req;
-    _LatchedEvent ev;
-    s32           ret;
+    RoomEventReq     req;
+    RoomLatchedEvent ev;
+    s32              ret;
 
     *out = *msg;
     if (msg->msgId == 0x19) {
@@ -358,10 +347,10 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         return 2;
     }
     if (msg->msgId == 0xB) {
-        ev.field_0                            = 3;
-        ev.field_4                            = 0x52020005;
+        ev.capCmd                             = 3;
+        ev.stageSnd                           = 0x52020005;
         ev.flagId                             = 0x57;
-        ev.field_A                            = 0;
+        ev.fade                               = 0;
         D_dryfield_night_main_street_80188BB4 = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {
@@ -378,10 +367,10 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         }
         return 1;
     } else if (msg->msgId == 0xC) {
-        ev.field_0                            = 4;
-        ev.field_4                            = 0x52020005;
+        ev.capCmd                             = 4;
+        ev.stageSnd                           = 0x52020005;
         ev.flagId                             = 0x58;
-        ev.field_A                            = 0;
+        ev.fade                               = 0;
         D_dryfield_night_main_street_80188BB4 = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {

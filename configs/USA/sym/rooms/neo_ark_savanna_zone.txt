@@ -1,2 +1,2 @@
 // Overlay-local symbols for neo_ark_savanna_zone.
-D_neo_ark_savanna_zone_8018099C = 0x8018099C; // type:NeoArkSavannaZoneEvent size:0xC
+D_neo_ark_savanna_zone_8018099C = 0x8018099C; // type:RoomLatchedEvent size:0xC

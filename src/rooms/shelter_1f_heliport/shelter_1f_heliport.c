@@ -28,6 +28,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 /// One row of the shop's price ladder (`D_shelter_1f_heliport_80180EAC`,
@@ -40,17 +41,6 @@ typedef struct Shelter1fHeliportShopTier {
     byte pad_A[2];
 } Shelter1fHeliportShopTier;
 STATIC_ASSERT_SIZEOF(Shelter1fHeliportShopTier, 0xC);
-
-/// Event parameters latched into the room's pending event when a stage-3
-/// request starts it: the cap command the event task runs, the stage sound it
-/// then plays, the game flag checked and set on start, and a flag that makes
-/// the event task start helper task 0x31.
-typedef struct _Shelter1fHeliportEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} _Shelter1fHeliportEvent;
 
 /// Twelve opaque bytes the mesh copy carries across unchanged.
 typedef struct _Shelter1fHeliportBlk12 {
@@ -220,10 +210,10 @@ extern GpItemMap* D_shelter_1f_heliport_80182C9C;
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
-extern GpStateBD8              D_shelter_1f_heliport_80182CA0;
-extern RoomEventMsg            D_shelter_1f_heliport_80182CA8;
-extern s8                      D_shelter_1f_heliport_80182CB0;
-extern _Shelter1fHeliportEvent D_shelter_1f_heliport_80182CB4;
+extern GpStateBD8       D_shelter_1f_heliport_80182CA0;
+extern RoomEventMsg     D_shelter_1f_heliport_80182CA8;
+extern s8               D_shelter_1f_heliport_80182CB0;
+extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;
 
 void func_shelter_1f_heliport_80180658(Task* task);
 void func_shelter_1f_heliport_80180748(Task* task);
@@ -1471,13 +1461,13 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_heliport_80182CB4.field_0, 0);
+            Gp_RunCapCmd(D_shelter_1f_heliport_80182CB4.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_heliport_80182CB4.field_A != 0) {
+                if (D_shelter_1f_heliport_80182CB4.fade != 0) {
                     D_shelter_1f_heliport_80182CA0.field_0 = 0;
                     D_shelter_1f_heliport_80182CA0.field_1 = 0;
                     D_shelter_1f_heliport_80182CA0.field_2 = 0x1E;
@@ -1487,15 +1477,15 @@ void func_shelter_1f_heliport_8017FF08(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_1f_heliport_80182CB4.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_heliport_80182CB4.field_4, 0, 0);
+            if (D_shelter_1f_heliport_80182CB4.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_1f_heliport_80182CB4.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_heliport_80182CB4.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_heliport_80182CB4.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -1522,15 +1512,15 @@ const TaskFuncTable3 D_shelter_1f_heliport_8017D710 = {
     },
 };
 
-static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, _Shelter1fHeliportEvent* event)
+static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_heliport_80182CB0 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_heliport_80182CA8 = *dst;
             D_shelter_1f_heliport_80182CB4 = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
             D_shelter_1f_heliport_80182CB0 = 1;
@@ -1542,7 +1532,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, _Shelter1f
 
 s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
-    _Shelter1fHeliportEvent event;
+    RoomLatchedEvent event;
 
     *dst = *src;
     func_80179B14(src, dst);
@@ -1557,10 +1547,10 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
             }
             return 2;
         }
-        event.field_0 = 0x29;
-        event.field_4 = 0x55040001;
-        event.field_8 = 0;
-        event.field_A = 1;
+        event.capCmd   = 0x29;
+        event.stageSnd = 0x55040001;
+        event.flagId   = 0;
+        event.fade     = 1;
         if (src->field_5 == 0) {
             SndEvt_EnqueueType7(0x55040006, 1);
             SndEvt_EnqueueType7(0x55040007, 1);

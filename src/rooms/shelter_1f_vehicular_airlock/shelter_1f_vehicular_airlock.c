@@ -20,21 +20,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Event parameters latched into the room's pending event when an event
-/// starts, and read back by the room's event task. `field_0` is the CAP
-/// command the event runs, `field_4` the stage sound played after it (0 for
-/// none), `field_8` the game flag checked and set as the event starts (0 for
-/// none), and a non-zero `field_A` makes the event task start helper task
-/// 0x31 once the command finishes.
-typedef struct Shelter1fVehicularAirlockEvent {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  field_A;
-} Shelter1fVehicularAirlockEvent;
-STATIC_ASSERT_SIZEOF(Shelter1fVehicularAirlockEvent, 0xC);
 
 /// Spawn argument of a model task whose visibility follows a 2-bit game flag;
 /// `flagId` selects the flag.
@@ -73,9 +60,9 @@ extern GpStateBD8 D_shelter_1f_vehicular_airlock_80182AA0;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg                   D_shelter_1f_vehicular_airlock_80182AA8;
-extern s8                             D_shelter_1f_vehicular_airlock_80182AB0;
-extern Shelter1fVehicularAirlockEvent D_shelter_1f_vehicular_airlock_80182AB4;
+extern RoomEventMsg     D_shelter_1f_vehicular_airlock_80182AA8;
+extern s8               D_shelter_1f_vehicular_airlock_80182AB0;
+extern RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4;
 
 void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -109,13 +96,13 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_vehicular_airlock_80182AB4.field_0, 0);
+            Gp_RunCapCmd(D_shelter_1f_vehicular_airlock_80182AB4.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_vehicular_airlock_80182AB4.field_A != 0) {
+                if (D_shelter_1f_vehicular_airlock_80182AB4.fade != 0) {
                     D_shelter_1f_vehicular_airlock_80182AA0.field_0 = 0;
                     D_shelter_1f_vehicular_airlock_80182AA0.field_1 = 0;
                     D_shelter_1f_vehicular_airlock_80182AA0.field_2 = 0x1E;
@@ -125,15 +112,15 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_1f_vehicular_airlock_80182AB4.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_vehicular_airlock_80182AB4.field_4, 0, 0);
+            if (D_shelter_1f_vehicular_airlock_80182AB4.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_1f_vehicular_airlock_80182AB4.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_vehicular_airlock_80182AB4.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_vehicular_airlock_80182AB4.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -149,15 +136,15 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
     }
 }
 
-static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Shelter1fVehicularAirlockEvent* event)
+static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_vehicular_airlock_80182AB0 = 0;
-    if (GameFlag_GetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_vehicular_airlock_80182AA8 = *dst;
             D_shelter_1f_vehicular_airlock_80182AB4 = *event;
-            if (event->field_8 != 0) {
-                GameFlag_SetNibble(event->field_8, 1);
+            if (event->flagId != 0) {
+                GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
             D_shelter_1f_vehicular_airlock_80182AB0 = 1;
@@ -169,7 +156,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Sh
 
 s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
-    Shelter1fVehicularAirlockEvent event;
+    RoomLatchedEvent event;
 
     *out = *in;
     func_80179B14(in, out);
@@ -181,17 +168,17 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
             }
             return 0;
         }
-        event.field_0 = 4;
-        event.field_4 = 0x55020003;
-        event.field_8 = 0x15B;
-        event.field_A = 0;
+        event.capCmd   = 4;
+        event.stageSnd = 0x55020003;
+        event.flagId   = 0x15B;
+        event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
     if (in->msgId == 5) {
-        event.field_0 = 6;
-        event.field_4 = 0x55020001;
-        event.field_8 = 0x15A;
-        event.field_A = 0;
+        event.capCmd   = 6;
+        event.stageSnd = 0x55020001;
+        event.flagId   = 0x15A;
+        event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
     return 1;

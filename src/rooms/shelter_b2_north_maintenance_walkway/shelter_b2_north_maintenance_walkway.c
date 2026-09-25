@@ -9,20 +9,8 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Parameters of the event the walkway's message handler starts, latched into
-/// the room's pending copy when it fires. `field_0` is the CAP command the
-/// event task runs and `field_4` the stage sound it plays (0 for none).
-/// `flagId` is the game-flag nibble that records the event as done: a set
-/// nibble stops it firing again, and starting it sets the nibble (0 means no
-/// flag). A non-zero `field_A` has the event task spawn task 0x31.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s16 flagId;
-    u8  field_A;
-} _WalkwayEvent;
 
 extern s16 D_80071076;
 extern u8  D_801153F4;
@@ -51,9 +39,9 @@ extern GpStateBD8 D_shelter_b2_north_maintenance_walkway_801863A0;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
-extern RoomEventMsg  D_shelter_b2_north_maintenance_walkway_801863A8;
-extern u8            D_shelter_b2_north_maintenance_walkway_801863B0;
-extern _WalkwayEvent D_shelter_b2_north_maintenance_walkway_801863C4;
+extern RoomEventMsg     D_shelter_b2_north_maintenance_walkway_801863A8;
+extern u8               D_shelter_b2_north_maintenance_walkway_801863B0;
+extern RoomLatchedEvent D_shelter_b2_north_maintenance_walkway_801863C4;
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg D_shelter_b2_north_maintenance_walkway_801863B8;
@@ -75,13 +63,13 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
         case 0:
             D_801153F4 = 1;
             Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b2_north_maintenance_walkway_801863C4.field_0, 0);
+            Gp_RunCapCmd(D_shelter_b2_north_maintenance_walkway_801863C4.capCmd, 0);
             D_80115690 = 1;
             arg0->state++;
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_north_maintenance_walkway_801863C4.field_A != 0) {
+                if (D_shelter_b2_north_maintenance_walkway_801863C4.fade != 0) {
                     D_shelter_b2_north_maintenance_walkway_801863A0.field_0 = 0;
                     D_shelter_b2_north_maintenance_walkway_801863A0.field_1 = 0;
                     D_shelter_b2_north_maintenance_walkway_801863A0.field_2 = 0x1E;
@@ -91,15 +79,15 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_b2_north_maintenance_walkway_801863C4.field_4 != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_north_maintenance_walkway_801863C4.field_4, 0, 0);
+            if (D_shelter_b2_north_maintenance_walkway_801863C4.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_shelter_b2_north_maintenance_walkway_801863C4.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_north_maintenance_walkway_801863C4.field_4)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_north_maintenance_walkway_801863C4.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -226,7 +214,7 @@ void func_shelter_b2_north_maintenance_walkway_8017D918(Task* task)
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->field_5` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
-static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, _WalkwayEvent* event)
+static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b2_north_maintenance_walkway_801863B0 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
@@ -251,9 +239,9 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, _WalkwayEvent* event
 /// starts the room's own event on flag 0x137; any other message answers 1.
 s32 func_shelter_b2_north_maintenance_walkway_8017DA88(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    RoomEventReq  req;
-    _WalkwayEvent event;
-    s32           result;
+    RoomEventReq     req;
+    RoomLatchedEvent event;
+    s32              result;
 
     *out = *in;
     func_80179A04(in, out);
@@ -276,10 +264,10 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(s32 arg0, s32 arg1, RoomE
     if (in->msgId != 0x20) {
         return 1;
     }
-    event.field_0 = 4;
-    event.field_4 = 0x541E0004;
-    event.flagId  = 0x137;
-    event.field_A = 0;
+    event.capCmd   = 4;
+    event.stageSnd = 0x541E0004;
+    event.flagId   = 0x137;
+    event.fade     = 0;
     return _walkwayStartEvent(out, &event);
 }
 
