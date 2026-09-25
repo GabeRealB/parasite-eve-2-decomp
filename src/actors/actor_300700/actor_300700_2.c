@@ -72,6 +72,19 @@ extern s16 D_actor_300700_8016936C[];
 extern u16 D_actor_300700_8016937C[];
 extern s16 D_actor_300700_8016939C[];
 
+void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1);
+void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1);
+
+/// The second variant's state handlers, in the same order, dispatched by
+/// `func_actor_300700_80164CE0`.
+const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
+    {
+        func_actor_300700_80163510,
+        func_actor_300700_80164D3C,
+        func_actor_300700_801648E4,
+    },
+};
+
 void func_actor_300700_801637E4(Task* actor)
 {
     GpEnemy*         ctx;

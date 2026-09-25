@@ -68,7 +68,6 @@ STATIC_ASSERT_SIZEOF(Actor300700TexEntry, 4);
 extern Actor300700TexEntry D_actor_300700_80165B9C[];
 
 void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1);
 void func_actor_300700_80163410(Task* arg0);
 void func_actor_300700_801637E4(Task* arg0);
 void func_actor_300700_80164794(Task* arg0);
@@ -884,19 +883,3 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     work->obj4.flags &= 0x7FFF;
     arg1->state       = 1;
 }
-
-/// The second variant's state handlers, in the same order, dispatched by
-/// `func_actor_300700_80164CE0`.
-const GpEnemyTaskFuncTable3 D_actor_300700_80161E30 = {
-    {
-        func_actor_300700_80163510,
-        func_actor_300700_80164D3C,
-        func_actor_300700_801648E4,
-    },
-};
-
-/// The zero word between the state tables and the next object's rodata, which
-/// opens with an 8-aligned jump table: either a fourth, empty handler slot or
-/// the linker's alignment padding. The generated linker script aligns input
-/// sections to 4 only and cannot insert it, so it stays in assembly.
-INCLUDE_RODATA("actors/nonmatchings/actor_300700/actor_300700", D_actor_300700_80161E3C);
