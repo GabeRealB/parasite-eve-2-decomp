@@ -129,18 +129,6 @@ void func_actor_403600_80134398(Task* arg0);
 #define actor_403600_ldv0_dep(vector, matrix) \
     __asm__ volatile("lwc2 $0,0(%0);lwc2 $1,4(%0)" : : "r"(vector), "r"(matrix))
 
-#define actor_403600_ldsxy3_fifo_gt3(p)                    \
-    __asm__ volatile("lw $21, 1(%0); nop; mtc2 $21, $15;"  \
-                     "lw $21, 13(%0); nop; mtc2 $21, $15;" \
-                     "lw $21, 25(%0); nop; mtc2 $21, $15"  \
-                     : : "r"(p) : "$21")
-#define actor_403600_ldsxy3_fifo_gt4(p)                    \
-    __asm__ volatile("lw $22, 1(%0); nop; mtc2 $22, $15;"  \
-                     "lw $22, 13(%0); nop; mtc2 $22, $15;" \
-                     "lw $22, 25(%0); nop; mtc2 $22, $15"  \
-                     : : "r"(p) : "$22")
-#define actor_403600_ldsxy1_fifo_gt4(p) \
-    __asm__ volatile("lw $22, 37(%0); nop; mtc2 $22, $15" : : "r"(p) : "$22")
 #define actor_403600_fade_rgb(p, scale, first) \
     __asm__ volatile(                          \
         "mult %0, %1\n\t"                      \
@@ -2365,7 +2353,9 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         mask_hi     = 0xFF000000;
         do {
             rec = (u16*)arg2;
-            actor_403600_ldsxy3_fifo_gt3((u8*)poly + 7);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
@@ -2591,13 +2581,15 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         mask_hi = 0xFF000000;
         do {
             rec = (u16*)arg2;
-            actor_403600_ldsxy3_fifo_gt4((u8*)poly + 7);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
                 goto draw;
             }
-            actor_403600_ldsxy1_fifo_gt4((u8*)poly + 7);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult < 0) {

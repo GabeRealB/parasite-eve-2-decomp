@@ -339,6 +339,12 @@
 #define gte_ldSZ2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
 #define gte_ldSZ3(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
 
+/// Pushes one packed screen coordinate into the GTE's SXY FIFO (SXYP): the
+/// oldest of SXY0-SXY2 drops out. Psy-Q loads SXY0-2 only as a group
+/// (`gte_ldsxy3`); code that feeds a polygon's corners one at a time, or
+/// re-tests one corner, pushes them singly.
+#define gte_ldSXYP(r0) __asm__ volatile("mtc2 %0, $15" : : "r"(r0))
+
 /// Writes the transpose of `src`'s rotation into `dst`, one column of `src` to
 /// one row of `dst` at a time through `$12`-`$14`: the sequence of libgte's
 /// `TransposeMatrix`, inlined. The translation is left alone.

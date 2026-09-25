@@ -35542,14 +35542,15 @@ the `j` delay is free for the `sw`. `Gp_DrawRemoveAmmoRow` is the example.
 
 `lw $24, -0x20(%0)` in a GNU C `__asm__` string fails at maspsx with
 `invalid literal for int() with base 10: '-0x20'`. Write the
-displacement in decimal (`-32`, `-20`, `-8`). The existing
-`gte_ldsxy3_fifo` / `_f4` macros already do this.
+displacement in decimal (`-32`, `-20`, `-8`).
 
-## Dual-packet GT3 fifo loads clobber `$t8`, not `$t6`
+## Dual-packet GT3 fifo loads land in `$t8`, not `$t6` - by allocation
 
-`gte_ldsxy3_fifo` / `_f4` use `$14` (`$t6`). The paired-GT3 OT linker
-keeps packet length `9` in `$t6` and GPU code `0x34` in `$t7` across the
-loop, so the SXY fifo load has to use `$24` (`$t8`):
+The paired-GT3 OT linker keeps packet length `9` in `$t6` and GPU code `0x34`
+in `$t7` across the loop, so the SXY fifo load's temporary lands in `$24`
+(`$t8`). This used to be forced with fixed-register asm macros; it is not
+needed. Each corner is `gte_ldSXYP(PRIM_XY_WORD(&xy[-1], n))` (a single
+`mtc2 %0, $15`, `include/decomp/gte.h`), and the allocator picks `$t8` itself:
 
 ```
 lw     t8, -0x20(a1)
@@ -35574,7 +35575,7 @@ nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 if (ws->gteResult > 0) {
     goto draw;
 }
-gte_ldsxy_fifo_gt4_x3(xy);
+gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
 gte_nclip();
 gte_stopz(opz);
 if (ws->gteResult < 0) {
@@ -37343,25 +37344,16 @@ $t1/$t2 swap was a single `register Task* t asm("t2")` pin.
 The `gte_ldsxy*_fifo_*` macros in `src/gameplay/gameplay.c` are hand-rolled
 `lw <reg>, off(%0); nop; mtc2 <reg>, $15` triples, and the *scratch register*
 differs between otherwise identical sibling clippers. Most use `$24`; some use
-`$16`. That choice is visible in the prologue, not just inside the loop: a `$16`
-variant makes GCC treat `s0` as clobbered, so the function gains
-
-```
-addiu $sp, $sp, -0x8
-sw    $s0, 0x0($sp)
-```
-
-and an 8-byte frame that the `$24` variants do not have. If the target has a
-lone `sw $s0` prologue and `lw $s0, off(...)` / `mtc2 $s0, $15` in the body,
-add an `_s0` variant of the macro rather than reusing the existing `$24` one —
-`gte_ldsxy3_fifo_gt3_s0` and `gte_ldsxy3_fifo_gt4_s0` / `gte_ldsxy_fifo_gt4_x3_s0`
-exist for exactly this. Reusing the wrong one costs the whole prologue plus
-every fifo load.
+`$16`, and a `$16` variant gains an `sw $s0` prologue and an 8-byte frame. Both
+follow from allocation: written as plain `gte_ldSXYP(...)` pushes, each sibling
+gets its own register and prologue with no per-register macro. (Earlier
+revisions kept `_s0` and `$24` variants of the fifo macros to force this; they
+were scaffolding and are gone.)
 
 `gpDrawStreamPrimGt4PreXformLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
 `gpDrawStreamPrimGt3PreXformFixedLayer`, and porting that function with the
-type, stride, loop bound and `_s0` macros swapped matched on the first attempt. When a TU holds a family
+type, stride and loop bound swapped matched on the first attempt. When a TU holds a family
 of these clippers, diff the target against the nearest already-matched sibling
 before writing anything from scratch.
 

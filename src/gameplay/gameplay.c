@@ -103,114 +103,6 @@ void Gp_UseItemTask(GpIdMapC* arg0);
 s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
 s32  func_800A7550(void);
 
-#define gte_ldsxy3_fifo(p)             \
-    __asm__ volatile("lw $14, -8(%0);" \
-                     "nop;"            \
-                     "mtc2 $14, $15;"  \
-                     "lw $14, -4(%0);" \
-                     "nop;"            \
-                     "mtc2 $14, $15;"  \
-                     "lw $14, 0(%0);"  \
-                     "nop;"            \
-                     "mtc2 $14, $15"   \
-                     :                 \
-                     : "r"(p)          \
-                     : "$14")
-
-#define gte_ldsxy3_fifo_f4(p)           \
-    __asm__ volatile("lw $14, -12(%0);" \
-                     "nop;"             \
-                     "mtc2 $14, $15;"   \
-                     "lw $14, -8(%0);"  \
-                     "nop;"             \
-                     "mtc2 $14, $15;"   \
-                     "lw $14, -4(%0);"  \
-                     "nop;"             \
-                     "mtc2 $14, $15"    \
-                     :                  \
-                     : "r"(p)           \
-                     : "$14")
-
-#define gte_ldsxy3_fifo_gt3(p)          \
-    __asm__ volatile("lw $24, -32(%0);" \
-                     "nop;"             \
-                     "mtc2 $24, $15;"   \
-                     "lw $24, -20(%0);" \
-                     "nop;"             \
-                     "mtc2 $24, $15;"   \
-                     "lw $24, -8(%0);"  \
-                     "nop;"             \
-                     "mtc2 $24, $15"    \
-                     :                  \
-                     : "r"(p)           \
-                     : "$24")
-
-#define gte_ldsxy3_fifo_gt3_s0(p)       \
-    __asm__ volatile("lw $16, -32(%0);" \
-                     "nop;"             \
-                     "mtc2 $16, $15;"   \
-                     "lw $16, -20(%0);" \
-                     "nop;"             \
-                     "mtc2 $16, $15;"   \
-                     "lw $16, -8(%0);"  \
-                     "nop;"             \
-                     "mtc2 $16, $15"    \
-                     :                  \
-                     : "r"(p)           \
-                     : "$16")
-
-#define gte_ldsxy3_fifo_gt4(p)          \
-    __asm__ volatile("lw $24, -44(%0);" \
-                     "nop;"             \
-                     "mtc2 $24, $15;"   \
-                     "lw $24, -32(%0);" \
-                     "nop;"             \
-                     "mtc2 $24, $15;"   \
-                     "lw $24, -20(%0);" \
-                     "nop;"             \
-                     "mtc2 $24, $15"    \
-                     :                  \
-                     : "r"(p)           \
-                     : "$24")
-
-#define gte_ldsxy_fifo_gt4_x3(p)       \
-    __asm__ volatile("lw $24, -8(%0);" \
-                     "nop;"            \
-                     "mtc2 $24, $15"   \
-                     :                 \
-                     : "r"(p)          \
-                     : "$24")
-
-#define gte_ldsxy3_fifo_gt4_s0(p)       \
-    __asm__ volatile("lw $16, -44(%0);" \
-                     "nop;"             \
-                     "mtc2 $16, $15;"   \
-                     "lw $16, -32(%0);" \
-                     "nop;"             \
-                     "mtc2 $16, $15;"   \
-                     "lw $16, -20(%0);" \
-                     "nop;"             \
-                     "mtc2 $16, $15"    \
-                     :                  \
-                     : "r"(p)           \
-                     : "$16")
-
-#define gte_ldsxy_fifo_gt4_x3_s0(p)    \
-    __asm__ volatile("lw $16, -8(%0);" \
-                     "nop;"            \
-                     "mtc2 $16, $15"   \
-                     :                 \
-                     : "r"(p)          \
-                     : "$16")
-
-#define gte_ldsxy_fifo0(p)            \
-    __asm__ volatile("lw $14, 0(%0);" \
-                     "nop;"           \
-                     "mtc2 $14, $15"  \
-                     :                \
-                     : "r"(p)         \
-                     : "$14")
-
 /* r1 = long vector in, r2 = long vector out: r2 = RT * r1 + TR at full
  * 32-bit precision, the input split into three 10/11-bit slices. */
 #define gte_RotTransLV(r1, r2) __asm__ volatile( \
@@ -669,17 +561,16 @@ void Gp_DrawDisp2dOt(void)
 
 u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_F4*          poly;
-    register POLY_F4* xy asm("a3");
-    s32*              opz;
-    DisplayState*     ds;
-    u32               mask;
-    register u32      maskHi asm("t4");
-    register u32      clipMask asm("t3");
-    u16*              rec;
-    s32               sz;
-    s32               idx;
-    u8*               szTable;
+    POLY_F4*      poly;
+    s32*          opz;
+    DisplayState* ds;
+    u32           mask;
+    register u32  maskHi asm("t4");
+    register u32  clipMask asm("t3");
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
 
     poly = (POLY_F4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -688,16 +579,17 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
-        xy       = (POLY_F4*)&poly->x3;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo_f4(xy);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
                 goto draw;
             }
-            gte_ldsxy_fifo0(xy);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {
@@ -731,7 +623,6 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                     }
                 }
             }
-            xy++;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -742,17 +633,16 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
 
 u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_F3*          poly;
-    register POLY_F3* xy asm("a3");
-    s32*              opz;
-    DisplayState*     ds;
-    register u32      mask asm("t1");
-    register u32      maskHi asm("t4");
-    register u32      clipMask asm("t3");
-    u16*              rec;
-    s32               sz;
-    s32               idx;
-    u8*               szTable;
+    POLY_F3*      poly;
+    s32*          opz;
+    DisplayState* ds;
+    register u32  mask asm("t1");
+    register u32  maskHi asm("t4");
+    register u32  clipMask asm("t3");
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
 
     poly = (POLY_F3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -761,10 +651,11 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
         ds       = &gDisplayState;
         mask     = 0xFFFFFF;
         maskHi   = 0xFF000000;
-        xy       = (POLY_F3*)&poly->x2;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo(xy);
+            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
+            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {
@@ -792,7 +683,6 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                     }
                 }
             }
-            xy++;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -833,7 +723,9 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
         xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo_gt3_s0(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
@@ -940,10 +832,12 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
         xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo_gt4_s0(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
-            gte_ldsxy_fifo_gt4_x3_s0(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
             gte_nclip();
             if (ws->gteResult <= 0) {
                 *(u32*)&xy[-1].x0   = *(u32*)&xy[-1].x1;
@@ -1066,7 +960,9 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
         xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo_gt3(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
@@ -1139,13 +1035,15 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
         xy       = poly + 1;
         do {
             rec = (u16*)stream;
-            gte_ldsxy3_fifo_gt4(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
                 goto draw;
             }
-            gte_ldsxy_fifo_gt4_x3(xy);
+            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {
