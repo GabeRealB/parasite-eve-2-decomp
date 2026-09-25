@@ -123254,6 +123254,14 @@ Three smaller ones from the same function:
   materialise those bases in `$s1`/`$v1` instead of folding them onto the work
   pointer, and `sc = &work->field_264;` has to sit between the scratch load and
   its `-8` adjust for `addiu v1,s2,0x264` to land in the load-delay slot.
+
+**Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
+push, the three gather/`gpf 12`/scatter columns and the pop into one
+`static __inline__` helper (`_actor342000ScaleColumns(MATRIX*, VECTOR*)`,
+written with `SCRATCH_PUSH`/`SCRATCH_POP`) matched with no `lui` asm, no
+`TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
+absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
+before reaching for the pins above.
 ## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (func_actor_341700_8016CEB4, 2026-09-17)
 
 `func_actor_341700_8016CEB4` dispatches on a `u16` sub-command with bodies for

@@ -11,6 +11,7 @@
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -354,29 +355,49 @@ void func_actor_342000_80162158(Task* arg0)
     arg0->exitCallback = func_actor_342000_80163F88;
 }
 
+/// Scales each column of the rotation part of `m` by the matching component
+/// of `scale` (1.12 fixed point) with the GTE's `gpf 12`. Each column is
+/// gathered into an `SVECTOR` borrowed from the scratch-pad stack, scaled and
+/// written back, and the block is returned before leaving.
+static __inline__ void _actor342000ScaleColumns(MATRIX* m, VECTOR* scale)
+{
+    SVECTOR* sv;
+
+    sv = SCRATCH_PUSH(SVECTOR);
+    gte_ReadMatrixColumn(m, 0, sv);
+    gte_lddp(scale->vx);
+    gte_ldsv(sv);
+    gte_gpf12();
+    gte_stsv(sv);
+    gte_WriteMatrixColumn(sv, m, 0);
+    gte_ReadMatrixColumn(m, 1, sv);
+    gte_lddp(scale->vy);
+    gte_ldsv(sv);
+    gte_gpf12();
+    gte_stsv(sv);
+    gte_WriteMatrixColumn(sv, m, 1);
+    gte_ReadMatrixColumn(m, 2, sv);
+    gte_lddp(scale->vz);
+    gte_ldsv(sv);
+    gte_gpf12();
+    gte_stsv(sv);
+    gte_WriteMatrixColumn(sv, m, 2);
+    SCRATCH_POP(SVECTOR);
+}
+
 /// Display handler of the actor's child model. The spawn tick seeds the
 /// model's part coordinate translation from the `D_actor_342000_80164900` entry
 /// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
-/// identity and scales each column by the parent's `Actor342000Work::field_264`
-/// through `gpf 12` (the same scratchpad idiom as `func_actor_342000_801628C8`).
-/// Every tick then mirrors the parent model's `TmdObject::flags` flags and
-/// hands the second part translation to `func_800D7A9C`.
-///
-/// `one` is a named pseudo so the 0x1000 load leads state 1 (it fills the
-/// dispatch branch's delay slot); `TOUCH_REG(mtx)` stops cse re-addressing the
-/// first column read through the work block.
+/// identity and scales each column by the parent's `Actor342000Work::field_264`.
+/// Every tick then mirrors the parent model's `TmdObject::flags` and hands the
+/// second part translation to `func_800D7A9C`.
 void func_actor_342000_801625D8(Task* arg0)
 {
     Actor342000Work* work;
     OverlayMat*      mtx;
-    Actor342000Work* data;
-    s32              one;
-    GpCoord*         coord;
     VECTOR*          sc;
+    GpCoord*         coord;
     TmdObject*       extra;
-    u8*              head;
-    SVECTOR*         sv;
-    u32              scratch;
     VECTOR           pos;
 
     work = (Actor342000Work*)arg0->work;
@@ -393,49 +414,15 @@ void func_actor_342000_801625D8(Task* arg0)
             arg0->state      += 1;
             break;
         case 1:
-            one  = 0x1000;
-            data = (Actor342000Work*)work->field_298->work;
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            scratch            = *(u32*)(head + 0x3FC);
+            sc                 = &((Actor342000Work*)work->field_298->work)->field_264;
             mtx                = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00_m01 = one;
+            mtx->ident.m00_m01 = 0x1000;
             mtx->ident.m02_m10 = 0;
-            mtx->ident.m11_m12 = one;
+            mtx->ident.m11_m12 = 0x1000;
             mtx->ident.m20_m21 = 0;
-            mtx->ident.m22     = one;
-            TOUCH_REG(mtx);
-            sv = (SVECTOR*)(scratch - 8);
-            sc = &data->field_264;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-            TOUCH_REG(sv);
-            gte_ReadMatrixColumn(&mtx->mat, 0, sv);
-            gte_lddp(sc->vx);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 0);
-
-            COMPILER_BARRIER();
-            gte_ReadMatrixColumn(&mtx->mat, 1, sv);
-            gte_lddp(sc->vy);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 1);
-
-            COMPILER_BARRIER();
-            gte_ReadMatrixColumn(&mtx->mat, 2, sv);
-            gte_lddp(sc->vz);
-            gte_ldsv(sv);
-            gte_gpf12();
-            gte_stsv(sv);
-            gte_WriteMatrixColumn(sv, &mtx->mat, 2);
-
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            scratch         = *(u32*)(head + 0x3FC);
+            mtx->ident.m22     = 0x1000;
+            _actor342000ScaleColumns(&mtx->mat, sc);
             work->coord.flg = 0;
-            scratch        += 8;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(scratch) : "memory");
             break;
     }
     arg0->extra.tmd->flags = work->field_298->extra.tmd->flags;
