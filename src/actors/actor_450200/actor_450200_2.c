@@ -2,10 +2,12 @@
 
 #include "actors/actor_450200.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 extern TaskDesc D_actor_450200_8013FB40;
 
 extern u8 D_8007216D;
@@ -20,6 +22,7 @@ extern s32      D_actor_450200_80138E88;
 extern s32      D_actor_450200_80139098;
 extern TaskDesc D_actor_450200_80137A60;
 extern Task*    D_actor_450200_801401E0;
+extern s16      D_actor_450200_80137DD6;
 
 void func_actor_450200_8013217C(s32 arg0)
 {
@@ -28,7 +31,21 @@ void func_actor_450200_8013217C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_450200/actor_450200_2", func_actor_450200_8013219C);
+/// Stores in `D_actor_450200_80137DD6` the heading, as a 12-bit angle, from
+/// the slot-3 task's root coordinate to the `gameGetPtrSlot(0xA)` task's,
+/// refreshing both coordinates first so the X/Z offset is current.
+void func_actor_450200_8013219C(void)
+{
+    GsCOORDINATE2* target;
+    GsCOORDINATE2* looker;
+
+    target = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
+    looker = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    Gp_UpdateCoord(target);
+    Gp_UpdateCoord(looker);
+    D_actor_450200_80137DD6 =
+        ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
+}
 
 void func_actor_450200_80132220(void)
 {
