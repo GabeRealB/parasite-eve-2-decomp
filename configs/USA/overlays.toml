@@ -3985,17 +3985,7 @@ slot = 2
 id = 173
 objects = [
   { kind = "packageId" },
-  { unit = "actor_223600/actor_223600", rodata = "0x4", text = "0xBE4" },
-  { unit = "actor_223600/actor_223600_2", rodata = "0x38", text = "0x1644" },
-  { unit = "actor_223600/actor_223600_3", text = "0x44" },
-  { unit = "actor_223600/actor_223600_4", text = "0x350" },
-  { unit = "actor_223600/actor_223600_5", text = "0x698" },
-  { unit = "actor_223600/actor_223600_6", text = "0xD88" },
-  { unit = "actor_223600/actor_223600_7", text = "0x14D4" },
-  { unit = "actor_223600/actor_223600_8", text = "0x2F34" },
-  { unit = "actor_223600/actor_223600_9", text = "0x3004" },
-  { unit = "actor_223600/actor_223600_10", text = "0x311C" },
-  { unit = "actor_223600/actor_223600_11", text = "0x314C" },
+  { unit = "actor_223600/actor_223600", rodata = "0x4", text = "0x44" },
   { kind = "data", at = "0x31A8" },
   { kind = "model", at = "0x31D4" },
   { kind = "data", at = "0x4864" },
