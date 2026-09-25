@@ -134342,6 +134342,15 @@ of `src` and `include` is what proves the rename finished. That sweep does see
 these sites - the argument is ordinary source text, and the tool's refusal is
 about its own rewriting, not about the parser's reach.
 
+The sweep proves nothing when the old member name survives on the same type.
+Folding one struct into another by renaming its members in a chain - `angle`
+to `turn`, then `pad_E` to `angle` - leaves every missed macro argument
+spelled `angle`, which still compiles and now reaches the other field: here
+`ABS(aim->angle)` silently moved from offset 0xC to 0xE and five overlays
+failed only at the checksum. Before such a chain, list each old name's macro
+sites (the tool prints them) and fix them first, or rename through a name that
+appears nowhere else.
+
 
 ## A separately assigned constant preserves base-plus-displacement until RTL (func_actor_403100_8013480C, 2026-09-20)
 
