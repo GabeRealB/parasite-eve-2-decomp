@@ -1566,7 +1566,7 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
 {
     s32        i;
     s32        count;
-    s32        off;
+    s32        first;
     TmdSource* src;
     u16*       dst;
     u16*       from;
@@ -1584,10 +1584,10 @@ void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 a
     i     = 0;
     count = rec->field_16;
     src   = ((TmdObject*)task->extra)->source;
-    off   = rec->field_14 * 8;
-    from  = (u16*)((u8*)rec->field_8 + off);
+    first = rec->field_14;
+    from  = (u16*)&rec->field_8[first];
     nrm   = src->normals;
-    dst   = (u16*)((u8*)src->verts + off);
+    dst   = (u16*)&src->verts[first];
     if (count > 0) {
         fromMid = from + 2;
         dstMid  = dst + 2;

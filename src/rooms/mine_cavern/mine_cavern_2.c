@@ -1516,6 +1516,9 @@ void func_mine_cavern_80181864(void)
         y           = sxy >> 16;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         radius      = (s32)(size + ((Gp_LcgState >> 16) & 0xF)) * 0x160 / (otz * 4);
+        /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
+           reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
+           the larger types. */
         for (i = 0; i < 8; i++) {
             prim           = (POLY_G3*)gGpuPrimCursor;
             gGpuPrimCursor = (POLY_GT3*)prim + 1;
@@ -1625,6 +1628,9 @@ void func_mine_cavern_80181D80(s16 point)
         y           = sxy >> 16;
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         radius      = (s32)(base | ((Gp_LcgState >> 16) & 0x7F)) * 0x160 / (otz * 4);
+        /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
+           reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
+           the larger types. */
         for (i = 0; i < 8; i++) {
             prim           = (POLY_G3*)gGpuPrimCursor;
             gGpuPrimCursor = (POLY_GT3*)prim + 1;

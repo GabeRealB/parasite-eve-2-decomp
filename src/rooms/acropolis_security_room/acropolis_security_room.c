@@ -2216,6 +2216,9 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     for (i = 0; i < 4; i++) {
+        /* Spelled as a shifted block rather than `&blk->v[i]`, which is the same
+           address: the member form lets CSE share one register with the GTE
+           macros' `&blk->v[i]`, and the original keeps two. */
         sv           = ((RoomQuadScratch*)((SVECTOR*)blk + i))->v;
         blk->v[i].vx = D_acropolis_security_room_801839C0[i].x * mem->scale;
         sv->vy       = 0;

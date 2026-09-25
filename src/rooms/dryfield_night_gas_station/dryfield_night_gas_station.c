@@ -1486,7 +1486,7 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         x0             = sxy;
         y0             = sxy >> 16;
         tile           = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)tile + 0x10;
+        gGpuPrimCursor = tile + 1;
         setTile(tile);
         setSemiTrans(tile, 1);
         tile->x0 = x0 - 1;
@@ -1500,7 +1500,7 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setDrawTPage(dr, 1, 0, 0x25);
         addPrim((u_long*)(((((u32)val << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), dr);
         tile1          = (TILE_1*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)tile1 + 0xC;
+        gGpuPrimCursor = tile1 + 1;
         setTile1(tile1);
         setSemiTrans(tile1, 1);
         tile1->x0 = x0;
@@ -1530,7 +1530,7 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         RotTransPers(&pos, &sxy, &p, &flag);
         x2             = sxy;
         line           = (LINE_G2*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)line + 0x14;
+        gGpuPrimCursor = line + 1;
         setLineG2(line);
         setSemiTrans(line, 1);
         line->x0 = x2;
@@ -1586,7 +1586,7 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
     *(s32*)&m->m[2][0] = 0;
     m->m[2][2]         = one;
     coord              = ((TmdObject*)(gameGetPtrSlot(0xA))->extra)->coords;
-    Gp_ComposeParentWorld((GsCOORDINATE2*)((u8*)coord + 0x280), m, &pos);
+    Gp_ComposeParentWorld(&coord[8], m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
     p0.vy  += pos.vy;
@@ -1606,7 +1606,7 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
     y1 = sxy >> 16;
     if (flag0 >= 0 && flag1 >= 0) {
         line           = (LINE_G2*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)line + 0x14;
+        gGpuPrimCursor = line + 1;
         setLineG2(line);
         setSemiTrans(line, 1);
         line->x0 = x0;

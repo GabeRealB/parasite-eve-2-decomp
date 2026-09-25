@@ -91,6 +91,9 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 /// allocates the same block, so the prop tasks reached through `field_44` /
 /// `field_48` carry one too.
 ///
+/// It opens with the light and colour matrices of the task's own model: setup
+/// points the model's `lightMtx` and `colorMtx` at them.
+///
 /// `field_40` is the slot-3 game pointer (`gameGetPtrSlot(3)`), the task the
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
@@ -128,7 +131,8 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 /// `func_dryfield_water_tower_8017F908` reads it to decide whether its event
 /// 0x5214000C is due.
 typedef struct DryfieldWaterTowerState {
-    /* 0x00 */ u8    pad_0[0x40];
+    MATRIX           lightMtx;
+    MATRIX           colorMtx;
     /* 0x40 */ Task* field_40; // gameGetPtrSlot(3)
     /* 0x44 */ Task* field_44;
     /* 0x48 */ Task* field_48;
@@ -834,8 +838,8 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
                 coord->sub      = &gGfxViewCoord;
                 tmp->flags      = 0;
                 Tmd_AllocBuffers(tmp);
-                tmp->colorMtx  = (MATRIX*)state + 1;
-                tmp->lightMtx  = (MATRIX*)state;
+                tmp->colorMtx  = &state->colorMtx;
+                tmp->lightMtx  = &state->lightMtx;
                 arg0->msgTable = &D_dryfield_water_tower_80181B00;
             }
             arg0->state++;

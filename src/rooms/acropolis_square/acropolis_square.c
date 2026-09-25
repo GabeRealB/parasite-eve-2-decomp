@@ -2694,7 +2694,7 @@ void func_acropolis_square_801825DC(Task* task)
             if (task->spawnArg1 & 0x10000000) {
                 for (i = 0; i < 2; i++) {
                     line           = (LINE_G3*)gGpuPrimCursor;
-                    gGpuPrimCursor = (u8*)line + sizeof(LINE_G3);
+                    gGpuPrimCursor = line + 1;
                     setLineG3(line);
                     setRGB0(line, 0, 0, 0);
                     setRGB1(line, amp * (flip ^ 1), flip * amp, flip * amp);

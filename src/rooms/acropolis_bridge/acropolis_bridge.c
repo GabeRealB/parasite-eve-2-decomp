@@ -2110,6 +2110,9 @@ void func_acropolis_bridge_801819C8(Task* task)
     *scratch  = head;
     block     = (AcropolisBridgeQuadScratch*)*scratch;
     do {
+        /* Spelled as a shifted block rather than `&block->vec[i]`, which is the same
+           address: the member form lets CSE share one register with the GTE
+           macros' `&block->vec[i]`, and the original keeps two. */
         v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
         block->vec[i].vx = tbl[i].x * 0x300;
         v->vy            = 0;
@@ -2417,9 +2420,12 @@ void func_acropolis_bridge_801827EC(GsCOORDINATE2* arg0, s32 arg1, s16 arg2)
     tbl = D_80111E38;
     do {
         blk->v[i].vx = tbl[i].x * arg1;
-        sv           = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
-        sv->vy       = 0;
-        sv->vz       = tbl[i].y * arg1;
+        /* Spelled as an offset rather than `&blk->v[i]`, which is the same
+           address: the member form lets CSE share one register with the GTE
+           macros' `&blk->v[i]`, and the original keeps two. */
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
+        sv->vy = 0;
+        sv->vz = tbl[i].y * arg1;
         gte_SetRotMatrix(wm);
         gte_ldv0(&blk->v[i]);
         gte_rtv0();

@@ -1026,7 +1026,7 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg)
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[1] = 0;
                     ((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords->coord.t[2] = -0x320;
                     if (obj != 0) {
-                        *(u16*)((u8*)obj + 0x40)            = D_neo_ark_woodland_path_80184A60[0];
+                        obj->hp                             = D_neo_ark_woodland_path_80184A60[0];
                         D_neo_ark_woodland_path_80184A60[0] = 0;
                         obj->reactionFlags                  = 0;
                     }
