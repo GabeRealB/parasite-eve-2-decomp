@@ -141003,3 +141003,19 @@ function recomputes `addiu v0,s1,0x14C` for `obj->ctx.d4rec` even though
 CSE's extended block, so a re-spelled `&actor->field_14C` after the loop is a
 fresh computation while `rec->...` keeps using `s0`. The old body pinned
 `obj`/`rec` with an `asm("" : "+r"...)` and barriers to get both shapes.
+
+## A `sll 16; sra 16` kept on a value after a call can come from a neighbour's `s16` type (func_actor_403600_80140B4C, 2026-09-26)
+
+The target re-narrows `radius` (`sll 16; sra 16` on `$s0`) after `jal rcos` in
+`x = radius * rcos(angle)`. Casts on `radius` itself never keep it; the old
+source forced it with a statement-expression macro holding raw asm. What keeps
+it is declaring `angle` - the call's argument, computed in the same block -
+as `s16`: the argument's conversion to `int` folds back into `srl/andi`
+placed before the `a0` move, and the radius's narrowing survives. With an
+`s32` angle the same `sll/sra` is deleted as redundant. When a narrowing
+after a call will not stay, try a narrower type on a neighbouring value of the
+same computation before any in-place trick. In-place reuse of one variable
+fails for a second reason: sched.c gives top priority only to insns whose
+destination is set once, so reassigned locals lose it and the argument moves
+reorder around the call. A two-draw LCG through one `_rand()`-style helper
+still emits a single state store - the first is dead and deleted.

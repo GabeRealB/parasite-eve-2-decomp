@@ -192,13 +192,6 @@ s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
-#define actor_403600_rcos(angle)                                \
-    ({                                                          \
-        s32 result = rcos(angle);                               \
-        __asm__ volatile("sll $s0, $s0, 16; sra $s0, $s0, 16"); \
-        result;                                                 \
-    })
-
 extern TaskDesc D_80162E98;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
 extern TmdSource D_80187B10;
@@ -4673,21 +4666,16 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
             work->field_77A -= 0x2D;
         }
         if (work->field_73A >= 0x32 && work->field_73A < 0x191) {
-            u32 angleState;
-            u32 radiusState;
-            s32 angle;
-            s32 radius;
+            s16 angle;
+            s16 radius;
             s32 x;
 
-            angleState  = Gp_LcgState * 5 + 0x71357911;
-            angle       = (angleState >> 16) & 0xF80;
-            radiusState = angleState * 5 + 0x71357911;
-            Gp_LcgState = radiusState;
-            radius      = ((radiusState >> 16) & 0xF00) + 0x200;
-            x           = (s16)radius * actor_403600_rcos(angle);
-            offset.vy   = -0x1800;
-            offset.vx   = x >> 12;
-            offset.vz   = ((s16)radius * rsin(angle)) >> 12;
+            angle     = _actor403600Rand() & 0xF80;
+            radius    = (_actor403600Rand() & 0xF00) + 0x200;
+            x         = radius * rcos(angle);
+            offset.vy = -0x1800;
+            offset.vx = x >> 12;
+            offset.vz = (radius * rsin(angle)) >> 12;
             Gp_SpawnEff(0x601C0, &view, 0x300, &offset);
         }
         if (work->field_73A == 0x15E) {
@@ -4727,21 +4715,16 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
         D_actor_403600_801606E0.rot.vy += 0x38;
         Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3E9, (s32)&D_actor_403600_801606E0, 0);
         if (work->field_73A >= 0x2BC && work->field_73A < 0x385) {
-            u32 angleState;
-            u32 radiusState;
-            s32 angle;
-            s32 radius;
+            s16 angle;
+            s16 radius;
             s32 x;
 
-            angleState  = Gp_LcgState * 5 + 0x71357911;
-            angle       = (angleState >> 16) & 0xF80;
-            radiusState = angleState * 5 + 0x71357911;
-            Gp_LcgState = radiusState;
-            radius      = ((radiusState >> 16) & 0xF00) + 0x200;
-            x           = (s16)radius * actor_403600_rcos(angle);
-            offset.vy   = 0x1800;
-            offset.vx   = x >> 12;
-            offset.vz   = ((s16)radius * rsin(angle)) >> 12;
+            angle     = _actor403600Rand() & 0xF80;
+            radius    = (_actor403600Rand() & 0xF00) + 0x200;
+            x         = radius * rcos(angle);
+            offset.vy = 0x1800;
+            offset.vx = x >> 12;
+            offset.vz = (radius * rsin(angle)) >> 12;
             Gp_SpawnEff(0x601C0, &view, -0x300, &offset);
         }
     }
