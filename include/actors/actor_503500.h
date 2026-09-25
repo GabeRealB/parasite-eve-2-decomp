@@ -88,14 +88,13 @@ STATIC_ASSERT_SIZEOF(Actor503500Slot40, 0x20);
 /// (`func_actor_503500_801383D0` reads `field_15C` out of the 0x160 block,
 /// `func_actor_503500_8013BD88` reads `field_ED` out of a 0xF0 block,
 /// `func_actor_503500_8013EB60` reads `field_EC` out of another 0xF0 block).
-struct Actor503500;
 struct Actor503500Work;
 
 /// One weighted entry of a boss attack list: `func_actor_503500_801338E8`
 /// walks the list summing `weight` until it passes a random byte, then runs
 /// `fn` every frame until it returns non-zero. A NULL `fn` ends the list.
 typedef struct Actor503500Step {
-    s32 (*fn)(struct Actor503500*, struct Actor503500Work*);
+    s32 (*fn)(struct Task*, struct Actor503500Work*);
     u32 weight;
 } Actor503500Step;
 
@@ -280,11 +279,11 @@ typedef struct Actor503500Work {
     /// `field_730`.
     /* 0x730 */ s16 field_730[0x11];
     /* 0x752 */ s16 field_752[0x11];
-    /* 0x774 */ u32 field_774;                                                  // one "already asked to die" bit per slot
-    /* 0x778 */ s32 (*field_778)(struct Actor503500*, struct Actor503500Work*); // running step, see Actor503500Step
-                                                                                /// Saved rotation of the task's coordinate: the first 16 bytes of
-                                                                                /// `coord.m` as words plus `m[2][2]`, restored every frame by
-                                                                                /// `func_actor_503500_80134A24` before it rescales the matrix.
+    /* 0x774 */ u32 field_774;                                           // one "already asked to die" bit per slot
+    /* 0x778 */ s32 (*field_778)(struct Task*, struct Actor503500Work*); // running step, see Actor503500Step
+                                                                         /// Saved rotation of the task's coordinate: the first 16 bytes of
+                                                                         /// `coord.m` as words plus `m[2][2]`, restored every frame by
+                                                                         /// `func_actor_503500_80134A24` before it rescales the matrix.
     /* 0x77C */ s32   field_77C[4];
     /* 0x78C */ s16   field_78C;
     /* 0x78E */ byte  pad_78E[0xE];
@@ -457,34 +456,6 @@ typedef struct Actor503500Work224 {
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
-/// `Task` as this overlay's enemies use it. The layout is `Task`'s
-/// (`include/main/task.h`); only two slots are retyped: `work` holds the
-/// actor's own work block rather than a `TaskIdMap`, and `spawnArg2` is the
-/// `GpEnemy` that `Gp_AllocEnemy` parked there (the same object the gameplay
-/// code also reaches through its sparse `GpObj5D` view).
-typedef struct Actor503500 {
-    /* 0x00 */ TaskNode         node;
-    /* 0x08 */ Task*            parent;
-    /* 0x0C */ Task*            firstChild;
-    /* 0x10 */ Task*            nextSibling;
-    /* 0x14 */ TaskFunc         callback;
-    /* 0x18 */ TaskFunc         exitCallback;
-    /* 0x1C */ Actor503500Work* field_1C;
-    /* 0x20 */ GpEnemy*         field_20;
-    /* 0x24 */ void*            field_24;
-    /* 0x28 */ u8               spawnType;
-    /* 0x29 */ u8               priority;
-    /* 0x2A */ s16              killCountdown;
-    /* 0x2C */ TmdObject*       extra;
-    /* 0x30 */ s32              state;
-    /* 0x34 */ s32              spawnArg1;
-    /* 0x38 */ u8               flags;
-    /* 0x39 */ byte             unknown_39[3];
-    /* 0x3C */ s32              extraState;
-    /* 0x40 */ byte             unknown_40[8];
-} Actor503500;
-STATIC_ASSERT_SIZEOF(Actor503500, 0x48);
-
 /// Overlay-local view of the gameplay `Gp_StateC08` block (`GpStateC08` in
 /// `include/gameplay/gameplay.h`). Only the byte this overlay touches is
 /// named: `field_6` is the HUD/attach flags byte, and
@@ -538,41 +509,41 @@ STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-void func_actor_503500_80135828(Actor503500* arg0, s8* arg1);
+void func_actor_503500_80135828(Task* arg0, s8* arg1);
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
 /// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
-GpEnemy* func_actor_503500_80135D00(Actor503500* arg0, s32 arg1);
+GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1);
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.
 s32  func_actor_503500_80135E04(Task* arg0, s32 arg1);
-void func_actor_503500_80135E20(Actor503500* arg0, s32 arg1, SVECTOR* arg2);
+void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
 /// Records the per-slot halfword for slot `arg1`; `arg0` is ignored the same
 /// way `func_actor_503500_80135E04` ignores it.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
-void func_actor_503500_80135FB4(Actor503500* arg0, s32 arg1, s32 arg2);
-s32  func_actor_503500_80136014(Actor503500* arg0, s32 arg1);
-void func_actor_503500_80136048(Actor503500* arg0);
+void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 arg2);
+s32  func_actor_503500_80136014(Task* arg0, s32 arg1);
+void func_actor_503500_80136048(Task* arg0);
 /// Reports whether the boss-wide gate is open; the body ignores its
 /// argument, and callers pass unrelated pointers they already hold.
 s32  func_actor_503500_8013608C(void* arg0);
 s32  func_actor_503500_801360BC(s32 arg0, s32 arg1);
 void func_actor_503500_8013611C(s32 arg0);
-s16  func_actor_503500_80136134(Actor503500* arg0);
+s16  func_actor_503500_80136134(Task* arg0);
 s32  func_actor_503500_80136208(void);
 s16  func_actor_503500_80136218(void);
 void func_actor_503500_80137290(s32 arg0);
 void func_actor_503500_801372AC(s32 arg0);
-void func_actor_503500_80137678(Actor503500* arg0);
-void func_actor_503500_80137C90(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-void func_actor_503500_80138454(Actor503500* arg0);
-void func_actor_503500_80138490(Actor503500* arg0, s32 arg1);
-void func_actor_503500_80139014(Actor503500* arg0);
-void func_actor_503500_80139A20(Actor503500* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-void func_actor_503500_80139EFC(Actor503500* arg0);
+void func_actor_503500_80137678(Task* arg0);
+void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+void func_actor_503500_80138454(Task* arg0);
+void func_actor_503500_80138490(Task* arg0, s32 arg1);
+void func_actor_503500_80139014(Task* arg0);
+void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+void func_actor_503500_80139EFC(Task* arg0);
 void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
-void func_actor_503500_8013AB38(Actor503500* arg0);
-void func_actor_503500_8013BD0C(Actor503500* arg0);
-void func_actor_503500_8013EE5C(Actor503500* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
+void func_actor_503500_8013AB38(Task* arg0);
+void func_actor_503500_8013BD0C(Task* arg0);
+void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
 void func_actor_503500_8014176C(SVECTOR* pts, GsCOORDINATE2* coords);
 
 #endif
