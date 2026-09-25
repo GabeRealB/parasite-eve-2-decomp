@@ -1521,6 +1521,33 @@ typedef struct Actor105600HitScratch {
 } Actor105600HitScratch;
 STATIC_ASSERT_SIZEOF(Actor105600HitScratch, 0x40);
 
+/// Work block of the animated enemy whose code actor_461800 and actor_143900's
+/// second variant both carry, allocated zeroed at its full size and kept both
+/// at `Task::work` and in a global the other handlers reach it through: the
+/// model's light and colour matrices, the animation context with its slots
+/// and poses, the animation state, the yaw seeding the root coordinate, and
+/// the two helper tasks the exit callback kills.
+typedef struct Actor461800Work {
+    MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
+    MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
+    GpAnimCtx  anim;
+    GpAnimSlot slots[0x14];
+    byte       pose[0x140];
+    s16        field_4B4; // reset mode the play-animation handler selects (1 or 2)
+    s16        field_4B6; // copy of `field_4B8`, kept for change detection
+    s16        field_4B8; // animation id the slots are seeded with
+    s16        field_4BA; // cleared by the play-animation handler before the reseed
+    byte       pad_4BC[0x2A];
+    s16        yaw;       // yaw seeding the root coordinate
+    byte       pad_4E8[0x2];
+    s16        field_4EA; // distance to the target over the step count
+    s16        field_4EC; // reset argument handed to `func_800B4114`
+    byte       pad_4EE[0x2];
+    Task*      field_4F0; // first helper task the spawn starts
+    Task*      field_4F4; // second helper task
+} Actor461800Work;
+STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
+
 /* Contexts. */
 
 /// Ramp context of the screen-wave task. Whoever spawns the task seeds the

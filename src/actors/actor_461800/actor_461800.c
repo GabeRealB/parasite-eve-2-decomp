@@ -25,41 +25,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Per-actor work block for the `actor_461800` overlay.
-///
-/// The spawn routine `func_actor_461800_80132390` allocates it with
-/// `memCalloc(0x4F8, 0)` and stores the pointer both here (in
-/// `D_actor_461800_80143894`) and in the task's `Task::work` slot (0x1C),
-/// which is not a `TaskIdMap` in this overlay -- so the size below is the
-/// allocation and not a guess. Every other function in the overlay reaches the
-/// block through the global.
-///
-/// `anim` is the animation context `func_800B4114` walks, `field_4B8` the
-/// animation id the slots are seeded with, `field_4B6` the copy of it kept for
-/// change detection and `field_4EC` the reset argument handed to
-/// `func_800B4114`. The tail holds the two helper tasks the exit callback
-/// `func_actor_461800_80132A90` kills on teardown.
-typedef struct Actor461800Work {
-    /* 0x000 */ MATRIX     light; // model light matrix (`TmdObject::lightMtx`)
-    /* 0x020 */ MATRIX     color; // model colour matrix (`TmdObject::colorMtx`)
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pad_374[0x140];
-    /* 0x4B4 */ s16        field_4B4; // reset mode `func_actor_461800_80132D84` selects (1 or 2)
-    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_461800_80132D84` before the reseed
-    /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ s16        field_4E6; // yaw seeding the root coordinate
-    /* 0x4E8 */ byte       pad_4E8[0x2];
-    /* 0x4EA */ s16        field_4EA; // distance to the target over the step count
-    /* 0x4EC */ s16        field_4EC; // reset argument handed to `func_800B4114`
-    /* 0x4EE */ byte       pad_4EE[0x2];
-    /* 0x4F0 */ Task*      field_4F0; // first helper task the spawn starts
-    /* 0x4F4 */ Task*      field_4F4; // second helper task
-} Actor461800Work;
-STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
-
 extern Actor461800Work* D_actor_461800_80143894;
 
 /// The task the first variant's work block above belongs to, published by
@@ -386,7 +351,7 @@ void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     vec.vz                  = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_461800_80143894->anim, D_actor_461800_80139FB0, obj,
-                  D_actor_461800_80143894->pad_374, D_actor_461800_80143894->slots);
+                  D_actor_461800_80143894->pose, D_actor_461800_80143894->slots);
     D_actor_461800_80143894->field_4B8 = 1;
     D_actor_461800_80143894->field_4B4 = 2;
 
@@ -486,8 +451,8 @@ void func_actor_461800_80132660(Task* task)
             }
         }
         if (work->field_4B8 == 3 && work->field_4EC != 0) {
-            work->field_4E6 += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+            work->yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
             coord->flg = 0;
             work->field_4EC--;
         }
@@ -691,8 +656,8 @@ s32 func_actor_461800_80132EA4(Task* task, s32 arg1, ActorShared8013411cPlacemen
     GsCOORDINATE2* coord;
     u16            yaw;
 
-    coord                              = ((TmdObject*)task->extra)->coords;
-    D_actor_461800_80143894->field_4E6 = yaw = placement->rot.vy;
+    coord                        = ((TmdObject*)task->extra)->coords;
+    D_actor_461800_80143894->yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -728,11 +693,11 @@ s32 func_actor_461800_80132F44(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
     angle                   = ratan2(dx, dz);
-    work->field_4E6         = angle;
+    work->yaw               = angle;
     if (D_actor_461800_8014389C == 1) {
-        work->field_4E6 = angle + 0x800;
+        work->yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->field_4E6, 1);
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (D_actor_461800_8014389C) {

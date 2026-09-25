@@ -43,40 +43,13 @@ typedef struct Actor143900Work {
     /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
     /* 0x4BA */ s16        field_4BA; // cleared by `func_actor_143900_80132624` before the reseed
     /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
+    /* 0x4E6 */ s16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
     /* 0x4E8 */ byte       pad_4E8[2];
     /* 0x4EA */ s16        field_4EA; // steps left in the walk the update performs
     /* 0x4EC */ s16        field_4EC; // turn steps left, latched by the 0x7DB handler
     /* 0x4EE */ byte       pad_4EE[2];
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
-
-/// Work block of the overlay's second actor variant. Its spawn routine,
-/// `func_actor_143900_801328D4`, allocates it with `memCalloc(0x4F8, 0)` and
-/// stores the pointer in `D_actor_143900_801496C4` and in the task's
-/// `Task::work` slot, so the size below is the allocation. The head is laid out
-/// as `Actor143900Work`'s; the tail holds the two helper tasks that routine
-/// starts and the exit callback kills.
-typedef struct Actor143900Work2 {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pose[0x140];
-    /* 0x4B4 */ s16        field_4B4; // reset mode the play-animation handler selects (1 or 2)
-    /* 0x4B6 */ s16        field_4B6; // copy of `field_4B8`, kept for change detection
-    /* 0x4B8 */ s16        field_4B8; // animation id the slots are seeded with
-    /* 0x4BA */ s16        field_4BA; // cleared by the handler before the reseed
-    /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ u16        yaw;       // last yaw handed to `Gfx_RotMatrixY`
-    /* 0x4E8 */ byte       pad_4E8[2];
-    /* 0x4EA */ s16        field_4EA; // steps left in the walk the update performs
-    /* 0x4EC */ s16        field_4EC; // turn steps left
-    /* 0x4EE */ byte       pad_4EE[0x2];
-    /* 0x4F0 */ Task*      field_4F0; // first helper task
-    /* 0x4F4 */ Task*      field_4F4; // second helper task
-} Actor143900Work2;
-STATIC_ASSERT_SIZEOF(Actor143900Work2, 0x4F8);
 
 /// Payload the overlay's 0x7DB message handlers take as `Gp_DispatchMsg`'s
 /// `arg2`; both read only the halfword at 0x2.
@@ -140,7 +113,7 @@ extern u8 D_actor_143900_801413F8[];
 
 /// The second variant's work block, published by its dispatcher
 /// `func_actor_143900_80132DEC` and its spawn routine.
-extern Actor143900Work2* D_actor_143900_801496C4;
+extern Actor461800Work* D_actor_143900_801496C4;
 
 /// The second variant's task, published by its spawn routine so the placement,
 /// visibility and play-animation handlers can reach it.
@@ -284,7 +257,7 @@ void func_actor_143900_80131FD4(Task* task)
         }
         if (work->field_4B8 == 3 && work->field_4EC != 0) {
             work->yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
             coord->flg = 0;
             work->field_4EC--;
         }
@@ -494,7 +467,7 @@ s32 func_actor_143900_8013279C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (D_actor_143900_801496C0 == 1) {
         work->yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (D_actor_143900_801496C0) {
@@ -521,11 +494,11 @@ s32 func_actor_143900_8013279C(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// the reset mode 2 / id 1 it seeds.
 void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 {
-    VECTOR            vec;
-    Actor143900Work2* work;
-    GsCOORDINATE2*    coord;
-    TmdObject*        obj;
-    Task*             helper;
+    VECTOR           vec;
+    Actor461800Work* work;
+    GsCOORDINATE2*   coord;
+    TmdObject*       obj;
+    Task*            helper;
 
     obj                     = task->extra;
     coord                   = obj->coords;
@@ -576,8 +549,8 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 /// `field_4EC` counts down in animation 3, then ticks the animation.
 void func_actor_143900_80132A9C(Task* task)
 {
-    GsCOORDINATE2*    coord = ((TmdObject*)task->extra)->coords;
-    Actor143900Work2* work  = (Actor143900Work2*)task->work;
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    Actor461800Work* work  = (Actor461800Work*)task->work;
 
     if (D_actor_143900_801496C4->field_4B4 == 1) {
         func_actor_143900_80133144();
@@ -608,7 +581,7 @@ void func_actor_143900_80132A9C(Task* task)
         }
         if (work->field_4B8 == 3 && work->field_4EC != 0) {
             work->yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+            Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
             coord->flg = 0;
             work->field_4EC--;
         }
@@ -627,7 +600,7 @@ void func_actor_143900_80132DEC(Task* task)
     };
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
-    D_actor_143900_801496C4 = (Actor143900Work2*)task->work;
+    D_actor_143900_801496C4 = (Actor461800Work*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 
@@ -656,7 +629,7 @@ void func_actor_143900_80132E48(GpEnemy* enemy, Task* task)
 /// helper tasks the spawn routine started.
 void func_actor_143900_80132ECC(Task* task)
 {
-    Actor143900Work2* work = (Actor143900Work2*)task->work;
+    Actor461800Work* work = (Actor461800Work*)task->work;
 
     Gp_DestroyEnemy(task->spawnArg2, task);
     taskKill(work->field_4F0);
@@ -855,16 +828,16 @@ s32 func_actor_143900_80133360(Task* task, s32 arg1, Actor143900Msg* msg)
 /// 15 in mode 1 and 25 otherwise.
 s32 func_actor_143900_801333C4(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GsCOORDINATE2*    coord;
-    Actor143900Work2* work;
-    s32               dx;
-    s32               dz;
-    s32               steps;
-    s32               dist;
-    s32               angle;
+    GsCOORDINATE2*   coord;
+    Actor461800Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
 
     coord                   = ((TmdObject*)task->extra)->coords;
-    work                    = (Actor143900Work2*)task->work;
+    work                    = (Actor461800Work*)task->work;
     D_actor_143900_801496CC = mode;
     dx                      = target->vx - coord->coord.t[0];
     dz                      = target->vz - coord->coord.t[2];
@@ -873,7 +846,7 @@ s32 func_actor_143900_801333C4(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (D_actor_143900_801496CC == 1) {
         work->yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (D_actor_143900_801496CC) {
