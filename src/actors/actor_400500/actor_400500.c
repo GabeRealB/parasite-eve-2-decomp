@@ -224,10 +224,11 @@ s32  func_actor_400500_8013B720(GsCOORDINATE2* coord, MATRIX* matrix);
 extern void* D_800678F0[1];
 extern u8    D_80072170;
 
-/* Model streams in the overlay's own `.data`, selected through `D_800678F0`. */
-extern u8 D_actor_400500_8014393C[];
-extern u8 D_actor_400500_80143F40[];
-extern u8 D_actor_400500_80144624[];
+/* The records closing three of the overlay's model streams, selected through
+   `D_800678F0`. */
+extern TmdSource D_actor_400500_8014393C;
+extern TmdSource D_actor_400500_80143F40;
+extern TmdSource D_actor_400500_80144624;
 
 extern GpPairSrcE D_actor_400500_80153C90;
 extern u8         D_actor_400500_80153CA0[];
@@ -1824,7 +1825,7 @@ void func_actor_400500_80134B88(Task* arg0)
     TmdObject* src2;
     TmdObject* src3;
 
-    D_800678F0[0] = D_actor_400500_8014393C;
+    D_800678F0[0] = &D_actor_400500_8014393C;
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[3], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)arg0->extra;
@@ -1836,7 +1837,7 @@ void func_actor_400500_80134B88(Task* arg0)
             tmdProcessStream(dst);
         }
     }
-    D_800678F0[0] = D_actor_400500_80143F40;
+    D_800678F0[0] = &D_actor_400500_80143F40;
     eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[1], 0x200, NULL);
     if (eff2 != NULL) {
         src2        = (TmdObject*)arg0->extra;
@@ -1848,7 +1849,7 @@ void func_actor_400500_80134B88(Task* arg0)
             tmdProcessStream(dst2);
         }
     }
-    D_800678F0[0] = D_actor_400500_80144624;
+    D_800678F0[0] = &D_actor_400500_80144624;
     eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[1], 0x200, NULL);
     if (eff3 != NULL) {
         src3        = (TmdObject*)arg0->extra;

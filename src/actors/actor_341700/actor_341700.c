@@ -327,10 +327,11 @@ void func_actor_341700_80162070(Task* task, s16 firstJoint, s16 secondJoint, s16
  * store cannot alias the `TmdObject` loads and sinks it past them. */
 extern void* D_800678F0[1];
 
-/* Model streams in the overlay's own `.data`, selected through `D_800678F0`. */
-extern u8 D_actor_341700_8016DE70[];
-extern u8 D_actor_341700_8016E514[];
-extern u8 D_actor_341700_8016EA84[];
+/* The records closing three of the overlay's model streams, selected through
+   `D_800678F0`. */
+extern TmdSource D_actor_341700_8016DE70;
+extern TmdSource D_actor_341700_8016E514;
+extern TmdSource D_actor_341700_8016EA84;
 
 void func_actor_341700_801624F8(Task* arg0)
 {
@@ -341,7 +342,7 @@ void func_actor_341700_801624F8(Task* arg0)
     TmdObject* src;
     TmdObject* src2;
 
-    D_800678F0[0] = D_actor_341700_8016DE70;
+    D_800678F0[0] = &D_actor_341700_8016DE70;
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[6], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)arg0->extra;
@@ -355,10 +356,10 @@ void func_actor_341700_801624F8(Task* arg0)
     }
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
-        D_800678F0[0] = D_actor_341700_8016E514;
+        D_800678F0[0] = &D_actor_341700_8016E514;
         eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[8], 0x200, NULL);
     } else {
-        D_800678F0[0] = D_actor_341700_8016EA84;
+        D_800678F0[0] = &D_actor_341700_8016EA84;
         eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[2], 0x200, NULL);
     }
     if (eff2 != NULL) {

@@ -195,11 +195,12 @@ extern u8         D_actor_405800_80151410[];
 extern u8         D_actor_405800_8015149C[];
 extern u8         D_actor_405800_801514D8[];
 
-/* Model streams in this overlay's own data. */
-extern u8 D_actor_405800_8013FB18[];
-extern u8 D_actor_405800_8014086C[];
-extern u8 D_actor_405800_80140F10[];
-extern u8 D_actor_405800_80141430[];
+/* The records closing four of the overlay's model streams, selected through
+   `D_800678F0`. */
+extern TmdSource D_actor_405800_8013FB18;
+extern TmdSource D_actor_405800_8014086C;
+extern TmdSource D_actor_405800_80140F10;
+extern TmdSource D_actor_405800_80141430;
 
 void func_actor_405800_80131FC8(s32 otz);
 void func_actor_405800_80132670(Task* arg0);
@@ -2482,7 +2483,7 @@ void func_actor_405800_80136E14(Task* task)
     TmdObject* src3;
     TmdObject* src4;
 
-    D_800678F0[0] = D_actor_405800_8013FB18;
+    D_800678F0[0] = &D_actor_405800_8013FB18;
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[5], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)task->extra;
@@ -2494,7 +2495,7 @@ void func_actor_405800_80136E14(Task* task)
             tmdProcessStream(dst);
         }
     }
-    D_800678F0[0] = D_actor_405800_8014086C;
+    D_800678F0[0] = &D_actor_405800_8014086C;
     eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[13], 0x200, NULL);
     if (eff2 != NULL) {
         src2        = (TmdObject*)task->extra;
@@ -2506,7 +2507,7 @@ void func_actor_405800_80136E14(Task* task)
             tmdProcessStream(dst2);
         }
     }
-    D_800678F0[0] = D_actor_405800_80140F10;
+    D_800678F0[0] = &D_actor_405800_80140F10;
     eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3        = (TmdObject*)task->extra;
@@ -2518,7 +2519,7 @@ void func_actor_405800_80136E14(Task* task)
             tmdProcessStream(dst3);
         }
     }
-    D_800678F0[0] = D_actor_405800_80141430;
+    D_800678F0[0] = &D_actor_405800_80141430;
     eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)task->extra)->coords)[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4        = (TmdObject*)task->extra;

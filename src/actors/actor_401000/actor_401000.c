@@ -336,13 +336,13 @@ extern GpXformArg D_actor_401000_80155018;
 /// each spawn in `func_actor_401000_8013B1E4`.
 extern void* D_80114B78[1];
 
-/// Overlay effect model data `func_actor_401000_8013B1E4` points
-/// `D_80114B78` at before spawning, one per animation-latch key frame
-/// (`field_6` 3, 5, 7, 8).
-extern char D_actor_401000_80143EB4;
-extern char D_actor_401000_80144830;
-extern char D_actor_401000_8014599C;
-extern char D_actor_401000_80146190;
+/// The records closing four of the overlay's model streams, which
+/// `func_actor_401000_8013B1E4` points `D_80114B78` at before spawning, one per
+/// animation-latch key frame (`field_6` 3, 5, 7, 8).
+extern TmdSource D_actor_401000_80143EB4;
+extern TmdSource D_actor_401000_80144830;
+extern TmdSource D_actor_401000_8014599C;
+extern TmdSource D_actor_401000_80146190;
 
 /// 0 = movement running, 1 = frozen; the same flag byte `actorStepForward`
 /// and `actorMoveForward` test.

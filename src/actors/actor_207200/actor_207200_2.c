@@ -111,11 +111,12 @@ typedef struct Actor207200HitView {
 } Actor207200HitView;
 STATIC_ASSERT_SIZEOF(Actor207200HitView, 0x374);
 
-/// Effect-setup records handed to the spawned task through `D_80062730`.
-extern u8      D_actor_207200_80150BCC[];
-extern u8      D_actor_207200_80151074[];
-extern u8      D_actor_207200_801517F8[];
-extern SVECTOR D_actor_207200_80153F18;
+/// The records closing three of the overlay's model streams, handed to the
+/// spawned effect as its setup argument through `D_80062730`.
+extern TmdSource D_actor_207200_80150BCC;
+extern TmdSource D_actor_207200_80151074;
+extern TmdSource D_actor_207200_801517F8;
+extern SVECTOR   D_actor_207200_80153F18;
 /// Spawned task's setup argument (`D_800626EC[5].arg.model`).
 extern s32 D_80062730;
 

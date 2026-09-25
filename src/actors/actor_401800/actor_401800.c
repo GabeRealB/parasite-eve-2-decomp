@@ -428,12 +428,13 @@ extern s32* D_actor_401800_80155978;
 /// each spawn in `func_actor_401800_8013BB10`.
 extern void* D_80114B78[1];
 
-/// Overlay effect model data `func_actor_401800_8013BB10` points `D_80114B78`
-/// at before spawning: the 0x60030 debris burst, then the 0xA0005 fan the step
-/// counter trips at 3 and 5 and the two 0xA0005 bursts at 7 and 9.
-extern char D_actor_401800_80143E9C;
-extern char D_actor_401800_80144434;
-extern char D_actor_401800_80144F24;
+/// The records closing three of the overlay's model streams, which
+/// `func_actor_401800_8013BB10` points `D_80114B78` at before spawning: the
+/// 0x60030 debris burst, then the 0xA0005 fan the step counter trips at 3 and 5
+/// and the two 0xA0005 bursts at 7 and 9.
+extern TmdSource D_actor_401800_80143E9C;
+extern TmdSource D_actor_401800_80144434;
+extern TmdSource D_actor_401800_80144F24;
 
 /// Movement is frozen while this is 1. Same flag `actorMoveForwardNonzero`
 /// and the other families' step helpers test.

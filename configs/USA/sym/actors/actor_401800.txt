@@ -1,1 +1,4 @@
 // Overlay-local symbols for actor_401800.
+D_actor_401800_80143E9C = 0x80143E9C; // type:TmdSource size:0x24
+D_actor_401800_80144434 = 0x80144434; // type:TmdSource size:0x24
+D_actor_401800_80144F24 = 0x80144F24; // type:TmdSource size:0x24

@@ -396,15 +396,12 @@ extern s8 D_actor_421600_801511D0[];
 /// Two XZ waypoint pairs for each place-key mode, indexed by zone.
 extern s32 D_actor_421600_801511D4[][8];
 
-/// Effect callback the spawning code points `D_80114B78` at before each
-/// `Gp_SpawnEff` on a death-tick frame, so the spawn knows which tick follows.
-/// Same role as actor 401300's `D_actor_401300_80147894` pair; the four
-/// addresses sit in this overlay's trailing model/animation bank, so they are
-/// objects rather than named tables.
-extern char D_actor_421600_80143EF4;
-extern char D_actor_421600_801443C8;
-extern char D_actor_421600_80145124;
-extern char D_actor_421600_80145604;
+/// The records closing four of the overlay's model streams, which the
+/// death-tick frames point `D_80114B78` at before each `Gp_SpawnEff`.
+extern TmdSource D_actor_421600_80143EF4;
+extern TmdSource D_actor_421600_801443C8;
+extern TmdSource D_actor_421600_80145124;
+extern TmdSource D_actor_421600_80145604;
 
 /// Global effect-model callback slot the spawn helpers read; a one-element
 /// array so the store is absolute (see actor 401300's header for the same

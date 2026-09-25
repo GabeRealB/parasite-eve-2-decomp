@@ -277,11 +277,11 @@ extern u8 D_80072729;
 /// each spawn in `func_actor_401300_8013B6E8`.
 extern void* D_80114B78[1];
 
-/// Overlay effect model data `func_actor_401300_8013B6E8` points
-/// `D_80114B78` at before spawning.
-extern char D_actor_401300_80147894;
-extern char D_actor_401300_80148808;
-extern char D_actor_401300_80148A14;
+/// The records closing three of the overlay's model streams, which
+/// `func_actor_401300_8013B6E8` points `D_80114B78` at before spawning.
+extern TmdSource D_actor_401300_80147894;
+extern TmdSource D_actor_401300_80148808;
+extern TmdSource D_actor_401300_80148A14;
 
 /// Overlay-data word `func_actor_401300_801397F8` points
 /// `D_actor_401300_80158878` at on entering its state.

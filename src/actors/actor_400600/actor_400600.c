@@ -228,10 +228,12 @@ extern u8 D_actor_400600_80151A48[];
 
 extern TaskDesc D_actor_400600_80151AF8;
 
-extern u8 D_actor_400600_8014220C[];
-extern u8 D_actor_400600_80143604[];
-extern u8 D_actor_400600_80143B24[];
-extern u8 D_actor_400600_80144994[];
+/// The records closing four of the overlay's model streams, selected through
+/// `D_800678F0`.
+extern TmdSource D_actor_400600_8014220C;
+extern TmdSource D_actor_400600_80143604;
+extern TmdSource D_actor_400600_80143B24;
+extern TmdSource D_actor_400600_80144994;
 
 extern u8 D_actor_400600_80151B1C[];
 
@@ -2674,7 +2676,7 @@ void func_actor_400600_80137240(Task* arg0)
     TmdObject* src3;
     TmdObject* src4;
 
-    D_800678F0[0] = D_actor_400600_8014220C;
+    D_800678F0[0] = &D_actor_400600_8014220C;
     eff           = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[4], 0x200, NULL);
     if (eff != NULL) {
         src        = (TmdObject*)arg0->extra;
@@ -2686,7 +2688,7 @@ void func_actor_400600_80137240(Task* arg0)
             tmdProcessStream(dst);
         }
     }
-    D_800678F0[0] = D_actor_400600_80143604;
+    D_800678F0[0] = &D_actor_400600_80143604;
     eff2          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[2], 0x200, NULL);
     if (eff2 != NULL) {
         src2        = (TmdObject*)arg0->extra;
@@ -2698,7 +2700,7 @@ void func_actor_400600_80137240(Task* arg0)
             tmdProcessStream(dst2);
         }
     }
-    D_800678F0[0] = D_actor_400600_80143B24;
+    D_800678F0[0] = &D_actor_400600_80143B24;
     eff3          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3        = (TmdObject*)arg0->extra;
@@ -2710,7 +2712,7 @@ void func_actor_400600_80137240(Task* arg0)
             tmdProcessStream(dst3);
         }
     }
-    D_800678F0[0] = D_actor_400600_80144994;
+    D_800678F0[0] = &D_actor_400600_80144994;
     eff4          = Gp_SpawnEff(0x20010, &((GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords)[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4        = (TmdObject*)arg0->extra;
