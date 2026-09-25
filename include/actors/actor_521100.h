@@ -10,30 +10,6 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 
-/// Sparse view of the actor's `TmdObject` (`Actor521100::field_2C`): the two
-/// pointers `TmdObject::next` / `prev` are padded over and the display object's
-/// own fields are read through it. `field_8` is the model's coordinate array
-/// `TmdObject::coords` - the same `GsCOORDINATE2*` every other actor overlay
-/// indexes, with the update body `func_actor_521100_80136290` reading the
-/// second entry and the walk body `func_actor_521100_801358D4` the first.
-typedef struct Actor521100Obj2C {
-    /* 0x00 */ byte           pad_0[8];
-    /* 0x08 */ GsCOORDINATE2* field_8;
-    /* 0x0C */ s16            field_C;
-} Actor521100Obj2C;
-
-/// Actor context handed to this overlay's callbacks: `field_1C` is the work
-/// block below, `field_20` the `GpEnemy` the spawner left in the task's
-/// `Task::spawnArg2` slot, and `field_2C` the display object. Same shape as the
-/// other actor overlays' contexts.
-typedef struct Actor521100 {
-    /* 0x00 */ byte                    pad_0[0x1C];
-    /* 0x1C */ struct Actor521100Work* field_1C;
-    /* 0x20 */ GpEnemy*                field_20;
-    /* 0x24 */ byte                    pad_24[8];
-    /* 0x2C */ Actor521100Obj2C*       field_2C;
-} Actor521100;
-
 /// Work block of the actor `func_actor_521100_80131E8C` spawns:
 /// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's
 /// animation context, slots and pose buffer, the `color` / `light` matrices the
@@ -68,13 +44,13 @@ typedef struct Actor521100Work {
     /* 0x62C */ GpRec18      rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.
-    /* 0x644 */ GpEffArg     eff;
-    /* 0x64C */ s16          field_64C; // the attach coordinate's translation, snapshotted each frame
-    /* 0x64E */ s16          field_64E;
-    /* 0x650 */ s16          field_650;
-    /* 0x652 */ byte         pad_652[2];
-    /* 0x654 */ Actor521100* field_654;
-    /* 0x658 */ byte         pad_658[0x20];
+    /* 0x644 */ GpEffArg eff;
+    /* 0x64C */ s16      field_64C; // the attach coordinate's translation, snapshotted each frame
+    /* 0x64E */ s16      field_64E;
+    /* 0x650 */ s16      field_650;
+    /* 0x652 */ byte     pad_652[2];
+    /* 0x654 */ Task*    field_654;
+    /* 0x658 */ byte     pad_658[0x20];
     /// Residual twist of the coordinate at `field_8[3]`, two angles of the
     /// +/-(0x40..0xBF) range the hit body `func_actor_521100_801322F8` draws
     /// from `Gp_LcgState` on the frame it takes a hit. It writes them here and

@@ -106,18 +106,6 @@ typedef struct Actor521100AnimArgs {
 
 extern Actor521100Work4B4* D_actor_521100_8016A3D8;
 
-/// State table the overlay dispatches through, indexed by `Task::state`.
-/// `D_actor_521100_80131E68` is its 3 words: create
-/// (`func_actor_521100_80135DDC`), update (`func_actor_521100_80136680`)
-/// and teardown (`func_actor_521100_801360C4`). Both handlers take the
-/// task's 0x20 spawn argument first, like `Actor210600StateFuncTable3`.
-typedef void (*Actor521100StateFunc)(void* spawnArg2, Task* task);
-
-typedef struct Actor521100StateFuncTable3 {
-    Actor521100StateFunc funcs[3];
-} Actor521100StateFuncTable3;
-STATIC_ASSERT_SIZEOF(Actor521100StateFuncTable3, 0xC);
-
 /// Stack copy `func_actor_521100_80136604` makes before the indirect call.
 /// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
 /// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
@@ -125,11 +113,11 @@ STATIC_ASSERT_SIZEOF(Actor521100StateFuncTable3, 0xC);
 /// `field_C` is unread. Same 20-byte table-plus-context shape as
 /// `Actor210600DispatchCtx`.
 typedef struct Actor521100DispatchCtx {
-    /* 0x00 */ Actor521100StateFuncTable3 table;
-    /* 0x0C */ s32                        field_C;
-    /* 0x10 */ u8                         field_10;
-    /* 0x11 */ u8                         field_11;
-    /* 0x12 */ u16                        field_12;
+    /* 0x00 */ GpEnemyTaskFuncTable3 table;
+    /* 0x0C */ s32                   field_C;
+    /* 0x10 */ u8                    field_10;
+    /* 0x11 */ u8                    field_11;
+    /* 0x12 */ u16                   field_12;
 } Actor521100DispatchCtx;
 STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
 
@@ -185,41 +173,41 @@ extern GsCOORDINATE2 D_actor_521100_8016A3E8;
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
-void func_actor_521100_80135DDC(void* spawnArg2, Task* task);
+void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
 void func_actor_521100_80135F2C(Task* task);
-void func_actor_521100_801360C4(void* spawnArg2, Task* task);
+void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task);
 void func_actor_521100_80136290(void* arg0, Task* task);
-void func_actor_521100_80136680(void* arg0, Task* task);
+void func_actor_521100_80136680(GpEnemy* arg0, Task* task);
 void func_actor_521100_801366FC(Task* task);
 void func_actor_521100_80136724(void);
 void func_actor_521100_8013677C(void);
 void func_actor_521100_80136820(void);
 void func_actor_521100_801368B0(Task* task);
 
-s32 func_actor_521100_80135D10(Actor521100* arg0, s32 arg1, s32 arg2)
+s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
 {
-    Actor521100Obj2C* obj;
-    Actor521100Work*  work;
+    TmdObject*       obj;
+    Actor521100Work* work;
 
-    obj  = arg0->field_2C;
-    work = arg0->field_1C;
+    obj  = arg0->extra;
+    work = arg0->work;
     if (!(arg2 & 1)) {
-        obj->field_C = 0x80;
+        obj->flags = 0x80;
     } else {
-        obj->field_C = 0;
+        obj->flags = 0;
     }
     if (arg2 & 2) {
-        obj->field_C |= 4;
+        obj->flags |= 4;
     }
     work->field_692 = arg2;
     return 0;
 }
 
-s32 func_actor_521100_80135D58(Actor521100* arg0, s32 arg1, Actor521100Msg* arg2)
+s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, Actor521100Msg* arg2)
 {
     Actor521100Work* work;
 
-    work = arg0->field_1C;
+    work = arg0->work;
     switch (arg2->field_2) {
         case 0:
             work->field_68C = 1;
@@ -233,19 +221,19 @@ s32 func_actor_521100_80135D58(Actor521100* arg0, s32 arg1, Actor521100Msg* arg2
     return 0;
 }
 
-s32 func_actor_521100_80135D9C(Actor521100* arg0)
+s32 func_actor_521100_80135D9C(Task* arg0)
 {
-    arg0->field_1C->field_6B0 = 1;
+    ((Actor521100Work*)arg0->work)->field_6B0 = 1;
     ((void (*)(s32))Gp_IncStateF0Ref)(0);
     return 0;
 }
 
-s16 func_actor_521100_80135DC8(Actor521100* arg0)
+s16 func_actor_521100_80135DC8(Task* arg0)
 {
-    return arg0->field_1C->field_6B2;
+    return ((Actor521100Work*)arg0->work)->field_6B2;
 }
 
-void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
+void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
 {
     VECTOR              vec;
     Actor521100Work4B4* mem;
@@ -253,7 +241,7 @@ void func_actor_521100_80135DDC(void* spawnArg2, Task* task)
     TmdObject*          obj;
     GsCOORDINATE2*      coord;
 
-    enemy                   = (GpEnemy*)spawnArg2;
+    enemy                   = spawnArg2;
     obj                     = task->extra;
     coord                   = obj->coords;
     mem                     = memCalloc(0x4B4, 0);
@@ -329,7 +317,7 @@ void func_actor_521100_80135F2C(Task* task)
 /// step 1 runs that body and drops the 0x600A5 effect once the counter reaches
 /// 0xF, and step 2 returns without animating. Every other step falls through
 /// to the slot tick and the colour step.
-void func_actor_521100_801360C4(void* spawnArg2, Task* task)
+void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 {
     GsCOORDINATE2       sp10;
     TmdObject*          obj;
@@ -436,18 +424,18 @@ void func_actor_521100_80136290(void* arg0, Task* task)
 /// loads in `sched2`, which is what puts them on $a3 rather than $a0.
 void func_actor_521100_80136404(Task* task)
 {
-    Actor521100* ctx;
+    Task* ctx;
 
     ctx = task->spawnArg2;
     if (!(task->state & 7)) {
         if (task->spawnArg1 == 0) {
-            D_actor_521100_8016A3E8             = ctx->field_2C->field_8[1];
+            D_actor_521100_8016A3E8             = ((TmdObject*)ctx->extra)->coords[1];
             D_actor_521100_8016A3E8.coord.t[2] += 0x32;
             Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
             D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)(((u32)Gp_LcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
             D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
         } else {
-            D_actor_521100_8016A3E8             = ((Actor521100*)gameGetPtrSlot(3))->field_2C->field_8[0];
+            D_actor_521100_8016A3E8             = ((TmdObject*)gameGetPtrSlot(3)->extra)->coords[0];
             D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
             D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
         }
@@ -466,7 +454,9 @@ void func_actor_521100_80136404(Task* task)
     }
     task->state++;
 }
-const Actor521100StateFuncTable3 D_actor_521100_80131E68 = { {
+/// State table the overlay dispatches through, indexed by `Task::state`:
+/// create, update and teardown.
+const GpEnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
     func_actor_521100_80135DDC,
     func_actor_521100_80136680,
     func_actor_521100_801360C4,
@@ -487,7 +477,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-void func_actor_521100_80136680(void* arg0, Task* task)
+void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
