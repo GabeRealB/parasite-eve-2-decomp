@@ -3516,10 +3516,10 @@ slot = 1
 id = 93
 objects = [
   { kind = "packageId" },
-  { lib = true, unit = "actors_shared_80131e24", text = "0x4" },
-  { unit = "actor_110700/actor_110700", rodata = "0x4", text = "0x58" },
-  { lib = true, unit = "actors_shared_80132074", text = "0x254" },
-  { lib = true, unit = "actors_shared_80133eac", text = "0x2B8" },
+  { unit = "actor_110700/actor_110700_2", text = "0x4" },
+  { unit = "actor_110700/actor_110700", text = "0x58" },
+  { unit = "actor_110700/actor_110700_3", text = "0x254" },
+  { unit = "actor_110700/actor_110700_4", text = "0x2B8" },
   { kind = "model", at = "0x300" },
   { kind = "data", at = "0x59CC" },
 ]

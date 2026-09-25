@@ -26,7 +26,8 @@ typedef struct Actor110700AnimPreset {
 extern u8 D_actor_110700_8013BFA0[];
 extern u8 D_actor_110700_8013BFC0[];
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task);
+void func_actor_110700_80131E78(GpEnemy* enemy, Task* task);
+void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
 s32  func_actor_110700_8013201C(Task* task, s32 arg1, Actor110700AnimPreset* preset);
 
 #endif

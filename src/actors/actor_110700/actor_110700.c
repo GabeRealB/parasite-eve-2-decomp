@@ -7,7 +7,7 @@
 // Typed accesses change GCC 2.8.1's alias/CSE decisions in this initializer.
 #define ACTOR_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8*)(expr) + (offset)))
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 {
     s32*  coordFlags;
     void* obj;
@@ -39,7 +39,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
 /// compound `-=` followed by a reload: the decremented head stays a
 /// short-lived pseudo in `$v0` and the reload is CSE'd into the copy of it
 /// that survives the animation call.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 {
     Actor110700Work* work;
     GsCOORDINATE2*   coord;

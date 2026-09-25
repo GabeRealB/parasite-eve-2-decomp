@@ -4,7 +4,10 @@
 
 #include "main/tmd.h"
 
-s32 ActorsShared80132074(Task* task, s32 arg1, ActorsShared80132074Args* args)
+/// Message 0x7D4 handler: places the actor. Builds the root coordinate's
+/// rotation from the message's Euler angles, writes its translation, and
+/// clears `flg` so the world matrix is recomputed from them.
+s32 func_actor_110700_80132074(Task* task, s32 arg1, ActorsShared80132074Args* args)
 {
     TmdObject*     ext   = task->extra;
     GsCOORDINATE2* coord = ext->coords;
