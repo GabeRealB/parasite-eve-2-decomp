@@ -6,7 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actor_111800.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/gameplay.h"
@@ -15,6 +14,48 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+/// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
+/// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
+/// layout: a `GpAnimCtx` and the nineteen `GpAnimSlot`s `func_800B3F84` seeds
+/// from the animation bank and the frame handler ticks. `field_43C` /
+/// `field_45C` are the light and colour matrices handed to the model
+/// `TmdObject`.
+typedef struct Actor111800Work {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[0x13];
+    /* 0x30C */ byte       field_30C[0x130];
+    /* 0x43C */ MATRIX     field_43C;
+    /* 0x45C */ MATRIX     field_45C;
+    /* 0x47C */ void*      field_47C; // gameGetPtrSlot(3)
+    /* 0x480 */ MATRIX*    field_480; // D_80073B8C, the view matrix
+    /* 0x484 */ u16        field_484; // sequence step the per-frame handler switches on
+    /* 0x486 */ byte       pad_486[2];
+    /* 0x488 */ u16        field_488; // frames spent in the current step
+    /* 0x48A */ byte       pad_48A[2];
+    /* 0x48C */ s16        field_48C; // angle ramped in steps 1 and 3
+    /* 0x48E */ byte       pad_48E[4];
+    /* 0x492 */ s16        field_492; // latched copy of slots[1].curRec
+    /* 0x494 */ s16        field_494; // angle ramped in step 1; spawn seeds 0x155
+} Actor111800Work;
+STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
+
+/// Animation bank `func_800B3F84` builds the work block's clip context from;
+/// the actor hands it over whole, so it is only ever a byte address here.
+extern u8 D_actor_111800_8013A448[];
+
+/// View matrix every actor walks its model against. Declared as a one-element
+/// aggregate on purpose: an array element access marks the load's MEM
+/// `in_struct`, which is what keeps `true_dependence` (`sched.c:846`) from
+/// dropping the dependence between this load and the in-struct store to
+/// `Actor111800Work::field_480` that precedes it -- as a bare `extern MATRIX*`
+/// the load is a non-struct MEM at a `lo_sum` address, the suppression clause
+/// fires, sched1 hoists the load above the store and local-alloc can no longer
+/// reuse `$v0` after the `sw $v0, 0x47C` store.
+extern MATRIX* D_80073B8C[1];
+
+/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// Declared locally with a signed `arg2`; see the note in `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -25,6 +66,108 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern u8 D_80071075;
 extern s8 D_80114C12;
 void      func_80182360(s32);
+
+/// Turns the world-space rotation in `rotation` back into one relative to
+/// `joint`'s parent: accumulates the chain above the parent up to the view
+/// coordinate, transposes it and pre-multiplies. Nothing is done when the
+/// parent is the view coordinate itself. Returns `joint`; the caller stores
+/// through the returned pointer, which the matched code needs.
+static __inline__ GsCOORDINATE2* Actor111800_LocalizeRotation(GsCOORDINATE2* joint, MATRIX* rotation)
+{
+    MATRIX         matrix;
+    MATRIX         normal;
+    MATRIX         transposed;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* view;
+
+    coord = joint->sub;
+    if (coord != &gGfxViewCoord) {
+        view   = &gGfxViewCoord;
+        matrix = coord->coord;
+        while (1) {
+            coord = coord->sub;
+            if (coord == NULL) {
+                break;
+            }
+            if (coord == view) {
+                __asm__ volatile(
+                    "lhu $12, 0(%0);"
+                    "lhu $13, 6(%0);"
+                    "lhu $14, 12(%0);"
+                    "sh $12, 0(%1);"
+                    "sh $13, 2(%1);"
+                    "sh $14, 4(%1);"
+                    "lhu $12, 2(%0);"
+                    "lhu $13, 8(%0);"
+                    "lhu $14, 14(%0);"
+                    "sh $12, 6(%1);"
+                    "sh $13, 8(%1);"
+                    "sh $14, 10(%1);"
+                    "lhu $12, 4(%0);"
+                    "lhu $13, 10(%0);"
+                    "lhu $14, 16(%0);"
+                    "sh $12, 12(%1);"
+                    "sh $13, 14(%1);"
+                    "sh $14, 16(%1);"
+                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
+                gte_SetRotMatrix(&transposed);
+                MulRotMatrix(rotation);
+                break;
+            }
+            gte_SetRotMatrix(&coord->coord);
+            MulRotMatrix(&matrix);
+            MatrixNormal(&matrix, &normal);
+            matrix = normal;
+        }
+    }
+    return joint;
+}
+
+/// Builds `joint`'s absolute rotation in `out`: its own rotation, then each
+/// ancestor pre-multiplied in turn (renormalised after every step) up to but
+/// not including `stop`. Returns whether the walk reached `stop` rather than
+/// the end of the chain.
+static __inline__ s32 Actor111800_AccumulateRotation(GsCOORDINATE2* joint, MATRIX* out, GsCOORDINATE2* stop)
+{
+    MATRIX         matrix;
+    GsCOORDINATE2* coord;
+
+    coord = joint->sub;
+    *out  = joint->coord;
+    while (1) {
+        if (coord == NULL) {
+            return 0;
+        }
+        if (coord == stop) {
+            return 1;
+        }
+        gte_SetRotMatrix(&coord->coord);
+        MulRotMatrix(out);
+        MatrixNormal(out, &matrix);
+        *out  = matrix;
+        coord = coord->sub;
+    }
+}
+
+/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+/// rotation in a matrix carved off the scratchpad head, applies the turn,
+/// converts the result back into the parent's frame, writes the 3x3 into the
+/// joint and refreshes it.
+void func_actor_111800_80131E40(GsCOORDINATE2* coord, s16 yaw)
+{
+    MATRIX*        rotation;
+    GsCOORDINATE2* out;
+
+    *(MATRIX**)G_SCRATCH_HEAD -= 1;
+    rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
+    Actor111800_AccumulateRotation(coord, rotation, &gGfxViewCoord);
+    func_8004BFF8(yaw, rotation);
+    out = Actor111800_LocalizeRotation(coord, rotation);
+    __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
+    out->flg = 0;
+    Gp_UpdateCoord(out);
+    *(MATRIX**)G_SCRATCH_HEAD += 1;
+}
 
 /// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].curRec`
 /// into `field_492`, then runs the seven-step sequence in `field_484` (reseed,
