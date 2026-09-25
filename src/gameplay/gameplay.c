@@ -5213,16 +5213,10 @@ void Gp_AreaEnterTask(Task* arg0)
         }
         arg0->state++;
     } else if (arg0->state == 2) {
-        s32       hi;
-        s32       ff;
-        s32       cur;
         UiObject* obj;
 
-        asm("lui %0, %%hi(D_80062734)" : "=r"(hi));
-        ff = 0xFF;
-        asm("lbu %0, %%lo(D_80062734)(%1)" : "=r"(cur) : "r"(hi), "r"(ff));
         obj = arg0->spawnArg2;
-        if (cur == ff) {
+        if (D_80062734 == 0xFF) {
             if (CdCmd_IsIdle() & 0xFFFF) {
                 if (obj->field_2E == 6) {
                     Ui_TeardownTree(obj, obj->owner);
