@@ -18,21 +18,10 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-/// The gameplay-resident light slot the glow writes: `mode` becomes 2 and
-/// `data.light` takes the glow's world position and a randomised intensity.
-typedef struct {
-    s32 mode;
-    union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } data;
-} _ShelterB1ControlRoomLight;
-
-extern s32                        D_80070F70;
-extern _ShelterB1ControlRoomLight D_80114FF8;
-extern s32                        D_80115730;
-extern s32                        Gp_LcgState;
-extern s16                        D_shelter_b1_control_room_80181C64[][3];
+extern s32 D_80070F70;
+extern s32 D_80115730;
+extern s32 Gp_LcgState;
+extern s16 D_shelter_b1_control_room_80181C64[][3];
 
 void func_shelter_b1_control_room_801806FC(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_shelter_b1_control_room_80180980(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb);
@@ -523,7 +512,7 @@ void func_shelter_b1_control_room_80181138(Task* arg0)
 /// inner one of half-extent `size` and an outer one of `size * 3 / 2`, each
 /// scaled by 0x37 over the depth, and the flat quad of
 /// `func_shelter_b1_control_room_80181810` on the ground beneath it. It also
-/// points the gameplay light slot at the coordinate with a randomly flickering
+/// points the `Gp_RoomCoords[2]` light at the coordinate with a randomly flickering
 /// intensity. Nothing is drawn when the projection flags an error.
 void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
 {
@@ -541,6 +530,7 @@ void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
     s32            outerSize;
     s32            shifted;
     u32            random;
+    GpCoord64*     slot;
     GpObj44*       light;
     GpRingScratch* block;
     void**         scratch;
@@ -548,25 +538,26 @@ void func_shelter_b1_control_room_801812E4(GsCOORDINATE2* coord, s16 size)
     u16            vy;
     GpRingScratch* sc;
 
-    D_80114FF8.mode           = 2;
-    light                     = &D_80114FF8.data.light;
-    light->field_58           = 0x300;
-    light->field_5C           = 0x3000;
-    random                    = (Gp_LcgState * 5) + 0x71357911;
-    intensity                 = ((random >> 0x10) & 0x700) + 0x800;
-    light->field_50           = intensity;
-    shifted                   = intensity << 0x10;
-    light->field_52           = (s16)(shifted >> 0x11);
-    light->field_54           = (s16)(shifted >> 0x12);
-    light->field_18.vx        = (s32)coord->coord.t[0];
-    light->field_18.vy        = (s32)coord->coord.t[1];
-    light->field_18.vz        = coord->coord.t[2];
-    D_80114FF8.data.coord.flg = 0;
-    scratch                   = (void**)G_SCRATCH_HEAD;
-    block                     = (GpRingScratch*)*scratch - 1;
-    block->vec.vx             = *(u16*)&coord->workm.t[0];
-    alias                     = block;
-    vy                        = *(u16*)&coord->workm.t[1];
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 2;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    light->field_5C      = 0x3000;
+    random               = (Gp_LcgState * 5) + 0x71357911;
+    intensity            = ((random >> 0x10) & 0x700) + 0x800;
+    light->field_50      = intensity;
+    shifted              = intensity << 0x10;
+    light->field_52      = (s16)(shifted >> 0x11);
+    light->field_54      = (s16)(shifted >> 0x12);
+    light->field_18.vx   = (s32)coord->coord.t[0];
+    light->field_18.vy   = (s32)coord->coord.t[1];
+    light->field_18.vz   = coord->coord.t[2];
+    slot->data.coord.flg = 0;
+    scratch              = (void**)G_SCRATCH_HEAD;
+    block                = (GpRingScratch*)*scratch - 1;
+    block->vec.vx        = *(u16*)&coord->workm.t[0];
+    alias                = block;
+    vy                   = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;

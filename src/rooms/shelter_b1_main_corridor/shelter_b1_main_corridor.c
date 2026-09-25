@@ -38,30 +38,19 @@ typedef struct _CorridorEvent {
     u8  field_A;
 } _CorridorEvent;
 
-/// The gameplay-resident light slot the glow writes: `mode` becomes 2 and
-/// `data.light` takes the glow's world position and a flickering intensity.
-typedef struct {
-    s32 mode;
-    union {
-        GsCOORDINATE2 coord;
-        GpObj44       light;
-    } data;
-} _CorridorLight;
-
-extern s16            D_80071076;
-extern s32            D_80070F70;
-extern _CorridorLight D_80114FF8;
-extern u8             D_801153F4;
-extern u8             D_80115690;
-extern s32            D_80115720;
-extern s32            D_80115728;
-extern s32            D_8011572C;
-extern s32            D_8011573C;
-extern s32            D_80115744;
-extern s32            D_80115750;
-extern s32            D_80115758;
-extern u32            Gp_LcgState;
-extern s32            func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+extern s16 D_80071076;
+extern s32 D_80070F70;
+extern u8  D_801153F4;
+extern u8  D_80115690;
+extern s32 D_80115720;
+extern s32 D_80115728;
+extern s32 D_8011572C;
+extern s32 D_8011573C;
+extern s32 D_80115744;
+extern s32 D_80115750;
+extern s32 D_80115758;
+extern u32 Gp_LcgState;
+extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// The event the gate last accepted: the message that triggered it, whose
 /// `msgId`, `field_2` and `field_3` name the area, warp and room the event
@@ -1220,7 +1209,7 @@ void func_shelter_b1_main_corridor_8017FBB4(Task* arg0)
 
 /// Draws a glow at `coord`: two camera-facing textured squares, half-size
 /// `size` and `size * 3 / 2`, and the ground mark under it when the ground can
-/// be traced. Also points the gameplay light slot at the coordinate with a
+/// be traced. Also points the `Gp_RoomCoords[2]` light at the coordinate with a
 /// random intensity. Nothing is drawn when the point fails to project.
 void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
 {
@@ -1238,6 +1227,7 @@ void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
     s32            outerSize;
     s32            shifted;
     u32            random;
+    GpCoord64*     slot;
     GpObj44*       light;
     GpRingScratch* block;
     void**         scratch;
@@ -1245,25 +1235,26 @@ void func_shelter_b1_main_corridor_8017FD60(GsCOORDINATE2* coord, s16 size)
     u16            vy;
     GpRingScratch* sc;
 
-    D_80114FF8.mode           = 2;
-    light                     = &D_80114FF8.data.light;
-    light->field_58           = 0x300;
-    light->field_5C           = 0x3000;
-    random                    = (Gp_LcgState * 5) + 0x71357911;
-    intensity                 = ((random >> 0x10) & 0x700) + 0x800;
-    light->field_50           = intensity;
-    shifted                   = intensity << 0x10;
-    light->field_52           = (s16)(shifted >> 0x11);
-    light->field_54           = (s16)(shifted >> 0x12);
-    light->field_18.vx        = (s32)coord->coord.t[0];
-    light->field_18.vy        = (s32)coord->coord.t[1];
-    light->field_18.vz        = coord->coord.t[2];
-    D_80114FF8.data.coord.flg = 0;
-    scratch                   = (void**)G_SCRATCH_HEAD;
-    block                     = (GpRingScratch*)*scratch - 1;
-    block->vec.vx             = *(u16*)&coord->workm.t[0];
-    alias                     = block;
-    vy                        = *(u16*)&coord->workm.t[1];
+    slot                 = &Gp_RoomCoords[2];
+    slot->framesLeft     = 2;
+    light                = &slot->data.light;
+    light->field_58      = 0x300;
+    light->field_5C      = 0x3000;
+    random               = (Gp_LcgState * 5) + 0x71357911;
+    intensity            = ((random >> 0x10) & 0x700) + 0x800;
+    light->field_50      = intensity;
+    shifted              = intensity << 0x10;
+    light->field_52      = (s16)(shifted >> 0x11);
+    light->field_54      = (s16)(shifted >> 0x12);
+    light->field_18.vx   = (s32)coord->coord.t[0];
+    light->field_18.vy   = (s32)coord->coord.t[1];
+    light->field_18.vz   = coord->coord.t[2];
+    slot->data.coord.flg = 0;
+    scratch              = (void**)G_SCRATCH_HEAD;
+    block                = (GpRingScratch*)*scratch - 1;
+    block->vec.vx        = *(u16*)&coord->workm.t[0];
+    alias                = block;
+    vy                   = *(u16*)&coord->workm.t[1];
     __asm__("move %0,%1" : "=r"(alias) : "r"(alias), "r"(vy), "r"(alias));
     sc          = alias;
     sc->vec.vy  = vy;
