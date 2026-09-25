@@ -8,15 +8,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void ActorsShared80132378(Task* task);
-
 /// The actor's draw body: refreshes the model root's coordinate, lights the
 /// model at its world translation raised by 800 on y, then runs the step body.
 /// `field_4F0` is the head-tracking blend rate handed to `func_800B0928`,
 /// ramped toward 0x1000 in 0x200 steps while `field_4EE` is 1 and back down to
 /// 0 otherwise, so the actor turns its head to the player and away again
 /// smoothly instead of snapping.
-void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
+void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GsCOORDINATE2*   coord;
@@ -44,5 +42,5 @@ void ActorsShared80131e24Sub1(GpEnemy* enemy, Task* task)
         }
     }
     func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->field_4F0);
-    ActorsShared80132378(task);
+    func_actor_161500_80132874(task);
 }

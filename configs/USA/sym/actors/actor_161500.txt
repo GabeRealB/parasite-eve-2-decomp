@@ -1,15 +1,1 @@
 // Overlay-local symbols for actor_161500.
-ActorsShared801366fc = 0x8013284C; // shared body, see src/lib/
-ActorsShared80132b88 = 0x80132B88; // shared body, see src/lib/
-ActorsShared80132404 = 0x80132900; // shared body, see src/lib/
-ActorsShared80132614 = 0x80132B10; // shared body, see src/lib/
-ActorsShared80131e24 = 0x801326E8; // shared body, see src/lib/
-ActorsShared80131e24Sub0 = 0x80132394; // shared body's overlay-local callee, see src/lib/
-ActorsShared80131e24Sub1 = 0x8013273C; // shared body's overlay-local callee, see src/lib/
-ActorsShared801324c8 = 0x801329C4; // shared body, see src/lib/
-ActorsShared80132514 = 0x8013294C; // shared body, see src/lib/
-ActorsShared80132378 = 0x80132874; // shared body, see src/lib/
-ActorsShared80133580 = 0x80132BA0; // shared body, see src/lib/
-ActorsShared80133474 = 0x80132A94; // shared body, see src/lib/
-ActorsShared80132c6c = 0x80132C6C; // shared body, see src/lib/
-func_actor_161500_80132C6C = 0x80132C6C; // type:func absolute:True

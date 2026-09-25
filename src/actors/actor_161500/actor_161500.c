@@ -1,11 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_161500.h"
-#include "actors/actors_shared_80132404.h"
-#include "actors/actors_shared_801324c8.h"
-#include "actors/actors_shared_80132514.h"
-#include "actors/actors_shared_801366fc.h"
-#include "actors/actors_shared_8014c874.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
@@ -212,7 +207,7 @@ void func_actor_161500_8013230C(void)
     }
 }
 
-void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
+void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
@@ -228,7 +223,7 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback   = ActorsShared801366fc;
+    task->exitCallback   = func_actor_161500_8013284C;
     coord->sub           = &gGfxViewCoord;
     enemy->field_4       = &coord->coord;
     enemy->field_48      = 0;
@@ -239,8 +234,8 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     if (task->spawnArg1 != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
         Task_Reparent(task, spawned->task);
-        work->field_4F4 = spawned->task;
-        work->animId    = 2;
+        work->pairTask = spawned->task;
+        work->animId   = 2;
     } else {
         work->animId = 1;
     }
@@ -260,10 +255,10 @@ void ActorsShared80131e24Sub0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-/// The actor's step body, the same shape `ActorsShared8014c874` runs: state 1
-/// and state 2 reseed the animation slots and advance to 3, the step state
-/// walks the attach coordinate 0x1E units per frame while the walk clip has
-/// `travel` left, then ticks the slots.
+/// The actor's step body. States 1 and 2 reseed the animation slots (with and
+/// without `animArg`) and advance to 3; state 3 walks the root coordinate 30
+/// units per frame while the walk clip has `travel` left, and when it runs out
+/// queues a reseed into clip 1 with argument 0xA, then ticks the slots.
 void func_actor_161500_8013252C(Task* task)
 {
     Actor161500Work* work;
@@ -271,12 +266,12 @@ void func_actor_161500_8013252C(Task* task)
 
     work = (Actor161500Work*)task->work;
     if (work->state == 1) {
-        ActorsShared801324c8(task);
+        func_actor_161500_801329C4(task);
         work->state = 3;
         return;
     }
     if (work->state == 2) {
-        ActorsShared80132514(task);
+        func_actor_161500_8013294C(task);
         work->state = 3;
         return;
     }
@@ -285,7 +280,7 @@ void func_actor_161500_8013252C(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
+            Actor161500_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->state   = 1;
@@ -293,7 +288,7 @@ void func_actor_161500_8013252C(Task* task)
                 work->animId  = 1;
             }
         }
-        ActorsShared80132404(task);
+        func_actor_161500_80132900(task);
         return;
     }
 }
