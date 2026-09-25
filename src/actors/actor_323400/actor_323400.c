@@ -24,81 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_80182078.h"
 
-/// The 0x934-byte work block this overlay hangs behind `Task::work`. Only the
-/// fields the handlers touch are known: `field_4` is the state-change flag
-/// every state handler tests, and `field_828` onwards are the animation-state
-/// slots the state handlers seed and the tick keeps.
-///
-/// It holds two animation contexts, each a `GpAnimCtx` followed by its 18-slot
-/// array and a 0x120-byte pose buffer: the main one at 0x1C and the blend one
-/// at 0x420.
-typedef struct Actor323400Work {
-    /// Animation state the dispatcher `func_actor_323400_801644C4` runs;
-    /// `func_actor_323400_80164974` picks it from a message, and the message
-    /// 0x7D3 handler `func_actor_323400_80164A50` restarts it at 1.
-    /* 0x000 */ s16 field_0;
-    /// State the dispatcher ran last frame; `field_4` is set when `field_0`
-    /// differs from it.
-    /* 0x002 */ s16 field_2;
-    /* 0x004 */ s16 field_4;
-    /// Frame counter `func_actor_323400_801641C4` advances; zeroed by that
-    /// handler's re-init path.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0xE];
-    /// Yaw of the root coordinate as the placement handler
-    /// `func_actor_323400_80164874` leaves it, read back from the matrix.
-    /* 0x016 */ s16        field_16;
-    /* 0x018 */ byte       pad_18[4];
-    /* 0x01C */ GpAnimCtx  anim;
-    /* 0x030 */ GpAnimSlot slots[18];
-    /* 0x300 */ byte       poses[0x120];
-    /* 0x420 */ GpAnimCtx  blendAnim;
-    /* 0x434 */ GpAnimSlot blendSlots[18];
-    /* 0x704 */ byte       blendPoses[0x120];
-    /* 0x824 */ byte       pad_824[4];
-    /// Animation-state slots the handlers seed and the tick keeps: the seed
-    /// mode the tick acts on (1 re-seeds from the per-state table, 2 resets
-    /// the slots, 3 runs), whether the blend context is live, the clip the
-    /// slots were last seeded with and the one to seed next, and the slot
-    /// rates. `field_83C` is the weight the blend tick mixes the main
-    /// context's pose by.
-    /* 0x828 */ s16 field_828;
-    /* 0x82A */ s16 field_82A;
-    /* 0x82C */ s16 field_82C;
-    /* 0x82E */ s16 field_82E;
-    /* 0x830 */ u16 field_830;
-    /* 0x832 */ s16 field_832;
-    /* 0x834 */ s16 field_834;
-    /* 0x836 */ s16 field_836;
-    /* 0x838 */ s16 field_838;
-    /* 0x83A */ s16 field_83A;
-    /* 0x83C */ s16 field_83C;
-    /* 0x83E */ s16 field_83E;
-    /* 0x840 */ s16 field_840;
-    /* 0x842 */ s16 field_842;
-    /// Turn angle the tick eases toward `field_840` and splits over the body
-    /// joints; cleared by the spawn handler.
-    /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[2];
-    /// Record last handled by the per-frame effect dispatch
-    /// `func_actor_323400_80163448`, one entry per animation slot, wiped as one
-    /// block when no case claims a record.
-    /* 0x848 */ s32  field_848[18];
-    /* 0x890 */ byte pad_890[4];
-    /// Light / colour matrices the spawn handler `func_actor_323400_80163FC8`
-    /// binds to the model.
-    /* 0x894 */ MATRIX light;
-    /* 0x8B4 */ MATRIX color;
-    /* 0x8D4 */ byte   pad_8D4[0x48];
-    /// Three bytes `func_actor_323400_80164974` takes from a message payload
-    /// one at a time; nothing else in this overlay reads them.
-    /* 0x91C */ u8   field_91C;
-    /* 0x91D */ u8   field_91D;
-    /* 0x91E */ u8   field_91E;
-    /* 0x91F */ byte pad_91F[0x15];
-} Actor323400Work;
-STATIC_ASSERT_SIZEOF(Actor323400Work, 0x934);
-
 /// Payload of message 0x7DB, which `func_actor_323400_80164974` answers.
 /// `code` is the sub-command it selects on (0x1602 here) and `mode` its
 /// variation; the handler also reads the three leading bytes one at a time,
@@ -126,16 +51,6 @@ extern u8 D_80072729;
 /// Whole-unit part of the last movement step `func_actor_323400_80162A2C`
 /// applied, rounded away from zero when the step had a fraction.
 extern SVECTOR D_actor_323400_80171218;
-
-/// 0x1C-byte block `func_actor_323400_801644C4` pushes on `G_SCRATCH_HEAD`:
-/// the model root's world position for `Gp_UpdateActorColor`, and the local
-/// point walked up the coordinate chain into view space.
-typedef struct Actor323400TickScratch {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR local;
-    /* 0x18 */ s32     pad_18;
-} Actor323400TickScratch;
-STATIC_ASSERT_SIZEOF(Actor323400TickScratch, 0x1C);
 
 /// Per-state animation table `func_actor_323400_80163B58` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
@@ -165,7 +80,7 @@ void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1);
 void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task);
 void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task);
 
-/// State handlers `func_actor_323400_801644C4` runs by `Actor323400Work::field_0`.
+/// State handlers `func_actor_323400_801644C4` runs by `Actor323000Work::field_0`.
 const GpEnemyTaskFuncTable4 D_actor_323400_80161E24 = {
     func_actor_323400_80164B98,
     func_actor_323400_80164BD0,
@@ -589,9 +504,9 @@ void func_actor_323400_8016331C(Task* task)
     GpAnimCtx*       anim;
     s16              weight;
     s16              i;
-    Actor323400Work* work;
+    Actor323000Work* work;
 
-    work   = (Actor323400Work*)task->work;
+    work   = (Actor323000Work*)task->work;
     weight = work->field_83C;
     anim   = &work->anim;
     for (i = 1; i < 0x12; i++) {
@@ -616,7 +531,7 @@ void func_actor_323400_8016331C(Task* task)
 /// when no case claimed a record.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-s32 func_actor_323400_80163448(Task* task, Actor323400Work* work)
+s32 func_actor_323400_80163448(Task* task, Actor323000Work* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -881,12 +796,12 @@ s32 func_actor_323400_80163448(Task* task, Actor323400Work* work)
 /// plays the sound `func_actor_323400_80163448` returns, panned at the root.
 void func_actor_323400_80163B58(Task* task)
 {
-    Actor323400Work* work;
-    Actor323400Work* seekWork;
-    Actor323400Work* resetWork;
-    Actor323400Work* secondaryWork;
-    Actor323400Work* tickWork;
-    Actor323400Work* turnWork;
+    Actor323000Work* work;
+    Actor323000Work* seekWork;
+    Actor323000Work* resetWork;
+    Actor323000Work* secondaryWork;
+    Actor323000Work* tickWork;
+    Actor323000Work* turnWork;
     u32              table;
     s16              state;
     s32              seekIndex;
@@ -916,7 +831,7 @@ void func_actor_323400_80163B58(Task* task)
     s32              sound;
     s32              pan;
 
-    work  = (Actor323400Work*)task->work;
+    work  = (Actor323000Work*)task->work;
     state = work->field_828;
     if (state == 1) {
         if (work->field_82C != work->field_82E) {
@@ -953,7 +868,7 @@ void func_actor_323400_80163B58(Task* task)
         Mem_Set(work->field_848, 0U, 0x48U);
     }
     if (work->field_836 == 2) {
-        secondaryWork            = (Actor323400Work*)task->work;
+        secondaryWork            = (Actor323000Work*)task->work;
         secondaryIndex           = 1;
         secondaryWork->field_83A = 0x20;
         secondaryWork->field_83C = 0x800;
@@ -967,7 +882,7 @@ void func_actor_323400_80163B58(Task* task)
     }
     work->field_830 = (u16)(work->field_830 + 1);
     if (work->field_82A == 0) {
-        tickWork  = (Actor323400Work*)task->work;
+        tickWork  = (Actor323000Work*)task->work;
         tickIndex = 1;
         do {
             tickSlotIndex                   = tickIndex;
@@ -1014,7 +929,7 @@ void func_actor_323400_80163B58(Task* task)
         func_actor_323400_80161E8C(&((TmdObject*)task->extra)->coords[4], (s16)clampedAngle / 2);
         ((TmdObject*)task->extra)->coords[4].flg = 0;
     }
-    turnWork     = (Actor323400Work*)task->work;
+    turnWork     = (Actor323000Work*)task->work;
     targetTurn   = (u16)turnWork->field_83E;
     originalTurn = targetTurn;
     if ((s16)targetTurn >= 0x201) {
@@ -1068,13 +983,13 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
     TmdObject*       obj;
     TmdObject*       tmd;
     GsCOORDINATE2*   coord;
-    Actor323400Work* work;
-    Actor323400Work* work2;
-    Actor323400Work* mem;
+    Actor323000Work* work;
+    Actor323000Work* work2;
+    Actor323000Work* mem;
 
     obj        = (TmdObject*)task->extra;
     coord      = obj->coords;
-    mem        = (Actor323400Work*)memCalloc(0x934, 0);
+    mem        = (Actor323000Work*)memCalloc(0x934, 0);
     work       = mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
@@ -1082,7 +997,7 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback = func_actor_323400_80164A78;
-    work2              = (Actor323400Work*)task->work;
+    work2              = (Actor323000Work*)task->work;
     tmd                = (TmdObject*)task->extra;
     tmd->lightMtx      = &work2->light;
     tmd->colorMtx      = &work2->color;
@@ -1133,14 +1048,14 @@ void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task)
 /// The tick then runs and the root coordinate is marked for rebuilding.
 void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
 {
-    Actor323400Work* work;
+    Actor323000Work* work;
     TmdObject*       obj;
     s32              id;
     s32              pan;
     SVECTOR          ofs2;
     SVECTOR          ofs;
 
-    work = (Actor323400Work*)task->work;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj               = (TmdObject*)task->extra;
         enemy->node.flags = 1;
@@ -1222,20 +1137,20 @@ void func_actor_323400_801641C4(GpEnemy* enemy, Task* task)
 /// local position, parented to the view.
 void func_actor_323400_801644C4(GpEnemy* enemy, Task* task)
 {
-    Actor323400Work*        work;
+    Actor323000Work*        work;
     GpEnemyTaskFuncTable4   sp;
-    Actor323400TickScratch* scratch;
+    Actor323000TickScratch* scratch;
     u8*                     head;
     GsCOORDINATE2*          walker;
     SVECTOR*                pos;
 
-    work = (Actor323400Work*)task->work;
+    work = (Actor323000Work*)task->work;
     gameGetPtrSlot(3);
     sp                                     = D_actor_323400_80161E24;
     ((TmdObject*)task->extra)->coords->flg = 0;
     head                                   = *(u8**)G_SCRATCH_HEAD;
     *(u8**)G_SCRATCH_HEAD                  = head - 0x1C;
-    scratch                                = (Actor323400TickScratch*)(head - 0x1C);
+    scratch                                = (Actor323000TickScratch*)(head - 0x1C);
     Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
     scratch->pos.vx = ((TmdObject*)task->extra)->coords->workm.t[0];
     scratch->pos.vy = ((TmdObject*)task->extra)->coords->workm.t[1];
@@ -1303,10 +1218,10 @@ void func_actor_323400_8016475C(void)
 s32 func_actor_323400_80164764(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject*       obj;
-    Actor323400Work* work;
+    Actor323000Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (Actor323400Work*)task->work;
+    work = (Actor323000Work*)task->work;
     switch (arg2) {
         case 0:
             obj->flags = 0x80;
@@ -1368,9 +1283,9 @@ s32 func_actor_323400_80164824(Task* task)
 /// stores and the `Gfx_RotMatrix*` calls in between may alias it.
 s32 func_actor_323400_80164874(Task* task, s32 arg1, ActorShared80164954Placement* placement)
 {
-    Actor323400Work* work;
+    Actor323000Work* work;
 
-    work                                          = (Actor323400Work*)task->work;
+    work                                          = (Actor323000Work*)task->work;
     ((TmdObject*)task->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = placement->pos.vy;
     ((TmdObject*)task->extra)->coords->coord.t[2] = placement->pos.vz;
@@ -1390,11 +1305,11 @@ s32 func_actor_323400_80164874(Task* task, s32 arg1, ActorShared80164954Placemen
 /// bytes.
 s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 arg3)
 {
-    Actor323400Work*     work;
+    Actor323000Work*     work;
     Actor323400MsgBytes* bytes;
     u16                  mode;
 
-    work  = (Actor323400Work*)task->work;
+    work  = (Actor323000Work*)task->work;
     bytes = (Actor323400MsgBytes*)msg;
 
     work->field_91C = bytes->b0;
@@ -1424,7 +1339,7 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
 /// `field_82E` and restarts the state machine at state 1.
 s32 func_actor_323400_80164A50(Task* task, s32 arg1, ActorShared80164af0Msg* msg, s32 arg3)
 {
-    Actor323400Work* work = (Actor323400Work*)task->work;
+    Actor323000Work* work = (Actor323000Work*)task->work;
 
     work->field_82E = msg->field_4;
     work->field_0   = 1;
@@ -1492,10 +1407,10 @@ void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2)
 /// load with the store and transposes it.
 void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1)
 {
-    Actor323400Work* work;
+    Actor323000Work* work;
     TmdObject*       obj;
 
-    work = (Actor323400Work*)arg1->work;
+    work = (Actor323000Work*)arg1->work;
     if (work->field_4 != 0) {
         obj              = (TmdObject*)arg1->extra;
         arg0->node.flags = 1;
@@ -1509,10 +1424,10 @@ void func_actor_323400_80164B98(GpEnemy* arg0, Task* arg1)
 /// The tick runs every frame.
 void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
 {
-    Actor323400Work* work;
+    Actor323000Work* work;
     TmdObject*       obj;
 
-    work = (Actor323400Work*)task->work;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj               = (TmdObject*)task->extra;
         enemy->node.flags = 0;
@@ -1535,10 +1450,10 @@ void func_actor_323400_80164BD0(GpEnemy* enemy, Task* task)
 /// rebuilding.
 void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task)
 {
-    Actor323400Work* work;
+    Actor323000Work* work;
     TmdObject*       obj;
 
-    work = (Actor323400Work*)task->work;
+    work = (Actor323000Work*)task->work;
     if (work->field_4 != 0) {
         obj               = (TmdObject*)task->extra;
         enemy->node.flags = 1;

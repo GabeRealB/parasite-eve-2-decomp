@@ -24,82 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_80182078.h"
 
-/// The 0x934-byte work block the spawn handler allocates and hangs behind
-/// `Task::work`. Only the fields the handlers touch are known: `field_4` is
-/// the state-change flag every state handler tests, and `field_828` onwards
-/// are the animation-state slots the state handlers seed and the tick keeps.
-///
-/// It holds two animation contexts, each a `GpAnimCtx`, its 18-slot array
-/// and the 0x120-byte pose buffer `func_800B3F84` is handed as its arg3: the
-/// main one at 0x1C and the blend one at 0x420. The light / colour matrices
-/// the spawn handler binds to `TmdObject::lightMtx` / `colorMtx` sit after
-/// the animation state.
-typedef struct Actor323000Work {
-    /// Animation state, the index `func_actor_323000_801645A4` dispatches on;
-    /// `func_actor_323000_80164A54` picks it from a message, and the message
-    /// 0x7D3 handler `func_actor_323000_80164AF0` restarts it at 1.
-    /* 0x000 */ s16 field_0;
-    /// State `func_actor_323000_801645A4` ran last frame; `field_4` is set
-    /// when `field_0` differs from it.
-    /* 0x002 */ s16 field_2;
-    /* 0x004 */ s16 field_4;
-    /// Frame counter `func_actor_323000_8016420C` advances to time its
-    /// effects; zeroed when that state or `func_actor_323000_80164C58`
-    /// starts.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0xE];
-    /// Yaw of the root coordinate as the placement handler
-    /// `func_actor_323000_80164954` leaves it, read back from the matrix.
-    /* 0x016 */ s16        field_16;
-    /* 0x018 */ byte       pad_18[4];
-    /* 0x01C */ GpAnimCtx  anim;
-    /* 0x030 */ GpAnimSlot slots[18];
-    /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx.poses`.
-    /* 0x300 */ byte       poses[0x120];
-    /* 0x420 */ GpAnimCtx  blendAnim;
-    /* 0x434 */ GpAnimSlot blendSlots[18];
-    /* 0x704 */ byte       blendPoses[0x120];
-    /* 0x824 */ byte       pad_824[4];
-    /// Animation-state slots the handlers seed and the tick keeps: the seed
-    /// mode the tick acts on (1 re-seeds from the per-state table, 2 resets
-    /// the slots, 3 runs), whether the blend context is live, the clip the
-    /// slots were last seeded with and the one to seed next, and the slot
-    /// rate.
-    /* 0x828 */ s16 field_828;
-    /* 0x82A */ s16 field_82A;
-    /* 0x82C */ s16 field_82C;
-    /* 0x82E */ s16 field_82E;
-    /* 0x830 */ u16 field_830;
-    /* 0x832 */ s16 field_832;
-    /* 0x834 */ s16 field_834;
-    /* 0x836 */ s16 field_836;
-    /* 0x838 */ s16 field_838;
-    /* 0x83A */ s16 field_83A;
-    /* 0x83C */ s16 field_83C;
-    /* 0x83E */ s16 field_83E;
-    /* 0x840 */ s16 field_840;
-    /* 0x842 */ s16 field_842;
-    /// Turn angle the tick eases toward `field_840` and splits over the body
-    /// joints; cleared by the spawn handler.
-    /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[2];
-    /// Clip id each slot was last seen playing by `func_actor_323000_80163448`,
-    /// indexed like `slots`; zeroed (18 entries) when no watched clip plays.
-    /* 0x848 */ s32 field_848[19];
-    /// Light / colour matrices `func_actor_323000_80163EA0` binds to the
-    /// model.
-    /* 0x894 */ MATRIX light;
-    /* 0x8B4 */ MATRIX color;
-    /* 0x8D4 */ byte   pad_8D4[0x48];
-    /// Three bytes `func_actor_323000_80164A54` takes from a message payload
-    /// one at a time; nothing else in this overlay reads them.
-    /* 0x91C */ u8   field_91C;
-    /* 0x91D */ u8   field_91D;
-    /* 0x91E */ u8   field_91E;
-    /* 0x91F */ byte pad_91F[0x15];
-} Actor323000Work;
-STATIC_ASSERT_SIZEOF(Actor323000Work, 0x934);
-
 /// Payload of message 0x7DB in `D_actor_323000_801739D0`: `code` is the
 /// sub-command the handler selects on (0x202 here) and `mode` its variation.
 /// `func_actor_323000_80164A54` also reads the three leading bytes one at a
@@ -116,16 +40,6 @@ typedef struct Actor323000MsgBytes {
     /* 0x1 */ u8 b1;
     /* 0x2 */ u8 b2;
 } Actor323000MsgBytes;
-
-/// 0x1C-byte block `func_actor_323000_801645A4` pushes on `G_SCRATCH_HEAD`:
-/// the model root's world position for `Gp_UpdateActorColor`, and the local
-/// point walked up the coordinate chain into view space.
-typedef struct Actor323000TickScratch {
-    /* 0x00 */ VECTOR  pos;
-    /* 0x10 */ SVECTOR local;
-    /* 0x18 */ s32     pad_18;
-} Actor323000TickScratch;
-STATIC_ASSERT_SIZEOF(Actor323000TickScratch, 0x1C);
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
