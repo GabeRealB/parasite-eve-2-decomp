@@ -1,20 +1,120 @@
 #include "common.h"
 
-#include "actors/actor_136100.h"
+#include "psyq/libgte.h"
+#include "psyq/libgpu.h"
+
+#include "actors/actors_shared_80133c6c.h"
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "psyq/libgpu.h"
+#include "main/tmd.h"
+
+/// Work block for the `actor_136100` overlay's cutscene actor.
+///
+/// `func_actor_136100_80133A88` allocates it with `Mem_Malloc(0x4F0, 0)`,
+/// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
+/// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
+/// `(Actor136100Work*)task->work`.  The same function publishes the task
+/// itself in `D_actor_136100_8014078C` and stores the `gameGetPtrSlot(3)`
+/// task in `field_4B4`.
+///
+/// The block opens with the 0x14-byte animation context and its twenty
+/// 0x28-byte animation slots -- `func_actor_136100_80133A88` hands
+/// `func_800B3F84` both `work + 0x14` and `work + 0x334`, and
+/// `func_actor_136100_801347B8` walks slots 1..19 through `Gp_AnimResetSlot`;
+/// the `SVECTOR` it declares is dead and exists only to reserve the 8-byte
+/// local slot its frame has.
+/// The three pairs at 0x4C4, 0x4CC and 0x4D4 are value/countdown pairs the
+/// overlay's small setters write together.
+typedef struct Actor136100Work {
+    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x014 */ GpAnimSlot slots[20];
+    /* 0x334 */ byte       pad_334[0x140];
+    /* 0x474 */ MATRIX     field_474; // light matrix, into TmdObject::lightMtx
+    /* 0x494 */ MATRIX     field_494; // colour matrix, into TmdObject::colorMtx
+    /* 0x4B4 */ Task*      field_4B4; // gameGetPtrSlot(3) task
+    /* 0x4B8 */ Task*      field_4B8; // task spawned from entry 2 of D_actor_136100_80140744
+    /* 0x4BC */ Task*      field_4BC; // task spawned from entry 3 of D_actor_136100_80140744
+    /* 0x4C0 */ Task*      field_4C0; // second dispatch task (NULL-checked senders)
+    /* 0x4C4 */ s16        field_4C4; // set by func_actor_136100_80134838
+    /* 0x4C6 */ s16        field_4C6; // cleared alongside field_4C4
+    /* 0x4C8 */ s16        field_4C8; // tick counter: func_actor_136100_801323F8
+    /* 0x4CA */ byte       pad_4CA[0x2];
+    /* 0x4CC */ s16        field_4CC; // set by func_actor_136100_80134858
+    /* 0x4CE */ s16        field_4CE; // cleared alongside field_4CC
+    /* 0x4D0 */ s16        field_4D0; // request 5 tick counter
+    /* 0x4D2 */ byte       pad_4D2[0x2];
+    /* 0x4D4 */ s16        field_4D4; // set by func_actor_136100_80134878
+    /* 0x4D6 */ s16        field_4D6; // cleared alongside field_4D4
+    /* 0x4D8 */ s16        field_4D8; // shot count: func_actor_136100_80132BC0
+    /* 0x4DA */ s16        field_4DA; // countdown: func_actor_136100_80132BC0
+    /* 0x4DC */ u16        field_4DC; // cue step: func_actor_136100_80133904
+    /* 0x4DE */ s16        field_4DE; // set by func_actor_136100_80133690
+    /* 0x4E0 */ s16        field_4E0; // animation slot count reset by func_actor_136100_801347B8
+    /* 0x4E2 */ u16        field_4E2; // index into the D_actor_136100_8013F218 animation chain
+    /* 0x4E4 */ u16        field_4E4; // cue phase: func_actor_136100_80133904
+    /* 0x4E6 */ byte       pad_4E6[0x4];
+    /* 0x4EA */ s16        field_4EA; // fourth model part's Y rotation
+    /* 0x4EC */ s16        field_4EC; // player-eff flag: Gp_KillPlayerEffs / Gp_SpawnWeaponEff
+    /* 0x4EE */ byte       pad_4EE[0x2];
+} Actor136100Work;
+STATIC_ASSERT_SIZEOF(Actor136100Work, 0x4F0);
+
+/// Payload `func_actor_136100_80134A18` passes as `Gp_DispatchMsg`'s `arg2`
+/// for message 0x3F7: the null-terminated pointer table at
+/// `D_actor_136100_8013F180` (seven live entries followed by a null word) and
+/// the number of live entries the sender counted in it.
+typedef struct Actor136100Msg3F7 {
+    /* 0x0 */ s32* table;
+    /* 0x4 */ s32  count;
+} Actor136100Msg3F7;
+STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
+
+/// Channel block the actor's two fade tasks keep at `Task::work`, sized by
+/// their own `Mem_Malloc(8, 0)`: the fade-in (`func_actor_136100_801344AC`)
+/// seeds the channels at 0xFF and steps them down, the fade-out
+/// (`func_actor_136100_80134588`) seeds them at 0 and steps them up, both by
+/// the task's `spawnArg1`. Both hand `r` and `g` to `Fade_DrawOverlay` and
+/// end on a test of `r`. The leading halfword is never touched.
+typedef struct Actor136100FadeWork {
+    /* 0x0 */ u8  pad_0[0x2];
+    /* 0x2 */ s16 r;
+    /* 0x4 */ s16 g;
+    /* 0x6 */ s16 b; // advanced but never read back
+} Actor136100FadeWork;
+STATIC_ASSERT_SIZEOF(Actor136100FadeWork, 0x8);
+
+/// Set by `func_actor_136100_801348F8` when the cutscene wants the display
+/// back on; while it is non-zero the fade task kills itself instead of fading.
+extern u16 D_actor_136100_8013F17C;
+
+/// Next-animation table indexed by field_4DE - 0x2F; negative entries end
+/// the chain, and live entries are sent as animation ids with 0x2F added.
+extern s16 D_actor_136100_8013F1EC[];
+
+/// Next animation indexed by field_4E0; negative entries skip the restart.
+extern s16 D_actor_136100_8013F1FC[];
+
+/// The actor's six-entry task table, spawned from by index: 0 is the actor
+/// itself, 2 and 3 the tasks kept in `field_4B8`/`field_4BC`, 4 the fade-in and
+/// 5 the fade-out.
+extern TaskDesc D_actor_136100_80140744[];
+
+extern s32 D_actor_136100_8013F3C4;
+extern s32 D_actor_136100_8013F3DC;
 
 extern u8      D_80071075;
 extern s8      D_8007218A;
+extern s8      D_8007272D;
 extern u8      D_80073BAC;
 extern u8      D_80073BA9;
 extern s32     D_801833F4;
@@ -1157,4 +1257,241 @@ void func_actor_136100_80133BC8(Task* arg0)
     ((SVECTOR*)&rec)->vy = 0x380;
     ((SVECTOR*)&rec)->vz = 0;
     Gp_DrawFloorQuad(&((TmdObject*)arg0->extra)->coords[1], 0x300, (SVECTOR*)&rec);
+}
+
+/// Fade-in task, entry 4 of the actor's task table: on its first tick it
+/// allocates the 8-byte channel block and seeds all three channels to 0xFF,
+/// then every frame draws the fade overlay and steps each channel down by
+/// `spawnArg1`, killing itself once `r` has gone negative.
+void func_actor_136100_801344AC(Task* arg0)
+{
+    Actor136100FadeWork* fade;
+    Actor136100FadeWork* alloc;
+
+    fade = (Actor136100FadeWork*)arg0->work;
+    switch (arg0->state) {
+        case 0:
+            alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                taskKill(arg0);
+                return;
+            }
+            fade         = alloc;
+            fade->b      = 0xFF;
+            fade->g      = 0xFF;
+            fade->r      = 0xFF;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
+            fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
+            fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
+            if (fade->r >= 0) {
+                return;
+            }
+            taskKill(arg0);
+            break;
+    }
+}
+
+/// Display-fade task: on its first tick it allocates the 8-byte `r`/`g`/`b`
+/// block, then every frame draws the fade overlay and steps all three channels
+/// up by `spawnArg1`.  The fade ends once `r` reaches 0x100, at which point the
+/// task blanks the display and kills itself; `D_actor_136100_8013F17C` makes it
+/// kill itself immediately instead (the cutscene wants the display back).
+void func_actor_136100_80134588(Task* arg0)
+{
+    Actor136100FadeWork* fade;
+    Actor136100FadeWork* alloc;
+
+    fade = (Actor136100FadeWork*)arg0->work;
+    switch (arg0->state) {
+        case 0:
+            alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                taskKill(arg0);
+                return;
+            }
+            fade         = alloc;
+            fade->b      = 0;
+            fade->g      = 0;
+            fade->r      = 0;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
+            fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
+            fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+            if (D_actor_136100_8013F17C != 0) {
+                taskKill(arg0);
+                return;
+            }
+            if ((s16)fade->r < 0x100) {
+                return;
+            }
+            SetDispMask(0);
+            taskKill(arg0);
+            break;
+    }
+}
+
+void func_actor_136100_8013467C(void)
+{
+    GpRec14 rec;
+    s32     weaponId;
+    s32     id;
+
+    weaponId     = D_80073BA9;
+    id           = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    rec.field_0  = id;
+    rec.field_4  = 1;
+    rec.field_8  = 0;
+    rec.field_C  = 0;
+    rec.field_10 = 0;
+    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0);
+}
+
+/// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
+/// its `TmdObject` flags) otherwise; `arg1` is unused.
+void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
+{
+    TmdObject* obj;
+
+    obj = (TmdObject*)task->extra;
+    if (arg2 != 0) {
+        obj->flags = obj->flags & 0xFF7F;
+        return;
+    }
+    obj->flags = obj->flags | 0x80;
+}
+
+/// Places the task's model in the world frame: its coordinate is re-parented
+/// to the view coordinate, takes `placement`'s three longs as its translation
+/// and its three shorts as yaw, pitch and roll.
+void func_actor_136100_80134720(Task* task, s32 arg1, ActorShared80133c6cPlacement* placement)
+{
+    GsCOORDINATE2* coord;
+    MATRIX*        mtx;
+
+    coord             = ((TmdObject*)task->extra)->coords;
+    coord->sub        = &gGfxViewCoord;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    mtx               = &coord->coord;
+    coord->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
+    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
+    coord->flg = 0;
+}
+
+void func_actor_136100_801347B8(void)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    SVECTOR          unused;
+    s32              i;
+
+    work->field_4E0 = 1;
+    i               = 1;
+    do {
+        work->slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&work->anim, (u16)i, 1);
+        i++;
+    } while ((u16)i < 0x14U);
+}
+
+void func_actor_136100_80134838(s16 arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+
+    work->field_4C4 = arg0;
+    work->field_4C6 = 0;
+}
+
+void func_actor_136100_80134858(s16 arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+
+    work->field_4CC = arg0;
+    work->field_4CE = 0;
+}
+
+void func_actor_136100_80134878(s16 arg0)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+
+    work->field_4D4 = arg0;
+    work->field_4D6 = 0;
+}
+
+/// Starts the fade-in (entry 4 of the actor's task table).
+void func_actor_136100_80134898(void)
+{
+    Task_SpawnFromTable(D_actor_136100_80140744, 4, 9, 0);
+}
+
+void func_actor_136100_801348C8(void)
+{
+    Task_SpawnFromTable(D_actor_136100_80140744, 5, 9, 0);
+}
+
+void func_actor_136100_801348F8(void)
+{
+    D_actor_136100_8013F17C = 1;
+    SetDispMask(1);
+}
+
+void func_actor_136100_80134924(void)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+
+    if (work->field_4EC == 0) {
+        work->field_4EC = 1;
+        Gp_KillPlayerEffs();
+    }
+}
+
+void func_actor_136100_80134964(void)
+{
+    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+
+    if (work->field_4EC != 0) {
+        Gp_SpawnWeaponEff();
+        work->field_4EC = 0;
+        Gp_MsgPlayerWeapon(0);
+    }
+}
+
+void func_actor_136100_801349B4(s32 arg0)
+{
+    GameFlag_SetNibble(0x46, 0);
+    GameFlag_SetNibble(0x4C, 3);
+    if (arg0 == 0) {
+        GameFlag_SetNibble(0x4B, 6);
+    } else {
+        D_8007272D = 8;
+        GameFlag_SetNibble(0x4B, 0);
+    }
+}
+
+/// Reports the live entries of the actor's pointer table to the slot-3 task:
+/// counts the leading non-null words of `D_actor_136100_8013F180` and hands
+/// the table and that count to message 0x3F7.
+void func_actor_136100_80134A18(Task* arg0)
+{
+    Actor136100Work*  work = (Actor136100Work*)arg0->work;
+    Actor136100Msg3F7 msg;
+    s32               n;
+
+    n = 0;
+    while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {
+        n += 1;
+    }
+    msg.table = &D_actor_136100_8013F180[0];
+    msg.count = n & 0xFFFF;
+    Gp_DispatchMsg(work->field_4B4, 0x3F7, (s32)&msg, 0);
 }
