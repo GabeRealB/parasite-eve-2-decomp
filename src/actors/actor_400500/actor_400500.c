@@ -3623,37 +3623,84 @@ void func_actor_400500_8013771C(Task* arg0)
     }
 }
 
+/// Writes `state` and `subState` into the enemy's state and sub-state indices.
+static inline void _actor400500SetState(Task* task, s32 state, s32 subState)
+{
+    Actor400500Work* work;
+
+    work            = (Actor400500Work*)task->work;
+    work->field_A06 = state;
+    work->field_A08 = subState;
+}
+
+/// Stores `mode` in `field_A46` and clears `field_A47`, unless `field_A46`
+/// already holds `mode` with bit 7 set or `field_A30` is nonzero. Only the low
+/// 7 bits of the two values are compared.
+static inline void _actor400500RequestMode(Task* task, s32 mode)
+{
+    Actor400500Work* work;
+
+    work = (Actor400500Work*)task->work;
+    if (((work->field_A46 >= 0) || ((work->field_A46 & 0x7F) != (mode & 0x7F))) && (work->field_A30 == 0)) {
+        work->field_A46 = mode;
+        work->field_A47 = 0;
+    }
+}
+
+/// Composes `coord`'s matrix with each ancestor's normalised matrix up the
+/// `sub` chain, leaving the product in `matrix`. Returns 1 when the chain
+/// reaches the view coordinate and 0 when it ends before it.
+static inline s32 _actor400500CoordToView(GpCoord* coord, MATRIX* matrix)
+{
+    MATRIX   result;
+    MATRIX   parent;
+    GpCoord* current;
+
+    current = coord->sub;
+    *matrix = coord->coord;
+    while (1) {
+        if (current == NULL) {
+            return 0;
+        }
+        if (current == &gGfxViewCoord) {
+            return 1;
+        }
+        parent = current->coord;
+        MatrixNormal(&parent, &parent);
+        gte_SetRotMatrix(&parent);
+        MulRotMatrix(matrix);
+        MatrixNormal(matrix, &result);
+        *matrix = result;
+        current = current->sub;
+    }
+}
+
+/// Turns `part` by `heading` in view space: builds the part's view-space
+/// matrix in a scratch-pad block, applies `heading` with `func_8004BFF8`,
+/// takes it back into the part's own space with `func_actor_400500_8013B720`,
+/// and copies the resulting rotation (not the translation) into the part
+/// before refreshing it.
+static inline void _actor400500TurnPart(GpCoord* part, u16 heading)
+{
+    MATRIX* matrix;
+
+    matrix = SCRATCH_PUSH(MATRIX);
+    _actor400500CoordToView(part, matrix);
+    func_8004BFF8(heading, matrix);
+    func_actor_400500_8013B720(part, matrix);
+    memcpy(&part->coord, matrix, 18);
+    part->flg = 0;
+    Gp_UpdateCoord(part);
+    SCRATCH_POP(MATRIX);
+}
+
 void func_actor_400500_80138088(Task* arg0)
 {
-    MATRIX              normal;
-    MATRIX              parent;
     Actor400500Work*    work;
     Actor400500Work*    work2;
-    GpCoord*            view;
-    GpCoord*            view2;
-    MATRIX*             parentp;
-    MATRIX*             tmp;
-    u8*                 head;
-    u8*                 head2;
-    u8*                 head3;
-    MATRIX*             allocated;
-    MATRIX*             matrix;
-    GpCoord*            coords;
-    GpCoord*            coords2;
-    GpCoord*            coord;
-    GpCoord*            current;
-    GpCoord*            dest;
     Actor400500HitView* hit;
-    Actor400500Work*    work3;
-    Actor400500Work*    work4;
     s32                 i;
     s32                 cond;
-    s32                 flag;
-    u16                 angle;
-    u16                 addend;
-    s32                 delta;
-    TmdObject*          model2;
-    TmdObject*          model;
 
     work            = (Actor400500Work*)arg0->work;
     work->field_A04 = work->field_A04 + 1;
@@ -3680,94 +3727,11 @@ void func_actor_400500_80138088(Task* arg0)
         i++;
     } while (i < 0x12);
 
-    addend = *(volatile u16*)&work->field_9BC;
-    SOFT_USE_REG(work);
-    __asm__("lui %0,%%hi(%1)" : "=r"(model) : "i"(&gGfxViewCoord));
-    __asm__("addiu %0,%1,%%lo(%2)" : "=r"(view) : "r"(model), "i"(&gGfxViewCoord));
-    SOFT_USE_REG(work);
-    delta = work->field_9BC;
-    __asm__("lui %0, 0x1F80" : "=r"(head) : "r"(delta));
-    head   = *(u8**)(head + 0x3FC);
-    addend = addend + ((s32) - (delta * 0x10) >> 7);
-    SOFT_TOUCH_REG(addend);
-    allocated       = (MATRIX*)(head - sizeof(MATRIX));
-    work->field_9BC = (s16)addend;
-    model           = arg0->extra.tmd;
-    __asm__("move %0,%1" : "=r"(matrix) : "r"(allocated), "r"(model));
-    coords = model->coords;
-    SOFT_USE_REG(work);
-    parentp                           = &parent;
-    coord                             = &coords[6];
-    current                           = coord->sub;
-    angle                             = addend;
-    SCRATCH_HEAD(void)                = matrix;
-    *(MATRIX*)(head - sizeof(MATRIX)) = coords[6].coord;
-    __asm__("" : "+r"(current), "=r"(head), "=r"(addend));
-    while (1) {
-        if (current == NULL) {
-            break;
-        }
-        if (current == view) {
-            break;
-        }
-        parent = current->coord;
-        tmp    = &parent;
-        MatrixNormal(tmp, tmp);
-        gte_SetRotMatrix(parentp);
-        MulRotMatrix(matrix);
-        MatrixNormal(matrix, &normal);
-        *matrix = normal;
-        current = current->sub;
-    }
-    func_8004BFF8((s16)angle, matrix);
-    func_actor_400500_8013B720(coord, matrix);
-    dest = coord;
-    memcpy(&dest->coord, matrix, 18);
-    dest->flg = 0;
-    Gp_UpdateCoord(dest);
+    work->field_9BC += -(work->field_9BC * 16) >> 7;
+    _actor400500TurnPart(&arg0->extra.tmd->coords[6], work->field_9BC);
+    _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->field_9BC);
 
-    view2 = &gGfxViewCoord;
-    SOFT_USE_REG(work);
-    parentp = &parent;
-    model2  = arg0->extra.tmd;
-    coords2 = model2->coords;
-    __asm__("lui %0, 0x1F80" : "=r"(head2) : "r"(model2));
-    head2   = *(u8**)(head2 + 0x3FC);
-    angle   = (u16)work->field_9BC;
-    coord   = &coords2[9];
-    current = coord->sub;
-    __asm__("move %0,%1" : "=r"(matrix) : "r"(head2), "r"(current));
-    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2 + sizeof(MATRIX)) : "memory");
-    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(head2) : "memory");
-    *matrix = coords2[9].coord;
-    while (1) {
-        if (current == NULL) {
-            break;
-        }
-        if (current == view2) {
-            break;
-        }
-        parent = current->coord;
-        tmp    = &parent;
-        MatrixNormal(tmp, tmp);
-        gte_SetRotMatrix(parentp);
-        MulRotMatrix(matrix);
-        MatrixNormal(matrix, &normal);
-        *matrix = normal;
-        current = current->sub;
-    }
-    func_8004BFF8((s16)angle, matrix);
-    func_actor_400500_8013B720(coord, matrix);
-    dest = coord;
-    memcpy(&dest->coord, matrix, 18);
-    SOFT_TOUCH_REG_USE(dest, work);
-    dest->flg = 0;
-    Gp_UpdateCoord(dest);
-
-    hit                = (Actor400500HitView*)arg0->work;
-    head3              = (u8*)PSX_SCRATCH;
-    head3              = *(u8**)(head3 + 0x3FC);
-    SCRATCH_HEAD(void) = head3 + sizeof(MATRIX);
+    hit = (Actor400500HitView*)arg0->work;
     if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
         cond = 1;
     } else {
@@ -3775,15 +3739,8 @@ void func_actor_400500_80138088(Task* arg0)
     }
     if (cond) {
         work->obj0.radius = 0x260;
-        work4             = (Actor400500Work*)arg0->work;
-        work4->field_A06  = 0;
-        work4->field_A08  = 0;
-        work3             = (Actor400500Work*)arg0->work;
-        if (((work3->field_A46 >= 0) || ((u8)work3->field_A46 & 0x7F)) && (work3->field_A30 == 0)) {
-            flag             = 0x80;
-            work3->field_A46 = flag;
-            work3->field_A47 = 0;
-        }
+        _actor400500SetState(arg0, 0, 0);
+        _actor400500RequestMode(arg0, 0x80);
         work->field_A32 = 0x3C;
     }
 }

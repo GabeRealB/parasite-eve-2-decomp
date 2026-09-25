@@ -140628,3 +140628,21 @@ the rodata `.s`.
 Same function: a prim-pointer local shared by two sibling `if` blocks is one
 pseudo live in both, hence global, and loses the `$a0` that each block's
 block-scoped pointer gets from local-alloc; the seed had pinned it back.
+
+## `li v0,0x80` stored with `sb` is a value that reached the byte through a pseudo (func_actor_400500_80138088)
+
+A constant assigned to an `s8`/`u8` field is truncated at tree level and loads
+as `li v0,-0x80`; so is `field = mode | 0x80` with `mode` an inline parameter,
+because fold narrows the `|` through the conversion into QImode before
+inlining ever substitutes `mode`. The target's `li v0,0x80` needs the value to
+be an SImode pseudo stored through a `subreg`, which is what the seed's
+`flag = 0x80;` local and a repeated `if (...) { flag = 0x81; field = flag; }`
+idiom across the file were imitating. The source was an inline helper taking
+the whole byte, `_actor400500RequestMode(task, 0x80)`, that stores the
+parameter as is and compares `(field & 0x7F) != (mode & 0x7F)`.
+
+Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
+`&gGfxViewCoord` built by hand and a pop-then-push pair of head stores were
+one inline helper called twice - `SCRATCH_PUSH(MATRIX)`, a coordinate-to-view
+walk, a write-back, `SCRATCH_POP(MATRIX)`. CSE folds the first call's pop and
+the second call's push into `sw h+0x20; sw h` on its own.
