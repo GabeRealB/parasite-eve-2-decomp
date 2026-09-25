@@ -1,0 +1,2 @@
+// Overlay-local symbols for tonfa_baton.
+D_tonfa_baton_8012C0EC = 0x8012C0EC; // type:s16 size:0x2
