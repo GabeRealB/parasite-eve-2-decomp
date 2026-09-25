@@ -920,19 +920,17 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
 
 u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_GT3*          poly;
-    register POLY_GT3* xy asm("a1");
-    s32*               opz;
-    u32                clipMask;
-    s32                len;
-    s32                code;
-    DisplayState*      ds;
-    register u32       mask asm("t0");
-    register u32       maskHi asm("t2");
-    u16*               rec;
-    s32                sz;
-    s32                idx;
-    u8*                szTable;
+    POLY_GT3*     poly;
+    POLY_GT3*     xy;
+    s32*          opz;
+    u32           clipMask;
+    s32           len;
+    s32           code;
+    DisplayState* ds;
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
 
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -941,10 +939,8 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
         len      = 9;
         code     = 0x34;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
-        xy       = poly + 1;
         do {
+            xy  = poly + 1;
             rec = (u16*)stream;
             gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
             gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
@@ -972,19 +968,12 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
                             setlen(xy, len);
                             setcode(xy, code);
                             gte_stotz(opz);
-                            poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
-                            xy->tag =
-                                (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], xy);
                         }
                     }
                 }
             }
-            xy     += 2;
             poly   += 2;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -995,19 +984,17 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
 
 u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 {
-    POLY_GT4*          poly;
-    register POLY_GT4* xy asm("a1");
-    s32*               opz;
-    u32                clipMask;
-    s32                len;
-    s32                code;
-    DisplayState*      ds;
-    register u32       mask asm("t0");
-    u32                maskHi;
-    u16*               rec;
-    s32                sz;
-    s32                idx;
-    u8*                szTable;
+    POLY_GT4*     poly;
+    POLY_GT4*     xy;
+    s32*          opz;
+    u32           clipMask;
+    s32           len;
+    s32           code;
+    DisplayState* ds;
+    u16*          rec;
+    s32           sz;
+    s32           idx;
+    u8*           szTable;
 
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -1016,10 +1003,8 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
         len      = 12;
         code     = 0x3C;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
-        xy       = poly + 1;
         do {
+            xy  = poly + 1;
             rec = (u16*)stream;
             gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
             gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
@@ -1058,20 +1043,13 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
                                 setlen(xy, len);
                                 setcode(xy, code);
                                 gte_stotz(opz);
-                                poly->tag =
-                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
-                                xy->tag =
-                                    (xy->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)xy & mask);
+                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], xy);
                             }
                         }
                     }
                 }
             }
-            xy     += 2;
             poly   += 2;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
