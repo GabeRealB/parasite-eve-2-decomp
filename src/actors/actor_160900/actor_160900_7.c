@@ -1,0 +1,10 @@
+#include "common.h"
+#include "main/task.h"
+#include "actors/actor_160900.h"
+
+/// Spawns the fade task `func_actor_160900_801343E4`, entry 2 of
+/// `D_actor_160900_8013FB50`, with `arg0` as its first spawn argument.
+void func_actor_160900_801346E0(s32 arg0)
+{
+    Task_SpawnFromTable(&D_actor_160900_8013FB50, 2, arg0, 0);
+}

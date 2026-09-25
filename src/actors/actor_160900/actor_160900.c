@@ -18,8 +18,6 @@
 #include "psyq/inline_c.h"
 #include "gte.h"
 
-extern TaskDesc ActorsShared80136280Desc;
-
 extern u8 D_actor_160900_8013F240[];
 
 s32 func_actor_160900_801326EC(Task* arg0)
@@ -633,7 +631,7 @@ void func_actor_160900_80133880(void)
     Task*                 task;
 
     data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
+    task             = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 0, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
@@ -662,7 +660,7 @@ void func_actor_160900_80133880(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = 0;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
     data->field_C[1]                              = task;
     if (task == NULL) {
         return;
@@ -700,7 +698,7 @@ void func_actor_160900_80133A84(void)
     Task*                 task;
 
     data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 5, 0);
+    task             = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 5, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
@@ -729,7 +727,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = -0x1F4;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 2, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 2, 0);
     data->field_C[1]                              = task;
     if (task == NULL) {
         return;
@@ -758,7 +756,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = 0x1F4;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 3, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 3, 0);
     data->field_C[2]                              = task;
     if (task == NULL) {
         return;
@@ -787,7 +785,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = -0x3E8;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 4, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 4, 0);
     data->field_C[3]                              = task;
     if (task == NULL) {
         return;
@@ -816,7 +814,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = -0x1F4;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 0, 0);
     data->field_C[4]                              = task;
     if (task == NULL) {
         return;
@@ -845,7 +843,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = 0x1F4;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
     data->field_C[5]                              = task;
     if (task == NULL) {
         return;
@@ -883,7 +881,7 @@ void func_actor_160900_80133F90(void)
     Task*                 task;
 
     data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 0, 0);
+    task             = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 0, 0);
     data->field_C[0] = task;
     if (task == NULL) {
         return;
@@ -912,7 +910,7 @@ void func_actor_160900_80133F90(void)
     work->field_18.vx                             = 0;
     work->field_18.vy                             = 0;
     work->field_18.vz                             = 0;
-    task                                          = Task_SpawnFromTable(&ActorsShared80136280Desc, 7, 1, 0);
+    task                                          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 7, 1, 0);
     data->field_C[1]                              = task;
     if (task == NULL) {
         return;
@@ -960,9 +958,9 @@ void func_actor_160900_8013418C(Task* arg0)
                 Mem_Set(work, 0, 0x68);
                 work->field_34          = gameGetPtrSlot(3);
                 D_actor_160900_8013FBB4 = arg0;
-                work->field_38          = Task_SpawnFromTable(&ActorsShared80136280Desc, 3, 0, (s32)arg0);
-                work->field_3C          = Task_SpawnFromTable(&ActorsShared80136280Desc, 5, 1, (s32)work->field_38);
-                work->field_40          = Task_SpawnFromTable(&ActorsShared80136280Desc, 6, 0, (s32)work->field_38);
+                work->field_38          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 3, 0, (s32)arg0);
+                work->field_3C          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 5, 1, (s32)work->field_38);
+                work->field_40          = Task_SpawnFromTable(&D_actor_160900_8013FB50, 6, 0, (s32)work->field_38);
             }
             Gp_CapFile = 0;
             Gp_LoadCapFile(3);

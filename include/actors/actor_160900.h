@@ -10,7 +10,7 @@
 
 /// 0x20-byte block `func_actor_160900_80133F90` allocates with
 /// `memCalloc(0x20, 0)` for each of the two child tasks it spawns from index 7
-/// of `ActorsShared80136280Desc`, and parks in that child's `Task::work` slot
+/// of `D_actor_160900_8013FB50`, and parks in that child's `Task::work` slot
 /// (0x1C) -- a third work block in this overlay, not a `TaskIdMap`. The size
 /// below is the allocation: the function zeroes all 0x20 bytes with `Mem_Set`.
 ///
@@ -36,20 +36,32 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
 /// fills `field_34` with `gameGetPtrSlot(3)` -- the task every `Gp_DispatchMsg`
 /// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
-/// `ActorsShared80136280Desc` indices 3, 5 and 6.
+/// `D_actor_160900_8013FB50` indices 3, 5 and 6.
 ///
 /// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
 /// against the step's `field_0`.
+///
+/// The first 0xC bytes are the context of the screen-wave task
+/// `func_actor_160900_80131EB0`, which the `field_4C == 4` request spawns with
+/// this block as its argument: `field_6` ramps up to `field_0` frames (ramp state `field_4` 0)
+/// or back down to zero (state 1, then 2, which ends the wave), and the wave
+/// amplitude is `field_6 * field_2 / field_0`. A non-zero `field_8` tints the
+/// wave with `field_9` / `field_A` / `field_B`; the block is zeroed at
+/// allocation and this overlay never sets it.
 typedef struct Actor160900Work {
-    /* 0x00 */ s16   field_0;     // set to 8 before the 0x4C == 4 spawn
-    /* 0x02 */ s16   field_2;     // set to 0x80 alongside field_0
-    /* 0x04 */ s16   field_4;     // set to 2 by 0x4C == 5
-    /* 0x06 */ byte  pad_6[6];
+    /* 0x00 */ s16   field_0; // wave ramp length, set to 8 before the 0x4C == 4 spawn
+    /* 0x02 */ s16   field_2; // wave amplitude scale, set to 0x80 alongside field_0
+    /* 0x04 */ s16   field_4; // wave ramp state, set to 2 by 0x4C == 5
+    /* 0x06 */ s16   field_6; // wave ramp frame
+    /* 0x08 */ u8    field_8; // tint enable
+    /* 0x09 */ u8    field_9;
+    /* 0x0A */ u8    field_A;
+    /* 0x0B */ u8    field_B;
     /* 0x0C */ Task* field_C[10]; // child tasks, killed on death
     /* 0x34 */ Task* field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
-    /* 0x38 */ Task* field_38;    // ActorsShared80136280Desc[3]
-    /* 0x3C */ Task* field_3C;    // ActorsShared80136280Desc[5]
-    /* 0x40 */ Task* field_40;    // ActorsShared80136280Desc[6]
+    /* 0x38 */ Task* field_38;    // D_actor_160900_8013FB50[3]
+    /* 0x3C */ Task* field_3C;    // D_actor_160900_8013FB50[5]
+    /* 0x40 */ Task* field_40;    // D_actor_160900_8013FB50[6]
     /* 0x44 */ Task* field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
     /* 0x48 */ byte  pad_48[4];
     /* 0x4C */ s16   field_4C;
@@ -66,7 +78,7 @@ typedef struct Actor160900Work {
 } Actor160900Work;
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 
-/// Work block of the `ActorsShared80136280Desc[3]` child (`field_38`), as far
+/// Work block of the `D_actor_160900_8013FB50[3]` child (`field_38`), as far
 /// as `func_actor_160900_8013358C` reaches into it: it is also the anim context
 /// handed to `func_800B4114`.
 typedef struct Actor160900Child3Work {
@@ -112,6 +124,11 @@ typedef struct Actor160900FadeWork {
 STATIC_ASSERT_SIZEOF(Actor160900FadeWork, 0x8);
 
 extern Task* D_actor_160900_8013FBB4;
+
+/// The overlay's task table. Entry 0 is `func_actor_160900_8013418C`, which
+/// spawns entries 3, 5 and 6 into `Actor160900Work`; entries 1 and 2 are
+/// spawned by `func_actor_160900_801346B0` / `func_actor_160900_801346E0`.
+extern TaskDesc D_actor_160900_8013FB50;
 
 /// Animation script `func_actor_160900_801326EC` walks and the animation-set
 /// table it hands the player task as message 0x3F4's `field_0`.
