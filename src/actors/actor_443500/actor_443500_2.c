@@ -1,8 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_443500.h"
-#include "actors/actors_shared_801327b4.h"
-#include "actors/actors_shared_80132f24.h"
 
 #include "main/gameflag.h"
 #include "main/mem.h"
@@ -88,9 +86,9 @@ void func_actor_443500_80132078(Task* task)
     }
     func_actor_443500_8013297C(task, 0x7D5, 0, 0);
     func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
-    ActorsShared80132f24(task);
+    func_actor_443500_801327C4(task);
     task->msgTable     = &D_actor_443500_80158754;
-    task->exitCallback = ActorsShared801327b4;
+    task->exitCallback = func_actor_443500_801327A4;
     task->state++;
 }
 

@@ -5,11 +5,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// The four-way 0x7D5 switch documented on the prototype in `actor_443500.h`;
-/// `ActorsShared80162bc4` carries the same body against its carriers' work
-/// blocks. Only the mode-2 latch and the trailing mirror differ: the mode goes
-/// into `Actor443500Work::field_4BC` -- the word the spawn handler seeds to -1
-/// -- and the resulting `field_C` onto `field_4C0`.
+/// The four-way 0x7D5 switch documented on the prototype in `actor_443500.h`.
+/// Mode 2 latches the mode into `Actor443500Work::field_4BC` -- the word the
+/// spawn handler seeds to -1 and the tick counts down to free the buffers --
+/// and the resulting flags are mirrored onto `field_4C0`.
 s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
 {
     TmdObject*       obj;

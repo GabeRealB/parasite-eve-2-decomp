@@ -18,12 +18,11 @@ typedef struct Actor443500Ctx {
 } Actor443500Ctx;
 
 /// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
-/// the task's `Task::work` slot (0x1C) -- that slot is not a `TaskIdMap`
-/// here, just as with `Actor335800Work` and the other sharers of
-/// `ActorsShared80132f24`. The spawn handler seeds the two `sb` bytes at
-/// 0x475/0x476 and the word at 0x4BC to -1 and copies the parent TmdObject's
-/// flags halfword to 0x4C0; the light/colour matrix pair at 0x478/0x498 is the
-/// one `ActorsShared80132f24` republishes onto the model.
+/// the task's `Task::work` slot, which holds no `TaskIdMap` here. The spawn
+/// handler seeds the two `sb` bytes at 0x475/0x476 and the word at 0x4BC to
+/// -1 and copies the parent TmdObject's flags halfword to 0x4C0; the
+/// light/colour matrix pair at 0x478/0x498 is the one
+/// `func_actor_443500_801327C4` republishes onto the model.
 ///
 /// The size is the allocation; the fields below are the ones this overlay's
 /// decompiled bodies touch.
@@ -51,6 +50,13 @@ typedef struct Actor443500Work {
     /* 0x4C0 */ s32 field_4C0;
 } Actor443500Work;
 STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
+
+/// Exit callback the spawn handler installs; hands the task to
+/// `Gp_EnemyTaskExit`.
+void func_actor_443500_801327A4(Task* arg0);
+
+/// Points the model's light/colour matrices at the work block's own pair.
+void func_actor_443500_801327C4(Task* task);
 
 /// The bank table `func_actor_443500_801327E0` re-seeds the work block's slot
 /// array off: one entry, the animation bank the default preset's `field_0` of
