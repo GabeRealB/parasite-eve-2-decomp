@@ -284,14 +284,14 @@ void tmdProcessStream(TmdObject* obj)
     void*                  buf;
     u32                    hi;
     TmdScratchModelBlock*  head;
-    void*                  tmp;
+    TmdScratchModelBlock*  tmp;
 
     flag                               = 0;
     src                                = obj->source;
-    tmp                                = SCRATCH_HEAD(void);
+    tmp                                = SCRATCH_HEAD(TmdScratchModelBlock);
     stream                             = src->stream;
     hi                                 = *(u32*)&gGameSession->at4.loc;
-    head                               = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
+    head                               = tmp - 1;
     hi                                &= 0xFFFF0000;
     SCRATCH_HEAD(TmdScratchModelBlock) = head;
     if ((hi == 0x020F0000) || (hi == 0x02100000)) {
@@ -437,7 +437,7 @@ void tmdProcessStream(TmdObject* obj)
         stream        += 2;
         ws->elemStride = ((u16*)stream)[0];
         ws->elemCount  = ((u16*)stream)[1];
-        stream         = (u32*)((u8*)stream + 4);
+        stream        += 1;
         stream         = handler(ws, 0, stream);
         id             = *stream;
 
@@ -454,7 +454,7 @@ void tmdProcessStream(TmdObject* obj)
         }
     }
 done:
-    SCRATCH_POP_BYTES(0x88);
+    SCRATCH_POP(TmdScratchModelBlock);
 }
 
 TmdObject* Tmd_Create(TmdSource* src, s32 flags)
@@ -509,7 +509,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
 void Tmd_SetupDraw(TmdObject* obj)
 {
     u8                   buf[0x1000];
-    void*                tmp;
+    TmdScratchDrawBlock* tmp;
     TmdScratchDrawBlock* ws;
     void*                stream;
     register MATRIX*     colorMtx asm("t2");
@@ -529,10 +529,10 @@ void Tmd_SetupDraw(TmdObject* obj)
         TmdSource* p;
 
         p            = obj->source;
-        tmp          = SCRATCH_HEAD(void);
+        tmp          = SCRATCH_HEAD(TmdScratchDrawBlock);
         stream       = p->stream;
         disp         = gDisplayState.otDepthShift;
-        ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
+        ws           = tmp - 1;
         ws->field_80 = obj;
         ws->field_84 = disp;
     }
@@ -576,7 +576,7 @@ void Tmd_SetupDraw(TmdObject* obj)
         register MATRIX* src asm("t3");
         register MATRIX* light asm("t7");
 
-        m = (MATRIX*)((u8*)tmp - 0x48);
+        m = &ws->mat;
         TOUCH_REG(m);
         src = &Gfx_ViewWorldMtx;
         TOUCH_REG(src);
@@ -611,12 +611,12 @@ void Tmd_SetupDraw(TmdObject* obj)
         gte_rtir();
         gte_stclmv(m);
 
-        m = (MATRIX*)((u8*)tmp - 0x46);
+        m = (MATRIX*)&ws->mat.m[0][1];
         gte_ldclmv(m);
         gte_rtir();
         gte_stclmv(m);
 
-        m = (MATRIX*)((u8*)tmp - 0x44);
+        m = (MATRIX*)&ws->mat.m[0][2];
         gte_ldclmv(m);
         gte_rtir();
         gte_stclmv(m);
@@ -624,7 +624,7 @@ void Tmd_SetupDraw(TmdObject* obj)
 
     Tmd_SetupGteMatrices(ws, flags, stream, obj);
 
-    SCRATCH_POP_BYTES(0x98);
+    SCRATCH_POP(TmdScratchDrawBlock);
 }
 
 void Tmd_FreeBuffers(TmdObject* obj)
