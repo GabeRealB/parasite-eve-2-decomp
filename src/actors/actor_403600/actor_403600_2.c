@@ -102,6 +102,21 @@ typedef struct Actor403600TargetScratch {
 } Actor403600TargetScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
 
+/// Scratch block the bearing helpers work in: the vector from one coordinate
+/// to another, turned into the second one's frame, and the rotation it is
+/// turned by.
+/// The helpers reach it as `head[-1]`, the block just below the scratch head,
+/// before and after they claim it.
+typedef struct Actor403600BearingScratch {
+    byte    pad_0[0x20];
+    VECTOR  toPlayer; // from the coordinate to the player, in world space
+    byte    pad_30[0xC];
+    SVECTOR rel;      // between the two coordinates, then in the target's frame
+    byte    pad_44[0x18];
+    MATRIX  rot;      // the target's rotation, transposed
+} Actor403600BearingScratch;
+STATIC_ASSERT_SIZEOF(Actor403600BearingScratch, 0x7C);
+
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;
@@ -3480,76 +3495,76 @@ s32 func_actor_403600_8013DFE0(Task* arg0)
 
 void func_actor_403600_8013E470(GsCOORDINATE2* arg0, s32* arg1, s32* arg2)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* coord;
-    s32            angle;
-    s32            x;
-    s32            z;
-    void*          head;
-    void*          vec;
-    void*          matrix;
-    void*          scratch;
+    SVECTOR                    local;
+    GsCOORDINATE2*             coord;
+    s32                        angle;
+    s32                        x;
+    s32                        z;
+    Actor403600BearingScratch* head;
+    SVECTOR*                   vec;
+    MATRIX*                    matrix;
+    Actor403600BearingScratch* scratch;
 
-    head                      = SCRATCH_HEAD(void);
-    coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
-    *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    vec                       = head - 0x40;
-    *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    scratch                   = (SCRATCH_HEAD(void) = head - 0x7C);
-    *(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-    matrix                    = head - 0x20;
+    head            = SCRATCH_HEAD(void);
+    coord           = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
+    head[-1].rel.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    vec             = &head[-1].rel;
+    vec->vy         = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    scratch         = (SCRATCH_HEAD(void) = &head[-1]);
+    vec->vz         = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    matrix          = &head[-1].rot;
     TransposeMatrix(&arg0->workm, matrix);
-    local = *(SVECTOR*)vec;
+    local = *vec;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
     gte_rtv0();
     gte_stsv(vec);
-    angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    angle = ratan2(head[-1].rel.vx, vec->vz);
     *arg2 = angle;
     if (angle >= 0x801) {
         *arg2 = angle - 0x1000;
     } else if (angle < -0x800) {
         *arg2 = angle + 0x1000;
     }
-    x                            = Player_Status.coordMtx->t[0] - arg0->coord.t[0];
-    *(s32*)((s8*)scratch + 0x20) = x;
-    *(s32*)((s8*)scratch + 0x24) = Player_Status.coordMtx->t[1] - arg0->coord.t[1];
-    z                            = Player_Status.coordMtx->t[2] - arg0->coord.t[2];
-    *(s32*)((s8*)scratch + 0x28) = z;
-    *arg1                        = SquareRoot0((x * x) + (z * z));
-    SCRATCH_POP_BYTES(0x7C);
+    x                    = Player_Status.coordMtx->t[0] - arg0->coord.t[0];
+    scratch->toPlayer.vx = x;
+    scratch->toPlayer.vy = Player_Status.coordMtx->t[1] - arg0->coord.t[1];
+    z                    = Player_Status.coordMtx->t[2] - arg0->coord.t[2];
+    scratch->toPlayer.vz = z;
+    *arg1                = SquareRoot0((x * x) + (z * z));
+    SCRATCH_POP_BYTES(sizeof(Actor403600BearingScratch));
 }
 
 s16 func_actor_403600_8013E66C(GsCOORDINATE2* arg0)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* coord;
-    s16            angle;
-    s16            result;
-    void*          vec;
-    void*          head;
+    SVECTOR                    local;
+    GsCOORDINATE2*             coord;
+    s16                        angle;
+    s16                        result;
+    SVECTOR*                   vec;
+    Actor403600BearingScratch* head;
 
-    head                      = SCRATCH_HEAD(void);
-    coord                     = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
-    SCRATCH_HEAD(void)        = head - 0x7C;
-    *(s16*)((s8*)head - 0x40) = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
-    vec                       = head - 0x40;
-    *(s16*)((s8*)vec + 2)     = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
-    *(s16*)((s8*)vec + 4)     = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
-    TransposeMatrix(&coord->workm, head - 0x20);
-    local = *(SVECTOR*)vec;
-    gte_SetRotMatrix(head - 0x20);
+    head               = SCRATCH_HEAD(void);
+    coord              = ((TmdObject*)(*Gp_ActorSlots)->extra)->coords;
+    SCRATCH_HEAD(void) = &head[-1];
+    head[-1].rel.vx    = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
+    vec                = &head[-1].rel;
+    vec->vy            = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
+    vec->vz            = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
+    TransposeMatrix(&coord->workm, &head[-1].rot);
+    local = *vec;
+    gte_SetRotMatrix(&head[-1].rot);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
     gte_rtv0();
     gte_stsv(vec);
-    angle  = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    angle  = ratan2(head[-1].rel.vx, vec->vz);
     result = angle;
     if (angle >= 0x801) {
         result = angle - 0x1000;
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    SCRATCH_POP_BYTES(0x7C);
+    SCRATCH_POP_BYTES(sizeof(Actor403600BearingScratch));
     return result;
 }
 
@@ -3851,23 +3866,23 @@ void func_actor_403600_8013EA04(Task* arg0)
             temp_s2->field_73E = 0x1E;
             return;
         case 3:
-            temp_v0_4                                                     = (Gp_LcgState * 5) + 0x71357911;
-            call_actor                                                    = arg0;
-            case_value                                                    = 1;
-            *(s16*)((u8*)temp_s2 + OFFSET_OF(Actor403600Work, field_774)) = case_value;
-            *(s16*)((u8*)temp_s2 + OFFSET_OF(Actor403600Work, field_746)) = case_value;
-            temp_a2                                                       = temp_v0_4 * 5;
-            temp_a2_2                                                     = temp_a2 + 0x71357911;
-            case_value                                                    = 0x28;
-            temp_s2->field_73E                                            = case_value;
-            case_value                                                    = 1;
-            temp_s2->field_732                                            = 0;
-            Gp_LcgState                                                   = temp_v0_4;
-            temp_s2->field_782                                            = (s16)((temp_v0_4 >> 0xF) & 6);
-            Gp_LcgState                                                   = temp_a2_2;
-            temp_s2->field_5C0.flags                                      = (u16)(temp_s2->field_5C0.flags | 0x4000);
-            temp_a3                                                       = ((temp_a2_2 >> 0x10) % 0x14) + 0x28;
-            temp_s2->field_734                                            = temp_a3;
+            temp_v0_4                = (Gp_LcgState * 5) + 0x71357911;
+            call_actor               = arg0;
+            case_value               = 1;
+            temp_s2->field_774       = case_value;
+            temp_s2->field_746       = case_value;
+            temp_a2                  = temp_v0_4 * 5;
+            temp_a2_2                = temp_a2 + 0x71357911;
+            case_value               = 0x28;
+            temp_s2->field_73E       = case_value;
+            case_value               = 1;
+            temp_s2->field_732       = 0;
+            Gp_LcgState              = temp_v0_4;
+            temp_s2->field_782       = (s16)((temp_v0_4 >> 0xF) & 6);
+            Gp_LcgState              = temp_a2_2;
+            temp_s2->field_5C0.flags = (u16)(temp_s2->field_5C0.flags | 0x4000);
+            temp_a3                  = ((temp_a2_2 >> 0x10) % 0x14) + 0x28;
+            temp_s2->field_734       = temp_a3;
             func_actor_403600_8013CCEC(call_actor, case_value);
             return;
         case 4:
@@ -5315,18 +5330,22 @@ void func_actor_403600_8014161C(Task* arg0)
 {
     Actor403600Work* work;
     GpEnemy*         enemy;
+    u16*             ticks;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
-    if (*(s16*)((u8*)work + 0x78C) == 1) {
-        if (((*(u16*)((u8*)work + 0x79E) & 3) == 3) &&
+    if (work->field_78C == 1) {
+        if (((work->field_79E & 3) == 3) &&
             ((work->field_73E != 0x28) || (work->field_732 != 5))) {
             Gp_SpawnEff(0x60055, ((TmdObject*)arg0->extra)->coords + 1, 0x12800, NULL);
         }
-        *(u16*)((u8*)work + 0x79E)  = (u16)(*(u16*)((u8*)work + 0x79E) + 1);
+        /* Stored through a plain halfword pointer: as a structure store it
+         * makes the compiler read `D_80070F70` again after it. */
+        ticks                       = &work->field_79E;
+        *ticks                      = (u16)(work->field_79E + 1);
         work->field_4B8.coord.t[1] += rsin(D_80070F70 << 8) >> 6;
-        if (((s16) * (u16*)((u8*)work + 0x78A) / 10 < enemy->hp) &&
-            (*(u16*)((u8*)work + 0x79E) >= 0x385) && (work->field_73E == 0)) {
+        if (((s16)work->field_78A / 10 < enemy->hp) &&
+            (work->field_79E >= 0x385) && (work->field_73E == 0)) {
             work->field_730 = 6;
         }
     }
