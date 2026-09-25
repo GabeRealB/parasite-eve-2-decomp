@@ -99,7 +99,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
 /// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
 /// is the allocation, not a guess. It is a third work block in this overlay,
-/// distinct from `Actor560800Work` and `Actor560800FadeWork`.
+/// distinct from `Actor560800Work` and `ActorFadeWork`.
 ///
 /// `anim` is the animation context the block itself is handed to
 /// `Gp_AnimResetSlot` as, laid out the way every actor carries it: the context
@@ -138,7 +138,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// Work block `func_actor_560800_801376E0` allocates with `Mem_Malloc(0x28C, 0)`
 /// and stores in its own `Task::work` (0x1C), so the size below is the
 /// allocation, not a guess. A fourth work block in this overlay, distinct from
-/// `Actor560800Work`, `Actor560800AnimWork` and `Actor560800FadeWork`, and the
+/// `Actor560800Work`, `Actor560800AnimWork` and `ActorFadeWork`, and the
 /// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
 ///
 /// It opens with the animation context - the context at 0, its slots at +0x14 -
@@ -189,29 +189,12 @@ typedef struct Actor560800ModelWork {
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
-/// 8-byte fade block `func_actor_560800_80135FA0` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
-/// block in this overlay, distinct from `Actor560800Work` and owned by the
-/// fade-in task that function reparents to the controller.
-///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
-/// raises all three by `spawnArg1` each frame (so `spawnArg1` is the fade rate,
-/// not a colour) and kills itself and clears the display mask once the red
-/// channel passes 0x100. `field_0` is never touched.
-typedef struct Actor560800FadeWork {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  r;
-    /* 0x4 */ u16  g;
-    /* 0x6 */ u16  b;
-} Actor560800FadeWork;
-STATIC_ASSERT_SIZEOF(Actor560800FadeWork, 0x8);
-
 /// Work block of the message-handler task whose `Task::msgTable` table is
 /// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
 /// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
 /// task's `Task::work` (0x1C), so the size below is the allocation, not a
 /// guess. A fifth work block in this overlay, distinct from `Actor560800Work`,
-/// `Actor560800AnimWork`, `Actor560800ModelWork` and `Actor560800FadeWork`.
+/// `Actor560800AnimWork`, `Actor560800ModelWork` and `ActorFadeWork`.
 ///
 /// `parts` is the eight part tasks the same function spawns from
 /// `D_actor_560800_8017575C` (index 1, spawn arg `i + 1`) and parks one per
@@ -1982,13 +1965,13 @@ void func_actor_560800_80135F50(Task* arg0)
 
 void func_actor_560800_80135FA0(Task* arg0)
 {
-    Actor560800FadeWork* work;
-    Actor560800FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor560800FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -2006,7 +1989,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             work->r += (u16)arg0->spawnArg1;
             work->g += (u16)arg0->spawnArg1;
             work->b += (u16)arg0->spawnArg1;
-            if ((s16)work->r >= 0x100) {
+            if (work->r >= 0x100) {
                 SetDispMask(0);
                 taskKill(arg0);
             }
@@ -2016,13 +1999,13 @@ void func_actor_560800_80135FA0(Task* arg0)
 
 void func_actor_560800_80136094(Task* arg0)
 {
-    Actor560800FadeWork* work;
-    Actor560800FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor560800FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor560800FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -2049,7 +2032,7 @@ void func_actor_560800_80136094(Task* arg0)
             work->r -= (u16)arg0->spawnArg1;
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
-            if ((s16)work->r < 0) {
+            if (work->r < 0) {
                 taskKill(arg0);
             }
             break;

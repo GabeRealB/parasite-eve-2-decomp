@@ -3,6 +3,7 @@
 #include "psyq/libgte.h"
 #include "psyq/libgpu.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -78,20 +79,6 @@ typedef struct Actor136100Msg3F7 {
     /* 0x4 */ s32  count;
 } Actor136100Msg3F7;
 STATIC_ASSERT_SIZEOF(Actor136100Msg3F7, 0x8);
-
-/// Channel block the actor's two fade tasks keep at `Task::work`, sized by
-/// their own `Mem_Malloc(8, 0)`: the fade-in (`func_actor_136100_801344AC`)
-/// seeds the channels at 0xFF and steps them down, the fade-out
-/// (`func_actor_136100_80134588`) seeds them at 0 and steps them up, both by
-/// the task's `spawnArg1`. Both hand `r` and `g` to `Fade_DrawOverlay` and
-/// end on a test of `r`. The leading halfword is never touched.
-typedef struct Actor136100FadeWork {
-    /* 0x0 */ u8  pad_0[0x2];
-    /* 0x2 */ s16 r;
-    /* 0x4 */ s16 g;
-    /* 0x6 */ s16 b; // advanced but never read back
-} Actor136100FadeWork;
-STATIC_ASSERT_SIZEOF(Actor136100FadeWork, 0x8);
 
 /// Set by `func_actor_136100_801348F8` when the cutscene wants the display
 /// back on; while it is non-zero the fade task kills itself instead of fading.
@@ -1265,13 +1252,13 @@ void func_actor_136100_80133BC8(Task* arg0)
 /// `spawnArg1`, killing itself once `r` has gone negative.
 void func_actor_136100_801344AC(Task* arg0)
 {
-    Actor136100FadeWork* fade;
-    Actor136100FadeWork* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor136100FadeWork*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1303,13 +1290,13 @@ void func_actor_136100_801344AC(Task* arg0)
 /// kill itself immediately instead (the cutscene wants the display back).
 void func_actor_136100_80134588(Task* arg0)
 {
-    Actor136100FadeWork* fade;
-    Actor136100FadeWork* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor136100FadeWork*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor136100FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1330,7 +1317,7 @@ void func_actor_136100_80134588(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if ((s16)fade->r < 0x100) {
+            if (fade->r < 0x100) {
                 return;
             }
             SetDispMask(0);

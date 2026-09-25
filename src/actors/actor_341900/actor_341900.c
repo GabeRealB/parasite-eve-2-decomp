@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 
+#include "actors/actor.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
@@ -103,18 +104,6 @@ typedef struct Actor341900ColorMtx {
     /* 0x40 */ Task*  field_40;
 } Actor341900ColorMtx;
 STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
-
-/// Channel block of the overlay's fade task `func_actor_341900_80163148`,
-/// sized by its own `memCalloc(8, 0)` and parked in that task's `Task::work`
-/// slot. The three channels start at 0xFF and fall by the task's `spawnArg1`
-/// each frame.
-typedef struct Actor341900Fade {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ s16  r;
-    /* 0x4 */ s16  g;
-    /* 0x6 */ s16  b;
-} Actor341900Fade;
-STATIC_ASSERT_SIZEOF(Actor341900Fade, 0x8);
 
 /// Controller task of this overlay, published by `func_actor_341900_80162EFC`
 /// and read by the sequence helpers that hang their work off its `Task::work`.
@@ -796,13 +785,13 @@ void func_actor_341900_80162EFC(Task* arg0)
 /// killing the task once `r` has gone negative.
 void func_actor_341900_80163148(Task* arg0)
 {
-    Actor341900Fade* fade;
-    Actor341900Fade* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor341900Fade*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor341900Fade*)memCalloc(8, 0);
+            alloc      = (ActorFadeWork*)memCalloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

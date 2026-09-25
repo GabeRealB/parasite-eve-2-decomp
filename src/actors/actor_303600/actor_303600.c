@@ -4,6 +4,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -44,24 +45,6 @@ typedef struct Actor303600Work {
     /* 0xE */ u16   field_E; // set to 1 while a dispatched message is outstanding
 } Actor303600Work;
 STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
-
-/// Fade block `func_actor_303600_801623CC` allocates with `Mem_Malloc(8, 0)` and
-/// parks in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`),
-/// so reach it with `(Actor303600FadeWork*)task->work`.  The allocation size is
-/// the struct size, and not a guess.  The three halfwords are the RGB channels
-/// `Fade_DrawOverlay` draws: the task steps them by `Task::spawnArg1` -- the
-/// fade rate, not a colour -- and hands `r` and `g` to that call, so only the
-/// green channel reads as a colour and the blue one is stepped without ever
-/// being shown.  The leading halfword is part of the allocation and is never
-/// touched.  `func_actor_303600_801622E8` walks this same block the other way,
-/// subtracting where this one adds.
-typedef struct Actor303600FadeWork {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ u16  r;
-    /* 0x4 */ u16  g;
-    /* 0x6 */ u16  b;
-} Actor303600FadeWork;
-STATIC_ASSERT_SIZEOF(Actor303600FadeWork, 0x8);
 
 /// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
 /// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
@@ -324,13 +307,13 @@ void func_actor_303600_8016216C(Task* arg0)
 /// below zero clears `D_actor_303600_8016E4C4` before killing the task.
 void func_actor_303600_801622E8(Task* arg0)
 {
-    Actor303600FadeWork* work;
-    Actor303600FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor303600FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -347,7 +330,7 @@ void func_actor_303600_801622E8(Task* arg0)
             work->r -= (u16)arg0->spawnArg1;
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
-            if ((s16)work->r < 0) {
+            if (work->r < 0) {
                 D_actor_303600_8016E4C4 = NULL;
                 taskKill(arg0);
             }
@@ -364,13 +347,13 @@ void func_actor_303600_801622E8(Task* arg0)
 /// 0xFF down past zero, is `func_actor_303600_801622E8`.
 void func_actor_303600_801623CC(Task* arg0)
 {
-    Actor303600FadeWork* work;
-    Actor303600FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor303600FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor303600FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -387,7 +370,7 @@ void func_actor_303600_801623CC(Task* arg0)
             work->r += (u16)arg0->spawnArg1;
             work->g += (u16)arg0->spawnArg1;
             work->b += (u16)arg0->spawnArg1;
-            if ((s16)work->r >= 0x100) {
+            if (work->r >= 0x100) {
                 D_actor_303600_8016E4C4 = NULL;
                 taskKill(arg0);
             }

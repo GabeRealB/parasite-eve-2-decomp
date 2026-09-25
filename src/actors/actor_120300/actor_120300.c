@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80133c6c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -70,16 +71,6 @@ extern TaskDesc D_actor_120300_80141B6C[];
 /// note): this overlay hands it a `u16` animation id, so the `s32` `arg2` here
 /// is what keeps the caller's zero-extension.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// Channel block the fade task keeps at `Task::work`, sized by its own
-/// `Mem_Malloc(8, 0)`. The leading halfword is never touched.
-typedef struct {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ u16  r;
-    /* 0x4 */ u16  g;
-    /* 0x6 */ u16  b;
-} Actor120300FadeWork;
-STATIC_ASSERT_SIZEOF(Actor120300FadeWork, 0x8);
 
 extern u8             D_80071075;
 extern s8             D_8007218A;
@@ -1328,13 +1319,13 @@ void func_actor_120300_801337C4(Task* arg0)
 /// `r` reaches 0x100 the task kills itself.
 void func_actor_120300_80133B5C(Task* arg0)
 {
-    Actor120300FadeWork* work;
-    Actor120300FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor120300FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor120300FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1351,7 +1342,7 @@ void func_actor_120300_80133B5C(Task* arg0)
             work->r += (u16)arg0->spawnArg1;
             work->g += (u16)arg0->spawnArg1;
             work->b += (u16)arg0->spawnArg1;
-            if ((s16)work->r >= 0x100) {
+            if (work->r >= 0x100) {
                 taskKill(arg0);
             }
             break;

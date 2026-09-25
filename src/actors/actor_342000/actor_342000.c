@@ -179,17 +179,6 @@ typedef struct Actor342000ColorMtx {
 } Actor342000ColorMtx;
 STATIC_ASSERT_SIZEOF(Actor342000ColorMtx, 0x44);
 
-/// Channel block of the overlay's fade task, sized by its own
-/// `memCalloc(8, 0)` and parked in that task's `Task::work` slot. The three
-/// channels start at 0xFF and fall by the task's `spawnArg1` each frame.
-typedef struct Actor342000Fade {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ s16  r;
-    /* 0x4 */ s16  g;
-    /* 0x6 */ s16  b;
-} Actor342000Fade;
-STATIC_ASSERT_SIZEOF(Actor342000Fade, 0x8);
-
 /// The task owning the `Actor342000EventWork` block, published by
 /// `func_actor_342000_8016382C`.
 extern Task* D_actor_342000_80165070;
@@ -1237,13 +1226,13 @@ void func_actor_342000_8016382C(Task* arg0)
 /// the task once `r` has gone negative.
 void func_actor_342000_80163EAC(Task* arg0)
 {
-    Actor342000Fade* fade;
-    Actor342000Fade* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor342000Fade*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor342000Fade*)memCalloc(8, 0);
+            alloc      = (ActorFadeWork*)memCalloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

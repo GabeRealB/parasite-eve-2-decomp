@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "actors/actors_shared_8013411c.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -53,17 +54,6 @@ typedef union Actor120500Args {
     /* 0x0 */ GpAnimArg msg; // message 0x3E8 payload
     /* 0x0 */ VECTOR    pos; // model part-1 translation
 } Actor120500Args;
-
-/// Channel block both fade tasks keep at `Task::work`, sized by their own
-/// `Mem_Malloc(8, 0)`: the three halfwords are the colour `Fade_DrawOverlay`
-/// draws. The leading halfword is never touched.
-typedef struct Actor120500FadeWork {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ s16  r;
-    /* 0x4 */ s16  g;
-    /* 0x6 */ s16  b;
-} Actor120500FadeWork;
-STATIC_ASSERT_SIZEOF(Actor120500FadeWork, 0x8);
 
 /// The actor task, published by `func_actor_120500_801322A0` so the setters,
 /// which take no task, can reach its work block.
@@ -472,13 +462,13 @@ done_4C8:
 /// Once `r` has gone negative the screen is clear and the task kills itself.
 void func_actor_120500_80132708(Task* arg0)
 {
-    Actor120500FadeWork* fade;
-    Actor120500FadeWork* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor120500FadeWork*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor120500FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -512,13 +502,13 @@ void func_actor_120500_80132708(Task* arg0)
 /// `r` reaches 0x100 the screen is black and the task kills itself.
 void func_actor_120500_801327E4(Task* arg0)
 {
-    Actor120500FadeWork* work;
-    Actor120500FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor120500FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor120500FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

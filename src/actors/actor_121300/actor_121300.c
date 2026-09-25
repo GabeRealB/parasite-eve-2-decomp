@@ -5,6 +5,7 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
+#include "actors/actor.h"
 #include "actors/actors_shared_80149e54.h"
 #include "actors/actors_shared_80149ed0.h"
 #include "actors/actors_shared_8013411c.h"
@@ -102,27 +103,6 @@ typedef union Actor121300Scratch {
     /* 0x0 */ RECT      rect; // state 3: the area ClearImage blanks
     /* 0x0 */ VECTOR    vec;  // tail: model part-1 translation for func_800D7A9C
 } Actor121300Scratch;
-
-/// 8-byte fade block `func_actor_121300_8013400C` and
-/// `func_actor_121300_801326EC` each allocate with `Mem_Malloc(8, 0)` and park
-/// in `Task::work` -- a second, smaller work block in this overlay, distinct
-/// from `Actor121300Work`.
-///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws.  The
-/// task seeded by `func_actor_121300_8013400C` seeds all three to 0 and raises
-/// them by `Task::spawnArg1` every frame, then once the red channel has reached
-/// 0x100 it blanks the display and kills itself; the blue channel is advanced
-/// but never read back.  The task seeded by `func_actor_121300_801326EC` is the
-/// mirror image: it seeds all three to 0xFF, unblanks the display one state
-/// before it starts drawing, and lowers them by `Task::spawnArg1` per frame
-/// until the red channel goes negative, reading all three channels back.
-typedef struct Actor121300FadeWork {
-    /* 0x0 */ u8  pad_0[0x2];
-    /* 0x2 */ s16 r;
-    /* 0x4 */ s16 g;
-    /* 0x6 */ s16 b;
-} Actor121300FadeWork;
-STATIC_ASSERT_SIZEOF(Actor121300FadeWork, 0x8);
 
 /// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
 /// effect spawners gate on: `func_actor_121300_8013343C` only runs on every
@@ -363,13 +343,13 @@ void func_actor_121300_80131EB0(Task* arg0)
 
 void func_actor_121300_801326EC(Task* arg0)
 {
-    Actor121300FadeWork* fade;
-    Actor121300FadeWork* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor121300FadeWork*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -393,7 +373,7 @@ void func_actor_121300_801326EC(Task* arg0)
             fade->r = (s16)((u16)fade->r - (u16)arg0->spawnArg1);
             fade->g = (s16)((u16)fade->g - (u16)arg0->spawnArg1);
             fade->b = (s16)((u16)fade->b - (u16)arg0->spawnArg1);
-            if ((s16)fade->r < 0) {
+            if (fade->r < 0) {
                 taskKill(arg0);
             }
             break;
@@ -1150,13 +1130,13 @@ void func_actor_121300_80133D98(Task* arg0)
 
 void func_actor_121300_8013400C(Task* arg0)
 {
-    Actor121300FadeWork* fade;
-    Actor121300FadeWork* alloc;
+    ActorFadeWork* fade;
+    ActorFadeWork* alloc;
 
-    fade = (Actor121300FadeWork*)arg0->work;
+    fade = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor121300FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1173,7 +1153,7 @@ void func_actor_121300_8013400C(Task* arg0)
             fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
             fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
             fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
-            if ((s16)fade->r < 0x100) {
+            if (fade->r < 0x100) {
                 return;
             }
             SetDispMask(0);

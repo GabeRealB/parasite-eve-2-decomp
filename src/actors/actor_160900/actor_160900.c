@@ -5,6 +5,7 @@
 #include "gte.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
+#include "actors/actor.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
@@ -119,22 +120,6 @@ typedef struct Actor160900AnimStep {
     /* 0x2 */ s16 field_2;
 } Actor160900AnimStep;
 STATIC_ASSERT_SIZEOF(Actor160900AnimStep, 0x4);
-
-/// 8-byte fade block `func_actor_160900_801343E4` allocates with
-/// `Mem_Malloc(8, 0)` and parks in `Task::work` -- a second, smaller work
-/// block in this overlay, distinct from `Actor160900Work` and owned by the
-/// fade task that function drives.
-///
-/// The three halfwords are the RGB channels `Fade_DrawOverlay` draws: the task
-/// raises all three by `(u16)Task::spawnArg1` each frame and clamps all three
-/// to 0xFF once the red channel passes 0x100. `pad_0` is never touched.
-typedef struct Actor160900FadeWork {
-    /* 0x0 */ u8  pad_0[2];
-    /* 0x2 */ u16 r;
-    /* 0x4 */ u16 g;
-    /* 0x6 */ u16 b;
-} Actor160900FadeWork;
-STATIC_ASSERT_SIZEOF(Actor160900FadeWork, 0x8);
 
 extern Task* D_actor_160900_8013FBB4;
 
@@ -1326,13 +1311,13 @@ void func_actor_160900_8013418C(Task* arg0)
 
 void func_actor_160900_801343E4(Task* arg0)
 {
-    Actor160900FadeWork* work;
-    Actor160900FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor160900FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1349,7 +1334,7 @@ void func_actor_160900_801343E4(Task* arg0)
             work->r += (u16)arg0->spawnArg1;
             work->g += (u16)arg0->spawnArg1;
             work->b += (u16)arg0->spawnArg1;
-            if ((s16)work->r >= 0x100) {
+            if (work->r >= 0x100) {
                 work->b = 0xFF;
                 work->g = 0xFF;
                 work->r = 0xFF;
@@ -1359,13 +1344,13 @@ void func_actor_160900_801343E4(Task* arg0)
 }
 void func_actor_160900_801344D8(Task* arg0)
 {
-    Actor160900FadeWork* work;
-    Actor160900FadeWork* alloc;
+    ActorFadeWork* work;
+    ActorFadeWork* alloc;
 
-    work = (Actor160900FadeWork*)arg0->work;
+    work = (ActorFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor160900FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1388,7 +1373,7 @@ void func_actor_160900_801344D8(Task* arg0)
             work->r -= (u16)arg0->spawnArg1;
             work->g -= (u16)arg0->spawnArg1;
             work->b -= (u16)arg0->spawnArg1;
-            if ((s16)work->r < 0) {
+            if (work->r < 0) {
                 taskKill(arg0);
             }
             break;
