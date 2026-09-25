@@ -117,6 +117,9 @@ s32  func_shelter_b3_garbage_incinerator_80180E0C(u16* arg0);
 /// messages are dispatched to, `child` the task spawned from the room's table,
 /// `field_34` the task started from spawn entry 2 when the encounter is armed,
 /// `field_38` the last animation set selected, and `field_3A` the arming state.
+/// actor_342100 carries the same encounter with a larger block that holds
+/// one more task and places the child task and the animation fields
+/// differently, so the two stay separate types.
 typedef struct {
     byte           pad_0[0x20];
     OverlayWaveCtx wave;

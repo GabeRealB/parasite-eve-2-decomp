@@ -5,6 +5,7 @@
 
 #include "gameplay/message.h"
 #include "main/task.h"
+#include "overlay.h"
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_342100_80164BB8` points at.
@@ -23,26 +24,26 @@
 /// `func_actor_342100_8016334C`'s integer argument, the same value that
 /// function forwards as the animation message's second word.
 ///
-/// The 0xC bytes from `field_20` are the ramp of the screen-wave task
-/// `func_actor_342100_80161E70`, which reads them as an `OverlayWaveCtx`:
-/// `func_actor_342100_80163408` seeds its span (`field_20`) and scale
-/// (`field_22`) with 0x258 and 0x100 and spawns the task on it. The fade task
-/// `func_actor_342100_80162748`, which reaches this block through
-/// `Task::spawnArg2`, sets the ramp state (`field_24`) to 2 once the screen
-/// has been blanked white, which ends the wave.
+/// `wave` is the ramp of the screen-wave task `func_actor_342100_80161E70`:
+/// `func_actor_342100_80163408` seeds its span and scale and spawns the task
+/// on it, and the fade task `func_actor_342100_80162748`, which reaches this
+/// block through `Task::spawnArg2`, ends the wave by setting its ramp state to
+/// 2 once the screen has been blanked white.
+///
+/// shelter_b3_garbage_incinerator carries the same encounter with a smaller
+/// block that shares the leading bytes and `wave` but keeps one task pointer
+/// fewer, with the child task and the animation fields in other places, so
+/// the two are different types.
 typedef struct Actor342100Work {
-    /* 0x00 */ byte  pad_0[0x20];
-    /* 0x20 */ s16   field_20;
-    /* 0x22 */ s16   field_22;
-    /* 0x24 */ s16   field_24;
-    /* 0x26 */ byte  pad_26[0x6];
-    /* 0x2C */ Task* field_2C; // gameGetPtrSlot(3)
-    /* 0x30 */ Task* field_30;
-    /* 0x34 */ Task* field_34;
-    /* 0x38 */ Task* field_38;
-    /* 0x3C */ s16   field_3C;
-    /* 0x3E */ s16   field_3E;
-    /* 0x40 */ byte  pad_40[0x4];
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ OverlayWaveCtx wave;
+    /* 0x2C */ Task*          field_2C; // gameGetPtrSlot(3)
+    /* 0x30 */ Task*          field_30;
+    /* 0x34 */ Task*          field_34;
+    /* 0x38 */ Task*          field_38;
+    /* 0x3C */ s16            field_3C;
+    /* 0x3E */ s16            field_3E;
+    /* 0x40 */ byte           pad_40[0x4];
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 

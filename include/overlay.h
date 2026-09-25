@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"

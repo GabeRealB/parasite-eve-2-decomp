@@ -30,7 +30,7 @@ extern s8 D_8007218A;
 
 /// Single-entry spawn table of the screen-wave task
 /// `func_actor_342100_80161E70`: `func_actor_342100_80163408` starts entry 0
-/// and hands it the address of `Actor342100Work::field_20` as its ramp.
+/// and hands it the address of `Actor342100Work::wave` as its ramp.
 extern TaskDesc D_actor_342100_801648DC;
 
 /// Null-terminated table of the overlay's per-state message tables, counted
@@ -110,7 +110,7 @@ extern OverlayWaveRec D_actor_342100_80164C0C[30];
 extern POLY_FT4 D_actor_342100_80164E3C[][30][8];
 
 /// Screen-wave task spawned from `D_actor_342100_801648DC` with the ramp at
-/// the event task's `Actor342100Work::field_20` as its argument. State 0 seeds the
+/// the event task's `Actor342100Work::wave` as its argument. State 0 seeds the
 /// column and row phases, parks the ramp, clears its frame and ramp state and
 /// builds both buffers' quad meshes, tinted when the ramp's tint flag is set;
 /// state 1 ramps the frame up to the span (ramp state 0) or back down to zero
@@ -362,8 +362,8 @@ void func_actor_342100_80162748(Task* arg0)
             work->g += 8;
             work->b += 8;
             if ((s16)work->g >= 0x100) {
-                parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
-                parent->field_24 = 2;
+                parent             = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
+                parent->wave.state = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
                 work->b     = 0xFF;
@@ -825,9 +825,9 @@ void func_actor_342100_80163408(void)
 {
     Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
 
-    work->field_20 = 0x258;
-    work->field_22 = 0x100;
-    Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->field_20);
+    work->wave.span  = 0x258;
+    work->wave.scale = 0x100;
+    Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->wave);
 }
 
 /// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
