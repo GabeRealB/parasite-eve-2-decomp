@@ -230,22 +230,6 @@ extern RoomHotspot D_dryfield_breezeway_80182DDC[];
 /// below, together with the room task's coordinate frame.
 extern u8 D_dryfield_breezeway_80183164[];
 
-/// 0x18-byte scratch block `func_dryfield_breezeway_80180858` takes from
-/// `G_SCRATCH_HEAD`. `vec` is the `data` point rotated through the
-/// coordinate's world matrix and offset by its translation; `otz` and
-/// `sx` / `sy` are that point projected through `GsWSMATRIX`, and `rOuter` /
-/// `rInner` are `(s16)arg3 * 64 / otz` and `(s16)arg3 * 8 / otz`, the
-/// on-screen radii of the disc and of its inner cross.
-typedef struct DbwGlowScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     rOuter;
-    /* 0x08 */ s32     rInner;
-    /* 0x0C */ SVECTOR vec;
-    /* 0x14 */ u16     sx;
-    /* 0x16 */ u16     sy;
-} DbwGlowScratch;
-STATIC_ASSERT_SIZEOF(DbwGlowScratch, 0x18);
-
 /// Main-executable globals with no module header yet: `D_8007216C` is the
 /// 1-based index of the area record the room is showing, the value
 /// `Gp_FindViewIndex` returns and the view gate reads back next to
@@ -1685,17 +1669,17 @@ void func_dryfield_breezeway_8018034C(GsCOORDINATE2* coord, u8* data, s32 arg2, 
 
 void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, s32 arg3)
 {
-    u8*             head;
-    DbwGlowScratch* block;
-    POLY_G4*        prim;
-    s32             pulse;
-    s32             color;
-    s32             half;
-    s32             size;
-    s32             ang;
-    s32             t;
-    s32             t2;
-    s32             u;
+    u8*              head;
+    RoomGlowScratch* block;
+    POLY_G4*         prim;
+    s32              pulse;
+    s32              color;
+    s32              half;
+    s32              size;
+    s32              ang;
+    s32              t;
+    s32              t2;
+    s32              u;
 
     Gp_UpdateCoord(coord);
     {
@@ -1705,29 +1689,29 @@ void func_dryfield_breezeway_80180858(GsCOORDINATE2* coord, u8* data, s32 arg2, 
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
         tmp     = (*scratch = head - 0x18);
-        block   = (DbwGlowScratch*)tmp;
+        block   = (RoomGlowScratch*)tmp;
     }
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
     gte_rtv0();
-    gte_stsv(&((DbwGlowScratch*)(head - 0x18))->vec);
+    gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
     block->vec.vx += coord->workm.t[0];
     block->vec.vy += coord->workm.t[1];
     block->vec.vz += coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((DbwGlowScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
     gte_rtps();
-    gte_stsxy(&((DbwGlowScratch*)(head - 0x18))->sx);
+    gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&block->otz);
-    if (((DbwGlowScratch*)(head - 0x18))->otz > 16) {
+    if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {
         pulse         = rsin(gDisplayState.animFrame * (s16)arg2);
         ang           = 0;
         size          = (s16)arg3;
-        block->rOuter = (size * 64) / ((DbwGlowScratch*)(head - 0x18))->otz;
+        block->rOuter = (size * 64) / ((RoomGlowScratch*)(head - 0x18))->otz;
         color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((DbwGlowScratch*)(head - 0x18))->otz;
+        block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
         do {
             prim           = (POLY_G4*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;

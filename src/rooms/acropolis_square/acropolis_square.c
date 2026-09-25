@@ -57,17 +57,6 @@
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-/// Projected flare centre, depth, and radii in the 0x18-byte scratch block.
-typedef struct AcropolisSquareBeamScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     rOuter;
-    /* 0x08 */ s32     rInner;
-    /* 0x0C */ SVECTOR vec;
-    /* 0x14 */ u16     sx;
-    /* 0x16 */ u16     sy;
-} AcropolisSquareBeamScratch;
-STATIC_ASSERT_SIZEOF(AcropolisSquareBeamScratch, 0x18);
-
 /// The save's location key, written and compared byte-wise for its view and
 /// read as one word to test its view and area together.
 typedef union _AcropolisSquareSaveLoc {
@@ -2538,29 +2527,29 @@ void func_acropolis_square_801823DC(Task* task)
 
 void func_acropolis_square_801825DC(Task* task)
 {
-    u8*                         head;
-    u8*                         raw;
-    AcropolisSquareBeamScratch* blk;
-    POLY_G4*                    prim;
-    LINE_G3*                    line;
-    GsCOORDINATE2*              coord;
-    void*                       mem;
-    u16                         vz;
-    s32                         i;
-    s32                         pulse;
-    s32                         level;
-    s32                         height;
-    s16                         amp;
-    s16                         flip;
-    s32                         ampSi;
-    s32                         ampHalf;
-    u8                          red;
-    u8                          cyan;
-    s32                         z;
-    s32                         shift;
-    u32                         depth;
-    u32                         tag;
-    u_long*                     ot;
+    u8*              head;
+    u8*              raw;
+    RoomGlowScratch* blk;
+    POLY_G4*         prim;
+    LINE_G3*         line;
+    GsCOORDINATE2*   coord;
+    void*            mem;
+    u16              vz;
+    s32              i;
+    s32              pulse;
+    s32              level;
+    s32              height;
+    s16              amp;
+    s16              flip;
+    s32              ampSi;
+    s32              ampHalf;
+    u8               red;
+    u8               cyan;
+    s32              z;
+    s32              shift;
+    u32              depth;
+    u32              tag;
+    u_long*          ot;
 
     coord = ((TmdObject*)task->extra)->coords;
     mem   = task->spawnArg2;
@@ -2568,7 +2557,7 @@ void func_acropolis_square_801825DC(Task* task)
     head = *(void**)G_SCRATCH_HEAD;
     raw  = head - 0x18;
     SOFT_TOUCH_REG(raw);
-    blk                     = (AcropolisSquareBeamScratch*)raw;
+    blk                     = (RoomGlowScratch*)raw;
     blk->vec.vx             = *(u16*)&coord->workm.t[0];
     blk->vec.vy             = *(u16*)&coord->workm.t[1];
     vz                      = *(u16*)&coord->workm.t[2];
@@ -2577,11 +2566,11 @@ void func_acropolis_square_801825DC(Task* task)
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisSquareBeamScratch*)(head - 0x18))->vec);
+    gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
     gte_rtps();
-    gte_stsxy(&((AcropolisSquareBeamScratch*)(head - 0x18))->sx);
+    gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
     gte_stszotz(&blk->otz);
-    if (((AcropolisSquareBeamScratch*)(head - 0x18))->otz >= 0x11) {
+    if (((RoomGlowScratch*)(head - 0x18))->otz >= 0x11) {
         pulse  = D_80070F70;
         pulse *= task->spawnArg1 & 0xFF;
         flip   = (task->spawnArg1 >> 16) & 1;
