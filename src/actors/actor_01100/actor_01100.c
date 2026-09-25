@@ -176,13 +176,6 @@ extern Actor104900EffSlot D_80067330;
     gte_stsv(sv);                                      \
     ACTOR_COPY_SV_TO_MATRIX_COLUMN(sv, m, o0, o1, o2)
 
-/// Block `_actor01100PushOut` carves below the scratchpad head: the push-out
-/// delta `func_800E0C10` reports, then whether it moved the model on X or Z.
-typedef struct {
-    GpDeltaScratch delta;
-    s32            moved;
-} _Actor01100PushScratch;
-
 void Actor01100_Fn0097C(GpEnemy* enemy, Task* task);
 void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorShared801384acWork* work);
 s32  Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, ActorsShared80138efcArg* arg);
@@ -675,16 +668,16 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// `D_80072729` is 1.
 static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts)
 {
-    _Actor01100PushScratch* head;
-    _Actor01100PushScratch* blk;
+    OverlayDeltaFlag* head;
+    OverlayDeltaFlag* blk;
 
     if (D_80072729 == 1) {
         return 0;
     }
-    head                                       = *(_Actor01100PushScratch**)G_SCRATCH_HEAD;
-    *(_Actor01100PushScratch**)G_SCRATCH_HEAD -= 1;
-    blk                                        = *(_Actor01100PushScratch**)G_SCRATCH_HEAD;
-    blk->moved                                 = 0;
+    head                                 = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+    *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
+    blk                                  = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+    blk->moved                           = 0;
     if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
         coord->coord.t[0] += head[-1].delta.vx.h.hi;
         coord->coord.t[1] += blk->delta.vy.h.hi;
@@ -708,7 +701,7 @@ static __inline__ s32 _actor01100PushOut(GsCOORDINATE2* coord, GpRec18* contacts
     if ((blk->delta.vx.w != 0) || (blk->delta.vz.w != 0)) {
         blk->moved = 1;
     }
-    *(_Actor01100PushScratch**)G_SCRATCH_HEAD += 1;
+    *(OverlayDeltaFlag**)G_SCRATCH_HEAD += 1;
     return blk->moved;
 }
 

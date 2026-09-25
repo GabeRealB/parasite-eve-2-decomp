@@ -1045,25 +1045,25 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
 s32 func_acropolis_helicopter_landing_pad_801819C0(GsCOORDINATE2* coord, GpRec18* rec, s16 arg2)
 {
-    void**                      scratch;
-    u8*                         head;
-    RoomsShared8017d830Scratch* s;
-    register void*              p asm("v1");
-    s32                         val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    register void*    p asm("v1");
+    s32               val;
 
-    scratch     = (void**)G_SCRATCH_HEAD;
-    head        = *scratch;
-    p           = head - 0x14;
-    s           = p;
-    *scratch    = p;
-    s->field_10 = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x14;
+    s        = p;
+    *scratch = p;
+    s->moved = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]                             += ((RoomsShared8017d830Scratch*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]                             += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]                             += s->delta.vz.h.hi;
-        D_acropolis_helicopter_landing_pad_80187F88.vx = ((RoomsShared8017d830Scratch*)(head - 0x14))->delta.vx.w >> 16;
+        D_acropolis_helicopter_landing_pad_80187F88.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_acropolis_helicopter_landing_pad_80187F88.vy = s->delta.vy.w >> 16;
         D_acropolis_helicopter_landing_pad_80187F88.vz = s->delta.vz.w >> 16;
-        val                                            = ((RoomsShared8017d830Scratch*)(head - 0x14))->delta.vx.w;
+        val                                            = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1085,10 +1085,10 @@ s32 func_acropolis_helicopter_landing_pad_801819C0(GsCOORDINATE2* coord, GpRec18
         }
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->field_10 = 1;
+        s->moved = 1;
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
-    return s->field_10;
+    return s->moved;
 }
 
 /// Pushes a coordinate frame away from the records of a `GpRec18` table.

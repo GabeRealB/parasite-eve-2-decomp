@@ -742,11 +742,11 @@ s32 func_actor_356100_801625A0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// unit further from zero.
 s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    register void*  p asm("v1");
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    register void*    p asm("v1");
+    s32               val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -755,12 +755,12 @@ s32 func_actor_356100_80162AEC(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_356100_801732A0.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_356100_801732A0.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_356100_801732A0.vy = s->delta.vy.w >> 16;
         D_actor_356100_801732A0.vz = s->delta.vz.w >> 16;
-        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1297,29 +1297,29 @@ static __inline__ void Actor356100_StepForward(GsCOORDINATE2* coord, s16 amount)
 
 /// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
-/// 0x14-byte `ActorDeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
+/// 0x14-byte `OverlayDeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
 /// the two spellings of the block in the body reach it the same way the
 /// original does — the negative offsets off `head` for the X component and the
 /// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
 /// its mask argument.
 static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    s32               val;
 
     if (D_80072729 != 1) {
-        scratch                            = (void**)G_SCRATCH_HEAD;
-        head                               = *scratch;
-        *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
-        s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
-        s->moved                           = 0;
+        scratch                              = (void**)G_SCRATCH_HEAD;
+        head                                 = *scratch;
+        *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                    = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+        s->moved                             = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
             coord->coord.t[1] += s->delta.vy.h.hi;
             coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -1340,7 +1340,7 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
         if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
             s->moved = 1;
         }
-        *(ActorDeltaFlag**)G_SCRATCH_HEAD += 1;
+        *(OverlayDeltaFlag**)G_SCRATCH_HEAD += 1;
     }
 }
 
@@ -1349,21 +1349,21 @@ static __inline__ void Actor356100_PushRecords(GsCOORDINATE2* coord, GpRec18* re
 /// compare interleaves with the coordinate load.
 static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    s32               val;
 
-    scratch                            = (void**)G_SCRATCH_HEAD;
-    head                               = *scratch;
-    *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
-    s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
-    s->moved                           = 0;
+    scratch                              = (void**)G_SCRATCH_HEAD;
+    head                                 = *scratch;
+    *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
+    s                                    = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+    s->moved                             = 0;
     if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[1] += s->delta.vy.h.hi;
         coord->coord.t[2] += s->delta.vz.h.hi;
-        val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1384,7 +1384,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GsCOORDINATE2* coord, GpRec1
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    *(ActorDeltaFlag**)G_SCRATCH_HEAD += 1;
+    *(OverlayDeltaFlag**)G_SCRATCH_HEAD += 1;
     return s->moved;
 }
 
@@ -1936,23 +1936,23 @@ void func_actor_356100_801666B4(Task* arg0)
 
 void func_actor_356100_801668FC(Task* arg0)
 {
-    Actor356100Work* work;
-    GpEnemy*         enemy;
-    PlayerStatus*    cfg;
-    McSaveData*      save;
-    GsCOORDINATE2*   coord;
-    GsCOORDINATE2*   root;
-    u8*              base;
-    u8*              base2;
-    u8*              slot;
-    u8*              slot2;
-    SVECTOR*         v;
-    SVECTOR*         next;
-    ActorDeltaFlag*  next2;
-    ActorDeltaFlag*  blk;
-    ActorDeltaFlag*  s;
-    s32              val;
-    s32              mode;
+    Actor356100Work*  work;
+    GpEnemy*          enemy;
+    PlayerStatus*     cfg;
+    McSaveData*       save;
+    GsCOORDINATE2*    coord;
+    GsCOORDINATE2*    root;
+    u8*               base;
+    u8*               base2;
+    u8*               slot;
+    u8*               slot2;
+    SVECTOR*          v;
+    SVECTOR*          next;
+    OverlayDeltaFlag* next2;
+    OverlayDeltaFlag* blk;
+    OverlayDeltaFlag* s;
+    s32               val;
+    s32               mode;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
@@ -2002,20 +2002,20 @@ void func_actor_356100_801668FC(Task* arg0)
         }
         root = ((TmdObject*)arg0->extra)->coords;
         if ((u8)save->unknown_5C0[1] != 1) {
-            base2                              = PSX_SCRATCH;
-            slot2                              = *(u8**)(base2 + 0x3FC);
-            base2                              = slot2;
-            blk                                = (ActorDeltaFlag*)(slot2 - 0x14);
-            base2                              = PSX_SCRATCH;
-            *(ActorDeltaFlag**)(base2 + 0x3FC) = blk;
-            base2                              = slot2;
-            s                                  = blk;
-            blk->moved                         = 0;
+            base2                                = PSX_SCRATCH;
+            slot2                                = *(u8**)(base2 + 0x3FC);
+            base2                                = slot2;
+            blk                                  = (OverlayDeltaFlag*)(slot2 - 0x14);
+            base2                                = PSX_SCRATCH;
+            *(OverlayDeltaFlag**)(base2 + 0x3FC) = blk;
+            base2                                = slot2;
+            s                                    = blk;
+            blk->moved                           = 0;
             if (func_800E0C10(&work->field_A58, &blk->delta, 3, NULL) != 0) {
-                root->coord.t[0] += ((ActorDeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
+                root->coord.t[0] += ((OverlayDeltaFlag*)(slot2 - 0x14))->delta.vx.h.hi;
                 root->coord.t[1] += blk->delta.vy.h.hi;
                 root->coord.t[2] += blk->delta.vz.h.hi;
-                val               = ((ActorDeltaFlag*)(slot2 - 0x14))->delta.vx.w;
+                val               = ((OverlayDeltaFlag*)(slot2 - 0x14))->delta.vx.w;
                 if ((val & 0xFFFF) != 0) {
                     if (val > 0) {
                         root->coord.t[0]++;
@@ -2036,12 +2036,12 @@ void func_actor_356100_801668FC(Task* arg0)
             if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
                 s->moved = 1;
             }
-            base2                              = PSX_SCRATCH;
-            next2                              = (ActorDeltaFlag*)(*(ActorDeltaFlag**)(base2 + 0x3FC) + 1);
-            base2                              = slot2;
-            base2                              = PSX_SCRATCH;
-            *(ActorDeltaFlag**)(base2 + 0x3FC) = next2;
-            base2                              = slot2;
+            base2                                = PSX_SCRATCH;
+            next2                                = (OverlayDeltaFlag*)(*(OverlayDeltaFlag**)(base2 + 0x3FC) + 1);
+            base2                                = slot2;
+            base2                                = PSX_SCRATCH;
+            *(OverlayDeltaFlag**)(base2 + 0x3FC) = next2;
+            base2                                = slot2;
         }
         ((TmdObject*)arg0->extra)->coords->flg = 0;
     }
@@ -2510,20 +2510,20 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GsCOORDINAT
 /// register across the release.
 static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINATE2* coord, GpRec18* rec, s32 count, s16 height)
 {
-    u8*             head;
-    ActorDeltaFlag* s;
-    s32             val;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    s32               val;
 
     if ((u8)save->unknown_5C0[1] != 1) {
-        head                               = *(u8**)G_SCRATCH_HEAD;
-        *(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
-        s                                  = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
-        s->moved                           = 0;
+        head                                 = *(u8**)G_SCRATCH_HEAD;
+        *(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
+        s                                    = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
+        s->moved                             = 0;
         if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
             coord->coord.t[1] += s->delta.vy.h.hi;
             coord->coord.t[2] += s->delta.vz.h.hi;
-            val                = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;

@@ -543,11 +543,11 @@ s32 Actor01900_Fn008B4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 
 s32 Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    register void*  p asm("v1");
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    register void*    p asm("v1");
+    s32               val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -556,12 +556,12 @@ s32 Actor01900_Fn00E00(GsCOORDINATE2* coord, GpRec18* rec, s32 arg2)
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(rec, &s->delta, (s16)arg2, NULL) != 0) {
-        coord->coord.t[0]   += ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]   += ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]   += s->delta.vz.h.hi;
-        Actor01900_D1730C.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor01900_D1730C.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         Actor01900_D1730C.vy = s->delta.vy.w >> 16;
         Actor01900_D1730C.vz = s->delta.vz.w >> 16;
-        val                  = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                  = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;

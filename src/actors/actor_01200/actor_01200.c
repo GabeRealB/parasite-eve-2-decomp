@@ -259,11 +259,11 @@ s16 Actor01200_Fn00130(GsCOORDINATE2* coord, GpRec18* recs, s16 count, SVECTOR* 
 /// nonzero when the X or Z push is nonzero.
 s32 Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    register void*  p asm("v1");
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    register void*    p asm("v1");
+    s32               val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -272,12 +272,12 @@ s32 Actor01200_Fn0067C(GsCOORDINATE2* coord, GpRec18* movement, s16 count)
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)count, NULL) != 0) {
-        coord->coord.t[0]    = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]    = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]    = coord->coord.t[2] + s->delta.vz.h.hi;
-        Actor01200_D07084.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        Actor01200_D07084.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         Actor01200_D07084.vy = s->delta.vy.w >> 16;
         Actor01200_D07084.vz = s->delta.vz.w >> 16;
-        val                  = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                  = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;

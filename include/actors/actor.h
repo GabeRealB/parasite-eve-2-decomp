@@ -50,14 +50,6 @@ typedef struct ActorRepelScratch {
 } ActorRepelScratch;
 STATIC_ASSERT_SIZEOF(ActorRepelScratch, 0x88);
 
-/// The 16.16 deltas `func_800E0C10` resolves for a contact record, followed
-/// by the step's result: whether the X or Z delta was nonzero.
-typedef struct ActorDeltaFlag {
-    GpDeltaScratch delta;
-    s32            moved;
-} ActorDeltaFlag;
-STATIC_ASSERT_SIZEOF(ActorDeltaFlag, 0x14);
-
 /// A step resolved against the contact records: the 16.16 deltas
 /// `func_800E0C10` resolves, their integer part (its XZ part capped in
 /// length), that part's XZ length, and whether the X or Z delta was nonzero.

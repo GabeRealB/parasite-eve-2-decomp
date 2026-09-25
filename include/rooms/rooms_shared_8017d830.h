@@ -5,18 +5,10 @@
 
 #include "gameplay/3FB8.h"
 #include "main/session.h"
+#include "overlay.h"
 
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
-
-/// 0x14-byte scratch `RoomsShared8017d830` takes from
-/// `G_SCRATCH_HEAD`: the `GpDeltaScratch` handed to `func_800E0C10` plus the
-/// "did the object actually move" result the function returns.
-typedef struct RoomsShared8017d830Scratch {
-    /* 0x00 */ GpDeltaScratch delta;
-    /* 0x10 */ s32            field_10;
-} RoomsShared8017d830Scratch;
-STATIC_ASSERT_SIZEOF(RoomsShared8017d830Scratch, 0x14);
 
 /// The world delta the last call produced, kept for the room's own use. Every
 /// carrying room holds its own at its own address, named there by the family's

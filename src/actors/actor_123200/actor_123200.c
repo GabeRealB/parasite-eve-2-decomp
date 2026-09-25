@@ -326,11 +326,11 @@ s32 func_actor_123200_801324A4(GsCOORDINATE2* coord, GpRec18* recs, s16 count, S
 /// and the latched step are nudged one unit further away from zero.
 s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2)
 {
-    void**          scratch;
-    u8*             head;
-    ActorDeltaFlag* s;
-    register void*  p asm("v1");
-    s32             val;
+    void**            scratch;
+    u8*               head;
+    OverlayDeltaFlag* s;
+    register void*    p asm("v1");
+    s32               val;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
@@ -339,12 +339,12 @@ s32 func_actor_123200_801329F0(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
     *scratch = p;
     s->moved = 0;
     if (func_800E0C10(movement, &s->delta, (s32)arg2, NULL) != 0) {
-        coord->coord.t[0]          = coord->coord.t[0] + ((ActorDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
+        coord->coord.t[0]          = coord->coord.t[0] + ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.h.hi;
         coord->coord.t[2]          = coord->coord.t[2] + s->delta.vz.h.hi;
-        D_actor_123200_80137240.vx = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
+        D_actor_123200_80137240.vx = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w >> 16;
         D_actor_123200_80137240.vy = s->delta.vy.w >> 16;
         D_actor_123200_80137240.vz = s->delta.vz.w >> 16;
-        val                        = ((ActorDeltaFlag*)(head - 0x14))->delta.vx.w;
+        val                        = ((OverlayDeltaFlag*)(head - 0x14))->delta.vx.w;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;

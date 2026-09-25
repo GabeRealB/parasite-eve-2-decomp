@@ -112451,7 +112451,7 @@ compiler SHA256
 ## A scratch reserve written as `*(T**)G_SCRATCH_HEAD -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
 
 **Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
-`ActorDeltaFlag`. The turn block matched immediately; the delta block was
+`OverlayDeltaFlag`. The turn block matched immediately; the delta block was
 off by exactly one instruction, an `addiu` into a temporary followed by a copy:
 
 ```
@@ -112466,7 +112466,7 @@ gives one instruction fewer, because `cse` folds the temp away:
 
 ```
 /* 99.599% — no pair */
-s = (ActorDeltaFlag*)(head - 0x14);
+s = (OverlayDeltaFlag*)(head - 0x14);
 *scratch = s;
 
 /* v0/s1 shape, but the copies run the wrong way: move a1,v0 / move s1,a1 /
@@ -112479,8 +112479,8 @@ s = p;
 /* 100.000% — the reserve as the overlay writes it everywhere else */
 scratch = (void**)G_SCRATCH_HEAD;
 head    = *scratch;
-*(ActorDeltaFlag**)G_SCRATCH_HEAD -= 1;
-s       = *(ActorDeltaFlag**)G_SCRATCH_HEAD;
+*(OverlayDeltaFlag**)G_SCRATCH_HEAD -= 1;
+s       = *(OverlayDeltaFlag**)G_SCRATCH_HEAD;
 ```
 
 **Mechanism.** The compound assignment leaves the decremented pointer in a
