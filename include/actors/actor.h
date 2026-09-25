@@ -1150,6 +1150,31 @@ typedef struct Actor402200HitScratch {
 } Actor402200HitScratch;
 STATIC_ASSERT_SIZEOF(Actor402200HitScratch, 0x30);
 
+/// The scratch-pad block of the box scan: `out` first holds the player's
+/// planar offset from a box's centre, then the offset `in` behind the player
+/// rotated through the player's root coordinate.
+typedef struct Actor402200BoxScratch {
+    VECTOR  out;
+    byte    pad_10[0x10];
+    SVECTOR in;
+} Actor402200BoxScratch;
+STATIC_ASSERT_SIZEOF(Actor402200BoxScratch, 0x28);
+
+/// The scratch-pad block of the red trail drawer: the normalised screen
+/// direction of the trail, the depth and its per-segment step, the six
+/// vertex pairs of the current segments and the endpoint increments.
+typedef struct Actor402200TrailScratch {
+    VECTOR  dir;
+    SVECTOR norm;
+    s32     z;
+    s32     dz;
+    u16     x[6];
+    u16     y[6];
+    s16     dx;
+    s16     dy;
+} Actor402200TrailScratch;
+STATIC_ASSERT_SIZEOF(Actor402200TrailScratch, 0x3C);
+
 /* actor_323000 and actor_323400 carry the same enemy code. Function names in
  * these comments are actor_323000's. */
 

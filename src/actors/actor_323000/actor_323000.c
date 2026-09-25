@@ -9,7 +9,6 @@
 
 #include "actors/actor.h"
 #include "actors/actors_shared_80164954.h"
-#include "actors/actors_shared_80164af0.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
