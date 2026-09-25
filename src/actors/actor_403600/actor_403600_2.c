@@ -193,11 +193,6 @@ s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
-/* `Gp_LcgState`, read through a register holding only the upper half of its
- * address, which the damage handler keeps live across its blocks; naming the
- * global rebuilds the address at every use instead. */
-#define ACTOR403600_RNG_VALUE(base) (*(u32*)((u8*)(base) + 0xF60))
-
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
         "lhu $12, %2(%0);"                                 \
@@ -2739,297 +2734,213 @@ void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     temp_s4->field_6F0.vz = temp_v1_10->z;
 }
 
+/// Steps the shared LCG and returns the upper half of the new state.
+static inline u32 _actor403600Rand(void)
+{
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    return Gp_LcgState >> 16;
+}
+
 void func_actor_403600_8013D15C(Task* arg0)
 {
     s32                       sp10;
     s32                       sp14;
-    Actor403600DamageRow*     var_v1_2;
-    s32                       var_a2;
-    s16                       temp_v0_2;
-    s16                       temp_v0_7;
-    s32                       temp_lo;
-    s32                       temp_v0;
-    s32                       temp_v0_3;
-    s32                       temp_v0_4;
-    s32                       temp_v1_4;
-    s32                       temp_v1_6;
-    s32                       temp_v1_8;
-    s32                       one;
-    s32                       var_a0;
-    s32                       var_s1;
-    s32                       var_s3;
-    s32                       var_v0;
-    s32                       var_v1;
-    u16                       temp_v1_3;
-    u32                       temp_v0_5;
-    u32                       temp_v0_6;
-    u32                       temp_v0_8;
-    u32                       temp_v0_9;
-    u32                       temp_v1_5;
-    u32                       random_value;
-    s32                       negated_speed;
-    Actor403600Work*          temp_s0;
-    GpPairSrcE*               data_ec8;
-    TmdObject*                effect_obj;
-    GpRec18*                  temp_s1;
-    GpEnemy*                  temp_s4;
-    u32*                      rng;
-    GpDeltaScratch*           delta_scratch;
-    Actor403600DamageScratch* temp_v1_2;
-    u8*                       var_s2;
-    PlayerStatus*             player_status;
-    GpRec18*                  records;
+    Actor403600Work*          work;
+    GpEnemy*                  enemy;
+    Actor403600DamageScratch* scratch;
+    GpRec18*                  other;
+    s32                       i;
+    s32                       j;
+    s32                       dx;
+    s32                       dy;
+    s32                       dz;
+    s16                       hitKind;
+    s32                       damage;
+    s32                       key;
+    s16                       stun;
+    s32                       hpMax;
 
-    temp_s0 = arg0->work;
-    records = temp_s0->field_528;
-    temp_v0 = (s32)SCRATCH_HEAD(u8);
-    SOFT_TOUCH_REG_USE(temp_v0, records);
-    delta_scratch      = (GpDeltaScratch*)(temp_v0 - 0x28);
-    temp_v0           -= 0x48;
-    SCRATCH_HEAD(void) = (void*)temp_v0;
-    temp_v1_2          = (Actor403600DamageScratch*)temp_v0;
-    temp_s4            = arg0->spawnArg2;
-    temp_v0            = func_800E0C10(records, delta_scratch, 4, 0);
-    if (temp_v0 == 1) {
-        goto block_collision;
-    }
-    if (temp_v0 < 2) {
-        goto block_after_collision;
-    }
-    if (temp_v0 == 2) {
-        goto block_collision;
-    }
-    goto block_after_collision;
-
-block_fatal:
-    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, 0);
-    func_800DA6E8(&temp_s4->node, 0x3E7, 0);
-    temp_s0->field_742 = 1;
-    return;
-
-block_collision:
-    if ((arg0 == D_actor_403600_801606A8) && (temp_s0->field_774 == 0)) {
-        temp_s0->field_4B8.coord.t[0] += temp_v1_2->delta.vx.h.hi;
-        temp_s0->field_4B8.coord.t[1] += temp_v1_2->delta.vy.h.hi;
-        temp_s0->field_4B8.coord.t[2] += temp_v1_2->delta.vz.h.hi;
-        SOFT_USE_REG(temp_v1_2);
-    }
-block_after_collision:
-    if ((s16)temp_s0->field_744 != 0) {
-        temp_v0_2          = (u16)temp_s0->field_744 - 1;
-        temp_s0->field_744 = temp_v0_2;
-        if ((temp_v0_2 << 0x10) <= 0) {
-            temp_s0->field_744 = 0;
-        }
-    }
-    player_status = &Player_Status;
-    data_ec8      = &D_actor_403600_80150EC8;
-    one           = 1;
-    rng           = (u32*)0x80070000;
-    SOFT_USE_REG(rng);
-    /* A byte cursor steps through the four `field_528` contact records from
-     * the start of the work block, reaching each at the table's offset and
-     * stopping at the table's size; indexing the table instead rebuilds the
-     * whole loop. */
-    var_s2 = (u8*)temp_s0;
-loop_14:
-    temp_v1_3 = *(u16*)(var_s2 + 0x52E);
-    temp_v1_4 = temp_v1_3 == one;
-    if (temp_v1_4) {
-        goto block_83;
-    }
-    if (temp_v1_3 != 2) {
-        goto block_83;
-    }
-    if ((s16)temp_s0->field_744 != 0) {
-        goto block_83;
-    }
-    temp_v0_3             = player_status->coordMtx->t[0] - temp_s0->field_4B8.coord.t[0];
-    temp_lo               = temp_v0_3 * temp_v0_3;
-    temp_v1_2->delta.vx.w = temp_v0_3;
-    temp_v0_4             = player_status->coordMtx->t[1] - 0x7D0;
-    temp_v0_4            -= temp_s0->field_4B8.coord.t[1];
-    temp_v1_2->delta.vy.w = temp_v0_4;
-    temp_v1_4             = player_status->coordMtx->t[2] - temp_s0->field_4B8.coord.t[2];
-    var_s1                = 0;
-    SOFT_TOUCH_REG(var_s1);
-    temp_v1_2->delta.vz.w = temp_v1_4;
-    var_s3                = Gp_ComputeDamage(((GpRec18*)(var_s2 + 0x528))->key, SquareRoot0(temp_lo + (temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4)), 0, 0);
-    if (Gp_RollEnemyChance(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0) != 0) {
-        var_s1  = 1;
-        var_s3 *= 4;
-    }
-    var_v1 = var_s1;
-    if (temp_s0->field_7AE != 0) {
-        var_s1  = 2;
-        var_s3 *= 2;
-        if (temp_s0->field_758 >= 0xC9) {
-            temp_s0->field_7AE = 0;
-        }
-    }
-    var_v1 = var_s1;
-    if (var_v1 == one) {
-        var_a0     = 0x6009C;
-        effect_obj = arg0->extra.tmd;
-        var_a2     = 0;
-        goto block_27;
-    }
-    if (var_v1 == 2) {
-        var_a0     = 0x6009C;
-        effect_obj = arg0->extra.tmd;
-        var_a2     = 3;
-    block_27:
-        Gp_SpawnEff(var_a0, &effect_obj->coords[1], var_a2, 0);
-    }
-    temp_v1_5 = Gp_GetIdParam0(((GpRec18*)(var_s2 + 0x528))->key) & 0xFFFF;
-    switch (temp_v1_5) {
+    work    = arg0->work;
+    scratch = SCRATCH_PUSH(Actor403600DamageScratch);
+    enemy   = arg0->spawnArg2;
+    switch (func_800E0C10(work->field_528, &scratch->delta, 4, 0)) {
         case 0:
             break;
-        case 2:
-            if (temp_s0->field_784 == 0) {
-                temp_s0->field_7AE = 0;
-                Gp_SetObjFlag2(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
-                if (((u32)((u16)temp_s0->field_736 - 0x10) < 2U) && ((u32)((u16)temp_s0->field_73A - 6) < 0x18U)) {
-                    temp_s0->field_790 = data_ec8->flag2Ticks;
-                }
-                if ((temp_s0->field_736 == one) && (temp_s0->field_73A < 0x1E)) {
-                    temp_s0->field_790 = data_ec8->flag2Ticks;
-                }
+        case 1:
+            if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
+                work->field_4B8.coord.t[0] += scratch->delta.vx.h.hi;
+                work->field_4B8.coord.t[1] += scratch->delta.vy.h.hi;
+                work->field_4B8.coord.t[2] += scratch->delta.vz.h.hi;
             }
             break;
-        case 3:
-            if ((temp_s0->field_784 == 0) && (temp_s4->hp >= 0x1F5)) {
-                Gp_SetObjFlag4(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
+        case 2:
+            if ((arg0 == D_actor_403600_801606A8) && (work->field_774 == 0)) {
+                work->field_4B8.coord.t[0] += scratch->delta.vx.h.hi;
+                work->field_4B8.coord.t[1] += scratch->delta.vy.h.hi;
+                work->field_4B8.coord.t[2] += scratch->delta.vz.h.hi;
             }
-            if (((GpRec18*)(var_s2 + 0x528))->key & 8) {
-                temp_v0_5                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
-                ACTOR403600_RNG_VALUE(rng) = temp_v0_5;
-                if ((temp_v0_5 >> 0x10) & 1) {
-                    temp_s0->field_758 = 0xC8;
+            break;
+    }
+    if ((s16)work->field_744 != 0) {
+        work->field_744--;
+        if ((s16)work->field_744 <= 0) {
+            work->field_744 = 0;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if ((u16)(work->field_528[i].key >> 16) == 1) {
+            continue;
+        }
+        if ((u16)(work->field_528[i].key >> 16) != 2) {
+            continue;
+        }
+        if ((s16)work->field_744 != 0) {
+            continue;
+        }
+        dx                  = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
+        scratch->delta.vx.w = dx;
+        dy                  = Player_Status.coordMtx->t[1] - 2000;
+        dy                 -= work->field_4B8.coord.t[1];
+        scratch->delta.vy.w = dy;
+        dz                  = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
+        hitKind             = 0;
+        scratch->delta.vz.w = dz;
+        damage              = Gp_ComputeDamage(work->field_528[i].key,
+                                               SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w),
+                                               0, 0);
+        if (Gp_RollEnemyChance(arg0->spawnArg2, work->field_528[i].key, 0) != 0) {
+            hitKind = 1;
+            damage *= 4;
+        }
+        if (work->field_7AE != 0) {
+            hitKind = 2;
+            damage *= 2;
+            if (work->field_758 > 200) {
+                work->field_7AE = 0;
+            }
+        }
+        if (hitKind == 1) {
+            Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 0, 0);
+        } else if (hitKind == 2) {
+            Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, 0);
+        }
+        switch ((u16)Gp_GetIdParam0(work->field_528[i].key)) {
+            case 0:
+                break;
+            case 2:
+                if (work->field_784 == 0) {
+                    work->field_7AE = 0;
+                    Gp_SetObjFlag2(arg0->spawnArg2, work->field_528[i].key, 0);
+                    if (((u16)work->field_736 - 0x10 < 2U) && ((u16)work->field_73A - 6 < 0x18U)) {
+                        work->field_790 = D_actor_403600_80150EC8.flag2Ticks;
+                    }
+                    if ((work->field_736 == 1) && (work->field_73A < 30)) {
+                        work->field_790 = D_actor_403600_80150EC8.flag2Ticks;
+                    }
                 }
-                if ((u32)((u16)temp_s0->field_736 - 0x10) < 2U) {
-                    temp_s0->field_7AE = 0;
-                    if (temp_s0->field_73A < 0x1E) {
-                        temp_s0->field_730 = 4;
-                        temp_s0->field_790 = data_ec8->flag2Ticks * 0xA;
+                break;
+            case 3:
+                if ((work->field_784 == 0) && (enemy->hp > 500)) {
+                    Gp_SetObjFlag4(arg0->spawnArg2, work->field_528[i].key, 0);
+                }
+                if (work->field_528[i].key & 8) {
+                    if (_actor403600Rand() & 1) {
+                        work->field_758 = 200;
+                    }
+                    if ((u16)work->field_736 - 0x10 < 2U) {
+                        work->field_7AE = 0;
+                        if (work->field_73A < 30) {
+                            work->field_730 = 4;
+                            work->field_790 = D_actor_403600_80150EC8.flag2Ticks * 10;
+                        }
+                    }
+                }
+                break;
+            case 1:
+            case 4:
+                if (work->field_7AE != 0) {
+                    Gp_SetObjFlag1(enemy);
+                    work->field_7AE = 0;
+                    if (((u16)(_actor403600Rand() % 10) == 0) && (work->field_78C == 0) && (work->field_7A6 == 0)) {
+                        work->field_79E       = 0;
+                        work->field_73A       = 0;
+                        work->field_730       = 5;
+                        enemy->reactionFlags &= 0xFE;
+                    }
+                }
+            case 6:
+            case 7:
+            case 9:
+                hpMax = (s16)work->field_78A;
+                if (enemy->hp < hpMax / 10) {
+                    work->field_7AE = 0;
+                    if ((work->field_78C == 0) && (work->field_7A6 == 0)) {
+                        work->field_79E       = 0;
+                        work->field_73A       = 0;
+                        work->field_730       = 5;
+                        enemy->reactionFlags &= 0xFE;
+                    }
+                }
+                break;
+        }
+        if (work->field_7A4 != 0) {
+            key = work->field_528[i].key;
+            if ((key == 0x28003) || (key == 0x28006) || (key == 0x2800F)) {
+                work->field_7AE = 0;
+                if ((work->field_78C == 0) && (work->field_7A6 == 0)) {
+                    work->field_79E       = 0;
+                    work->field_73A       = 0;
+                    work->field_730       = 5;
+                    enemy->reactionFlags &= 0xFE;
+                }
+            }
+        }
+        if (arg0 != D_actor_403600_801606A8) {
+            func_800E2C78(enemy, work->field_528[i].key, damage, 0);
+            if (work->field_528[i].key & 8) {
+                if ((_actor403600Rand() & 3) == 0) {
+                    Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, 0);
+                    func_800DA6E8(&enemy->node, 999, 0);
+                    work->field_742 = 1;
+                    return;
+                }
+            }
+            func_actor_403600_80141C7C(arg0, damage);
+        } else {
+            func_800E2C78(enemy, work->field_528[i].key, damage, 0);
+            func_actor_403600_8013DAF4(arg0, damage);
+            if (work->field_730 == 1) {
+                for (j = 0; j < 5; j++) {
+                    if (damage >= D_actor_403600_8016066C[j].threshold) {
+                        work->field_796 = D_actor_403600_8016066C[j].field_2;
+                        work->field_7A0 = D_actor_403600_8016066C[j].field_4;
                     }
                 }
             }
-            break;
-        case 1:
-        case 4:
-            if (temp_s0->field_7AE != 0) {
-                Gp_SetObjFlag1(temp_s4);
-                var_a0                     = 0x71350000;
-                var_a0                    |= 0x7911;
-                random_value               = ACTOR403600_RNG_VALUE(rng);
-                temp_v1_5                  = random_value * 4;
-                temp_v1_5                 += random_value;
-                temp_v1_5                 += var_a0;
-                temp_s0->field_7AE         = 0;
-                ACTOR403600_RNG_VALUE(rng) = temp_v1_5;
-                if (!(((temp_v1_5 >> 0x10) - (((temp_v1_5 >> 0x10) / 10U) * 10)) & 0xFFFF) && (temp_s0->field_78C == 0) && (temp_s0->field_7A6 == 0)) {
-                    temp_s0->field_79E     = 0;
-                    temp_s0->field_73A     = 0U;
-                    temp_s0->field_730     = 5;
-                    temp_s4->reactionFlags = (u8)(temp_s4->reactionFlags & 0xFE);
-                    case 6:
-                    case 7:
-                    case 9:
-                }
-            }
-            temp_v1_6 = (s16)temp_s0->field_78A;
-            temp_v1_6 = temp_v1_6 / 10;
-            if (temp_s4->hp < temp_v1_6) {
-                temp_s0->field_7AE = 0;
-                if ((temp_s0->field_78C == 0) && (temp_s0->field_7A6 == 0)) {
-                    temp_s0->field_79E     = 0;
-                    temp_s0->field_73A     = 0U;
-                    temp_s0->field_730     = 5;
-                    temp_s4->reactionFlags = (u8)(temp_s4->reactionFlags & 0xFE);
-                }
-            }
-            break;
-    }
-    if (temp_s0->field_7A4 != 0) {
-        temp_v1_8 = ((GpRec18*)(var_s2 + 0x528))->key;
-        if ((temp_v1_8 == 0x28003) || (temp_v1_8 == 0x28006) || (temp_v1_8 == 0x2800F)) {
-            temp_s0->field_7AE = 0;
-            if (temp_s0->field_78C == 0) {
-                if (temp_s0->field_7A6 == 0) {
-                    temp_s0->field_79E     = 0;
-                    temp_s0->field_73A     = 0U;
-                    temp_s0->field_730     = 5;
-                    temp_s4->reactionFlags = (u8)(temp_s4->reactionFlags & 0xFE);
-                }
-            }
+        }
+        work->field_758 += damage;
+        if ((enemy->hp > 0) && (arg0 == D_actor_403600_801606A8)) {
+            func_800FDB18((u16)Gp_GetIdParam1(work->field_528[i].key), &work->field_4B8, &work->field_6E8, &work->field_658);
+        }
+        stun = Gp_GetIdParam2(work->field_528[i].key);
+        if (stun > 0) {
+            work->field_744 = stun;
+        }
+        func_actor_403600_8013E470(&work->field_4B8, &sp10, &sp14);
+        if (__builtin_abs(sp14) <= 0x400) {
+            work->field_700 = ((_actor403600Rand() & 3) << 5) + 0x80;
+        } else {
+            work->field_700  = -(((_actor403600Rand() & 3) << 5) + 0x80);
+            work->field_796 *= -1;
         }
     }
-    if (arg0 != D_actor_403600_801606A8) {
-        func_800E2C78(temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
-        if (((GpRec18*)(var_s2 + 0x528))->key & 8) {
-            temp_v0_6                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
-            ACTOR403600_RNG_VALUE(rng) = temp_v0_6;
-            if (((temp_v0_6 >> 0x10) & 3) == 0) {
-                goto block_fatal;
-            }
-        }
-        func_actor_403600_80141C7C(arg0, var_s3);
-        goto block_73;
+    Gp_ClearRec18Occupied(work->field_528);
+    other = work->field_5A8;
+    if (Gp_FindRec18(other, 0) != 0) {
+        Gp_ClearRec18Occupied(other);
+        work->field_588.flags &= 0x7FFF;
     }
-    func_800E2C78(temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
-    func_actor_403600_8013DAF4(arg0, var_s3);
-    if (temp_s0->field_730 == one) {
-        var_a0   = 0;
-        var_v1_2 = D_actor_403600_8016066C;
-        do {
-            if (var_s3 >= var_v1_2->threshold) {
-                temp_s0->field_796 = var_v1_2->field_2;
-                temp_s0->field_7A0 = var_v1_2->field_4;
-            }
-            var_a0 += 1;
-            SOFT_TOUCH_REG(var_v1_2);
-            var_v1_2 += 1;
-        } while (var_a0 < 5);
-    }
-block_73:
-    temp_s0->field_758 = (u16)temp_s0->field_758 + var_s3;
-    if ((temp_s4->hp > 0) && (arg0 == D_actor_403600_801606A8)) {
-        func_800FDB18(Gp_GetIdParam1(((GpRec18*)(var_s2 + 0x528))->key) & 0xFFFF, &temp_s0->field_4B8, &temp_s0->field_6E8, &temp_s0->field_658);
-    }
-    temp_v0_7 = Gp_GetIdParam2(((GpRec18*)(var_s2 + 0x528))->key);
-    if ((temp_v0_7 << 0x10) > 0) {
-        temp_s0->field_744 = temp_v0_7;
-    }
-    func_actor_403600_8013E470(&temp_s0->field_4B8, &sp10, &sp14);
-    var_v0 = sp14;
-    if (var_v0 < 0) {
-        var_v0 = -var_v0;
-    }
-    if (var_v0 < 0x401) {
-        temp_v0_8                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
-        ACTOR403600_RNG_VALUE(rng) = temp_v0_8;
-        temp_s0->field_700         = (s16)(((temp_v0_8 >> 0xB) & 0x60) + 0x80);
-    } else {
-        temp_v0_9                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
-        ACTOR403600_RNG_VALUE(rng) = temp_v0_9;
-        temp_s0->field_700         = (s16) - (((temp_v0_9 >> 0xB) & 0x60) + 0x80);
-        negated_speed              = -temp_s0->field_796;
-        temp_s0->field_796         = negated_speed;
-    }
-block_83:
-    var_s2 += 0x18;
-    if ((s32)var_s2 >= (s32)((u8*)temp_s0 + 0x60)) {
-        Gp_ClearRec18Occupied(temp_s0->field_528);
-        temp_s1 = temp_s0->field_5A8;
-        if (Gp_FindRec18(temp_s1, 0) != 0) {
-            Gp_ClearRec18Occupied(temp_s1);
-            temp_s0->field_588.flags &= 0x7FFF;
-        }
-        SCRATCH_POP_BYTES(0x48);
-        return;
-    }
-    goto loop_14;
+    SCRATCH_POP(Actor403600DamageScratch);
 }
 
 s32 func_actor_403600_8013D9A8(Task* arg0)

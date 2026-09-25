@@ -140746,3 +140746,19 @@ the head store after the field writes is the compound push
 above). Its copies in other rooms (`dryfield_motel_balcony`, `mine_cavern`,
 `mine_secret_passage`, `neo_ark_north_promenade`, `dryfield_toilet`) carry the
 same pins.
+
+## A `%hi` hoisted into a saved register across a function means a real loop, not a pointer to the symbol (func_actor_403600_8013D15C, 2026-09-26)
+
+The target kept `lui $s6, %hi(Gp_LcgState)` live through the whole function and
+used `%lo(Gp_LcgState)($s6)` at five sites; the old source faked it with a
+hard-coded `0x80070000` base, which matched the words but dropped every
+relocation. The body was a goto-built loop. Written as a real
+`for (i = 0; i < 4; i++)`, loop.c hoists `%hi(Gp_LcgState)`, the constant 1
+and two other addresses on its own. Loop uses count double in the allocator's
+reference counts, so two natural features supplied the extra uses the target's
+register choice needs, both later removed: a value re-read from the scratch
+block (early CSE keeps the loads, post-reload CSE deletes them) and a `switch`
+with two identical case bodies (cross-jumping merges them after reload).
+splat may still fail to pair some `%lo` uses with such a distant `%hi`; declare
+those in the package's `relocs` file (`configs/USA/rel.<package>.txt`) so the
+objdiff target carries the relocation too.

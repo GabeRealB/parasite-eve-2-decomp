@@ -1,0 +1,10 @@
+// Reloc overrides for the actor_403600 package (same format as rel.main.txt).
+//
+// func_actor_403600_8013D15C keeps %hi(Gp_LcgState) in $s6 across its loop.
+// splat pairs most of the %lo uses with that hoisted %hi but misses these four,
+// leaving a bare 0xF60 in the target, so objdiff reports the compiled
+// relocation against it as a difference.
+rom:0xB6F8 reloc:MIPS_LO16 symbol:Gp_LcgState
+rom:0xB70C reloc:MIPS_LO16 symbol:Gp_LcgState
+rom:0xB798 reloc:MIPS_LO16 symbol:Gp_LcgState
+rom:0xB7C0 reloc:MIPS_LO16 symbol:Gp_LcgState

@@ -3177,6 +3177,7 @@ objects = [
 [actors.overlays.actor_403600]
 slot = 1
 id = 255
+relocs = "configs/USA/rel.actor_403600.txt"
 objects = [
   # Every compiled jump table sits at an offset that is 0 mod 8 (the first
   # at 0x28), so the rodata after the id cannot be one object from 0x4: an
