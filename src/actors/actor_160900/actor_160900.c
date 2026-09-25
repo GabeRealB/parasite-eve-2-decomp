@@ -55,40 +55,30 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
 /// against the step's `field_0`.
 ///
-/// The first 0xC bytes are the context of the screen-wave task
-/// `func_actor_160900_80131EB0`, which the `field_4C == 4` request spawns with
-/// this block as its argument: `field_6` ramps up to `field_0` frames (ramp
-/// state `field_4` 0) or back down to zero (state 1, then 2, which ends the
-/// wave), and the wave amplitude is `field_6 * field_2 / field_0`. A non-zero `field_8` tints the
-/// wave with `field_9` / `field_A` / `field_B`; the block is zeroed at
-/// allocation and this overlay never sets it.
+/// `wave` is the context of the screen-wave task `func_actor_160900_80131EB0`,
+/// which the `field_4C == 4` request spawns with it as the argument after
+/// setting an eight-frame ramp; the `field_4C == 5` request ends the wave.
+/// The block is zeroed at allocation and this overlay never sets the tint.
 typedef struct Actor160900Work {
-    /* 0x00 */ s16   field_0; // wave ramp length, set to 8 before the 0x4C == 4 spawn
-    /* 0x02 */ s16   field_2; // wave amplitude scale, set to 0x80 alongside field_0
-    /* 0x04 */ s16   field_4; // wave ramp state, set to 2 by 0x4C == 5
-    /* 0x06 */ s16   field_6; // wave ramp frame
-    /* 0x08 */ u8    field_8; // tint enable
-    /* 0x09 */ u8    field_9;
-    /* 0x0A */ u8    field_A;
-    /* 0x0B */ u8    field_B;
-    /* 0x0C */ Task* field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task* field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
-    /* 0x38 */ Task* field_38;    // D_actor_160900_8013FB50[3]
-    /* 0x3C */ Task* field_3C;    // D_actor_160900_8013FB50[5]
-    /* 0x40 */ Task* field_40;    // D_actor_160900_8013FB50[6]
-    /* 0x44 */ Task* field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
-    /* 0x48 */ byte  pad_48[4];
-    /* 0x4C */ s16   field_4C;
-    /* 0x4E */ s16   field_4E;
-    /* 0x50 */ byte  pad_50[4];
-    /* 0x54 */ s16   field_54;
-    /* 0x56 */ s16   field_56;
-    /* 0x58 */ byte  pad_58[4];
-    /* 0x5C */ s16   field_5C;
-    /* 0x5E */ s16   field_5E;
-    /* 0x60 */ byte  pad_60[4];
-    /* 0x64 */ u16   field_64;
-    /* 0x66 */ u16   field_66;
+    /* 0x00 */ ActorWaveCtx wave;
+    /* 0x0C */ Task*        field_C[10]; // child tasks, killed on death
+    /* 0x34 */ Task*        field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x38 */ Task*        field_38;    // D_actor_160900_8013FB50[3]
+    /* 0x3C */ Task*        field_3C;    // D_actor_160900_8013FB50[5]
+    /* 0x40 */ Task*        field_40;    // D_actor_160900_8013FB50[6]
+    /* 0x44 */ Task*        field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
+    /* 0x48 */ byte         pad_48[4];
+    /* 0x4C */ s16          field_4C;
+    /* 0x4E */ s16          field_4E;
+    /* 0x50 */ byte         pad_50[4];
+    /* 0x54 */ s16          field_54;
+    /* 0x56 */ s16          field_56;
+    /* 0x58 */ byte         pad_58[4];
+    /* 0x5C */ s16          field_5C;
+    /* 0x5E */ s16          field_5E;
+    /* 0x60 */ byte         pad_60[4];
+    /* 0x64 */ u16          field_64;
+    /* 0x66 */ u16          field_66;
 } Actor160900Work;
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 
@@ -161,9 +151,9 @@ extern s16 D_800691CA;
 /// running context, recomputed every frame.
 extern s32 D_actor_160900_8013F194;
 
-/// The work block the running wave task was spawned with, parked at spawn so
+/// The context the running wave task was spawned with, parked at spawn so
 /// the tick reads the ramp through it.
-extern Actor160900Work* D_actor_160900_8013FBB0;
+extern ActorWaveCtx* D_actor_160900_8013FBB0;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
@@ -182,15 +172,15 @@ extern ActorWaveRec6 D_actor_160900_8013FC08[30];
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_160900_80131EB0(Task* arg0)
 {
-    Actor160900Work* ctx;
-    POLY_FT4*        p;
-    DR_STP*          stp;
-    s32              i, j, k;
-    s32              drawY;
-    s32              tpage0, tpage1;
-    s32              u0, u1, v0, v1;
-    s32              waveX0, waveY0, waveX1, waveY1;
-    s32              waveX2, waveY2, waveX3, waveY3;
+    ActorWaveCtx* ctx;
+    POLY_FT4*     p;
+    DR_STP*       stp;
+    s32           i, j, k;
+    s32           drawY;
+    s32           tpage0, tpage1;
+    s32           u0, u1, v0, v1;
+    s32           waveX0, waveY0, waveX1, waveY1;
+    s32           waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
@@ -827,13 +817,13 @@ void func_actor_160900_80133238(Task* arg0)
             }
             return;
         case 4:
-            work->field_0 = 8;
-            work->field_2 = 0x80;
-            Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, (s32)work);
+            work->wave.field_0 = 8;
+            work->wave.field_2 = 0x80;
+            Task_SpawnFromTable(&D_actor_160900_8013F17C, 0, 0, (s32)&work->wave);
             work->field_4C = 0;
             return;
         case 5:
-            work->field_4 = 2;
+            work->wave.field_4 = 2;
             break;
         case 6:
             func_actor_160900_SetAnimZ(arg0, 2);

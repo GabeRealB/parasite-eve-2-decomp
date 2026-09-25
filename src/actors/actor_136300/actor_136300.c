@@ -42,7 +42,7 @@ extern s32 D_actor_136300_80132ADC;
 
 /// The ramp context the running wave task was spawned with, parked at spawn
 /// so the tick reads the ramp through it.
-extern Actor136300WaveCtx* D_actor_136300_8013C888;
+extern ActorWaveCtx* D_actor_136300_8013C888;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
@@ -51,7 +51,7 @@ extern ActorWaveRec6 D_actor_136300_8013C8DC[30];
 
 /// The ramp context the message handler seeds and hands to the screen-wave
 /// task.
-extern Actor136300WaveCtx D_actor_136300_8013C99C;
+extern ActorWaveCtx D_actor_136300_8013C99C;
 
 /// Spawn table of the screen-wave task.
 extern TaskDesc D_actor_136300_80132AC4;
@@ -68,15 +68,15 @@ extern TaskDesc D_actor_136300_80132AC4;
 /// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
 void func_actor_136300_80131E40(Task* arg0)
 {
-    Actor136300WaveCtx* ctx;
-    POLY_FT4*           p;
-    DR_STP*             stp;
-    s32                 i, j, k;
-    s32                 drawY;
-    s32                 tpage0, tpage1;
-    s32                 u0, u1, v0, v1;
-    s32                 waveX0, waveY0, waveX1, waveY1;
-    s32                 waveX2, waveY2, waveX3, waveY3;
+    ActorWaveCtx* ctx;
+    POLY_FT4*     p;
+    DR_STP*       stp;
+    s32           i, j, k;
+    s32           drawY;
+    s32           tpage0, tpage1;
+    s32           u0, u1, v0, v1;
+    s32           waveX0, waveY0, waveX1, waveY1;
+    s32           waveX2, waveY2, waveX3, waveY3;
 
     D_800691CA = 2;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
