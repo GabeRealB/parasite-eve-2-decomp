@@ -1,6 +1,10 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
+#include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -13,30 +17,236 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 
-#include "actors/actor_341900.h"
+/// Position and Euler rotation payload: sent to slot 3 as message 0x3E9, and
+/// to the child actors as message 0x7D4, whose handler
+/// `func_actor_341900_801632A0` copies the longs onto the model's root
+/// translation and applies the shorts as Y, X, Z rotations.
+typedef struct Actor341900MsgPos {
+    /* 0x00 */ VECTOR  pos;
+    /* 0x10 */ SVECTOR rot;
+} Actor341900MsgPos;
+STATIC_ASSERT_SIZEOF(Actor341900MsgPos, 0x18);
 
-extern GpMsgEntry D_actor_341900_80163A38[];
+/// Work block of the overlay's sequence/event task -- the one
+/// `D_actor_341900_80164208` points at.
+///
+/// `func_actor_341900_80162EFC` allocates it with `memCalloc(0x70, 0)`,
+/// `Mem_Set`s the same 0x70 bytes over it and stores it in its own task's
+/// `Task::work` slot (0x1C), which is not a `TaskIdMap` here, then publishes
+/// that task in `D_actor_341900_80164208`. The script callbacks from
+/// `func_actor_341900_80163388` on reach the block that way,
+/// `(Actor341900Work*)D_actor_341900_80164208->work`; the two dispatchers
+/// `func_actor_341900_801628B8` / `func_actor_341900_80162AD4` are handed the
+/// same task as their argument and index it identically.
+///
+/// `field_0` is the `gameGetPtrSlot(3)` task the overlay's messages are aimed
+/// at (0x3E8 and 0x3F3), and `field_8` / `field_C` / `field_10` are child tasks
+/// the senders null-check first (0x7D5 goes to `field_8`);
+/// `func_actor_341900_80163488` disposes of `field_8` by killing it and clearing
+/// the slot, and `func_actor_341900_801634D0` does the same for `field_C` and
+/// `field_10` in turn.
+///
+/// `field_5C` and `field_64` are one-shot request states: a dispatcher switches
+/// on the state through a jump table and clears it back to 0 on the way out, so
+/// writing it runs that state once. `func_actor_341900_80163564` requests state
+/// `field_5C`, `func_actor_341900_80163584` state `field_64`, and each also
+/// resets the halfword beside it -- `field_5E` / `field_66` -- the step within
+/// the state, which the dispatcher compares against 0 and 1 and increments.
+/// `field_68` is cleared as that step advances, and `field_6C` is a 0/1 latch
+/// shared by `func_actor_341900_801633F8` (sets it, then calls
+/// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
+/// `Gp_SpawnWeaponEff` while it is set, then clears it).
+typedef struct Actor341900Work {
+    /* 0x00 */ Task*             field_0; // gameGetPtrSlot(3)
+    /* 0x04 */ Task*             field_4; // Gp_FindWorkById(session slot)->field_0
+    /* 0x08 */ Task*             field_8;
+    /* 0x0C */ Task*             field_C;
+    /* 0x10 */ Task*             field_10;
+    /* 0x14 */ Actor341900MsgPos field_14;
+    /* 0x2C */ Actor341900MsgPos field_2C;
+    /* 0x44 */ Actor341900MsgPos field_44;
+    /* 0x5C */ s16               field_5C;
+    /* 0x5E */ s16               field_5E;
+    /* 0x60 */ byte              pad_60[0x4];
+    /* 0x64 */ s16               field_64;
+    /* 0x66 */ s16               field_66;
+    /* 0x68 */ s16               field_68;
+    /* 0x6A */ byte              pad_6A[0x2];
+    /* 0x6C */ u16               field_6C;
+    /* 0x6E */ byte              pad_6E[0x2];
+} Actor341900Work;
+STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
+
+/// Session id payload sent to slot 4 as message 0x7DA, asking for the 0x7DB
+/// reply. `field_0` takes `GameSession.at4.loc.stage` and `field_1`
+/// `at4.loc.area`, the pair `func_actor_341900_80162EFC` also hands
+/// `Gp_FindWorkById` to find the session's work object. `field_2` is a
+/// selector: that function sends 0, the script callback
+/// `func_actor_341900_80163334` sends the script's argument.
+typedef struct Actor341900Msg7DA {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} Actor341900Msg7DA;
+STATIC_ASSERT_SIZEOF(Actor341900Msg7DA, 0x4);
+
+/// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
+/// and parked in that task's `Task::work` slot, which is not a `TaskIdMap`
+/// here. The two matrices are the light/colour pair the function republishes
+/// onto `TmdObject::lightMtx` / `field_20` -- the pair `Gp_BindDefaultMtx`
+/// otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2` -- and `field_40` is
+/// the `Task::spawnArg2` spawner, which the same function reparents to the
+/// actor.
+typedef struct Actor341900ColorMtx {
+    /* 0x00 */ MATRIX light;
+    /* 0x20 */ MATRIX color;
+    /* 0x40 */ Task*  field_40;
+} Actor341900ColorMtx;
+STATIC_ASSERT_SIZEOF(Actor341900ColorMtx, 0x44);
+
+/// Channel block of the overlay's fade task `func_actor_341900_80163148`,
+/// sized by its own `memCalloc(8, 0)` and parked in that task's `Task::work`
+/// slot. The three channels start at 0xFF and fall by the task's `spawnArg1`
+/// each frame.
+typedef struct Actor341900Fade {
+    /* 0x0 */ byte pad_0[0x2];
+    /* 0x2 */ s16  r;
+    /* 0x4 */ s16  g;
+    /* 0x6 */ s16  b;
+} Actor341900Fade;
+STATIC_ASSERT_SIZEOF(Actor341900Fade, 0x8);
+
+/// Controller task of this overlay, published by `func_actor_341900_80162EFC`
+/// and read by the sequence helpers that hang their work off its `Task::work`.
+extern Task* D_actor_341900_80164208;
+
+/// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
+/// `func_actor_341900_801625B4` copies the first three halves onto part 0's
+/// `GsCOORDINATE2::coord.t` and hangs that part off entry `field_6` of the
+/// spawner model's own coordinate array, so a record is a spawn offset plus the
+/// bone the actor is attached to. The first three records are all zero and only
+/// `field_6` is under 9 in the rest, which is what sizes a model's part array.
+typedef struct Actor341900SpawnPos {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} Actor341900SpawnPos;
+STATIC_ASSERT_SIZEOF(Actor341900SpawnPos, 0x8);
+
+extern Actor341900SpawnPos D_actor_341900_80163A98[6];
+
+/// Work block `func_actor_341900_80162330` allocates with `Mem_Malloc(0x258, 0)`
+/// and parks in its own task's `Task::work` slot, which is a `TaskIdMap*` only
+/// by type. `field_248` is the task that spawned this actor, copied there from
+/// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
+/// model to inherit its spawn position and its colour flag.
+///
+/// `field_66` is the animation frame, masked to 10 bits, and
+/// `func_actor_341900_80162708` acts on two of its values: at 0x12 and 0x18 it
+/// reparents the actor to a freshly spawned script and clears its message
+/// state, recording each in `field_230` so a frame fires once rather than
+/// every tick it is current. That whole check runs behind `field_254`, which
+/// is matched against `Task::state` and so gates it to the one state the
+/// actor's dispatcher handles it in. `field_24C` and `field_250` are the
+/// actor's second and third child tasks, refreshed every tick alongside the
+/// model.
+typedef struct Actor341900TaskWork {
+    /* 0x000 */ byte  pad_0[0x66];
+    /* 0x066 */ u16   field_66;
+    /* 0x068 */ byte  pad_68[0x1C8];
+    /* 0x230 */ s32   field_230;
+    /* 0x234 */ byte  pad_234[0x14];
+    /* 0x248 */ Task* field_248;
+    /* 0x24C */ Task* field_24C;
+    /* 0x250 */ Task* field_250;
+    /* 0x254 */ u16   field_254;
+    /* 0x256 */ byte  pad_256[0x2];
+} Actor341900TaskWork;
+STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
+
+/// The same 0x258-byte block as `Actor341900TaskWork`, seen from
+/// `func_actor_341900_80162330`, which fills it: an animation context over
+/// eight slots (`func_800B3F84` gets `pad_154` as its scratch area) and the
+/// light/colour matrix pair the model draws with.
+typedef struct Actor341900AnimWork {
+    /* 0x000 */ GpAnimCtx  ctx;
+    /* 0x014 */ GpAnimSlot slots[8];
+    /* 0x154 */ byte       pad_154[0x80];
+    /* 0x1D4 */ MATRIX     light;
+    /* 0x1F4 */ MATRIX     color;
+    /* 0x214 */ s32        field_214;
+    /* 0x218 */ s32        field_218;
+    /* 0x21C */ s32        field_21C;
+    /* 0x220 */ s32        field_220;
+    /* 0x224 */ s32        field_224;
+    /* 0x228 */ byte       pad_228[0x20];
+    /* 0x248 */ Task*      field_248;
+    /* 0x24C */ Task*      field_24C;
+    /* 0x250 */ Task*      field_250;
+    /* 0x254 */ u16        field_254;
+    /* 0x256 */ byte       pad_256[0x2];
+} Actor341900AnimWork;
+STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
+
+/// Animation command `func_actor_341900_80161FD0` copies into
+/// `Actor341900AnimWork::field_214..field_224`: `field_4` is the animation id
+/// and the low half of `field_C` the blend handed to `func_800B4114` (0 resets
+/// the slots instead).
+typedef struct Actor341900AnimCmd {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u16 field_4;
+    /* 0x06 */ u16 pad_6;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor341900AnimCmd;
+STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
+
+/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// base weapon id records are numbered from, and `D_8007218A` selects the
+/// alternate set -- 1 means the second block, anything else the `+0x22` one.
+extern u8 D_80073BA9;
+extern s8 D_8007218A;
+/// Byte the other actor overlays' one-argument setters write; set to 0xC here
+/// beside the stage-3 `D_80062735` mode byte.
+extern s8 D_8007272D;
 
 extern void func_80143490(s32 arg0);
 extern s32  D_80144A74;
 extern s32  D_80144A7C;
 
-extern TaskDesc D_actor_341900_80164190;
-/// Opaque script/table blobs in the overlay's `.data`, handed to
-/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
-extern u8 D_actor_341900_80163B48[];
-extern u8 D_actor_341900_80163FB0[];
-/// Byte the other actor overlays' one-argument setters write; set to 0xC here
-/// beside the stage-3 `D_80062735` mode byte.
-extern s8 D_8007272D;
-
 /// `func_800B4114` is declared locally with a signed `arg2`; see `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+/// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
+extern s32 D_actor_341900_801639A4;
+extern u8  D_actor_341900_801639AC[];
+extern u8  D_actor_341900_801639B8[];
+extern u8  D_actor_341900_801639C4[];
 /// Animation id `func_actor_341900_80161E58` hands every slot to
 /// `func_800B4114`, indexed by `Actor341900AnimWork::field_218`; a negative
 /// entry skips the call.
 extern s16 D_actor_341900_801639D0[];
+/// Placements sent to the two effect children (`field_C` / `field_10`) as
+/// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
+extern Actor341900MsgPos D_actor_341900_801639D8[2];
+extern GpMsgEntry        D_actor_341900_80163A38[];
+extern Actor341900MsgPos D_actor_341900_80163A48;
+extern Actor341900MsgPos D_actor_341900_80163A60;
+extern GpMsgEntry        D_actor_341900_80163A78[];
+/// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
+/// `func_actor_341900_801635A4` also warps slot 3 to the last one.
+extern Actor341900MsgPos D_actor_341900_80163AC8;
+extern Actor341900MsgPos D_actor_341900_80163AE0;
+extern Actor341900MsgPos D_actor_341900_80163AF8;
+extern Actor341900MsgPos D_actor_341900_80163B10;
+extern Actor341900MsgPos D_actor_341900_80163B28;
+/// Opaque script/table blobs in the overlay's `.data`, handed to
+/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
+extern u8       D_actor_341900_80163B48[];
+extern u8       D_actor_341900_80163FB0[];
+extern TaskDesc D_actor_341900_80164190;
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0
 /// is skipped for the eight-slot actor). If every one of them then has
@@ -159,11 +369,11 @@ void func_actor_341900_80162200(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-extern u8         D_actor_341900_801639AC[];
-extern u8         D_actor_341900_801639B8[];
-extern u8         D_actor_341900_801639C4[];
-extern GpMsgEntry D_actor_341900_80163A78[];
-
+/// Shared first tick of the actor's three parts, selected by `spawnArg1`:
+/// allocates and clears the `Actor341900AnimWork` block, binds its matrices to
+/// the model, applies the area's tpage/clut, sets up the part's animation
+/// slots (eight for the body, four for each of the two children, which also
+/// register themselves with the spawner) and reparents the spawner to it.
 void func_actor_341900_80162330(Task* arg0)
 {
     TmdObject*           extra;
@@ -267,8 +477,8 @@ void func_actor_341900_801625B4(Task* arg0)
 /// Per-state body of the actor task. State 0 publishes the part's draw
 /// matrix, state 1 watches the work block's frame counter for the two frames
 /// that respawn the actor's script, and every state but 0 then refreshes the
-/// three child tasks and pushes the model's third coordinate, the actor's own
-/// world position, through the draw matrix.
+/// three child tasks and pushes the translation of the model's second
+/// coordinate through the draw matrix.
 void func_actor_341900_80162708(Task* arg0)
 {
     Actor341900TaskWork* work;
@@ -314,17 +524,6 @@ void func_actor_341900_80162708(Task* arg0)
     pos.vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
     func_800D7A9C(mdl, &pos, 0, 3);
 }
-
-extern u8 D_80073BA9;
-extern s8 D_8007218A;
-/// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
-extern s32 D_actor_341900_801639A4;
-/// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`.
-extern Actor341900MsgPos D_actor_341900_80163AC8;
-extern Actor341900MsgPos D_actor_341900_80163AE0;
-extern Actor341900MsgPos D_actor_341900_80163AF8;
-extern Actor341900MsgPos D_actor_341900_80163B10;
-extern Actor341900MsgPos D_actor_341900_80163B28;
 
 /// Runs the one-shot request in `Actor341900Work::field_5C` against the slot-3
 /// task after pinging it with message 0x3ED, then clears the request. States 1
@@ -406,12 +605,6 @@ void func_actor_341900_801628B8(Task* arg0)
     }
     work->field_5C = 0;
 }
-
-/// Placements sent to the two effect children (`field_C` / `field_10`) as
-/// message 0x7D4 (states 3 and 4), and to `field_8` (states 1 and 2).
-extern Actor341900MsgPos D_actor_341900_801639D8[2];
-extern Actor341900MsgPos D_actor_341900_80163A48;
-extern Actor341900MsgPos D_actor_341900_80163A60;
 
 /// Runs the one-shot request in `Actor341900Work::field_64`, stepping through
 /// `field_66`. States 1 and 2 hand `field_8` an animation (0x7D3) and a
@@ -595,4 +788,224 @@ void func_actor_341900_80162EFC(Task* arg0)
             func_actor_341900_80162AD4(arg0);
             return;
     }
+}
+
+/// Fade task, entry 1 of the overlay's task table: its first tick allocates
+/// the channel block and seeds every channel at 0xFF; each tick then draws the
+/// full-screen fade overlay and steps the channels down by `spawnArg1`,
+/// killing the task once `r` has gone negative.
+void func_actor_341900_80163148(Task* arg0)
+{
+    Actor341900Fade* fade;
+    Actor341900Fade* alloc;
+
+    fade = (Actor341900Fade*)arg0->work;
+    switch (arg0->state) {
+        case 0:
+            alloc      = (Actor341900Fade*)memCalloc(8, 0);
+            arg0->work = (TaskIdMap*)alloc;
+            if (alloc == NULL) {
+                taskKill(arg0);
+                return;
+            }
+            fade         = alloc;
+            fade->b      = 0xFF;
+            fade->g      = 0xFF;
+            fade->r      = 0xFF;
+            arg0->state += 1;
+            /* fallthrough */
+        case 1:
+            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+            fade->r -= (u16)arg0->spawnArg1;
+            fade->g -= (u16)arg0->spawnArg1;
+            fade->b -= (u16)arg0->spawnArg1;
+            if (fade->r < 0) {
+                taskKill(arg0);
+            }
+            break;
+    }
+}
+
+/// Message 0x7D5 handler of both of the overlay's message tables: sets the
+/// draw bits of the task's `TmdObject` from the mode in `arg2`. Mode 0 sets
+/// 0x80 and clears 0x4, mode 1 clears both, mode 2 sets both.
+void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
+{
+    TmdObject* extra;
+
+    extra = (TmdObject*)arg0->extra;
+    switch (arg2) {
+        case 0:
+            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            return;
+        case 1:
+            extra->flags = extra->flags & 0xFF7B;
+            return;
+        case 2:
+            extra->flags = extra->flags | 0x84;
+            return;
+    }
+}
+
+/// Message 0x7D4 handler of both of the overlay's message tables: copies the
+/// placement onto the model's root coordinate, the three longs as its
+/// translation and the three angles as its rotation (Y, then X, then Z), and
+/// marks the coordinate dirty.
+void func_actor_341900_801632A0(Task* task, s32 arg1, Actor341900MsgPos* placement)
+{
+    GsCOORDINATE2* coord;
+    MATRIX*        mtx;
+
+    coord             = ((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = placement->pos.vx;
+    coord->coord.t[1] = placement->pos.vy;
+    mtx               = &coord->coord;
+    coord->coord.t[2] = placement->pos.vz;
+    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
+    Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
+    Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
+    coord->flg = 0;
+}
+
+/// Message 0x7DB handler of the actor's second message table; ignores it.
+void func_actor_341900_8016332C(void)
+{
+}
+
+/// Script callback: sends message 0x7DA to the slot-4 task, tagged with the
+/// current session's two id bytes and the script's selector, asking for the
+/// 0x7DB reply.
+void func_actor_341900_80163334(s16 arg0)
+{
+    Actor341900Msg7DA msg;
+
+    msg.field_0 = gGameSession->at4.loc.stage;
+    msg.field_1 = gGameSession->at4.loc.area;
+    msg.field_2 = arg0;
+    Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+}
+
+void func_actor_341900_80163388(s32 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    Gp_DispatchMsg(work->field_8, 0x7D5, arg0, 0);
+}
+
+void func_actor_341900_801633C0(s32 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
+}
+
+void func_actor_341900_801633F8(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    if (work->field_6C == 0) {
+        work->field_6C = 1;
+        Gp_KillPlayerEffs();
+    }
+}
+
+void func_actor_341900_80163438(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    if (work->field_6C != 0) {
+        Gp_SpawnWeaponEff();
+        work->field_6C = 0;
+        Gp_MsgPlayerWeapon(0);
+    }
+}
+
+void func_actor_341900_80163488(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    if (work->field_8 != NULL) {
+        taskKill(work->field_8);
+        work->field_8 = NULL;
+    }
+}
+
+void func_actor_341900_801634D0(void)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    if (work->field_C != NULL) {
+        taskKill(work->field_C);
+        work->field_C = NULL;
+    }
+    if (work->field_10 != NULL) {
+        taskKill(work->field_10);
+        work->field_10 = NULL;
+    }
+}
+
+void func_actor_341900_80163534(void)
+{
+    Task_SpawnFromTable(&D_actor_341900_80164190, 1, 9, 0);
+}
+
+void func_actor_341900_80163564(s16 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    work->field_5C = arg0;
+    work->field_5E = 0;
+}
+
+void func_actor_341900_80163584(s16 arg0)
+{
+    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+
+    work->field_64 = arg0;
+    work->field_66 = 0;
+}
+
+/// Installs one animation set on slot 3 (message 0x3E8) and then warps it to
+/// the overlay's fixed placement (message 0x3E9), cancelling any pending CD
+/// command replacement on the way out. The set is `D_80073BA9 + 1` for the
+/// alternate weapon block and `D_80073BA9 + 0x22` for the base one; its
+/// `field_4` is 9, the rest of the frame is zero.
+void func_actor_341900_801635A4(void)
+{
+    Actor341900Work* work;
+    GpAnimArg        msg;
+    s32              weaponId;
+    s32              anim;
+
+    work         = (Actor341900Work*)D_actor_341900_80164208->work;
+    weaponId     = D_80073BA9;
+    anim         = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    msg.field_0  = (void*)anim;
+    msg.field_4  = 9;
+    msg.field_8  = 0;
+    msg.field_C  = 0;
+    msg.field_10 = 0;
+    Gp_DispatchMsg(work->field_0, 0x3E8, (s32)&msg, 0);
+    Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_actor_341900_80163B28, 0);
+    CdCmd_CancelReplaceAndActivate();
+}
+
+/// Script callback: queues the replacement overlay load.
+void func_actor_341900_80163638(void)
+{
+    CdCmd_EnqueueReplaceOverlay82();
+}
+
+/// Script callback: queues the overlay load.
+void func_actor_341900_80163658(void)
+{
+    CdCmd_EnqueueOverlay81();
+}
+
+/// Script callback: restores the stream random state, then cancels the
+/// pending overlay replacement and activates the loaded one.
+void func_actor_341900_80163678(void)
+{
+    Gp_RestoreStreamRng();
+    CdCmd_CancelReplaceAndActivate();
 }
