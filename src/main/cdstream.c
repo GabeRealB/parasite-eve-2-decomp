@@ -5,6 +5,11 @@
 #include "main/unknown_syms.h"
 #include "main/cdstream.h"
 
+/* The second byte of D_80068B5C and of D_80068B64 is written as the first
+ * symbol's address plus one. Declaring either pair as a struct or an array
+ * compiles the byte as an offset from a base register, where the original
+ * folds the whole address into the load and store. */
+
 s32 func_80059EE0(CdReadyEntry* arg0)
 {
     struct {
@@ -451,8 +456,10 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                                     chunkSectors = 0x28;
                                 }
                             }
-                            regionState->sectorsPerChunk             = chunkSectors;
-                            channels                                 = &CdStream_Channels;
+                            regionState->sectorsPerChunk = chunkSectors;
+                            channels                     = &CdStream_Channels;
+                            /* CdStream_State sits directly before the channels; reaching it back
+                             * from `channels` keeps one base register for both objects. */
                             channelState                             = (volatile CdStreamState*)channels - 1;
                             *(volatile s32*)&channels->ch[0].spuAddr = channelState->spuBase;
                             /* Keep the channel address stores in initialization order. */
@@ -509,8 +516,9 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                         CdStream_State.spuAddr += CdStream_State.sector->field_C * (((s32)((u16)CdStream_State.ringHalf << 0x10) >> 0xF) + 0x40);
                         SpuSetTransferStartAddr((u32)CdStream_State.spuAddr);
                         *(volatile s32*)&D_80068B70 = CdStream_State.spuAddr;
-                        SpuWrite((u8*)CdStream_State.sector + 0x10, 0x800U);
-                        *(void* volatile*)&D_80068B6C = (u8*)CdStream_State.sector + 0x10;
+                        /* The audio in a header sector starts after the MtsSector header. */
+                        SpuWrite((u8*)(CdStream_State.sector + 1), 0x800U);
+                        *(void* volatile*)&D_80068B6C = CdStream_State.sector + 1;
                         CdStream_State.spuAddr       += 0x7F0;
                     } else {
                         SpuSetTransferStartAddr((u32)CdStream_State.spuAddr);
@@ -745,6 +753,8 @@ void CdStream_SetPitch(s16 arg0)
     s32                     t1;
 
     p = &CdStream_Channels;
+    /* CdStream_State sits directly before the channels; reaching it back from
+     * `p` keeps one base register for both objects. */
     q = (volatile CdStreamState*)p - 1;
 
     if ((q->flags0 >> 1) & 1) {

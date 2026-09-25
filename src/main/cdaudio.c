@@ -119,6 +119,8 @@ s32 CdAudio_DrivePhase0(void)
                 CdStream_Stop();
                 p->field_2 = 2;
             } else {
+                /* CdAudio_Loc sits directly before the interpolator; reaching it back
+                 * from `interp` keeps one base register, which naming it does not. */
                 parent = (volatile CdAudioLocEx*)interp - 1;
                 CdStream_SetPitch((s16)LinInterp_Apply(interp, parent->field_2));
             }
@@ -1071,7 +1073,7 @@ void CdStream_Start(CdStreamParams* arg0)
         temp           = temp + 0x50;
         t0[1].spuAddr2 = temp;
         if (f53 & 2) {
-            ch1           = (CdStreamChannel*)(a3 + 1) + 1;
+            ch1           = &t0[1];
             pitch         = (arg0->pitch * 0xB5) >> 8;
             ch1->pitchAlt = pitch;
             ch1->pitch    = pitch;
@@ -1339,6 +1341,8 @@ void func_8005896C(void)
         channels[1].field_3A = 0xFF;
         channels[1].field_3C = 0x1FC3;
         CdAudio_CopyVoiceData((s8)CdStream_State.voiceL, (s32*)channels);
+        /* The channels follow CdStream_State; addressing them from its symbol
+         * shares its high half, where &CdStream_Channels would load another. */
         CdAudio_CopyVoiceData((s8)CdStream_State.voiceR, (s32*)((CdStreamChannel*)(&CdStream_State + 1) + 1));
         CdStream_State.flags1 &= 0xFE;
         if (CdStream_State.startCb != NULL) {
@@ -1636,6 +1640,8 @@ void CdStream_Drive(void)
                     }
                     if (CdStream_State.flags1 & 1) {
                         CdAudio_CopyVoiceData((s8)CdStream_State.voiceL, (s32*)(&CdStream_State + 1));
+                        /* The channels follow CdStream_State; addressing them from its symbol
+                         * shares its high half, where &CdStream_Channels would load another. */
                         CdAudio_CopyVoiceData((s8)CdStream_State.voiceR, (s32*)((CdStreamChannel*)(&CdStream_State + 1) + 1));
                         CdStream_State.flags1 &= 0xFE;
                     }
