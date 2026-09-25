@@ -141058,3 +141058,24 @@ two packets into one slot back to back, where the open-coded pair shares mask
 registers set up before the loop, and a handful whose operand order differs
 (`addu` of base and index swapped). Try `addPrim` first; keep the open-coded
 form only where it does not match.
+## `lhu; sll 16; beqz; srl 18` is `(u8)(s16field >> 2)`, and `move s1,s0` before a branch chain is an inline argument (func_actor_400500_8013A700, 2026-09-26)
+
+An `s16` field tested and then shifted - `if (f != 0) g((u8)(f >> 2))` - does
+not load `lh`. The sign extension of the field is shared by the test and the
+shift, so combine cannot fold it into the load: the field is loaded `lhu`, the
+extension's `sll 16` stays, the test reads it (`beqz`) and the `sra 18` becomes
+`srl 18` because the `(u8)` keeps no sign bits. The tree had built this by hand
+as `flags = (u32)a28 << 16; shifted = flags >> 18` plus a pin. The `(u16)` cast
+forms (`(u16)f >> 2`, a `u16` local) give `lhu; beqz; srl 2` instead - see the
+`sll 16 + srl 17` entry above, which is about a value already in a register.
+
+The same function had `move $s1,$s0` in the delay slot of the first `beq` of
+an `a || b || c || d` chain, with one arm passing `$s1` and the other `$s0` to
+the same call - pinned as `extraCopy = extra2` plus `SOFT_TOUCH_REG`. It is an
+inline helper whose argument is an expression (`h(arg0, &arg0->extra.tmd->coords[1],
+arg0->extra.tmd)`) rather than a variable: `expand_inline_function` copies a
+non-user-variable argument into the formal's own pseudo, cse folds the second
+`arg0->extra.tmd` load onto the first, and the copy survives only in the arm
+whose label has several predecessors - the single-predecessor arm is reached
+by cse's jump following and reads the original. Passing a named local instead
+substitutes it directly and the copy disappears.

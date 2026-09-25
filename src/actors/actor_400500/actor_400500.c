@@ -4938,21 +4938,34 @@ const TaskFuncTable10 D_actor_400500_80131F7C = { {
     func_actor_400500_8013DACC,
 } };
 
+/// Relights the actor for the world position of `coord`, staged in a `VECTOR`
+/// taken off the scratch stack, and sets the back colour of `obj`: a dim grey
+/// in rooms 1, 3, 5 and 6 of the stage, a green tint everywhere else.
+static inline void _actor400500UpdateColor(Task* arg0, GpCoord* coord, TmdObject* obj)
+{
+    VECTOR* block;
+    u8      room;
+
+    block                = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
+    block->vx            = coord->workm.t[0];
+    block->vy            = coord->workm.t[1];
+    block->vz            = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR) = block;
+    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
+    room = gGameSession->at4.loc.room;
+    if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
+        Gp_SetObjTrans(obj, 0x200, 0x200, 0x200);
+    } else {
+        Gp_SetObjTrans(obj, 0x400, 0x1000, 0x400);
+    }
+    SCRATCH_POP_BYTES(0x10);
+}
+
 void func_actor_400500_8013A700(Task* arg0)
 {
     TmdObject*       extra;
     Actor400500Work* work;
     TaskFuncTable10  sp;
-    TmdObject*       extra2;
-    TmdObject*       extraCopy;
-    u8*              head;
-    u8*              head2;
-    VECTOR*          block;
-    GpCoord*         coord;
-    u8               session;
-    u16              a28;
-    u32              flags;
-    u32              shifted;
 
     extra = arg0->extra.tmd;
     work  = (Actor400500Work*)arg0->work;
@@ -4964,42 +4977,9 @@ void func_actor_400500_8013A700(Task* arg0)
         case 0:
             sp.funcs[(s16)work->field_A06](arg0);
         case 1:
-            extra2 = arg0->extra.tmd;
-            SOFT_USE_REG(extra2);
-            SOFT_USE_REG(extra2);
-            SOFT_USE_REG(extra2);
-            SOFT_USE_REG(extra2);
-            coord = extra2->coords;
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
-            head                   = *(u8**)(head + 0x3FC);
-            coord                  = coord + 1;
-            ((VECTOR*)head)[-1].vx = coord->workm.t[0];
-            block                  = (VECTOR*)(head - 0x10);
-            block->vy              = coord->workm.t[1];
-            block->vz              = coord->workm.t[2];
-            SCRATCH_HEAD(VECTOR)   = block;
-            Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
-            extraCopy = extra2;
-            session   = gGameSession->at4.loc.room;
-            if (session != 1) {
-                SOFT_TOUCH_REG(extraCopy);
-            }
-            if ((session == 1) || (session == 3) || (session == 5) || (session == 6)) {
-                Gp_SetObjTrans(extraCopy, 0x200, 0x200, 0x200);
-            } else {
-                Gp_SetObjTrans(extra2, 0x400, 0x1000, 0x400);
-            }
-            SOFT_USE_REG(extraCopy);
-            __asm__ volatile("lui %0, 0x1F80" : "=r"(head2) : "r"(work));
-            head2            = *(u8**)(head2 + 0x3FC);
-            a28              = work->field_A28;
-            head2           += 0x10;
-            flags            = (u32)a28 << 0x10;
-            SCRATCH_HEAD(u8) = head2;
-            if (flags != 0) {
-                shifted = flags >> 0x12;
-                SOFT_TOUCH_REG(shifted);
-                func_actor_400500_80132AB0(arg0, -0xFA0, shifted & 0xFF);
+            _actor400500UpdateColor(arg0, &arg0->extra.tmd->coords[1], arg0->extra.tmd);
+            if (work->field_A28 != 0) {
+                func_actor_400500_80132AB0(arg0, -0xFA0, (u8)(work->field_A28 >> 2));
                 func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->field_A28);
             }
             return;
