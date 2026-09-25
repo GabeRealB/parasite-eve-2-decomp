@@ -935,7 +935,7 @@ s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
 
     D_replay_bonus_80119290 = (ReplayBonusStfGlyph*)file->field_C;
     D_replay_bonus_80119294 = (ReplayBonusStfHdr*)file->field_8;
-    D_replay_bonus_80119298 = (ReplayBonusStfLine*)((ReplayBonusStfTable*)file->field_10 + 1);
+    D_replay_bonus_80119298 = ((ReplayBonusStfTable*)file->field_10)->lines;
     D_replay_bonus_8011929C = (ReplayBonusStfSpr*)file->field_14;
     return 1;
 }

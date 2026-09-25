@@ -353,6 +353,9 @@ void Title_RestoreDemoCard(void)
     memcpy(&Mc_SaveData, src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
+    /* The save's player block is the first half of `Player_Status`, banked at
+       a 0x40-byte stride; the original computes that stride, so neither
+       `&Player_Status` alone nor a whole-struct stride reproduces it. */
     memcpy((u8*)&Player_Status + bank * 0x40, src, 0x40);
     src += 0x40;
 
@@ -604,7 +607,7 @@ void Title_EnqueueDemoScene(s32 arg0)
     s8              param2[4];
     u8*             param1;
     register void** scratch asm("s0");
-    register void*  head asm("v1");
+    register u8*    head asm("v1");
     GameSession*    gs;
     u8*             p2;
 
@@ -613,14 +616,14 @@ void Title_EnqueueDemoScene(s32 arg0)
     arg0    = arg0 + 0xA;
     p2      = (u8*)param2;
 
-    head                         = SCRATCH_HEAD_AT(scratch, void);
-    param1                       = (u8*)head - 8;
+    head                         = SCRATCH_HEAD_AT(scratch, u8);
+    param1                       = head - 8;
     SCRATCH_HEAD_AT(scratch, u8) = param1;
 
-    gs->field_80    = 0;
-    param1[3]       = 0;
-    param1[2]       = 0x50;
-    ((u8*)head)[-8] = 0;
+    gs->field_80 = 0;
+    param1[3]    = 0;
+    param1[2]    = 0x50;
+    head[-8]     = 0;
 
     param2[0] = arg0;
     param2[3] = 0;

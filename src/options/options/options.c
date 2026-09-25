@@ -226,12 +226,10 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
     s32  one;
     s32  look;
     s32  count;
-    s32  stride;
     s32  status;
 
-    count  = 4;
-    stride = 4;
-    a0tmp  = (s32)arg1;
+    count = 4;
+    a0tmp = (s32)arg1;
     SOFT_TOUCH_REG(a0tmp);
     title = D_options_801D5B78;
     SOFT_TOUCH_REG(title);
@@ -251,7 +249,7 @@ void func_options_801D42A8(DialogPrompt* arg0, UiObject* arg1)
         }
         one = 1;
         Text_DrawPrompt(arg1, x + y / count, arg0->field_1A, *p, look, one, 0);
-        p  = (u8**)((u8*)p + stride);
+        p++;
         y += span;
         i += one;
     } while (i < 4);

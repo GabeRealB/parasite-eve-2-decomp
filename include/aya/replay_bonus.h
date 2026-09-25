@@ -133,9 +133,10 @@ typedef struct ReplayBonusStfLine {
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
 
-/// STF row-table header, followed immediately by `count` credits rows.
+/// STF row table: `count` credits rows, stored right after the count.
 typedef struct ReplayBonusStfTable {
-    /* 0x0 */ s32 count;
+    /* 0x0 */ s32      count;
+    ReplayBonusStfLine lines[0]; // The `count` rows
 } ReplayBonusStfTable;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfTable, 0x4);
 
