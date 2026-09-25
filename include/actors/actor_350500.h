@@ -75,9 +75,34 @@ typedef struct Actor350500Placement {
 } Actor350500Placement;
 STATIC_ASSERT_SIZEOF(Actor350500Placement, 0x18);
 
+/// 0x14-byte animation preset the message-0x7D3 handler
+/// `func_actor_350500_80162828` takes: `field_0` is the bank index,
+/// `field_4` the animation id, `field_8` selects a blended restart once the
+/// slots run and `field_C` is handed to that restart. The placement, approach
+/// and final-turn steps build one on their own stack.
+typedef struct Actor350500AnimPreset {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} Actor350500AnimPreset;
+STATIC_ASSERT_SIZEOF(Actor350500AnimPreset, 0x14);
+
+/// Animation bank table the preset's bank index selects from.
+extern void* D_actor_350500_80168EA0[];
+
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+void func_actor_350500_80162038(Task* arg0);
 void func_actor_350500_8016245C(Task* arg0);
 void func_actor_350500_8016247C(Task* arg0);
+void func_actor_350500_80162498(Task* arg0);
+void func_actor_350500_801624A0(Task* arg0);
 void func_actor_350500_80162508(Task* task);
+void func_actor_350500_801625E4(Task* arg0);
+void func_actor_350500_8016272C(Task* arg0);
+s32  func_actor_350500_80162828(Task* task, s32 arg1, Actor350500AnimPreset* msg, s32 arg3);
 s32  func_actor_350500_80162960(Task* task, s32 msgId, Actor350500Placement* args);
 s32  func_actor_350500_801629DC(Task* task, s32 arg1, s32 mode);
 s32  func_actor_350500_80162ABC(Task* arg0, s32 arg1, Actor350500Msg* arg2);
