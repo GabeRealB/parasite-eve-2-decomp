@@ -1780,12 +1780,12 @@ void func_mine_mesa_801811C4(s32 height)
 /// random from the subset the current view allows, textured from the area's
 /// place record; `D_mine_mesa_80189B6E` then delays the next spawn. When one
 /// kill remains, nothing spawns until both slots are empty. Once the counter
-/// is zero the task hands `Gp_ReleaseStateF0` an empty result record and
+/// is zero the task hands `Gp_ReleaseStateF0` an empty enemy record and
 /// advances its state.
 void func_mine_mesa_80181358(Task* arg0)
 {
     GpAreaKey            key;
-    GpObj5C              result;
+    GpEnemy              result;
     s32                  i;
     s32                  pick;
     u32                  rnd;
@@ -1877,9 +1877,9 @@ void func_mine_mesa_80181358(Task* arg0)
 end:
     D_8007217B      = 0;
     arg0->spawnArg2 = &result;
-    result.field_50 = NULL;
+    result.param    = NULL;
     D_801153F6      = 1;
-    Gp_ReleaseStateF0((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0(arg0, 0);
     D_80062735 = 1;
     arg0->state++;
 }

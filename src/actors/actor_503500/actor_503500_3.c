@@ -1194,13 +1194,13 @@ void func_actor_503500_80134A24(Task* arg0)
             switch (++work->field_7BC) {
                 case 0x3C:
                     obj->flags |= 2;
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SetLightMode(enemy, 1);
                     break;
                 case 0x46:
                     Gp_SpawnEff(0x600A5, coord, 1, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
                     break;
             }
             break;
@@ -1324,7 +1324,7 @@ void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             dmg *= 4;
             Gp_SpawnEff(0x6009C, coord, 0, NULL);
         }
-        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800E2C78(enemy, id, dmg, 0);
         enemy->hp -= dmg;
         func_800DA6E8(&enemy->node, dmg, 0);
         if (enemy->hp <= 0) {
@@ -1341,13 +1341,13 @@ void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
                 case 9:
                     break;
                 case 1:
-                    Gp_SetObjFlag1((GpObj4C*)enemy);
+                    Gp_SetObjFlag1(enemy);
                     break;
                 case 2:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                    Gp_SetObjFlag2(enemy, id, 0);
                     break;
                 case 3:
-                    Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                    Gp_SetObjFlag4(enemy, id, 0);
                     break;
             }
         }
@@ -2034,7 +2034,7 @@ void func_actor_503500_80136304(Task* arg0)
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
                 work->field_7B2 = 3;
             }
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 func_actor_503500_80136EFC(arg0, 0);
                 work->field_7CA = 0x3C;
             }
@@ -2771,7 +2771,7 @@ void func_actor_503500_80137678(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
             work->field_158 = 0;
             ((void (*)(s32))Gp_IncStateF0Ref)(0);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= 0xF0;
             work->rot.vx.w        = 0;
@@ -2827,12 +2827,12 @@ void func_actor_503500_80137678(Task* arg0)
             switch ((s16)work->field_15A) {
                 case 10:
                     ((TmdObject*)arg0->extra)->flags |= 2;
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
                 case 30:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
                     break;
                 case 40:
                     SndEvt_EnqueueType7(0xD, 1);
@@ -2945,7 +2945,7 @@ void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             dmg *= 4;
             crit = 1;
         }
-        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800E2C78(enemy, id, dmg, 0);
         func_800DA6E8(&enemy->node, dmg, 0);
         enemy->hp -= dmg;
         if (enemy->hp <= 0) {
@@ -2961,13 +2961,13 @@ void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             case 9:
                 break;
             case 1:
-                Gp_SetObjFlag1((GpObj4C*)enemy);
+                Gp_SetObjFlag1(enemy);
                 break;
             case 2:
-                Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                Gp_SetObjFlag2(enemy, id, 0);
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                Gp_SetObjFlag4(enemy, id, 0);
                 break;
         }
         TRANSPOSE_ROT(&coord->workm, &rot);
@@ -3486,7 +3486,7 @@ void func_actor_503500_80139014(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1);
             work->field_2D8 = 0;
             ((void (*)(s32))Gp_IncStateF0Ref)(0);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+            Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= 0xF0;
             work->field_29C.vy    = 0x1388;
@@ -3555,7 +3555,7 @@ void func_actor_503500_80139014(Task* arg0)
             switch (work->field_2DE) {
                 case 10:
                     ((TmdObject*)arg0->extra)->flags |= 2;
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
@@ -3563,7 +3563,7 @@ void func_actor_503500_80139014(Task* arg0)
                     Gp_SpawnEff(0x600A5, coord, 1, NULL);
                     break;
                 case 30:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
                     break;
                 case 40:
                     SndEvt_EnqueueType7(0xD, 1);
@@ -3689,11 +3689,11 @@ void func_actor_503500_801398D0(Task* arg0)
         }
         if (enemy->reactionFlags & 0xC) {
             func_actor_503500_8013ACC4(arg0, 4);
-            if (Gp_ObjFlag4Expired((GpObj5C*)arg0->spawnArg2) != 0) {
+            if (Gp_ObjFlag4Expired(arg0->spawnArg2) != 0) {
                 enemy->reactionFlags &= 0xF3;
                 func_actor_503500_8013ACC4(arg0, 0);
             } else {
-                dmg = Gp_TickObjFlag4((GpObj5C*)enemy);
+                dmg = Gp_TickObjFlag4(enemy);
                 if (dmg != 0) {
                     enemy->hp -= dmg;
                     func_800DA6E8(&enemy->node, dmg, 0);
@@ -3764,7 +3764,7 @@ void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
             dmg *= 4;
             crit = 1;
         }
-        func_800E2C78((GpObj40*)enemy, id, dmg, 0);
+        func_800E2C78(enemy, id, dmg, 0);
         func_800DA6E8(&enemy->node, dmg, 0);
         enemy->hp -= dmg;
         if (enemy->hp <= 0) {
@@ -3780,13 +3780,13 @@ void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3
                 case 9:
                     break;
                 case 1:
-                    Gp_SetObjFlag1((GpObj4C*)enemy);
+                    Gp_SetObjFlag1(enemy);
                     break;
                 case 2:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, id, 0);
+                    Gp_SetObjFlag2(enemy, id, 0);
                     break;
                 case 3:
-                    Gp_SetObjFlag4((GpObj5C*)enemy, id, 0);
+                    Gp_SetObjFlag4(enemy, id, 0);
                     break;
             }
         }

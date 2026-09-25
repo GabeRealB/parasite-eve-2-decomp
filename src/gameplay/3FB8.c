@@ -3828,7 +3828,7 @@ void Gp_StepPlayerMove(Task* arg0)
             coord->coord.t[2] += actor->field_8;
             s->saved           = coord->coord;
             s->scale           = tbl[(u16)actor->field_958];
-            Gp_GetLockPos((GpLockPos*)actor->field_90C, &s->lock);
+            Gp_GetLockPos(actor->field_90C, &s->lock);
             val   = coord->coord.t[0];
             lockz = s->lock.vz;
             val  -= s->lock.vx;
@@ -4057,7 +4057,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
         block->rot.vz = rec->vz;
         Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0xC));
         lock = (VECTOR3*)(head - 0x1C);
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         ((VECTOR3*)(head - 0x1C))->vx =
             ((VECTOR3*)(head - 0x1C))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         lock->vy = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -4190,7 +4190,7 @@ void Gp_AimPitchToLock(Task* arg0)
         block->rot.vz = 0;
         Gp_PlaceCoordOffset(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx =
             ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = (VECTOR3*)(head - 0x34);
@@ -4239,7 +4239,7 @@ void Gp_AimPitchToLock(Task* arg0)
             Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
         }
         lock = &block->lock;
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         block->delta.vx = block->lock.vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = &block->delta;
         dest->vy        = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -4302,7 +4302,7 @@ void Gp_AimPitchToLockAlt(Task* arg0)
         block->rot.vz = 0;
         Gp_PlaceCoordOffset(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx =
             ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = (VECTOR3*)(head - 0x34);
@@ -4350,7 +4350,7 @@ void Gp_AimPitchToLockAlt(Task* arg0)
             Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
         }
         lock = &block->lock;
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         block->delta.vx = block->lock.vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = &block->delta;
         dest->vy        = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -4417,7 +4417,7 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
         block->rot.vz = rec->vz;
         Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest                          = (VECTOR3*)(head - 0x34);
         dest->vy                      = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -4479,7 +4479,7 @@ void Gp_AimPitchDirect(Task* arg0)
         block->rot.vz = 0;
         Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos(actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest                          = (VECTOR3*)(head - 0x34);
         dest->vy                      = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];

@@ -730,16 +730,16 @@ void func_actor_207200_8014BEF4(Task* arg0)
                     return;
                 case 8:
                 case 9:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, 0);
+                    Gp_SetObjFlag2(enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, 0);
                 default:
                     if ((Gp_RollEnemyChance(arg0->spawnArg2, ((Actor207200HitView*)work)->rec3[i].rec.key, 0) != 0 ||
                          work->field_486 == 3) &&
                         damage != 0) {
-                        func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
+                        func_800E2C78(enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
                         func_actor_207200_8014CFEC(arg0);
                         return;
                     }
-                    func_800E2C78((GpObj40*)enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
+                    func_800E2C78(enemy, ((Actor207200HitView*)work)->rec3[i].rec.key, damage, 0);
                     func_actor_207200_8014C870(arg0, damage);
                     func_800FDB18((u16)Gp_GetIdParam1(((Actor207200HitView*)work)->rec3[i].rec.key),
                                   ((TmdObject*)arg0->extra)->coords + 3, &D_actor_207200_80153F08, &work->field_3E4);
@@ -895,7 +895,7 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
             state = work->field_488;
             switch (state) {
                 case 0:
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2B);
+                    Gp_ReleaseStateF0Add(arg1, 0x2B);
                     work->field_488 = 1;
                     work->field_48A = 0;
                     work->field_49C = 0x1000;
@@ -1143,29 +1143,29 @@ case1:
 /// request) are cleared last. Nothing happens while the whole byte is zero.
 void func_actor_207200_8014D41C(Task* arg0)
 {
-    GpObj5D*         obj;
+    GpEnemy*         obj;
     Actor207200Work* work;
     u8               flags;
 
     obj   = arg0->spawnArg2;
-    flags = obj->field_4C;
+    flags = obj->reactionFlags;
     work  = arg0->work;
     if (flags != 0) {
         if (flags & 1) {
-            obj->field_4C = flags & 0xFE;
+            obj->reactionFlags = flags & 0xFE;
         }
-        if (obj->field_4C & 2) {
-            obj->field_4C   = obj->field_4C & 0xFD;
-            work->field_486 = 3;
-            work->field_48E = 1;
-            work->field_48A = 0;
-            work->field_492 = 0;
-            work->field_48C = 9;
-            work->field_490 = 0;
+        if (obj->reactionFlags & 2) {
+            obj->reactionFlags = obj->reactionFlags & 0xFD;
+            work->field_486    = 3;
+            work->field_48E    = 1;
+            work->field_48A    = 0;
+            work->field_492    = 0;
+            work->field_48C    = 9;
+            work->field_490    = 0;
         }
-        flags = obj->field_4C;
+        flags = obj->reactionFlags;
         if (flags & 0xC) {
-            obj->field_4C = flags & 0xF3;
+            obj->reactionFlags = flags & 0xF3;
         }
     }
 }
@@ -1205,7 +1205,7 @@ void func_actor_207200_8014D49C(Task* arg0)
                 work->field_490 = 0;
                 work->field_48A = 0;
             }
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 work->field_486 = 0;
             }
             break;

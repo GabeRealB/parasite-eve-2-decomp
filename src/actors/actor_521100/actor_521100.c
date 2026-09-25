@@ -578,7 +578,7 @@ void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 SndEvt_EnqueueType6((s32)sound, pan2, depth);
         }
     damage_done:
-        func_800E2C78((GpObj40*)enemy, (s32)work->rec534[i].key, (s32)damage, 0);
+        func_800E2C78(enemy, (s32)work->rec534[i].key, (s32)damage, 0);
         func_800DA6E8(&enemy->node, (s32)damage, 0);
         enemy->hp = (u16)enemy->hp - damage;
         if (lastId != work->rec534[i].key) {

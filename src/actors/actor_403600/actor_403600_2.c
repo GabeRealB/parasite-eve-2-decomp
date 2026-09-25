@@ -721,7 +721,7 @@ default_body:
     func_actor_403600_801412D0(arg0, arg1);
     temp_a1 = work->field_77A;
     if (temp_a1 != 0) {
-        Gp_SetObjTrans((GpObj20*)arg1->extra, temp_a1, temp_a1, temp_a1);
+        Gp_SetObjTrans(arg1->extra, temp_a1, temp_a1, temp_a1);
     }
     func_actor_403600_801414FC(arg1);
     func_actor_403600_8013F0C0(arg1);
@@ -754,7 +754,7 @@ void func_actor_403600_8013955C(Task* arg0)
         }
         if (temp_s0->reactionFlags & 0xC) {
             if (temp_s1->field_73E != 0x28) {
-                temp_ret = Gp_TickObjFlag4((GpObj5C*)temp_s0);
+                temp_ret = Gp_TickObjFlag4(temp_s0);
                 if (temp_ret != 0) {
                     temp_v1_2   = (Gp_LcgState * 5) + 0x71357911;
                     Gp_LcgState = temp_v1_2;
@@ -770,7 +770,7 @@ void func_actor_403600_8013955C(Task* arg0)
                     func_actor_403600_8013DAF4(arg0, temp_ret / 5);
                 }
             }
-            if ((Gp_ObjFlag4Expired((GpObj5C*)temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
+            if ((Gp_ObjFlag4Expired(temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
                 temp_s0->reactionFlags &= 0xF3;
             }
         }
@@ -2961,7 +2961,7 @@ loop_14:
         case 2:
             if (temp_s0->field_784 == 0) {
                 temp_s0->field_7AE = 0;
-                Gp_SetObjFlag2((GpObj5D*)arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
+                Gp_SetObjFlag2(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
                 if (((u32)((u16)temp_s0->field_736 - 0x10) < 2U) && ((u32)((u16)temp_s0->field_73A - 6) < 0x18U)) {
                     SCHED_BARRIER();
                     temp_s0->field_790 = data_ec8->flag2Ticks;
@@ -2974,7 +2974,7 @@ loop_14:
             break;
         case 3:
             if ((temp_s0->field_784 == 0) && (temp_s4->hp >= 0x1F5)) {
-                Gp_SetObjFlag4((GpObj5C*)arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
+                Gp_SetObjFlag4(arg0->spawnArg2, ((GpRec18*)(var_s2 + 0x528))->key, 0);
             }
             if (((GpRec18*)(var_s2 + 0x528))->key & 8) {
                 temp_v0_5                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
@@ -2994,7 +2994,7 @@ loop_14:
         case 1:
         case 4:
             if (temp_s0->field_7AE != 0) {
-                Gp_SetObjFlag1((GpObj4C*)temp_s4);
+                Gp_SetObjFlag1(temp_s4);
                 var_a0 = 0x71350000;
                 SOFT_TOUCH_REG(var_a0);
                 var_a0                    |= 0x7911;
@@ -3042,7 +3042,7 @@ loop_14:
         }
     }
     if (arg0 != D_actor_403600_801606A8) {
-        func_800E2C78((GpObj40*)temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
+        func_800E2C78(temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
         if (((GpRec18*)(var_s2 + 0x528))->key & 8) {
             temp_v0_6                  = (ACTOR403600_RNG_VALUE(rng) * 5) + 0x71357911;
             ACTOR403600_RNG_VALUE(rng) = temp_v0_6;
@@ -3053,7 +3053,7 @@ loop_14:
         func_actor_403600_80141C7C(arg0, var_s3);
         goto block_73;
     }
-    func_800E2C78((GpObj40*)temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
+    func_800E2C78(temp_s4, ((GpRec18*)(var_s2 + 0x528))->key, var_s3, 0);
     func_actor_403600_8013DAF4(arg0, var_s3);
     if (temp_s0->field_730 == one) {
         var_a0   = 0;
@@ -4733,7 +4733,7 @@ inner0:
     }
     goto common;
 inner1:
-    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x24);
+    Gp_ReleaseStateF0Add(arg1, 0x24);
     globalWork->field_4B4                  = NULL;
     enemy                                  = arg1->spawnArg2;
     cleanupWork                            = arg1->work;
@@ -4950,7 +4950,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2)
             enemy->node.flags     = 1;
             break;
         case 9:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0x24);
+            Gp_ReleaseStateF0Add(arg0, 0x24);
             gGameSession->flowFlags = (u8)(gGameSession->flowFlags | 0x80);
             D_801153F1              = 5;
             break;
@@ -5185,7 +5185,7 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
     restore += 1;
     actor_403600_store_scratch_head(restore);
     if (transparency != 0) {
-        Gp_SetObjTrans((GpObj20*)actor->extra, transparency, transparency, transparency);
+        Gp_SetObjTrans(actor->extra, transparency, transparency, transparency);
     }
     work->field_73A = (u16)(work->field_73A + 1);
 }

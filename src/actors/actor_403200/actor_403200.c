@@ -2520,7 +2520,7 @@ void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
                             1);
 
     work->obj0.flags &= 0x7FFF;
-    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 2);
+    work->obj0.key    = Gp_PackObjPair(owner, 2);
     work->field_1A8   = 1;
     task->state++;
 }
@@ -2999,7 +2999,7 @@ void func_actor_403200_8013669C(GpEnemy* enemy, Task* task)
     work->obj0.flags |= 0x8000;
     Gp_InitRec18Table(work->obj1.ctx.recs, 3, 0);
     work->obj1.flags |= 0x4000;
-    work->obj0.key    = Gp_PackObjPair((GpObj50*)owner, 5);
+    work->obj0.key    = Gp_PackObjPair(owner, 5);
 
     ((TmdObject*)task->extra)->lightMtx = &work->lightMtx;
     ((TmdObject*)task->extra)->colorMtx = &work->colorMtx;
@@ -3029,7 +3029,7 @@ void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
     }
 
     if (work->field_1A8 != 0) {
-        Gp_SetLightMode((GpObj4C*)enemy, 0);
+        Gp_SetLightMode(enemy, 0);
         ((TmdObject*)task->extra)->flags = 2;
     }
 
@@ -3097,8 +3097,8 @@ void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
         work->field_1AC = 0;
         work->vel.vx   /= 9;
         work->vel.vz   /= 9;
-        Gp_SetLightMode((GpObj4C*)enemy, 0);
-        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        Gp_SetLightMode(enemy, 0);
+        Gp_SetLightMode(enemy, 1);
         work->obj1.flags                &= ~0x4000;
         work->obj0.flags                &= ~0x8000;
         ((TmdObject*)task->extra)->flags = 2;
@@ -3124,7 +3124,7 @@ void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
         case 3:
         case 7:
             Gp_SpawnEff(0x600A5, ((TmdObject*)task->extra)->coords, 1, NULL);
-            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            Gp_SetLightMode(enemy, 2);
             break;
         case 0:
         case 1:
@@ -3276,7 +3276,7 @@ void func_actor_403200_8013709C(GpEnemy* enemy, Task* task)
     ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
     ((TmdObject*)task->extra)->coords->coord.t[2] = vec.vz + ((TmdObject*)parent->extra)->coords->coord.t[2];
 
-    work->obj.key = Gp_PackObjPair((GpObj50*)owner, 1);
+    work->obj.key = Gp_PackObjPair(owner, 1);
 
     vec.vx = 0;
     vec.vy = 0;
@@ -4446,7 +4446,7 @@ found:
         work->field_7C8 = 0;
         work->field_7C4 = 0;
         sc->damage     *= 2;
-        func_800E2C78((GpObj40*)enemy, sc->id, sc->damage, 0);
+        func_800E2C78(enemy, sc->id, sc->damage, 0);
         enemy->hp -= sc->damage;
         func_800DA6E8(&enemy->node, sc->damage, 0);
         esc3     = work->field_ECC[3];
@@ -4459,12 +4459,12 @@ found:
     }
 
     if (enemy->reactionFlags & 0xC) {
-        sc->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        sc->damage = Gp_TickObjFlag4(enemy);
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
         if (sc->damage != 0) {
-            func_800E2C78((GpObj40*)enemy, sc->id, sc->damage, 0);
+            func_800E2C78(enemy, sc->id, sc->damage, 0);
             enemy->hp -= sc->damage;
         }
     }
@@ -4644,7 +4644,7 @@ hit:
             sc->damage = 0;
         }
 
-        func_800E2C78((GpObj40*)host, sc->id, sc->damage, 0);
+        func_800E2C78(host, sc->id, sc->damage, 0);
         host->hp -= sc->damage;
         func_800DA6E8(&work->field_ECC[3]->node, sc->damage, 0);
         work->field_F0E                                           -= sc->damage;
@@ -4856,7 +4856,7 @@ body:
     }
     sc->damage = dmg;
 stored:
-    func_800E2C78((GpObj40*)host, sc->id, sc->damage, 0);
+    func_800E2C78(host, sc->id, sc->damage, 0);
     host->hp        -= sc->damage;
     esc3             = work->field_ECC[3];
     hp               = host->hp;
@@ -5076,7 +5076,7 @@ body:
     }
     sc->damage = dmg;
 stored:
-    func_800E2C78((GpObj40*)host, sc->id, sc->damage, 0);
+    func_800E2C78(host, sc->id, sc->damage, 0);
     host->hp        -= sc->damage;
     work->field_F0C -= sc->damage;
     if ((s16)work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
@@ -5838,7 +5838,7 @@ void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->field_7B3 == 0xF) {
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->field_956 = 0xA;
                 gGameSession->areaBgmCountdown      = 0x1E;
@@ -6102,7 +6102,7 @@ scanned:
     if (found != 0 && enemy->hp > 0 &&
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetPtrSlot(3);
-        reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0);
+        reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
             ((GameActor*)task->work)->field_956 = 0xA;

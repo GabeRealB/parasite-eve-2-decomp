@@ -1180,7 +1180,7 @@ static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
     gte_ldv0(&tmp);
 }
 
-void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**                       scratch;
     u8*                          head;
@@ -1197,8 +1197,8 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block    = (GpViewLightScratch*)(head - 0x3C);
     dir      = (SVECTOR*)(head - 0x2C);
     mtx      = (MATRIX*)(head - 0x24);
-    dirMtx   = arg3->field_1C;
-    colorMtx = arg3->field_20;
+    dirMtx   = arg3->lightMtx;
+    colorMtx = arg3->colorMtx;
 
     ((GpViewLightScratch*)(head - 0x3C))->in.vx = -arg1->field_18.vx;
     block->in.vy                                = -arg1->field_18.vy;
@@ -2195,15 +2195,15 @@ void Gp_LightFalloff(GpObj44* arg0)
     *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
 }
 
-void Gp_SetLightMode(GpObj4C* arg0, s32 arg1)
+void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
 {
     u8 val;
 
-    val   = arg0->field_4E;
+    val   = arg0->colorMode;
     arg1 &= 3;
     if ((val & 3) != arg1) {
-        arg0->field_4E = (val & 0xF0) | ((val & 3) << 2) | arg1;
-        arg0->field_4F = 0x10;
+        arg0->colorMode  = (val & 0xF0) | ((val & 3) << 2) | arg1;
+        arg0->colorBlend = 0x10;
     }
 }
 
@@ -2280,11 +2280,11 @@ void Gp_SetOverrideVec2(SVECTOR* arg0)
     Gp_OverrideVec2     = *arg0;
 }
 
-void Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
+void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     MATRIX* m;
 
-    m       = arg0->field_20;
+    m       = arg0->colorMtx;
     m->t[0] = arg1;
     m->t[1] = arg2;
     m->t[2] = arg3;
@@ -2376,7 +2376,7 @@ s32 Gp_GetObjTransX(GsCOORDINATE2* coord)
     return coord->workm.t[0];
 }
 
-void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**                   scratch;
     u8*                      head;
@@ -2392,8 +2392,8 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     block    = (GpLightScratch*)(head - 0x1C);
     dir      = (SVECTOR*)(head - 0xC);
     *scratch = block;
-    dirMtx   = arg3->field_1C;
-    colorMtx = arg3->field_20;
+    dirMtx   = arg3->lightMtx;
+    colorMtx = arg3->colorMtx;
     Gfx_NormalizeLightDir((VECTOR*)((GsCOORDINATE2*)arg1)->workm.t, dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
@@ -2415,7 +2415,7 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -2430,8 +2430,8 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     head         = *scratch;
     block        = (GpLightScratch*)(head - 0x1C);
     dir          = (SVECTOR*)(head - 0xC);
-    dirMtx       = arg3->field_1C;
-    colorMtx     = arg3->field_20;
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
     block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
@@ -2457,7 +2457,7 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -2472,8 +2472,8 @@ void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     head         = *scratch;
     block        = (GpLightScratch*)(head - 0x1C);
     dir          = (SVECTOR*)(head - 0xC);
-    dirMtx       = arg3->field_1C;
-    colorMtx     = arg3->field_20;
+    dirMtx       = arg3->lightMtx;
+    colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
     block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
     *scratch     = block;
@@ -2891,7 +2891,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         }
     }
     if (best != NULL) {
-        Gp_GetLockPos((GpLockPos*)best, out);
+        Gp_GetLockPos((GpLinkNode*)best, out);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
     return best;
@@ -3326,7 +3326,7 @@ const char Gp_StrGetLockPosNull[] = {
     0x16,
 };
 
-void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
+void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
 {
     GsCOORDINATE2* world;
     GsCOORDINATE2* coord;
@@ -3342,12 +3342,12 @@ void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
         return;
     }
 
-    coord = arg0->coord;
+    coord = GP_NODE_ENEMY(arg0)->coord;
     world = &gGfxViewCoord;
     if (coord == world) {
-        out->vx = arg0->pos.vx;
-        out->vy = arg0->pos.vy;
-        out->vz = arg0->pos.vz;
+        out->vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
+        out->vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
+        out->vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
         return;
     }
 
@@ -3359,7 +3359,7 @@ void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
     Gp_WorldToLocal(&world->workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     gte_SetTransMatrix(mat);
-    gte_ldlvl(&arg0->pos);
+    gte_ldlvl(&GP_NODE_ENEMY(arg0)->bodyPos);
     gte_rtirtr();
     gte_stlvl(out);
     *scratch = (u8*)*scratch + 0x28;
@@ -3621,7 +3621,7 @@ void Gp_IncStateF0Ref(s32 arg0)
 
 /// `arg1` is a per-caller release id that every overlay caller passes (0x07,
 /// 0x10, 0x15, 0x19, 0x1B, 0x23, 0x26, ...); this build ignores it.
-void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1)
+void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
 {
     GpStateF0*  p;
     GpStateF0*  q;
@@ -3639,7 +3639,7 @@ void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1)
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
-        rec = arg0->field_20->field_50;
+        rec = ((GpEnemy*)arg0->spawnArg2)->param;
         if (rec != NULL) {
             q            = &Gp_StateF0;
             q->field_8  += rec->exp;
@@ -3671,7 +3671,7 @@ void Gp_ReleaseStateF0Clear(void)
     }
 }
 
-void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1)
+void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
 {
     GpStateF0* p;
 
@@ -6512,33 +6512,33 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-void Gp_ClaimSlot18(GpObj54* arg0, void* arg1)
+void Gp_ClaimSlot18(GpEnemy* arg0, s32 arg1)
 {
-    GpSlot18*  slot;
-    GpSlot18*  temp;
+    GpRec18*   slot;
+    GpRec18*   temp;
     s32        one;
     GpStateF0* p;
 
-    temp = arg0->field_54;
+    temp = arg0->recs;
     if (temp != NULL) {
         slot = temp;
         one  = 1;
         while (1) {
-            if ((*(s32*)&slot->field_0 & 3) != one) {
+            if ((*(s32*)&slot->flags & 3) != one) {
                 break;
             }
             slot++;
         }
-        slot->field_4  = arg1;
-        slot->field_2  = 0;
-        slot->field_8  = 0;
-        slot->field_A  = 0;
-        slot->field_C  = 0;
-        slot->field_10 = 0;
-        slot->field_12 = 0;
-        slot->field_14 = 0;
-        slot->field_0 |= 1;
-        p              = &Gp_StateF0;
+        slot->key            = arg1;
+        slot->depth          = 0;
+        slot->point.vx       = 0;
+        slot->point.vy       = 0;
+        slot->point.vz       = 0;
+        slot->at10.normal.vx = 0;
+        slot->at10.normal.vy = 0;
+        slot->at10.normal.vz = 0;
+        slot->flags         |= 1;
+        p                    = &Gp_StateF0;
         p->field_5++;
     }
 }
@@ -6901,7 +6901,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     return rand < chance;
 }
 
-void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
+void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
 {
     u16 raw;
     s32 kind;
@@ -6923,51 +6923,51 @@ void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
         case 0:
             break;
         case 1:
-            arg0->field_4C |= 1;
+            arg0->reactionFlags |= 1;
             break;
         case 2:
-            arg0->field_58  = 0;
-            arg0->field_5B  = 0;
-            arg0->field_4C |= 2;
+            arg0->flag2Steps     = 0;
+            arg0->flag2Timer     = 0;
+            arg0->reactionFlags |= 2;
             if ((arg1 & 0x8000) == 0) {
-                arg0->field_5D = 0;
+                arg0->flag2Grade = 0;
                 return;
             }
             if ((arg1 & 0x3F) == 0x31) {
-                arg0->field_5D = 0;
+                arg0->flag2Grade = 0;
                 return;
             }
-            arg0->field_5D = Gp_StateC08.field_0 % 10U;
+            arg0->flag2Grade = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
-            val         = arg0->field_50->flag4Chance;
+            val         = arg0->param->flag4Chance;
             limit       = (val << 12) / 100;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
             if (rand < limit) {
-                arg0->field_5A  = 0;
-                arg0->field_4C |= 4;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                arg0->field_59  = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
+                arg0->flag4Ticks     = 0;
+                arg0->reactionFlags |= 4;
+                Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+                arg0->flag4Delay     = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
                 if ((arg1 & 0x8000) == 0) {
-                    arg0->field_5C = 0;
+                    arg0->flag4Grade = 0;
                     return;
                 }
-                arg0->field_5C = Gp_StateC08.field_0 % 10U;
+                arg0->flag4Grade = Gp_StateC08.field_0 % 10U;
             }
             break;
     }
 }
 
-s32 Gp_PackObjPair(GpObj50* arg0, s32 arg1)
+s32 Gp_PackObjPair(GpEnemy* arg0, s32 arg1)
 {
     GpU16Pair* pairs;
     s32        ret;
 
-    if (arg0->field_50 == NULL) {
+    if (arg0->param == NULL) {
         return 0;
     }
-    pairs = arg0->field_50->pairTable;
+    pairs = arg0->param->pairTable;
     ret   = pairs[arg1].field_0 & 0xFFF;
     ret  |= (pairs[arg1].field_2 & 0xF) << 12;
     ret  |= 0x40000;
@@ -6987,12 +6987,12 @@ s32 Gp_PackPair(GpU16Pair* pairs, s32 index)
     return ret;
 }
 
-void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_800E2C78(GpEnemy* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 val;
 
     if ((u32)((arg1 & 0x7F) - 0x19) < 3U) {
-        val = arg0->field_40;
+        val = arg0->hp;
         if ((u32)val < (u32)arg2) {
             Gp_StateF0.field_14 += val;
             return;
@@ -7041,44 +7041,44 @@ s32 Gp_GetIdParam1(s32 arg0)
     return ret;
 }
 
-void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1, s32 arg2)
+void Gp_SetObjFlag4(GpEnemy* arg0, s32 arg1, s32 arg2)
 {
     s32 val;
     s32 limit;
     s32 rand;
 
-    val         = arg0->field_50->flag4Chance;
+    val         = arg0->param->flag4Chance;
     limit       = (val << 12) / 100;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
     if (rand < limit) {
-        arg0->field_5A  = 0;
-        arg0->field_4C |= 4;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        arg0->field_59  = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
+        arg0->flag4Ticks     = 0;
+        arg0->reactionFlags |= 4;
+        Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+        arg0->flag4Delay     = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
         if ((arg1 & 0x8000) == 0) {
-            arg0->field_5C = 0;
+            arg0->flag4Grade = 0;
             return;
         }
-        arg0->field_5C = Gp_StateC08.field_0 % 10U;
+        arg0->flag4Grade = Gp_StateC08.field_0 % 10U;
     }
 }
 
-s32 Gp_TickObjFlag4(GpObj5C* arg0)
+s32 Gp_TickObjFlag4(GpEnemy* arg0)
 {
     s32 ret;
     s32 val;
     s32 scale;
 
     ret = 0;
-    arg0->field_59--;
-    if (arg0->field_59 == 0) {
-        arg0->field_5A++;
-        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-        arg0->field_59 = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
-        val            = arg0->field_50->hpMax;
-        scale          = D_80113D38[arg0->field_5C];
-        ret            = (val * scale) / 100;
+    arg0->flag4Delay--;
+    if (arg0->flag4Delay == 0) {
+        arg0->flag4Ticks++;
+        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+        arg0->flag4Delay = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
+        val              = arg0->param->hpMax;
+        scale            = D_80113D38[arg0->flag4Grade];
+        ret              = (val * scale) / 100;
         if (ret == 0) {
             ret = 1;
         }
@@ -7086,49 +7086,49 @@ s32 Gp_TickObjFlag4(GpObj5C* arg0)
     return ret;
 }
 
-s32 Gp_ObjFlag4Expired(GpObj5C* arg0)
+s32 Gp_ObjFlag4Expired(GpEnemy* arg0)
 {
     s32          val;
     s32          ret;
     register s32 scale asm("v1");
 
     ret = 0;
-    val = arg0->field_50->flag4Ticks;
-    if (!(arg0->field_4C & 4)) {
+    val = arg0->param->flag4Ticks;
+    if (!(arg0->reactionFlags & 4)) {
         return 1;
     }
     if (val == 0) {
         return 0;
     }
-    scale = D_80113D28[arg0->field_5C];
-    if (arg0->field_5A >= (val * scale) / 100) {
+    scale = D_80113D28[arg0->flag4Grade];
+    if (arg0->flag4Ticks >= (val * scale) / 100) {
         ret = 1;
     }
     return ret;
 }
 
-void Gp_SetObjFlag1(GpObj4C* arg0)
+void Gp_SetObjFlag1(GpEnemy* arg0)
 {
-    arg0->field_4C |= 1;
+    arg0->reactionFlags |= 1;
 }
 
-void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1, s32 arg2)
+void Gp_SetObjFlag2(GpEnemy* arg0, s32 arg1, s32 arg2)
 {
-    arg0->field_58  = 0;
-    arg0->field_5B  = 0;
-    arg0->field_4C |= 2;
+    arg0->flag2Steps     = 0;
+    arg0->flag2Timer     = 0;
+    arg0->reactionFlags |= 2;
     if ((arg1 & 0x8000) == 0) {
-        arg0->field_5D = 0;
+        arg0->flag2Grade = 0;
         return;
     }
     if ((arg1 & 0x3F) == 0x31) {
-        arg0->field_5D = 0;
+        arg0->flag2Grade = 0;
         return;
     }
-    arg0->field_5D = Gp_StateC08.field_0 % 10U;
+    arg0->flag2Grade = Gp_StateC08.field_0 % 10U;
 }
 
-s32 Gp_TickObjFlag2(GpObj5D* arg0)
+s32 Gp_TickObjFlag2(GpEnemy* arg0)
 {
     s32 ret;
     s32 limit;
@@ -7136,26 +7136,26 @@ s32 Gp_TickObjFlag2(GpObj5D* arg0)
     s32 scale;
 
     ret = 0;
-    val = arg0->field_50->flag2Ticks;
+    val = arg0->param->flag2Ticks;
     if (val == 0) {
         return ret;
     }
-    scale = D_80113D30[arg0->field_5D];
+    scale = D_80113D30[arg0->flag2Grade];
     limit = (val * scale) / 100;
-    if (arg0->field_58 < limit) {
-        arg0->field_5B++;
-        if (arg0->field_5B >= 0x1F) {
-            arg0->field_58++;
-            if (arg0->field_58 >= limit) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                arg0->field_5B = (u32)Gp_LcgState >> 16 & 0x3F;
+    if (arg0->flag2Steps < limit) {
+        arg0->flag2Timer++;
+        if (arg0->flag2Timer >= 0x1F) {
+            arg0->flag2Steps++;
+            if (arg0->flag2Steps >= limit) {
+                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+                arg0->flag2Timer = (u32)Gp_LcgState >> 16 & 0x3F;
             } else {
-                arg0->field_5B = 0;
+                arg0->flag2Timer = 0;
             }
         }
     } else {
-        arg0->field_5B--;
-        if (arg0->field_5B == 0) {
+        arg0->flag2Timer--;
+        if (arg0->flag2Timer == 0) {
             ret = 1;
         }
     }

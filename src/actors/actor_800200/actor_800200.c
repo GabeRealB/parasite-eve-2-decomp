@@ -367,7 +367,7 @@ void func_actor_800200_80162750(Task* arg0)
             case 0:
                 break;
             case 1:
-                Gp_GetLockPos((GpLockPos*)actor->field_90C, (VECTOR3*)&actor->field_20);
+                Gp_GetLockPos(actor->field_90C, (VECTOR3*)&actor->field_20);
                 func_actor_800200_80165408(arg0, 6);
                 break;
             case 2:
@@ -1219,7 +1219,7 @@ void func_actor_800200_80164180(Task* arg0)
     node              = actor->field_90C;
     if (node != NULL) {
         if (!(node->flags & 1)) {
-            Gp_GetLockPos((GpLockPos*)node, vec);
+            Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
         }
@@ -1300,7 +1300,7 @@ void func_actor_800200_8016436C(Task* arg0)
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
         if ((node != NULL) && !(node->flags & 1)) {
-            Gp_GetLockPos((GpLockPos*)node, vec);
+            Gp_GetLockPos(node, vec);
         } else {
             d4->repeatCount = 1;
         }
@@ -1455,7 +1455,7 @@ void func_actor_800200_801647A8(Task* arg0)
                 node             = Gp_FindLockNode(arg0);
                 actor->field_90C = node;
                 if ((node != NULL) && !(node->flags & 1)) {
-                    Gp_GetLockPos((GpLockPos*)node, vec);
+                    Gp_GetLockPos(node, vec);
                     dist = func_80103DD4((VECTOR3*)coord->coord.t, vec);
                     dist = dist / 640;
                     if (dist >= 8) {

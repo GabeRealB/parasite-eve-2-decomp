@@ -414,7 +414,7 @@ void Actor05700_Fn000B0(Task* arg0)
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78((GpObj40*)enemy, work->field_4EC[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_4EC[i].key, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
                     if (work->field_6B8 == 0) {
@@ -440,7 +440,7 @@ void Actor05700_Fn000B0(Task* arg0)
                         break;
                     case 2:
                         if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3) {
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->field_4EC[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->field_4EC[i].key, 0);
                             result = 1;
                         }
                         break;
@@ -1231,7 +1231,7 @@ void Actor05700_Fn01A58(GpEnemy* arg0, Task* arg1)
             if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
                 Gp_UnlinkObj(&work->field_61C);
             }
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, work->field_6CA);
+            Gp_ReleaseStateF0Add(arg1, work->field_6CA);
             anim = 0x1D;
             if (work->field_6B8 == 1) {
                 anim = 0x19;
@@ -2754,7 +2754,7 @@ void Actor05700_Fn04EF4(Task* arg0)
     state = work->field_6A8;
     switch (state) {
         case 0:
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 work->field_694 = 0x13;
                 work->field_6A8 = 1;
                 work->field_6E0 = 0;

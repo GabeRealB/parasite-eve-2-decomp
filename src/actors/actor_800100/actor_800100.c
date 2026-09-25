@@ -1375,7 +1375,7 @@ void func_actor_800100_801643F4(Task* arg0)
     src      = extra->coords;
     if (node != NULL) {
         if (!(node->flags & 1)) {
-            Gp_GetLockPos((GpLockPos*)node, pos);
+            Gp_GetLockPos(node, pos);
         } else {
             actor->field_95E = 2;
         }
@@ -1445,7 +1445,7 @@ void func_actor_800100_80164580(Task* arg0)
                 if (actor->field_90C->flags & 1) {
                     actor->field_90C = Gp_FindLockNodePad(arg0);
                 }
-                Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+                Gp_GetLockPos(actor->field_90C, pos);
                 val = func_8010BCF4((Task*)arg0, pos);
                 if (val < 0) {
                     val = -val;
@@ -1491,7 +1491,7 @@ void func_actor_800100_80164710(Task* arg0)
     GameActor*              actor3;
     GpActorD4*              d4;
     GpLinkNode*             node;
-    GpLockPos*              lock;
+    GpLinkNode*             lock;
     GsCOORDINATE2*          coord;
     Actor800100LockScratch* scratch;
     VECTOR3*                head;
@@ -1513,7 +1513,7 @@ void func_actor_800100_80164710(Task* arg0)
             goto block_10;
         }
     } else {
-        lock = (GpLockPos*)actor->field_90C;
+        lock = actor->field_90C;
         if ((lock == NULL) || (coord = ((TmdObject*)arg0->extra)->coords, Gp_GetLockPos(lock, &scratch->lock), func_80103C74(coord, &scratch->lock, (VECTOR3*)((u8*)head - 0x10)), ((func_80103D8C(scratch->rot.vx, scratch->rot.vz) < 0x301) != 0))) {
             actor2            = arg0->work;
             actor2->field_954 = 0;
@@ -1532,9 +1532,10 @@ void func_actor_800100_80164710(Task* arg0)
                 actor->field_95E += 1;
             block_10:
                 if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->flags & 1)) {
-                    *(volatile GpLockPos**)&actor->field_90C = NULL;
-                    actor->field_97E                         = 1;
-                    actor->field_12A                        &= 0x3FFF;
+                    // Stored through a plain pointer: the member-access spelling schedules differently.
+                    *(GpLinkNode**)&actor->field_90C = NULL;
+                    actor->field_97E                 = 1;
+                    actor->field_12A                &= 0x3FFF;
                     if ((u8)D_8007272F == 4) {
                         func_80106350(arg0, D_actor_800100_80167218[D_8007272F], 0);
                     }
@@ -1594,7 +1595,7 @@ void func_actor_800100_80164940(Task* arg0)
         case 0:
             actor->field_95E = flag;
             actor->field_95A = flag;
-            Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+            Gp_GetLockPos(actor->field_90C, pos);
             if (func_8010BCF4((Task*)arg0, pos) < 0) {
                 actor->field_93E = flag;
                 arg              = 6;
@@ -1607,7 +1608,7 @@ void func_actor_800100_80164940(Task* arg0)
             /* fallthrough */
         case 1:
             actor->field_975 = (u8)actor->field_93E;
-            Gp_GetLockPos((GpLockPos*)actor->field_90C, pos);
+            Gp_GetLockPos(actor->field_90C, pos);
             val  = func_8010BCF4((Task*)arg0, pos);
             dist = actor->field_934;
             if (val < 0) {
@@ -1726,7 +1727,7 @@ void func_actor_800100_80164B9C(Task* arg0)
     node     = actor->field_90C;
     if (node != NULL) {
         if ((node->flags & 1) == 0) {
-            Gp_GetLockPos((GpLockPos*)node, &block->lock);
+            Gp_GetLockPos(node, &block->lock);
         } else {
             actor->field_95E = 2;
         }
@@ -2274,7 +2275,7 @@ void func_actor_800100_801659EC(Task* arg0)
     node                       = Gp_FindLockNode(arg0);
     actor->field_90C           = node;
     if (node != NULL) {
-        Gp_GetLockPos((GpLockPos*)node, lock);
+        Gp_GetLockPos(node, lock);
         func_80103C74(coord, lock, lock);
         kind = func_80103D8C(*(s32*)lock, lock->vz);
         mode = 2;

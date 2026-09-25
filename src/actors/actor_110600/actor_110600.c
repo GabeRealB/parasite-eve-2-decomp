@@ -2696,11 +2696,11 @@ void func_actor_110600_80135B84(Task* arg0)
         enemy->node.flags     = 8;
         work->field_88C       = 1;
         if (((Actor110600Work*)arg0->work)->field_BE6 != 0) {
-            work->field_A90.key = Gp_PackObjPair((GpObj50*)enemy, 0);
+            work->field_A90.key = Gp_PackObjPair(enemy, 0);
             work->field_892     = 4;
             work->field_896     = 0x1A;
         } else {
-            work->field_A90.key = Gp_PackObjPair((GpObj50*)enemy, 1);
+            work->field_A90.key = Gp_PackObjPair(enemy, 1);
             work->field_892     = 5;
             work->field_896     = 0x10;
         }
@@ -2886,7 +2886,7 @@ void func_actor_110600_80136210(Task* arg0)
         if (work->field_BE6 == 1) {
             sc->damage = (u32)((u32)sc->damage >> 1);
         }
-        func_800E2C78((GpObj40*)enemy, sc->key, (s32)sc->damage, 0);
+        func_800E2C78(enemy, sc->key, (s32)sc->damage, 0);
         enemy->hp = (u16)enemy->hp - (u16)sc->damage;
         func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
         ((TmdObject*)arg0->extra)->coords->flg = 0;
@@ -2937,17 +2937,17 @@ void func_actor_110600_80136210(Task* arg0)
             case 9:
                 break;
             case 2:
-                Gp_SetObjFlag2((GpObj5D*)enemy, sc->key, 0);
+                Gp_SetObjFlag2(enemy, sc->key, 0);
                 work->field_0 = 0xE;
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)enemy, sc->key, 0);
+                Gp_SetObjFlag4(enemy, sc->key, 0);
                 break;
         }
     }
     if (enemy->reactionFlags & 0xC) {
-        sc->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        sc->damage = Gp_TickObjFlag4(enemy);
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
         if (sc->damage != 0) {
@@ -4406,7 +4406,7 @@ void func_actor_110600_80138D7C(Task* arg0)
         work->field_896 = 0x10;
     }
     func_actor_110600_80134728(arg0);
-    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+    if (Gp_TickObjFlag2(enemy) == 1) {
         enemy->reactionFlags &= 0xFD;
         work->field_0         = 3;
     }

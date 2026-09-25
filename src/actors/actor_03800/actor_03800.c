@@ -463,7 +463,7 @@ void Actor03800_Fn00974(Task* arg0)
         }
     }
     if (ctx->reactionFlags & 0xC) {
-        damage = Gp_TickObjFlag4((GpObj5C*)ctx);
+        damage = Gp_TickObjFlag4(ctx);
         if (damage != 0) {
             func_800DA6E8(&ctx->node, (s32)damage, 0);
             remaining = ctx->hp - damage;
@@ -475,7 +475,7 @@ void Actor03800_Fn00974(Task* arg0)
             }
             work->field_354 = 0;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+        if (Gp_ObjFlag4Expired(ctx) != 0) {
             ctx->reactionFlags &= 0xF3;
         }
     }
@@ -602,7 +602,7 @@ damage_contact:
             Gp_SpawnEff(0x6009C, coord, 4, NULL);
         }
         func_800DA6E8(&ctx->node, (s32)damage, 0);
-        func_800E2C78((GpObj40*)ctx, contactWork->field_1C4[0].key, (s32)damage, 0);
+        func_800E2C78(ctx, contactWork->field_1C4[0].key, (s32)damage, 0);
         health  = (u16)ctx->hp - damage;
         ctx->hp = health;
         if ((health << 0x10) <= 0) {
@@ -615,7 +615,7 @@ damage_contact:
             default:
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)ctx, contactWork->field_1C4[0].key, 0);
+                Gp_SetObjFlag4(ctx, contactWork->field_1C4[0].key, 0);
                 break;
             case 4:
                 if (ctx->hp > 0) {
@@ -635,7 +635,7 @@ damage_contact:
                 break;
             case 8:
                 if ((work->field_36E == 0) && (reaction == 0)) {
-                    Gp_SetObjFlag2((GpObj5D*)ctx, contactWork->field_1C4[0].key, 0);
+                    Gp_SetObjFlag2(ctx, contactWork->field_1C4[0].key, 0);
                 }
                 break;
             case 1:
@@ -1050,7 +1050,7 @@ void Actor03800_Fn01AD0(Task* arg0)
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_356 = (((u32)Gp_LcgState >> 16) & 7) + 3;
     }
-    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+    if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
         work->field_37E = 0;
         if (work->field_350 == 0) {
             if (work->field_36E == 0) {
@@ -1584,8 +1584,8 @@ death:
     Gp_UnlinkObj((GpObj*)work->field_1A4);
     Gp_UnlinkObj((GpObj*)work->field_20C);
     Gp_UnlinkObj((GpObj*)work->field_28C);
-    Gp_SetLightMode((GpObj4C*)arg0, 1);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x26);
+    Gp_SetLightMode(arg0, 1);
+    Gp_ReleaseStateF0Add(arg1, 0x26);
     work->field_354 = 1;
     if (work->field_368 != 0) {
         obj->flags      = 0x80;

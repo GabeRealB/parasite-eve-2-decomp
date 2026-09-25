@@ -671,7 +671,7 @@ move_done:
                         break;
                 }
                 dmg = damage;
-                func_800E2C78((GpObj40*)task->spawnArg2, work->rec60[i].key, dmg, 0);
+                func_800E2C78(task->spawnArg2, work->rec60[i].key, dmg, 0);
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, dmg, 0);
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
@@ -1305,8 +1305,8 @@ void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
                     Gp_UnlinkNode(&arg0->node);
                     Gp_UnlinkObj(&work->obj40);
                     Gp_UnlinkObj(&work->objC0);
-                    Gp_SetLightMode((GpObj4C*)arg0, 1);
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x18);
+                    Gp_SetLightMode(arg0, 1);
+                    Gp_ReleaseStateF0Add(arg1, 0x18);
                     work->field_13E = 1;
                     cur             = ((TmdObject*)arg1->extra)->coords;
                     pos.vx          = cur->workm.t[0];

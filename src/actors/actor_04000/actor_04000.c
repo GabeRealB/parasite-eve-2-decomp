@@ -1073,7 +1073,7 @@ void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
         work->obj350.flags &= 0x7FFF;
         work->obj388.flags &= 0x7FFF;
         work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj388.key    = Gp_PackObjPair(arg0, 1);
         work->obj3C0.key    = 0x22222;
         work->field_6       = 0;
         work->obj270.flags |= 0x4000;
@@ -1133,7 +1133,7 @@ void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
             work->obj388.flags &= 0x7FFF;
             break;
         case 5:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            Gp_ReleaseStateF0Add(arg1, 0xC);
             work->obj3C0.flags &= 0x7FFF;
             break;
         case 7:
@@ -1332,7 +1332,7 @@ void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
         work->obj350.flags |= 0x8000;
         work->obj388.flags &= 0x7FFF;
         work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj388.key    = Gp_PackObjPair(arg0, 1);
         work->obj3C0.key    = 0x22222;
         work->field_6       = 0;
         work->obj270.flags |= 0x4000;
@@ -1381,7 +1381,7 @@ void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
             work->obj3C0.radius = 0x3E8;
             break;
         case 6:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            Gp_ReleaseStateF0Add(arg1, 0xC);
             work->obj3C0.flags &= 0x7FFF;
             break;
         case 8:
@@ -1460,7 +1460,7 @@ void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
         work->obj350.flags &= 0x7FFF;
         work->obj388.flags &= 0x7FFF;
         work->obj3C0.flags &= 0x7FFF;
-        work->obj388.key    = Gp_PackObjPair((GpObj50*)arg0, 1);
+        work->obj388.key    = Gp_PackObjPair(arg0, 1);
         work->obj3C0.key    = 0x22222;
         work->field_6       = 0;
         work->obj270.flags &= 0xBFFF;
@@ -1496,7 +1496,7 @@ void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
             Gp_SpawnScript18((s32)&Actor04000_D07094, (s32)&Actor04000_D070A0);
             break;
         case 2:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            Gp_ReleaseStateF0Add(arg1, 0xC);
             work->obj3C0.radius = 0xFA;
             work->obj388.flags &= 0x7FFF;
             work->obj3C0.flags |= 0x8000;
@@ -1685,7 +1685,7 @@ found:
         snd = ((arg0->placeKey >> 12) << 8) | 0x40280003;
         pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)((TmdObject*)arg1->extra)->coords);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)((TmdObject*)arg1->extra)->coords));
-        func_800E2C78((GpObj40*)arg0, sc->id, sc->dmg, 0);
+        func_800E2C78(arg0, sc->id, sc->dmg, 0);
         func_800DA6E8(&arg0->node, sc->dmg, 0);
         arg0->hp -= sc->dmg;
         if (arg0->hp <= 0) {
@@ -2471,7 +2471,7 @@ void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
     Actor04000_Fn00E6C(arg1);
     if (!(work->field_6 & 7)) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)arg0, 0), 0);
+        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(arg0, 0), 0);
     }
     work->field_6++;
     if ((s16)work->field_6 > 0x28) {

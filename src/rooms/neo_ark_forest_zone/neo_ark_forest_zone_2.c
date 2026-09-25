@@ -137,7 +137,7 @@ void func_neo_ark_forest_zone_801803B4(Task* task, s32 arg1, s32 arg2)
                     ((s16*)D_neo_ark_forest_zone_80182E54)[i] = D_neo_ark_forest_zone_80182D20[0];
                 }
                 if (D_801153F6 >= 2) {
-                    Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+                    Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     D_neo_ark_forest_zone_80182D6A = 1;
                 }
@@ -211,7 +211,7 @@ void func_neo_ark_forest_zone_80180620(Task* task)
     }
     if (D_neo_ark_forest_zone_80182D6A == 1 && D_801153F6 >= 2) {
         D_neo_ark_forest_zone_80182D6A = 0;
-        Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+        Gp_ReleaseStateF0(task, 0xD);
     }
     if (D_801153F6 == 0 && D_neo_ark_forest_zone_80182DC4 > 0) {
         D_neo_ark_forest_zone_80182D62 = 0x96;

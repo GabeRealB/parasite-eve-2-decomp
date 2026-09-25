@@ -318,7 +318,7 @@ void Actor05500_Fn0006C(Task* arg0)
                             Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords + 1, 0, NULL);
                         }
                     }
-                    func_800E2C78((GpObj40*)ctx, work->field_2B4[i].key, (s32)(s16)damage, 0);
+                    func_800E2C78(ctx, work->field_2B4[i].key, (s32)(s16)damage, 0);
                 }
                 func_800DA6E8(&ctx->node, (s32)(s16)damage, 0);
                 value   = (u16)ctx->hp - damage;
@@ -359,10 +359,10 @@ void Actor05500_Fn0006C(Task* arg0)
                     case 9:
                         break;
                     case 2:
-                        Gp_SetObjFlag2((GpObj5D*)ctx, work->field_2B4[i].key, 0);
+                        Gp_SetObjFlag2(ctx, work->field_2B4[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4((GpObj5C*)ctx, work->field_2B4[i].key, 0);
+                        Gp_SetObjFlag4(ctx, work->field_2B4[i].key, 0);
                         break;
                     case 4:
                     case 6:
@@ -376,7 +376,7 @@ void Actor05500_Fn0006C(Task* arg0)
                             work->field_3BE        = 0;
                             work->field_3B2        = 0;
                             work->field_31C.flags |= 0x8000;
-                            Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 3);
+                            Gp_SetLightMode(arg0->spawnArg2, 3);
                         }
                         break;
                 }
@@ -1295,11 +1295,11 @@ void Actor05500_Fn02364(GpEnemy* arg0, Task* arg1)
                     if (work->field_3C0 == 0) {
                         releaseId = 0x1A;
                     }
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, releaseId);
+                    Gp_ReleaseStateF0Add(arg1, releaseId);
                     Gp_SetStateF0Byte3(2);
                     work->field_39E = 0U;
                     work->field_39C = 1;
-                    Gp_SetLightMode((GpObj4C*)arg0, 1);
+                    Gp_SetLightMode(arg0, 1);
                     if (work->field_3BA != 0) {
                         obj->flags = 0x80;
                     }
@@ -1900,7 +1900,7 @@ void Actor05500_Fn03674(Task* arg0, TmdObject* arg1, s32 arg2)
         work->field_3D2    = 1;
     }
     if (ctx->reactionFlags & 0xC) {
-        damage = Gp_TickObjFlag4((GpObj5C*)ctx);
+        damage = Gp_TickObjFlag4(ctx);
         if ((s16)damage != 0) {
             func_800DA6E8(&ctx->node, (s16)damage, 0);
             remaining = (u16)ctx->hp - damage;
@@ -1916,7 +1916,7 @@ void Actor05500_Fn03674(Task* arg0, TmdObject* arg1, s32 arg2)
                 }
             }
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+        if (Gp_ObjFlag4Expired(ctx) != 0) {
             ctx->reactionFlags = (u8)(ctx->reactionFlags & 0xF3);
         }
     }
@@ -1979,7 +1979,7 @@ void Actor05500_Fn03864(Task* arg0)
             work->field_39C = 1;
             return;
         case 1:
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 0xB;

@@ -739,10 +739,10 @@ void Actor00300_Fn00E54(Task* arg0)
                             }
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, (s32)rec->rec4F0[0].key, 0);
+                            Gp_SetObjFlag2(enemy, (s32)rec->rec4F0[0].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, (s32)rec->rec4F0[0].key, 0);
+                            Gp_SetObjFlag4(enemy, (s32)rec->rec4F0[0].key, 0);
                             break;
                         case 4:
                         case 6:
@@ -775,7 +775,7 @@ void Actor00300_Fn00E54(Task* arg0)
                         work->field_690 *= 4;
                         Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords + 3, 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, (s32)rec->rec4F0[0].key, (s32)work->field_690, 0);
+                    func_800E2C78(enemy, (s32)rec->rec4F0[0].key, (s32)work->field_690, 0);
                     func_800DA6E8(&enemy->node, (s32)work->field_690, 0);
                     hpLeft    = (u16)enemy->hp - (u16)work->field_690;
                     enemy->hp = hpLeft;
@@ -2483,7 +2483,7 @@ void Actor00300_Fn04A2C(Task* arg0)
         work->field_686 = 0;
     }
     if (enemy->reactionFlags & 0xC) {
-        damage          = Gp_TickObjFlag4((GpObj5C*)enemy);
+        damage          = Gp_TickObjFlag4(enemy);
         work->field_690 = damage;
         if (damage != 0) {
             func_800DA6E8(&enemy->node, (s32)damage, 0);
@@ -2491,7 +2491,7 @@ void Actor00300_Fn04A2C(Task* arg0)
             work->field_684 = 5;
             work->field_686 = 0;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
     }
@@ -2621,7 +2621,7 @@ void Actor00300_Fn04D28(Task* arg0)
                 work->field_69C     = 0;
                 SndEvt_EnqueueType7(work->field_658, 1);
             }
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 enemy                 = arg0->spawnArg2;
                 enemy->reactionFlags &= 0xFD;
                 work->field_66E       = 0x12;

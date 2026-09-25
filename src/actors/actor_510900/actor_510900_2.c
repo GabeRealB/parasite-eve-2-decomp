@@ -371,7 +371,7 @@ void func_actor_510900_80135744(Task* arg0)
                         reaction = 2;
                     }
                     dmg = (s16)Gp_ComputeDamage(work->rec49C[i].key, 0, 0, 0) >> 1;
-                    func_800E2C78((GpObj40*)arg0->spawnArg2, work->rec49C[i].key, dmg, 0);
+                    func_800E2C78(arg0->spawnArg2, work->rec49C[i].key, dmg, 0);
                 } else {
                     d->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                     d->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
@@ -410,7 +410,7 @@ void func_actor_510900_80135744(Task* arg0)
                         break;
                     case 2:
                         if (work->field_5B4 == 0) {
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec49C[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec49C[i].key, 0);
                         }
                         break;
                     case 3:
@@ -3467,7 +3467,7 @@ void func_actor_510900_8013B988(Task* arg0)
         case 0:
             work->field_5A2 = 0;
             work->field_586 = 0x13;
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 work->field_586 = 0x14;
                 work->field_590 = 1;
                 work->field_5B8 = 0;

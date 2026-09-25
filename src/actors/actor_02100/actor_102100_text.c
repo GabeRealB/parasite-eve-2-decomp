@@ -803,7 +803,7 @@ void Actor02100_Fn011C4(Task* arg0)
                 index = 0;
             }
             if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
-                Gp_GetLockPos((GpLockPos*)&enemy->node, (VECTOR3*)&scratch->lock);
+                Gp_GetLockPos(&enemy->node, (VECTOR3*)&scratch->lock);
                 scratch->delta.vx = scratch->lock.vx - coord->coord.t[0];
                 scratch->delta.vy = scratch->lock.vy - coord->coord.t[1];
                 scratch->delta.vz = scratch->lock.vz - coord->coord.t[2];
@@ -854,7 +854,7 @@ s32 Actor02100_Fn014E4(Task* arg0)
     GsCOORDINATE2*            coord;
     GsCOORDINATE2*            targetCoord;
     VECTOR*                   vec;
-    GpLockPos*                lock;
+    GpLinkNode*               lock;
     u8*                       head;
     s32                       result;
     s32                       state;
@@ -899,7 +899,7 @@ case2:
     if (((GpEnemy*)work->field_140->spawnArg2)->hp <= 0) {
         goto cleanup;
     }
-    lock = (GpLockPos*)&((GpEnemy*)work->field_140->spawnArg2)->node;
+    lock = &((GpEnemy*)work->field_140->spawnArg2)->node;
     Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
     scratch->shortVec.vx = *(u16*)&scratch->vec.vx;
     scratch->shortVec.vy = *(u16*)&scratch->vec.vy;

@@ -104,7 +104,7 @@ void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     seed             = Gp_LcgState * 5 + 0x71357911;
     work->field_2A8  = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState      = seed;
-    Gp_SetLightMode((GpObj4C*)arg1->spawnArg2, 2);
+    Gp_SetLightMode(arg1->spawnArg2, 2);
     work->field_11C.end0.vz    = 0x1388;
     work->field_11C.end0Radius = 0xFA0;
     work->field_11C.end1Radius = 0x7D0;
@@ -346,7 +346,7 @@ void func_actor_207200_8014A588(Task* arg0)
                 if (Gp_RollEnemyChance(arg0->spawnArg2, work->field_1A4[i].key, 0) != 0) {
                     damage *= 4;
                 }
-                func_800E2C78((GpObj40*)enemy, work->field_1A4[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_1A4[i].key, damage, 0);
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
@@ -371,7 +371,7 @@ void func_actor_207200_8014A588(Task* arg0)
                 switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key)) {
                     case 2:
                     case 9:
-                        Gp_SetObjFlag2((GpObj5D*)enemy, work->field_1A4[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->field_1A4[i].key, 0);
                         break;
                     case 8:
                         work->field_2A6 = 1;
@@ -426,7 +426,7 @@ void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
     func_actor_207200_8014B128(arg1);
     arg1->killCountdown--;
     if (arg1->killCountdown <= 0) {
-        Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2F);
+        Gp_ReleaseStateF0Add(arg1, 0x2F);
         work->field_288 = 1;
         work->field_28A = 0;
         arg0->recs      = 0;
@@ -574,7 +574,7 @@ void func_actor_207200_8014AE70(Task* task)
                 work->field_290 = 0;
                 work->field_28A = 0;
             }
-            if (Gp_TickObjFlag2((GpObj5D*)task->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(task->spawnArg2) != 0) {
                 work->field_286 = 0;
             }
             break;

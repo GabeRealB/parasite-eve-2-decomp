@@ -893,7 +893,7 @@ void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
         work->obj2C8.flags &= 0x7FFF;
         work->obj300.flags &= 0x7FFF;
         work->obj338.flags &= 0x7FFF;
-        work->obj300.key    = Gp_PackObjPair((GpObj50*)arg0, 0);
+        work->obj300.key    = Gp_PackObjPair(arg0, 0);
         work->obj338.key    = 0x22121;
         work->field_6       = 0;
         work->obj230.flags |= 0x4000;
@@ -962,7 +962,7 @@ void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
             obj->flags = 0x80;
             break;
         case 28:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            Gp_ReleaseStateF0Add(arg1, 0xC);
             work->field_0 = 0;
             break;
         default:
@@ -1023,7 +1023,7 @@ void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
         work->obj2C8.flags &= 0x7FFF;
         work->obj300.flags &= 0x7FFF;
         work->obj338.flags &= 0x7FFF;
-        work->obj300.key    = Gp_PackObjPair((GpObj50*)arg0, 0);
+        work->obj300.key    = Gp_PackObjPair(arg0, 0);
         work->obj338.key    = 0x22121;
         work->field_6       = 0;
         work->obj230.flags &= 0xBFFF;
@@ -1096,7 +1096,7 @@ void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             obj->flags = 0x80;
             break;
         case 25:
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xC);
+            Gp_ReleaseStateF0Add(arg1, 0xC);
             work->field_0 = 0;
             break;
     }

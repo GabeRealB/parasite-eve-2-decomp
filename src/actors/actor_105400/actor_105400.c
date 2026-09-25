@@ -226,7 +226,7 @@ void func_actor_105400_80131E3C(Task* arg0)
             Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
         }
         func_800DA6E8(&enemy->node, damage, 0);
-        func_800E2C78((GpObj40*)enemy, work->rec18[i].key, damage, 0);
+        func_800E2C78(enemy, work->rec18[i].key, damage, 0);
         enemy->hp -= damage;
         if (enemy->hp <= 0) {
             if (work->field_336 == 0) {
@@ -400,7 +400,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->node0);
             Gp_UnlinkObj(&work->node1);
-            Gp_SetLightMode((GpObj4C*)arg0, 1);
+            Gp_SetLightMode(arg0, 1);
             if (work->field_334 == 0) {
                 work->field_328 = 0;
                 work->field_32C = 0;
@@ -481,7 +481,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x600A5, coord, 5, NULL);
             }
             if ((s16)work->field_328 == 0x6E) {
-                Gp_SetLightMode((GpObj4C*)arg0, 2);
+                Gp_SetLightMode(arg0, 2);
             }
             if ((s16)work->field_328 >= 0x78) {
                 work->field_32E = 2;
@@ -530,7 +530,7 @@ void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
             break;
     }
     if ((s16)work->field_330 == 0) {
-        Gp_ReleaseStateF0Add((GpObj20E*)arg1, D_actor_105400_80133A2C[work->field_334]);
+        Gp_ReleaseStateF0Add(arg1, D_actor_105400_80133A2C[work->field_334]);
         work->field_330 = 1;
         Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4);
     }

@@ -8,14 +8,12 @@ struct GpU16Pair;
 /// The parameter record an enemy is built from: what it can take, what it pays
 /// out, and how it reacts to being hit.
 ///
-/// A collision body reaches it through its pair source, the pointer the enemy
-/// object keeps at 0x50 (`GpObj50.field_50`, `GpEnemy.param`), which is where
-/// the type's name comes from rather than from its content: `Gp_PackObjPair`
-/// takes this enemy's body keys from `pairTable`, and each attack's reaction
-/// parameters come from here once it has landed. The record itself carries no
-/// reference back to the enemy, so several enemies of one kind share it.
+/// An enemy reaches it through `GpEnemy.param`: `Gp_PackObjPair` takes the
+/// enemy's body keys from `pairTable`, and each attack's reaction parameters
+/// come from here once it has landed. The record itself carries no reference
+/// back to the enemy, so several enemies of one kind share it.
 ///
-/// The reaction flags live in the enemy object's `field_4C` and are set from the
+/// The reaction flags live in the enemy's `reactionFlags` and are set from the
 /// kind an attack carries, by `Gp_SetObjFlag1` / `Gp_SetObjFlag2` /
 /// `Gp_SetObjFlag4`; a member named `flagN…` is the parameter of the reaction
 /// that flag `N` selects. Trailing pad keeps 4-byte alignment.

@@ -1416,7 +1416,7 @@ void func_actor_341700_801640F8(Task* arg0, s16 arg1)
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, work->rec_2EC[i].key, amount, 0);
+                    func_800E2C78(enemy, work->rec_2EC[i].key, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
@@ -1433,13 +1433,13 @@ void func_actor_341700_801640F8(Task* arg0, s16 arg1)
                         case 0:
                             break;
                         case 1:
-                            Gp_SetObjFlag1((GpObj4C*)enemy);
+                            Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key, 0);
                             break;
                         case 4:
                             work->field_448 = 4;
@@ -1477,7 +1477,7 @@ void func_actor_341700_801640F8(Task* arg0, s16 arg1)
     }
     if (enemy->reactionFlags & 0xC) {
         work->field_44E = 1;
-        tmp             = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tmp             = Gp_TickObjFlag4(enemy);
         tick            = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
@@ -1488,7 +1488,7 @@ void func_actor_341700_801640F8(Task* arg0, s16 arg1)
             work->field_41E = 1;
             work->field_448 = 2;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
     }
@@ -2818,7 +2818,7 @@ void func_actor_341700_80167744(Task* arg0)
         Gp_StateF0.field_1F = 0;
     }
     Gp_UnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     objs        = (Actor341700Work*)arg0->work;
     Gp_UnlinkObj(&objs->obj_2AC);
@@ -3399,7 +3399,7 @@ void func_actor_341700_80168A48(Task* arg0)
         work->field_418 = 0xB;
         work->field_414 = 1;
     }
-    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+    if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
         work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 3;
         work2->field_422 = 0;
@@ -3761,7 +3761,7 @@ void func_actor_341700_80169440(Task* arg0)
     s16              next;
 
     work = (Actor341700Work*)arg0->work;
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     anim = work->field_418;
     if (anim == 8) {
         if (work->field_440 == 0) {
@@ -3830,7 +3830,7 @@ void func_actor_341700_801695A0(Task* task)
     work->field_430    = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode((GpObj4C*)task->spawnArg2, 1);
+    Gp_SetLightMode(task->spawnArg2, 1);
 
     work->field_412 = 0;
     work->field_420++;
@@ -3892,7 +3892,7 @@ void func_actor_341700_80169724(Task* arg0)
     Tmd_FreeBuffers(model);
     model->flags |= 4;
     func_actor_341700_801624F8(arg0);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     work        = (Actor341700Work*)arg0->work;
     Gp_UnlinkObj(&work->obj_2AC);
@@ -4570,7 +4570,7 @@ void func_actor_341700_8016A98C(Task* task)
     work->field_430    = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode((GpObj4C*)task->spawnArg2, 1);
+    Gp_SetLightMode(task->spawnArg2, 1);
 
     work->field_412 = 0;
     work->field_420++;

@@ -1674,7 +1674,7 @@ void func_actor_401000_80133D50(Task* arg0)
                     }
                 }
             }
-            func_800E2C78((GpObj40*)enemy, s->id, s->damage, 0);
+            func_800E2C78(enemy, s->id, s->damage, 0);
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             work->field_BEA += s->damage;
@@ -1748,7 +1748,7 @@ void func_actor_401000_80133D50(Task* arg0)
                     }
                     break;
                 case 2:
-                    Gp_SetObjFlag2((GpObj5D*)enemy, s->id, 0);
+                    Gp_SetObjFlag2(enemy, s->id, 0);
                     state = work->field_0;
                     if (state == 0x11 || state == 4) {
                         work->field_0 = 4;
@@ -1769,7 +1769,7 @@ void func_actor_401000_80133D50(Task* arg0)
                     if (state == 0x18 || state == 0x16 || state == 0x17) {
                         work->field_0 = 6;
                     }
-                    Gp_SetObjFlag4((GpObj5C*)enemy, s->id, 0);
+                    Gp_SetObjFlag4(enemy, s->id, 0);
                     break;
                 case 1:
                     enemy->reactionFlags &= 0xFE;
@@ -1837,8 +1837,8 @@ void func_actor_401000_80133D50(Task* arg0)
         work->field_BEC = timer;
     block_bec:
         if (enemy->reactionFlags & 0xC) {
-            s->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
-            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            s->damage = Gp_TickObjFlag4(enemy);
+            if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags &= 0xF3;
             }
             if (s->damage != 0) {
@@ -1963,7 +1963,7 @@ void func_actor_401000_80134DB4(Task* arg0)
         work->field_8A2 = 0x10;
     }
     func_actor_401000_80132EF0(arg0);
-    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+    if (Gp_TickObjFlag2(enemy) == 1) {
         enemy->reactionFlags &= ~2;
         work->field_0         = 0x11;
     }
@@ -2978,7 +2978,7 @@ void func_actor_401000_801383F0(Task* arg0)
         msg->field_4    = 2;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
         player = gameGetPtrSlot(3);
-        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
     if (work->flags_68.half & 1) {
@@ -3203,17 +3203,17 @@ void func_actor_401000_80138D08(Task* arg0)
         temp_v0       = temp_v1 - 0x18;
         switch (temp_v0) {
             case 0:
-                Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                Gp_ReleaseStateF0Add(arg0, 0xA);
                 break;
             case 5:
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 Gp_SpawnEff(0x600A5, ((TmdObject*)arg0->extra)->coords + 2, 3, NULL);
                 break;
             case 23:
                 ((TmdObject*)arg0->extra)->flags = 2;
                 break;
             case 17:
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 break;
             case 39:
                 ((TmdObject*)arg0->extra)->flags = 0x80;
@@ -3857,7 +3857,7 @@ void func_actor_401000_8013B1E4(Task* arg0)
         work->field_8C0.vz               = 0;
         work->field_8C0.vy               = 0;
         Gp_SpawnEff(0x60030, ((TmdObject*)arg0->extra)->coords + 1, 0x10300, &work->field_8C0);
-        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+        Gp_ReleaseStateF0Add(arg0, 0xA);
     }
     next          = work->field_6 + 1;
     work->field_6 = next;
@@ -4004,17 +4004,17 @@ void func_actor_401000_8013B61C(Task* arg0)
             }
             switch ((s16)(work->field_6 - 0x19)) {
                 case 0:
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                    Gp_ReleaseStateF0Add(arg0, 0xA);
                     break;
                 case 5:
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SetLightMode(enemy, 1);
                     Gp_SpawnEff(0x600A5, ((TmdObject*)arg0->extra)->coords + 2, 2, NULL);
                     break;
                 case 23:
                     ((TmdObject*)arg0->extra)->flags = 2;
                     break;
                 case 17:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
                     break;
                 case 39:
                     ((TmdObject*)arg0->extra)->flags = 0x80;

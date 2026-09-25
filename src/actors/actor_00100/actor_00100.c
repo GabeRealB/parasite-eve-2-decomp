@@ -1864,7 +1864,7 @@ void Actor00100_Fn0375C(Task* arg0)
                     break;
                 case 2:
                     Actor00100_SetHitState(work);
-                    Gp_SetObjFlag2((GpObj5D*)ctx, scratch->field_20, 0);
+                    Gp_SetObjFlag2(ctx, scratch->field_20, 0);
                     break;
                 case 3:
                     state3 = work->field_0;
@@ -1874,7 +1874,7 @@ void Actor00100_Fn0375C(Task* arg0)
                     if (work->field_0 == 0x21) {
                         work->field_0 = 0x22;
                     }
-                    Gp_SetObjFlag4((GpObj5C*)ctx, scratch->field_20, 0);
+                    Gp_SetObjFlag4(ctx, scratch->field_20, 0);
                     break;
                 case 1:
                 case 4:
@@ -1912,7 +1912,7 @@ void Actor00100_Fn0375C(Task* arg0)
                     scratch->field_2E = 3;
                 }
             }
-            func_800E2C78((GpObj40*)ctx, scratch->field_20, (s32)scratch->field_24, 0);
+            func_800E2C78(ctx, scratch->field_20, (s32)scratch->field_24, 0);
             effect = scratch->field_2E;
             if (effect != -1) {
                 Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords + 2, (s32)effect, NULL);
@@ -1961,8 +1961,8 @@ void Actor00100_Fn0375C(Task* arg0)
             }
         }
         if (ctx->reactionFlags & 0xC) {
-            scratch->field_24 = Gp_TickObjFlag4((GpObj5C*)ctx);
-            if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+            scratch->field_24 = Gp_TickObjFlag4(ctx);
+            if (Gp_ObjFlag4Expired(ctx) != 0) {
                 ctx->reactionFlags &= 0xF3;
             }
             ctx->hp    = ctx->hp - scratch->field_24;
@@ -2055,12 +2055,12 @@ void Actor00100_Fn04270(Task* argx)
     state         = (s16)next;
     switch (state) {
         case 1:
-            Gp_SetLightMode((GpObj4C*)ctx, 0);
-            Gp_SetLightMode((GpObj4C*)ctx, 1);
+            Gp_SetLightMode(ctx, 0);
+            Gp_SetLightMode(ctx, 1);
             /* fallthrough */
         case 0xA:
             ((TmdObject*)arg0->extra)->flags = 2;
-            Gp_SetLightMode((GpObj4C*)ctx, 2);
+            Gp_SetLightMode(ctx, 2);
             break;
         case 0xF:
             work->field_8A8.vx = 0;
@@ -4331,7 +4331,7 @@ void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                             for (i = 0; i < 10; i++) {
                                 gGameSession->areaBgmCountdown = 0x7F;
                                 playerSlot                     = gameGetPtrSlot(3);
-                                if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 4), 0) == 1)
+                                if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair(enemy, 4), 0) == 1)
                                     break;
                             }
                         }
@@ -4696,7 +4696,7 @@ void Actor00100_Fn0B52C(Task* arg0)
         work->field_832 = 0x10;
     }
     Actor00100_Fn02788(arg0);
-    if (Gp_TickObjFlag2((GpObj5D*)ctx) == 1) {
+    if (Gp_TickObjFlag2(ctx) == 1) {
         ctx->reactionFlags &= 0xFD;
         work->field_0       = 0x24;
     }
@@ -4961,7 +4961,7 @@ void Actor00100_Fn0BCBC(GpEnemy* enemy, Task* task)
     work = (Actor00100Work*)task->work;
     if (work->field_C2A == 1) {
         work->field_C2A = 0;
-        Gp_ReleaseStateF0Add((struct _GpObj20E*)task, 1);
+        Gp_ReleaseStateF0Add(task, 1);
     }
     if (work->field_C2A == 0) {
         task->state++;

@@ -30,9 +30,11 @@
 /// room the player leaves and re-enters restores its enemies where they were
 /// rather than placing them again.
 ///
-/// Several helpers reach this object through a narrower view of it - the
-/// reaction, pair and lock-on helpers take a prefix type and cast - so the
-/// fields those views name at the same offsets are this type's.
+/// A landed hit can start a reaction on the enemy (`Gp_ApplyObjKind`): flag 1
+/// is a bare request, flag 2 builds up over time and ends after a random
+/// delay, and flag 4 deals a fraction of `hpMax` on every tick until it
+/// expires. The parameters come from `param`, scaled by a grade the attack
+/// carries.
 typedef struct GpEnemy {
     Task*          task;          // Owning task; the one whose `spawnArg2` is this object
     MATRIX*        field_4;       // Role unproven: actors store a model part's matrix here, nothing reads it back
@@ -58,9 +60,19 @@ typedef struct GpEnemy {
     u8             colorBlend;    // Frames a colour remap change is blended over, in sixteenths; 0 switches at once
     GpPairSrcE*    param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
     GpRec18*       recs;          // The enemy's own contact records; its collision bodies point at the table and the Parasite Energy targeting claims entries in it
-    byte           pad_58[8];
+    u8             flag2Steps;    // Flag-2 reaction: steps it has built up, each 0x1F frames long, up to the limit `param->flag2Ticks` and its grade allow
+    u8             flag4Delay;    // Flag-4 reaction: frames left until its next damage tick, reseeded at random on each tick
+    u8             flag4Ticks;    // Flag-4 reaction: damage ticks dealt so far, measured against `param->flag4Ticks`
+    u8             flag2Timer;    // Flag-2 reaction: frames into the current step; once the limit is reached, a random countdown to the reaction ending
+    u8             flag4Grade;    // Flag-4 reaction: 0-9 row of the scale tables its length and damage are taken from; 0 for an attack without one
+    u8             flag2Grade;    // Flag-2 reaction: 0-9 row of the scale table its length is taken from; 0 for an attack without one
+    byte           pad_5E[2];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
+
+/// The enemy a lock-on list entry belongs to: every `GpLinkNode` on that list
+/// is the `node` member of an enemy.
+#define GP_NODE_ENEMY(n) ((GpEnemy*)((u8*)(n) - OFFSET_OF(GpEnemy, node)))
 
 /// Callback for GpEnemy + Task state handlers (entries in `Gp_EnemyWaitFuncs`).
 typedef void (*GpEnemyTaskFunc)(GpEnemy* enemy, Task* task);

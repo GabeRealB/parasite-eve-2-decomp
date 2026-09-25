@@ -766,7 +766,7 @@ s32 func_actor_311500_801630A4(Task* arg0)
         case 1:
             switch (work->field_4C4) {
                 case 0:
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                    Gp_ReleaseStateF0Add(arg0, 0xA);
                     enemy->recs = 0;
                     Gp_UnlinkObj(&work->field_43C);
                     enemy->node.flags = state;
@@ -774,11 +774,11 @@ s32 func_actor_311500_801630A4(Task* arg0)
 
                 case 0xA:
                     Gp_SpawnEff(0x600A5, &((TmdObject*)arg0->extra)->coords[2], 3, NULL);
-                    Gp_SetLightMode((GpObj4C*)enemy, 1);
+                    Gp_SetLightMode(enemy, 1);
                     break;
 
                 case 0x16:
-                    Gp_SetLightMode((GpObj4C*)enemy, 2);
+                    Gp_SetLightMode(enemy, 2);
                     break;
 
                 case 0x1C:

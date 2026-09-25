@@ -612,7 +612,7 @@ void Actor07000_Fn00478(Task* arg0)
             return;
         case 3:
             work->field_2D2 = 1;
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 work->field_2D2 = 0;
                 work->field_2B2 = 1;
                 work->field_2C8 = 1;
@@ -897,7 +897,7 @@ contact_loop:
                         work->field_2B4     = 0;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78((GpObj40*)enemy, (s32)contact->field_154[0].key, (s32)damage, 0);
+                        func_800E2C78(enemy, (s32)contact->field_154[0].key, (s32)damage, 0);
                         Actor07000_Fn00F6C(arg0, (s32)damage);
                         effect = Gp_GetIdParam0((s32)contact->field_154[0].key) & 0xFFFF;
                         if (effect == damageState)
@@ -917,10 +917,10 @@ contact_loop:
                         work->field_2C8 = damageState;
                         goto effect_done;
                     effect_flag4:
-                        Gp_SetObjFlag4((GpObj5C*)enemy, contact->field_154[0].key, 0);
+                        Gp_SetObjFlag4(enemy, contact->field_154[0].key, 0);
                         goto effect_done;
                     effect_flag2:
-                        Gp_SetObjFlag2((GpObj5D*)enemy, contact->field_154[0].key, 0);
+                        Gp_SetObjFlag2(enemy, contact->field_154[0].key, 0);
                     effect_done:
                         if (enemy->hp > 0) {
                             func_800FDB18(Gp_GetIdParam1((s32)contact->field_154[0].key) & 0xFFFF, ((TmdObject*)arg0->extra)->coords + 1, NULL, &work->field_284);
@@ -1669,11 +1669,11 @@ void Actor07000_Fn026BC(Task* arg0)
             work->field_2D2       = 1;
         }
         if (enemy->reactionFlags & 0xC) {
-            tick = Gp_TickObjFlag4((GpObj5C*)enemy);
+            tick = Gp_TickObjFlag4(enemy);
             if (tick != 0) {
                 Actor07000_Fn00F6C(arg0, tick);
             }
-            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags &= 0xF3;
             }
         }
@@ -2070,7 +2070,7 @@ default_body:
                 work->field_374 = 0;
                 work->field_36E = 0;
             }
-            if (Gp_TickObjFlag2((GpObj5D*)arg1->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg1->spawnArg2) != 0) {
                 work->field_36A = 0;
             }
             break;
@@ -2420,7 +2420,7 @@ void Actor07000_Fn03E08(Task* arg0)
                         Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords, 0, 0);
                         damage *= 4;
                     }
-                    func_800E2C78((GpObj40*)enemy, (s32)work->field_24C[i].key, (s32)damage, 0);
+                    func_800E2C78(enemy, (s32)work->field_24C[i].key, (s32)damage, 0);
                     Actor07000_Fn04274(arg0, (s32)damage);
                     reaction = Gp_GetIdParam0((s32)work->field_24C[i].key) & 0xFFFF;
                     switch (reaction) {
@@ -2434,12 +2434,12 @@ void Actor07000_Fn03E08(Task* arg0)
                             }
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, (s32)work->field_24C[i].key, 0);
+                            Gp_SetObjFlag4(enemy, (s32)work->field_24C[i].key, 0);
                             break;
                         case 2:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, (s32)work->field_24C[i].key, 0);
+                            Gp_SetObjFlag2(enemy, (s32)work->field_24C[i].key, 0);
                             break;
                         case 4:
                         case 6:
@@ -2622,7 +2622,7 @@ default_body:
             Gp_UnlinkObj(&work->field_1DC);
             Gp_UnlinkObj(&work->field_22C);
             Gp_UnlinkObj(&work->field_2AC);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2A);
+            Gp_ReleaseStateF0Add(arg1, 0x2A);
             work->field_370 = 0xC;
             work->field_36E = 0;
             work->field_36C = 1;
@@ -2646,7 +2646,7 @@ default_body:
             arg1->state = 3;
             break;
     }
-    Gp_SetLightMode((GpObj4C*)arg0, 1);
+    Gp_SetLightMode(arg0, 1);
     work2 = (ActorShared80136288Work*)arg1->work;
     i     = 1;
     if (work2->field_370 != (s16)work2->field_372) {
@@ -3675,13 +3675,13 @@ void Actor07000_Fn0662C(Task* arg0)
             work->field_36E       = 0;
         }
         if (enemy->reactionFlags & 0xC) {
-            tick = Gp_TickObjFlag4((GpObj5C*)enemy);
+            tick = Gp_TickObjFlag4(enemy);
             if (tick != 0) {
                 Actor07000_Fn04274(arg0, tick);
                 work->field_36A = 0;
                 work->field_370 = 5;
             }
-            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags &= 0xF3;
             }
         }

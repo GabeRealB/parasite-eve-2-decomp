@@ -4038,7 +4038,7 @@ void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     link2->flags  = 1;
     Gp_LinkObj(3, link2);
     Gp_InitRec18Table(link2->ctx.recs, 1, 0);
-    work->hit.key   = Gp_PackObjPair((GpObj50*)enemy, 0);
+    work->hit.key   = Gp_PackObjPair(enemy, 0);
     coord->sub      = &gGfxViewCoord;
     work->yaw       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->field_100 = 2;
@@ -4363,7 +4363,7 @@ void func_acropolis_bridge_801861A0(Task* task)
         work->walker.state    = 1;
         work->hit.flags      |= 0x8000;
         work->body.flags     |= 0x8000;
-        work->hit.key         = Gp_PackObjPair((GpObj50*)enemy, 0);
+        work->hit.key         = Gp_PackObjPair(enemy, 0);
         enemy->node.flags     = 0;
         work->field_100       = 2;
         work->field_104       = 2;
@@ -4788,14 +4788,14 @@ void func_acropolis_bridge_80187310(Task* task)
         step = work->field_290;
         switch (step) {
             case 10:
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 Gp_SpawnEff(0x600A5, &((TmdObject*)task->extra)->coords[2], 1, NULL);
                 break;
             case 28:
                 ((TmdObject*)task->extra)->flags = 2;
                 break;
             case 22:
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 break;
             case 34:
                 ((TmdObject*)task->extra)->flags = 0x80;
@@ -4827,14 +4827,14 @@ void func_acropolis_bridge_801874DC(Task* task)
             Gp_ArmStateF0(1);
         }
         if (enemy->hp > 0) {
-            Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
+            Gp_ReleaseStateF0Add(task, 0x29);
         }
         work->field_1F0.coord      = &((TmdObject*)task->extra)->coords[1];
         work->field_1F0.spawnArgLo = 0xA0;
         work->field_1F0.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &((TmdObject*)task->extra)->coords[1], NULL,
                       &work->field_1F0);
-        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        Gp_SetLightMode(enemy, 1);
         Gp_SpawnEff(0x600A5, &((TmdObject*)task->extra)->coords[1], 1, NULL);
         ((TmdObject*)task->extra)->flags = 2;
         work->field_290                  = 0;
@@ -4849,7 +4849,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                 ((TmdObject*)task->extra)->flags = step;
                 break;
             case 30:
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 break;
             case 44:
                 ((TmdObject*)task->extra)->flags = 0x80;
@@ -4885,7 +4885,7 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
             damage *= 4;
             Gp_SpawnEff(0x6009C, &((TmdObject*)task->extra)->coords[1], 0, NULL);
         }
-        func_800E2C78((GpObj40*)enemy, attackId, damage, 0);
+        func_800E2C78(enemy, attackId, damage, 0);
         enemy->hp -= damage;
         func_800DA6E8(&enemy->node, damage, 0);
         work->field_10C -= damage;
@@ -4894,7 +4894,7 @@ void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
             return;
         }
         if (D_801153F6 != 0) {
-            Gp_ReleaseStateF0Add((GpObj20E*)task, 0x29);
+            Gp_ReleaseStateF0Add(task, 0x29);
         }
         if (work->field_10C > 0) {
             return;

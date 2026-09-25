@@ -881,7 +881,7 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
                     ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_8018494C[0];
                 }
                 if (D_801153F6 >= 2) {
-                    Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+                    Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     D_neo_ark_woodland_path_80184996 = 1;
                 }
@@ -957,7 +957,7 @@ void func_neo_ark_woodland_path_801806D8(Task* task)
     }
     if (D_neo_ark_woodland_path_80184996 == 1 && D_801153F6 >= 2) {
         D_neo_ark_woodland_path_80184996 = 0;
-        Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+        Gp_ReleaseStateF0(task, 0xD);
     }
     if (D_801153F6 == 0 && D_neo_ark_woodland_path_801849F0 > 0) {
         D_neo_ark_woodland_path_8018498E = 0x96;

@@ -171,42 +171,6 @@ typedef struct _GpDmgSlot {
 } GpDmgSlot;
 STATIC_ASSERT_SIZEOF(GpDmgSlot, 0xC);
 
-/// Object whose pointer at 0x50 is the enemy's `GpPairSrcE`, used by
-/// `Gp_PackObjPair`. Same object family as `GpObj4C` (flags at 0x4C).
-typedef struct _GpObj50 {
-    /* 0x00 */ byte        pad_0[0x50];
-    /* 0x50 */ GpPairSrcE* field_50;
-} GpObj50;
-STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
-
-/// 0x18-byte slot in the table at `GpObj54.field_54`. Occupied when the
-/// first word's low 2 bits equal 1. `Gp_ClaimSlot18` claims the first free
-/// slot: payload in `field_4`, clears `field_2` / `field_8` / `field_A` /
-/// `field_C` / `field_10` / `field_12` / `field_14`, ORs bit 0 into
-/// `field_0`, and increments `Gp_StateF0.field_5`.
-typedef struct _GpSlot18 {
-    /* 0x00 */ u16   field_0;
-    /* 0x02 */ s16   field_2;
-    /* 0x04 */ void* field_4;
-    /* 0x08 */ s16   field_8;
-    /* 0x0A */ s16   field_A;
-    /* 0x0C */ s16   field_C;
-    /* 0x0E */ s16   field_E;
-    /* 0x10 */ s16   field_10;
-    /* 0x12 */ s16   field_12;
-    /* 0x14 */ s16   field_14;
-    /* 0x16 */ s16   field_16;
-} GpSlot18;
-STATIC_ASSERT_SIZEOF(GpSlot18, 0x18);
-
-/// Sparse overlay whose pointer at 0x54 is a `GpSlot18` table walked by
-/// `Gp_ClaimSlot18`. Same object family as `GpObj50` / `GpObj4C`.
-typedef struct _GpObj54 {
-    /* 0x00 */ byte      pad_0[0x54];
-    /* 0x54 */ GpSlot18* field_54;
-} GpObj54;
-STATIC_ASSERT_SIZEOF(GpObj54, 0x58);
-
 /// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
 /// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
 /// `&table[GpAreaKey.view]` when that index is in range,
@@ -327,20 +291,6 @@ typedef struct _GpSVec3x3 {
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 
-/// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `Gp_SetObjTrans`
-/// writes translation `t[0]/t[1]/t[2]` through `field_20`. `Gp_BindDefaultMtx`
-/// installs the default matrices `Gp_DefaultMtx` / `Gp_DefaultMtx2` here (same
-/// overlay as `TmdObject`). `ActorsShared80131e24Sub1` stores 0x80 into
-/// `field_C` on the object it later hands to `Gp_SetObjTrans`.
-typedef struct _GpObj20 {
-    /* 0x00 */ byte    pad_0[0xC];
-    /* 0x0C */ s16     field_C;
-    /* 0x0E */ byte    pad_E[0xE];
-    /* 0x1C */ MATRIX* field_1C;
-    /* 0x20 */ MATRIX* field_20;
-} GpObj20;
-STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
-
 /// Cone-light overlay of the same object as `GpObj44`.
 /// `field_24` is the light matrix (Z column is the cone axis; `t` is the
 /// world position, same words as `GpObj44.field_38`). `field_60` /
@@ -366,20 +316,7 @@ typedef struct _GpObj68 {
 } GpObj68;
 STATIC_ASSERT_SIZEOF(GpObj68, 0x6C);
 
-/// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
-/// `arg2`) into `Gp_StateF0.field_14` by `func_800E2C78` when
-/// `(arg1 & 0x7F)` is 0x19..0x1B.
-typedef struct _GpObj40 {
-    /* 0x00 */ byte pad_0[0x40];
-    /* 0x40 */ s16  field_40;
-} GpObj40;
-STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
-
-/// Object whose flags byte at 0x4C is OR'd by `Gp_SetObjFlag1`. Nearby
-/// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4). `field_4E`
-/// packs two 2-bit modes (current in bits 0-1, previous in bits 2-3)
-/// plus a high-nibble flag; `Gp_SetLightMode` rotates the current mode
-/// into the previous slot and starts `field_4F` as a 0x10 blend timer.
+/// A trigger quad on the `Gp_PendingObj4C` / `Gp_Obj4CList` lists.
 /// `next` and signed `field_4B` are the `Gp_PendingObj4C` list walked by
 /// `Gp_ClearPendingObj4C`, which clears a non-zero `field_4B`. `Gp_TakePendingObj4C`
 /// walks the same list and, on a pending `field_4B`, copies `field_46` /
@@ -391,7 +328,8 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// `field_C` as its local origin, `field_34` as its normal, and `field_44`
 /// as its bounding radius. `field_8` supplies the coordinate matrices.
 /// `func_800DEF80` also tests `field_3C` against the object's forward axis
-/// when the low three bits of `field_4A` are 2.
+/// when the low three bits of `field_4A` are 2. Nothing read so far fixes
+/// where the object ends.
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C* next;
     /* 0x04 */ byte             pad_4[4];
@@ -406,78 +344,7 @@ typedef struct _GpObj4C {
     /* 0x49 */ u8               field_49;
     /* 0x4A */ u8               field_4A;
     /* 0x4B */ s8               field_4B;
-    /* 0x4C */ u8               field_4C;
-    /* 0x4D */ byte             pad_4D;
-    /* 0x4E */ u8               field_4E;
-    /* 0x4F */ u8               field_4F;
 } GpObj4C;
-STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
-
-/// Sparse overlay of the same object family as `GpObj4C` (flags at 0x4C).
-/// `Gp_ApplyObjKind` looks up a kind from `Gp_IdParamLo` / `Gp_IdParamHi` (same
-/// field as `Gp_GetIdParam0`) and starts one of three effects: bit 0x1
-/// (`Gp_SetObjFlag1`), bit 0x2 (`Gp_SetObjFlag2`, also `field_58` /
-/// `field_5B` / `field_5D`), or bit 0x4 (`Gp_SetObjFlag4`, also
-/// `field_59` / `field_5A` / `field_5C`). `Gp_SetObjFlag2` ORs bit 0x2
-/// into `field_4C`, clears `field_58` / `field_5B`, and writes `field_5D`
-/// from `Gp_StateC08.field_0 % 10` when the id has the 0x8000 bit and low
-/// 6 bits != 0x31. `Gp_TickObjFlag2` compares `field_58` against
-/// `field_50->flag2Ticks * D_80113D30[field_5D] / 100` and ticks `field_5B`.
-/// Trailing pad keeps pointer alignment; full object size is not known yet.
-typedef struct _GpObj5D {
-    /* 0x00 */ byte        pad_0[0x40];
-    /* 0x40 */ s16         field_40;
-    /* 0x42 */ byte        pad_42[0xA];
-    /* 0x4C */ u8          field_4C;
-    /* 0x4D */ byte        pad_4D[3];
-    /* 0x50 */ GpPairSrcE* field_50;
-    /* 0x54 */ byte        pad_54[4];
-    /* 0x58 */ u8          field_58;
-    /* 0x59 */ u8          field_59;
-    /* 0x5A */ u8          field_5A;
-    /* 0x5B */ u8          field_5B;
-    /* 0x5C */ u8          field_5C;
-    /* 0x5D */ u8          field_5D;
-    /* 0x5E */ byte        pad_5E[2];
-} GpObj5D;
-STATIC_ASSERT_SIZEOF(GpObj5D, 0x60);
-
-/// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
-/// `Gp_SetObjFlag4` rolls `(Gp_LcgState * 5 + 0x71357911) >> 16 & 0xFFF`
-/// against `field_50->flag4Chance << 12 / 100`. On a hit it clears
-/// `field_5A`, ORs bit 0x4 into `field_4C`, reseeds `field_59` from
-/// `Gp_LcgState`, and writes `field_5C` from `Gp_StateC08.field_0 % 10`
-/// when `arg1` has the 0x8000 bit (else 0).
-/// `Gp_ObjFlag4Expired` tests bit 0x4 of `field_4C` and compares `field_5A`
-/// against `field_50->flag4Ticks * D_80113D28[field_5C] / 100`.
-/// `Gp_TickObjFlag4` decrements `field_59` and, on expiry, increments
-/// `field_5A`, reseeds `field_59` from `Gp_LcgState`, and returns
-/// a percentage of the enemy's `field_50->hpMax` for that tick (at least 1).
-/// Trailing pad keeps pointer alignment; full object size is not known yet.
-typedef struct _GpObj5C {
-    /* 0x00 */ byte        pad_0[0x4C];
-    /* 0x4C */ u8          field_4C;
-    /* 0x4D */ byte        pad_4D[3];
-    /* 0x50 */ GpPairSrcE* field_50;
-    /* 0x54 */ byte        pad_54[5];
-    /* 0x59 */ u8          field_59;
-    /* 0x5A */ u8          field_5A;
-    /* 0x5B */ byte        pad_5B;
-    /* 0x5C */ u8          field_5C;
-    /* 0x5D */ byte        pad_5D[3];
-} GpObj5C;
-STATIC_ASSERT_SIZEOF(GpObj5C, 0x60);
-
-/// Sparse overlay whose pointer at 0x20 is a `GpObj5C*` (same family as
-/// `GpObj50`). `Gp_ReleaseStateF0Add` reads `field_20->field_50` and adds that
-/// `GpPairSrcE`'s `exp` / `bp` / `mp` into
-/// `Gp_StateF0.field_8` / `field_C` / `field_10`, the pending EXP / BP / MP
-/// totals the battle-result panel credits to the player.
-typedef struct _GpObj20E {
-    /* 0x00 */ byte     pad_0[0x20];
-    /* 0x20 */ GpObj5C* field_20;
-} GpObj20E;
-STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
 
 /// 0x4C list node appended to `Gp_Obj4ALists[index]` by `Gp_LinkObj4A` and
 /// unlinked by `Gp_UnlinkObj4A`. `Gp_ClearObj4AList` empties the whole list.
@@ -570,7 +437,7 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// around event views and copies it into `Gp_State1C->eventState` /
 /// `fadeState` every frame; most overlays reach it through the alias
 /// `D_801153F4`, and `field_6` through `D_801153F6`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
-/// when it claims a `GpSlot18`. `field_6` is a u16
+/// when it claims a contact record. `field_6` is a u16
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
 /// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
@@ -633,7 +500,7 @@ STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 /// Overlay used by `Gp_ProjectToSxy`. `field_8` is a `GsCOORDINATE2*`
 /// (`workm` is loaded as both rotation and translation). `field_C` /
 /// `field_10` / `field_14` are the low halves of a `VECTOR3` at +0xC
-/// (same layout `GpLockPos.pos` / `Gp_GetLockPos` loads as three words).
+/// (the enemy's `bodyPos`, seen from its lock-on `node`).
 typedef struct _GpPerspSrc {
     /* 0x00 */ byte  pad_0[8];
     /* 0x08 */ void* field_8;
@@ -645,15 +512,6 @@ typedef struct _GpPerspSrc {
     /* 0x16 */ byte  pad_16[2];
 } GpPerspSrc;
 STATIC_ASSERT_SIZEOF(GpPerspSrc, 0x18);
-
-/// Source for `Gp_GetLockPos` (`get_lock_pos`). `coord` is the world
-/// transform; `pos` is the local `VECTOR3`. Overlays `GpPerspSrc`.
-typedef struct _GpLockPos {
-    /* 0x00 */ byte                   pad_0[8];
-    /* 0x08 */ struct _GsCOORDINATE2* coord;
-    /* 0x0C */ VECTOR3                pos;
-} GpLockPos;
-STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
@@ -1243,16 +1101,16 @@ extern GpRec10 Gp_IdParamLo[];
 /// set. Indexed by `id & 0x7F`.
 extern GpRec16 Gp_IdParamHi[];
 
-/// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_ObjFlag4Expired` multiplies
-/// `field_50->flag4Ticks` by the selected entry and divides by 100.
+/// Percentages `Gp_ObjFlag4Expired` scales an enemy's `param->flag4Ticks` by,
+/// one per `GpEnemy.flag4Grade`: how long the flag-4 reaction lasts.
 extern u16 D_80113D28[];
 
-/// u16 scale table indexed by `GpObj5D.field_5D`. `Gp_TickObjFlag2` multiplies
-/// `field_50->flag2Ticks` by the selected entry and divides by 100.
+/// Percentages `Gp_TickObjFlag2` scales an enemy's `param->flag2Ticks` by, one
+/// per `GpEnemy.flag2Grade`: how far the flag-2 reaction builds up.
 extern u16 D_80113D30[];
 
-/// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_TickObjFlag4` multiplies
-/// the enemy's `field_50->hpMax` by the selected entry and divides by 100.
+/// Percentages of an enemy's `param->hpMax` that `Gp_TickObjFlag4` deals on each
+/// flag-4 tick, one per `GpEnemy.flag4Grade`.
 extern u16 D_80113D38[];
 
 /// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `Gp_StateF0.field_2B`.
@@ -1315,7 +1173,7 @@ void Gp_UpdateRoomCoords(Task* arg0);
 s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
-void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
@@ -1337,7 +1195,7 @@ void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void Gp_LightFalloff(GpObj44* arg0);
-void Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
+void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
 /// How far a coordinate's origin lies from the current view's projection plane,
 /// in the form the sound events take their depth argument: saturated to ±0x7FFF
 /// and scaled down by 256, which lands in the signed byte they read.
@@ -1353,10 +1211,12 @@ s32 Gp_GetObjPan(GsCOORDINATE2* coord);
 /// depth-attenuated by `Gp_GetObjPan` / `gpGetObjDepth`. A third argument of
 /// 1 raises the mid-action bit alongside it; the role of that argument at the
 /// call sites is not established.
-void            Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);
-void            Gp_SetOverrideVec(SVECTOR* arg0);
-void            Gp_SetOverrideVec2(SVECTOR* arg0);
-void            Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
+void Gp_PlayObjSfx(GsCOORDINATE2* coord, s32 sfx, s32 arg2);
+void Gp_SetOverrideVec(SVECTOR* arg0);
+void Gp_SetOverrideVec2(SVECTOR* arg0);
+/// Sets the back colour a model is lit with: the translation of its colour
+/// matrix, which the lighting adds to every vertex as the ambient term.
+void            Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3);
 GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
 s32             Gp_CountRoomCoords(void);
 s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
@@ -1364,9 +1224,9 @@ void            func_800D96C8(Task* arg0);
 s32             Gp_GetObjLuma(GpObj44* arg0);
 /// World X of the object's position.
 s32             Gp_GetObjTransX(GsCOORDINATE2* coord);
-void            func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void            func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void            func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void            func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
+void            func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
+void            func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
 void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void            Gp_BindDefaultMtx(Task* arg0);
 void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -1399,7 +1259,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
 void* Gp_FindLockNode(Task* arg0);
 void* Gp_FindLockNodePad(Task* arg0);
 void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
-void  Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
+void  Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out);
 void  Gp_ClearLockSlots(void);
 void  Gp_ResetLinkState(void);
 s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
@@ -1414,9 +1274,9 @@ void Gp_ArmStateF0(s32 arg0);
 void Gp_SetStateF0Bit(s32 arg0);
 void Gp_SetStateF0Byte3(s32 arg0);
 void Gp_IncStateF0Ref(s32 arg0);
-void Gp_ReleaseStateF0Add(GpObj20E* arg0, s32 arg1);
+void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
 void Gp_ReleaseStateF0Clear(void);
-void Gp_ReleaseStateF0(GpObj20E* arg0, s32 arg1);
+void Gp_ReleaseStateF0(Task* arg0, s32 arg1);
 void Gp_TickWorldCollision(void);
 void Gp_RunPairHandler(GpObj* node);
 void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
@@ -1483,7 +1343,7 @@ s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
 void Gp_CommitObj4CSave(void);
 s32  Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2);
-void Gp_ClaimSlot18(GpObj54* arg0, void* arg1);
+void Gp_ClaimSlot18(struct GpEnemy* arg0, s32 arg1);
 /// Builds a rotation matrix in `arg1` that orients along normalized `arg0`
 /// (yaw from XZ, pitch from Y vs the XZ length, then roll by `arg2`).
 void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
@@ -1510,19 +1370,19 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `Gp_LcgState` draw.
 s32  Gp_RollEnemyChance(struct GpEnemy* arg0, u32 arg1, s32 arg2);
-void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
-s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
+void Gp_ApplyObjKind(struct GpEnemy* arg0, s32 arg1);
+s32  Gp_PackObjPair(struct GpEnemy* arg0, s32 arg1);
 s32  Gp_PackPair(GpU16Pair* pairs, s32 index);
-void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800E2C78(struct GpEnemy* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  Gp_LookupIdField(s32 arg0, s32 arg1);
 s32  Gp_GetIdParam0(s32 arg0);
 s32  Gp_GetIdParam1(s32 arg0);
-void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1, s32 arg2);
-s32  Gp_TickObjFlag4(GpObj5C* arg0);
-s32  Gp_ObjFlag4Expired(GpObj5C* arg0);
-void Gp_SetObjFlag1(GpObj4C* arg0);
-void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1, s32 arg2);
-s32  Gp_TickObjFlag2(GpObj5D* arg0);
+void Gp_SetObjFlag4(struct GpEnemy* arg0, s32 arg1, s32 arg2);
+s32  Gp_TickObjFlag4(struct GpEnemy* arg0);
+s32  Gp_ObjFlag4Expired(struct GpEnemy* arg0);
+void Gp_SetObjFlag1(struct GpEnemy* arg0);
+void Gp_SetObjFlag2(struct GpEnemy* arg0, s32 arg1, s32 arg2);
+s32  Gp_TickObjFlag2(struct GpEnemy* arg0);
 s32  Gp_GetIdParam2(s32 arg0);
 void func_800E31E8(Task* arg0);
 void Gp_EvtCapTask(Task* arg0);

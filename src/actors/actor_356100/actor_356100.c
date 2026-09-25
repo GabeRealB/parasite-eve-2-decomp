@@ -1722,7 +1722,7 @@ void func_actor_356100_80163CD4(Task* arg0)
         work->field_982 = 0x10;
     }
     func_actor_356100_80163508(arg0);
-    if (Gp_TickObjFlag2((GpObj5D*)ctx) == 1) {
+    if (Gp_TickObjFlag2(ctx) == 1) {
         ctx->reactionFlags &= 0xFD;
         work->field_0       = 0x11;
     }
@@ -2725,17 +2725,17 @@ void func_actor_356100_80167358(Task* arg0)
         temp_v0       = temp_v1 - 0x18;
         switch (temp_v0) {
             case 0:
-                Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0xA);
+                Gp_ReleaseStateF0Add(arg0, 0xA);
                 break;
             case 5:
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 Gp_SpawnEff(0x600A5, ((TmdObject*)arg0->extra)->coords + 2, 3, NULL);
                 break;
             case 23:
                 ((TmdObject*)arg0->extra)->flags = 2;
                 break;
             case 17:
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 break;
             case 39:
                 ((TmdObject*)arg0->extra)->flags = 0x80;
@@ -3829,7 +3829,7 @@ void func_actor_356100_8016A468(Task* arg0)
         msg->field_4    = 2;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
         player = gameGetPtrSlot(3);
-        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
     }
     if (work->field_68 & 2) {
         work->field_0 = 0xE;

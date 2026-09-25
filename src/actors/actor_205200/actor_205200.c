@@ -643,7 +643,7 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
             Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x34);
+            Gp_ReleaseStateF0Add(arg1, 0x34);
             arg0->recs     = 0;
             work->field_2C = 1;
             work->field_20--;

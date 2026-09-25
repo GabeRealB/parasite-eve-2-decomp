@@ -1472,7 +1472,7 @@ void func_actor_400600_80134218(Task* arg0)
         sound2 = id | ((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8);
         pan2   = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(((TmdObject*)arg0->extra)->coords));
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0) != 0) {
+        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 1), 0) != 0) {
             work->field_764 = 1;
         }
         vec.vx = 0;
@@ -2437,7 +2437,7 @@ void func_actor_400600_80136968(Task* arg0)
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[3], 0, NULL);
                     }
-                    func_800E2C78((GpObj40*)enemy, work->rec_4D4[i].key, amount, 0);
+                    func_800E2C78(enemy, work->rec_4D4[i].key, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
@@ -2460,13 +2460,13 @@ void func_actor_400600_80136968(Task* arg0)
                         case 0:
                             break;
                         case 1:
-                            Gp_SetObjFlag1((GpObj4C*)enemy);
+                            Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2((GpObj5D*)enemy, work->rec_4D4[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec_4D4[i].key, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)enemy, work->rec_4D4[i].key, 0);
+                            Gp_SetObjFlag4(enemy, work->rec_4D4[i].key, 0);
                             break;
                         case 4:
                             work->field_730 = 4;
@@ -2504,7 +2504,7 @@ void func_actor_400600_80136968(Task* arg0)
     }
     if (enemy->reactionFlags & 0xC) {
         work->field_760 = 1;
-        tmp             = Gp_TickObjFlag4((GpObj5C*)enemy);
+        tmp             = Gp_TickObjFlag4(enemy);
         tick            = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
@@ -2515,7 +2515,7 @@ void func_actor_400600_80136968(Task* arg0)
             work->field_72E = 1;
             work->field_730 = 2;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
     }
@@ -4144,7 +4144,7 @@ void func_actor_400600_8013A4AC(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     func_actor_400600_80139D98(arg0, D_actor_400600_80151B1C[work->field_746], 0x10);
     func_actor_400600_80139CAC(arg0);
     work->field_71C = work->field_71C + 1;
@@ -4172,7 +4172,7 @@ void func_actor_400600_8013A570(Task* arg0)
     Gp_UnlinkObj(&work->obj_604);
     work->field_714 = 0x1000;
     work->matrix_0  = coord->coord;
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+    Gp_SetLightMode(arg0->spawnArg2, 1);
     work->field_718 = 0;
     work->field_71C++;
 }
@@ -4264,7 +4264,7 @@ void func_actor_400600_8013A864(Task* arg0)
     Tmd_FreeBuffers(model);
     model->flags |= 4;
     func_actor_400600_80137240(arg0);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     Gp_UnlinkObj(&work->obj_4B4);
     Gp_UnlinkObj(&work->obj_594);

@@ -1506,7 +1506,7 @@ void func_dryfield_water_tower_8017F82C(void)
     if (state->field_76 == 0) {
         gGameSession->flowFlags |= 0x80;
         gGameSession->flowFlags &= 0xBF;
-        Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 1);
+        Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 1);
         state->field_76 = 1;
     }
 }

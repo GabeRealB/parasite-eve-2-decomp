@@ -769,7 +769,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_0 = 0;
                 return 1;
             case 1:
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 enemy->param         = &D_actor_403000_8013DA00;
                 enemy->hp            = D_actor_403000_8013DA00.hpMax;
@@ -778,7 +778,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2        = -1;
                 return 1;
             case 2:
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 enemy->param         = &D_actor_403000_8013DA00;
                 enemy->hp            = D_actor_403000_8013DA00.hpMax;
@@ -788,7 +788,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 return 1;
             case 3:
                 enemy->hp = 0;
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x1A;
                 work->field_0        = 1;
@@ -798,7 +798,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 enemy->param         = &D_actor_403000_8013DA10;
                 return 1;
             case 4:
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x1B;
                 work->field_0        = 1;
@@ -811,7 +811,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 ((TmdObject*)arg0->extra)->clut  = 4;
                 return 1;
             case 6:
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 enemy->hp            = D_actor_403000_8013DA10.hpMax;
                 enemy->param         = &D_actor_403000_8013DA10;
@@ -826,7 +826,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2                    = -1;
                 return 1;
             case 10:
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x18;
                 work->field_0        = 1;
@@ -2035,7 +2035,7 @@ void func_actor_403000_80134F44(Task* arg0)
             scratch->damage = 400;
             work->field_AE0 = 0;
             work->field_AD8 = 0;
-            func_800E2C78((GpObj40*)enemy, scratch->id, scratch->damage, 0);
+            func_800E2C78(enemy, scratch->id, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if (enemy->hp <= 0 && D_80073BA0 <= 0) {
@@ -2099,7 +2099,7 @@ void func_actor_403000_80134F44(Task* arg0)
                     break;
                 case 2:
                     if (work->field_0 != 0xF && !(work->field_0 == 0xC && ((TmdObject*)arg0->extra)->coords->coord.t[1] < ((TmdObject*)player->extra)->coords->coord.t[1]) && work->field_0 != 0x11 && work->field_0 != 0xD && work->field_FC0 != 1) {
-                        Gp_SetObjFlag2((GpObj5D*)enemy, scratch->id, 0);
+                        Gp_SetObjFlag2(enemy, scratch->id, 0);
                         if (work->field_0 == 0x10 || work->field_0 == 0x12 || work->field_0 == 0x18 || (work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
                             work->field_0 = 0x18;
                             work->field_2 = -1;
@@ -2109,7 +2109,7 @@ void func_actor_403000_80134F44(Task* arg0)
                     }
                     break;
                 case 3:
-                    Gp_SetObjFlag4((GpObj5C*)enemy, scratch->id, 0);
+                    Gp_SetObjFlag4(enemy, scratch->id, 0);
                     break;
                 case 1:
                     enemy->reactionFlags &= 0xFE;
@@ -2152,7 +2152,7 @@ void func_actor_403000_80134F44(Task* arg0)
             func_actor_403000_80134910(arg0, scratch->angle, scratch->id);
             work->field_AE0 = 0;
             work->field_AD8 = 0;
-            func_800E2C78((GpObj40*)enemy, scratch->id, scratch->damage, 0);
+            func_800E2C78(enemy, scratch->id, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if ((work->field_0 == 0xC && ((TmdObject*)arg0->extra)->coords->coord.t[1] < ((TmdObject*)player->extra)->coords->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
@@ -2181,8 +2181,8 @@ void func_actor_403000_80134F44(Task* arg0)
             }
         }
         if (enemy->reactionFlags & 0xC) {
-            scratch->damage = Gp_TickObjFlag4((GpObj5C*)enemy);
-            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            scratch->damage = Gp_TickObjFlag4(enemy);
+            if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags &= 0xF3;
             }
             if (scratch->damage != 0) {
@@ -2220,7 +2220,7 @@ void func_actor_403000_80134F44(Task* arg0)
 void func_actor_403000_80135F08(Task* arg0)
 {
     Actor403000Work* work;
-    GpObj5D*         obj;
+    GpEnemy*         obj;
     TmdObject*       tmd;
     u32              seed;
 
@@ -2250,9 +2250,9 @@ void func_actor_403000_80135F08(Task* arg0)
     } else {
         work->field_ACA = 0x10;
     }
-    if ((Gp_TickObjFlag2(obj) == 1) || (obj->field_40 <= 0)) {
-        obj->field_4C &= 0xFD;
-        work->field_0  = 0x12;
+    if ((Gp_TickObjFlag2(obj) == 1) || (obj->hp <= 0)) {
+        obj->reactionFlags &= 0xFD;
+        work->field_0       = 0x12;
     }
 }
 
@@ -2300,7 +2300,7 @@ void func_actor_403000_8013603C(Task* arg0)
         work->objD18.obj.flags &= 0xBFFF;
         Gp_ClearNodeSlots(&enemy->node);
         work->field_6 = 0;
-        Gp_SetLightMode((GpObj4C*)enemy, 0);
+        Gp_SetLightMode(enemy, 0);
     }
     if (work->field_F8C == 1 && D_80114C12 != work->field_F8C && D_80071075 == 0) {
         Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
@@ -2327,7 +2327,7 @@ void func_actor_403000_8013603C(Task* arg0)
         switch ((s16)work->field_6) {
             case 1:
                 ((TmdObject*)arg0->extra)->flags = 0;
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 break;
             case 0x76:
                 Gp_SpawnEff(0x600A5, &((TmdObject*)arg0->extra)->coords[1], 2, NULL);
@@ -2336,7 +2336,7 @@ void func_actor_403000_8013603C(Task* arg0)
                 break;
             case 0x78:
                 ((TmdObject*)arg0->extra)->flags = 2;
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 ((TmdObject*)arg0->extra)->tpage = 2;
                 ((TmdObject*)arg0->extra)->clut  = 4;
                 break;
@@ -2374,7 +2374,7 @@ void func_actor_403000_801365D0(Task* arg0)
         work->objD18.obj.flags &= 0xBFFF;
         Gp_ClearNodeSlots(&enemy->node);
         work->field_6 = 0;
-        Gp_SetLightMode((GpObj4C*)enemy, 0);
+        Gp_SetLightMode(enemy, 0);
     }
     if ((s16)work->field_6 <= 0x1000) {
         work->field_6++;
@@ -2397,7 +2397,7 @@ void func_actor_403000_801365D0(Task* arg0)
         switch ((s16)work->field_6) {
             case 1:
                 ((TmdObject*)arg0->extra)->flags = 0;
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 break;
             case 0x58:
                 Gp_SpawnEff(0x600A5, &((TmdObject*)arg0->extra)->coords[1], 2, NULL);
@@ -2406,7 +2406,7 @@ void func_actor_403000_801365D0(Task* arg0)
                 break;
             case 0x5A:
                 ((TmdObject*)arg0->extra)->flags = 2;
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 ((TmdObject*)arg0->extra)->tpage = 2;
                 ((TmdObject*)arg0->extra)->clut  = 4;
                 break;
@@ -2440,7 +2440,7 @@ void func_actor_403000_80136B14(Task* arg0)
         tmd->flags = 0;
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= 0x4000;
-        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        Gp_SetLightMode(enemy, 1);
         enemy->reactionFlags = 0;
         work->field_ACA      = 0x10;
         work->field_AC6      = 0x1C;
@@ -2493,7 +2493,7 @@ void func_actor_403000_80136D68(Task* arg0)
         tmd->flags = 0;
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= 0x4000;
-        Gp_SetLightMode((GpObj4C*)enemy, 1);
+        Gp_SetLightMode(enemy, 1);
         enemy->reactionFlags = 0;
         work->field_ACA      = 0x10;
         work->field_AC6      = 0x1C;
@@ -2940,7 +2940,7 @@ void func_actor_403000_801377C8(Task* arg0)
                         Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
                     }
                     task         = gameGetPtrSlot(3);
-                    scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0);
+                    scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 1), 0);
                     if (scratch->ret == 1) {
                         pw                              = (GameActor*)player->work;
                         gGameSession->field_12E         = 0x28;
@@ -3206,7 +3206,7 @@ void func_actor_403000_801386E8(Task* arg0)
             D_actor_403000_80158D90.field_14 = 0;
             Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_403000_80158D90, 0);
             task         = gameGetPtrSlot(3);
-            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->field_12E         = 0x1C;
@@ -4247,7 +4247,7 @@ void func_actor_403000_8013B74C(Task* arg0)
         if (!Actor403000_Outside(&scratch->target, 1000) && enemy->hp > 0 &&
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_403000_80158DD0, 0) == 0) {
             task         = gameGetPtrSlot(3);
-            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->field_12E         = 0x28;

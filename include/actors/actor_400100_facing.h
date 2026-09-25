@@ -91,7 +91,7 @@ typedef struct {
 static __inline__ s32 Actor00100_PlayerContactMessage(GpEnemy* ctx, s32 mode)
 {
     Task* player = gameGetPtrSlot(3);
-    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)ctx, mode), 0);
+    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 STATIC_ASSERT_SIZEOF(Actor00100FacingScratch, 0x18);

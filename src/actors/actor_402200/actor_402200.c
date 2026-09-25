@@ -664,7 +664,7 @@ void func_actor_402200_80131F54(Task* arg0)
                     }
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78((GpObj40*)enemy, work->field_49C[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_49C[i].key, damage, 0);
                 enemy->hp       -= damage;
                 work->field_70A += damage;
                 switch ((u16)kind) {
@@ -2607,14 +2607,14 @@ static inline void Actor402200_UpdateTint(Task* arg0)
             r = 0;
             g = 0;
             b = 0x400;
-            Gp_SetObjTrans((GpObj20*)arg0->extra, r, g, b);
+            Gp_SetObjTrans(arg0->extra, r, g, b);
             work->field_6EA = 0;
             break;
         case 2:
             r = 0xFFF;
             g = 0xFFF;
             b = 0xFFF;
-            Gp_SetObjTrans((GpObj20*)arg0->extra, r, g, b);
+            Gp_SetObjTrans(arg0->extra, r, g, b);
             work->field_6EA = 0;
             break;
         case 0:
@@ -2687,7 +2687,7 @@ void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkObj((GpObj*)work->field_4E4);
             Gp_UnlinkObj((GpObj*)work->field_47C);
             Gp_UnlinkObj((GpObj*)work->field_564);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, work->field_716);
+            Gp_ReleaseStateF0Add(arg1, work->field_716);
             anim = 0x14;
             if (work->field_6F0 == 1) {
                 anim = 0x10;
@@ -3324,14 +3324,14 @@ void func_actor_402200_80137FB0(Task* arg0)
             r = 0;
             g = 0;
             b = 0x400;
-            Gp_SetObjTrans((GpObj20*)arg0->extra, r, g, b);
+            Gp_SetObjTrans(arg0->extra, r, g, b);
             work->field_6EA = 0;
             break;
         case 2:
             r = 0xFFF;
             g = 0xFFF;
             b = 0xFFF;
-            Gp_SetObjTrans((GpObj20*)arg0->extra, r, g, b);
+            Gp_SetObjTrans(arg0->extra, r, g, b);
             work->field_6EA = 0;
             break;
         case 0:

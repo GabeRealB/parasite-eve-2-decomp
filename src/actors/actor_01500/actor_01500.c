@@ -404,7 +404,7 @@ void Actor01500_Fn004EC(Task* actor)
                         Gp_SpawnEff(0x6009C, ((TmdObject*)actor->extra)->coords, 0, NULL);
                     }
                     func_800DA6E8(&((GpEnemy*)actor->spawnArg2)->node, damage, 0);
-                    func_800E2C78((GpObj40*)actor->spawnArg2, work->field_1FC[i].key, damage, 0);
+                    func_800E2C78(actor->spawnArg2, work->field_1FC[i].key, damage, 0);
                     Actor01500_Fn00AFC(actor, damage);
                     switch (Gp_GetIdParam0(work->field_1FC[i].key) & 0xFFFF) {
                         case 0:
@@ -412,10 +412,10 @@ void Actor01500_Fn004EC(Task* actor)
                         case 7:
                             break;
                         case 1:
-                            Gp_SetObjFlag1((GpObj4C*)actor->spawnArg2);
+                            Gp_SetObjFlag1(actor->spawnArg2);
                             break;
                         case 3:
-                            Gp_SetObjFlag4((GpObj5C*)actor->spawnArg2, work->field_1FC[i].key, 0);
+                            Gp_SetObjFlag4(actor->spawnArg2, work->field_1FC[i].key, 0);
                             break;
                         case 4:
                         case 6:
@@ -426,7 +426,7 @@ void Actor01500_Fn004EC(Task* actor)
                         case 2:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2((GpObj5D*)actor->spawnArg2, work->field_1FC[i].key, 0);
+                            Gp_SetObjFlag2(actor->spawnArg2, work->field_1FC[i].key, 0);
                             break;
                     }
                     hitId = work->field_1FC[i].key;
@@ -1114,8 +1114,8 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkObj(&work->field_1DC);
             Gp_UnlinkObj(&work->field_244);
             Gp_UnlinkObj(&work->field_2DC);
-            Gp_SetLightMode((GpObj4C*)arg0, 1);
-            Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xF);
+            Gp_SetLightMode(arg0, 1);
+            Gp_ReleaseStateF0Add(arg1, 0xF);
             work->field_362 = 0;
             work->field_35C = 1;
             if (work->field_37E != 0) {
@@ -1161,7 +1161,7 @@ void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
                 Gp_UnlinkObj(&work->field_1DC);
                 Gp_UnlinkObj(&work->field_244);
                 Gp_UnlinkObj(&work->field_2DC);
-                Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0xF);
+                Gp_ReleaseStateF0Add(arg1, 0xF);
             }
             work->field_362++;
             if (work->field_362 >= 61) {
@@ -1372,12 +1372,12 @@ void Actor01500_Fn025C8(Task* actor)
         work->field_34C = 0;
     }
     if (enemy->reactionFlags & 0xC) {
-        damage = Gp_TickObjFlag4((GpObj5C*)enemy);
+        damage = Gp_TickObjFlag4(enemy);
         if (damage != 0) {
             Actor01500_Fn00AFC(actor, damage);
             func_800DA6E8(&enemy->node, damage, 0);
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
     }

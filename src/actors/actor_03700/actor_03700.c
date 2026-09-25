@@ -449,7 +449,7 @@ move_done:
                     work->field_268 = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
                 }
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2)->node, damage, 0);
-                func_800E2C78((GpObj40*)task->spawnArg2, work->records[i].key, damage, 0);
+                func_800E2C78(task->spawnArg2, work->records[i].key, damage, 0);
                 if ((s32)damage > 0) {
                     ((GpEnemy*)task->spawnArg2)->hp = 0;
                     work->field_24E                 = 6;
@@ -1266,7 +1266,7 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     enemy->recs = 0;
                     Gp_UnlinkObj(&work->obj);
                     Gp_UnlinkNode(&enemy->node);
-                    Gp_ReleaseStateF0Add((GpObj20E*)task, 0x25);
+                    Gp_ReleaseStateF0Add(task, 0x25);
                     model->flags = 0x80;
                     sound        = ((((GpEnemy*)task->spawnArg2)->placeKey >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));

@@ -604,7 +604,7 @@ void func_actor_107600_80132AC0(Task* arg0)
     Actor107600Work* work = (Actor107600Work*)arg0->work;
 
     if (work->field_144 != 2) {
-        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+        Gp_ReleaseStateF0Add(arg0, 0);
     }
     Gp_DestroyEnemy(arg0->spawnArg2, arg0);
 }
@@ -942,7 +942,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 if ((s16)work->field_154 >= 4) {
                     work->field_15A++;
                     arg0->spawnArg1 |= 0x20;
-                    Gp_SetLightMode((GpObj4C*)enemy, 0);
+                    Gp_SetLightMode(enemy, 0);
                     enemy->node.flags = 4;
                     work->obj.flags  |= 0x8000;
                 }
@@ -960,7 +960,7 @@ void func_actor_107600_801332D4(Task* arg0)
             if ((s16)work->field_166 == 120) {
                 GsCOORDINATE2* o = ((TmdObject*)arg0->extra)->coords;
                 s32            p;
-                Gp_SetLightMode((GpObj4C*)enemy, 1);
+                Gp_SetLightMode(enemy, 1);
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
@@ -970,7 +970,7 @@ void func_actor_107600_801332D4(Task* arg0)
                 c               = &((TmdObject*)player->extra)->coords[4];
                 actor           = player->work;
                 work->field_166 = 0;
-                Gp_SetLightMode((GpObj4C*)enemy, 0);
+                Gp_SetLightMode(enemy, 0);
                 Gp_SpawnEff(0x601BD, (GsCOORDINATE2*)c, 0, NULL);
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
@@ -1067,7 +1067,7 @@ void func_actor_107600_801337FC(Task* arg0)
                 work->field_15A++;
                 work->field_16B = 0;
                 work->field_15C = 0;
-                Gp_SetLightMode((GpObj4C*)enemy, 2);
+                Gp_SetLightMode(enemy, 2);
                 pan = (s8)Gp_GetObjPan(obj);
                 SndEvt_EnqueueType6(0x51140009, pan, (s8)gpGetObjDepth(obj));
             }
@@ -1123,7 +1123,7 @@ void func_actor_107600_801339A4(Task* arg0)
             arg0->spawnArg1 |= 0x40;
             work->field_16B  = 0;
             work->field_15C  = 0;
-            Gp_SetLightMode((GpObj4C*)enemy, 2);
+            Gp_SetLightMode(enemy, 2);
             work->field_154 = 0;
             id              = arg0->spawnArg1 & 0xF;
             gal->pad_0F[id]++;
@@ -1687,7 +1687,7 @@ s32 func_actor_107600_80134BAC(Task* arg0)
 void func_actor_107600_80134C54(Task* arg0)
 {
     Actor107600Work* work = (Actor107600Work*)arg0->work;
-    GpObj4C*         obj  = arg0->spawnArg2;
+    GpEnemy*         obj  = arg0->spawnArg2;
 
     switch (work->field_162) {
         case 0:
@@ -1700,7 +1700,7 @@ void func_actor_107600_80134C54(Task* arg0)
             work->field_169 = 10;
             func_actor_107600_80134A50(arg0);
             Gp_SetLightMode(obj, 2);
-            obj->field_4F = 0;
+            obj->colorBlend = 0;
             break;
         case 2:
             work->field_158 = 8;

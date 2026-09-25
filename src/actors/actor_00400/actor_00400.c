@@ -1152,7 +1152,7 @@ void Actor00400_Fn019B4(Task* arg0)
     work->obj_4DC.pos.vx   = 0;
     work->obj_4DC.pos.vy   = 0;
     work->obj_4DC.pos.vz   = 0;
-    work->obj_4DC.key      = Gp_PackObjPair((GpObj50*)arg0->spawnArg2, 0);
+    work->obj_4DC.key      = Gp_PackObjPair(arg0->spawnArg2, 0);
     work->obj_4DC.radius   = 0x480;
     work->obj_4DC.flags    = 1;
     Gp_LinkObj(3, &work->obj_4DC);
@@ -1216,13 +1216,13 @@ void Actor00400_Fn01B90(Task* arg0)
                     case 0:
                         break;
                     case 1:
-                        Gp_SetObjFlag1((GpObj4C*)obj);
+                        Gp_SetObjFlag1(obj);
                         break;
                     case 2:
-                        Gp_SetObjFlag2((GpObj5D*)obj, work->field_39C[i].key, 0);
+                        Gp_SetObjFlag2(obj, work->field_39C[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4((GpObj5C*)obj, work->field_39C[i].key, 0);
+                        Gp_SetObjFlag4(obj, work->field_39C[i].key, 0);
                         break;
                     case 4:
                         work->field_644 = 4;
@@ -1259,7 +1259,7 @@ void Actor00400_Fn01B90(Task* arg0)
                         Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[work->field_664], 2, 0);
                         break;
                 }
-                func_800E2C78((GpObj40*)obj, work->field_39C[i].key, amount, 0);
+                func_800E2C78(obj, work->field_39C[i].key, amount, 0);
                 func_800DA6E8(&obj->node, amount, 0);
                 obj->hp -= amount;
                 if ((s16)obj->hp < 0) {
@@ -1283,7 +1283,7 @@ void Actor00400_Fn01B90(Task* arg0)
         work->field_644     = 3;
     }
     if (obj->reactionFlags & 0xC) {
-        tmp  = Gp_TickObjFlag4((GpObj5C*)obj);
+        tmp  = Gp_TickObjFlag4(obj);
         tick = (s16)tmp;
         if (tick != 0) {
             obj->hp -= tmp;
@@ -1297,7 +1297,7 @@ void Actor00400_Fn01B90(Task* arg0)
             work->field_642 = 1;
             work->field_644 = 0;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)obj) != 0) {
+        if (Gp_ObjFlag4Expired(obj) != 0) {
             obj->reactionFlags &= 0xF3;
         }
     }
@@ -1414,7 +1414,7 @@ s32 Actor00400_Fn02208(Task* arg0)
     vec.vz = work->field_60C[work->field_65B].field_4 - coord->coord.t[2];
     if (work->field_628 != 3) {
         Actor00400_Fn088EC(arg0, 3, 0x10, 0xE);
-        Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 2);
+        Gp_SetLightMode(arg0->spawnArg2, 2);
     }
     work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
     if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 400) {
@@ -2358,7 +2358,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GsCOORDINATE2* coord,
     *(VECTOR**)G_SCRATCH_HEAD = block;
     Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
     if (work->field_65F != 0) {
-        Gp_SetObjTrans((GpObj20*)ctx, 0, 0, 0);
+        Gp_SetObjTrans(ctx, 0, 0, 0);
     }
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x10;
 }
@@ -2433,7 +2433,7 @@ void Actor00400_Fn042C0(Task* arg0)
         work->field_63E = work->field_64E;
     }
     Gp_UnlinkNode(&obj->node);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     obj->recs = NULL;
     Gp_UnlinkObj(&work->obj_35C);
     Gp_UnlinkObj(&work->obj_37C);
@@ -2747,7 +2747,7 @@ void Actor00400_Fn04CF8(Task* arg0)
     Gp_UnlinkObj(&work->obj_37C);
     Gp_UnlinkObj(&work->obj_4DC);
     Gp_UnlinkNode(&obj->node);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     work->field_648 = 0x80;
     if (work->field_644 == 4) {
         w            = arg0->work;
@@ -3197,7 +3197,7 @@ void Actor00400_Fn05D00(Task* arg0)
     work            = arg0->work;
     work->field_660 = 1;
     work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 2);
+    Gp_SetLightMode(arg0->spawnArg2, 2);
     if (work->field_628 != 3) {
         i      = 0;
         y      = work->field_64E - coord->coord.t[1] + 0xFA;
@@ -3240,7 +3240,7 @@ void Actor00400_Fn05EA4(Task* arg0)
     work->field_63E = work->field_60C[work->field_65B].field_2 + work->field_64E;
     if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 800 && work->field_64C == 0) {
         Actor100400Work* w;
-        Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 0);
+        Gp_SetLightMode(arg0->spawnArg2, 0);
         work->field_636 = 0;
         w               = arg0->work;
         w->field_638    = 3;
@@ -3497,7 +3497,7 @@ void Actor00400_Fn06798(Task* arg0)
     }
     Actor00400_TurnToward(arg0, (SVECTOR*)&work->field_60C[work->field_65B], 0x2C, 0x100);
     Actor00400_Fn0762C(arg0, 0x60, work->field_556);
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 2);
+    Gp_SetLightMode(arg0->spawnArg2, 2);
 }
 
 void Actor00400_Fn06A44(Task* arg0)
@@ -4149,7 +4149,7 @@ void Actor00400_Fn07DE0(Task* arg0)
     Actor100400Work* work;
 
     work = arg0->work;
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+    Gp_SetLightMode(arg0->spawnArg2, 1);
     work->field_636 = 0;
     work->field_638 = (u16)work->field_638 + 1;
 }
@@ -4174,7 +4174,7 @@ void Actor00400_Fn07E74(Task* arg0)
 
     work = arg0->work;
     if (++work->field_636 == 0x10) {
-        Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 2);
+        Gp_SetLightMode(arg0->spawnArg2, 2);
     }
     if (work->field_636 > 0x20) {
         work->field_638++;
@@ -4286,7 +4286,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, Actor100400Msg* arg2)
             break;
         case 6:
             obj->node.flags = 0;
-            Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 0);
+            Gp_SetLightMode(arg0->spawnArg2, 0);
             work->field_666   = 0;
             work->field_65E   = 6;
             coord->coord.t[1] = 0;
@@ -4708,7 +4708,7 @@ void Actor00400_Fn08D70(Task* arg0)
     coord           = ((TmdObject*)arg0->extra)->coords;
     work->field_61E = 0x1000;
     work->field_5BC = coord->coord;
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+    Gp_SetLightMode(arg0->spawnArg2, 1);
     work->field_636 = 0;
     work->field_638 = work->field_638 + 1;
 }
@@ -4757,7 +4757,7 @@ void Actor00400_Fn08E50(Task* arg0)
         Gp_SpawnEff(0x600A5, coord, 4, &pos);
     }
     if (work->field_636 == 0x10) {
-        Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 2);
+        Gp_SetLightMode(arg0->spawnArg2, 2);
     }
     if (work->field_636 >= 0x21) {
         ctx->flags |= 0x80;
@@ -4996,7 +4996,7 @@ void Actor00400_Fn094DC(Task* arg0)
             work2->field_624 = 1;
         }
         work->field_63E = work->field_64E;
-        Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 0);
+        Gp_SetLightMode(arg0->spawnArg2, 0);
         work->field_636 = 0;
         work->field_63A = work->field_63A + 1;
         return;
@@ -5120,7 +5120,7 @@ void Actor00400_Fn098A8(Task* arg0)
     work->field_628 = 0xE;
     work->field_624 = 1;
     work->field_63E = (u16)work->field_64E + 0x64;
-    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 0);
+    Gp_SetLightMode(arg0->spawnArg2, 0);
     work->field_610 = 0x64;
     work->field_636 = 0;
     work->field_664 = 1;
@@ -5158,7 +5158,7 @@ void Actor00400_Fn09924(Task* arg0)
             state->field_624 = 1;
         }
     }
-    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+    if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
         work->field_610  = 0;
         work->field_664  = 4;
         state            = arg0->work;
@@ -5846,7 +5846,7 @@ void Actor00400_Fn0AA40(Task* arg0)
         state->field_628 = 0x11;
         state->field_624 = 1;
     }
-    if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2)) {
+    if (Gp_TickObjFlag2(arg0->spawnArg2)) {
         work->field_610  = 0;
         work->field_665  = 0;
         state            = arg0->work;

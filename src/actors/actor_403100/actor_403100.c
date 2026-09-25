@@ -1024,7 +1024,7 @@ void func_actor_403100_8013335C(Task* arg0)
             effect2:
                 Gp_SpawnEff(0x6009C, &((TmdObject*)arg0->extra)->coords[4], 3, 0);
             effect_end:
-                func_800E2C78((GpObj40*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, scaledDamage, 0);
+                func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
                 do {
                     hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
@@ -1040,13 +1040,13 @@ void func_actor_403100_8013335C(Task* arg0)
                     case 0:
                         break;
                     case 1:
-                        Gp_SetObjFlag1((GpObj4C*)D_actor_403100_8015580C);
+                        Gp_SetObjFlag1(D_actor_403100_8015580C);
                         break;
                     case 2:
-                        Gp_SetObjFlag2((GpObj5D*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
+                        Gp_SetObjFlag2(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4((GpObj5C*)D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
+                        Gp_SetObjFlag4(D_actor_403100_8015580C, D_actor_403100_80155808->pad_49C[i].key, 0);
                         break;
                     case 4:
                         D_actor_403100_80155808->field_62A = 1;
@@ -1070,7 +1070,7 @@ void func_actor_403100_8013335C(Task* arg0)
                 }
                 if (D_actor_403100_80155808->field_62A != 0) {
                     D_actor_403100_80155808->field_60C = 0x10;
-                    Gp_SetLightMode((GpObj4C*)arg0->spawnArg2, 1);
+                    Gp_SetLightMode(arg0->spawnArg2, 1);
                 }
             } else if ((Gp_GetIdParam1(hitId) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &((TmdObject*)arg0->extra)->coords[4], 0, &D_actor_403100_80155630);
@@ -1089,7 +1089,7 @@ void func_actor_403100_8013335C(Task* arg0)
         D_actor_403100_80155808->field_62A      = 3;
     }
     if (D_actor_403100_8015580C->reactionFlags & 0xC) {
-        tickDamage = (u32)Gp_TickObjFlag4((GpObj5C*)D_actor_403100_8015580C) >> 2;
+        tickDamage = (u32)Gp_TickObjFlag4(D_actor_403100_8015580C) >> 2;
         if ((s16)tickDamage != 0) {
             D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - tickDamage);
             ((void (*)(void*, s32, s32, u32))func_800DA6E8)(&D_actor_403100_8015580C->node, (s16)tickDamage, 0, tickDamage);
@@ -1099,7 +1099,7 @@ void func_actor_403100_8013335C(Task* arg0)
             D_actor_403100_80155808->pad_66A[2] = 1;
             D_actor_403100_80155808->field_62A  = 2;
         }
-        expired = Gp_ObjFlag4Expired((GpObj5C*)D_actor_403100_8015580C);
+        expired = Gp_ObjFlag4Expired(D_actor_403100_8015580C);
         if (expired != 0) {
             D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & 0xF3);
         }
@@ -5844,7 +5844,7 @@ void func_actor_403100_8013E624(Task* arg0)
     timer                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = timer;
     if ((s16)timer == 0x12) {
-        Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+        Gp_ReleaseStateF0Add(arg0, 0);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x168) {
         arg0->state                        = 5;
@@ -6190,7 +6190,7 @@ void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.mp    = 0;
     D_actor_403100_8014762C.exp >>= 1;
     gGameSession->at4.loc.place   = 4;
-    Gp_ReleaseStateF0Add((GpObj20E*)arg0, 0);
+    Gp_ReleaseStateF0Add(arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;

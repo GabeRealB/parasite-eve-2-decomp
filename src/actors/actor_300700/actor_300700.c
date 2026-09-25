@@ -335,7 +335,7 @@ void func_actor_300700_801622B4(Task* arg0)
                 amount = 1;
             }
             func_800DA6E8(&((GpEnemy*)arg0->spawnArg2)->node, amount, 0);
-            func_800E2C78((GpObj40*)arg0->spawnArg2, (s32)work->field_154.hit.id.w, damage, 0);
+            func_800E2C78(arg0->spawnArg2, (s32)work->field_154.hit.id.w, damage, 0);
             ((GpEnemy*)arg0->spawnArg2)->hp = 0;
             func_800FDB18(Gp_GetIdParam1((s32)work->field_154.hit.id.w) & 0xFFFF, ((TmdObject*)arg0->extra)->coords, 0,
                           &work->field_224);
@@ -602,7 +602,7 @@ void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     pan                                         = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
-                    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 8);
+                    Gp_ReleaseStateF0Add(arg1, 8);
                     work->field_2E0 = 1;
                     work->field_2DE = 1;
                     break;

@@ -7273,14 +7273,14 @@ void func_800A4904(s32 arg0)
 {
     GpLinkXform* node;
     GpEnemy*     enemy;
-    GpObj54*     obj54;
+    GpEnemy*     claim;
     u16          val;
     s32          idx;
 
     for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
         if ((node->field_4 & 5) != 1) {
-            enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
-            obj54 = (GpObj54*)enemy;
+            enemy = GP_NODE_ENEMY(node);
+            claim = enemy;
             if (arg0 == 0) {
                 enemy->colorMode |= 0x80;
             } else {
@@ -7289,7 +7289,7 @@ void func_800A4904(s32 arg0)
                 idx += ((val % 100U) / 10U - 1) * 3;
                 idx += val % 10U;
                 idx += 0x28000;
-                Gp_ClaimSlot18(obj54, (void*)idx);
+                Gp_ClaimSlot18(claim, idx);
             }
         }
     }
@@ -7468,7 +7468,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SVECTOR*     vec;
     GpLinkXform* node;
     GpEnemy*     enemy;
-    GpObj54*     obj54;
+    GpEnemy*     claim;
     s32          rx2;
     s32          ry2;
     s32          temp_y;
@@ -7549,8 +7549,8 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 goto next_node;
             apply:;
-                enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
-                obj54 = (GpObj54*)enemy;
+                enemy = GP_NODE_ENEMY(node);
+                claim = enemy;
                 if (arg0 == 0) {
                     enemy->colorMode |= 0x80;
                 } else {
@@ -7559,7 +7559,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                     idx += ((val % 100U) / 10U - 1) * 3;
                     idx += val % 10U;
                     idx += 0x28000;
-                    Gp_ClaimSlot18(obj54, (void*)idx);
+                    Gp_ClaimSlot18(claim, idx);
                 }
             }
         next_node:
@@ -7575,7 +7575,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     SVECTOR*     vec;
     GpLinkXform* node;
     GpEnemy*     enemy;
-    GpObj54*     obj54;
+    GpEnemy*     claim;
     u16          val;
     s32          idx;
     s32          t;
@@ -7613,7 +7613,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                     if ((u32)(vec->vx * vec->vx + vec->vz * vec->vz) <= (u32)(arg1 * arg1)) {
                         work  = (u8*)node - OFFSET_OF(GpEnemy, node);
                         enemy = (GpEnemy*)work;
-                        obj54 = (GpObj54*)work;
+                        claim = (GpEnemy*)work;
                         if (arg0 == 0) {
                             enemy->colorMode |= 0x80;
                         } else {
@@ -7622,7 +7622,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                             idx += ((val % 100U) / 10U - 1) * 3;
                             idx += val % 10U;
                             idx += 0x28000;
-                            Gp_ClaimSlot18(obj54, (void*)idx);
+                            Gp_ClaimSlot18(claim, idx);
                         }
                     }
                 }
@@ -8724,7 +8724,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
             do {
                 if (node == target) {
                     if (!(node->flags & 1)) {
-                        Gp_HudTrackEnemy((GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node)), arg0);
+                        Gp_HudTrackEnemy(GP_NODE_ENEMY(node), arg0);
                         return;
                     }
                 }

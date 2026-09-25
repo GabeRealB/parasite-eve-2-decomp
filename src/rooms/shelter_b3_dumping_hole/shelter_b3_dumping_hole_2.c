@@ -2189,7 +2189,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
 {
     DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
     if (p->field_9C == 0) {
-        Gp_ReleaseStateF0Add((GpObj20E*)Gp_LookupSlot4(0), 0x20);
+        Gp_ReleaseStateF0Add((Task*)Gp_LookupSlot4(0), 0x20);
         D_801153F6               = 0;
         gGameSession->flowFlags |= 0x80;
         p->field_9C              = 1;

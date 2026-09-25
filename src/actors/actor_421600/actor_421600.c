@@ -2358,7 +2358,7 @@ void func_actor_421600_801354D8(Task* arg0)
                     } else if (state3 != 21 && state3 != 7) {
                         work->field_0 = 20;
                     }
-                    Gp_SetObjFlag2((GpObj5D*)enemy, scratch->field_20, 0);
+                    Gp_SetObjFlag2(enemy, scratch->field_20, 0);
                     break;
                 case 3:
                     state4 = work->field_0;
@@ -2369,7 +2369,7 @@ void func_actor_421600_801354D8(Task* arg0)
                     if (work->field_0 == 0x21) {
                         work->field_0 = 0x22;
                     }
-                    Gp_SetObjFlag4((GpObj5C*)enemy, scratch->field_20, 0);
+                    Gp_SetObjFlag4(enemy, scratch->field_20, 0);
                     break;
                 case 1:
                     state5 = work->field_0;
@@ -2445,7 +2445,7 @@ void func_actor_421600_801354D8(Task* arg0)
                     scratch->field_2E = 3;
                 }
             }
-            func_800E2C78((GpObj40*)enemy, scratch->field_20, scratch->field_24, 0);
+            func_800E2C78(enemy, scratch->field_20, scratch->field_24, 0);
             effect = scratch->field_2E;
             if (effect != -1) {
                 Gp_SpawnEff(0x6009C, ((TmdObject*)arg0->extra)->coords + 2, effect, 0);
@@ -2514,8 +2514,8 @@ void func_actor_421600_801354D8(Task* arg0)
             }
         }
         if (enemy->reactionFlags & 0xC) {
-            scratch->field_24 = Gp_TickObjFlag4((GpObj5C*)enemy);
-            if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+            scratch->field_24 = Gp_TickObjFlag4(enemy);
+            if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags = (u8)(enemy->reactionFlags & 0xF3);
             }
             enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->field_24);
@@ -2888,12 +2888,12 @@ void func_actor_421600_801366F4(Task* arg0)
         work->field_6 = tick;
         switch ((s16)tick) {
             case 1:
-                Gp_SetLightMode((GpObj4C*)ctx, 0);
-                Gp_SetLightMode((GpObj4C*)ctx, 1);
+                Gp_SetLightMode(ctx, 0);
+                Gp_SetLightMode(ctx, 1);
                 /* fallthrough */
             case 20:
                 ((TmdObject*)arg0->extra)->flags = 2;
-                Gp_SetLightMode((GpObj4C*)ctx, 2);
+                Gp_SetLightMode(ctx, 2);
                 break;
             case 22:
                 break;
@@ -2934,7 +2934,7 @@ void func_actor_421600_801369A0(Task* arg0)
         do {
         } while (0);
         if (D_801153F4.field_2 >= 2U) {
-            Gp_ReleaseStateF0Add((GpObj20E*)arg0, 1);
+            Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
@@ -2979,7 +2979,7 @@ void func_actor_421600_801369A0(Task* arg0)
                     ((TmdObject*)arg0->extra)->coords->flg        = 0;
                     Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
                     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, -0x76C, 1);
-                    Gp_SetLightMode((GpObj4C*)ctx, 0);
+                    Gp_SetLightMode(ctx, 0);
                     ctx->reactionFlags = 0;
                     ctx->hp            = D_actor_421600_8013EF3C;
                     work->field_0      = 6;
@@ -2990,7 +2990,7 @@ void func_actor_421600_801369A0(Task* arg0)
                     ((TmdObject*)arg0->extra)->coords->flg        = 0;
                     Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
                     Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, 0x7BC, 1);
-                    Gp_SetLightMode((GpObj4C*)ctx, 0);
+                    Gp_SetLightMode(ctx, 0);
                     ctx->reactionFlags = 0;
                     ctx->hp            = D_actor_421600_8013EF3C;
                     work->field_0      = 6;
@@ -3180,7 +3180,7 @@ static __inline__ s16 Actor421600_PositionYaw(Task* actor, SVECTOR* pos, PlayerS
 static __inline__ s32 Actor421600_PlayerContactMessage(GpEnemy* ctx, s32 mode)
 {
     Task* player = gameGetPtrSlot(3);
-    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair((GpObj50*)ctx, mode), 0);
+    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 void func_actor_421600_801373D4(Task* arg0)
@@ -4541,9 +4541,9 @@ void func_actor_421600_8013A554(Task* arg0)
                     closeDistance = scratch->yaw - scratch->playerYaw;
                     closeDistance = abs(closeDistance);
                     if (closeDistance < 0x400) {
-                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 2), 0);
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
                     } else {
-                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 3), 0);
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                     }
                 }
                 if (scratch->reply != 1) {
@@ -4565,9 +4565,9 @@ void func_actor_421600_8013A554(Task* arg0)
                     farDistance = scratch->yaw - scratch->playerYaw;
                     farDistance = abs(farDistance);
                     if (farDistance < 0x400) {
-                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 0), 0);
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 0), 0);
                     } else {
-                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair((GpObj50*)enemy, 1), 0);
+                        scratch->reply = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 1), 0);
                     }
                 }
                 if (scratch->reply == 1) {
@@ -6312,7 +6312,7 @@ void func_actor_421600_8013E8AC(Task* arg0)
         work->field_832 = 0x10;
     }
     func_actor_421600_80134604(arg0);
-    if (Gp_TickObjFlag2((GpObj5D*)enemy) == 1) {
+    if (Gp_TickObjFlag2(enemy) == 1) {
         enemy->reactionFlags &= 0xFD;
         work->field_0         = 0x24;
     }

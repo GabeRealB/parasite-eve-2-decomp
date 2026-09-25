@@ -827,12 +827,12 @@ void func_actor_105100_80132C2C(Task* arg0)
                         break;
                     case 2:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag2((GpObj5D*)ctx, rec->field_49C[0].key, 0);
+                            Gp_SetObjFlag2(ctx, rec->field_49C[0].key, 0);
                         }
                         break;
                     case 3:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag4((GpObj5C*)ctx, rec->field_49C[0].key, 0);
+                            Gp_SetObjFlag4(ctx, rec->field_49C[0].key, 0);
                         }
                         break;
                     case 4:
@@ -845,7 +845,7 @@ void func_actor_105100_80132C2C(Task* arg0)
                     case 9:
                         break;
                 }
-                func_800E2C78((GpObj40*)ctx, rec->field_49C[0].key, (s16)damage, 0);
+                func_800E2C78(ctx, rec->field_49C[0].key, (s16)damage, 0);
                 hp      = ctx->hp - damage;
                 ctx->hp = hp;
                 if ((hp << 16) <= 0) {
@@ -1556,7 +1556,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkObj(&work->obj47C);
             Gp_UnlinkObj(&work->obj51C);
             Gp_UnlinkObj(&work->obj4E4);
-            Gp_SetLightMode((GpObj4C*)arg0, 1);
+            Gp_SetLightMode(arg0, 1);
             work->field_59A = 0;
             work->field_598 = 1;
             goto color_update;
@@ -1567,7 +1567,7 @@ void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             if ((s16)work->field_59A >= 0x1F) {
                 work->field_58E = 7;
                 work->field_598 = 2;
-                Gp_ReleaseStateF0Add((GpObj20E*)actor, 0x33);
+                Gp_ReleaseStateF0Add(actor, 0x33);
                 work->field_5BA = 1;
             }
             work = actor->work;
@@ -2342,7 +2342,7 @@ void func_actor_105100_80135E54(Task* arg0)
         work->field_5C2 = 1;
     }
     if (enemy->reactionFlags & 0xC) {
-        tick = Gp_TickObjFlag4((GpObj5C*)enemy) << 0x10;
+        tick = Gp_TickObjFlag4(enemy) << 0x10;
         if (tick != 0) {
             damage = tick >> 0x12;
             func_800DA6E8(&enemy->node, damage, 0);
@@ -2357,7 +2357,7 @@ void func_actor_105100_80135E54(Task* arg0)
             work->field_596 = state;
             work->field_598 = 0;
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)enemy) != 0) {
+        if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= 0xF3;
         }
     }
@@ -2453,7 +2453,7 @@ void func_actor_105100_801360AC(Task* arg0)
             }
             break;
         case 1:
-            if (Gp_TickObjFlag2((GpObj5D*)enemy) != 0) {
+            if (Gp_TickObjFlag2(enemy) != 0) {
                 work->field_58E       = 9;
                 work->field_598       = 2;
                 work->field_5C2       = 0;

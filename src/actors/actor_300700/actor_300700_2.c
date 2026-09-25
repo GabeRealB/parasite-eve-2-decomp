@@ -197,7 +197,7 @@ damage_contact:
             Gp_SpawnEff(0x6009C, ((TmdObject*)actor->extra)->coords, 0, NULL);
         }
         func_800DA6E8(&((GpEnemy*)actor->spawnArg2)->node, (s32)damage, 0);
-        func_800E2C78((GpObj40*)actor->spawnArg2, (s32)contactWork->field_22C.contacts.recs[0].key, (s32)damage, 0);
+        func_800E2C78(actor->spawnArg2, (s32)contactWork->field_22C.contacts.recs[0].key, (s32)damage, 0);
         health  = (u16)ctx->hp - damage;
         ctx->hp = health;
         if ((health << 0x10) <= 0) {
@@ -219,14 +219,14 @@ damage_contact:
             case 8:
                 break;
             case 2:
-                Gp_SetObjFlag2((GpObj5D*)actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
+                Gp_SetObjFlag2(actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
                 break;
             case 3:
-                Gp_SetObjFlag4((GpObj5C*)actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
+                Gp_SetObjFlag4(actor->spawnArg2, contactWork->field_22C.contacts.recs[0].key, 0);
                 break;
             case 1:
             case 9:
-                Gp_SetObjFlag1((GpObj4C*)actor->spawnArg2);
+                Gp_SetObjFlag1(actor->spawnArg2);
                 break;
         }
         hitId = contactWork->field_22C.contacts.recs[0].key;
@@ -661,7 +661,7 @@ void func_actor_300700_801645F8(Task* arg0)
             }
             break;
         case 3:
-            if (Gp_TickObjFlag2((GpObj5D*)arg0->spawnArg2) != 0) {
+            if (Gp_TickObjFlag2(arg0->spawnArg2) != 0) {
                 ctx                 = arg0->spawnArg2;
                 ctx->reactionFlags &= 0xFD;
                 work->field_37A     = 0;
@@ -812,8 +812,8 @@ death:
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj2);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj3);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj4);
-    Gp_SetLightMode((GpObj4C*)arg0, 1);
-    Gp_ReleaseStateF0Add((GpObj20E*)arg1, 7);
+    Gp_SetLightMode(arg0, 1);
+    Gp_ReleaseStateF0Add(arg1, 7);
     work->field_37C = 1;
     work2           = arg1->work;
     i               = 1;
@@ -972,7 +972,7 @@ void func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2)
         work->field_398 = 1;
     }
     if (ctx->reactionFlags & 0xC) {
-        tick = Gp_TickObjFlag4((GpObj5C*)ctx);
+        tick = Gp_TickObjFlag4(ctx);
         if (tick != 0) {
             func_800DA6E8(&ctx->node, tick, 0);
             health  = ctx->hp - tick;
@@ -986,7 +986,7 @@ void func_actor_300700_80164E38(Task* arg0, TmdObject* arg1, s32 arg2)
                 work->field_37C = 0;
             }
         }
-        if (Gp_ObjFlag4Expired((GpObj5C*)ctx) != 0) {
+        if (Gp_ObjFlag4Expired(ctx) != 0) {
             ctx->reactionFlags &= 0xF3;
         }
     }

@@ -525,7 +525,7 @@ void func_actor_800300_80162A98(Task* arg0)
     src               = extra->coords;
     if (node != NULL) {
         if (!(node->flags & 1)) {
-            Gp_GetLockPos((GpLockPos*)node, vec);
+            Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
         }
@@ -609,7 +609,7 @@ void func_actor_800300_80162D74(Task* arg0)
     GameActor*     actor;
     GsCOORDINATE2* coord;
     GsCOORDINATE2* target;
-    GpLockPos*     lock;
+    GpLinkNode*    lock;
     u8*            head;
     VECTOR3*       vec;
     u16            state;
@@ -620,9 +620,9 @@ void func_actor_800300_80162D74(Task* arg0)
     *(u8**)0x1F8003FC = head - 0x10;
     vec               = (VECTOR3*)(head - 0x10);
     actor             = arg0->work;
-    lock              = (GpLockPos*)actor->field_90C;
+    lock              = actor->field_90C;
     if (lock != NULL) {
-        if (!(((GpLinkNode*)lock)->flags & 1)) {
+        if (!(lock->flags & 1)) {
             Gp_GetLockPos(lock, vec);
         } else {
             actor->field_95E = 2;

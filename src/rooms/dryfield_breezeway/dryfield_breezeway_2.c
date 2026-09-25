@@ -624,7 +624,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
         eventWork->light.m[2][2] = 0;
 
         eventObj->colorMtx = &eventWork->color;
-        Gp_SetObjTrans((GpObj20*)eventObj, 0x800, 0x800, 0x800);
+        Gp_SetObjTrans(eventObj, 0x800, 0x800, 0x800);
     }
 }
 
