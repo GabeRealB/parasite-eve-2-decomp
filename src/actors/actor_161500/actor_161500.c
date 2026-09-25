@@ -50,46 +50,6 @@ extern s32 D_actor_161500_80137AB8;
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-/// Work block the actor's spawn routine allocates with `memCalloc(0x4FC, 0)`
-/// and hangs off its task's `Task::work` slot. `light` / `color` are the
-/// matrix pair the actor's model and its sub-model are lit with, and `anim`,
-/// `slots` and `pose` are what `func_800B3F84` fills in.
-///
-/// The spawn routine optionally spawns a paired enemy, parks that spawn's task
-/// in `pairTask` and reparents its own task under it, so the two share one
-/// sub-model chain; `enemy` is the enemy its own task belongs to.
-///
-/// `state` selects what the step body does next: 1 and 2 reseed the animation
-/// slots from `animId` (with and without `animArg`) and advance to 3, which
-/// ticks them. `appliedAnimId` records the id the slots were last seeded with.
-/// `animId` 4 is the walk clip, which `travel` counts down in steps of 30.
-/// `yaw` caches the heading the placement and walk-to opcodes last gave the
-/// root coordinate. `field_4F0` is the weight, 0 to 0x1000, of the per-frame
-/// head turn toward the player, ramped up while `field_4EE` is 1 and down
-/// otherwise.
-typedef struct Actor161500Work {
-    /* 0x000 */ MATRIX     light;
-    /* 0x020 */ MATRIX     color;
-    /* 0x040 */ GpAnimCtx  anim;
-    /* 0x054 */ GpAnimSlot slots[0x14];
-    /* 0x374 */ byte       pose[0x140];
-    /* 0x4B4 */ s16        state;
-    /* 0x4B6 */ s16        appliedAnimId;
-    /* 0x4B8 */ s16        animId;
-    /* 0x4BA */ s16        field_4BA;
-    /* 0x4BC */ byte       pad_4BC[0x2A];
-    /* 0x4E6 */ u16        yaw;
-    /* 0x4E8 */ byte       pad_4E8[0x2];
-    /* 0x4EA */ s16        travel;
-    /* 0x4EC */ s16        animArg;
-    /* 0x4EE */ s16        field_4EE;
-    /* 0x4F0 */ s16        field_4F0;
-    /* 0x4F2 */ byte       pad_4F2[0x2];
-    /* 0x4F4 */ Task*      pairTask;
-    /* 0x4F8 */ GpEnemy*   enemy;
-} Actor161500Work;
-STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
-
 void func_actor_161500_8013252C(Task* task);
 void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
 void func_actor_161500_8013284C(Task* task);
@@ -303,22 +263,22 @@ void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
     if (task->spawnArg1 != 0) {
         spawned = Gp_SpawnEnemyFromTable(D_actor_161500_801401B0, 1, 0, enemy);
         Task_Reparent(task, spawned->task);
-        work->pairTask = spawned->task;
-        work->animId   = 2;
+        work->pairTask  = spawned->task;
+        work->st.animId = 2;
     } else {
-        work->animId = 1;
+        work->st.animId = 1;
     }
-    work->field_4EE = 0;
-    work->field_4F0 = 0;
-    obj->lightMtx   = &work->light;
-    obj->colorMtx   = &work->color;
-    vec.vx          = coord->workm.t[0];
-    vec.vy          = coord->workm.t[1] - 0x320;
-    vec.vz          = coord->workm.t[2];
+    work->turnUp     = 0;
+    work->turnWeight = 0;
+    obj->lightMtx    = &work->light;
+    obj->colorMtx    = &work->color;
+    vec.vx           = coord->workm.t[0];
+    vec.vy           = coord->workm.t[1] - 0x320;
+    vec.vz           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->anim, D_actor_161500_801401C8, obj,
-                  &work->slots[0x14], work->slots);
-    work->state    = 2;
+    func_800B3F84(&work->rig.anim, D_actor_161500_801401C8, obj,
+                  work->rig.poses, work->rig.slots);
+    work->st.state = 2;
     task->msgTable = D_actor_161500_80140180;
     func_actor_161500_8013252C(task);
     task->state += 1;
@@ -334,27 +294,27 @@ void func_actor_161500_8013252C(Task* task)
     s16              animId;
 
     work = (Actor161500Work*)task->work;
-    if (work->state == 1) {
+    if (work->st.state == 1) {
         func_actor_161500_801329C4(task);
-        work->state = 3;
+        work->st.state = 3;
         return;
     }
-    if (work->state == 2) {
+    if (work->st.state == 2) {
         func_actor_161500_8013294C(task);
-        work->state = 3;
+        work->st.state = 3;
         return;
     }
-    if (work->state == 3) {
+    if (work->st.state == 3) {
         do {
         } while (0);
-        animId = work->animId;
-        if (animId == 4 && work->travel != 0) {
+        animId = work->st.animId;
+        if (animId == 4 && work->st.travel != 0) {
             actorMoveForward(((TmdObject*)task->extra)->coords, 0x1E);
-            work->travel = (u16)work->travel - 1;
-            if (work->travel == 0) {
-                work->state   = 1;
-                work->animArg = 0xA;
-                work->animId  = 1;
+            work->st.travel = (u16)work->st.travel - 1;
+            if (work->st.travel == 0) {
+                work->st.state  = 1;
+                work->animArg   = 0xA;
+                work->st.animId = 1;
             }
         }
         func_actor_161500_80132900(task);
@@ -377,8 +337,8 @@ void func_actor_161500_801326E8(Task* task)
 
 /// The actor's draw body: refreshes the model root's coordinate, lights the
 /// model at its world translation raised by 800 on y, then runs the step body.
-/// `field_4F0` is the head-tracking blend rate handed to `func_800B0928`,
-/// ramped toward 0x1000 in 0x200 steps while `field_4EE` is 1 and back down to
+/// `turnWeight` is the head-tracking blend rate handed to `func_800B0928`,
+/// ramped toward 0x1000 in 0x200 steps while `turnUp` is 1 and back down to
 /// 0 otherwise, so the actor turns its head to the player and away again
 /// smoothly instead of snapping.
 void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
@@ -397,18 +357,18 @@ void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_161500_8013252C(task);
-    if (work->field_4EE == 1) {
-        work->field_4F0 += 0x200;
-        if (work->field_4F0 > 0x1000) {
-            work->field_4F0 = 0x1000;
+    if (work->turnUp == 1) {
+        work->turnWeight += 0x200;
+        if (work->turnWeight > 0x1000) {
+            work->turnWeight = 0x1000;
         }
     } else {
-        work->field_4F0 -= 0x200;
-        if (work->field_4F0 < 0) {
-            work->field_4F0 = 0;
+        work->turnWeight -= 0x200;
+        if (work->turnWeight < 0) {
+            work->turnWeight = 0;
         }
     }
-    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->field_4F0);
+    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->turnWeight);
     func_actor_161500_80132874(task);
 }
 
@@ -450,7 +410,7 @@ void func_actor_161500_80132900(Task* task)
     work = (Actor161500Work*)task->work;
     i    = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -465,11 +425,11 @@ void func_actor_161500_8013294C(Task* task)
     work = (Actor161500Work*)task->work;
     i    = 1;
     do {
-        work->slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        work->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
         i++;
     } while (i < 0x14);
-    work->appliedAnimId = work->animId;
+    work->st.appliedAnimId = work->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 with `animId`, passing `animArg` through,
@@ -482,10 +442,10 @@ void func_actor_161500_801329C4(Task* task)
     work = (Actor161500Work*)task->work;
     i    = 1;
     do {
-        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
         i++;
     } while (i < 0x14);
-    work->appliedAnimId = work->animId;
+    work->st.appliedAnimId = work->st.animId;
 }
 
 /// Script opcode: starts clip `args->field_4` on this actor, rejecting ids of
@@ -505,15 +465,15 @@ s32 func_actor_161500_80132A28(Task* task, s32 arg1, GpAnimArg* args)
         return -1;
     }
 
-    work->animId = args->field_4;
+    work->st.animId = args->field_4;
     if (args->field_8 != 0) {
         SOFT_BARRIER();
-        work->state   = 1;
-        work->animArg = args->field_C;
+        work->st.state = 1;
+        work->animArg  = args->field_C;
     } else {
-        work->state = 2;
+        work->st.state = 2;
     }
-    work->field_4BA = 0;
+    work->st.field_6 = 0;
     func_actor_161500_8013252C(task);
     return 0;
 }
@@ -559,10 +519,10 @@ s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpXformArg* placement)
     Actor161500Work* work;
     u16              yaw;
 
-    coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor161500Work*)task->work;
-    yaw       = placement->rot.vy;
-    work->yaw = yaw;
+    coord        = ((TmdObject*)task->extra)->coords;
+    work         = (Actor161500Work*)task->work;
+    yaw          = placement->rot.vy;
+    work->st.yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -571,12 +531,12 @@ s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpXformArg* placement)
     return 0;
 }
 
-/// Script opcode: sets the work block's `field_4EE`, which selects whether the
+/// Script opcode: sets the work block's `turnUp`, which selects whether the
 /// per-frame body turns the actor's head toward the player or away, to the
 /// payload.
 s32 func_actor_161500_80132B88(Task* task, s32 arg1, GpCmdArg* args)
 {
-    ((Actor161500Work*)task->work)->field_4EE = args->command;
+    ((Actor161500Work*)task->work)->turnUp = args->command;
     return 0;
 }
 
@@ -593,14 +553,14 @@ s32 func_actor_161500_80132BA0(Task* task, s32 arg1, GpXformArg* target)
     s32              dz;
     u16              yaw;
 
-    coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor161500Work*)task->work;
-    dx        = target->pos.vx - coord->coord.t[0];
-    dz        = target->pos.vz - coord->coord.t[2];
-    yaw       = ratan2(dx, dz);
-    work->yaw = yaw;
+    coord        = ((TmdObject*)task->extra)->coords;
+    work         = (Actor161500Work*)task->work;
+    dx           = target->pos.vx - coord->coord.t[0];
+    dz           = target->pos.vz - coord->coord.t[2];
+    yaw          = ratan2(dx, dz);
+    work->st.yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->travel = SquareRoot0(dx * dx + dz * dz) / 30;
+    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 30;
     return 0;
 }
 

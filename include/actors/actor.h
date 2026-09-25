@@ -275,6 +275,49 @@ typedef struct ActorHeightClamp {
 } ActorHeightClamp;
 STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 
+/* Animated enemy parts. */
+
+/// The animation rig of a twenty-part model: the context `func_800B3F84`
+/// builds, and the playback slots and pose buffer that context points at. The
+/// slots and the poses are the owner's storage, one of each per model part;
+/// each pose record is in the encoding its slot's `GpAnimSlot.poseKind` names,
+/// so the buffer is kept as raw records.
+typedef struct ActorAnimRig20 {
+    GpAnimCtx  anim;
+    GpAnimSlot slots[0x14];
+    byte       poses[0x14][0x10];
+} ActorAnimRig20;
+STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
+
+/// The animation rig of a nineteen-part model, laid out as `ActorAnimRig20`.
+typedef struct ActorAnimRig19 {
+    GpAnimCtx  anim;
+    GpAnimSlot slots[0x13];
+    byte       poses[0x13][0x10];
+} ActorAnimRig19;
+STATIC_ASSERT_SIZEOF(ActorAnimRig19, 0x43C);
+
+/// The animation and walk state an animated enemy keeps right after its rig.
+/// `state` is the animation step: 1 and 2 reseed the slots from `animId`, 1
+/// blending into it and 2 outright, and both advance to 3, which ticks the
+/// slots. `appliedAnimId` is the id the slots were last seeded with. `yaw` is
+/// the heading last given the root coordinate, and `travel` counts down the
+/// steps left in a walk. `field_6`, `field_8` and `field_A` are each enemy's
+/// own, and nothing the enemies share reads the bytes between them and `yaw`.
+typedef struct ActorEnemyState {
+    s16  state;
+    s16  appliedAnimId;
+    s16  animId;
+    s16  field_6;
+    s16  field_8;
+    s16  field_A;
+    byte pad_C[0x26];
+    s16  yaw;
+    byte pad_34[0x2];
+    s16  travel;
+} ActorEnemyState;
+STATIC_ASSERT_SIZEOF(ActorEnemyState, 0x38);
+
 /* Work blocks of actors that carry the same code. */
 
 /// Status flags of `Actor341700Work`, read through two widths: every guard
@@ -585,33 +628,48 @@ typedef struct Actor350500Work {
 } Actor350500Work;
 STATIC_ASSERT_SIZEOF(Actor350500Work, 0x4C8);
 
-/// Work block of the enemy whose code both actor_160700 and actor_215100
-/// carry, allocated zeroed at its full size and kept at `Task::work`: the
-/// light and colour matrices its model draws with, the animation context and
-/// slots, the animation state, and the yaw and remaining travel the placement
-/// commands leave. `field_4F0` is the task of the enemy spawned alongside it
-/// and `enemy` the enemy its own task belongs to.
-typedef struct Actor160700Work {
-    MATRIX     light;
-    MATRIX     color;
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x14];
-    byte       field_374;
-    byte       pad_375[0x13F];
-    s16        state;
-    s16        appliedAnimId;
-    s16        animId;
-    s16        field_4BA;
-    byte       pad_4BC[0x2A];
-    u16        yaw;
-    byte       pad_4E8[0x2];
-    s16        travel;
-    s16        animArg;
-    byte       pad_4EE[0x2];
-    Task*      field_4F0;
-    GpEnemy*   enemy;
-} Actor160700Work;
-STATIC_ASSERT_SIZEOF(Actor160700Work, 0x4F8);
+/// Work block of the enemy whose code actor_160600, actor_160700,
+/// actor_215100 and the first variant of actor_460200 carry, allocated zeroed
+/// at its full size and kept at `Task::work`: the light and colour matrices
+/// its model draws with, its rig and animation state, and `animArg`, the
+/// argument the blended reseed passes on. `effects` nonzero turns on the
+/// per-frame effect spawns of the actors that have them. `pairTask` is the
+/// task whose model the visibility command drives alongside the actor's own,
+/// which only the actors that spawn a partner store, and `enemy` the enemy
+/// the actor's own task belongs to.
+typedef struct Actor160600Work {
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
+    s16             animArg;
+    s16             effects;
+    Task*           pairTask;
+    GpEnemy*        enemy;
+} Actor160600Work;
+STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
+
+/// Work block of the enemy whose code actor_161500 and the paired variant of
+/// actor_460200 carry, allocated zeroed at its full size and kept at
+/// `Task::work`. It is laid out as `Actor160600Work` up to `animArg`, then
+/// carries a head turn: `turnWeight` is the weight, 0 to 0x1000, of the
+/// per-frame turn toward the player, ramped up while `turnUp` is 1 and down
+/// otherwise. `pairTask` is the task of the partner enemy the spawn routine
+/// may start, which its own task is reparented under, and `enemy` the enemy
+/// the actor's own task belongs to.
+typedef struct Actor161500Work {
+    MATRIX          light;
+    MATRIX          color;
+    ActorAnimRig20  rig;
+    ActorEnemyState st;
+    s16             animArg;
+    s16             turnUp;
+    s16             turnWeight;
+    byte            pad_4F2[0x2];
+    Task*           pairTask;
+    GpEnemy*        enemy;
+} Actor161500Work;
+STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
 /* actor_402200 and actor_403900 carry the same enemy code. Function and data
  * names in these comments are actor_402200's; actor_403900 has the same

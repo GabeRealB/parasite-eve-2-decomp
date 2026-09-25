@@ -89,8 +89,8 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     GpAreaKey        key;
-    Actor160700Work* work;
-    Actor160700Work* mem;
+    Actor160600Work* work;
+    Actor160600Work* mem;
     GsCOORDINATE2*   coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
@@ -105,7 +105,7 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 
     obj        = task->extra;
     coord      = obj->coords;
-    mem        = (Actor160700Work*)memCalloc(0x4F8, false);
+    mem        = (Actor160600Work*)memCalloc(0x4F8, false);
     work       = mem;
     task->work = (TaskIdMap*)mem;
     if (mem == NULL) {
@@ -144,17 +144,17 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
         tmdProcessStream(model);
     }
     Task_Reparent(task, spawned->task);
-    work->field_4F0 = spawned->task;
-    work->animId    = 1;
+    work->pairTask  = spawned->task;
+    work->st.animId = 1;
     obj->lightMtx   = &work->light;
     obj->colorMtx   = &work->color;
     vec.vx          = coord->workm.t[0];
     vec.vy          = coord->workm.t[1] - 0x320;
     vec.vz          = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&work->anim, D_actor_160700_801416C0, obj,
-                  &work->slots[0x14], work->slots);
-    work->state    = 2;
+    func_800B3F84(&work->rig.anim, D_actor_160700_801416C0, obj,
+                  work->rig.poses, work->rig.slots);
+    work->st.state = 2;
     task->msgTable = D_actor_160700_80141678;
     func_actor_160700_80132184(task);
     task->state += 1;
@@ -166,32 +166,32 @@ void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 /// left, switching to clip 1 when it runs out, and ticks the slots.
 void func_actor_160700_80132184(Task* task)
 {
-    Actor160700Work* work;
+    Actor160600Work* work;
     s16              animId;
 
-    work = (Actor160700Work*)task->work;
-    if (work->state == 1) {
+    work = (Actor160600Work*)task->work;
+    if (work->st.state == 1) {
         func_actor_160700_8013258C(task);
-        work->state = 3;
+        work->st.state = 3;
         return;
     }
-    if (work->state == 2) {
+    if (work->st.state == 2) {
         func_actor_160700_80132514(task);
-        work->state = 3;
+        work->st.state = 3;
         return;
     }
-    if (work->state == 3) {
+    if (work->st.state == 3) {
         // The loop-end note ends cse's first block here, so the pause check
         // loads its own 1 instead of reusing the state test's.
         do {
         } while (0);
-        animId = work->animId;
-        if (animId == 4 && work->travel != 0) {
+        animId = work->st.animId;
+        if (animId == 4 && work->st.travel != 0) {
             actorMoveForward(((TmdObject*)task->extra)->coords, 0xC);
-            work->travel = (u16)work->travel - 1;
-            if (work->travel == 0) {
-                work->animArg = 0xA;
-                work->animId  = 1;
+            work->st.travel = (u16)work->st.travel - 1;
+            if (work->st.travel == 0) {
+                work->animArg   = 0xA;
+                work->st.animId = 1;
             }
         }
         func_actor_160700_801324C8(task);
@@ -262,13 +262,13 @@ void func_actor_160700_8013243C(Task* task)
 /// Ticks animation slots 1..0x13.
 void func_actor_160700_801324C8(Task* task)
 {
-    Actor160700Work* work;
+    Actor160600Work* work;
     s32              i;
 
-    work = (Actor160700Work*)task->work;
+    work = (Actor160600Work*)task->work;
     i    = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
@@ -277,33 +277,33 @@ void func_actor_160700_801324C8(Task* task)
 /// applied clip.
 void func_actor_160700_80132514(Task* task)
 {
-    Actor160700Work* work;
+    Actor160600Work* work;
     s32              i;
 
-    work = (Actor160700Work*)task->work;
+    work = (Actor160600Work*)task->work;
     i    = 1;
     do {
-        work->slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->anim, i, work->animId);
+        work->rig.slots[i].rate = 1;
+        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
         i++;
     } while (i < 0x14);
-    work->appliedAnimId = work->animId;
+    work->st.appliedAnimId = work->st.animId;
 }
 
 /// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
 /// and records the clip as the applied one.
 void func_actor_160700_8013258C(Task* task)
 {
-    Actor160700Work* work;
+    Actor160600Work* work;
     s32              i;
 
-    work = (Actor160700Work*)task->work;
+    work = (Actor160600Work*)task->work;
     i    = 1;
     do {
-        func_800B4114(&work->anim, i, work->animId, 0, work->animArg);
+        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
         i++;
     } while (i < 0x14);
-    work->appliedAnimId = work->animId;
+    work->st.appliedAnimId = work->st.animId;
 }
 
 /// Script opcode: plays clip `args->field_4` (ids from 0x19 up are refused
@@ -312,22 +312,22 @@ void func_actor_160700_8013258C(Task* task)
 /// straight away.
 s32 func_actor_160700_801325F0(Task* task, s32 arg1, GpAnimArg* args)
 {
-    Actor160700Work* work;
+    Actor160600Work* work;
 
-    work = (Actor160700Work*)task->work;
+    work = (Actor160600Work*)task->work;
     if (args->field_4 >= 0x19) {
         return -1;
     }
 
-    work->animId = args->field_4;
+    work->st.animId = args->field_4;
     if (args->field_8 != 0) {
         SOFT_BARRIER();
-        work->state   = 1;
-        work->animArg = args->field_C;
+        work->st.state = 1;
+        work->animArg  = args->field_C;
     } else {
-        work->state = 2;
+        work->st.state = 2;
     }
-    work->field_4BA = 0;
+    work->st.field_6 = 0;
     func_actor_160700_80132184(task);
     return 0;
 }
@@ -342,7 +342,7 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
     TmdObject* other;
 
     self  = (TmdObject*)task->extra;
-    other = (TmdObject*)((Actor160700Work*)task->work)->field_4F0->extra;
+    other = (TmdObject*)((Actor160600Work*)task->work)->pairTask->extra;
 
     if (flags & 1) {
         self->flags  = 0;
@@ -364,13 +364,13 @@ s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags)
 s32 func_actor_160700_801326C0(Task* task, s32 arg1, GpXformArg* placement)
 {
     GsCOORDINATE2*   coord;
-    Actor160700Work* work;
+    Actor160600Work* work;
     u16              yaw;
 
-    coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor160700Work*)task->work;
-    yaw       = placement->rot.vy;
-    work->yaw = yaw;
+    coord        = ((TmdObject*)task->extra)->coords;
+    work         = (Actor160600Work*)task->work;
+    yaw          = placement->rot.vy;
+    work->st.yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
@@ -391,19 +391,19 @@ s32 func_actor_160700_80132738(void)
 s32 func_actor_160700_80132740(Task* task, s32 arg1, GpXformArg* target)
 {
     GsCOORDINATE2*   coord;
-    Actor160700Work* work;
+    Actor160600Work* work;
     s32              dx;
     s32              dz;
     u16              yaw;
 
-    coord     = ((TmdObject*)task->extra)->coords;
-    work      = (Actor160700Work*)task->work;
-    dx        = target->pos.vx - coord->coord.t[0];
-    dz        = target->pos.vz - coord->coord.t[2];
-    yaw       = ratan2(dx, dz);
-    work->yaw = yaw;
+    coord        = ((TmdObject*)task->extra)->coords;
+    work         = (Actor160600Work*)task->work;
+    dx           = target->pos.vx - coord->coord.t[0];
+    dz           = target->pos.vz - coord->coord.t[2];
+    yaw          = ratan2(dx, dz);
+    work->st.yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->travel = SquareRoot0(dx * dx + dz * dz) / 12;
+    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 12;
     return 0;
 }
 
@@ -419,7 +419,7 @@ void func_actor_160700_80132808(Task* task)
     TmdObject*       obj    = task->extra;
     GsCOORDINATE2*   coord  = obj->coords;
     GsCOORDINATE2*   sub    = &((TmdObject*)parent->extra)->coords[4];
-    Actor160700Work* work   = (Actor160700Work*)parent->work;
+    Actor160600Work* work   = (Actor160600Work*)parent->work;
 
     switch (task->state) {
         case 0:
