@@ -103,16 +103,6 @@ typedef struct GpActorD4 {
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
-/// Overlay of `GameActor` for the three s16s at 0x418 (`GpCoord.param`
-/// as vx/vy/vz). `Gp_AttachActorObj` zeros them after `Gfx_RotMatrixX` of
-/// `field_3D4.workm`.
-typedef struct _GpActorSvec {
-    /* 0x000 */ byte pad[0x418];
-    /* 0x418 */ s16  field_418;
-    /* 0x41A */ s16  field_41A;
-    /* 0x41C */ s16  field_41C;
-} GpActorSvec;
-
 /// Argument record for `func_800FDB18`, the id-dispatched effect spawner: the
 /// coordinate its effects are placed under, and the word they are spawned with.
 ///

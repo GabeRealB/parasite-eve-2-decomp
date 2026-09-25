@@ -3329,71 +3329,42 @@ void Gp_PlayerWorkState1(Task* arg0)
     Gp_UpdateCoord(coord);
 }
 
-void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2)
+void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
 {
-    register s32        id asm("s4");
-    s32                 kind;
-    void**              scratch;
-    u8*                 head;
-    register void*      p asm("v0");
-    GameActor*          actor;
-    GpObj*              obj;
-    GpActorD4Rec*       rec;
-    VECTOR*             tmp;
-    GpCoord*            src;
-    Task*               task;
-    register TmdObject* extra asm("v0");
-    s16                 vz;
-    s32                 scale;
-    register s32        three asm("v0");
-    s32                 packed;
-    register s32        flag asm("v0");
+    GameActor*    actor;
+    GpObj*        obj;
+    GpActorD4Rec* rec;
+    VECTOR*       tmp;
+    Task*         task;
+    s32           scale;
 
-    id = arg1;
-    SOFT_TOUCH_REG(id);
-    kind    = arg2;
-    scratch = SCRATCH_HEAD_ADDR;
-    SOFT_TOUCH_REG_USE(scratch, kind);
-    head  = SCRATCH_HEAD_AT(scratch, u8);
     actor = arg0->work;
-    p     = head - 0x10;
     obj   = (GpObj*)actor->field_10C;
     rec   = &actor->field_14C;
-    asm("" : "+r"(obj), "+r"(rec) : "r"(p));
-    SCRATCH_HEAD_AT(scratch, void) = p;
-    task                           = actor->field_91C;
+    SCRATCH_PUSH(VECTOR);
+    tmp  = SCRATCH_HEAD(VECTOR);
+    task = actor->field_91C;
     if (task != NULL) {
-        tmp                         = p;
-        extra                       = task->extra.tmd;
-        src                         = extra->coords;
-        *(GpCoord*)actor->field_3D4 = *src;
-        Gfx_RotMatrixX(&((GpCoord*)actor->field_3D4)->workm, 0x400, 0);
-        obj->coord                       = actor->field_3D4;
-        ((GpActorSvec*)actor)->field_418 = 0;
-        ((GpActorSvec*)actor)->field_41A = 0;
-        ((GpActorSvec*)actor)->field_41C = 0;
-        obj->ctx.d4rec                   = &actor->field_14C;
-        COMPILER_BARRIER();
-        three            = 3;
-        packed           = id << 8;
-        obj->flags       = three;
-        flag             = 0x20000;
-        flag             = kind | flag;
-        packed          |= flag;
-        obj->pos.vx      = 0;
-        obj->pos.vy      = 0;
-        obj->pos.vz      = 0;
-        actor->field_124 = packed;
-        *tmp             = D_80112FA4[id];
-        rec->end1.vx     = tmp->vx;
-        rec->end1.vy     = tmp->vy;
-        vz               = tmp->vz;
-        rec->end0.vx     = rec->end1.vx;
-        rec->end1.vz     = vz;
-        rec->end0.vy     = rec->end1.vy;
-        rec->end0.vz     = rec->end1.vz + D_80112F60[id];
-        USE_REG(id);
-        scale = 0x100;
+        actor->field_3D4 = *task->extra.tmd->coords;
+        Gfx_RotMatrixX(&actor->field_3D4.workm, 0x400, 0);
+        obj->coord                    = &actor->field_3D4;
+        actor->field_3D4.param.rot.vx = 0;
+        actor->field_3D4.param.rot.vy = 0;
+        actor->field_3D4.param.rot.vz = 0;
+        obj->ctx.d4rec                = &actor->field_14C;
+        obj->flags                    = 3;
+        obj->pos.vx                   = 0;
+        obj->pos.vy                   = 0;
+        obj->pos.vz                   = 0;
+        actor->field_124              = 0x20000 | (id << 8) | kind;
+        *tmp                          = D_80112FA4[id];
+        rec->end1.vx                  = tmp->vx;
+        rec->end1.vy                  = tmp->vy;
+        rec->end1.vz                  = tmp->vz;
+        rec->end0.vx                  = rec->end1.vx;
+        rec->end0.vy                  = rec->end1.vy;
+        rec->end0.vz                  = rec->end1.vz + D_80112F60[id];
+        scale                         = 0x100;
         if (Player_Status.weapon == 0x13) {
             scale = 0x280;
         }
@@ -3407,7 +3378,7 @@ void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2)
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->recs, 6, 0);
     }
-    SCRATCH_POP_BYTES(0x10);
+    SCRATCH_POP(VECTOR);
 }
 
 s32 func_801011D0(GpCoord* arg0, s32 arg1, s32 arg2, s32* arg3)
@@ -3622,9 +3593,8 @@ void Gp_UpdatePlayerMove(void)
     ((SVECTOR*)actor->field_A0)->vy = vec->vy;
     ((SVECTOR*)actor->field_A0)->vz = vec->vz;
     if (task != NULL) {
-        *(GpCoord*)actor->field_3D4 =
-            *task->extra.tmd->coords;
-        mat = &((GpCoord*)actor->field_3D4)->workm;
+        actor->field_3D4 = *task->extra.tmd->coords;
+        mat              = &actor->field_3D4.workm;
         if (Player_Status.weapon != 0x17) {
             Gfx_RotMatrixX(mat, -0x400, 0);
             Gfx_RotMatrixY(mat, -0x20, 0);

@@ -140990,3 +140990,16 @@ two tails back into one. Three further knobs sat in the same loop:
 - A trail pointer whose init lands *after* the hoisted constants is a
   strength-reduced giv: write `point = &work->trail[i]` inside the loop, not a
   pointer initialised before it and stepped at the bottom.
+### A field of an embedded object written through the container is `off(container)`, not `off(member_ptr)` (Gp_AttachActorObj, 2026-09-26)
+
+With `obj = (GpObj*)actor->field_10C` held in `s2`, the target stored the key
+as `sw v1,0x124(s1)` - off the actor, not `0x18(s2)`. Writing
+`obj->key = ...` emits the latter, and because the two stores have different
+bases sched1 also moves the neighbouring `obj->pos` stores around it. The
+source wrote the key through the containing struct (`actor->field_124`), so
+the store's base names which object the code reached it through. The same
+function recomputes `addiu v0,s1,0x14C` for `obj->ctx.d4rec` even though
+`rec = &actor->field_14C` sits in `s0`: a struct-copy loop just before it ends
+CSE's extended block, so a re-spelled `&actor->field_14C` after the loop is a
+fresh computation while `rec->...` keeps using `s0`. The old body pinned
+`obj`/`rec` with an `asm("" : "+r"...)` and barriers to get both shapes.

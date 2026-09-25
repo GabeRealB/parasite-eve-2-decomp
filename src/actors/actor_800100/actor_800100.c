@@ -894,9 +894,8 @@ void func_actor_800100_801635F4(Task* arg0)
 
     task = actor->field_91C;
     if (task != NULL) {
-        *(GpCoord*)actor->field_3D4 =
-            *task->extra.tmd->coords;
-        Gfx_RotMatrixX(&((GpCoord*)actor->field_3D4)->workm, -0x400, 0);
+        actor->field_3D4 = *task->extra.tmd->coords;
+        Gfx_RotMatrixX(&actor->field_3D4.workm, -0x400, 0);
     }
 
     d4->coord = *arg0->extra.tmd->coords;
@@ -2973,12 +2972,12 @@ void func_actor_800100_80166F50(Task* arg0)
     actor = arg0->work;
     task  = actor->field_91C;
     if (task != NULL) {
-        obj                         = (GpObj*)actor->field_12C;
-        rec                         = (GpActorD4Rec*)actor->pad_164;
-        src                         = task->extra.tmd->coords;
-        *(GpCoord*)actor->field_3D4 = *src;
-        Gfx_RotMatrixX(&((GpCoord*)actor->field_3D4)->workm, 0x400, 0);
-        obj->coord      = (GpCoord*)actor->field_3D4;
+        obj              = (GpObj*)actor->field_12C;
+        rec              = (GpActorD4Rec*)actor->pad_164;
+        src              = task->extra.tmd->coords;
+        actor->field_3D4 = *src;
+        Gfx_RotMatrixX(&actor->field_3D4.workm, 0x400, 0);
+        obj->coord      = &actor->field_3D4;
         obj->ctx.d4rec  = (GpActorD4Rec*)actor->pad_164;
         obj->key        = 0x60000;
         obj->flags      = 3;

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/coord.h"
+
 #include <psyq/libgte.h>
 
 // =============================================================================
@@ -346,7 +348,7 @@ typedef struct _GameActor {
     /* 0x17C */ GpRec18            field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
     /* 0x32C */ GpRec18            field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
     /* 0x3BC */ byte               pad_3BC[0x18];
-    /* 0x3D4 */ byte               field_3D4[0x50]; // GpCoord; Gp_AttachActorObj
+    /* 0x3D4 */ GpCoord            field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
     /* 0x424 */ byte               field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
     /* 0x438 */ GpAnimSlot         field_438[19];   // the actor's animation slots, the array its `GpAnimCtx` walks
     /* 0x730 */ byte               pad_730[0x10];
