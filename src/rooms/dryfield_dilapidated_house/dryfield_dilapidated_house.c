@@ -1781,18 +1781,18 @@ void func_dryfield_dilapidated_house_80181028(Task* task)
     GpCoord*      node;
     MATRIX*       mtx;
 
-    coord                = task->extra.tmd->coords;
-    work                 = (DdhCoordWork*)task->work;
-    node                 = ((Task*)task->spawnArg2)->extra.tmd->coords;
-    mtx                  = &work->mtx;
-    *(s32*)&work->mtx    = ONE;
-    *(s32*)&mtx->m[0][2] = 0;
-    *(s32*)&mtx->m[1][1] = ONE;
-    *(s32*)&mtx->m[2][0] = 0;
-    mtx->m[2][2]         = ONE;
-    mtx->t[0]            = 0;
-    mtx->t[1]            = 0;
-    mtx->t[2]            = 0;
+    coord                  = task->extra.tmd->coords;
+    work                   = (DdhCoordWork*)task->work;
+    node                   = ((Task*)task->spawnArg2)->extra.tmd->coords;
+    mtx                    = &work->mtx;
+    *(s32*)&work->mtx      = ONE;
+    MATRIX_PAIR(mtx, 0, 2) = 0;
+    MATRIX_PAIR(mtx, 1, 1) = ONE;
+    MATRIX_PAIR(mtx, 2, 0) = 0;
+    mtx->m[2][2]           = ONE;
+    mtx->t[0]              = 0;
+    mtx->t[1]              = 0;
+    mtx->t[2]              = 0;
     do {
         ApplyMatrixLV(mtx, (VECTOR*)node->coord.t, &vec);
         mtx->t[0] += vec.vx;

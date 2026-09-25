@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include <psyq/abs.h>
 #include <psyq/libgte.h>
@@ -279,7 +280,7 @@ void func_actor_113100_80132104(Task* task)
     if (!(extra->flags & 0x80)) {
         task->extra.tmd->coords[1].flg = 0;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }

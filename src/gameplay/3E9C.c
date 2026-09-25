@@ -1505,9 +1505,9 @@ void Gp_EffCtlTask6D(Task* arg0)
     mem                  = arg0->spawnArg2;
     m                    = &coord->coord;
     *(s32*)&coord->coord = one;
-    *(s32*)&m->m[0][2]   = 0;
-    *(s32*)&m->m[1][1]   = one;
-    *(s32*)&m->m[2][0]   = 0;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = one;
+    MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = one;
     coord->flg           = 0;
     Gp_UpdateCoord(coord);
@@ -2550,9 +2550,9 @@ void Gp_EffLineTask92(Task* arg0)
         mem->angle           = (((u32)rng >> 16) & 1) + 1;
         mem->scale           = step;
         *(s32*)&coord->coord = one;
-        *(s32*)&m->m[0][2]   = 0;
-        *(s32*)&m->m[1][1]   = one;
-        *(s32*)&m->m[2][0]   = 0;
+        MATRIX_PAIR(m, 0, 2) = 0;
+        MATRIX_PAIR(m, 1, 1) = one;
+        MATRIX_PAIR(m, 2, 0) = 0;
         m->m[2][2]           = one;
         mem->pos.vx          = (u16)coord->workm.t[0];
         mem->pos.vy          = (u16)coord->workm.t[1];
@@ -3156,7 +3156,7 @@ void Gp_EffSprTask53(Task* arg0)
         } else if (Gp_State1C->groundShade >= 0) {
             if (!(slot->extra.tmd->flags & 0x80)) {
                 Gp_UpdateCoord(coord);
-                if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
+                if ((s16)func_800EA1A8(MATRIX_TRANS(&coord->workm), &vec) != 0) {
                     Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->groundShade);
                 }
             }

@@ -4345,17 +4345,17 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        m                            = &coord->coord;
-        coord->sub                   = mem->parent;
-        *(s32*)&coord->coord.m[0][0] = 0x1000;
-        *(s32*)&m->m[0][2]           = 0;
-        *(s32*)&m->m[1][1]           = 0x1000;
-        *(s32*)&m->m[2][0]           = 0;
-        m->m[2][2]                   = 0x1000;
-        coord->coord.t[2]            = 0;
-        coord->coord.t[1]            = 0;
-        coord->coord.t[0]            = 0;
-        coord->flg                   = 0;
+        m                                = &coord->coord;
+        coord->sub                       = mem->parent;
+        MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+        MATRIX_PAIR(m, 0, 2)             = 0;
+        MATRIX_PAIR(m, 1, 1)             = 0x1000;
+        MATRIX_PAIR(m, 2, 0)             = 0;
+        m->m[2][2]                       = 0x1000;
+        coord->coord.t[2]                = 0;
+        coord->coord.t[1]                = 0;
+        coord->coord.t[0]                = 0;
+        coord->flg                       = 0;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
     }

@@ -240,9 +240,9 @@ void Gp_EffSprTask81(Task* arg0)
                     one                  = ONE;
                     *(s32*)&coord->coord = one;
                     m                    = &coord->coord;
-                    *(s32*)&m->m[0][2]   = 0;
-                    *(s32*)&m->m[1][1]   = one;
-                    *(s32*)&m->m[2][0]   = 0;
+                    MATRIX_PAIR(m, 0, 2) = 0;
+                    MATRIX_PAIR(m, 1, 1) = one;
+                    MATRIX_PAIR(m, 2, 0) = 0;
                     m->m[2][2]           = one;
                 }
                 mem->age += (u16)gDisplayState.animFrame & 1;

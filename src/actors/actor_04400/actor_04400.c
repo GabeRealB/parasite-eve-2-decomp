@@ -418,10 +418,10 @@ static __inline__ void Actor04400_UpdateRotation(Task* arg0)
     work->field_78      &= 0xFFF;
     work->field_7A      &= 0xFFF;
     work->field_7C      &= 0xFFF;
-    *(s32*)&m->m[0][0]   = 0x1000;
-    *(s32*)&m->m[0][2]   = 0;
-    *(s32*)&m->m[1][1]   = 0x1000;
-    *(s32*)&m->m[2][0]   = 0;
+    MATRIX_PAIR(m, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = 0x1000;
+    MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = 0x1000;
     SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ(work->field_7C, m);

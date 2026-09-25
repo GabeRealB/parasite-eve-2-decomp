@@ -626,12 +626,12 @@ void func_dryfield_breezeway_8017E65C(Task* task)
         task->killCountdown = (u16)task->killCountdown + 1;
     }
 
-    m                  = &coord->coord;
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s16*)&m->m[2][2] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[2][0] = 0;
+    m                    = &coord->coord;
+    MATRIX_PAIR(m, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 1, 1) = 0x1000;
+    *(s16*)&m->m[2][2]   = 0x1000;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 2, 0) = 0;
 
     func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
     coord->flg = 0;
@@ -690,12 +690,12 @@ void func_dryfield_breezeway_8017E81C(Task* task)
     prompt->mode     = 1;
     prompt->targetId = 0x80;
 
-    m                            = &coord->coord;
-    *(s32*)&coord->coord.m[0][0] = 0x1000;
-    *(s32*)&m->m[1][1]           = 0x1000;
-    *(s16*)&m->m[2][2]           = 0x1000;
-    *(s32*)&m->m[0][2]           = 0;
-    *(s32*)&m->m[2][0]           = 0;
+    m                                = &coord->coord;
+    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 1, 1)             = 0x1000;
+    *(s16*)&m->m[2][2]               = 0x1000;
+    MATRIX_PAIR(m, 0, 2)             = 0;
+    MATRIX_PAIR(m, 2, 0)             = 0;
 
     func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
@@ -978,15 +978,15 @@ void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* 
     long       flag;
     POLY_FT4*  p;
 
-    mtx                  = &matw.mat;
-    matw.ident.m00_m01   = 0x1000;
-    matw.ident.m02_m10   = 0;
-    *(s32*)&mtx->m[1][1] = 0x1000;
-    matw.ident.m20_m21   = 0;
-    mtx->m[2][2]         = 0x1000;
-    matw.mat.t[0]        = 0;
-    matw.mat.t[1]        = 0;
-    matw.mat.t[2]        = 0;
+    mtx                    = &matw.mat;
+    matw.ident.m00_m01     = 0x1000;
+    matw.ident.m02_m10     = 0;
+    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+    matw.ident.m20_m21     = 0;
+    mtx->m[2][2]           = 0x1000;
+    matw.mat.t[0]          = 0;
+    matw.mat.t[1]          = 0;
+    matw.mat.t[2]          = 0;
     RotMatrixZ(arg0, &matw.mat);
     SetRotMatrix(&matw.mat);
     SetTransMatrix(&matw.mat);
@@ -1799,22 +1799,22 @@ void func_dryfield_breezeway_80181264(Task* task)
 
     switch (task->state) {
         case 0:
-            m                  = &coord->coord;
-            *(s32*)&m->m[0][0] = 0x1000;
-            *(s32*)&m->m[0][2] = 0;
-            *(s32*)&m->m[1][1] = 0x1000;
-            *(s32*)&m->m[2][0] = 0;
-            m->m[2][2]         = 0x1000;
-            work->pos.vx       = (u16)task->spawnArg1 & 0xFFF;
-            work->scale        = 0x50;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy       = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->index        = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz       = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->period       = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            m                    = &coord->coord;
+            MATRIX_PAIR(m, 0, 0) = 0x1000;
+            MATRIX_PAIR(m, 0, 2) = 0;
+            MATRIX_PAIR(m, 1, 1) = 0x1000;
+            MATRIX_PAIR(m, 2, 0) = 0;
+            m->m[2][2]           = 0x1000;
+            work->pos.vx         = (u16)task->spawnArg1 & 0xFFF;
+            work->scale          = 0x50;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vy         = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->index          = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->period         = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);

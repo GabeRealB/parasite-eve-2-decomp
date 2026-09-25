@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -224,7 +225,7 @@ void func_actor_120400_80132050(Task* arg0)
         }
     }
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)arg0->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }

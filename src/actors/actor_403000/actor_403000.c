@@ -767,17 +767,17 @@ void func_actor_403000_80132AE0(GpCoord* parent)
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
-    m                                    = &scratch->coord.coord;
-    *(s32*)&scratch->coord.coord.m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2]                   = 0;
-    *(s32*)&m->m[1][1]                   = 0x1000;
-    *(s32*)&m->m[2][0]                   = 0;
-    m->m[2][2]                           = 0x1000;
-    scratch->coord.coord.t[0]            = -0x3C;
-    scratch->coord.coord.t[1]            = -0x28;
-    scratch->coord.coord.t[2]            = 0x12C;
-    scratch->coord.sub                   = parent;
-    scratch->coord.flg                   = 0;
+    m                                        = &scratch->coord.coord;
+    MATRIX_PAIR(&scratch->coord.coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)                     = 0;
+    MATRIX_PAIR(m, 1, 1)                     = 0x1000;
+    MATRIX_PAIR(m, 2, 0)                     = 0;
+    m->m[2][2]                               = 0x1000;
+    scratch->coord.coord.t[0]                = -0x3C;
+    scratch->coord.coord.t[1]                = -0x28;
+    scratch->coord.coord.t[2]                = 0x12C;
+    scratch->coord.sub                       = parent;
+    scratch->coord.flg                       = 0;
     Gp_UpdateCoord(&scratch->coord);
     walker          = &scratch->coord;
     pos             = &scratch->pos;
@@ -895,17 +895,17 @@ void func_actor_403000_801330D4(GpCoord* parent)
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
     /* Identity, written as three words and a short through a second pointer. */
-    m                                    = &scratch->coord.coord;
-    *(s32*)&scratch->coord.coord.m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2]                   = 0;
-    *(s32*)&m->m[1][1]                   = 0x1000;
-    *(s32*)&m->m[2][0]                   = 0;
-    m->m[2][2]                           = 0x1000;
-    scratch->coord.coord.t[0]            = -0x3C;
-    scratch->coord.coord.t[1]            = -0x28;
-    scratch->coord.sub                   = parent;
-    scratch->coord.coord.t[2]            = 0x12C;
-    scratch->coord.flg                   = 0;
+    m                                        = &scratch->coord.coord;
+    MATRIX_PAIR(&scratch->coord.coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)                     = 0;
+    MATRIX_PAIR(m, 1, 1)                     = 0x1000;
+    MATRIX_PAIR(m, 2, 0)                     = 0;
+    m->m[2][2]                               = 0x1000;
+    scratch->coord.coord.t[0]                = -0x3C;
+    scratch->coord.coord.t[1]                = -0x28;
+    scratch->coord.sub                       = parent;
+    scratch->coord.coord.t[2]                = 0x12C;
+    scratch->coord.flg                       = 0;
     Gp_UpdateCoord(&scratch->coord);
     walker          = &scratch->coord;
     pos             = &scratch->pos;
@@ -4413,13 +4413,13 @@ void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
         case 0:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             Gp_ClearRec18Occupied(work->objD18.rec);
             Gp_ClearRec18Occupied(work->objB50.rec);

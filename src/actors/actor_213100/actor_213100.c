@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include "actors/actor.h"
 #include "actors/actors_shared_8013231c.h"
@@ -94,7 +95,7 @@ void func_actor_213100_80149E3C(Task* task)
         }
     }
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }

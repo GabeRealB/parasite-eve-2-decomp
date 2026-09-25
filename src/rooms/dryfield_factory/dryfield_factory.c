@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include "gameplay/1A8.h"
 #include "gameplay/268.h"
@@ -1059,12 +1060,12 @@ s32 func_dryfield_factory_8017F8F4(Task* task)
             break;
     }
 
-    m                            = &coord->coord;
-    *(s32*)&coord->coord.m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2]           = 0;
-    *(s32*)&m->m[1][1]           = 0x1000;
-    *(s32*)&m->m[2][0]           = 0;
-    m->m[2][2]                   = 0x1000;
+    m                                = &coord->coord;
+    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)             = 0;
+    MATRIX_PAIR(m, 1, 1)             = 0x1000;
+    MATRIX_PAIR(m, 2, 0)             = 0;
+    m->m[2][2]                       = 0x1000;
     RotMatrixX(work->field_4.part.whole, m);
     coord->flg = 0;
     return ret;
@@ -1104,12 +1105,12 @@ s32 func_dryfield_factory_8017FAC4(Task* task)
             break;
     }
 
-    m                            = &coord->coord;
-    *(s32*)&coord->coord.m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2]           = 0;
-    *(s32*)&m->m[1][1]           = 0x1000;
-    *(s32*)&m->m[2][0]           = 0;
-    m->m[2][2]                   = 0x1000;
+    m                                = &coord->coord;
+    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)             = 0;
+    MATRIX_PAIR(m, 1, 1)             = 0x1000;
+    MATRIX_PAIR(m, 2, 0)             = 0;
+    m->m[2][2]                       = 0x1000;
     RotMatrixX(work->field_4.part.whole, m);
     coord->flg = 0;
     return ret;

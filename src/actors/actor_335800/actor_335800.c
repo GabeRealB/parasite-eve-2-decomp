@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 #include "main/stage.h"
 
 #include <psyq/libgte.h>
@@ -231,7 +232,7 @@ void func_actor_335800_80161E88(Task* task)
             taskKill(task);
             break;
     }
-    if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords->workm.t, &pos) != 0) {
+    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords->workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->groundShade);
     }
 }
@@ -588,7 +589,7 @@ void func_actor_335800_80162844(Task* task)
             work->field_504 = -1;
         }
         if (work->field_504 > 0) {
-            if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+            if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
                 Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
             }
         }
@@ -1030,7 +1031,7 @@ void func_actor_335800_80163568(Task* task)
         }
     }
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);

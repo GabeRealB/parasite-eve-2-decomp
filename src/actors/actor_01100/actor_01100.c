@@ -3265,11 +3265,11 @@ void Actor01100_Fn05E68(Task* task)
     gte_gpf12();
     gte_stsv(&work->vel);
 
-    *(s32*)&mtx->m[0][0] = 0x1000;
-    *(s32*)&mtx->m[0][2] = 0;
-    *(s32*)&mtx->m[1][1] = 0x1000;
-    *(s32*)&mtx->m[2][0] = 0;
-    mtx->m[2][2]         = 0x1000;
+    MATRIX_PAIR(mtx, 0, 0) = 0x1000;
+    MATRIX_PAIR(mtx, 0, 2) = 0;
+    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+    MATRIX_PAIR(mtx, 2, 0) = 0;
+    mtx->m[2][2]           = 0x1000;
 
     coord->coord.t[0] += work->vel.vx;
     Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;

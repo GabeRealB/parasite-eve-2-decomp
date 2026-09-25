@@ -467,7 +467,7 @@ void func_actor_511000_80132480(Task* task)
     flags                = extra->flags | 0x80;
     extra->flags         = flags;
     if (!(flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }

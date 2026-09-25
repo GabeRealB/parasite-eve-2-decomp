@@ -1251,13 +1251,13 @@ void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
         case 0:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             Gp_ClearRec18Occupied(&work->rec1B8);
             Gp_ClearRec18Occupied(&work->rec250);

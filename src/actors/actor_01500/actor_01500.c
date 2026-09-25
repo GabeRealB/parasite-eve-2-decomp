@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include "actors/actor.h"
 #include "gameplay/1BC.h"
@@ -1559,7 +1560,7 @@ void Actor01500_Fn02B70(Task* arg0)
     SCRATCH_HEAD(VECTOR) = head - 1;
     vec                  = (VECTOR3*)(head - 1);
     if (work->field_35A != 5) {
-        hit = func_800EA1A8((VECTOR3*)coord->workm.t, vec);
+        hit = func_800EA1A8(MATRIX_TRANS(&coord->workm), vec);
         if (hit != 0) {
             Gp_DrawEffGroundQuad(vec, 0x200, func_800EA318(0x200, 0x80, hit));
         }

@@ -522,22 +522,22 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 
     switch (task->state) {
         case 0:
-            m                  = &coord->coord;
-            *(s32*)&m->m[0][0] = 0x1000;
-            *(s32*)&m->m[0][2] = 0;
-            *(s32*)&m->m[1][1] = 0x1000;
-            *(s32*)&m->m[2][0] = 0;
-            m->m[2][2]         = 0x1000;
-            work->pos.vx       = (u16)task->spawnArg1 & 0xFFF;
-            work->scale        = 0xA0;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy       = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->index        = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz       = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->period       = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            m                    = &coord->coord;
+            MATRIX_PAIR(m, 0, 0) = 0x1000;
+            MATRIX_PAIR(m, 0, 2) = 0;
+            MATRIX_PAIR(m, 1, 1) = 0x1000;
+            MATRIX_PAIR(m, 2, 0) = 0;
+            m->m[2][2]           = 0x1000;
+            work->pos.vx         = (u16)task->spawnArg1 & 0xFFF;
+            work->scale          = 0xA0;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vy         = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->index          = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->period         = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 < 0) {
                     half          = 0x40;
@@ -1102,19 +1102,19 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
 
     switch (task->state) {
         case 0:
-            m                  = &coord->coord;
-            *(s32*)&m->m[0][0] = 0x1000;
-            *(s32*)&m->m[0][2] = 0;
-            *(s32*)&m->m[1][1] = 0x1000;
-            *(s32*)&m->m[2][0] = 0;
-            m->m[2][2]         = 0x1000;
-            work->pos.vx       = (u16)task->spawnArg1 & 0xFFF;
-            work->scale        = half;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy       = (((u32)Gp_LcgState >> 16) & 3) + 1;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz       = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            work->index        = 0;
+            m                    = &coord->coord;
+            MATRIX_PAIR(m, 0, 0) = 0x1000;
+            MATRIX_PAIR(m, 0, 2) = 0;
+            MATRIX_PAIR(m, 1, 1) = 0x1000;
+            MATRIX_PAIR(m, 2, 0) = 0;
+            m->m[2][2]           = 0x1000;
+            work->pos.vx         = (u16)task->spawnArg1 & 0xFFF;
+            work->scale          = half;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vy         = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->index          = 0;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1 & 0x40000000) {
                     Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
@@ -1289,18 +1289,18 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 
     switch (task->state) {
         case 0:
-            seed               = Gp_LcgState * 5 + 0x71357911;
-            m                  = &coord->coord;
-            *(s32*)&m->m[0][0] = 0x1000;
-            *(s32*)&m->m[0][2] = 0;
-            *(s32*)&m->m[1][1] = 0x1000;
-            *(s32*)&m->m[2][0] = 0;
-            m->m[2][2]         = 0x1000;
-            work->pos.vx       = task->spawnArg1 & 0xFFF;
-            Gp_LcgState        = seed;
-            work->index        = ((u32)Gp_LcgState >> 16) % 10;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            work->angle        = ((u32)Gp_LcgState >> 16) % 10 + 5;
+            seed                 = Gp_LcgState * 5 + 0x71357911;
+            m                    = &coord->coord;
+            MATRIX_PAIR(m, 0, 0) = 0x1000;
+            MATRIX_PAIR(m, 0, 2) = 0;
+            MATRIX_PAIR(m, 1, 1) = 0x1000;
+            MATRIX_PAIR(m, 2, 0) = 0;
+            m->m[2][2]           = 0x1000;
+            work->pos.vx         = task->spawnArg1 & 0xFFF;
+            Gp_LcgState          = seed;
+            work->index          = ((u32)Gp_LcgState >> 16) % 10;
+            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
+            work->angle          = ((u32)Gp_LcgState >> 16) % 10 + 5;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);

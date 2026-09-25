@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 
@@ -188,7 +189,7 @@ void func_actor_210700_80149F90(Task* task)
     anim.field_4 = 1;
     anim.field_8 = 0;
     func_actor_210700_8014A224(task, 0x7D3, &anim, 0);
-    if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     func_actor_210700_8014A208(task);
@@ -217,7 +218,7 @@ void func_actor_210700_8014A0AC(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x400, Gp_State1C->groundShade);
     }
     if (gGameSession->viewReady != 0) {

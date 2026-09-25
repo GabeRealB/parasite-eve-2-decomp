@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -155,7 +156,7 @@ void func_actor_113000_80131F90(Task* task)
     flags           = extra->flags | 0x80;
     extra->flags    = flags;
     if (!(flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
@@ -186,7 +187,7 @@ void func_actor_113000_80132070(Task* task)
         }
     }
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }

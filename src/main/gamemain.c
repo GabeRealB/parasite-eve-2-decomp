@@ -591,9 +591,9 @@ void Gfx_InitCoordinateTrees(void)
     one                               = ONE;
     m                                 = &Gfx_ViewOffsetCoord.coord;
     c1                                = &Gfx_ViewOffsetCoord;
-    *(s32*)&m->m[0][2]                = 0;
-    *(s32*)&m->m[1][1]                = one;
-    *(s32*)&m->m[2][0]                = 0;
+    MATRIX_PAIR(m, 0, 2)              = 0;
+    MATRIX_PAIR(m, 1, 1)              = one;
+    MATRIX_PAIR(m, 2, 0)              = 0;
     m->m[2][2]                        = one;
     c1->sub                           = NULL;
     c1->coord.t[0]                    = 0;
@@ -604,9 +604,9 @@ void Gfx_InitCoordinateTrees(void)
     *(s32*)&gGfxViewRotCoord.coord = one;
     m                              = &gGfxViewRotCoord.coord;
     c2                             = &gGfxViewRotCoord;
-    *(s32*)&m->m[0][2]             = 0;
-    *(s32*)&m->m[1][1]             = one;
-    *(s32*)&m->m[2][0]             = 0;
+    MATRIX_PAIR(m, 0, 2)           = 0;
+    MATRIX_PAIR(m, 1, 1)           = one;
+    MATRIX_PAIR(m, 2, 0)           = 0;
     m->m[2][2]                     = one;
     c2->sub                        = c1;
     c2->coord.t[0]                 = 0;
@@ -617,9 +617,9 @@ void Gfx_InitCoordinateTrees(void)
     *(s32*)&gGfxViewCoord.coord = one;
     m                           = &gGfxViewCoord.coord;
     c3                          = &gGfxViewCoord;
-    *(s32*)&m->m[0][2]          = 0;
-    *(s32*)&m->m[1][1]          = one;
-    *(s32*)&m->m[2][0]          = 0;
+    MATRIX_PAIR(m, 0, 2)        = 0;
+    MATRIX_PAIR(m, 1, 1)        = one;
+    MATRIX_PAIR(m, 2, 0)        = 0;
     m->m[2][2]                  = one;
     c3->sub                     = c2;
     c3->coord.t[0]              = 0;
@@ -629,12 +629,12 @@ void Gfx_InitCoordinateTrees(void)
 
     gte_SetGeomScreen(0x400);
 
-    *(s32*)&GsWSMATRIX = one;
-    m                  = &GsWSMATRIX;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = one;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = one;
+    *(s32*)&GsWSMATRIX   = one;
+    m                    = &GsWSMATRIX;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = one;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = one;
 }
 
 void Display_LoadImageStrips(s32 arg0)

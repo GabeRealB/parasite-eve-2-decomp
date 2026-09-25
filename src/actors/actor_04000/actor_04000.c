@@ -1993,7 +1993,7 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5 && work->field_0 != 0xD &&
                 work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x100, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, Gp_State1C->groundShade);
             }
             if (work->field_0 == 0xF) {
                 mw                                   = (GpMtxWords*)&coord.coord;
@@ -2008,14 +2008,14 @@ void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
                 coord.sub                            = &gGfxViewCoord;
                 coord.flg                            = 0;
                 Gp_UpdateCoord(&coord);
-                Gp_DrawEffGroundQuad((VECTOR3*)coord.workm.t, 0x60, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.workm), 0x60, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 0xD && work->field_0 != 5 &&
                 work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             Gp_ClearRec18Occupied(work->rec1B0);
             Gp_ClearRec18Occupied(work->hits);

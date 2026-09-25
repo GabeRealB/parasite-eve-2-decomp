@@ -1822,17 +1822,17 @@ void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            coord->sub                   = mem->parent;
-            mtx                          = &coord->coord;
-            *(s32*)&coord->coord.m[0][0] = 0x1000;
-            *(s32*)&mtx->m[0][2]         = 0;
-            *(s32*)&mtx->m[1][1]         = 0x1000;
-            *(s32*)&mtx->m[2][0]         = 0;
-            mtx->m[2][2]                 = 0x1000;
-            coord->coord.t[0]            = mem->pos.vx;
-            coord->coord.t[1]            = mem->pos.vy;
-            coord->coord.t[2]            = mem->pos.vz;
-            coord->flg                   = 0;
+            coord->sub                       = mem->parent;
+            mtx                              = &coord->coord;
+            MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+            MATRIX_PAIR(mtx, 0, 2)           = 0;
+            MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
+            MATRIX_PAIR(mtx, 2, 0)           = 0;
+            mtx->m[2][2]                     = 0x1000;
+            coord->coord.t[0]                = mem->pos.vx;
+            coord->coord.t[1]                = mem->pos.vy;
+            coord->coord.t[2]                = mem->pos.vz;
+            coord->flg                       = 0;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             break;

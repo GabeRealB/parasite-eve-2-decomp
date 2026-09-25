@@ -225,7 +225,7 @@ void func_actor_800300_80162064(Task* arg0)
     ((SVECTOR*)actor->field_A0)->vy = sc->vec.vy;
     ((SVECTOR*)actor->field_A0)->vz = sc->vec.vz;
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)coord->workm.t, (VECTOR3*)sc) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&coord->workm), (VECTOR3*)sc) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, Gp_State1C->groundShade);
         }
     }
@@ -496,7 +496,7 @@ void func_actor_800300_801628D0(Task* arg0)
             }
             break;
     }
-    vec = (VECTOR3*)target->coord.t;
+    vec = MATRIX_TRANS(&target->coord);
     func_8010BD88(arg0, vec);
     func_8010BE5C(arg0, vec);
     func_80105ED4(arg0);
@@ -556,7 +556,7 @@ void func_actor_800300_80162A98(Task* arg0)
             }
             break;
     }
-    func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
+    func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
     func_80105ED4(arg0);
     SCRATCH_POP_BYTES(0x10);
 }
@@ -589,7 +589,7 @@ void func_actor_800300_80162C98(Task* arg0)
         if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);
         }
-        val = func_8010BCF4((Task*)arg0, (VECTOR3*)target->coord.t);
+        val = func_8010BCF4((Task*)arg0, MATRIX_TRANS(&target->coord));
         if (val < 0) {
             val = -val;
         }
@@ -598,7 +598,7 @@ void func_actor_800300_80162C98(Task* arg0)
             func_actor_800300_80163074(arg0);
         }
     }
-    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
     func_80105ED4(arg0);
 }
 

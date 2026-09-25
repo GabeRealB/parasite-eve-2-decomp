@@ -89,11 +89,11 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     if (Gp_State1C->eventState != 0) {
                         work->age--;
                         func_m4a1_pyke_8011D548(
-                            (VECTOR3*)&coord->workm.t, work->age, 0x80);
+                            MATRIX_TRANS(&coord->workm), work->age, 0x80);
                         break;
                     }
                     Gp_UpdateCoord(coord);
-                    func_m4a1_pyke_8011D548((VECTOR3*)&coord->workm.t, work->age, 0x80);
+                    func_m4a1_pyke_8011D548(MATRIX_TRANS(&coord->workm), work->age, 0x80);
                     base->framesLeft = 4;
                     slot->inner      = 0x80;
                     slot->outer      = 0x400;
@@ -267,7 +267,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
         return;
     }
     if (fade != 0) {
-        func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
+        func_m4a1_pyke_8011DCEC(MATRIX_TRANS(&coord->workm),
                                 (work->age >> 1) + 1, work->scale, work->angle);
         return;
     }
@@ -321,14 +321,14 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
+            func_m4a1_pyke_8011DCEC(MATRIX_TRANS(&coord->workm),
                                     (work->age >> 1) + 1, work->scale,
                                     work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_m4a1_pyke_8011E168((VECTOR3*)ground.workm.t,
+                func_m4a1_pyke_8011E168(MATRIX_TRANS(&ground.workm),
                                         (s16)((work->scale * 2) / 3));
             }
             if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
@@ -360,7 +360,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            func_m4a1_pyke_8011DCEC((VECTOR3*)coord->workm.t,
+            func_m4a1_pyke_8011DCEC(MATRIX_TRANS(&coord->workm),
                                     (work->age >> 1) + 1, work->scale,
                                     work->angle);
             if (work->age >= 0x15) {

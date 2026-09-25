@@ -2916,13 +2916,13 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
         case 0:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             break;
         case 1:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)arg1->extra.tmd->coords->workm.t, 0x180, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, Gp_State1C->groundShade);
             }
             return;
         case 2:
@@ -2937,10 +2937,10 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
         blk->v.vx = blk->v.vy = blk->v.vz = 0;
         actorTransformToView(&arg1->extra.tmd->coords[1], &blk->v);
         m                     = &blk->coord.coord;
-        *(s32*)&m->m[0][0]    = 0x1000;
-        *(s32*)&m->m[0][2]    = 0;
-        *(s32*)&m->m[1][1]    = 0x1000;
-        *(s32*)&m->m[2][0]    = 0;
+        MATRIX_PAIR(m, 0, 0)  = 0x1000;
+        MATRIX_PAIR(m, 0, 2)  = 0;
+        MATRIX_PAIR(m, 1, 1)  = 0x1000;
+        MATRIX_PAIR(m, 2, 0)  = 0;
         m->m[2][2]            = 0x1000;
         blk->coord.sub        = &gGfxViewCoord;
         blk->coord.coord.t[0] = blk->v.vx;
@@ -2948,7 +2948,7 @@ void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
         blk->coord.coord.t[2] = blk->v.vz;
         blk->coord.flg        = 0;
         Gp_UpdateCoord(&blk->coord);
-        Gp_DrawEffGroundQuad((VECTOR3*)blk->coord.workm.t, 0x280, Gp_State1C->groundShade);
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->coord.workm), 0x280, Gp_State1C->groundShade);
     }
     if (work->field_2 != work->field_0) {
         work->field_4 = 1;

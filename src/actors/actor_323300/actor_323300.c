@@ -242,7 +242,7 @@ void func_actor_323300_80161FE8(Task* arg0)
         }
     }
     if (!(extra->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)arg0->extra.tmd->coords[1].workm.t, (VECTOR3*)&vec) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShade);
         }
         Gp_ClearRec18Occupied(&work->rec);

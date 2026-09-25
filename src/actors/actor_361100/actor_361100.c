@@ -159,18 +159,18 @@ void func_actor_361100_80161E3C(Task* arg0)
                 func_80138C9C(state);
                 i += 1;
             } while (i < 0x1E);
-            coord->sub                   = &gGfxViewCoord;
-            mtx                          = &coord->coord;
-            *(s32*)&coord->coord.m[0][0] = 0x1000;
-            *(s32*)&mtx->m[0][2]         = 0;
-            *(s32*)&mtx->m[1][1]         = 0x1000;
-            *(s32*)&mtx->m[2][0]         = 0;
-            mtx->m[2][2]                 = 0x1000;
-            coord->coord.t[0]            = 0x1CA2;
-            coord->coord.t[1]            = 0x712;
-            coord->coord.t[2]            = 0x189C;
-            coord->flg                   = 0;
-            arg0->state                 += 1;
+            coord->sub                       = &gGfxViewCoord;
+            mtx                              = &coord->coord;
+            MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
+            MATRIX_PAIR(mtx, 0, 2)           = 0;
+            MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
+            MATRIX_PAIR(mtx, 2, 0)           = 0;
+            mtx->m[2][2]                     = 0x1000;
+            coord->coord.t[0]                = 0x1CA2;
+            coord->coord.t[1]                = 0x712;
+            coord->coord.t[2]                = 0x189C;
+            coord->flg                       = 0;
+            arg0->state                     += 1;
         }
         mode = *modePtr;
         if (mode == 11) {
@@ -993,7 +993,7 @@ void func_actor_361100_801631C4(Task* task)
         }
     }
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)task->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
         task->extra.tmd->coords[1].flg = 0;

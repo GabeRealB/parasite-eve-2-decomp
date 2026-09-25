@@ -3213,15 +3213,15 @@ void func_actor_560800_80138BCC(Task* task)
     w                  = work;
     coord->coord.t[1] -= work->field_286;
     if (work->field_278 >= 0x800) {
-        work->field_27C    = 0;
-        w                  = (Actor560800ModelWork*)task->work;
-        c                  = task->extra.tmd->coords;
-        m                  = &c[1].coord;
-        *(s32*)&m->m[0][0] = 0x1000;
-        *(s32*)&m->m[0][2] = 0;
-        *(s32*)&m->m[1][1] = 0x1000;
-        *(s32*)&m->m[2][0] = 0;
-        m->m[2][2]         = 0x1000;
+        work->field_27C      = 0;
+        w                    = (Actor560800ModelWork*)task->work;
+        c                    = task->extra.tmd->coords;
+        m                    = &c[1].coord;
+        MATRIX_PAIR(m, 0, 0) = 0x1000;
+        MATRIX_PAIR(m, 0, 2) = 0;
+        MATRIX_PAIR(m, 1, 1) = 0x1000;
+        MATRIX_PAIR(m, 2, 0) = 0;
+        m->m[2][2]           = 0x1000;
         c++;
         if (w->field_27C == 0) {
             w->field_278 -= 0x32;
@@ -3271,16 +3271,16 @@ void func_actor_560800_80138D04(Task* task)
             break;
         case 1:
             if (work->field_278 <= 0x1800) {
-                work->field_27C    = 1;
-                w                  = (Actor560800ModelWork*)task->work;
-                c                  = task->extra.tmd->coords;
-                m                  = &c[1].coord;
-                one                = 0x1000;
-                *(s32*)&m->m[0][0] = one;
-                *(s32*)&m->m[0][2] = 0;
-                *(s32*)&m->m[1][1] = one;
-                *(s32*)&m->m[2][0] = 0;
-                m->m[2][2]         = one;
+                work->field_27C      = 1;
+                w                    = (Actor560800ModelWork*)task->work;
+                c                    = task->extra.tmd->coords;
+                m                    = &c[1].coord;
+                one                  = 0x1000;
+                MATRIX_PAIR(m, 0, 0) = one;
+                MATRIX_PAIR(m, 0, 2) = 0;
+                MATRIX_PAIR(m, 1, 1) = one;
+                MATRIX_PAIR(m, 2, 0) = 0;
+                m->m[2][2]           = one;
                 c++;
                 if (w->field_27C == 0) {
                     w->field_278 -= 0x32;
@@ -3304,16 +3304,16 @@ void func_actor_560800_80138D04(Task* task)
             break;
         case 2:
             if (work->field_278 >= 0x1000) {
-                work->field_27C     = 0;
-                w                   = (Actor560800ModelWork*)task->work;
-                c                   = task->extra.tmd->coords;
-                m2                  = &c[1].coord;
-                one                 = 0x1000;
-                *(s32*)&m2->m[0][0] = one;
-                *(s32*)&m2->m[0][2] = 0;
-                *(s32*)&m2->m[1][1] = one;
-                *(s32*)&m2->m[2][0] = 0;
-                m2->m[2][2]         = one;
+                work->field_27C       = 0;
+                w                     = (Actor560800ModelWork*)task->work;
+                c                     = task->extra.tmd->coords;
+                m2                    = &c[1].coord;
+                one                   = 0x1000;
+                MATRIX_PAIR(m2, 0, 0) = one;
+                MATRIX_PAIR(m2, 0, 2) = 0;
+                MATRIX_PAIR(m2, 1, 1) = one;
+                MATRIX_PAIR(m2, 2, 0) = 0;
+                m2->m[2][2]           = one;
                 c++;
                 if (w->field_27C == 0) {
                     w->field_278 -= 0xC8;
@@ -3392,10 +3392,10 @@ void func_actor_560800_80138FC8(Task* task)
                 task->msgTable          = &D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
                 m0                      = &root->coord;
-                *(s32*)&m0->m[0][0]     = 0x1000;
-                *(s32*)&m0->m[0][2]     = 0;
-                *(s32*)&m0->m[1][1]     = 0x1000;
-                *(s32*)&m0->m[2][0]     = 0;
+                MATRIX_PAIR(m0, 0, 0)   = 0x1000;
+                MATRIX_PAIR(m0, 0, 2)   = 0;
+                MATRIX_PAIR(m0, 1, 1)   = 0x1000;
+                MATRIX_PAIR(m0, 2, 0)   = 0;
                 m0->m[2][2]             = 0x1000;
             }
             task->state++;
@@ -3408,15 +3408,15 @@ void func_actor_560800_80138FC8(Task* task)
             work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 5;
             if (work->field_278 <= 0x1800) {
-                work->field_27C     = 1;
-                c                   = task->extra.tmd->coords;
-                w                   = (Actor560800ModelWork*)task->work;
-                m2                  = &c[1].coord;
-                *(s32*)&m2->m[0][0] = 0x1000;
-                *(s32*)&m2->m[0][2] = 0;
-                *(s32*)&m2->m[1][1] = 0x1000;
-                *(s32*)&m2->m[2][0] = 0;
-                m2->m[2][2]         = 0x1000;
+                work->field_27C       = 1;
+                c                     = task->extra.tmd->coords;
+                w                     = (Actor560800ModelWork*)task->work;
+                m2                    = &c[1].coord;
+                MATRIX_PAIR(m2, 0, 0) = 0x1000;
+                MATRIX_PAIR(m2, 0, 2) = 0;
+                MATRIX_PAIR(m2, 1, 1) = 0x1000;
+                MATRIX_PAIR(m2, 2, 0) = 0;
+                m2->m[2][2]           = 0x1000;
                 c++;
                 if (w->field_27C == 0) {
                     w->field_278 -= 0x32;
@@ -3441,15 +3441,15 @@ void func_actor_560800_80138FC8(Task* task)
             work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 1;
             if (work->field_278 >= 0x800) {
-                work->field_27C     = 0;
-                c                   = task->extra.tmd->coords;
-                w                   = (Actor560800ModelWork*)task->work;
-                m3                  = &c[1].coord;
-                *(s32*)&m3->m[0][0] = 0x1000;
-                *(s32*)&m3->m[0][2] = 0;
-                *(s32*)&m3->m[1][1] = 0x1000;
-                *(s32*)&m3->m[2][0] = 0;
-                m3->m[2][2]         = 0x1000;
+                work->field_27C       = 0;
+                c                     = task->extra.tmd->coords;
+                w                     = (Actor560800ModelWork*)task->work;
+                m3                    = &c[1].coord;
+                MATRIX_PAIR(m3, 0, 0) = 0x1000;
+                MATRIX_PAIR(m3, 0, 2) = 0;
+                MATRIX_PAIR(m3, 1, 1) = 0x1000;
+                MATRIX_PAIR(m3, 2, 0) = 0;
+                m3->m[2][2]           = 0x1000;
                 c++;
                 if (w->field_27C == 0) {
                     w->field_278 -= 0xA;
@@ -3477,15 +3477,15 @@ void func_actor_560800_80138FC8(Task* task)
             work               = (Actor560800ModelWork*)task->work;
             coord->coord.t[1] += 5;
             if (work->field_278 <= 0x1800) {
-                work->field_27C     = 1;
-                c                   = task->extra.tmd->coords;
-                w                   = (Actor560800ModelWork*)task->work;
-                m5                  = &c[1].coord;
-                *(s32*)&m5->m[0][0] = 0x1000;
-                *(s32*)&m5->m[0][2] = 0;
-                *(s32*)&m5->m[1][1] = 0x1000;
-                *(s32*)&m5->m[2][0] = 0;
-                m5->m[2][2]         = 0x1000;
+                work->field_27C       = 1;
+                c                     = task->extra.tmd->coords;
+                w                     = (Actor560800ModelWork*)task->work;
+                m5                    = &c[1].coord;
+                MATRIX_PAIR(m5, 0, 0) = 0x1000;
+                MATRIX_PAIR(m5, 0, 2) = 0;
+                MATRIX_PAIR(m5, 1, 1) = 0x1000;
+                MATRIX_PAIR(m5, 2, 0) = 0;
+                m5->m[2][2]           = 0x1000;
                 c++;
                 if (w->field_27C == 0) {
                     w->field_278 -= 0x32;

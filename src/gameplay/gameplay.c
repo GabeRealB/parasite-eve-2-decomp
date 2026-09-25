@@ -1057,11 +1057,11 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         one                       = ONE;
         m                         = &node->coord.coord;
         *(s32*)&node->coord.coord = one;
-        *(s32*)&m->m[1][1]        = one;
+        MATRIX_PAIR(m, 1, 1)      = one;
         m->m[2][2]                = one;
         list                      = &gTmdDisp2dList;
-        *(s32*)&m->m[0][2]        = 0;
-        *(s32*)&m->m[2][0]        = 0;
+        MATRIX_PAIR(m, 0, 2)      = 0;
+        MATRIX_PAIR(m, 2, 0)      = 0;
         coord->coord.t[2]         = 0;
         coord->coord.t[1]         = 0;
         coord->coord.t[0]         = 0;
@@ -9211,7 +9211,7 @@ void Gp_LoadStageView(void)
     idx  = Gp_GetViewIndex();
 
     rot   = &gGfxViewRotCoord.coord;
-    trans = (VECTOR3*)gGfxViewCoord.coord.t;
+    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
     c1    = &Gfx_ViewOffsetCoord;
     rec   = (GpViewRec*)(idx * sizeof(GpViewRec) + (s32)recs);
 
@@ -9295,11 +9295,11 @@ void Gp_ApplyView(GpViewRec* arg0)
     VECTOR3* trans;
 
     rot   = &gGfxViewRotCoord.coord;
-    trans = (VECTOR3*)gGfxViewCoord.coord.t;
+    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
     c1    = &Gfx_ViewOffsetCoord;
 
     *(GBytes18*)rot = *(GBytes18*)arg0;
-    *trans          = *(VECTOR3*)&arg0->mtx.t;
+    *trans          = *MATRIX_TRANS(&arg0->mtx);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
@@ -9331,18 +9331,18 @@ void Gp_ResetView(void)
     *(volatile s32*)&gGfxViewRotCoord.coord = one;
     m                                       = &gGfxViewRotCoord.coord;
     c2                                      = PARENT_OF(m, GpCoord, coord);
-    *(s32*)&m->m[1][1]                      = one;
+    MATRIX_PAIR(m, 1, 1)                    = one;
     m->m[2][2]                              = one;
 
-    c3                 = &gGfxViewCoord;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[2][0] = 0;
-    c3->coord.t[0]     = 0;
-    c3->coord.t[1]     = 0;
-    c3->coord.t[2]     = 0;
-    c1->flg            = 0;
-    c2->flg            = 0;
-    c3->flg            = 0;
+    c3                   = &gGfxViewCoord;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    c3->coord.t[0]       = 0;
+    c3->coord.t[1]       = 0;
+    c3->coord.t[2]       = 0;
+    c1->flg              = 0;
+    c2->flg              = 0;
+    c3->flg              = 0;
 }
 
 void Gp_SpawnViewTasks(void)
@@ -9382,12 +9382,12 @@ void Gp_ApplyViewTask(Task* task)
     GpViewRec* rec;
 
     rot   = &gGfxViewRotCoord.coord;
-    trans = (VECTOR3*)gGfxViewCoord.coord.t;
+    trans = MATRIX_TRANS(&gGfxViewCoord.coord);
     c1    = &Gfx_ViewOffsetCoord;
     rec   = task->spawnArg2;
 
     *(GBytes18*)rot = *(GBytes18*)rec;
-    *trans          = *(VECTOR3*)&rec->mtx.t;
+    *trans          = *MATRIX_TRANS(&rec->mtx);
 
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
@@ -9410,20 +9410,20 @@ void func_800A8D5C(void)
     s32     one;
     MATRIX* m;
 
-    vec.vx                      = 0;
-    vec.vy                      = 0;
-    vec.vz                      = ONE;
-    one                         = ONE;
-    m                           = &coord.coord;
-    coord.sub                   = &gGfxViewCoord;
-    *(s32*)&coord.coord         = one;
-    *(s32*)&coord.coord.m[0][2] = 0;
-    *(s32*)&m->m[1][1]          = one;
-    *(s32*)&coord.coord.m[2][0] = 0;
-    m->m[2][2]                  = one;
-    coord.coord.t[0]            = 0;
-    coord.coord.t[1]            = 0;
-    coord.coord.t[2]            = 0;
+    vec.vx                          = 0;
+    vec.vy                          = 0;
+    vec.vz                          = ONE;
+    one                             = ONE;
+    m                               = &coord.coord;
+    coord.sub                       = &gGfxViewCoord;
+    *(s32*)&coord.coord             = one;
+    MATRIX_PAIR(&coord.coord, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1)            = one;
+    MATRIX_PAIR(&coord.coord, 2, 0) = 0;
+    m->m[2][2]                      = one;
+    coord.coord.t[0]                = 0;
+    coord.coord.t[1]                = 0;
+    coord.coord.t[2]                = 0;
     Gp_SpawnViewCoordTask(&coord, &vec);
 }
 

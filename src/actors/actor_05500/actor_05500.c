@@ -1943,7 +1943,7 @@ void Actor05500_Fn03AC8(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_39A == 2) {
-        hit = func_800EA1A8((VECTOR3*)coord->workm.t, &vec);
+        hit = func_800EA1A8(MATRIX_TRANS(&coord->workm), &vec);
         if (hit != 0) {
             Gp_DrawEffGroundQuad(&vec, 0x200, func_800EA318(0x200, 0x80, hit));
         }

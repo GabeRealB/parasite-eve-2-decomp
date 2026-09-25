@@ -2,6 +2,7 @@
 #define ACTOR_503500_H
 
 #include "common.h"
+#include "main/gfx.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -317,11 +318,11 @@ STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 /// `&mats[i]` / `&coord[i].coord` is recomputed each iteration instead of strength-reduced.
 static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
 {
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = 0x1000;
+    MATRIX_PAIR(m, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = 0x1000;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = 0x1000;
 }
 
 /// Work block shape of the `actor_503500` effect tasks -- the ones whose

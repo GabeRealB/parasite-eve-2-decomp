@@ -1909,37 +1909,37 @@ void func_actor_206100_8014C458(Task* task)
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
             func_actor_206100_8014EB60(task);
-            destcoord                       = task->extra.tmd->coords;
-            pose                            = (Actor206100Work*)task->work;
-            mtx                             = &scratch;
-            scratch.matrix.ident.m00_m01    = 0x1000;
-            scratch.matrix.ident.m02_m10    = 0;
-            *(s32*)&mtx->matrix.mat.m[1][1] = 0x1000;
-            scratch.matrix.ident.m20_m21    = 0;
-            mtx->matrix.mat.m[2][2]         = 0x1000;
+            destcoord                           = task->extra.tmd->coords;
+            pose                                = (Actor206100Work*)task->work;
+            mtx                                 = &scratch;
+            scratch.matrix.ident.m00_m01        = 0x1000;
+            scratch.matrix.ident.m02_m10        = 0;
+            MATRIX_PAIR(&mtx->matrix.mat, 1, 1) = 0x1000;
+            scratch.matrix.ident.m20_m21        = 0;
+            mtx->matrix.mat.m[2][2]             = 0x1000;
             RotMatrixZ(pose->field_440, &mtx->matrix.mat);
             func_8004BFF8(pose->field_43E, &mtx->matrix.mat);
-            dest                  = &destcoord->coord;
-            dest->m[0][0]         = scratch.matrix.mat.m[0][0];
-            dest->m[0][1]         = scratch.matrix.mat.m[0][1];
-            dest->m[0][2]         = scratch.matrix.mat.m[0][2];
-            dest->m[1][0]         = scratch.matrix.mat.m[1][0];
-            dest->m[1][1]         = scratch.matrix.mat.m[1][1];
-            dest->m[1][2]         = scratch.matrix.mat.m[1][2];
-            dest->m[2][0]         = scratch.matrix.mat.m[2][0];
-            dest->m[2][1]         = scratch.matrix.mat.m[2][1];
-            dest->m[2][2]         = scratch.matrix.mat.m[2][2];
-            destcoord->flg        = 0;
-            scaled                = task->extra.tmd->coords;
-            scale.vx              = work->field_53E;
-            scale.vy              = scale.vx;
-            scale.vz              = scale.vx;
-            mtx2                  = &scaling.mat;
-            scaling.ident.m00_m01 = 0x1000;
-            scaling.ident.m02_m10 = 0;
-            *(s32*)&mtx2->m[1][1] = 0x1000;
-            scaling.ident.m20_m21 = 0;
-            mtx2->m[2][2]         = 0x1000;
+            dest                    = &destcoord->coord;
+            dest->m[0][0]           = scratch.matrix.mat.m[0][0];
+            dest->m[0][1]           = scratch.matrix.mat.m[0][1];
+            dest->m[0][2]           = scratch.matrix.mat.m[0][2];
+            dest->m[1][0]           = scratch.matrix.mat.m[1][0];
+            dest->m[1][1]           = scratch.matrix.mat.m[1][1];
+            dest->m[1][2]           = scratch.matrix.mat.m[1][2];
+            dest->m[2][0]           = scratch.matrix.mat.m[2][0];
+            dest->m[2][1]           = scratch.matrix.mat.m[2][1];
+            dest->m[2][2]           = scratch.matrix.mat.m[2][2];
+            destcoord->flg          = 0;
+            scaled                  = task->extra.tmd->coords;
+            scale.vx                = work->field_53E;
+            scale.vy                = scale.vx;
+            scale.vz                = scale.vx;
+            mtx2                    = &scaling.mat;
+            scaling.ident.m00_m01   = 0x1000;
+            scaling.ident.m02_m10   = 0;
+            MATRIX_PAIR(mtx2, 1, 1) = 0x1000;
+            scaling.ident.m20_m21   = 0;
+            mtx2->m[2][2]           = 0x1000;
             ScaleMatrix(&scaling.mat, &scale);
             MulMatrix(&scaled->coord, &scaling.mat);
             func_actor_206100_8014BAA8(task);
@@ -2646,7 +2646,7 @@ void func_actor_206100_8014D8E8(Task* task)
 ///
 /// Both pose matrices write five words, and which of them land in a register is
 /// load-bearing.  `matrix.ident.*` names the union's word view, so those three
-/// stores stay frame-relative, while `*(s32*)&mtx->m[1][1]` and `mtx->m[2][2]`
+/// stores stay frame-relative, while `MATRIX_PAIR(mtx, 1, 1)` and `mtx->m[2][2]`
 /// reach the same words through the `mtx` pointer and so are `8($s0)` and
 /// `0x10($s0)` off the local matrix's own address.  Written without `mtx` all
 /// five are frame-relative and that address is never materialised -- the same
@@ -2710,37 +2710,37 @@ void func_actor_206100_8014DA28(Task* task)
             }
             work->flags_514.parts.half = work->slots[1].flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
-            coord                = task->extra.tmd->coords;
-            sub                  = (Actor206100Work*)task->work;
-            mtx                  = &matrix.mat;
-            matrix.ident.m00_m01 = 0x1000;
-            matrix.ident.m02_m10 = 0;
-            *(s32*)&mtx->m[1][1] = 0x1000;
-            matrix.ident.m20_m21 = 0;
-            mtx->m[2][2]         = 0x1000;
+            coord                  = task->extra.tmd->coords;
+            sub                    = (Actor206100Work*)task->work;
+            mtx                    = &matrix.mat;
+            matrix.ident.m00_m01   = 0x1000;
+            matrix.ident.m02_m10   = 0;
+            MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+            matrix.ident.m20_m21   = 0;
+            mtx->m[2][2]           = 0x1000;
             RotMatrixZ(sub->field_440, &matrix.mat);
             func_8004BFF8(sub->field_43E, &matrix.mat);
-            dest                  = &coord->coord;
-            dest->m[0][0]         = matrix.mat.m[0][0];
-            dest->m[0][1]         = matrix.mat.m[0][1];
-            dest->m[0][2]         = matrix.mat.m[0][2];
-            dest->m[1][0]         = matrix.mat.m[1][0];
-            dest->m[1][1]         = matrix.mat.m[1][1];
-            dest->m[1][2]         = matrix.mat.m[1][2];
-            dest->m[2][0]         = matrix.mat.m[2][0];
-            dest->m[2][1]         = matrix.mat.m[2][1];
-            dest->m[2][2]         = matrix.mat.m[2][2];
-            coord->flg            = 0;
-            scaled                = task->extra.tmd->coords;
-            scale.vx              = work->field_53E;
-            scale.vy              = scale.vx;
-            scale.vz              = scale.vx;
-            mtx2                  = &scaling.mat;
-            scaling.ident.m00_m01 = 0x1000;
-            scaling.ident.m02_m10 = 0;
-            *(s32*)&mtx2->m[1][1] = 0x1000;
-            scaling.ident.m20_m21 = 0;
-            mtx2->m[2][2]         = 0x1000;
+            dest                    = &coord->coord;
+            dest->m[0][0]           = matrix.mat.m[0][0];
+            dest->m[0][1]           = matrix.mat.m[0][1];
+            dest->m[0][2]           = matrix.mat.m[0][2];
+            dest->m[1][0]           = matrix.mat.m[1][0];
+            dest->m[1][1]           = matrix.mat.m[1][1];
+            dest->m[1][2]           = matrix.mat.m[1][2];
+            dest->m[2][0]           = matrix.mat.m[2][0];
+            dest->m[2][1]           = matrix.mat.m[2][1];
+            dest->m[2][2]           = matrix.mat.m[2][2];
+            coord->flg              = 0;
+            scaled                  = task->extra.tmd->coords;
+            scale.vx                = work->field_53E;
+            scale.vy                = scale.vx;
+            scale.vz                = scale.vx;
+            mtx2                    = &scaling.mat;
+            scaling.ident.m00_m01   = 0x1000;
+            scaling.ident.m02_m10   = 0;
+            MATRIX_PAIR(mtx2, 1, 1) = 0x1000;
+            scaling.ident.m20_m21   = 0;
+            mtx2->m[2][2]           = 0x1000;
             ScaleMatrix(&scaling.mat, &scale);
             MulMatrix(&scaled->coord, &scaling.mat);
             /* fallthrough */
@@ -3236,11 +3236,11 @@ void func_actor_206100_8014EB60(Task* task)
     dest   = &coords[5].coord;
     mtx    = &matrix.mat;
 
-    matrix.ident.m00_m01 = 0x1000;
-    matrix.ident.m02_m10 = 0;
-    *(s32*)&mtx->m[1][1] = 0x1000;
-    matrix.ident.m20_m21 = 0;
-    mtx->m[2][2]         = 0x1000;
+    matrix.ident.m00_m01   = 0x1000;
+    matrix.ident.m02_m10   = 0;
+    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+    matrix.ident.m20_m21   = 0;
+    mtx->m[2][2]           = 0x1000;
 
     Gp_MtxToEuler(dest, &rot);
     rot.vx += work->field_540;

@@ -180,11 +180,11 @@ s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
      * written that way keeps its address in the register `RotMatrixZ` is
      * handed, where the ones naming `m` directly fold to a frame-relative
      * address, and the target has both. */
-    m.ident.m00_m01       = 0x1000;
-    *(s32*)&m.mat.m[0][2] = 0;
-    *(s32*)&mtx->m[1][1]  = 0x1000;
-    *(s32*)&m.mat.m[2][0] = 0;
-    mtx->m[2][2]          = 0x1000;
+    m.ident.m00_m01           = 0x1000;
+    MATRIX_PAIR(&m.mat, 0, 2) = 0;
+    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
+    MATRIX_PAIR(&m.mat, 2, 0) = 0;
+    mtx->m[2][2]              = 0x1000;
     RotMatrixZ(rot, &m.mat);
 
     for (i = 0; i < 2; i++) {
@@ -366,7 +366,7 @@ void func_actor_135600_801324D0(Task* arg0)
     s32              i;
 
     if (!(ext->flags & 0x80)) {
-        if (func_800EA1A8((VECTOR3*)arg0->extra.tmd->coords[1].workm.t, &pos) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
     }
@@ -585,12 +585,12 @@ void func_actor_135600_80132B14(Task* task)
     coord->coord.t[1] = 0x50;
     coord->coord.t[2] = 0;
 
-    mtx                  = &m.mat;
-    m.ident.m00_m01      = 0x1000;
-    *(s32*)&mtx->m[0][2] = 0;
-    *(s32*)&mtx->m[1][1] = 0x1000;
-    *(s32*)&mtx->m[2][0] = 0;
-    mtx->m[2][2]         = 0x1000;
+    mtx                    = &m.mat;
+    m.ident.m00_m01        = 0x1000;
+    MATRIX_PAIR(mtx, 0, 2) = 0;
+    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+    MATRIX_PAIR(mtx, 2, 0) = 0;
+    mtx->m[2][2]           = 0x1000;
 
     func_8004BFF8(0x400, mtx);
     MulMatrix0(&coord->coord, mtx, &coord->coord);
@@ -634,15 +634,15 @@ void func_actor_135600_80132C80(GpCoord* coord, MATRIX* mtx, SVECTOR* vec)
     if (coord->sub != &gGfxViewCoord) {
         func_actor_135600_80132C80(coord->sub, mtx, vec);
     } else {
-        m                  = mtx;
-        *(s32*)m           = 0x1000;
-        *(s32*)&m->m[0][2] = 0;
-        *(s32*)&m->m[1][1] = 0x1000;
-        *(s32*)&m->m[2][0] = 0;
-        m->m[2][2]         = 0x1000;
-        vec->vx            = 0;
-        vec->vy            = 0;
-        vec->vz            = 0;
+        m                    = mtx;
+        *(s32*)m             = 0x1000;
+        MATRIX_PAIR(m, 0, 2) = 0;
+        MATRIX_PAIR(m, 1, 1) = 0x1000;
+        MATRIX_PAIR(m, 2, 0) = 0;
+        m->m[2][2]           = 0x1000;
+        vec->vx              = 0;
+        vec->vy              = 0;
+        vec->vz              = 0;
     }
 
     tmp.vx = (u16)coord->coord.t[0];

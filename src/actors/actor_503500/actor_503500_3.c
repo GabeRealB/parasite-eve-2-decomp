@@ -1474,13 +1474,13 @@ void func_actor_503500_801353F0(Task* arg0)
             speed = 0;
         }
     }
-    work->field_7A0    = speed;
-    m                  = &mat;
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = 0x1000;
+    work->field_7A0      = speed;
+    m                    = &mat;
+    MATRIX_PAIR(m, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = 0x1000;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = 0x1000;
     func_8004BFF8(work->field_7B6, m);
     scale               = speed >> 12;
     work->field_6B4     = mat.m[0][2] * scale;

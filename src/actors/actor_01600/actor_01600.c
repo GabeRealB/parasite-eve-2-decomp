@@ -401,25 +401,25 @@ void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->work                           = work;
-    obj->flags                            = 0;
-    coord->flg                            = 0;
-    obj->lightMtx                         = &work->field_22C;
-    obj->colorMtx                         = &work->field_20C;
-    work->field_24C.sub                   = &gGfxViewCoord;
-    matrix                                = &work->field_24C.coord;
-    *(s32*)&work->field_24C.coord.m[0][0] = 0x1000;
-    *(s32*)&matrix->m[0][2]               = 0;
-    *(s32*)&matrix->m[1][1]               = 0x1000;
-    *(s32*)&matrix->m[2][0]               = 0;
-    matrix->m[2][2]                       = 0x1000;
-    work->field_24C.coord.t[0]            = (s32)coord->coord.t[0];
-    work->field_24C.coord.t[1]            = (s32)coord->coord.t[1];
-    work->field_24C.coord.t[2]            = (s32)coord->coord.t[2];
-    work->field_24C.flg                   = 0;
-    work->field_4F2                       = 0;
-    ctx->field_4                          = &coord->coord;
-    ctx->field_48                         = 0;
+    actor->work                               = work;
+    obj->flags                                = 0;
+    coord->flg                                = 0;
+    obj->lightMtx                             = &work->field_22C;
+    obj->colorMtx                             = &work->field_20C;
+    work->field_24C.sub                       = &gGfxViewCoord;
+    matrix                                    = &work->field_24C.coord;
+    MATRIX_PAIR(&work->field_24C.coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(matrix, 0, 2)                 = 0;
+    MATRIX_PAIR(matrix, 1, 1)                 = 0x1000;
+    MATRIX_PAIR(matrix, 2, 0)                 = 0;
+    matrix->m[2][2]                           = 0x1000;
+    work->field_24C.coord.t[0]                = (s32)coord->coord.t[0];
+    work->field_24C.coord.t[1]                = (s32)coord->coord.t[1];
+    work->field_24C.coord.t[2]                = (s32)coord->coord.t[2];
+    work->field_24C.flg                       = 0;
+    work->field_4F2                           = 0;
+    ctx->field_4                              = &coord->coord;
+    ctx->field_48                             = 0;
     Gp_LinkNode(&ctx->node);
     ctx->bodyPos.vy         = -0x190;
     ctx->node.state.b.flags = 0;
@@ -2412,7 +2412,7 @@ void Actor01600_Fn03EEC(Task* arg0)
         SCRATCH_POP(Actor01600GroundScratch);
         return;
     }
-    if (func_800EA1A8((VECTOR3*)coord[1].workm.t, &pos) != 0) {
+    if (func_800EA1A8(MATRIX_TRANS(&coord[1].workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x1C0, Gp_State1C->groundShade);
     }
 }
@@ -2871,12 +2871,12 @@ s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         work->field_4EC = var_v0;
     block_6:;
     }
-    m                  = &scratch->mat;
-    *(s32*)&m->m[0][0] = 0x1000;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = 0x1000;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = 0x1000;
+    m                    = &scratch->mat;
+    MATRIX_PAIR(m, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = 0x1000;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = 0x1000;
     func_8004BFF8(work->field_4EC, m);
     out = &scratch->out;
     gte_SetRotMatrix(m);

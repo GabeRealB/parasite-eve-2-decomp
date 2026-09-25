@@ -158,11 +158,11 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(col1);
 
     if (flag != 0) {
-        *(u32*)&out->m[0][0] = *(u32*)&block->mat.m[0][0];
-        *(u32*)&out->m[0][2] = *(u32*)&block->mat.m[0][2];
-        *(u32*)&out->m[1][1] = *(u32*)&block->mat.m[1][1];
-        *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
-        out->m[2][2]         = block->mat.m[2][2];
+        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->mat, 0, 0);
+        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->mat, 0, 2);
+        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->mat, 1, 1);
+        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->mat, 2, 0);
+        out->m[2][2]           = block->mat.m[2][2];
     } else {
         gte_MulMatrix0(out, &block->mat, out);
     }
@@ -275,11 +275,11 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(col1);
 
     if (flag != 0) {
-        *(u32*)&out->m[0][0] = *(u32*)&block->mat.m[0][0];
-        *(u32*)&out->m[0][2] = *(u32*)&block->mat.m[0][2];
-        *(u32*)&out->m[1][1] = *(u32*)&block->mat.m[1][1];
-        *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
-        out->m[2][2]         = block->mat.m[2][2];
+        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->mat, 0, 0);
+        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->mat, 0, 2);
+        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->mat, 1, 1);
+        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->mat, 2, 0);
+        out->m[2][2]           = block->mat.m[2][2];
     } else {
         gte_MulMatrix0(out, &block->mat, out);
     }
@@ -393,11 +393,11 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
     gte_stclmv(col2);
 
     if (flag != 0) {
-        *(u32*)&out->m[0][0] = *(u32*)&block->mat.m[0][0];
-        *(u32*)&out->m[0][2] = *(u32*)&block->mat.m[0][2];
-        *(u32*)&out->m[1][1] = *(u32*)&block->mat.m[1][1];
-        *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
-        out->m[2][2]         = block->mat.m[2][2];
+        MATRIX_PAIR(out, 0, 0) = MATRIX_PAIR(&block->mat, 0, 0);
+        MATRIX_PAIR(out, 0, 2) = MATRIX_PAIR(&block->mat, 0, 2);
+        MATRIX_PAIR(out, 1, 1) = MATRIX_PAIR(&block->mat, 1, 1);
+        MATRIX_PAIR(out, 2, 0) = MATRIX_PAIR(&block->mat, 2, 0);
+        out->m[2][2]           = block->mat.m[2][2];
     } else {
         gte_MulMatrix0(out, &block->mat, out);
     }

@@ -1699,18 +1699,18 @@ void func_mine_cavern_80182184(void)
             if (Gp_StateF0.field_4 != 0) {
                 continue;
             }
-            m                           = &coord.coord;
-            *(s32*)&coord.coord.m[0][0] = 0x1000;
-            *(s32*)&coord.coord.m[0][2] = 0;
-            *(s32*)&m->m[1][1]          = 0x1000;
-            *(s32*)&coord.coord.m[2][0] = 0;
-            m->m[2][2]                  = 0x1000;
-            coord.sub                   = &gGfxViewCoord;
-            pos                         = &D_mine_cavern_8018E39C[i];
-            coord.coord.t[0]            = pos->vx + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[1]            = pos->vy + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[2]            = pos->vz + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.flg                   = 0;
+            m                               = &coord.coord;
+            MATRIX_PAIR(&coord.coord, 0, 0) = 0x1000;
+            MATRIX_PAIR(&coord.coord, 0, 2) = 0;
+            MATRIX_PAIR(m, 1, 1)            = 0x1000;
+            MATRIX_PAIR(&coord.coord, 2, 0) = 0;
+            m->m[2][2]                      = 0x1000;
+            coord.sub                       = &gGfxViewCoord;
+            pos                             = &D_mine_cavern_8018E39C[i];
+            coord.coord.t[0]                = pos->vx + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[1]                = pos->vy + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[2]                = pos->vz + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.flg                       = 0;
             Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
         }
     }
@@ -2424,9 +2424,9 @@ void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
     } else {
         m                         = &work->coord.coord;
         *(s32*)&work->coord.coord = 0x1000;
-        *(s32*)&m->m[0][2]        = 0;
-        *(s32*)&m->m[1][1]        = 0x1000;
-        *(s32*)&m->m[2][0]        = 0;
+        MATRIX_PAIR(m, 0, 2)      = 0;
+        MATRIX_PAIR(m, 1, 1)      = 0x1000;
+        MATRIX_PAIR(m, 2, 0)      = 0;
         m->m[2][2]                = 0x1000;
         work->coord.sub           = task->extra.tmd->coords;
         work->coord.coord.t[2]    = 0;

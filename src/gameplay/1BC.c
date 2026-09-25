@@ -842,16 +842,16 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     GpCoord* base;
     MATRIX*  m;
 
-    i                    = 0;
-    m0                   = &mtx0;
-    *(s32*)&mtx0         = ONE;
-    *(s32*)&mtx0.m[0][2] = 0;
-    *(s32*)&m0->m[1][1]  = ONE;
-    *(s32*)&mtx0.m[2][0] = 0;
-    m0->m[2][2]          = ONE;
-    acc0.vx              = 0;
-    acc0.vy              = 0;
-    acc0.vz              = 0;
+    i                        = 0;
+    m0                       = &mtx0;
+    *(s32*)&mtx0             = ONE;
+    MATRIX_PAIR(&mtx0, 0, 2) = 0;
+    MATRIX_PAIR(m0, 1, 1)    = ONE;
+    MATRIX_PAIR(&mtx0, 2, 0) = 0;
+    m0->m[2][2]              = ONE;
+    acc0.vx                  = 0;
+    acc0.vy                  = 0;
+    acc0.vz                  = 0;
     for (i = 0; i < 4; i++) {
         rec = &arg0->extra.tmd->coords[i];
         ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
@@ -862,16 +862,16 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     }
     rec = &arg0->extra.tmd->coords[i];
     ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
-    i                    = 0;
-    m1                   = &mtx1;
-    *(s32*)&mtx1         = ONE;
-    *(s32*)&mtx1.m[0][2] = 0;
-    *(s32*)&m1->m[1][1]  = ONE;
-    *(s32*)&mtx1.m[2][0] = 0;
-    m1->m[2][2]          = ONE;
-    acc1.vx              = 0;
-    acc1.vy              = 0;
-    acc1.vz              = 0;
+    i                        = 0;
+    m1                       = &mtx1;
+    *(s32*)&mtx1             = ONE;
+    MATRIX_PAIR(&mtx1, 0, 2) = 0;
+    MATRIX_PAIR(m1, 1, 1)    = ONE;
+    MATRIX_PAIR(&mtx1, 2, 0) = 0;
+    m1->m[2][2]              = ONE;
+    acc1.vx                  = 0;
+    acc1.vy                  = 0;
+    acc1.vz                  = 0;
     for (i = 0; i < 4; i++) {
         rec1 = &arg1->extra.tmd->coords[i];
         ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
@@ -917,12 +917,12 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
         ang.vy = ang.vy < 0 ? -arg2 : arg2;
     }
 
-    m                  = &rec->coord;
-    *(s32*)&rec->coord = ONE;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = ONE;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = ONE;
+    m                    = &rec->coord;
+    *(s32*)&rec->coord   = ONE;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = ONE;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = ONE;
     RotMatrix(&ang, m);
     rec->flg = 0;
 }
@@ -946,15 +946,15 @@ void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
     s32      pitchLimit;
     s32      yawLimit;
 
-    mtx                   = &world;
-    *(s32*)&world.m[0][0] = 0x1000;
-    *(s32*)&world.m[0][2] = 0;
-    *(s32*)&mtx->m[1][1]  = 0x1000;
-    *(s32*)&world.m[2][0] = 0;
-    mtx->m[2][2]          = 0x1000;
-    position.vx           = 0;
-    position.vy           = 0;
-    position.vz           = 0;
+    mtx                       = &world;
+    MATRIX_PAIR(&world, 0, 0) = 0x1000;
+    MATRIX_PAIR(&world, 0, 2) = 0;
+    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
+    MATRIX_PAIR(&world, 2, 0) = 0;
+    mtx->m[2][2]              = 0x1000;
+    position.vx               = 0;
+    position.vy               = 0;
+    position.vz               = 0;
     for (i = 0; i < 5; i++) {
         part = &arg0->extra.tmd->coords[i];
         ApplyMatrixLV(&world, (VECTOR*)part->coord.t, &transformed);
@@ -995,12 +995,12 @@ void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
     if (arg2 < yawMagnitude) {
         angles.vy = angles.vy < 0 ? -arg2 : arg2;
     }
-    outMtx                      = &part->coord;
-    *(s32*)&part->coord.m[0][0] = 0x1000;
-    *(s32*)&outMtx->m[0][2]     = 0;
-    *(s32*)&outMtx->m[1][1]     = 0x1000;
-    *(s32*)&outMtx->m[2][0]     = 0;
-    outMtx->m[2][2]             = 0x1000;
+    outMtx                          = &part->coord;
+    MATRIX_PAIR(&part->coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(outMtx, 0, 2)       = 0;
+    MATRIX_PAIR(outMtx, 1, 1)       = 0x1000;
+    MATRIX_PAIR(outMtx, 2, 0)       = 0;
+    outMtx->m[2][2]                 = 0x1000;
     RotMatrix(&angles, outMtx);
 }
 
@@ -1255,14 +1255,14 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     rate       = arg2->rate;
     inited     = arg2->inited;
 
-    *(s32*)&mtx0         = ONE;
-    *(s32*)&mtx0.m[0][2] = 0;
-    *(s32*)&m0->m[1][1]  = ONE;
-    *(s32*)&mtx0.m[2][0] = 0;
-    m0->m[2][2]          = ONE;
-    acc0.vx              = 0;
-    acc0.vy              = 0;
-    acc0.vz              = 0;
+    *(s32*)&mtx0             = ONE;
+    MATRIX_PAIR(&mtx0, 0, 2) = 0;
+    MATRIX_PAIR(m0, 1, 1)    = ONE;
+    MATRIX_PAIR(&mtx0, 2, 0) = 0;
+    m0->m[2][2]              = ONE;
+    acc0.vx                  = 0;
+    acc0.vy                  = 0;
+    acc0.vz                  = 0;
     for (i = 0; i < 5; i++) {
         rec = &arg0->extra.tmd->coords[i];
         ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
@@ -1276,16 +1276,16 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     acc0.vy += tmp.vy;
     acc0.vz += tmp.vz;
 
-    i                    = 0;
-    m1                   = &mtx1;
-    *(s32*)&mtx1         = ONE;
-    *(s32*)&mtx1.m[0][2] = 0;
-    *(s32*)&m1->m[1][1]  = ONE;
-    *(s32*)&mtx1.m[2][0] = 0;
-    m1->m[2][2]          = ONE;
-    acc1.vx              = 0;
-    acc1.vy              = 0;
-    acc1.vz              = 0;
+    i                        = 0;
+    m1                       = &mtx1;
+    *(s32*)&mtx1             = ONE;
+    MATRIX_PAIR(&mtx1, 0, 2) = 0;
+    MATRIX_PAIR(m1, 1, 1)    = ONE;
+    MATRIX_PAIR(&mtx1, 2, 0) = 0;
+    m1->m[2][2]              = ONE;
+    acc1.vx                  = 0;
+    acc1.vy                  = 0;
+    acc1.vz                  = 0;
     for (i = 0; i < 5; i++) {
         rec1 = &arg1->extra.tmd->coords[i];
         ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
@@ -1354,12 +1354,12 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
         ang.vy = ang.vy < 0 ? -yawLimit : yawLimit;
     }
 
-    m                  = &rec->coord;
-    *(s32*)&rec->coord = ONE;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = ONE;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = ONE;
+    m                    = &rec->coord;
+    *(s32*)&rec->coord   = ONE;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = ONE;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = ONE;
     RotMatrix(&ang, m);
     rec->flg = 0;
 }
@@ -1373,16 +1373,16 @@ void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
     if (arg0->sub != &gGfxViewCoord) {
         Gp_ComposeParentWorld(arg0->sub, arg1, arg2);
     } else {
-        one                = ONE;
-        m                  = arg1;
-        *(s32*)m           = one;
-        *(s32*)&m->m[0][2] = 0;
-        *(s32*)&m->m[1][1] = one;
-        *(s32*)&m->m[2][0] = 0;
-        m->m[2][2]         = one;
-        arg2->vx           = 0;
-        arg2->vy           = 0;
-        arg2->vz           = 0;
+        one                  = ONE;
+        m                    = arg1;
+        *(s32*)m             = one;
+        MATRIX_PAIR(m, 0, 2) = 0;
+        MATRIX_PAIR(m, 1, 1) = one;
+        MATRIX_PAIR(m, 2, 0) = 0;
+        m->m[2][2]           = one;
+        arg2->vx             = 0;
+        arg2->vy             = 0;
+        arg2->vz             = 0;
     }
 
     tmp.vx = (u16)arg0->coord.t[0];

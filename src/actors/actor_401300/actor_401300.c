@@ -4634,22 +4634,22 @@ void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)actor->extra.tmd->coords->workm.t, 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
                 state = work->field_0;
             }
             if ((state == 0x28) && (work->field_8A2 == 2)) {
-                Gp_DrawEffGroundQuad((VECTOR3*)actor->extra.tmd->coords->workm.t, 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
             }
             break;
         case 1:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
-                Gp_DrawEffGroundQuad((VECTOR3*)actor->extra.tmd->coords->workm.t, 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
                 state = work->field_0;
             }
             if ((state == 0x28) && (work->field_8A2 == 2)) {
-                Gp_DrawEffGroundQuad((VECTOR3*)actor->extra.tmd->coords->workm.t, 0x280, Gp_State1C->groundShade);
+                Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, Gp_State1C->groundShade);
             }
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);

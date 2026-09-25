@@ -1567,15 +1567,15 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
     LINE_G2*  line;
     DR_TPAGE* dr;
 
-    off                = D_dryfield_night_gas_station_8017D658;
-    one                = ONE;
-    m                  = &mtx;
-    *(s32*)&mtx        = one;
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = one;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = one;
-    coord              = gameGetPtrSlot(0xA)->extra.tmd->coords;
+    off                  = D_dryfield_night_gas_station_8017D658;
+    one                  = ONE;
+    m                    = &mtx;
+    *(s32*)&mtx          = one;
+    MATRIX_PAIR(m, 0, 2) = 0;
+    MATRIX_PAIR(m, 1, 1) = one;
+    MATRIX_PAIR(m, 2, 0) = 0;
+    m->m[2][2]           = one;
+    coord                = gameGetPtrSlot(0xA)->extra.tmd->coords;
     Gp_ComposeParentWorld(&coord[8], m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;

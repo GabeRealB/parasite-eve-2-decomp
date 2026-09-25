@@ -2232,7 +2232,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         work->coord.flg        = 0;
         Gp_UpdateCoord(&work->coord);
 
-        Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
                              Gp_State1C->groundShade);
 
         if (work->field_1AC >= 0x35) {
@@ -2250,7 +2250,7 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
         Gp_UpdateCoord(&work->coord);
 
         if (host->field_F08 != 6) {
-            Gp_DrawEffGroundQuad((VECTOR3*)work->coord.workm.t, ((s16)work->field_1B0 >> 3) + 0x100,
+            Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
                                  Gp_State1C->groundShade);
         }
     }
@@ -3074,13 +3074,13 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Task* task)
     }
 
     work->timer++;
-    coord.c.sub          = &gGfxViewCoord;
-    mtx                  = &coord.c.coord;
-    coord.ident.m00_m01  = 0x1000;
-    coord.ident.m02_m10  = 0;
-    *(s32*)&mtx->m[1][1] = 0x1000;
-    coord.ident.m20_m21  = 0;
-    mtx->m[2][2]         = 0x1000;
+    coord.c.sub            = &gGfxViewCoord;
+    mtx                    = &coord.c.coord;
+    coord.ident.m00_m01    = 0x1000;
+    coord.ident.m02_m10    = 0;
+    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
+    coord.ident.m20_m21    = 0;
+    mtx->m[2][2]           = 0x1000;
     Gfx_RotMatrixY(mtx, 0, 1);
 
     coord.c.coord.t[0] = task->extra.tmd->coords->coord.t[0];
@@ -3089,7 +3089,7 @@ void func_actor_444000_80139C80(GpEnemy* enemy, Task* task)
     coord.c.flg        = 0;
     Gp_UpdateCoord(&coord.c);
 
-    Gp_DrawEffGroundQuad((VECTOR3*)coord.c.workm.t, (s16)((s16)work->timer * 8 + 0x80),
+    Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.c.workm), (s16)((s16)work->timer * 8 + 0x80),
                          Gp_State1C->groundShade);
 
     if ((s16)work->timer >= 0x14) {

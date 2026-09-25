@@ -284,11 +284,11 @@ void func_actor_800100_80161F20(Task* task)
                     if (Gp_State1C->eventState != 0) {
                         work->age--;
                         func_actor_800100_80162264(
-                            (VECTOR3*)&coord->workm.t, work->age, 0x80);
+                            MATRIX_TRANS(&coord->workm), work->age, 0x80);
                         break;
                     }
                     func_actor_800100_80162264(
-                        (VECTOR3*)&coord->workm.t, work->age, 0x80);
+                        MATRIX_TRANS(&coord->workm), work->age, 0x80);
                     base->framesLeft = 4;
                     slot->inner      = 0x80;
                     slot->outer      = 0x400;
@@ -458,7 +458,7 @@ void func_actor_800100_801624F0(Task* task)
     }
     if (fade != 0) {
         Gp_UpdateCoord(coord);
-        func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+        func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
                                    (work->age >> 1) + 1, work->scale,
                                    work->angle);
         return;
@@ -510,14 +510,14 @@ void func_actor_800100_801624F0(Task* task)
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
-            func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+            func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
                                        (work->age >> 1) + 1, work->scale,
                                        work->angle);
             ang2        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && Gp_State1C->groundTrace != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_actor_800100_80162E90((VECTOR3*)ground.workm.t,
+                func_actor_800100_80162E90(MATRIX_TRANS(&ground.workm),
                                            (s16)((work->scale * 2) / 3));
             }
             if (Gp_CountRec18Hi(beam->obj.ctx.recs, 0x30000) != 0) {
@@ -549,7 +549,7 @@ void func_actor_800100_801624F0(Task* task)
             coord->coord.t[2] += work->move.vz;
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
-            func_actor_800100_80162A14((VECTOR3*)coord->workm.t,
+            func_actor_800100_80162A14(MATRIX_TRANS(&coord->workm),
                                        (work->age >> 1) + 1, work->scale,
                                        work->angle);
             if (work->age >= 0x15) {
@@ -959,7 +959,7 @@ void func_actor_800100_801635F4(Task* arg0)
         ground      = arg0->extra.tmd->coords + 1;
         ground->flg = 0;
         Gp_UpdateCoord(ground);
-        if (func_800EA1A8((VECTOR3*)ground->workm.t, (VECTOR3*)scratch) != 0) {
+        if (func_800EA1A8(MATRIX_TRANS(&ground->workm), (VECTOR3*)scratch) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, Gp_State1C->groundShade);
         }
     }
@@ -1130,7 +1130,7 @@ void func_actor_800100_80163D54(Task* arg0)
                     func_actor_800100_80165720(arg0);
                 }
             } else {
-                val = func_8010BCF4((Task*)arg0, (VECTOR3*)target->coord.t);
+                val = func_8010BCF4((Task*)arg0, MATRIX_TRANS(&target->coord));
                 if (val < 0) {
                     val = -val;
                 }
@@ -1141,7 +1141,7 @@ void func_actor_800100_80163D54(Task* arg0)
             }
         }
     }
-    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
 }
 
 /// Handlers `func_actor_800100_80165528` runs, indexed by `field_954`.
@@ -1320,8 +1320,8 @@ void func_actor_800100_80164184(Task* arg0)
             }
     }
 done:
-    func_8010BD88(arg0, (VECTOR3*)target->coord.t);
-    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_8010BD88(arg0, MATRIX_TRANS(&target->coord));
+    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
 }
 
 /// Lock-on drive for the actor's `field_95E` state machine. Builds a `VECTOR3`
@@ -1385,7 +1385,7 @@ void func_actor_800100_801643F4(Task* arg0)
             }
             break;
     }
-    func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
+    func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
     SCRATCH_POP(VECTOR);
 }
 
@@ -1905,7 +1905,7 @@ void func_actor_800100_80165010(Task* arg0)
             actor->field_973 = 1;
             break;
     }
-    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
 }
 
 void func_actor_800100_801652B0(Task* arg0)
