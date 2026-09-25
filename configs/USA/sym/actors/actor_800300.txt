@@ -1,1 +1,6 @@
 // Overlay-local symbols for actor_800300.
+Gp_PlayerMode2State4 = 0x80107E1C; // absolute:True
+Gp_PlayerMode2State0 = 0x80108B80; // absolute:True
+Gp_PlayerMode2State1 = 0x80108BAC; // absolute:True
+Gp_PlayerMode2State2 = 0x80108BD8; // absolute:True
+Gp_PlayerMode2State6 = 0x80108D68; // absolute:True

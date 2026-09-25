@@ -2764,9 +2764,6 @@ id = 247
 objects = [
   { kind = "packageId" },
   { unit = "actor_800300/actor_800300", rodata = "0x4", text = "0x60" },
-  { unit = "actor_800300/actor_800300_3", text = "0x788" },
-  { unit = "actor_800300/actor_800300_4", text = "0x7D4" },
-  { unit = "actor_800300/actor_800300_2", text = "0x838" },
   { kind = "model", at = "0x1280" },
   { kind = "data", at = "0x6A60" },
 ]

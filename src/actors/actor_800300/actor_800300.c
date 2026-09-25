@@ -1,24 +1,68 @@
 #include "common.h"
 
-#include "actors/actor_800300.h"
+#include <psyq/libgte.h>
+#include <psyq/abs.h>
+#include <psyq/rand.h>
+
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
-#include "main/gfx.h"
 
-#include <psyq/abs.h>
+/// 0x18-byte `G_SCRATCH_HEAD` block `func_actor_800300_80162064` takes for the
+/// ground-quad heading it copies into `GameActor.field_88` / `_94` / `_A0`.
+/// `func_800EA1A8` also fills the block as a `VECTOR3` from `coord->workm.t`.
+typedef struct {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR vec;
+} Actor800300VecScratch;
+STATIC_ASSERT_SIZEOF(Actor800300VecScratch, 0x18);
 
-extern void         D_actor_800300_80168880;
+/// View of `GameActor.field_973` as the unsigned byte its rotation
+/// multiply sign-extends.
+typedef struct {
+    byte pad[0x973];
+    u8   field_973;
+} Actor800300DirByte;
+
+extern s16          D_80072830;
+extern s32          D_8017A99C;
 extern GpActorWork* D_80115764;
+extern void         D_actor_800300_80168880;
+extern GpImgRec**   D_actor_800300_80168950[];
+extern GpImgRec**   D_actor_800300_80168960[];
 
-extern GpImgRec** D_actor_800300_80168950[];
-extern GpImgRec** D_actor_800300_80168960[];
-
+s32  func_80105ED4(GpActorWork* arg0);
+s32  func_8010BC70(GsCOORDINATE2* arg0);
+s32  func_8010BCF4(Task* arg0, VECTOR3* arg1);
+void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1);
+void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
+void Gp_PlayerMode2State0(GpActorWork* arg0);
+void Gp_PlayerMode2State1(GpActorWork* arg0);
+void Gp_PlayerMode2State2(GpActorWork* arg0);
+void Gp_PlayerMode2State6(GpActorWork* arg0);
+
+void func_actor_800300_801623F8(GpActorWork* arg0);
+void func_actor_800300_801625A8(Task* task);
+void func_actor_800300_80162658(GpActorWork* arg0);
+void func_actor_800300_801628D0(GpActorWork* arg0);
+void func_actor_800300_80162A98(GpActorWork* arg0);
+void func_actor_800300_80162C2C(GpActorWork* arg0);
+void func_actor_800300_80162C98(GpActorWork* arg0);
+void func_actor_800300_80162D74(GpActorWork* arg0);
+void func_actor_800300_80162EEC(GpActorWork* arg0);
+void func_actor_800300_80162F24(GpActorWork* arg0);
+void func_actor_800300_80162F98(GpActorWork* arg0);
+void func_actor_800300_80163048(GpActorWork* arg0);
+void func_actor_800300_80163074(GpActorWork* arg0);
 
 void func_actor_800300_80161E80(GpActorWork* arg0)
 {
@@ -255,4 +299,443 @@ void func_actor_800300_801623F8(GpActorWork* arg0)
 void func_actor_800300_8016259C(Task* arg0)
 {
     arg0->state = 3;
+}
+
+/// Teardown of the actor's main task, run both as its exit callback and as
+/// the last entry of its state table: clears the second `Gp_ActorSlots` slot,
+/// unlinks the two collision objects the set-up state linked, and kills the
+/// task.
+void func_actor_800300_801625A8(Task* task)
+{
+    GameActor* actor;
+
+    actor            = (GameActor*)task->work;
+    Gp_ActorSlots[1] = NULL;
+    Gp_UnlinkObj((GpObj*)actor->field_AC);
+    Gp_UnlinkObj((GpObj*)actor->field_CC);
+    taskKill(task);
+}
+
+/// State handlers of the actor's main task, indexed by its state: set-up, the
+/// per-frame update, a step that only advances to the last state, and the
+/// teardown.
+const TaskFuncTable4 D_actor_800300_80161E24 = { {
+    (TaskFunc)func_actor_800300_80161E80,
+    (TaskFunc)func_actor_800300_80162064,
+    func_actor_800300_8016259C,
+    func_actor_800300_801625A8,
+} };
+
+/// Per-frame entry point of the actor's main task: runs the handler its state
+/// selects. The table is a local, so it is copied from `.rodata` onto the
+/// stack on every call.
+void func_actor_800300_801625F4(Task* task)
+{
+    TaskFuncTable4 states;
+
+    states = D_actor_800300_80161E24;
+    states.funcs[task->state](task);
+}
+
+/// Handlers `func_actor_800300_80162C2C` runs, indexed by `field_954`.
+const GpActorFuncTable3 D_actor_800300_80161E34 = { {
+    func_actor_800300_80162658,
+    func_actor_800300_80162F24,
+    func_actor_800300_80162F98,
+} };
+
+/// Behaviours `func_actor_800300_80162658` runs, indexed by `field_956`.
+const GpActorFuncTable9 D_actor_800300_80161E40 = { {
+    func_actor_800300_80162C98,
+    func_actor_800300_801628D0,
+    func_actor_800300_80162A98,
+    func_actor_800300_80162C98,
+    func_actor_800300_80162C98,
+    func_actor_800300_80162EEC,
+    func_actor_800300_80162C98,
+    func_actor_800300_80162D74,
+    func_actor_800300_80162C98,
+} };
+
+void func_actor_800300_80162658(GpActorWork* arg0)
+{
+    GpActorFuncTable9 sp;
+    GameActor*        actor;
+    GpActorD4*        d4;
+    GsCOORDINATE2*    obj;
+    s8                cc;
+    s32               pan;
+    s32               depth;
+    s32               anim;
+    s32               sound;
+
+    sp    = D_actor_800300_80161E40;
+    actor = arg0->actor;
+    d4    = actor->field_910;
+    obj   = arg0->extra->coords;
+    if (d4->decisionTimer > 0) {
+        d4->decisionTimer = (u16)d4->decisionTimer - 1;
+    }
+    if (D_8017A99C >= 0x30C) {
+        if (actor->field_956 != 5) {
+            actor->field_942++;
+            if ((s16)actor->field_942 >= (s8)d4->repeatCount) {
+                actor->field_942 = 0;
+                d4->actionCount++;
+                cc              = (u8)d4->repeatCount - 7;
+                d4->repeatCount = cc;
+                if (cc < 0x5A) {
+                    d4->repeatCount = 0x3C;
+                }
+                actor->field_95C = 7;
+                actor->field_956 = 5;
+                actor->field_958 = 0;
+                actor->field_95A = 0;
+                actor->field_95E = 0;
+                actor->field_97E = 1;
+                Gp_PlayObjSfx(obj, (rand() & 1) + 0x55170005, 0);
+                if (Gp_HurtAlly(arg0, 0, 0x40010, 0) != 0) {
+                    return;
+                }
+                anim = 0x10;
+                if ((s8)d4->actionCount >= 5) {
+                    anim = 0x11;
+                }
+                Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
+            }
+        }
+    }
+    sp.funcs[actor->field_956](arg0);
+    if ((s8)actor->field_97A == 0) {
+        func_80109BB4(arg0, &actor->field_17C[0]);
+        if ((u16)actor->field_96C != 0) {
+            func_8010B9A4(arg0);
+            pan   = (s8)Gp_GetObjPan(obj);
+            depth = (s8)gpGetObjDepth(obj);
+            sound = 7;
+            if ((u16)actor->field_96C == 1) {
+                sound = 6;
+            }
+            SndEvt_EnqueueType6(sound, pan, depth);
+        }
+    }
+    Gp_TickActorAnimState(arg0);
+    Gp_AnimTickChildSlots(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
+    if (D_80072830 <= 0) {
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
+
+void func_actor_800300_801628D0(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    VECTOR3*       vec;
+    s32            dist;
+    s32            angle;
+    s32            arg;
+
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    actor  = arg0->actor;
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_934 = 0;
+            if (func_8010BC70(coord) >= 0xE00) {
+                arg              = 4;
+                actor->field_95E = 2;
+                actor->field_958 = 3;
+            } else {
+            resume:
+                if (actor->field_95E != 3) {
+                    actor->field_95E = 1;
+                }
+                actor->field_958 = 7;
+                arg              = 2;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            /* fallthrough */
+        case 1:
+        case 2:
+        case 3:
+            actor->field_973 = 1;
+            dist             = func_8010BC70(coord);
+            if (dist < 0x301) {
+                Gp_ResetActorMove(arg0, 0);
+                break;
+            }
+            if (actor->field_95E == 3) {
+                break;
+            }
+            actor->field_934++;
+            if (actor->field_934 == 0xB4) {
+                actor->field_95E = 3;
+                goto resume;
+            }
+            if (actor->field_93E > 0) {
+                actor->field_93E = (u16)actor->field_93E - 1;
+            } else {
+                angle = rand() & 0x3FF;
+                if ((0x800 - angle) < dist) {
+                    goto in_range;
+                }
+                if (actor->field_95E == 2) {
+                    goto reset;
+                }
+            in_range:
+                if (dist < angle + 0xC00) {
+                    break;
+                }
+                if (actor->field_95E != 1) {
+                    break;
+                }
+            reset:
+                actor->field_95E = 0;
+                actor->field_93E = 0x3C;
+            }
+            break;
+    }
+    vec = (VECTOR3*)target->coord.t;
+    func_8010BD88(arg0, vec);
+    func_8010BE5C(arg0, vec);
+    func_80105ED4(arg0);
+}
+
+void func_actor_800300_80162A98(GpActorWork* arg0)
+{
+    u8*            head;
+    VECTOR3*       vec;
+    GameActor*     actor;
+    GpLinkNode*    node;
+    TmdObject*     extra;
+    GsCOORDINATE2* src;
+    s32            val;
+    s32            arg;
+    s32            flag;
+
+    actor             = arg0->actor;
+    extra             = (TmdObject*)(gameGetPtrSlot(3))->extra;
+    head              = *(u8**)0x1F8003FC;
+    *(u8**)0x1F8003FC = head - 0x10;
+    vec               = (VECTOR3*)(head - 0x10);
+    node              = actor->field_90C;
+    src               = extra->coords;
+    if (node != NULL) {
+        if (!(node->flags & 1)) {
+            Gp_GetLockPos((GpLockPos*)node, vec);
+        } else {
+            actor->field_95E = 2;
+        }
+    } else {
+        ((VECTOR3*)(head - 0x10))->vx = src->coord.t[0];
+        vec->vy                       = src->coord.t[1];
+        vec->vz                       = src->coord.t[2];
+    }
+    switch (actor->field_95E) {
+        case 0:
+            flag             = 1;
+            actor->field_95E = flag;
+            if (func_8010BCF4((Task*)arg0, vec) < 0) {
+                actor->field_93E = -1;
+                arg              = 5;
+            } else {
+                actor->field_93E = 1;
+                arg              = 6;
+            }
+            Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
+            /* fallthrough */
+        case 1:
+            actor->field_975 = (u8)actor->field_93E;
+            val              = func_8010BCF4((Task*)arg0, vec);
+            if (val < 0) {
+                val = -val;
+            }
+            if ((val < 0x81) || (actor->field_95E == 2)) {
+                Gp_ResetActorMove(arg0, 0);
+            }
+            break;
+    }
+    func_8010BE5C(arg0, (VECTOR3*)src->coord.t);
+    func_80105ED4(arg0);
+    *(u8**)0x1F8003FC += 0x10;
+}
+
+void func_actor_800300_80162C2C(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable3 sp;
+
+    sp               = D_actor_800300_80161E34;
+    actor            = arg0->actor;
+    actor->field_973 = 0;
+    actor->field_975 = 0;
+    sp.funcs[actor->field_954](arg0);
+    actor->field_986 = 0;
+}
+
+void func_actor_800300_80162C98(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    s32            val;
+
+    actor  = arg0->actor;
+    coord  = arg0->extra->coords;
+    target = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    if (arg0->actor->field_910->decisionTimer <= 0) {
+        func_8010BF7C(arg0, 0x14, 0x3F);
+        if ((u32)(func_8010BC70(coord) - 0x581) < 0x87F) {
+            func_actor_800300_80163048(arg0);
+        }
+        val = func_8010BCF4((Task*)arg0, (VECTOR3*)target->coord.t);
+        if (val < 0) {
+            val = -val;
+        }
+        if (val >= 0x200) {
+            actor->field_90C = NULL;
+            func_actor_800300_80163074(arg0);
+        }
+    }
+    func_8010BE5C(arg0, (VECTOR3*)target->coord.t);
+    func_80105ED4(arg0);
+}
+
+void func_actor_800300_80162D74(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* target;
+    GpLockPos*     lock;
+    u8*            head;
+    VECTOR3*       vec;
+    u16            state;
+
+    coord             = arg0->extra->coords;
+    target            = (GsCOORDINATE2*)((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
+    head              = *(u8**)0x1F8003FC;
+    *(u8**)0x1F8003FC = head - 0x10;
+    vec               = (VECTOR3*)(head - 0x10);
+    actor             = arg0->actor;
+    lock              = (GpLockPos*)actor->field_90C;
+    if (lock != NULL) {
+        if (!(((GpLinkNode*)lock)->flags & 1)) {
+            Gp_GetLockPos(lock, vec);
+        } else {
+            actor->field_95E = 2;
+        }
+    } else {
+        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
+        vec->vy                       = target->coord.t[1];
+        vec->vz                       = target->coord.t[2];
+    }
+    state = actor->field_95E;
+    switch (state) {
+        case 0:
+            actor->field_95E = 1;
+            actor->field_934 = 0;
+            actor->field_958 = 3;
+            Gp_AnimPlayChildSlotsEx(arg0, 0xC, 0, 5);
+            /* fallthrough */
+        case 1:
+            actor->field_973 = 1;
+            if (func_8010BC70(coord) < 0x601) {
+                Gp_ResetActorMove(arg0, 0);
+            }
+            break;
+    }
+    func_8010BD88(arg0, vec);
+    func_8010BE5C(arg0, vec);
+    func_80105ED4(arg0);
+    *(u8**)0x1F8003FC += 0x10;
+}
+
+void func_actor_800300_80162EEC(GpActorWork* arg0)
+{
+    if (arg0->actor->field_95E == 1) {
+        Gp_ResetActorMove(arg0, 0);
+    }
+}
+
+void func_actor_800300_80162F24(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            flag;
+
+    actor = arg0->actor;
+    coord = arg0->extra->coords;
+    switch (actor->field_95E) {
+        case 0:
+            flag               = 1;
+            actor->field_95E   = flag;
+            coord->coord.t[1] += 0xC0;
+        case 1:
+            Gp_AnimTickChildSlots(arg0);
+            Gp_TurnPlayer(arg0);
+            Gp_StepPlayerMove(arg0);
+            break;
+    }
+}
+
+/// Handlers `func_actor_800300_80162F98` runs, indexed by `field_956`: the
+/// gameplay module's own mode-2 player states.
+const GpActorFuncTable7 D_actor_800300_80161E64 = { {
+    Gp_PlayerMode2State0,
+    Gp_PlayerMode2State1,
+    Gp_PlayerMode2State2,
+    Gp_PlayerMode2State1,
+    Gp_PlayerMode2State4,
+    Gp_PlayerMode2State1,
+    Gp_PlayerMode2State6,
+} };
+
+void func_actor_800300_80162F98(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GpActorFuncTable7 sp;
+
+    sp    = D_actor_800300_80161E64;
+    actor = arg0->actor;
+    sp.funcs[(u16)actor->field_956](arg0);
+    Gp_TurnPlayer(arg0);
+    if (D_80072830 <= 0) {
+        Gp_StopPlayerAnim(arg0, 0);
+    }
+}
+
+/// Switches the actor's update into its approach behaviour (entry 1 of the
+/// behaviour table), restarting the behaviour's step and counters and setting
+/// the approach timer to 60 frames.
+void func_actor_800300_80163048(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 1;
+    actor->field_95A = 1;
+    actor->field_954 = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+    actor->field_93E = 0x3C;
+}
+
+/// Switches the actor's update into its turn-to-face behaviour (entry 2 of
+/// the behaviour table), restarting the behaviour's step and counters.
+void func_actor_800300_80163074(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 2;
+    actor->field_954 = 0;
+    actor->field_958 = 0;
+    actor->field_95A = 1;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
 }
