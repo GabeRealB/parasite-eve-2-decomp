@@ -6277,7 +6277,7 @@ s32 func_801060E0(Task* arg0)
         mask1 = 8;
         mask2 = 2;
     } else {
-        flags = ((PadState*)&Pad_States)->buttons;
+        flags = Pad_States[0].buttons;
         if (Mc_SaveData.buttonLayout == mode) {
             mask1 = 0x80;
             mask2 = 0x10;

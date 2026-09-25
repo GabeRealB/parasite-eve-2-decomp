@@ -3442,7 +3442,7 @@ void func_shelter_b1_underground_parking_80183CEC(Task* task)
 
     for (port = first; port < count; port++) {
         prompt = &D_80114D28 + port;
-        pad    = (PadState*)&Pad_States[port];
+        pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
             speed            = prompt->targetId;

@@ -5696,20 +5696,20 @@ static __inline__ u8 stateF0Gate_(void)
 
 void Gp_UseItemTask(GpIdMapC* arg0)
 {
-    PlayerStatus*      cfg;
-    Task*              work;
-    GameActor*         actor;
-    volatile PadState* pad;
-    s32                flag;
-    s32                idx;
-    s32                lvl;
-    s32                sndId;
-    s32                x;
-    s32                ok;
-    s32                y;
-    u8                 mode;
-    u8                 side;
-    u16                mask;
+    PlayerStatus* cfg;
+    Task*         work;
+    GameActor*    actor;
+    PadState*     pad;
+    s32           flag;
+    s32           idx;
+    s32           lvl;
+    s32           sndId;
+    s32           x;
+    s32           ok;
+    s32           y;
+    u8            mode;
+    u8            side;
+    u16           mask;
 
     cfg            = &Player_Status;
     flag           = 0;

@@ -367,7 +367,7 @@ void func_8002C1D8(void)
     port = 0;
     do {
         portId      = port * 0x10;
-        pad         = (PadState*)&Pad_States[port];
+        pad         = &Pad_States[port];
         work->port  = portId;
         state       = PadGetState(portId);
         work->state = state;
@@ -500,7 +500,7 @@ void Pad_UpdatePort0(void)
     scratch = SCRATCH_PUSH_AT(head, PadScratch);
 
     do {
-        pad = (PadState*)&Pad_States[i];
+        pad = &Pad_States[i];
         if (pad->cooldown == 0) {
             scratch->rawHi   = raw->field_2;
             scratch->rawLo   = raw->field_3;

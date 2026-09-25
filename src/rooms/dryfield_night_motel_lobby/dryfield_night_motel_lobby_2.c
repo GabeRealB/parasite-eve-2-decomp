@@ -268,7 +268,7 @@ void func_dryfield_night_motel_lobby_801807C0(Task* task)
 
     for (port = first; port < count; port++) {
         prompt = &D_80114D28 + port;
-        pad    = (PadState*)&Pad_States[port];
+        pad    = &Pad_States[port];
         status = pad->status;
         if (status == 0x12) {
             speed            = prompt->targetId;

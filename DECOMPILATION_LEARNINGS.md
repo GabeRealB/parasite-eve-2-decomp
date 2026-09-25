@@ -140537,3 +140537,34 @@ the cases fold into the last case's copy as in the target, while `return 0;`
 keeps the first case's copy instead. Ordinary exits `break` to one return after
 the switch. When the target has one shared tail that several cases jump to,
 suspect cross-jumping before writing gotos.
+
+## A `neg1` local, a split `base + idx*size` and pinned struct pointers point to missing helpers and direct global access (GameMain_Loop, 2026-09-25)
+
+`GameMain_Loop` carried about 48 hacks: a `neg1` local, a hand-computed
+`drawBase`/`stride` pair for `drawEnv[buf]`, a `ds = &gDisplayState` pointer
+and register pins. None of them survived three source changes:
+
+- **The repeated tail was an inline helper.** The loop presents a frame
+  (PutDrawEnv, PutDispEnv, optional strip upload, DrawOTag) in three places,
+  and the VSync callback does it a fourth time. Calling one `static inline`
+  helper at each site makes the `-1` a single long-lived pseudo that loop.c
+  hoists. Cross-jumping then merges the duplicated tails into the target's
+  layout.
+- **The globals were accessed directly.** `gDisplayState.drawEnv[buf]` lets
+  CSE hold the symbol in a register, and loop.c hoists it with a `move` copy.
+  The array access comes out as `(sym+off)+idx*size`, which is exactly the
+  split address the hacks built by hand. Going through a local `ds` pointer
+  gives a different shape.
+- **A second pointer to the same object came from a helper's own local.** A
+  `move s0,s1` copy of `&CdCmd_Queue` is a helper that declared `q =
+  &CdCmd_Queue` itself.
+
+Two smaller points:
+
+- `x += 1 + (y >> 1)` keeps the target's add order, whereas `x + 1 + y` is
+  reassociated by fold.
+- Two identical stores in the arms of an `if`/`else` stop sched1 hoisting a
+  load above them, and jump2 then merges the stores.
+
+So when a big function needs pins, look for repeated sequences to turn into
+helpers before fighting the allocator.

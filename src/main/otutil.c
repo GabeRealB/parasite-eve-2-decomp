@@ -20,7 +20,7 @@ s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 arg2)
     if (temp->mdecActive == 0) {
         temp->frameBuffer ^= 1;
     }
-    if ((s8)temp->at100.flags.flipMode != 2) {
+    if (temp->at100.flags.flipMode != 2) {
         temp->drawBuffer = (u8)temp->frameBuffer;
     }
     ot = Gpu_OrderingTables;

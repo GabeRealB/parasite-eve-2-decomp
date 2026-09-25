@@ -1083,7 +1083,7 @@ void Gp_UpdatePadInput(void)
     u16           tmp;
     u16           tmp2;
 
-    pad  = (PadState*)&Pad_States[0];
+    pad  = &Pad_States[0];
     cfg  = &Player_Status;
     work = Gp_ActorSlots[0];
     if (work == NULL) {

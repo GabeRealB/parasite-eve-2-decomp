@@ -833,7 +833,7 @@ void func_800BDF6C(Task* task)
     } else {
         repeatStep = 1;
     }
-    pad = (PadState*)Pad_States;
+    pad = Pad_States;
     if (pad->autoRepeat != 0) {
         pad->autoRepeat += gDisplayState.frameTicks * 2;
     }

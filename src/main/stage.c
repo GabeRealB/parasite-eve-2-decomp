@@ -30,7 +30,7 @@ void Display_StepFadeOverlay(void)
         return;
     }
 
-    if ((s8)gDisplayState.at100.flags.flipMode != 2) {
+    if (gDisplayState.at100.flags.flipMode != 2) {
         temp = (s8)p->field_18;
         if (temp != 0) {
             product = temp * gDisplayState.frameTicks;

@@ -8,7 +8,7 @@ s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
     PadState* p;
     u16       val;
 
-    p = (PadState*)&Pad_States[arg0];
+    p = &Pad_States[arg0];
     switch (arg1) {
         case 1:
             val = p->prevButtons;
@@ -35,7 +35,7 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32       temp;
     u8        idx;
 
-    p = (PadState*)&Pad_States[arg0];
+    p = &Pad_States[arg0];
     if (gDisplayState.demoScene != 0) {
         return;
     }
@@ -102,7 +102,7 @@ void Pad_ClearEvents(s32 arg0)
     s32       offset;
     PadEvent* entries;
 
-    p      = (PadState*)&Pad_States[arg0];
+    p      = &Pad_States[arg0];
     i      = 0;
     offset = 0x10;
     for (; i < 2; i++) {
