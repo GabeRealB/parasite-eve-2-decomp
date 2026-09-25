@@ -24,18 +24,8 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_garage.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// One row of the shop's price ladder (`D_dryfield_night_garage_80181950`,
-/// thirteen rows): the three item ids the row offers once
-/// `Mc_SaveData.shopTiers` has its bit set. The leading word is not read in
-/// this room.
-typedef struct DryfieldNightGarageShopTier {
-    s32  field_0;
-    s16  items[3];
-    byte pad_A[2];
-} DryfieldNightGarageShopTier;
-STATIC_ASSERT_SIZEOF(DryfieldNightGarageShopTier, 0xC);
 
 /// One entry of the room's 0x98-byte display-object table. Only the flag byte
 /// at 0x4A is touched here: bit 6 shows the entry, clearing it hides it.
@@ -162,7 +152,7 @@ extern u16 D_dryfield_night_garage_80181944[];
 extern u16 D_dryfield_night_garage_80181AD4[];
 
 /// The shop's price ladder.
-extern DryfieldNightGarageShopTier D_dryfield_night_garage_80181950[13];
+extern RoomShopTier D_dryfield_night_garage_80181950[13];
 
 /// The item id the shop list's cursor last rested on.
 extern s32 D_dryfield_night_garage_801819EC;

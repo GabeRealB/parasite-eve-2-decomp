@@ -31,17 +31,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// One row of the shop's price ladder (`D_shelter_1f_heliport_80180EAC`,
-/// thirteen rows): the three item ids the row offers once
-/// `Mc_SaveData.shopTiers` has its bit set. The leading word is not read in
-/// this room.
-typedef struct Shelter1fHeliportShopTier {
-    s32  field_0;
-    s16  items[3];
-    byte pad_A[2];
-} Shelter1fHeliportShopTier;
-STATIC_ASSERT_SIZEOF(Shelter1fHeliportShopTier, 0xC);
-
 /// Twelve opaque bytes the mesh copy carries across unchanged.
 typedef struct _Shelter1fHeliportBlk12 {
     u8 data[12];
@@ -165,7 +154,7 @@ extern u8 D_shelter_1f_heliport_80181020[];
 extern u8 D_shelter_1f_heliport_8018102C[];
 
 /// The shop's price ladder.
-extern Shelter1fHeliportShopTier D_shelter_1f_heliport_80180EAC[13];
+extern RoomShopTier D_shelter_1f_heliport_80180EAC[13];
 
 /// The item id the shop list's cursor last rested on.
 extern s32 D_shelter_1f_heliport_80180F48;

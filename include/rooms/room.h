@@ -66,4 +66,16 @@ typedef struct RoomCutsceneRec {
 } RoomCutsceneRec;
 STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 
+/// One row of a shop's price ladder, a table of thirteen in the room's data.
+/// The row's three items join the shop's stock once the row's bit is set in
+/// `Mc_SaveData.shopTiers`. The rooms read only `items`; the leading word grows
+/// row by row up to `S32_MAX` in the last, which reads as the spend that
+/// unlocks the row, but nothing here confirms it.
+typedef struct RoomShopTier {
+    s32  spendThreshold;
+    s16  items[3];
+    byte pad_A[0x2];
+} RoomShopTier;
+STATIC_ASSERT_SIZEOF(RoomShopTier, 0xC);
+
 #endif /* ROOMS_ROOM_H */

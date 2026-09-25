@@ -23,17 +23,8 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// One row of the shop's price ladder (`D_shelter_b1_armory_801821F4`,
-/// thirteen rows): a spending threshold and the three item ids the row offers
-/// once `Mc_SaveData.shopTiers` has its bit set. Only `items` is read here.
-typedef struct ShelterB1ArmoryShopTier {
-    /* 0x0 */ s32  spendThreshold;
-    /* 0x4 */ s16  items[3];
-    /* 0xA */ byte pad_A[2];
-} ShelterB1ArmoryShopTier;
-STATIC_ASSERT_SIZEOF(ShelterB1ArmoryShopTier, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
@@ -119,7 +110,7 @@ extern u16 D_shelter_b1_armory_801821E8[];
 extern u16 D_shelter_b1_armory_80182378[];
 
 /// The shop's price ladder.
-extern ShelterB1ArmoryShopTier D_shelter_b1_armory_801821F4[13];
+extern RoomShopTier D_shelter_b1_armory_801821F4[13];
 
 /// The item id the shop list's cursor last rested on.
 extern s32 D_shelter_b1_armory_80182290;

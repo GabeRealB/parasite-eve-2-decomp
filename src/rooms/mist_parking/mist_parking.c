@@ -481,18 +481,7 @@ void func_mist_parking_8017E3F4(RoomShopList* shop, UiObject* obj, s32 item)
     shop->list.field_4++;
 }
 
-/// One row of the vending machine's price ladder (`D_mist_parking_801863B0`,
-/// thirteen rows). `spendThreshold` is the running total the player has to have
-/// spent for the row to unlock — the last row's is `S32_MAX`, so it never does
-/// on its own — and `items` are the three ids the row then offers.
-/// `Mc_SaveData.shopTiers` holds one bit per row and is what this builder reads.
-typedef struct {
-    /* 0x0 */ s32  spendThreshold;
-    /* 0x4 */ s16  items[3];
-    /* 0xA */ byte pad_A[2];
-} MistParkingShopTier;
-
-extern MistParkingShopTier D_mist_parking_801863B0[13];
+extern RoomShopTier D_mist_parking_801863B0[13];
 
 /// Fills `shop` with the ids the vending machine currently offers, then sorts
 /// them by `Gp_ItemSortKey` and caps the visible row count at 9.

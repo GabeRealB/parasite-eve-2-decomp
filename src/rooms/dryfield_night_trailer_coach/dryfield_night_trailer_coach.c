@@ -484,17 +484,7 @@ void func_dryfield_night_trailer_coach_8017E318(RoomShopList* shop, UiObject* ob
     shop->list.field_4++;
 }
 
-/// One row of the shop's price ladder (`D_dryfield_night_trailer_coach_801843F4`,
-/// thirteen rows): a spending threshold and the three item ids the row offers
-/// once `Mc_SaveData.shopTiers` has its bit set. Only `items` is read here.
-typedef struct DryfieldNightTrailerCoachShopTier {
-    /* 0x0 */ s32  spendThreshold;
-    /* 0x4 */ s16  items[3];
-    /* 0xA */ byte pad_A[2];
-} DryfieldNightTrailerCoachShopTier;
-STATIC_ASSERT_SIZEOF(DryfieldNightTrailerCoachShopTier, 0xC);
-
-extern DryfieldNightTrailerCoachShopTier D_dryfield_night_trailer_coach_801843F4[13];
+extern RoomShopTier D_dryfield_night_trailer_coach_801843F4[13];
 
 /// Fills `shop` with the ids the shop currently offers, then sorts them by
 /// `Gp_ItemSortKey`, caps the visible row count at 9 and clears the cursor

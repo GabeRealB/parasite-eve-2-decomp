@@ -36,15 +36,6 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
-/// One row of the shop's unlockable stock: the three item ids the row offers
-/// once its bit in `Mc_SaveData.shopTiers` is set. The leading word is not
-/// read here.
-typedef struct {
-    /* 0x0 */ s32  field_0;
-    /* 0x4 */ s16  items[3];
-    /* 0xA */ byte pad_A[2];
-} _ShelterParkingShopTier;
-
 extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void func_80131E38(void);
 
@@ -195,7 +186,7 @@ extern UiObjectDesc D_shelter_b1_underground_parking_80187148;
 extern UiObjectDesc D_shelter_b1_underground_parking_8018719C;
 
 /// The shop's unlockable stock rows.
-extern _ShelterParkingShopTier D_shelter_b1_underground_parking_80186F14[13];
+extern RoomShopTier D_shelter_b1_underground_parking_80186F14[13];
 
 /// The shop list's row handlers and the balance panel beside it.
 extern UiListItemFunc D_shelter_b1_underground_parking_8018709C[];
