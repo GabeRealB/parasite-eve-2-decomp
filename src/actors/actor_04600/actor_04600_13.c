@@ -1,33 +1,31 @@
 #include "common.h"
 
-#include "main/mem.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "main/tmd.h"
-#include "main/sound.h"
-#include "main/wipsys.h"
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
-#include "gameplay/3CD8.h"
 
-#include "actors/actors_shared_80135d50.h"
-#include "actors/actors_shared_8014ae08.h"
-#include "actors/actors_shared_8014af2c.h"
-#include "actors/actors_shared_8014df20.h"
-#include "actors/actor_207200.h"
+#include "actors/actor_104600.h"
 
-/// The enemy's three state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by state.
-
-extern u8 D_801153F4;
-
-void ActorsSharedFn03958(GpEnemy* arg0, Task* arg1)
+/// Dying-state tick of the second enemy, under the `D_801153F4` mode byte: 1
+/// does nothing and 2 hides the model. Otherwise the root's matrix is saved
+/// into `field_264` and refolded with the decaying Y scale. Once `field_288` is
+/// set the enemy is destroyed after 0x3D frames; before that, the kill
+/// countdown running out releases state 0xF0, sets `field_288` and unlinks the
+/// enemy's node and its three bodies, and the two animation slots are rebound
+/// or advanced.
+void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
 {
-    Actor207200Work* work;
-    TmdObject*       obj;
-    GsCOORDINATE2*   coord;
-    s32              i;
-    Actor207200Work* anim;
+    Actor104600Enemy2Work* work;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    s32                    i;
+    Actor104600Enemy2Work* anim;
 
     work  = arg1->work;
     obj   = arg1->extra;
@@ -44,7 +42,7 @@ void ActorsSharedFn03958(GpEnemy* arg0, Task* arg1)
     }
     if (work->field_288 != 0) {
         work->field_264 = coord->coord;
-        ActorsShared8014b128(arg1, coord);
+        Actor04600_Fn0400C(arg1);
         work->field_28A++;
         if (work->field_28A >= 0x3D) {
             Gp_DestroyEnemy(arg0, arg1);
@@ -52,7 +50,7 @@ void ActorsSharedFn03958(GpEnemy* arg0, Task* arg1)
         return;
     }
     work->field_264 = coord->coord;
-    ActorsShared8014b128(arg1, coord);
+    Actor04600_Fn0400C(arg1);
     arg1->killCountdown--;
     if (arg1->killCountdown <= 0) {
         Gp_ReleaseStateF0Add((GpObj20E*)arg1, 0x2F);
@@ -60,9 +58,9 @@ void ActorsSharedFn03958(GpEnemy* arg0, Task* arg1)
         work->field_28A = 0;
         arg0->recs      = 0;
         Gp_UnlinkNode(&arg0->node);
-        Gp_UnlinkObj(&work->field_14C.obj);
-        Gp_UnlinkObj(&work->field_FC.obj);
-        Gp_UnlinkObj(&work->field_184.obj);
+        Gp_UnlinkObj(&work->field_14C);
+        Gp_UnlinkObj(&work->field_FC);
+        Gp_UnlinkObj(&work->field_184);
     }
     anim = arg1->work;
     i    = 1;

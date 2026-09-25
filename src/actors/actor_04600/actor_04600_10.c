@@ -1,14 +1,21 @@
 #include "common.h"
-#include "actors/actor_107000.h"
-#include "actors/actors_shared_80134810.h"
-#include "main/task.h"
-#include "main/mem.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "actors/actors_shared_80135b58.h"
+
+#include "main/mem.h"
+#include "main/task.h"
 #include "main/tmd.h"
-#include "actors/actors_shared_8014ca28.h"
+
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+
+#include "actors/actors_shared_80134810.h"
+#include "actors/actors_shared_80135b58.h"
+#include "actors/actor_104600.h"
 
 #define ACTOR_COPY_MATRIX_COLUMN_TO_SV(r0, r1, o0, o1, o2) \
     __asm__ volatile(                                      \
@@ -34,18 +41,19 @@
         : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
         : "$12", "$13", "$14", "memory")
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-void ActorsShared80134810(Task* arg0, GsCOORDINATE2* arg1)
+/// Scales the rotation of `arg1`'s matrix by the first enemy's scale factor
+/// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
+/// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
+/// factor on the GTE and written back.
+void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1)
 {
     ActorScaleScratchHead* scratch;
     SVECTOR*               vec;
     MATRIX*                matrix;
-    Actor107000Work*       work;
+    Actor104600Work*       work;
 
     scratch = (ActorScaleScratchHead*)G_SCRATCH_HEAD;
     vec     = scratch->head;
@@ -84,22 +92,17 @@ void ActorsShared80134810(Task* arg0, GsCOORDINATE2* arg1)
     scratch->head = (u8*)scratch->head + 8;
 }
 
-/// Rebuilds the first coordinate node of the actor's model from the transform
-/// stored in `work->field_28C`, scaled along Y by `work->field_2CA` (its own
-/// angle field, decaying by 0x50 a frame while it sits above 0x200). The 0x30
-/// bytes that hold the scaling matrix and its `VECTOR` are borrowed from the
-/// scratchpad and released again; the node's `flg` is cleared so the next
+/// Rebuilds the first enemy's root coordinate from the transform saved in
+/// `field_28C`, scaled along Y by `field_2CA`, which decays by 0x50 a frame
+/// while it stays above 0x200. The scale matrix and its `VECTOR` live in 0x30
+/// bytes of the scratch stack; the node's `flg` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
-///
-/// Carried by four enemy slots - `actor_104600`, `actor_107000`, `actor_204600`
-/// and `actor_207000` - which is why it takes the `Task` rather than either
-/// overlay's own context type; the shared span is in `configs/USA/overlays.toml`.
-void ActorsShared801349d8(Task* arg0)
+void Actor04600_Fn02B14(Task* arg0)
 {
     GsCOORDINATE2*              coord;
     MATRIX*                     head;
     ActorShared80135b58Scratch* scratch;
-    Actor107000Work*            work;
+    Actor104600Work*            work;
 
     head                = *(MATRIX**)0x1F8003FC;
     work                = arg0->work;
@@ -124,19 +127,22 @@ void ActorsShared801349d8(Task* arg0)
     *(u8**)0x1F8003FC += 0x30;
 }
 
-void ActorsShared8014ca28(Task* task)
+/// Exit callback of the first enemy: detaches the enemy's contact records,
+/// unlinks its node and the work's four bodies, then runs the common enemy
+/// task exit.
+void Actor04600_Fn02C08(Task* task)
 {
-    ActorShared8014ca28Work* work;
-    GpEnemy*                 enemy;
+    Actor104600Work* work;
+    GpEnemy*         enemy;
 
     enemy = task->spawnArg2;
-    work  = (ActorShared8014ca28Work*)task->work;
+    work  = (Actor104600Work*)task->work;
 
     enemy->recs = 0;
     Gp_UnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->field_FC);
-    Gp_UnlinkObj(&work->field_134);
-    Gp_UnlinkObj(&work->field_1B4);
-    Gp_UnlinkObj(&work->field_1EC);
+    Gp_UnlinkObj(&work->objFC);
+    Gp_UnlinkObj(&work->obj134);
+    Gp_UnlinkObj(&work->obj1B4);
+    Gp_UnlinkObj(&work->obj1EC);
     Gp_EnemyTaskExit(task);
 }

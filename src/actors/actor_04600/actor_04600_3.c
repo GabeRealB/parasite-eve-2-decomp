@@ -1,9 +1,6 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 
 #include "actors/actor_104600.h"
-#include "actors/actors_shared_80134680.h"
-#include "actors/actors_shared_80134700.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"

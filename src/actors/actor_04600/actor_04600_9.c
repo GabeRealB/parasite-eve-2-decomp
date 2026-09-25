@@ -1,17 +1,22 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 #include "main/tmd.h"
+
+#include "actors/actor_104600.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 
-/// Draws the actor's ground shadow quad under the model root. The world
-/// position is the translation of the root part's `workm`, staged in a
-/// scratchpad VECTOR3 rather than on the stack.
-void ActorsShared80134700(Task* task)
+/// Draws the first enemy's ground shadow under the model root, at the world
+/// translation of the root part staged in a `VECTOR3` on the scratch stack.
+void Actor04600_Fn028E0(Task* task)
 {
     GsCOORDINATE2* coord;
     VECTOR3*       vec;

@@ -1,8 +1,5 @@
-#include "actors/actors_shared_80134810.h"
 #include "common.h"
 #include "actors/actor_104600.h"
-#include "actors/actors_shared_80134680.h"
-#include "actors/actors_shared_80134700.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -66,14 +63,14 @@ default_body:
     Actor04600_Fn003D4(arg1);
     Actor04600_Fn02618(arg1);
     Actor04600_Fn00978(arg1);
-    ActorsShared80134680(arg1);
-    ActorsShared80134810(arg1, &((TmdObject*)arg1->extra)->coords[1]);
+    Actor04600_Fn027BC(arg1);
+    Actor04600_Fn0294C(arg1, &((TmdObject*)arg1->extra)->coords[1]);
     ((TmdObject*)arg1->extra)->coords[0].flg = 0;
     ((TmdObject*)arg1->extra)->coords[1].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
 case1:
     Actor04600_Fn02870(arg0, arg1);
-    ActorsShared80134700(arg1);
+    Actor04600_Fn028E0(arg1);
 }
 
 INCLUDE_ASM("actors/nonmatchings/actor_04600/actor_104600_2", Actor04600_Fn02618);

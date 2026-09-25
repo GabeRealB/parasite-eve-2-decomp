@@ -10,10 +10,6 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 
-#include "actors/actors_shared_80135d50.h"
-#include "actors/actors_shared_8014ae08.h"
-#include "actors/actors_shared_8014af2c.h"
-#include "actors/actors_shared_8014df20.h"
 #include "actors/actor_104600.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
@@ -36,19 +32,19 @@ extern SVECTOR Actor04600_D064BC;
 /// applies the id's side effect instead.
 void Actor04600_Fn0346C(Task* arg0)
 {
-    ActorShared8014df20Work* work;
-    Actor104600HitScratch*   sc;
-    Actor104600HitScratch*   head;
-    TmdObject*               obj;
-    GsCOORDINATE2*           coord;
-    GpEnemy*                 enemy;
-    s32                      i;
-    s32                      sndHit;
-    s32                      sndHit2;
-    u32                      damage;
-    s32                      snd;
+    Actor104600Enemy2Work* work;
+    Actor104600HitScratch* sc;
+    Actor104600HitScratch* head;
+    TmdObject*             obj;
+    GsCOORDINATE2*         coord;
+    GpEnemy*               enemy;
+    s32                    i;
+    s32                    sndHit;
+    s32                    sndHit2;
+    u32                    damage;
+    s32                    snd;
 
-    work                                     = (ActorShared8014df20Work*)arg0->work;
+    work                                     = (Actor104600Enemy2Work*)arg0->work;
     head                                     = *(Actor104600HitScratch**)G_SCRATCH_HEAD;
     *(Actor104600HitScratch**)G_SCRATCH_HEAD = head - 1;
     sc                                       = head - 1;

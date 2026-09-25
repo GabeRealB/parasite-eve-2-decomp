@@ -1,27 +1,40 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
 
-#include "actors/actors_shared_8014a1c4.h"
-#include "actors/actors_shared_8014df20.h"
+#include "actors/actor_104600.h"
 
-extern u32 Gp_LcgState;
-extern u8  D_801153F2[2];
+extern u8 D_801153F2[2];
 
-void ActorsShared8014a1c4(Task* arg0)
+/// Idle tick of the second enemy. A 0x10000-class hit on either of its two
+/// single-record tables sets `D_801153F2[1]`, latches `field_2AA` and selects
+/// animation 2; if the light blend is fully up, one sound plays, the blend is
+/// turned to fall and a new 0x12..0x31 frame wait is rolled. A latched hit
+/// plays a second sound, clears the 0x8000 bit of the first two bodies and arms
+/// state 0xF0. Under animation 1 the frame count reaching `field_2A8` turns the
+/// blend down (with the first sound) when it is fully up, or back up after a
+/// new 0x64..0xA3 frame wait once it has bottomed out; under animation 2 the
+/// second sound repeats every 0x28 frames. `field_2AC` picks between two sets
+/// of sound ids.
+void Actor04600_Fn030A8(Task* arg0)
 {
-    ActorShared8014df20Work* work;
-    GsCOORDINATE2*           obj;
-    s32                      snd;
-    s16                      mode;
-    s32                      id;
-    GpEnemy*                 ctx;
+    Actor104600Enemy2Work* work;
+    GsCOORDINATE2*         obj;
+    s32                    snd;
+    s16                    mode;
+    s32                    id;
+    GpEnemy*               ctx;
 
-    work                   = (ActorShared8014df20Work*)arg0->work;
+    work                   = (Actor104600Enemy2Work*)arg0->work;
     *(u8**)G_SCRATCH_HEAD -= 8;
     obj                    = ((TmdObject*)arg0->extra)->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {

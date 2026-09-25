@@ -10,10 +10,6 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 
-#include "actors/actors_shared_80135d50.h"
-#include "actors/actors_shared_8014ae08.h"
-#include "actors/actors_shared_8014af2c.h"
-#include "actors/actors_shared_8014df20.h"
 #include "actors/actor_104600.h"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
@@ -75,10 +71,10 @@ case2:
 default_body:
     ((TmdObject*)arg1->extra)->coords[0].coord.t[1] += 0x80;
     Actor04600_Fn03D54(arg1);
-    ActorsShared80135d50(arg1);
-    ActorsShared8014ae08(arg1);
+    Actor04600_Fn03F30(arg1);
+    Actor04600_Fn03CEC(arg1);
     Actor04600_Fn0346C(arg1);
-    ActorsShared8014af2c(arg1);
+    Actor04600_Fn03E10(arg1);
     ((TmdObject*)arg1->extra)->coords[0].flg = 0;
     ((TmdObject*)arg1->extra)->coords[1].flg = 0;
     Gp_UpdateCoord(&((TmdObject*)arg1->extra)->coords[1]);
