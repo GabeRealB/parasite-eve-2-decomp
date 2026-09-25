@@ -39,28 +39,40 @@ typedef struct Actor323400Work {
     /* 0x434 */ GpAnimSlot blendSlots[18];
     /* 0x704 */ byte       blendPoses[0x120];
     /* 0x824 */ byte       pad_824[4];
-    /// Animation-state slots the handlers seed and the tick keeps. `field_83C`
-    /// is the weight the blend tick mixes the main context's pose by,
-    /// `field_832` and `field_83A` the slot rates of the two contexts.
-    /* 0x828 */ s16  field_828;
-    /* 0x82A */ s16  field_82A;
-    /* 0x82C */ s16  field_82C;
-    /* 0x82E */ s16  field_82E;
-    /* 0x830 */ u16  field_830;
-    /* 0x832 */ s16  field_832;
-    /* 0x834 */ s16  field_834;
-    /* 0x836 */ s16  field_836;
-    /* 0x838 */ s16  field_838;
-    /* 0x83A */ s16  field_83A;
-    /* 0x83C */ s16  field_83C;
-    /* 0x83E */ s16  field_83E;
-    /* 0x840 */ s16  field_840;
-    /* 0x842 */ byte pad_842[6];
+    /// Animation-state slots the handlers seed and the tick keeps: the seed
+    /// mode the tick acts on (1 re-seeds from the per-state table, 2 resets
+    /// the slots, 3 runs), whether the blend context is live, the clip the
+    /// slots were last seeded with and the one to seed next, and the slot
+    /// rates. `field_83C` is the weight the blend tick mixes the main
+    /// context's pose by.
+    /* 0x828 */ s16 field_828;
+    /* 0x82A */ s16 field_82A;
+    /* 0x82C */ s16 field_82C;
+    /* 0x82E */ s16 field_82E;
+    /* 0x830 */ u16 field_830;
+    /* 0x832 */ s16 field_832;
+    /* 0x834 */ s16 field_834;
+    /* 0x836 */ s16 field_836;
+    /* 0x838 */ s16 field_838;
+    /* 0x83A */ s16 field_83A;
+    /* 0x83C */ s16 field_83C;
+    /* 0x83E */ s16 field_83E;
+    /* 0x840 */ s16 field_840;
+    /* 0x842 */ s16 field_842;
+    /// Turn angle the tick eases toward `field_840` and splits over the body
+    /// joints; cleared by the spawn handler.
+    /* 0x844 */ s16  field_844;
+    /* 0x846 */ byte pad_846[2];
     /// Record last handled by the per-frame effect dispatch
     /// `func_actor_323400_80163448`, one entry per animation slot, wiped as one
     /// block when no case claims a record.
     /* 0x848 */ s32  field_848[18];
-    /* 0x890 */ byte pad_890[0x8C];
+    /* 0x890 */ byte pad_890[4];
+    /// Light / colour matrices the spawn handler `func_actor_323400_80163FC8`
+    /// binds to the model.
+    /* 0x894 */ MATRIX light;
+    /* 0x8B4 */ MATRIX color;
+    /* 0x8D4 */ byte   pad_8D4[0x48];
     /// Three bytes `func_actor_323400_80164974` takes from a message payload
     /// one at a time; nothing else in this overlay reads them.
     /* 0x91C */ u8   field_91C;
@@ -128,6 +140,9 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
 /// coordinate matrix is rebuilt from the actor transform on the next draw.
 /// Either way the tick runs last.
 void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task);
+
+/// State handlers `func_actor_323400_801644C4` runs by `Actor323400Work::field_0`.
+extern GpEnemyTaskFuncTable4 D_actor_323400_80161E24;
 
 /// Task states `func_actor_323400_80164CEC` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `Gp_DestroyEnemy`.
