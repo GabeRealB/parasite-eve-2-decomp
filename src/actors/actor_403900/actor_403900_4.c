@@ -27,6 +27,18 @@ extern s32 D_actor_403900_80138474;
 /// Pair the approach's frame 0x14 packs into the work block's `field_57C`.
 extern GpU16Pair D_actor_403900_80153BF0;
 
+/// Cue word the fade-out in `func_actor_403900_80134968` queues.
+extern s32 D_actor_403900_80138470;
+
+/// Cue-id table: `Actor403900Work::field_712` picks two adjacent words,
+/// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
+/// for the 0x10 one; the branch sequences read `[field_712 + 8]`.
+extern s32 D_actor_403900_80138424[];
+
+/// Weighted 16-entry roll for `Actor403900Work::field_6E4`: indices 0-10 hold 0
+/// and 11-15 hold 1, so the short approach is taken about a third of the time.
+extern u16 D_actor_403900_80153C1C[];
+
 /// Remaining-enemy count; a grab only starts while it is positive.
 extern s16 D_80073BA0;
 
@@ -308,7 +320,196 @@ void func_actor_403900_8013314C(Actor403900* arg0)
     *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900GrabScratch);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80133AEC);
+/// Runs the actor's approach-and-strike sequence. State 0 aims the display
+/// object along `field_6E6`, parks it at `field_6A4`..`field_6AC` and rolls
+/// `field_6E4`; a 1 with `field_6E8` clear parks the state at 1 with a
+/// 0xF..0x1E frame budget, otherwise the state goes to 3 with a 0x1E..0x2D
+/// budget, or to 4 when `field_6E8` is set, and the cue `field_6B8` is queued.
+/// The budget is split into `field_6DC` (two thirds) and `field_6DE` (the
+/// remainder), which the strike states consume in turn. States 1 to 4 and 6
+/// count `field_6D4` down: 1 rolls a 0x3C..0x4B wait into state 2, 2 splits a
+/// fresh budget into state 6 and releases the link node, 3 and 4 fall through
+/// to the next state when the budget runs out and abort back to state 0 while
+/// `field_70A` is positive, and 6 returns to state 0. State 5 reacts to the
+/// animation's `field_6C4`: 0x14 and 0x1C bind `field_56C` to a body part and
+/// queue the strike cue, and 0x23 ends the strike in state 6.
+void func_actor_403900_80133AEC(Actor403900* arg0)
+{
+    Actor403900OffsetScratch* sc;
+    Actor403900Work*          work;
+    Actor403900Coord*         coord;
+    s32                       cue;
+    u32                       random;
+    u16                       delay;
+    s16                       part;
+    s16                       timer;
+
+    *(u8**)G_SCRATCH_HEAD -= sizeof(Actor403900OffsetScratch);
+    sc                     = *(Actor403900OffsetScratch**)G_SCRATCH_HEAD;
+    work                   = arg0->field_1C;
+    coord                  = arg0->field_2C->field_8;
+    switch (work->field_6CE) {
+        case 0:
+            work->field_6C0 = 4;
+            work->field_6E4 = D_actor_403900_80153C1C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            sc->in.vx       = 0;
+            sc->in.vy       = (work->field_6E6 + 0x800) & 0xFFF;
+            sc->in.vz       = 0;
+            RotMatrix(&sc->in, &coord->field_0.coord);
+            coord->field_0.coord.t[0] = work->field_6A4;
+            coord->field_0.coord.t[1] = work->field_6A8;
+            coord->field_0.coord.t[2] = work->field_6AC;
+            if (work->field_6E4 == 1 && work->field_6E8 == 0) {
+                random          = Gp_LcgState * 5 + 0x71357911;
+                delay           = ((random >> 16) & 0xF) + 0xF;
+                work->field_6CE = 1;
+                work->field_6DA = 4;
+                Gp_LcgState     = random;
+                work->field_6D4 = delay;
+                part            = delay * 2 / 3;
+                work->field_6DC = part;
+                work->field_6DE = delay - part;
+            } else {
+                work->field_6E4 = 0;
+                if (work->field_6E8 == 0) {
+                    timer           = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
+                    work->field_6CE = 3;
+                    work->field_6D4 = timer;
+                    part            = timer * 2 / 3;
+                    work->field_6DC = part;
+                    work->field_6DE = work->field_6D4 - part;
+                } else {
+                    work->field_6CE = 4;
+                    work->field_6DC = 0x14;
+                    work->field_6D4 = 0;
+                    work->field_6DE = 0xA;
+                }
+                work->field_6DA = 1;
+                work->field_6B8 = D_actor_403900_80138468 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                work->field_70A = 0;
+                work->field_6F2 = 1;
+            }
+            work->field_6D6 = 1;
+            work->field_6E8 = 0;
+            break;
+        case 1:
+            if (work->field_6D6 != 0) {
+                if (work->field_6C6 == 0) {
+                    work->field_494  = 0;
+                    work->field_49A |= 0x8000;
+                }
+                work->field_6D6 = 0;
+            }
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0 || work->field_6E8 != 0) {
+                work->field_6CE = 2;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6D4 = ((Gp_LcgState >> 16) & 0xF) + 0x3C;
+            }
+            break;
+        case 2:
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0 || work->field_6E8 != 0) {
+                work->field_6CE = 6;
+                work->field_6DA = 6;
+                if (work->field_6E8 != 0) {
+                    work->field_6DC = 5;
+                    work->field_6DE = 3;
+                    work->field_6D4 = work->field_6DC + work->field_6DE;
+                } else {
+                    work->field_6DC = 8;
+                    work->field_6DE = 8;
+                    work->field_6D4 = work->field_6DC + work->field_6DE;
+                }
+                Gp_ClearNodeSlots(&arg0->field_20->node);
+            }
+            break;
+        case 3:
+            if (work->field_6D6 != 0) {
+                if (work->field_6C6 == 0) {
+                    work->field_49A |= 0x8000;
+                    work->field_494  = work->field_716 | 0x30000;
+                }
+                work->field_6D6 = 0;
+            }
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                work->field_6CE = 4;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_6D4 = (Gp_LcgState >> 16) & 0xF;
+            } else if (work->field_70A > 0) {
+                work->field_6CC = 4;
+                work->field_6CE = 0;
+                work->field_6DA = 7;
+                if (work->field_6B8 != 0) {
+                    SndEvt_EnqueueType7(work->field_6B8, 1);
+                    work->field_6B8 = 0;
+                }
+            }
+            break;
+        case 4:
+            if (work->field_6D6 != 0) {
+                if (work->field_6C6 == 0) {
+                    work->field_49A |= 0x8000;
+                    work->field_494  = work->field_716 | 0x30000;
+                }
+                work->field_6D6 = 0;
+            }
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                work->field_6C0 = 5;
+                work->field_6CE = 5;
+                work->field_6D4 = 0;
+            } else if (work->field_70A > 0) {
+                work->field_6CC = 4;
+                work->field_6CE = 0;
+                work->field_6DA = 7;
+            }
+            break;
+        case 5:
+            if (work->field_6C4 == 0x14) {
+                work->field_56C  = &((GsCOORDINATE2*)arg0->field_2C->field_8)[8];
+                work->field_574  = 0;
+                work->field_576  = 0;
+                work->field_578  = 0;
+                work->field_580  = 0x12C;
+                work->field_57C  = Gp_PackPair(&D_actor_403900_80153BF0, 1);
+                work->field_582 |= 0x8000;
+                cue              = D_actor_403900_80138474 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+            } else if (work->field_6C4 == 0x1C) {
+                work->field_56C = &((GsCOORDINATE2*)arg0->field_2C->field_8)[12];
+                cue             = D_actor_403900_80138474 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+            }
+            if (work->field_6C4 == 0x23) {
+                work->field_6CE  = 6;
+                work->field_6D4  = 0x1E;
+                work->field_6DA  = 3;
+                work->field_6DC  = 0x14;
+                work->field_6DE  = 0xA;
+                work->field_582 &= 0x7FFF;
+                work->field_6BC  = D_actor_403900_8013846C | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+            }
+            break;
+        case 6:
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                work->field_6CC = 0;
+                work->field_6CE = 0;
+                work->field_6F2 = 0;
+            }
+            break;
+    }
+    *(u8**)G_SCRATCH_HEAD += sizeof(Actor403900OffsetScratch);
+}
 
 /// Runs the actor's approach sequence off the box it last hit. State 0 plants
 /// the display object on that box, faces it along the box heading and queues
@@ -527,10 +728,461 @@ void func_actor_403900_801347F4(Actor403900* arg0)
     *(u32*)0x1F8003FC += 8;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80134968);
+/// Runs the actor's fade sequence off `field_6DA`. States 1 / 3 fade the
+/// display object's `field_2C` and the `field_6D8` / `field_6E2` shades up and
+/// down, releasing the queued cues as they finish; state 4 fades to 0xB00 and
+/// snapshots the root matrix into `field_674`, and state 6 winds `field_694` /
+/// `field_698` down before resetting the root matrix to identity. States 7-9
+/// flicker between two LCG-rolled timings, spawning effect 0x600E0 at the
+/// fourth part on odd animation frames.
+void func_actor_403900_80134968(Actor403900* arg0)
+{
+    SVECTOR*                sc;
+    Actor403900Work*        work;
+    Actor403900Obj2C*       obj;
+    Actor403900Coord*       coord;
+    Actor403900MatrixWords* m;
+    s32                     snd;
+    s32                     pan;
+    s32                     v;
+    s32                     w;
+    s32                     sy;
+    s32                     y;
+    u32                     random;
+    s16                     t;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_8013539C);
+    sc    = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD -= 8);
+    work  = arg0->field_1C;
+    obj   = arg0->field_2C;
+    coord = obj->field_8;
+    switch (work->field_6DA) {
+        case 0:
+            arg0->field_2C->field_C = 0x80;
+            work->field_6E2         = -1;
+            work->field_49A        &= 0x7FFF;
+            if (work->field_6B8 != 0) {
+                SndEvt_EnqueueType7(work->field_6B8, 1);
+                work->field_6B8 = 0;
+            }
+            if (work->field_6BC != 0) {
+                SndEvt_EnqueueType7(work->field_6BC, 1);
+                work->field_6BC = 0;
+            }
+            break;
+        case 1:
+            obj->field_2C += 0x1000 / work->field_6DE;
+            if (obj->field_2C >= 0x1000) {
+                obj->field_2C   = 0x1000;
+                t               = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8 = t;
+                if (t <= 0) {
+                    work->field_6D8 = 0;
+                    work->field_6DA = 2;
+                    if (work->field_6B8 != 0) {
+                        SndEvt_EnqueueType7(work->field_6B8, 1);
+                        work->field_6B8 = 0;
+                    }
+                }
+            }
+            t               = work->field_6E2 + 0x80 / work->field_6DC;
+            work->field_6E2 = t;
+            if (t >= 0x80) {
+                work->field_6E2 = 0x80;
+            }
+            break;
+        case 2:
+            work->field_6E2 = 0x80;
+            if (work->field_6B8 != 0) {
+                SndEvt_EnqueueType7(work->field_6B8, 1);
+                work->field_6B8 = 0;
+            }
+            if (work->field_6BC != 0) {
+                SndEvt_EnqueueType7(work->field_6BC, 1);
+                work->field_6BC = 0;
+            }
+            break;
+        case 3:
+            t               = work->field_6D8 + 0xFF / work->field_6DC;
+            work->field_6D8 = t;
+            if (t >= 0xFF) {
+                work->field_6D8 = 0xFF;
+                obj->field_2C  -= 0x1000 / work->field_6DE;
+                if (obj->field_2C <= 0) {
+                    obj->field_2C   = 0;
+                    work->field_6DA = 0;
+                    if (work->field_6BC != 0) {
+                        SndEvt_EnqueueType7(work->field_6BC, 1);
+                        work->field_6BC = 0;
+                    }
+                    snd = D_actor_403900_80138470 | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                    pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
+                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                }
+            }
+            t               = work->field_6E2 - 0x80 / work->field_6DC;
+            work->field_6E2 = t;
+            if (t < 0) {
+                work->field_6E2 = -1;
+            }
+            break;
+        case 4:
+            obj->field_2C += 0xB00 / work->field_6DE;
+            if (obj->field_2C >= 0xB00) {
+                obj->field_2C   = 0xB00;
+                t               = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8 = t;
+                if (t <= 0) {
+                    work->field_6DA    = 5;
+                    work->field_6D8    = 0;
+                    work->field_694.vx = 0x1000;
+                    work->field_694.vy = 0x1000;
+                    work->field_694.vz = 0x1000;
+                    work->field_674    = arg0->field_2C->field_8->field_0.coord;
+                    work->field_6D0    = 0;
+                }
+            }
+            work->field_6E2 = -1;
+            break;
+        case 5:
+            work->field_6E2 = -1;
+            break;
+        case 6:
+            work->field_49A &= 0x7FFF;
+            switch (work->field_6D0) {
+                case 0:
+                    y = work->field_694.vy;
+                    if (work->field_6E8 != 0) {
+                        sy = y - 0x400;
+                    } else {
+                        sy = y - 0x200;
+                    }
+                    work->field_694.vy = sy;
+                    if (sy <= 0x800) {
+                        work->field_6D0 = 1;
+                    }
+                    break;
+                case 1:
+                    if (work->field_6E8 != 0) {
+                        v                  = work->field_694.vx - 0x200;
+                        w                  = work->field_694.vy + 0x400;
+                        work->field_694.vx = v;
+                        work->field_694.vy = w;
+                    } else {
+                        v                  = work->field_694.vx - 0x100;
+                        w                  = work->field_694.vy + 0x200;
+                        work->field_694.vx = v;
+                        work->field_694.vy = w;
+                    }
+                    if (work->field_694.vx <= 0x800) {
+                        work->field_6D0 = 2;
+                    }
+                    break;
+            }
+            func_actor_403900_80137CA8(arg0);
+            t               = work->field_6D8 + 0xFF / work->field_6DC;
+            work->field_6D8 = t;
+            if (t >= 0xFF) {
+                work->field_6D8 = 0xFF;
+                obj->field_2C  -= 0x1000 / work->field_6DE;
+                if (obj->field_2C <= 0) {
+                    obj->field_2C           = 0;
+                    work->field_6DA         = 0;
+                    m                       = (Actor403900MatrixWords*)&arg0->field_2C->field_8->field_0.coord;
+                    m->field_0              = 0x1000;
+                    m->field_4              = 0;
+                    m->field_8              = 0x1000;
+                    m->field_C              = 0;
+                    m->field_10             = 0x1000;
+                    arg0->field_2C->field_C = 0x80;
+                }
+            }
+            work->field_6E2 = -1;
+            break;
+        case 7:
+            work->field_6DA = 8;
+            work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
+            t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+            work->field_6DC = t;
+            work->field_6DE = t;
+            break;
+        case 8:
+            t               = work->field_6D8 + 0xFF / work->field_6DC;
+            work->field_6D8 = t;
+            if (t >= 0x80) {
+                work->field_6D8 = 0x80;
+                obj->field_2C  -= 0x1000 / work->field_6DE;
+                if (obj->field_2C <= 0x800) {
+                    obj->field_2C = 0x800;
+                }
+            }
+            t               = work->field_6E2 - 0x80 / work->field_6DC;
+            work->field_6E2 = t;
+            if (t < 0) {
+                work->field_6E2 = -1;
+            }
+            t               = work->field_6E0 - 1;
+            work->field_6E0 = t;
+            if (t <= 0) {
+                work->field_6DA = 9;
+                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
+                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+                work->field_6DC = t;
+                work->field_6DE = t;
+            }
+            if (work->field_6EA == 0) {
+                work->field_6EA = 1;
+            }
+            if (work->field_6C4 & 1) {
+                sc->vx = 0;
+                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
+                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
+                Gp_SpawnEff(0x600E0, &arg0->field_2C->field_8->field_F0, 0x100, sc);
+            }
+            break;
+        case 9:
+            obj->field_2C += 0x1000 / work->field_6DE;
+            if (obj->field_2C >= 0x1000) {
+                obj->field_2C   = 0x1000;
+                t               = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8 = t;
+                if (t <= 0) {
+                    work->field_6D8 = 0;
+                }
+            }
+            t               = work->field_6E2 + 0x80 / work->field_6DC;
+            work->field_6E2 = t;
+            if (t >= 0x80) {
+                work->field_6E2 = 0x80;
+            }
+            t               = work->field_6E0 - 1;
+            work->field_6E0 = t;
+            if (t <= 0) {
+                work->field_6DA = 8;
+                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
+                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+                work->field_6DC = t;
+                work->field_6DE = t;
+            }
+            if (work->field_6C4 & 1) {
+                sc->vx = 0;
+                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
+                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
+                Gp_SpawnEff(0x600E0, &arg0->field_2C->field_8->field_F0, 0x100, sc);
+            }
+            break;
+    }
+    *(u32*)G_SCRATCH_HEAD += 8;
+}
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_801354B0);
+/// Runs the actor's animation-reseed sequence. State 0 puts the slot set on
+/// animation 8, clears `field_6C8` and drops the state to 1; unless the mode at
+/// `field_6EC` is already 1 it also arms the `field_6DA`/`field_6DC`/`field_6DE`
+/// timers and queues the actor's cue, panned and depth-attenuated from the
+/// display object. State 1 waits for the animation to reach 0x37 frames and
+/// then puts the state back to 0, flipping the mode to 2 and raising
+/// `field_6CC` if it was 1.
+void func_actor_403900_8013539C(Actor403900* arg0)
+{
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    s32               state;
+    s32               pan;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_4", func_actor_403900_80135630);
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            work->field_6C0 = 8;
+            work->field_6CE = 1;
+            work->field_6C8 = 0;
+            if (work->field_6EC != 1) {
+                work->field_6DA = 3;
+                work->field_6DC = 0x1E;
+                work->field_6DE = 0xF;
+                work->field_6BC = D_actor_403900_8013846C | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan             = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
+                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                break;
+            }
+            break;
+        case 1:
+            if (work->field_6C4 >= 0x37) {
+                if (work->field_6EC == state) {
+                    work->field_6CC = 4;
+                    work->field_6EC = 2;
+                } else {
+                    work->field_6CC = 0;
+                }
+                work->field_6CE = 0;
+            }
+            break;
+    }
+}
+
+/// Runs the actor's attack sequence. State 0 puts the slot set on animation 9
+/// or 0xA, whichever `field_6D2` selects, and parks the state at 1 or 2 to
+/// match; unless the mode at `field_6EC` is already 1 it also arms the
+/// `field_6DA`/`field_6DC`/`field_6DE` timers and queues the actor's cue,
+/// panned and depth-attenuated from the display object. States 1 and 2 wait out
+/// their own animation - `field_6C4` at 0x50 and 0x3B frames - and then put the
+/// state back to 0, flipping the mode to 2 and raising `field_6CC` when it was
+/// still 1.
+void func_actor_403900_801354B0(Actor403900* arg0)
+{
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    s32               state;
+    s32               pan;
+
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            if (work->field_6D2 == 1) {
+                work->field_6C0 = 9;
+                work->field_6CE = 1;
+            } else {
+                work->field_6C0 = 0xA;
+                work->field_6CE = 2;
+            }
+            work->field_6C8 = 0;
+            if (work->field_6EC != 1) {
+                work->field_6DA = 3;
+                work->field_6DC = 0x1E;
+                work->field_6DE = 0xF;
+                work->field_6BC = D_actor_403900_8013846C | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan             = (s8)Gp_GetObjPan((GsCOORDINATE2*)coord);
+                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+                break;
+            }
+            break;
+        case 1:
+            if (work->field_6C4 >= 0x50) {
+                if (work->field_6EC == state) {
+                    work->field_6CC = 4;
+                    work->field_6EC = 2;
+                } else {
+                    work->field_6CC = 0;
+                }
+                work->field_6CE = 0;
+            }
+            break;
+        case 2:
+            if (work->field_6C4 >= 0x3B) {
+                if (work->field_6EC == 1) {
+                    work->field_6CC = 4;
+                    work->field_6EC = state;
+                } else {
+                    work->field_6CC = 0;
+                }
+                work->field_6CE = 0;
+            }
+            break;
+    }
+}
+
+/// Runs the actor's branch sequence. State 0 puts the slot set on animation
+/// 0xD or 0x11, whichever `field_6D2` selects, and parks the state at 1 or 2 to
+/// match. States 1 and 2 queue the actor's cue at frame 0x2C / 0x19 and, once
+/// `field_6C4` reaches 0x42 / 0x31, move to state 3 with an LCG-rolled
+/// `field_6D4` countdown; states 3 and 4 then alternate on that countdown.
+void func_actor_403900_80135630(Actor403900* arg0)
+{
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    s32               state;
+    s32               snd;
+    s32               anim;
+    u32               random;
+    s16               timer;
+
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            if (work->field_6D2 == 0) {
+                work->field_6C0 = 0xD;
+                work->field_6CE = 1;
+                work->field_6F0 = 1;
+                work->field_490 = -0xA7;
+            } else {
+                work->field_6C0 = 0x11;
+                work->field_6CE = 2;
+                work->field_6F0 = 2;
+                work->field_490 = 0x109;
+            }
+            work->field_498  = 0x15E;
+            work->field_714  = 1;
+            work->field_6DA  = 7;
+            work->field_6F2  = 2;
+            work->field_6C8  = 0;
+            work->field_49A |= 0x4000;
+            work->field_502 &= 0xBFFF;
+            break;
+        case 1:
+            if (work->field_6C4 == 0x2C) {
+                snd = D_actor_403900_80138424[work->field_712 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+            }
+            if (work->field_6C4 >= 0x42) {
+                work->field_6C0 = 0x10;
+                work->field_6CE = 3;
+                work->field_6F2 = 0;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_6D4 = (random >> 16) & 0x3F;
+            }
+            if (work->field_714 == 1) {
+                work->field_714 = 2;
+            }
+            break;
+        case 2:
+            if (work->field_6C4 == 0x19) {
+                snd = D_actor_403900_80138424[work->field_712 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan((GsCOORDINATE2*)coord), (s8)gpGetObjDepth((GsCOORDINATE2*)coord));
+            }
+            if (work->field_6C4 >= 0x31) {
+                work->field_6C0 = 0x14;
+                work->field_6CE = 3;
+                work->field_6F2 = 0;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_6D4 = (random >> 16) & 0x3F;
+            }
+            if (work->field_714 == 1) {
+                work->field_714 = 2;
+            }
+            break;
+        case 3:
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                anim = 0x13;
+                if (work->field_6F0 == 1) {
+                    anim = 0xF;
+                }
+                work->field_6D4 = 0xA;
+                work->field_6C0 = anim;
+                work->field_6CE = 4;
+            }
+            break;
+        case 4:
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                anim = 0x14;
+                if (work->field_6F0 == 1) {
+                    anim = 0x10;
+                }
+                work->field_6C0 = anim;
+                work->field_6CE = 3;
+                random          = (Gp_LcgState * 5) + 0x71357911;
+                Gp_LcgState     = random;
+                work->field_6D4 = (random >> 16) & 0x3F;
+            }
+            break;
+    }
+}

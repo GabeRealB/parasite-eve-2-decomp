@@ -27,11 +27,117 @@ extern Actor403900Region* D_actor_403900_80153F04[];
 extern s16*               D_actor_403900_8015409C[];
 extern u8                 D_actor_403900_801540EC[];
 
+/// Cue-id table: `Actor403900Work::field_712` picks two adjacent words,
+/// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
+/// for the 0x10 one; the branch sequences read `[field_712 + 8]`.
+extern s32 D_actor_403900_80138424[];
+
 INCLUDE_RODATA("actors/nonmatchings/actor_403900/actor_403900_5", D_actor_403900_80131F18);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80135A24);
+/// Sequence 9, the finishing branch. State 0 puts the slot set on animation
+/// 0xD or 0x11, whichever `field_6D2` selects, records the side in `field_6F0`,
+/// arms a 0x42 / 0x31 frame countdown and the `field_6DA`..`field_6DE` timers,
+/// and raises bit 0x4000 of `field_49A`. State 1 queues the cue
+/// `[field_712 + 8]` at frame 0x2C (0x19 for the second side) and, when the
+/// countdown runs out, parks 2 in the context's `field_30` and drops back to
+/// state 0.
+void func_actor_403900_80135A24(Actor403900* arg0)
+{
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    s32               state;
+    s32               snd;
+    s32               pan;
+    s32               frames;
+    s16               timer;
 
-INCLUDE_ASM("actors/nonmatchings/actor_403900/actor_403900_5", func_actor_403900_80135BE0);
+    work  = arg0->field_1C;
+    state = work->field_6CE;
+    coord = arg0->field_2C->field_8;
+    switch (state) {
+        case 0:
+            if (work->field_6D2 == 0) {
+                work->field_6C0 = 0xD;
+                work->field_6CE = 1;
+                work->field_6F0 = 1;
+                work->field_6D4 = 0x42;
+                work->field_490 = -0xA7;
+            } else {
+                work->field_6C0 = 0x11;
+                work->field_6CE = 1;
+                work->field_6F0 = 2;
+                work->field_6D4 = 0x31;
+                work->field_490 = 0x109;
+            }
+            work->field_498  = 0x15E;
+            work->field_714  = 1;
+            work->field_6DA  = 1;
+            work->field_6DC  = 0x14;
+            work->field_6DE  = 0xA;
+            work->field_6F2  = 2;
+            work->field_6C8  = 0;
+            work->field_49A |= 0x4000;
+            work->field_502 &= 0xBFFF;
+            break;
+        case 1:
+            if (work->field_714 == state) {
+                work->field_714 = 2;
+            }
+            frames = 0x19;
+            if (work->field_6F0 == state) {
+                frames = 0x2C;
+            }
+            if (work->field_6C4 == frames) {
+                snd = D_actor_403900_80138424[work->field_712 + 8] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+            }
+            timer           = work->field_6D4 - 1;
+            work->field_6D4 = timer;
+            if (timer <= 0) {
+                arg0->field_30  = 2;
+                work->field_6CE = 0;
+                work->field_6F2 = 0;
+            }
+            break;
+    }
+}
+
+/// Fires the cue pair the work block's `field_712` selects: while the second
+/// animation slot carries `flags` bit 0x20 or 0x10, a sound is queued on the
+/// frame that bit has just dropped from `Actor403900Work::field_6CA`, panned
+/// and depth-attenuated from the actor's display object. The cue id is the
+/// matching word of `D_actor_403900_80138424` with the `GpEnemy` work id's high
+/// nibble in bits 8-11, and a zero `field_712` disarms the body. The record's
+/// two bits are latched for the next frame at the end.
+void func_actor_403900_80135BE0(Actor403900* arg0)
+{
+    s32               snd;
+    s32               pan;
+    s32               pan2;
+    Actor403900Work*  work;
+    Actor403900Coord* coord;
+    GpAnimRec*        rec;
+
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    if (work->field_712 != 0) {
+        rec = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->field_3C);
+        if (rec != NULL) {
+            if (!(rec->flags & 0x20) && (work->field_6CA & 0x20)) {
+                snd = D_actor_403900_80138424[work->field_712 * 2 - 1] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+            }
+            if (!(rec->flags & 0x10) && (work->field_6CA & 0x10)) {
+                snd  = D_actor_403900_80138424[work->field_712 * 2] | (((u16)arg0->field_20->placeKey >> 0xC) << 8);
+                pan2 = (s8)Gp_GetObjPan(coord);
+                SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
+            }
+            work->field_6CA = (u16)(rec->flags & 0x30);
+        }
+    }
+}
 
 /// Aims the actor: brings the root coordinate local to the fourth part to park
 /// the aim point in the work block, then resolves the ground record under the

@@ -52,6 +52,17 @@ typedef struct Actor403900Spot {
 } Actor403900Spot;
 STATIC_ASSERT_SIZEOF(Actor403900Spot, 0x8);
 
+/// Word view of a `GsCOORDINATE2::coord` matrix, the shape
+/// `func_actor_403900_80134968` resets it to identity through: whole-word
+/// stores over `m[0][0]`..`m[2][1]` and a halfword for `m[2][2]`.
+typedef struct Actor403900MatrixWords {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s16 field_10;
+} Actor403900MatrixWords;
+
 /// Per-instance work block the actor's task holds in the 0x1C slot of
 /// `Actor403900`, allocated with `memCalloc(0x71C)` by the spawn handler
 /// `func_actor_403900_80137444`; the same shape the other enemy overlays give
@@ -69,7 +80,10 @@ STATIC_ASSERT_SIZEOF(Actor403900Spot, 0x8);
 typedef struct Actor403900Work {
     /* 0x000 */ byte       pad_0[0x14];
     /* 0x014 */ GpAnimSlot field_14;
-    /* 0x03C */ byte       pad_3C[0x2D0];
+    /// Second animation slot, whose record's cue bits the cue body
+    /// `func_actor_403900_80135BE0` watches.
+    /* 0x03C */ GpAnimSlot field_3C;
+    /* 0x064 */ byte       pad_64[0x2A8];
     /* 0x30C */ byte       field_30C[0x130];
     /* 0x43C */ MATRIX     field_43C;
     /* 0x45C */ MATRIX     field_45C;
@@ -213,7 +227,10 @@ typedef struct Actor403900Work {
     /* 0x6C6 */ s16 field_6C6;
     /// Cleared on the frame the wait state rolls a new countdown.
     /* 0x6C8 */ s16 field_6C8;
-    /* 0x6CA */ s16 field_6CA;
+    /// The cue bits (0x30) of the second slot's record as
+    /// `func_actor_403900_80135BE0` last saw them; a bit that drops fires its
+    /// cue.
+    /* 0x6CA */ u16 field_6CA;
     /// Cleared when the cue expires.
     /* 0x6CC */ s16 field_6CC;
     /// Cue state: 0 arms the animation and the countdown, 1 waits the
