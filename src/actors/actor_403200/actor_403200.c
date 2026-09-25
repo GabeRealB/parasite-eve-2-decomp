@@ -669,18 +669,6 @@ static __inline__ void Actor403200_LocalToView(GsCOORDINATE2* coord, SVECTOR* ou
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Gameplay's global mode block as this actor reads it. `mode` is 0 while play
-/// runs; the enemy dispatchers park their models on 1 and hide them on 2.
-/// `holdGate` is 1 while the player hold is armed: the death handoff raises it,
-/// and the hit handlers test it before they let a landed hit spawn its effect.
-typedef struct Actor403200GameMode {
-    /* 0x0 */ u8   mode;
-    /* 0x1 */ byte pad_1;
-    /* 0x2 */ u16  holdGate;
-} Actor403200GameMode;
-
-extern Actor403200GameMode D_801153F4;
-
 /// Global freeze flag: 1 while the game is halted, which stops the per-frame
 /// body from walking its model out.
 extern u8 D_80072729;
@@ -2547,14 +2535,14 @@ void func_actor_403200_8013509C(GpEnemy* enemy, Task* task)
 /// dispatcher's state-changed flag) re-arms the step counter, the ground marker
 /// and the first display node on the frame the state starts.
 ///
-/// While the game is running (`D_801153F4` clear) the model falls 0xA a step,
+/// While the game is running (`Gp_StateF0.field_4` clear) the model falls 0xA a step,
 /// column 2 of its coordinate is normalised into a scratchpad `SVECTOR` and
 /// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
 /// translation added to the coordinate; past step 0x29 the height is pinned to
 /// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
 /// block's own coordinate, which is parented to `gGfxViewCoord` and tracks the
 /// model. After 0x35 steps the display node is handed back and the task steps
-/// on. Paused (`D_801153F4` set) only the coordinate is refreshed, and the
+/// on. Paused (`Gp_StateF0.field_4` set) only the coordinate is refreshed, and the
 /// marker is skipped while the host's `field_F08` step is 6.
 ///
 /// Bails out -- unlinking the display node and stepping the task on -- when the
@@ -2596,7 +2584,7 @@ void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
         work->obj0.flags |= 0x8000;
     }
 
-    if (D_801153F4.mode == 0) {
+    if (Gp_StateF0.field_4 == 0) {
         work->field_1AC++;
         ((TmdObject*)task->extra)->coords->coord.t[1] += 0xA;
 
@@ -4719,7 +4707,7 @@ out:
 /// Emptying that pool spawns the same effect again and refills it to 0x32. Both
 /// effect spawns and the state change to 0xE are skipped while the boss is in
 /// one of the seven states that ignore hits, while the player hold is armed, or
-/// while `D_801153F4[1]` is clear.
+/// unless `Gp_StateF0.field_6` is 1.
 ///
 /// `pos` / `pos2` / `pos3` are all `&sc->pos`, and are not spare: each group's
 /// scan writes the contact point through its own pointer, which is what keeps
@@ -4854,7 +4842,7 @@ body:
 
     if (Gp_RollEnemyChance(work->field_ECC[0], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
-        D_801153F4.holdGate == 1) {
+        Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -4884,7 +4872,7 @@ stored:
     esc0->hp         = hp;
     work->field_F0A -= sc->damage;
     if ((s16)work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && D_801153F4.holdGate == 1) {
+        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -4940,7 +4928,7 @@ out:
 /// spawns the same effect again and refills it to 0x3C. Both effect spawns and
 /// the state change to 0xE are skipped while the boss is in one of the seven
 /// states that ignore hits, while the player hold is armed, or while
-/// `D_801153F4[1]` is clear.
+/// `Gp_StateF0.field_6` is not 1.
 ///
 /// The second escort carries the damage and the effect, but `sc->angle` is the
 /// yaw of the contact point relative to the first escort's facing. `pos` /
@@ -5074,7 +5062,7 @@ body:
 
     if (Gp_RollEnemyChance(work->field_ECC[1], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
-        D_801153F4.holdGate == 1) {
+        Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -5097,7 +5085,7 @@ stored:
     host->hp        -= sc->damage;
     work->field_F0C -= sc->damage;
     if ((s16)work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && D_801153F4.holdGate == 1) {
+        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -6974,7 +6962,7 @@ void func_actor_403200_8013EF6C(Task* arg0)
             work->field_7B3 = 1;
             work->field_7B0 = 1;
         }
-        if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && D_801153F4.holdGate == 1)) {
+        if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && Gp_StateF0.field_6 == 1)) {
             work->field_0 = 3;
         }
         if (work->field_6 == 6) {
@@ -7346,7 +7334,7 @@ void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
         }
     }
 
-    d801153f4 = D_801153F4.mode;
+    d801153f4 = Gp_StateF0.field_4;
     if (d801153f4 == 1) {
         goto clear_and_return;
     }
@@ -7436,13 +7424,13 @@ after_mode:
     }
 
     if (work->field_F12 == 8) {
-        work->field_0       = 0x12;
-        D_801153F4.holdGate = 1;
-        pending             = (Actor403200PendingPos*)Gp_PendingObj4C;
-        pending->pos.vx     = ((TmdObject*)arg1->extra)->coords->coord.t[0] + 0xFA0;
-        pendingPos          = &pending->pos;
-        pendingPos->vy      = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x64;
-        pendingPos->vz      = ((TmdObject*)arg1->extra)->coords->coord.t[2];
+        work->field_0      = 0x12;
+        Gp_StateF0.field_6 = 1;
+        pending            = (Actor403200PendingPos*)Gp_PendingObj4C;
+        pending->pos.vx    = ((TmdObject*)arg1->extra)->coords->coord.t[0] + 0xFA0;
+        pendingPos         = &pending->pos;
+        pendingPos->vy     = ((TmdObject*)arg1->extra)->coords->coord.t[1] - 0x64;
+        pendingPos->vz     = ((TmdObject*)arg1->extra)->coords->coord.t[2];
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> 12) << 8) | 0x4020000A, 1);
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> 12) << 8) | 0x4020000D, 1);
     }
@@ -8012,7 +8000,7 @@ void func_actor_403200_801414E8(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_403200_80131E90;
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         default:
         case 0:
         case 1:
@@ -8037,7 +8025,7 @@ void func_actor_403200_80141564(Task* arg0)
     sp   = D_actor_403200_80131E9C;
     work = (Actor403200GrabWork*)arg0->work;
 
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 0;
             break;
@@ -8071,7 +8059,7 @@ void func_actor_403200_80141670(Task* arg0)
 
     sp = D_actor_403200_80131F04;
 
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 2;
             break;
@@ -8102,7 +8090,7 @@ void func_actor_403200_80141778(Task* arg0)
     GpEnemyTaskFuncTable5 sp;
 
     sp = D_actor_403200_80131F14;
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         case 0:
         default:
             sp.funcs[arg0->state](arg0->spawnArg2, arg0);
@@ -8142,7 +8130,7 @@ void func_actor_403200_80141868(Task* arg0)
 
     sp = D_actor_403200_80131F28;
 
-    switch (D_801153F4.mode) {
+    switch (Gp_StateF0.field_4) {
         case 0:
             ((TmdObject*)arg0->extra)->flags = 0;
             break;

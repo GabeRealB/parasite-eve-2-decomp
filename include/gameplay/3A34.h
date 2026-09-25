@@ -565,7 +565,11 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// `field_2` is a bitset (`Gp_SetStateF0Bit` sets bit `arg0 - 1` when
 /// `arg0 != 0`; also written as `Gp_StateF0.field_2`). `field_3` is cleared with
 /// `field_2` on last-ref release (also written as `Gp_StateF0.field_3` by
-/// `Gp_SetStateF0Byte3`). `field_4` is also `Gp_StateF0.field_4`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
+/// `Gp_SetStateF0Byte3`). `field_4` holds the scene's actors: 0 lets them
+/// run, 1 freezes them so they only redraw, 2 hides them. Gameplay raises it
+/// around event views and copies it into `Gp_State1C->eventState` /
+/// `fadeState` every frame; most overlays reach it through the alias
+/// `D_801153F4`, and `field_6` through `D_801153F6`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
 /// when it claims a `GpSlot18`. `field_6` is a u16
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref

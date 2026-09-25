@@ -154,10 +154,8 @@ STATIC_ASSERT_SIZEOF(Actor103700SteerScratch, 0x18);
  * `TmdObject` from. */
 extern void* D_80067704[1];
 
-extern u8  D_801153F4;
-extern u16 D_801153F6;
-extern u8  D_80115408[];
-extern s8  D_8011540A;
+extern u8 D_80115408[];
+extern s8 D_8011540A;
 
 /* The two model streams the death effect picks between, in this overlay's data. */
 extern u8 Actor03700_D043FC[];
@@ -1212,7 +1210,7 @@ done:
     SCRATCH_SP += 8;
 }
 
-/// Death handler. Mode 1 of `D_801153F4` only refreshes the actor colour and
+/// Death handler. Mode 1 of `Gp_StateF0.field_4` only refreshes the actor colour and
 /// mode 2 hides the model; otherwise it steps `field_250`: unlink the enemy and
 /// play the death cue (releasing the player's hold if `field_262` is set), wait
 /// out a short delay, spawn the `field_268` death effect, let the player go,
@@ -1247,7 +1245,7 @@ void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
     model  = (TmdObject*)task->extra;
     player = gameGetPtrSlot(3);
 
-    switch (D_801153F4) {
+    switch (Gp_StateF0.field_4) {
         case 1:
             coord        = ((TmdObject*)task->extra)->coords;
             buf.color.vx = coord->workm.t[0];
@@ -1575,7 +1573,7 @@ void Actor03700_Fn03004(GpEnemy* enemy, Task* task)
     s32              one;
 
     obj   = (TmdObject*)task->extra;
-    state = D_801153F4;
+    state = Gp_StateF0.field_4;
     work  = (Actor103700Work*)task->work;
     coord = obj->coords;
     one   = 1;
@@ -1824,7 +1822,7 @@ void Actor03700_Fn0355C(Task* task)
             break;
         case 5:
             state = task->state;
-            if (state == 2 && D_801153F6 == 0) {
+            if (state == 2 && Gp_StateF0.field_6 == 0) {
                 work->field_266 = state;
             }
             break;
