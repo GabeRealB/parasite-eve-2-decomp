@@ -208,14 +208,14 @@ void func_actor_460200_80132A04(Task* task);
 void func_actor_460200_80132A50(Task* task);
 void func_actor_460200_80132AC8(Task* task);
 void func_actor_460200_80132F0C(Task* task);
-void func_actor_460200_8013311C(void* enemy, Task* task);
+void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
 void func_actor_460200_8013322C(Task* task);
 void func_actor_460200_80133254(Task* task);
 void func_actor_460200_801332E0(Task* task);
 void func_actor_460200_8013332C(Task* task);
 void func_actor_460200_801333A4(Task* task);
 void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
-void func_actor_460200_80133A04(void* enemy, Task* task);
+void func_actor_460200_80133A04(GpEnemy* enemy, Task* task);
 void func_actor_460200_80133A88(Task* task);
 void func_actor_460200_80133AB0(Task* task);
 void func_actor_460200_80133B3C(Task* task);
@@ -599,7 +599,7 @@ void func_actor_460200_801325FC(Task* task)
 
 void func_actor_460200_801327B4(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_460200_80132808, func_actor_460200_80132468 };
+    GpEnemyTaskFunc fns[2] = { func_actor_460200_80132808, func_actor_460200_80132468 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -942,7 +942,7 @@ void func_actor_460200_80132F0C(Task* task)
 
 void func_actor_460200_801330C8(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_460200_80132D74, func_actor_460200_8013311C };
+    GpEnemyTaskFunc fns[2] = { func_actor_460200_80132D74, func_actor_460200_8013311C };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -952,7 +952,7 @@ void func_actor_460200_801330C8(Task* task)
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `field_4F0` rate is stepped +0x200 or -0x200 per tick depending on
 /// `field_4EE`, clamped to 0x1000 and 0 respectively.
-void func_actor_460200_8013311C(void* enemy, Task* task)
+void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
 {
     Actor460200PairWork* work;
     GsCOORDINATE2*       coord;
@@ -1243,7 +1243,7 @@ void func_actor_460200_801336B4(Task* task)
 
 void func_actor_460200_8013386C(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
+    GpEnemyTaskFunc fns[2] = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
 
     fns[task->state](task->spawnArg2, task);
 }
@@ -1294,7 +1294,7 @@ void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-void func_actor_460200_80133A04(void* arg0, Task* task)
+void func_actor_460200_80133A04(GpEnemy* arg0, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
