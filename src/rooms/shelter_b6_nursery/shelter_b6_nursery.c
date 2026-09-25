@@ -27,31 +27,8 @@
 #include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Spawn argument of the room's cutscene task (`func_shelter_b6_nursery_8017F4E8`,
-/// entry 0 of `D_shelter_b6_nursery_80184FDC`), filled by the message handler
-/// `func_shelter_b6_nursery_8017FA54`. A positive `field_0` is the view forced
-/// into the save location for the scene; otherwise its negation is the view
-/// restored when the scene ends. `field_1` is the CAP slot the scene starts and
-/// picks the command run after it; a non-zero `field_2` skips straight to the
-/// abort; `field_3` is the CAP file to load (0 for none). The four words are
-/// sound events: at the start, at the end, after an unskipped scene, and the
-/// one the scene's sound task plays. `field_14` / `field_16` are the pair
-/// handed to `func_800E6D4C` (0 selects 0x3C0, 0).
-typedef struct ShelterB6NurseryCapScript {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} ShelterB6NurseryCapScript;
-STATIC_ASSERT_SIZEOF(ShelterB6NurseryCapScript, 0x18);
 
 /// Settings of the room's effect task `func_shelter_b6_nursery_801800A0`,
 /// written together by `func_shelter_b6_nursery_80182D14`. A non-zero
@@ -195,7 +172,7 @@ extern Task* D_shelter_b6_nursery_80187978;
 /// Non-zero while the ambient sound task runs.
 extern s32 D_shelter_b6_nursery_8018797C;
 
-extern ShelterB6NurseryCapScript D_shelter_b6_nursery_80187980;
+extern RoomCutsceneRec D_shelter_b6_nursery_80187980;
 
 /// Position the ambient sound is panned and attenuated from.
 extern GsCOORDINATE2 D_shelter_b6_nursery_801879A0;
@@ -1196,15 +1173,15 @@ void func_shelter_b6_nursery_8017F4AC(Task* task)
 
 void func_shelter_b6_nursery_8017F4E8(Task* task)
 {
-    s32                        poll;
-    s32                        cmd;
-    s32                        a0;
-    s32                        a1;
-    s32                        flag;
-    s32                        key;
-    s32                        one;
-    ShelterB6NurseryCapScript* script;
-    McSaveData*                save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

@@ -30,6 +30,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
@@ -229,7 +230,7 @@ extern s32   D_acropolis_square_801888A4;
 extern Task* D_acropolis_square_801888A8;
 
 /// The cutscene record the room hands entry 0 of `D_acropolis_square_801837A0`.
-extern RoomsShared80181228Rec D_acropolis_square_801888AC;
+extern RoomCutsceneRec D_acropolis_square_801888AC;
 
 extern GsCOORDINATE2 D_acropolis_square_801888CC;
 
@@ -1932,14 +1933,14 @@ void func_acropolis_square_801811EC(Task* task)
 /// and restores everything before killing itself.
 void func_acropolis_square_80181228(Task* task)
 {
-    RoomsShared80181228Rec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (RoomsShared80181228Rec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_acropolis_square_801888A8 = NULL;

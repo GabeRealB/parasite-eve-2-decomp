@@ -24,6 +24,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
@@ -2403,14 +2404,14 @@ extern GpAreaApplyRec D_mist_parking_80188888;
 /// and restores everything before killing itself.
 void func_mist_parking_80181E8C(Task* task)
 {
-    MistParkingSceneRec* rec;
-    s32                  killOut;
-    s32                  flag;
-    s32                  cmd;
-    s32                  fadeA;
-    s32                  fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (MistParkingSceneRec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_mist_parking_80195318 = NULL;
@@ -2592,7 +2593,7 @@ extern s32 D_mist_parking_8018F0A4;
 extern s32 D_mist_parking_8018F194;
 
 /// The scene record the room hands the cutscene runner.
-extern MistParkingSceneRec D_mist_parking_8019533C;
+extern RoomCutsceneRec D_mist_parking_8019533C;
 
 s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
 {

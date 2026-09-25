@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "rooms/room.h"
 #include "main/task.h"
 #include "main/ui.h"
 
@@ -47,7 +48,7 @@ extern UiObjectDesc D_shelter_b1_sterilization_room_801847AC;
 /// Task descriptor table used by the cutscene runner
 /// `func_shelter_b1_sterilization_room_8017F550`, which spawns entry 1 and
 /// waits on it while the cutscene plays. The room's event handler spawns
-/// entry 0 with a `RoomsShared80181228Rec` as its argument.
+/// entry 0 with a `RoomCutsceneRec` as its argument.
 extern TaskDesc D_shelter_b1_sterilization_room_80184E1C;
 
 /// The room's task descriptor table; its spawners pick an entry by index.

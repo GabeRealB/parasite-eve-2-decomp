@@ -21,6 +21,7 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/dryfield_night_motel_lobby.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 
 extern u16 D_80072174;
@@ -121,7 +122,7 @@ extern UiObjectDesc D_dryfield_night_motel_lobby_80182720;
 
 /// The cap script `func_dryfield_night_motel_lobby_8017FB7C` fills in and
 /// hands to the cap task it spawns.
-extern DnmlCapScript D_dryfield_night_motel_lobby_801844E0;
+extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
 void func_dryfield_night_motel_lobby_8017E310(UiList* list, UiObject* obj);
 void func_dryfield_night_motel_lobby_8017E60C(UiList* list, UiObject* obj);
@@ -1092,15 +1093,15 @@ void func_dryfield_night_motel_lobby_8017F4C8(Task* task)
 
 void func_dryfield_night_motel_lobby_8017F504(Task* task)
 {
-    s32            poll;
-    s32            cmd;
-    s32            a0;
-    s32            a1;
-    s32            flag;
-    s32            key;
-    s32            one;
-    DnmlCapScript* script;
-    McSaveData*    save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

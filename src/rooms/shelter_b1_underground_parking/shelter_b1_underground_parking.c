@@ -32,6 +32,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
 
@@ -251,12 +252,12 @@ extern Task* D_shelter_b1_underground_parking_8018D754;
 /// The area records applied when the scene hands the Dryfield story on.
 extern GpAreaApplyRec D_shelter_b1_underground_parking_80188888;
 
-extern s32                    D_shelter_b1_underground_parking_8018D758;
-extern ShelterParkingSceneRec D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc               D_shelter_b1_underground_parking_80187200;
-extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
-extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
-extern GpStateBD8             D_shelter_b1_underground_parking_8018D750;
+extern s32             D_shelter_b1_underground_parking_8018D758;
+extern RoomCutsceneRec D_shelter_b1_underground_parking_8018D75C;
+extern TaskDesc        D_shelter_b1_underground_parking_80187200;
+extern TaskDesc        D_shelter_b1_underground_parking_80187260[];
+extern TaskDesc        D_shelter_b1_underground_parking_8018726C[];
+extern GpStateBD8      D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
@@ -2513,14 +2514,14 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
 /// restores everything before killing itself.
 void func_shelter_b1_underground_parking_80182154(Task* task)
 {
-    ShelterParkingSceneRec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (ShelterParkingSceneRec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_shelter_b1_underground_parking_8018D754 = NULL;
@@ -2814,7 +2815,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
 
 s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    ShelterParkingSceneRec* st;
+    RoomCutsceneRec* st;
 
     switch (arg2) {
         case 1:

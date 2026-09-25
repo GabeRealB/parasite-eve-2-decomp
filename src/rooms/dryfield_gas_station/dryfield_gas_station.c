@@ -21,34 +21,12 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "rooms/dryfield_gas_station.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// `Task::spawnArg2` of the room's cutscene task
-/// (`func_dryfield_gas_station_8017F4B4`). `field_0` is the area id forced for
-/// the duration of the scene (negative = keep the current one); `field_1`
-/// selects the cap slot and the closing command; `field_2` skips straight to
-/// the abort state; `field_3` is the cap file to load. `field_4`, `field_C`
-/// and `field_8` are the sound events queued at the start, after the scene
-/// and at the end, and `field_10` the one the child task plays and a skip
-/// stops. `field_14` / `field_16` are the pair passed to `func_800E6D4C` once
-/// the cap file is loaded (0x3C0 and 0 when `field_14` is zero).
-typedef struct {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} DryfieldGasStationCapScript;
-STATIC_ASSERT_SIZEOF(DryfieldGasStationCapScript, 0x18);
 
 /// The cutscene script `func_dryfield_gas_station_8017FD54` fills in before
 /// spawning the cutscene task with it.
-extern DryfieldGasStationCapScript D_dryfield_gas_station_80184BD8;
+extern RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
 
@@ -1123,7 +1101,7 @@ void func_dryfield_gas_station_8017F478(Task* task)
 }
 
 /// Task body of the room's cutscene: `spawnArg2` is its
-/// `DryfieldGasStationCapScript`. It hides the HUD and the weapons, forces the
+/// `RoomCutsceneRec`. It hides the HUD and the weapons, forces the
 /// script's area, loads and plays the cap file while a child task from
 /// `D_dryfield_gas_station_80181E18` runs (confirm or cancel skips it), then
 /// runs the cap command for the story's progress, restores the area and the
@@ -1131,15 +1109,15 @@ void func_dryfield_gas_station_8017F478(Task* task)
 /// commands 0x20 / 0x21 by the cap's event key.
 void func_dryfield_gas_station_8017F4B4(Task* task)
 {
-    s32                          poll;
-    s32                          cmd;
-    s32                          a0;
-    s32                          a1;
-    s32                          flag;
-    s32                          key;
-    s32                          one;
-    DryfieldGasStationCapScript* script;
-    McSaveData*                  save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

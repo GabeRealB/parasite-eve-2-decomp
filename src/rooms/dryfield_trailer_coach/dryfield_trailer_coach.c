@@ -31,6 +31,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
@@ -2442,14 +2443,14 @@ extern GpAreaApplyRec D_dryfield_trailer_coach_80188888;
 /// and restores everything before killing itself.
 void func_dryfield_trailer_coach_80181D88(Task* task)
 {
-    RoomsShared80181228Rec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (RoomsShared80181228Rec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_dryfield_trailer_coach_80189C94 = NULL;
@@ -2735,7 +2736,7 @@ s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, GpSaveLoc* src, 
 extern TaskDesc D_dryfield_trailer_coach_80184FC0;
 
 /// The cutscene record this room hands `D_dryfield_trailer_coach_80184F7C`.
-extern RoomsShared80181228Rec D_dryfield_trailer_coach_80189C9C;
+extern RoomCutsceneRec D_dryfield_trailer_coach_80189C9C;
 
 /// Runs the trailer coach's day-2 hand-off. Request 3 spawns entry 1 of the
 /// room's task table; request 0xE drops the save view back to 1 when it is on

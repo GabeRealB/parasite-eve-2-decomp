@@ -27,6 +27,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
@@ -209,7 +210,7 @@ extern Task* D_dryfield_motel_room_6_8018682C;
 
 /// Script record the room's event handler fills in and hands to the cutscene
 /// task as its `spawnArg2`.
-extern RoomsShared80181228Rec D_dryfield_motel_room_6_80186830;
+extern RoomCutsceneRec D_dryfield_motel_room_6_80186830;
 
 void func_dryfield_motel_room_6_8017F440(Task* task);
 void func_dryfield_motel_room_6_8017F630(Task* task);
@@ -1915,15 +1916,15 @@ void func_dryfield_motel_room_6_80181184(Task* task)
 /// cap commands, and restores the view, weapons and HUD before killing itself.
 void func_dryfield_motel_room_6_801811D4(Task* task)
 {
-    s32                     poll;
-    s32                     cmd;
-    s32                     a0;
-    s32                     a1;
-    s32                     flag;
-    s32                     key;
-    s32                     one;
-    RoomsShared80181228Rec* script;
-    McSaveData*             save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

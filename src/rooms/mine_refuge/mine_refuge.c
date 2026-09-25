@@ -23,31 +23,8 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Spawn argument of the room's cutscene task (`func_mine_refuge_8017F49C`,
-/// spawned from `D_mine_refuge_80181860`). A positive `field_0` is the view
-/// forced into the save location for the scene; otherwise its negation is the
-/// view restored when the scene ends. `field_1` is the CAP slot the scene
-/// starts and picks the command run after it; a non-zero `field_2` skips
-/// straight to the abort; `field_3` is the CAP file to load (0 for none). The
-/// four words are sound events: at the start, at the end, after an unskipped
-/// scene, and the one the scene's sound task plays. `field_14` / `field_16` are
-/// the pair handed to `func_800E6D4C` (0 selects 0x3C0, 0).
-typedef struct {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} MineRefugeCapScript;
-
-STATIC_ASSERT_SIZEOF(MineRefugeCapScript, 0x18);
 
 /// Scratch block `func_mine_refuge_80180710` takes from `G_SCRATCH_HEAD`.
 /// `otz`, `flag` and `sx`/`sy` receive the projection of the glow's centre;
@@ -176,7 +153,7 @@ extern Task* D_mine_refuge_80182AD8;
 extern u8 D_mine_refuge_80182ADC;
 
 /// Parameters of the cutscene `func_mine_refuge_8017FE78` starts.
-extern MineRefugeCapScript D_mine_refuge_80182AE0;
+extern RoomCutsceneRec D_mine_refuge_80182AE0;
 
 void func_mine_refuge_8017F460(Task* task);
 void func_mine_refuge_8017FE78(s32 arg0);
@@ -1177,15 +1154,15 @@ void func_mine_refuge_8017F460(Task* task)
 
 void func_mine_refuge_8017F49C(Task* task)
 {
-    s32                  poll;
-    s32                  cmd;
-    s32                  a0;
-    s32                  a1;
-    s32                  flag;
-    s32                  key;
-    s32                  one;
-    MineRefugeCapScript* script;
-    McSaveData*          save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

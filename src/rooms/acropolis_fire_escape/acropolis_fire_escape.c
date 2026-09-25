@@ -26,31 +26,8 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/unknown_syms.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Spawn argument of the room's cutscene task (`func_acropolis_fire_escape_8017F48C`,
-/// entry 0 of `D_acropolis_fire_escape_80181D18`). A positive `field_0` is the
-/// view forced into the save location for the scene; otherwise its negation is
-/// the view restored when the scene ends. `field_1` is the CAP slot the scene
-/// starts and picks the command run after it; a non-zero `field_2` skips
-/// straight to the abort; `field_3` is the CAP file to load (0 for none). The
-/// four words are sound events: at the start, at the end, after an unskipped
-/// scene, and the one the scene's sound task plays. `field_14` / `field_16` are
-/// the pair handed to `func_800E6D4C` (0 selects 0x3C0, 0).
-typedef struct {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} AcropolisFireEscapeCapScript;
-
-STATIC_ASSERT_SIZEOF(AcropolisFireEscapeCapScript, 0x18);
 
 /// Block the room's glow and flare tasks carve off `G_SCRATCH_HEAD` for one
 /// frame. `vec` is the task coordinate's world translation, projected through
@@ -171,7 +148,7 @@ extern s32 D_acropolis_fire_escape_80183040;
 extern Task* D_acropolis_fire_escape_80183044;
 
 /// Parameters of the cutscene the 0x13F0 message handler starts.
-extern AcropolisFireEscapeCapScript D_acropolis_fire_escape_80183048;
+extern RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
 void func_acropolis_fire_escape_8017F450(Task* task);
 void func_acropolis_fire_escape_8017FE50(Task* task);
@@ -1170,7 +1147,7 @@ void func_acropolis_fire_escape_8017F450(Task* task)
 }
 
 /// Task body of the room's cutscene, driven by the
-/// `AcropolisFireEscapeCapScript` in `spawnArg2`. It holds both characters'
+/// `RoomCutsceneRec` in `spawnArg2`. It holds both characters'
 /// weapons, hides the HUD, forces the scripted view and loads the CAP file,
 /// then starts the scene's CAP slot together with its sound task (entry 1 of
 /// `D_acropolis_fire_escape_80181D18`); confirm or cancel skips the scene.
@@ -1181,15 +1158,15 @@ void func_acropolis_fire_escape_8017F450(Task* task)
 /// selects until the key is neither 0xB nor 0xC.
 void func_acropolis_fire_escape_8017F48C(Task* task)
 {
-    s32                           poll;
-    s32                           cmd;
-    s32                           a0;
-    s32                           a1;
-    s32                           flag;
-    s32                           key;
-    s32                           one;
-    AcropolisFireEscapeCapScript* script;
-    McSaveData*                   save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

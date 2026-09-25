@@ -20,31 +20,8 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Spawn argument of the room's cutscene task (`func_shelter_1f_tent_8017F484`,
-/// spawned from `D_shelter_1f_tent_80181CB8`). A positive `field_0` is the view
-/// forced into the save location for the scene; otherwise its negation is the
-/// view restored when the scene ends. `field_1` is the CAP slot the scene
-/// starts and picks the command run after it; a non-zero `field_2` skips
-/// straight to the abort; `field_3` is the CAP file to load (0 for none). The
-/// four words are sound events: at the start, at the end, after an unskipped
-/// scene, and the one the scene's sound task plays. `field_14` / `field_16` are
-/// the pair handed to `func_800E6D4C` (0 selects 0x3C0, 0).
-typedef struct {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} Shelter1fTentCapScript;
-
-STATIC_ASSERT_SIZEOF(Shelter1fTentCapScript, 0x18);
 
 extern void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 extern void func_80132210(void);
@@ -145,7 +122,7 @@ extern GpAreaApplyRec D_shelter_1f_tent_801843B8[];
 extern Task* D_shelter_1f_tent_801843C0;
 
 /// Parameters of the cutscene `func_shelter_1f_tent_8017FCA0` starts.
-extern Shelter1fTentCapScript D_shelter_1f_tent_801843C4;
+extern RoomCutsceneRec D_shelter_1f_tent_801843C4;
 
 void func_shelter_1f_tent_8017F448(Task* task);
 
@@ -1142,15 +1119,15 @@ void func_shelter_1f_tent_8017F448(Task* task)
 
 void func_shelter_1f_tent_8017F484(Task* task)
 {
-    s32                     poll;
-    s32                     cmd;
-    s32                     a0;
-    s32                     a1;
-    s32                     flag;
-    s32                     key;
-    s32                     one;
-    Shelter1fTentCapScript* script;
-    McSaveData*             save;
+    s32              poll;
+    s32              cmd;
+    s32              a0;
+    s32              a1;
+    s32              flag;
+    s32              key;
+    s32              one;
+    RoomCutsceneRec* script;
+    McSaveData*      save;
 
     script = task->spawnArg2;
     switch (task->state) {

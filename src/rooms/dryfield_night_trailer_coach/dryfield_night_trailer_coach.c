@@ -24,6 +24,7 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 
@@ -2435,14 +2436,14 @@ extern GpAreaApplyRec D_dryfield_night_trailer_coach_80188888;
 /// and restores everything before killing itself.
 void func_dryfield_night_trailer_coach_80181DB0(Task* task)
 {
-    RoomsShared80181228Rec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (RoomsShared80181228Rec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_dryfield_night_trailer_coach_8018C218 = NULL;
@@ -2788,9 +2789,9 @@ s32 func_dryfield_night_trailer_coach_801826A8(s32 arg0, s32 arg1, RoomEventMsg*
 /// four or more) -- then hands it to `D_dryfield_night_trailer_coach_80184FE4`. Request 3
 /// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
 /// asks the cap system to run command 0x17. Always returns 0.
-extern s8                     D_80072170;
-extern TaskDesc               D_dryfield_night_trailer_coach_8018797C;
-extern RoomsShared80181228Rec D_dryfield_night_trailer_coach_8018C21C;
+extern s8              D_80072170;
+extern TaskDesc        D_dryfield_night_trailer_coach_8018797C;
+extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
 
 s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
 {

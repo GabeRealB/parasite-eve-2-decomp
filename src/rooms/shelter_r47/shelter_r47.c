@@ -21,6 +21,7 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_r47.h"
@@ -147,7 +148,7 @@ extern Task*          D_shelter_r47_8018A68C;
 /// `func_shelter_r47_80180714`.
 extern Task* D_shelter_r47_8018A690;
 
-extern RoomsShared80181228Rec D_shelter_r47_8018A698;
+extern RoomCutsceneRec D_shelter_r47_8018A698;
 
 void func_shelter_r47_8017E434(UiList* list, UiObject* obj);
 void func_shelter_r47_8017E730(UiList* list, UiObject* obj);
@@ -1119,14 +1120,14 @@ void func_shelter_r47_8017F5EC(Task* task)
 
 void func_shelter_r47_8017F628(Task* task)
 {
-    RoomsShared80181228Rec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (RoomsShared80181228Rec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_shelter_r47_8018A68C = NULL;

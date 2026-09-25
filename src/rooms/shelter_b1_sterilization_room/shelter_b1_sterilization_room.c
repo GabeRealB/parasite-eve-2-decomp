@@ -28,6 +28,7 @@
 #include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_b1_sterilization_room.h"
@@ -128,7 +129,7 @@ extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334;
 /// of its table and waits on, or NULL while none runs.
 extern Task* D_shelter_b1_sterilization_room_8018C33C;
 
-extern RoomsShared80181228Rec D_shelter_b1_sterilization_room_8018C344;
+extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
@@ -1100,21 +1101,21 @@ void func_shelter_b1_sterilization_room_8017F514(Task* task)
     Ui_FreeAndKill(task);
 }
 
-/// Runs a cutscene described by the `RoomsShared80181228Rec` in `spawnArg2`:
+/// Runs a cutscene described by the `RoomCutsceneRec` in `spawnArg2`:
 /// hides the HUD and holds the player, optionally switches the view and loads
 /// a cap file, plays the cap slot while waiting on a spawned task that the
 /// confirm or cancel button can cut short, then runs the follow-up cap
 /// commands, restores the view and releases the player.
 void func_shelter_b1_sterilization_room_8017F550(Task* task)
 {
-    RoomsShared80181228Rec* rec;
-    s32                     killOut;
-    s32                     flag;
-    s32                     cmd;
-    s32                     fadeA;
-    s32                     fadeB;
+    RoomCutsceneRec* rec;
+    s32              killOut;
+    s32              flag;
+    s32              cmd;
+    s32              fadeA;
+    s32              fadeB;
 
-    rec = (RoomsShared80181228Rec*)task->spawnArg2;
+    rec = (RoomCutsceneRec*)task->spawnArg2;
     switch (task->state) {
         case 0:
             D_shelter_b1_sterilization_room_8018C33C = NULL;

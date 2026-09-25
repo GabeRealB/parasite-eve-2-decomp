@@ -47,4 +47,23 @@ typedef struct RoomActorMsg {
 } RoomActorMsg;
 STATIC_ASSERT_SIZEOF(RoomActorMsg, 0x4);
 
+/// What a room's cutscene runner plays: the record a room hands the runner
+/// task as `Task::spawnArg2`. The runner forces the scene's view into the save
+/// location, loads the capture file and starts the capture slot with the
+/// scene's sound task beside it, lets the player cut it short, and restores
+/// everything when it ends.
+typedef struct RoomCutsceneRec {
+    s8  field_0;  // Positive: the view forced into the save location for the scene; otherwise its negation is the view restored after
+    s8  field_1;  // Capture slot the scene starts, which also picks the command run after it
+    s8  field_2;  // Non-zero skips straight to the abort path
+    s8  field_3;  // Capture file to load first; 0 for none
+    s32 field_4;  // Sound event at the start
+    s32 field_8;  // Sound event at the end
+    s32 field_C;  // Sound event after a scene that was not skipped
+    s32 field_10; // Sound the scene's sound task plays, and that task's spawn argument
+    s16 field_14; // First of the pair handed on once the capture file is loaded; 0 selects 0x3C0 with a second of 0
+    s16 field_16; // Second of that pair
+} RoomCutsceneRec;
+STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
+
 #endif /* ROOMS_ROOM_H */

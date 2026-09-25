@@ -31,31 +31,6 @@ typedef struct DnmlExamineWork {
 } DnmlExamineWork;
 STATIC_ASSERT_SIZEOF(DnmlExamineWork, 0xA);
 
-/// `Task::spawnArg2` of the cap (cutscene) task this room family spawns, the
-/// third argument the message handler receives as `arg2`.
-///
-/// `field_0` is the area id forced for the duration of the scene; `field_1`
-/// selects the cap slot / command and `field_2` skips straight to the abort
-/// state. `field_3` is the cap file to load: the motel lobby picks between two
-/// takes of the same scene on `GameFlag_GetNibble(0x7A)`, one per side of the
-/// count of times the player has been through it. The four s32s are
-/// sound-event ids and `field_14` / `field_16` are the `func_800E6D4C` fade
-/// pair, the same layout `Shelter1fTentCapScript` uses.
-typedef struct DnmlCapScript {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s16 field_14;
-    /* 0x16 */ s16 field_16;
-} DnmlCapScript;
-
-STATIC_ASSERT_SIZEOF(DnmlCapScript, 0x18);
-
 /// The lobby's hotspot table: fifteen `RoomHotspot` entries, the last of them
 /// (index 14) the `id == -1` terminator the scans stop on. The room's init
 /// clears every entry's `hit` flag on the way in.
