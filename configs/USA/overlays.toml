@@ -3249,12 +3249,14 @@ objects = [
   { kind = "data", at = "0x873C" },
 ]
 
-[actors.overlays.actor_104400]
-slot = 1
-id = 84
+[actors.overlays.actor_04400]
+slots = [
+  { slot = 1, package = "actor_104400", id = 84 },
+  { slot = 3, package = "actor_342200", id = 242 },
+]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_104400/actor_104400", rodata = "0x4", text = "0x220" },
+  { unit = "actor_04400/actor_04400", rodata = "0x4", text = "0x220" },
   { kind = "model", at = "0x8E14" },
   { kind = "model", at = "0x9920" },
   { kind = "model", at = "0x9FC4" },
@@ -3973,26 +3975,6 @@ objects = [
   { kind = "packageId" },
   { unit = "actor_342100/actor_342100", rodata = "0x4", text = "0x50" },
   { kind = "data", at = "0x1714" },
-]
-
-[actors.overlays.actor_342200]
-slot = 3
-id = 242
-objects = [
-  { kind = "packageId" },
-  { kind = "rodata", at = "0x4" },
-  { kind = "rodata", at = "0xEC" },
-  { kind = "rodata", at = "0x128" },
-  { kind = "rodata", at = "0x150" },
-  { lib = true, unit = "actor_104400_text", rodata = "0xC4", text = "0x220" },
-  { lib = true, unit = "actor_104400_fn03390", rodata = "0x114", text = "0x3390" },
-  { lib = true, unit = "actor_104400_fn03538", rodata = "0x13C", text = "0x3538" },
-  { lib = true, unit = "actor_104400_text_tail", rodata = "0x1F4", text = "0x39EC" },
-  { kind = "model", at = "0x8E14" },
-  { kind = "model", at = "0x9920" },
-  { kind = "model", at = "0x9FC4" },
-  { kind = "model", at = "0xA534" },
-  { kind = "data", at = "0xD314" },
 ]
 
 [actors.overlays.actor_342400]
