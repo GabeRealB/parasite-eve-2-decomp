@@ -1,8 +1,1 @@
 // Overlay-local symbols for actor_460200.
-ActorsShared80132b88 = 0x80133568; // shared body, see src/lib/
-ActorsShared80132614 = 0x80133D4C; // shared body, see src/lib/
-ActorsShared80132c8c = 0x80132C8C; // shared body, see src/lib/
-ActorsShared80133580 = 0x80133580; // shared body, see src/lib/
-ActorsShared80133474 = 0x80133474; // shared body, see src/lib/
-ActorsShared80132c6c = 0x8013364C; // shared body, see src/lib/
-func_actor_460200_8013364C = 0x8013364C; // type:func absolute:True

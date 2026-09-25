@@ -94,7 +94,7 @@ void func_actor_460200_80132F0C(Task* task)
         } while (0);
         animId = work->animId;
         if (animId == 4 && work->travel != 0) {
-            ActorsShared8014c874_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
+            Actor460200_MoveForward(((TmdObject*)task->extra)->coords, 0x1E);
             work->travel = (u16)work->travel - 1;
             if (work->travel == 0) {
                 work->state   = 1;
