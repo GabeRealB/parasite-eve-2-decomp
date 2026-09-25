@@ -12,28 +12,25 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Step 0 of the `ActorsShared80131f9c` dispatcher: allocate the work block,
-/// publish it, and hand the model's animation context its slot array.
+/// Step 0 of the `func_actor_110800_801322A0` dispatcher: allocate the work
+/// block, publish it, and hand the model's animation context its slot array.
 ///
-/// Every access to the block goes through `ActorsShared80131f9cWork` rather
+/// Every access to the block goes through `D_actor_110800_80139F10` rather
 /// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. `task->msgTable` takes
 /// the message table the step-1 handler leaves behind.
-///
-/// Instruction-for-instruction the `actor_110300` copy of this body; only the
-/// data symbols it relocates against are this overlay's own.
-void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
+void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
 {
     VECTOR         vec;
     void*          work;
     TmdObject*     obj;
     GsCOORDINATE2* coord;
 
-    obj                      = task->extra;
-    coord                    = obj->coords;
-    work                     = memCalloc(0x55C, 0);
-    ActorsShared80131f9cWork = work;
-    task->work               = work;
+    obj                     = task->extra;
+    coord                   = obj->coords;
+    work                    = memCalloc(0x55C, 0);
+    D_actor_110800_80139F10 = work;
+    task->work              = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -48,21 +45,22 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
     coord->flg              = 0;
     D_actor_110800_80139F14 = (GpActorWork*)task;
     D_actor_110800_80139F18 = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
-    func_800B3F84(&ActorsShared80131f9cWork->anim, D_actor_110800_80139EF4, obj,
-                  ActorsShared80131f9cWork->aux, ActorsShared80131f9cWork->slots);
-    ActorsShared80131f9cWork->animId    = 1;
-    ActorsShared80131f9cWork->field_474 = 2;
+    func_800B3F84(&D_actor_110800_80139F10->anim, D_actor_110800_80139EF4, obj,
+                  D_actor_110800_80139F10->aux, D_actor_110800_80139F10->slots);
+    D_actor_110800_80139F10->animId    = 1;
+    D_actor_110800_80139F10->field_474 = 2;
     func_actor_110800_80132368(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    ActorsShared80131f9cWork->field_47A++;
+    D_actor_110800_80139F10->field_47A++;
     task->msgTable = D_actor_110800_80139EC4;
     task->state++;
 }
 
-/// Step 1 of the `ActorsShared80131f9c` dispatcher, the walk/run footstep cue:
+/// Step 1 of the `func_actor_110800_801322A0` dispatcher, the walk/run
+/// footstep cue:
 /// run the body the actor's step selects, cue the sound the running
 /// animation's frame table asks for, then refresh the model root as step 0 did
 /// by feeding its world translation to `func_800D7A9C` (the light solve)
@@ -84,7 +82,7 @@ void ActorsShared80131f9cSub0(GpEnemy* enemy, Task* task)
 /// The switch reads `animId` signed. The field is unsigned, so the cast is
 /// load-bearing: without it the halfword load is `lhu` where the target has
 /// `lh`.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
 {
     GsCOORDINATE2* coord;
     TmdObject*     obj;
@@ -93,51 +91,51 @@ void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
     coord = ((TmdObject*)task->extra)->coords;
     obj   = (TmdObject*)task->extra;
     func_actor_110800_80132368(task);
-    switch ((s16)ActorsShared80131f9cWork->animId) {
+    switch ((s16)D_actor_110800_80139F10->animId) {
         case 4:
-            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xC8) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xC8) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0011, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xCA) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xCA) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000D, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0xCD) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0xCD) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000E, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
             }
             break;
         case 5:
-            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0x115) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0x115) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[19].curRec & 0x3FF) == 0x11F) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[19].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[19].curRec & 0x3FF) == 0x11F) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[19].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[19].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[19].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[16].curRec & 0x3FF) == 0xCE) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[16].curRec & 0x3FF) == 0xCE) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[16].curRec & 0x3FF;
             }
-            if ((ActorsShared80131f9cWork->slots[16].curRec & 0x3FF) == 0xD8) {
-                if (ActorsShared80131f9cWork->field_47C != (ActorsShared80131f9cWork->slots[16].curRec & 0x3FF)) {
+            if ((D_actor_110800_80139F10->slots[16].curRec & 0x3FF) == 0xD8) {
+                if (D_actor_110800_80139F10->field_47C != (D_actor_110800_80139F10->slots[16].curRec & 0x3FF)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                ActorsShared80131f9cWork->field_47C = ActorsShared80131f9cWork->slots[16].curRec & 0x3FF;
+                D_actor_110800_80139F10->field_47C = D_actor_110800_80139F10->slots[16].curRec & 0x3FF;
             }
             break;
     }
