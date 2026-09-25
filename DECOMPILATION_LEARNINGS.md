@@ -4146,7 +4146,7 @@ The lever is a clobber, not a store. A `QI` store sets `writes_ptr->all`, so
 table - and scores *worse* (94.1%): sched keeps the `sb` where the source put
 it, so the store order changes and the whole block shifts. A `u16*`-cast access
 is no help either: CSE compares the MEM rtx, and `MEM_IN_STRUCT_P` is not part
-of that comparison (`(*(Actor110600WalkerNav **)work)` merges exactly like
+of that comparison (`(*(OverlayWalkerNav **)work)` merges exactly like
 `work->nav`). What works is a bare `SOFT_COMPILER_BARRIER()` between the check
 and the body - no instruction, all memory entries invalidated, 99.246% ->
 99.950% with every penalty at zero. Nothing else moves, because it touches
@@ -4154,7 +4154,7 @@ CSE's table and not the insn stream.
 
 Same function: the node table is read as `s16` (the printf logs the three
 packed coordinates with `%d`) while the walker steps carry the same bytes into
-`u16` cells; flipping `Actor110600WalkerNavNode::x/y/z` from `u16` to `s16`
+`u16` cells; flipping `OverlayWalkerNode::x/y/z` from `u16` to `s16`
 matched the printf's three `lh` without disturbing any of the five matched
 readers, which load into `u16` and so still emit `lhu`.
 
@@ -58066,7 +58066,7 @@ block and then hands it to a range test that carves off 0xC more bytes:
 ```c
 d->z = d->z - *(u16*)&work->coord->coord.t[2];
 ...
-acropolisBridgeOutOfRange(d, work->field_5C * 4)
+overlayWalkerOutOfRange(d, work->field_5C * 4)
 ```
 
 Passing `d->x`/`d->z` by value, the loads happen while CSE still knows
@@ -96944,7 +96944,7 @@ then reuses `$v1`. `regs=0`, 100%.
 
 ```c
     ramp             = work->field_B86;      /* load hoisted out of the range */
-    walker           = (Actor110600Walker*)((u8*)work + 0xB28);
+    walker           = (OverlayWalker*)((u8*)work + 0xB28);
     work->field_B90  = 0;
     walker->field_5C = 0;
     walker->field_5E = ramp;
@@ -97606,7 +97606,7 @@ job, and it scored 100.000% with all penalties zero on the first build after the
 baseline.
 
 The preparation that is *not* textual is the receiving overlay's struct view. The
-acropolis walker type names a `MATRIX scaleMtx` at 0x34; `Actor110600Walker` hid
+acropolis walker type names a `MATRIX scaleMtx` at 0x34; `OverlayWalker` hid
 the same bytes inside `pad_C[0x48]`, so the body's `work->scaleMtx.m` reads had to
 have the field carved out of the padding (offsets unchanged, so the neighbouring
 matched bodies were unaffected) rather than reached with a cast. Read the ported
@@ -97640,7 +97640,7 @@ target bytes, except on the artifact the C actually produced, so it also catches
 sibling whose source no longer compiles to its own ROM listing after a header
 change - which a `.s`-versus-`.s` diff cannot.
 
-Padding comments are not evidence either. `Actor110600WalkerNav` padded the word at
+Padding comments are not evidence either. `OverlayWalkerNav` padded the word at
 0x4 with "a second byte table the walker does not reach through this pointer, so it
 is only padded over here" - it is exactly the table that body indexes as
 `nav->field_4[walker->cursor]`. Carve the field out and correct the comment; the
@@ -113061,7 +113061,7 @@ either form, because it inlines `arg0->field_2C->field_C = 0;` inside the `if`.
 
 The walker base is the same m2c artefact: `work + 0xB28` on an
 `Actor110600Work*` scales by `sizeof` and emits `li $4,0x850000` /
-`ori $4,0xE0` / `addu`. Use the siblings' `(Actor110600Walker*)((u8*)work +
+`ori $4,0xE0` / `addu`. Use the siblings' `(OverlayWalker*)((u8*)work +
 0xB28)`, and let `func_actor_110600_80133A94` recompute it rather than reusing
 the local — the target materializes it twice, once in the `jal` delay slot.
 
@@ -113116,9 +113116,9 @@ names, and the field the walker ramps towards. The tail re-seeds the block after
 the two `jal`s, and written with the cast inline
 
 ```c
-            ((Actor110600Walker*)((u8*)work + 0xB28))->field_5C = 0;
-            ((Actor110600Walker*)((u8*)work + 0xB28))->field_60 = 2;
-            ((Actor110600Walker*)((u8*)work + 0xB28))->field_5E = work->field_B86;
+            ((OverlayWalker*)((u8*)work + 0xB28))->field_5C = 0;
+            ((OverlayWalker*)((u8*)work + 0xB28))->field_60 = 2;
+            ((OverlayWalker*)((u8*)work + 0xB28))->field_5E = work->field_B86;
 ```
 
 the `0x5E` store and its load are both absent from the object (`lhu v1,0xB86(s0)`
@@ -113447,7 +113447,7 @@ to move the `sb` in behind it. Declaring the callee with its real prototype and
 passing the argument:
 
 ```c
-s16 func_actor_110600_80132470(Actor110600Walker* walker);
+s16 func_actor_110600_80132470(OverlayWalker* walker);
 ...
 if (func_actor_110600_80132470(work) == 0) {
 ```
@@ -113742,8 +113742,8 @@ Two things the port has to carry that a `sed` of the type names does not:
 
 - The twin's scratch/helper structs are declared in the twin's own source or
   header, so this overlay needs its own copy — here a 0x18-byte
-  `Actor110600NearCfgScratch` (`dx`/`dy`/`dz`, the config pointer, `best`,
-  `dist`, `node`, `nearest`) alongside the 0x14-byte `Actor110600NearScratch`
+  `OverlayWalkerNearCfgScratch` (`dx`/`dy`/`dz`, the config pointer, `best`,
+  `dist`, `node`, `nearest`) alongside the 0x14-byte `OverlayWalkerNearScratch`
   the same scan uses without a config. Same layout, different name; the twin's
   type is not reachable from here.
 - That struct names `PlayerStatus`, so this overlay's header must
@@ -113970,8 +113970,8 @@ would be. The two bodies are instruction-identical (the `~` tier: same body at a
 different link offset), so this one is a type rename of its twin — it went from
 the m2c baseline of 85.982% (`branch=15 regs=14 insert=10 delete=12`,
 `blocks=33/33 instructions=163/161`) to 100.000% with every penalty zero on the
-next build, with the twin's `AcropolisBridgeMoveScratch` re-declared here as
-`Actor110600MoveScratch` and the walker's three unnamed slots given names. Read
+next build, with the twin's `OverlayWalkerMoveScratch` re-declared here as
+`OverlayWalkerMoveScratch` and the walker's three unnamed slots given names. Read
 the twin and transcribe it; do not go looking for a promotion.
 
 Inputs: `base_1.i` SHA256

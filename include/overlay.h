@@ -10,7 +10,10 @@
 #include "gte.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/3FB8.h"
 #include "main/mem.h"
+#include "main/session.h"
+#include "main/wipsys.h"
 
 /*
  * Types that room and actor overlays both carry.
@@ -389,6 +392,236 @@ static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
     d->vz                 = p->vz - eye->vz;
     *(u8**)G_SCRATCH_HEAD = head;
     return ratan2(d->vx, d->vy);
+}
+
+/// One node of a patrol walker's node table: a position the walker can steer
+/// for.
+typedef struct OverlayWalkerNode {
+    s16  x;
+    s16  y;
+    s16  z;
+    byte pad_6[0x2];
+} OverlayWalkerNode;
+STATIC_ASSERT_SIZEOF(OverlayWalkerNode, 0x8);
+
+/// A patrol walker's node table: `nodes` holds `count` positions, and
+/// `field_4` is a byte table of `field_9` node indices, one per patrol step,
+/// which the walker's own `cursor` walks and the route re-plan searches.
+typedef struct OverlayWalkerNav {
+    OverlayWalkerNode* nodes;
+    u8*                field_4;
+    u8                 count;
+    u8                 field_9;
+    byte               pad_A[0x2];
+} OverlayWalkerNav;
+STATIC_ASSERT_SIZEOF(OverlayWalkerNav, 0xC);
+
+/// One patrol route: a 0xFF-terminated list of node indices and the cursor
+/// into it, which wraps back to the first node at the terminator. `arrived` is
+/// raised on the frame the walker reaches the node it was heading for.
+typedef struct OverlayWalkerRoute {
+    u8* nodes;
+    u8  field_4;
+    u8  cursor;
+    u8  arrived;
+} OverlayWalkerRoute;
+STATIC_ASSERT_SIZEOF(OverlayWalkerRoute, 0x8);
+
+/// State of a patrol walker: an enemy that steers its coordinate from node to
+/// node of a patrol table, backs away from the obstacles among its contact
+/// records and scales its model in and out. `nav` and `route` point at the
+/// tables it walks, normally `navData` and `routeData`; `node` is the node it
+/// is heading for and `cursor` its index in the nav byte table. `recs` is the
+/// collision table the movement step measures the walker against, with
+/// `field_56` records, and `avoidRecs` the `avoidCount` contact records the
+/// avoidance step backs away from, adding what it moves to `push` and setting
+/// `blocked` when a record is of the blocking kind. `moveStep` is how far the
+/// walker moves this frame and `moveDelta` the whole-unit step the movement
+/// step applied; `moving` says whether that moved it in XZ at all. `scaleMtx`
+/// is the model's saved rotation, rebuilt around `scale`. `state` selects the
+/// walker's behaviour, `field_69` is the state the previous tick ran, and
+/// `field_6C` / `field_6D` skip the movement and avoidance steps while set.
+/// `field_6E` indexes the actor configuration table the walker is measured
+/// against, `field_73` is the signed advance applied to `cursor` on arrival,
+/// and `field_62` / `field_64` are movement deltas cleared on arrival.
+typedef struct OverlayWalker {
+    OverlayWalkerNav*   nav;
+    OverlayWalkerRoute* route;
+    GsCOORDINATE2*      coord;
+    GpRec18*            recs;
+    GpRec18*            avoidRecs;
+    byte                pad_14[0x8];
+    SVECTOR             moveStep;
+    SVECTOR             moveDelta;
+    SVECTOR3            push;
+    byte                pad_32[0x2];
+    MATRIX              scaleMtx;
+    s16                 scale;
+    s16                 field_56;
+    s16                 avoidCount;
+    s16                 field_5A;
+    u16                 field_5C;
+    u16                 field_5E;
+    u16                 field_60;
+    s16                 field_62;
+    s16                 field_64;
+    byte                pad_66[0x2];
+    u8                  state;
+    u8                  field_69;
+    u8                  node;
+    u8                  field_6B;
+    u8                  field_6C;
+    u8                  field_6D;
+    u8                  field_6E;
+    u8                  field_6F;
+    u8                  field_70;
+    u8                  field_71;
+    u8                  field_72;
+    s8                  field_73;
+    byte                pad_74[0x1];
+    u8                  field_75;
+    u8                  cursor;
+    u8                  blocked;
+    u8                  moving;
+    byte                pad_79[0x7];
+    OverlayWalkerNav    navData;
+    OverlayWalkerRoute  routeData;
+} OverlayWalker;
+STATIC_ASSERT_SIZEOF(OverlayWalker, 0x94);
+
+/// The scratch-pad block a patrol walker's arrival test stages the offset
+/// from the walker to its node in. The node's coordinates are copied over and
+/// the walker's translation subtracted in place; `y` is flattened to zero
+/// because the test only measures in the XZ plane.
+typedef struct OverlayWalkerArrivalDelta {
+    u16  x;
+    u16  y;
+    u16  z;
+    byte pad_6[0x2];
+} OverlayWalkerArrivalDelta;
+STATIC_ASSERT_SIZEOF(OverlayWalkerArrivalDelta, 0x8);
+
+/// The scratch-pad block of a patrol walker's nearest-node scan from its own
+/// coordinate: `dx` and `dz` are the offsets to the node under test and
+/// `dist` their squared sum, compared with the running `best`, which starts
+/// at -1 so the first node always wins; `nearest` is the winner.
+typedef struct OverlayWalkerNearScratch {
+    s16  dx;
+    byte pad_2[0x2];
+    s16  dz;
+    byte pad_6[0x2];
+    u32  best;
+    u32  dist;
+    u8   node;
+    u8   nearest;
+    byte pad_12[0x2];
+} OverlayWalkerNearScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerNearScratch, 0x14);
+
+/// The same nearest-node scan measured from the coordinate of the actor
+/// configuration `cfg` instead of the walker's own; `dy` is staged but never
+/// enters the distance.
+typedef struct OverlayWalkerNearCfgScratch {
+    s16           dx;
+    s16           dy;
+    s16           dz;
+    byte          pad_6[0x2];
+    PlayerStatus* cfg;
+    u32           best;
+    u32           dist;
+    u8            node;
+    u8            nearest;
+    byte          pad_16[0x2];
+} OverlayWalkerNearCfgScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerNearCfgScratch, 0x18);
+
+/// The scratch-pad block of a patrol walker's route re-plan. `nodeA` is the
+/// node nearest the actor the walker reacts to and `nodeB` the node nearest
+/// the walker; `listA` and `listB` collect the nav byte-table slots naming
+/// each, terminated by 0xFF, and `i` and `j` walk them. `diff` is the signed
+/// step between the pair under test and `best` the smallest seen, starting at
+/// 0xFF so the first pair always wins.
+typedef struct OverlayWalkerRouteScratch {
+    s16  diff;
+    byte pad_2[0x2];
+    u8   nodeA;
+    u8   nodeB;
+    u8   i;
+    u8   j;
+    u8   best;
+    u8   countA;
+    u8   countB;
+    byte pad_B[0x1];
+    u8   listB[8];
+    u8   listA[8];
+} OverlayWalkerRouteScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerRouteScratch, 0x1C);
+
+/// The scratch-pad block of a patrol walker's movement step: the 16.16 step
+/// `func_800E0C10` resolves toward the node, then the whole-unit step applied
+/// to the walker's coordinate.
+typedef struct OverlayWalkerMoveScratch {
+    GpDeltaScratch delta;
+    SVECTOR        move;
+} OverlayWalkerMoveScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerMoveScratch, 0x18);
+
+/// The scratch-pad frame a patrol walker's tick opens: `pos` is the position
+/// the walker steers for this frame. Nothing else in the frame is read.
+typedef struct OverlayWalkerTickScratch {
+    s32      field_0;
+    SVECTOR3 pos;
+    byte     pad_A[0x1E];
+} OverlayWalkerTickScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerTickScratch, 0x28);
+
+/// The scratch-pad frame a patrol walker's turn step opens, around the
+/// bearing delta it stages below `angle`: first the bearing relative to the
+/// walker's yaw, then that turn clamped to the per-frame limit, and finally
+/// the absolute yaw the walker ends the frame facing.
+typedef struct OverlayWalkerTurnScratch {
+    byte pad_0[0x18];
+    s16  angle;
+    byte pad_1A[0x2];
+} OverlayWalkerTurnScratch;
+STATIC_ASSERT_SIZEOF(OverlayWalkerTurnScratch, 0x1C);
+
+/// Whether the XZ offset staged in `d` is at least `r` long, squaring both
+/// sides in a scratch block of its own.
+static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 r)
+{
+    OverlayRangeScratch* b;
+    u8*                  head;
+
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    *(u8**)G_SCRATCH_HEAD = head - 0xC;
+    b                     = (OverlayRangeScratch*)*(u8**)G_SCRATCH_HEAD;
+
+    b->dx                 = (s16)d->x;
+    b->dz                 = (s16)d->z;
+    b->r                  = r;
+    b->dx                 = b->dx * b->dx;
+    b->dz                 = b->dz * b->dz;
+    b->r                  = b->r * b->r;
+    *(u8**)G_SCRATCH_HEAD = head;
+    return b->dx + b->dz >= b->r;
+}
+
+/// Bearing of `pos` from the full-width translation of `coord` on the XZ
+/// plane. The offset is staged on the scratch pad and released before
+/// `ratan2` runs.
+static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
+{
+    u8*                head;
+    OverlayAvoidDelta* d;
+    head                  = *(u8**)G_SCRATCH_HEAD;
+    d                     = (OverlayAvoidDelta*)(head - 0x10);
+    d->vx                 = pos->vx - coord->coord.t[0];
+    *(u8**)G_SCRATCH_HEAD = (u8*)d;
+    d->vy                 = pos->vy - coord->coord.t[1];
+    d->vz                 = pos->vz - coord->coord.t[2];
+    *(u8**)G_SCRATCH_HEAD = head;
+    return ratan2(d->vx, d->vz);
 }
 
 #endif /* OVERLAY_H */
