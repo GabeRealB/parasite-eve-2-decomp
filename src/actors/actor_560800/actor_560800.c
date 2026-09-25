@@ -83,17 +83,6 @@ typedef struct Actor560800Work {
 } Actor560800Work;
 STATIC_ASSERT_SIZEOF(Actor560800Work, 0x68);
 
-/// One step of the animation script `func_actor_560800_80132340` walks,
-/// indexed by `Actor560800Work::field_60`: `field_0` is the frame hold counted
-/// in `field_62` (0 waits for the player to report the clip done, message
-/// 0x3ED), and `field_2` is the next animation id sent as message 0x3F4; a
-/// negative `field_2` ends the script.
-typedef struct Actor560800AnimStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} Actor560800AnimStep;
-STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
-
 /// Work block of the sub-task `Actor560800Work::field_8` points at, spawned
 /// from `D_actor_560800_801718F0` index 5 (`func_actor_560800_80132C60`).
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
@@ -101,13 +90,8 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// is the allocation, not a guess. It is a third work block in this overlay,
 /// distinct from `Actor560800Work` and `OverlayFadeWork`.
 ///
-/// `anim` is the animation context the block itself is handed to
-/// `Gp_AnimResetSlot` as, laid out the way every actor carries it: the context
-/// at 0, its 0x14 slots at +0x14 and the 0x90-byte scratch `func_800B3F84`
-/// takes as its `arg3` at +0x334. `func_actor_560800_80132C60` passes exactly
-/// `block`, `block + 0x334` and `block + 0x14` to that call and then stores
-/// 0x14 in `field_4BA`, which is why the slots array is sized 0x14 and the
-/// scratch sits where it does.
+/// `rig` is the model's animation rig; the spawn routine stores 0x14 in
+/// `field_4BA`, the slot count the reset loop walks.
 ///
 /// `field_4B8` is the animation id the slots are seeded with, `field_4BA` the
 /// slot count the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
@@ -115,23 +99,20 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// `field_4B4` is the animation script `func_actor_560800_80132498` walks by
 /// `field_4B8`, with `field_4BE` as its hold counter.
 typedef struct Actor560800AnimWork {
-    /* 0x000 */ GpAnimCtx            anim;
-    /* 0x014 */ GpAnimSlot           slots[0x14];
-    /* 0x334 */ byte                 animAux[0x90];
-    /* 0x3C4 */ byte                 pad_3C4[0xB0];
-    /* 0x474 */ MATRIX               light;
-    /* 0x494 */ MATRIX               color;
-    /* 0x4B4 */ Actor560800AnimStep* field_4B4;
-    /* 0x4B8 */ s16                  field_4B8;
-    /* 0x4BA */ u16                  field_4BA;
-    /* 0x4BC */ u16                  field_4BC;
-    /* 0x4BE */ s16                  field_4BE;
-    /* 0x4C0 */ s16                  field_4C0;
-    /* 0x4C2 */ s16                  field_4C2;
-    /* 0x4C4 */ s16                  field_4C4;
-    /* 0x4C6 */ s16                  field_4C6;
-    /* 0x4C8 */ s16                  field_4C8;
-    /* 0x4CA */ s16                  field_4CA;
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ MATRIX         light;
+    /* 0x494 */ MATRIX         color;
+    /* 0x4B4 */ ActorAnimStep* field_4B4;
+    /* 0x4B8 */ s16            field_4B8;
+    /* 0x4BA */ u16            field_4BA;
+    /* 0x4BC */ u16            field_4BC;
+    /* 0x4BE */ s16            field_4BE;
+    /* 0x4C0 */ s16            field_4C0;
+    /* 0x4C2 */ s16            field_4C2;
+    /* 0x4C4 */ s16            field_4C4;
+    /* 0x4C6 */ s16            field_4C6;
+    /* 0x4C8 */ s16            field_4C8;
+    /* 0x4CA */ s16            field_4CA;
 } Actor560800AnimWork;
 STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 
@@ -266,8 +247,8 @@ extern Task* D_actor_560800_8017578C;
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern u8 D_actor_560800_8016EA40[];
 
-extern Actor560800AnimStep D_actor_560800_8016EBE8[];
-extern s32                 D_actor_560800_8016F1CC[];
+extern ActorAnimStep D_actor_560800_8016EBE8[];
+extern s32           D_actor_560800_8016F1CC[];
 
 /// Animation bank `func_actor_560800_801376E0` hands `func_800B3F84` as its
 /// second argument: a null entry then one animation set per slot of
@@ -430,13 +411,13 @@ L_case5:
 
 s32 func_actor_560800_80132340(Task* arg0)
 {
-    Actor560800Work*     work;
-    Actor560800AnimStep* table;
-    Actor560800AnimStep* entry;
-    Actor560800AnimStep* entry2;
-    GpAnimArg            msg;
-    u16                  anim;
-    u16                  anim2;
+    Actor560800Work* work;
+    ActorAnimStep*   table;
+    ActorAnimStep*   entry;
+    ActorAnimStep*   entry2;
+    GpAnimArg        msg;
+    u16              anim;
+    u16              anim2;
 
     work = (Actor560800Work*)arg0->work;
     if (work->field_0 == NULL) {
@@ -444,12 +425,12 @@ s32 func_actor_560800_80132340(Task* arg0)
     }
     table = D_actor_560800_8016EBE8;
     entry = &table[(u16)work->field_60];
-    if (entry->field_0 != 0) {
-        if (work->field_62 >= entry->field_0) {
-            if (entry->field_2 < 0) {
+    if (entry->hold != 0) {
+        if (work->field_62 >= entry->hold) {
+            if (entry->animId < 0) {
                 return 1;
             }
-            anim              = entry->field_2;
+            anim              = entry->animId;
             msg.animBlock.ptr = D_actor_560800_8016EA40;
             work->field_60    = anim;
             msg.field_4       = anim;
@@ -466,12 +447,12 @@ s32 func_actor_560800_80132340(Task* arg0)
             return 0;
         }
         entry2 = &D_actor_560800_8016EBE8[(u16)work->field_60];
-        if (entry2->field_2 < 0) {
+        if (entry2->animId < 0) {
             return 1;
         }
         work = (Actor560800Work*)arg0->work;
         if (work->field_0 != NULL) {
-            anim2             = entry2->field_2;
+            anim2             = entry2->animId;
             msg.animBlock.ptr = D_actor_560800_8016EA40;
             work->field_60    = anim2;
             msg.field_4       = anim2;
@@ -500,12 +481,12 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
     w->field_4BE = 0;
     SOFT_BARRIER();
     for (i = 1; i < w->field_4BA; i++) {
-        func_800B4114(&w->anim, i, id, 0, 10);
+        func_800B4114(&w->rig.anim, i, id, 0, 10);
     }
 }
 
 /// Ticks every animation slot, then advances the script at `field_4B4`: a step
-/// with a non-zero hold waits `field_0` frames in `field_4BE`, a zero hold waits
+/// with a non-zero hold waits `hold` frames in `field_4BE`, a zero hold waits
 /// for every slot to finish (bit 0x100 of the slot's `flags`). Returns 1 when the next
 /// step's id is negative (the script ended), 0 otherwise.
 ///
@@ -523,20 +504,20 @@ s32 func_actor_560800_80132498(Task* arg0)
         return 0;
     }
     for (i = 1; i < work->field_4BA; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
     for (; i < work->field_4BA; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & 0x100)) {
             done = 0;
             break;
         }
     }
-    if (work->field_4B4[(u16)work->field_4B8].field_0 != 0) {
-        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].field_0) {
-            if (work->field_4B4[(u16)work->field_4B8].field_2 >= 0) {
-                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].field_2, work->field_4C8);
+    if (work->field_4B4[(u16)work->field_4B8].hold != 0) {
+        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].hold) {
+            if (work->field_4B4[(u16)work->field_4B8].animId >= 0) {
+                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].animId, work->field_4C8);
             } else {
                 return 1;
             }
@@ -544,8 +525,8 @@ s32 func_actor_560800_80132498(Task* arg0)
             work->field_4BE++;
         }
     } else if (done) {
-        if (work->field_4B4[(u16)work->field_4B8].field_2 >= 0) {
-            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].field_2, work->field_4C8);
+        if (work->field_4B4[(u16)work->field_4B8].animId >= 0) {
+            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].animId, work->field_4C8);
         } else {
             return 1;
         }
@@ -604,7 +585,7 @@ void func_actor_560800_801326C4(Task* arg0)
             work                              = (Actor560800AnimWork*)arg0->work;
             {
                 TmdObject* obj = arg0->extra;
-                func_800B3F84(&work->anim, &D_actor_560800_8016EB04, obj, work->animAux, work->slots);
+                func_800B3F84(&work->rig.anim, &D_actor_560800_8016EB04, obj, work->rig.poses, work->rig.slots);
             }
             work->field_4BA = 0x13;
             work->field_4B4 = &D_actor_560800_8016ECAC;
@@ -617,8 +598,8 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4C8 = fade;
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
-                    w->slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->anim, i, 0);
+                    w->rig.slots[i].rate = fade;
+                    Gp_AnimResetSlot(&w->rig.anim, i, 0);
                 }
             } else {
                 Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
@@ -629,8 +610,8 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4C8 = fade;
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
-                    w->slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->anim, i, 2);
+                    w->rig.slots[i].rate = fade;
+                    Gp_AnimResetSlot(&w->rig.anim, i, 2);
                 }
             }
             arg0->state += 1;
@@ -780,7 +761,7 @@ void func_actor_560800_80132C60(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra;
-            func_800B3F84(&work->anim, &D_actor_560800_8016EA74, obj, work->animAux, work->slots);
+            func_800B3F84(&work->rig.anim, &D_actor_560800_8016EA74, obj, work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x14;
         work->field_4B4 = &D_actor_560800_8016EC1C;
@@ -793,8 +774,8 @@ void func_actor_560800_80132C60(Task* arg0)
             w->field_4C8 = fade;
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
-                w->slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->anim, i, 0);
+                w->rig.slots[i].rate = fade;
+                Gp_AnimResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -870,7 +851,7 @@ void func_actor_560800_80132F64(Task* arg0)
         work = (Actor560800AnimWork*)arg0->work;
         {
             TmdObject* obj = arg0->extra;
-            func_800B3F84(&work->anim, &D_actor_560800_8016EB30, obj, work->animAux, work->slots);
+            func_800B3F84(&work->rig.anim, &D_actor_560800_8016EB30, obj, work->rig.poses, work->rig.slots);
         }
         work->field_4BA = 0x13;
         work->field_4B4 = &D_actor_560800_8016ECC4;
@@ -883,8 +864,8 @@ void func_actor_560800_80132F64(Task* arg0)
             w->field_4C8 = fade;
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
-                w->slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->anim, i, 0);
+                w->rig.slots[i].rate = fade;
+                Gp_AnimResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -1365,8 +1346,8 @@ void func_actor_560800_80134258(Task* task)
             anim->field_4BE = 0;
             if (i < anim->field_4BA) {
                 do {
-                    anim->slots[i].rate = rate;
-                    Gp_AnimResetSlot(&anim->anim, i, 3);
+                    anim->rig.slots[i].rate = rate;
+                    Gp_AnimResetSlot(&anim->rig.anim, i, 3);
                     i++;
                 } while (i < anim->field_4BA);
             }
@@ -1387,8 +1368,8 @@ static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 cli
     anim->field_4BE = 0;
     if (i < anim->field_4BA) {
         do {
-            anim->slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->anim, i, clip);
+            anim->rig.slots[i].rate = rate;
+            Gp_AnimResetSlot(&anim->rig.anim, i, clip);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -1454,8 +1435,8 @@ void func_actor_560800_80134384(Task* task)
                         return;
                     }
                     for (;;) {
-                        anim->slots[i].rate = rate;
-                        Gp_AnimResetSlot(&anim->anim, i, 0x2D);
+                        anim->rig.slots[i].rate = rate;
+                        Gp_AnimResetSlot(&anim->rig.anim, i, 0x2D);
                         i++;
                         if (i < anim->field_4BA) {
                             continue;
@@ -1512,8 +1493,8 @@ void func_actor_560800_80134B14(s32 arg0)
     i               = 1;
     if (i < anim->field_4BA) {
         do {
-            anim->slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->anim, i, 0x20);
+            anim->rig.slots[i].rate = rate;
+            Gp_AnimResetSlot(&anim->rig.anim, i, 0x20);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -1539,7 +1520,7 @@ static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
     if (first < count) {
         i = 1;
         do {
-            func_800B4114(&w->anim, i, id, 0, 10);
+            func_800B4114(&w->rig.anim, i, id, 0, 10);
             i++;
         } while (i < w->field_4BA);
     }
@@ -1557,8 +1538,8 @@ static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
     anim->field_4BE = 0;
     if (i < anim->field_4BA) {
         do {
-            anim->slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->anim, i, id);
+            anim->rig.slots[i].rate = rate;
+            Gp_AnimResetSlot(&anim->rig.anim, i, id);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -1773,7 +1754,7 @@ void func_actor_560800_80134BFC(Task* arg0)
                     if (first < count) {
                         i = 1;
                         do {
-                            func_800B4114(&blend->anim, i, 0x20, 0, 5);
+                            func_800B4114(&blend->rig.anim, i, 0x20, 0, 5);
                             i++;
                         } while (i < blend->field_4BA);
                     }
@@ -1809,7 +1790,7 @@ void func_actor_560800_80134BFC(Task* arg0)
                     anim->field_4BE = 0;
                     SOFT_BARRIER();
                     for (i = 1; i < anim->field_4BA; i++) {
-                        func_800B4114(&anim->anim, i, 3, 0, 10);
+                        func_800B4114(&anim->rig.anim, i, 3, 0, 10);
                     }
                     work->field_42++;
                     return;
@@ -2147,7 +2128,7 @@ void func_actor_560800_801363F8(u16 arg0)
     i = 1;
     if (i < anim->field_4BA) {
         do {
-            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            func_800B4114(&anim->rig.anim, i, arg0, 0, 10);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -2179,7 +2160,7 @@ void func_actor_560800_801364A0(u16 arg0)
     i = 1;
     if (i < anim->field_4BA) {
         do {
-            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            func_800B4114(&anim->rig.anim, i, arg0, 0, 10);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -2227,7 +2208,7 @@ void func_actor_560800_801365D0(u16 arg0)
     i = 1;
     if (i < anim->field_4BA) {
         do {
-            func_800B4114(&anim->anim, i, arg0, 0, 10);
+            func_800B4114(&anim->rig.anim, i, arg0, 0, 10);
             i++;
         } while (i < anim->field_4BA);
     }

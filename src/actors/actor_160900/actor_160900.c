@@ -52,7 +52,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 /// `D_actor_160900_8013FB50` indices 3, 5 and 6.
 ///
 /// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
-/// against the step's `field_0`.
+/// against the step's `hold`.
 ///
 /// `wave` is the context of the screen-wave task `func_actor_160900_80131EB0`,
 /// which the `field_4C == 4` request spawns with it as the argument after
@@ -82,33 +82,19 @@ typedef struct Actor160900Work {
 STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
 
 /// Work block of the `D_actor_160900_8013FB50[3]` child (`field_38`), as far
-/// as `func_actor_160900_8013358C` reaches into it: it is also the anim context
-/// handed to `func_800B4114`.
+/// as `func_actor_160900_8013358C` reaches into it: the model's rig, the
+/// matrices it is lit with, and the animation script it walks.
 typedef struct Actor160900Child3Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
-    /* 0x334 */ byte       aux[0x140];  // `func_800B3F84` arg3
-    /* 0x474 */ MATRIX     light;       // `TmdObject::lightMtx`
-    /* 0x494 */ MATRIX     color;       // `TmdObject::colorMtx`
-    /* 0x4B4 */ void*      field_4B4;
-    /* 0x4B8 */ s16        field_4B8;
-    /* 0x4BA */ s16        field_4BA;
+    /* 0x000 */ ActorAnimRig20 rig;
+    /* 0x474 */ MATRIX         light; // `TmdObject::lightMtx`
+    /* 0x494 */ MATRIX         color; // `TmdObject::colorMtx`
+    /* 0x4B4 */ void*          field_4B4;
+    /* 0x4B8 */ s16            field_4B8;
+    /* 0x4BA */ s16            field_4BA;
 } Actor160900Child3Work;
 STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
 
-void func_800B4114(Actor160900Child3Work* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-/// One step of the animation script `D_actor_160900_8013F1CC`
-/// `func_actor_160900_801326EC` walks: `field_0` is how many frames to hold the
-/// step (`field_66` counts them up) and `field_2` the index of the next step,
-/// sent to the player as message 0x3F4's animation id; a negative `field_2`
-/// ends the script. Every `field_0` in the table is zero, so the hold is not
-/// what paces the shipped script.
-typedef struct Actor160900AnimStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ s16 field_2;
-} Actor160900AnimStep;
-STATIC_ASSERT_SIZEOF(Actor160900AnimStep, 0x4);
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern Task* D_actor_160900_8013FBB4;
 
@@ -119,8 +105,8 @@ extern TaskDesc D_actor_160900_8013FB50;
 
 /// Animation script `func_actor_160900_801326EC` walks and the animation-set
 /// table it hands the player task as message 0x3F4's `field_0`.
-extern Actor160900AnimStep D_actor_160900_8013F1CC[];
-extern u8                  D_actor_160900_8013F198[];
+extern ActorAnimStep D_actor_160900_8013F1CC[];
+extern u8            D_actor_160900_8013F198[];
 
 extern s32      D_80070F70;
 extern s8       D_8007218A;
@@ -312,13 +298,13 @@ extern u8 D_actor_160900_8013F240[];
 
 s32 func_actor_160900_801326EC(Task* arg0)
 {
-    Actor160900Work*     work;
-    Actor160900AnimStep* table;
-    Actor160900AnimStep* entry;
-    Actor160900AnimStep* entry2;
-    GpAnimArg            msg;
-    u16                  anim;
-    u16                  anim2;
+    Actor160900Work* work;
+    ActorAnimStep*   table;
+    ActorAnimStep*   entry;
+    ActorAnimStep*   entry2;
+    GpAnimArg        msg;
+    u16              anim;
+    u16              anim2;
 
     work = (Actor160900Work*)arg0->work;
     if (work->field_34 == NULL) {
@@ -326,12 +312,12 @@ s32 func_actor_160900_801326EC(Task* arg0)
     }
     table = D_actor_160900_8013F1CC;
     entry = &table[work->field_64];
-    if (entry->field_0 != 0) {
-        if ((s16)work->field_66 >= entry->field_0) {
-            if (entry->field_2 < 0) {
+    if (entry->hold != 0) {
+        if ((s16)work->field_66 >= entry->hold) {
+            if (entry->animId < 0) {
                 return 1;
             }
-            anim              = entry->field_2;
+            anim              = entry->animId;
             msg.animBlock.ptr = D_actor_160900_8013F198;
             work->field_64    = anim;
             msg.field_4       = anim;
@@ -348,12 +334,12 @@ s32 func_actor_160900_801326EC(Task* arg0)
             return 0;
         }
         entry2 = &D_actor_160900_8013F1CC[work->field_64];
-        if (entry2->field_2 < 0) {
+        if (entry2->animId < 0) {
             return 1;
         }
         work = (Actor160900Work*)arg0->work;
         if (work->field_34 != NULL) {
-            anim2             = entry2->field_2;
+            anim2             = entry2->animId;
             msg.animBlock.ptr = D_actor_160900_8013F198;
             work->field_64    = anim2;
             msg.field_4       = anim2;
@@ -379,14 +365,14 @@ static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
     id              = anim;
     TOUCH_REG_USE2(id, work, work);
     for (; i < 0x14; i++) {
-        func_800B4114(work, i, id, 0, 0xA);
+        func_800B4114(&work->rig.anim, i, id, 0, 0xA);
     }
 }
 
 s32 func_actor_160900_80132844(Task* arg0)
 {
     Actor160900Child3Work* work;
-    Actor160900AnimStep*   table;
+    ActorAnimStep*         table;
     u16                    i;
     u16                    done;
 
@@ -395,21 +381,21 @@ s32 func_actor_160900_80132844(Task* arg0)
         return 0;
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
     for (; i < 0x14; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & 0x100)) {
             done = 0;
             break;
         }
     }
-    table = (Actor160900AnimStep*)work->field_4B4;
-    if (table[(u16)work->field_4B8].field_0 != 0) {
-        if (work->field_4BA >= table[(u16)work->field_4B8].field_0) {
-            if (table[(u16)work->field_4B8].field_2 >= 0) {
-                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].field_2);
+    table = (ActorAnimStep*)work->field_4B4;
+    if (table[(u16)work->field_4B8].hold != 0) {
+        if (work->field_4BA >= table[(u16)work->field_4B8].hold) {
+            if (table[(u16)work->field_4B8].animId >= 0) {
+                func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].animId);
             } else {
                 return 1;
             }
@@ -417,8 +403,8 @@ s32 func_actor_160900_80132844(Task* arg0)
             work->field_4BA++;
         }
     } else if (done) {
-        if (table[(u16)work->field_4B8].field_2 >= 0) {
-            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].field_2);
+        if (table[(u16)work->field_4B8].animId >= 0) {
+            func_actor_160900_Reseed(arg0, table[(u16)work->field_4B8].animId);
         } else {
             return 1;
         }
@@ -501,15 +487,15 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     s32                    i;
 
     work = (Actor160900Child3Work*)task->work;
-    func_800B3F84(&work->anim, D_actor_160900_8013F1C4, obj, work->aux, work->slots);
+    func_800B3F84(&work->rig.anim, D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
     work->field_4B4 = D_actor_160900_8013F1F8;
     work            = (Actor160900Child3Work*)task->work;
     i               = 1;
     work->field_4B8 = 0;
     work->field_4BA = 0;
     do {
-        work->slots[(u16)i].rate = 0x10;
-        Gp_AnimResetSlot(&work->anim, (u16)i, 0);
+        work->rig.slots[(u16)i].rate = 0x10;
+        Gp_AnimResetSlot(&work->rig.anim, (u16)i, 0);
         i++;
     } while ((u16)i < 0x14U);
 }
@@ -878,7 +864,7 @@ void func_actor_160900_8013358C(Task* arg0)
             do {
             } while (0);
             for (i = 1; (u16)i < 20; i++) {
-                func_800B4114(child, (u16)i, 1, 0, 10);
+                func_800B4114(&child->rig.anim, (u16)i, 1, 0, 10);
             }
             break;
         case 4:

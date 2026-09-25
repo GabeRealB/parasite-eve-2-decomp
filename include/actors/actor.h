@@ -307,6 +307,16 @@ typedef struct ActorEnemyState {
 } ActorEnemyState;
 STATIC_ASSERT_SIZEOF(ActorEnemyState, 0x38);
 
+/// One step of an animation script a cutscene controller walks, feeding the
+/// player's animation: `hold` is how many frames to hold the step, 0 waiting
+/// for the player to report the clip done, and `animId` the next animation,
+/// sent to the player as message 0x3F4; a negative `animId` ends the script.
+typedef struct ActorAnimStep {
+    u16 hold;
+    s16 animId;
+} ActorAnimStep;
+STATIC_ASSERT_SIZEOF(ActorAnimStep, 0x4);
+
 /* Work blocks of actors that carry the same code. */
 
 /// Status flags of `Actor341700Work`, read through two widths: every guard
