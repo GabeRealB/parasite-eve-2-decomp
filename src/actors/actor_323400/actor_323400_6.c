@@ -1,10 +1,15 @@
 #include "common.h"
 
-#include "actors/actor_421600.h"
 #include "gameplay/3CD8.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
-void ActorsShared80164aa0(Actor421600* arg0, s16 arg1, s16 arg2)
+/// Spawns effect 0x60054 at coordinate `arg1` of the actor's model while the
+/// room's effect set is live, with the offset that limb uses (none at the
+/// root and part 1, 0x2BC up at parts 9 and 7, 0x258 up at 14 and 17); the
+/// spawn argument is `arg2` with bit 31 set. Other coordinates spawn nothing.
+/// Nothing in this package calls it.
+void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2)
 {
     SVECTOR sp10;
     s32     spawn;
@@ -42,6 +47,6 @@ void ActorsShared80164aa0(Actor421600* arg0, s16 arg1, s16 arg2)
     }
 
     if (Gp_State1C->roomEffectMode == 2 && spawn == 1) {
-        Gp_SpawnEff(0x60054, &arg0->field_2C->coords[arg1], arg2 | 0x80000000, &sp10);
+        Gp_SpawnEff(0x60054, &((TmdObject*)task->extra)->coords[arg1], arg2 | 0x80000000, &sp10);
     }
 }

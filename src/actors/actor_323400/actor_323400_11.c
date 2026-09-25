@@ -1,16 +1,20 @@
 #include "common.h"
 
-#include "actors/actors_shared_80164844.h"
-
+#include "actors/actor_323400.h"
 #include "main/tmd.h"
 
-s32 ActorsShared80164844(Task* task, s32 arg1, s32 arg2)
+/// Handler for message 0x7D5: sets the model's display flags for the mode in
+/// `arg2` and picks the state that follows. 0 sets flag 0x80, rebuilds the
+/// buffers and restarts state 0; 1 clears the flags, rebuilds and starts
+/// state 2; 2 raises flag 4 over the current flags and 3 replaces them with
+/// it, both restarting state 0.
+s32 func_actor_323400_80164764(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject*                obj;
-    ActorsShared80164844Work* work;
+    TmdObject*       obj;
+    Actor323400Work* work;
 
     obj  = (TmdObject*)task->extra;
-    work = (ActorsShared80164844Work*)task->work;
+    work = (Actor323400Work*)task->work;
     switch (arg2) {
         case 0:
             obj->flags = 0x80;

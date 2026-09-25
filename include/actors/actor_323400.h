@@ -7,43 +7,58 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Head of the work block this overlay hangs behind `Task::work`; only the
-/// slots its handlers touch are known. `field_0` is the animation state the
-/// message handler below selects, the same slot `Actor323000Work` names
-/// `field_0`; `field_4` is the live flag the dispatcher
-/// `func_actor_323400_801644C4` raises when that state changes and the re-init
-/// handler below clears. `field_6` is the frame counter
-/// `func_actor_323400_801641C4` advances; zeroed by that handler's re-init
-/// path. The `field_828` / `field_832` / `field_83E` / `field_840` group is
-/// the animation-state set the `Actor00100Work` family keeps at the same
-/// offsets, written in the same order by the sibling
-/// `func_actor_323000_80164C58`. The block is the same 0x934 bytes the spawn
-/// handler allocates, and the three bytes at 0x91C are the message payload's
-/// three leading bytes, as in that sibling.
+/// The 0x934-byte work block this overlay hangs behind `Task::work`. Only the
+/// fields the handlers touch are known: `field_4` is the state-change flag
+/// every state handler tests, and `field_828` onwards are the animation-state
+/// slots the state handlers seed and the tick keeps.
+///
+/// It holds two animation contexts, each a `GpAnimCtx` followed by its 18-slot
+/// array and a 0x120-byte pose buffer: the main one at 0x1C and the blend one
+/// at 0x420.
 typedef struct Actor323400Work {
+    /// Animation state the dispatcher `func_actor_323400_801644C4` runs;
+    /// `func_actor_323400_80164974` picks it from a message, and the message
+    /// 0x7D3 handler `func_actor_323400_80164A50` restarts it at 1.
     /* 0x000 */ s16 field_0;
+    /// State the dispatcher ran last frame; `field_4` is set when `field_0`
+    /// differs from it.
     /* 0x002 */ s16 field_2;
     /* 0x004 */ s16 field_4;
     /// Frame counter `func_actor_323400_801641C4` advances; zeroed by that
     /// handler's re-init path.
     /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x28];
-    /// Animation slots, read by the per-frame effect dispatch for the record
-    /// each has reached. The count follows the sibling actors' layout; the
-    /// dispatch itself reaches no further than entry 17.
-    /* 0x030 */ GpAnimSlot slots[25];
-    /* 0x418 */ byte       pad_418[0x410];
-    /* 0x828 */ s16        field_828;
-    /* 0x82A */ byte       pad_82A[4];
-    /* 0x82E */ s16        field_82E;
-    /* 0x830 */ byte       pad_830[2];
-    /* 0x832 */ s16        field_832;
-    /* 0x834 */ byte       pad_834[0xA];
-    /* 0x83E */ s16        field_83E;
-    /* 0x840 */ s16        field_840;
-    /* 0x842 */ byte       pad_842[6];
-    /// Record last handled by the per-frame effect dispatch, one entry per
-    /// animation slot, wiped as one block when no case claims a record.
+    /* 0x008 */ byte pad_8[0xE];
+    /// Yaw of the root coordinate as the placement handler
+    /// `func_actor_323400_80164874` leaves it, read back from the matrix.
+    /* 0x016 */ s16        field_16;
+    /* 0x018 */ byte       pad_18[4];
+    /* 0x01C */ GpAnimCtx  anim;
+    /* 0x030 */ GpAnimSlot slots[18];
+    /* 0x300 */ byte       poses[0x120];
+    /* 0x420 */ GpAnimCtx  blendAnim;
+    /* 0x434 */ GpAnimSlot blendSlots[18];
+    /* 0x704 */ byte       blendPoses[0x120];
+    /* 0x824 */ byte       pad_824[4];
+    /// Animation-state slots the handlers seed and the tick keeps. `field_83C`
+    /// is the weight the blend tick mixes the main context's pose by,
+    /// `field_832` and `field_83A` the slot rates of the two contexts.
+    /* 0x828 */ s16  field_828;
+    /* 0x82A */ s16  field_82A;
+    /* 0x82C */ s16  field_82C;
+    /* 0x82E */ s16  field_82E;
+    /* 0x830 */ u16  field_830;
+    /* 0x832 */ s16  field_832;
+    /* 0x834 */ s16  field_834;
+    /* 0x836 */ s16  field_836;
+    /* 0x838 */ s16  field_838;
+    /* 0x83A */ s16  field_83A;
+    /* 0x83C */ s16  field_83C;
+    /* 0x83E */ s16  field_83E;
+    /* 0x840 */ s16  field_840;
+    /* 0x842 */ byte pad_842[6];
+    /// Record last handled by the per-frame effect dispatch
+    /// `func_actor_323400_80163448`, one entry per animation slot, wiped as one
+    /// block when no case claims a record.
     /* 0x848 */ s32  field_848[18];
     /* 0x890 */ byte pad_890[0x8C];
     /// Three bytes `func_actor_323400_80164974` takes from a message payload
@@ -113,5 +128,13 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 ar
 /// coordinate matrix is rebuilt from the actor transform on the next draw.
 /// Either way the tick runs last.
 void func_actor_323400_80164C4C(GpEnemy* enemy, Task* task);
+
+/// Task states `func_actor_323400_80164CEC` runs by `Task::state`: the spawn
+/// handler, the per-frame driver, then `Gp_DestroyEnemy`.
+extern GpEnemyTaskFuncTable3 D_actor_323400_80161E34;
+
+void func_actor_323400_80161E8C(GsCOORDINATE2* coord, s16 yaw);
+void func_actor_323400_8016331C(Task* task);
+void func_actor_323400_80164A78(Task* task);
 
 #endif

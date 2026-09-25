@@ -1,11 +1,12 @@
 #include "common.h"
 
-#include "actors/actors_shared_80164904.h"
-
+#include "actors/actor_323400.h"
 #include "gameplay/1BC.h"
 #include "main/tmd.h"
 
-s32 ActorsShared80164904(Task* task)
+/// Handler for message 0x7D6: returns 1 while the enemy still has hit points,
+/// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
+s32 func_actor_323400_80164824(Task* task)
 {
     s32 ret;
     u16 flags;

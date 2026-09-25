@@ -1,17 +1,94 @@
 #include "common.h"
-#include "gameplay/1BC.h"
-#include "gameplay/3A34.h"
-#include "gameplay/3FB8.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "gameplay/gameplay.h"
-#include "rooms/rooms_shared_80182078.h"
-#include "actors/actors_shared_8016331c.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
 #include "gte.h"
 
-s32 ActorsShared80162bd0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+#include "actors/actor_323400.h"
+#include "gameplay/gameplay.h"
+#include "rooms/rooms_shared_80182078.h"
+
+/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
+/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
+static __inline__ void Actor323400_ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    {
+        register GsCOORDINATE2* parent asm("v0");
+        parent                                                                                              = coord;
+        ((RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk)))->coord = parent;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk);
+        blk = (RoomsShared80182078Walk*)tmp;
+    }
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
+/// The same walk as `Actor323400_ToWorld`, spelled without its register
+/// bindings; each caller site needs its own form to match.
+static __inline__ void Actor323400_ToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    blk         = (RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk));
+    blk->coord  = coord;
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
+/// Pushes `coord` `push` units away from each obstacle among the first
+/// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
+/// 0x400 of every other obstacle's. Bearings are taken in world space from the
+/// frame's position, relative to the point one unit in front of it. Returns
+/// whether any push was applied; returns 0 at once when
+/// `gGameSession->viewReady` is 1.
+s32 func_actor_323400_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
 {
     void**                      scratch;
     void**                      tail;
@@ -40,13 +117,13 @@ s32 ActorsShared80162bd0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 pus
     *scratch   = st;
     st->eye.vz = vz;
 
-    RoomsShared80182078ToWorld(coord->sub, &st->eye);
+    Actor323400_ToWorld(coord->sub, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
     st->aim.vz = 0x1000;
 
-    RoomsShared80182078ToWorld2(coord, &st->aim);
+    Actor323400_ToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key == 0) {
@@ -155,16 +232,20 @@ s32 ActorsShared80162bd0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 pus
     return hit;
 }
 
-void ActorsShared8016331c(Task* task)
+/// Tick of the animation slots while the blend context is live: slots 1..10
+/// sample both contexts and write their pose mixed by `field_83C` (the blend
+/// context gets the 0x1000 complement), each rate seeded from `field_832`
+/// (three below it) and `field_83A`; slots 11..17 only tick the main context.
+void func_actor_323400_8016331C(Task* task)
 {
-    GpAnimPose                   pose;
-    GpAnimPose                   blendPose;
-    GpAnimCtx*                   anim;
-    s16                          weight;
-    s16                          i;
-    ActorShared8016331cAnimWork* work;
+    GpAnimPose       pose;
+    GpAnimPose       blendPose;
+    GpAnimCtx*       anim;
+    s16              weight;
+    s16              i;
+    Actor323400Work* work;
 
-    work   = (ActorShared8016331cAnimWork*)task->work;
+    work   = (Actor323400Work*)task->work;
     weight = work->field_83C;
     anim   = &work->anim;
     for (i = 1; i < 0x12; i++) {
