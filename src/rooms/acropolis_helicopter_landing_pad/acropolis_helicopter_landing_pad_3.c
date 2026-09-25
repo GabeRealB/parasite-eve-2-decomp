@@ -29,21 +29,6 @@
 #include "rooms/rooms_shared_80182078.h"
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
-/// 0x14 scratch block `func_acropolis_helicopter_landing_pad_8017F010` takes
-/// from `G_SCRATCH_HEAD` for one light. `otz` is `SZ3 >> 2` of the `RTPS`,
-/// `flag` the GTE flag word (bit 31 rejects the light), `outer` / `inner` the
-/// two glow radii `0xC000 / otz` and `0x1800 / otz`, and `sx` / `sy` the
-/// projected centre.
-typedef struct AhlpLightScratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 flag;
-    /* 0x08 */ s32 outer;
-    /* 0x0C */ s32 inner;
-    /* 0x10 */ u16 sx;
-    /* 0x12 */ u16 sy;
-} AhlpLightScratch;
-STATIC_ASSERT_SIZEOF(AhlpLightScratch, 0x14);
-
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
 /// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
 /// endpoints, rotated by the coord's `workm` and offset by its translation;
@@ -276,19 +261,19 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// and four inner-radius blades whose intensity is `level >> 1`.
 void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
-    AhlpLight*        light;
-    AhlpLightWork*    work;
-    void**            scratch;
-    u8*               head;
-    AhlpLightScratch* blk;
-    POLY_G4*          prim;
-    s32               a;
-    s32               b;
-    s32               c;
-    s32               d;
-    s16               lvl;
-    s32               half;
-    s32               mask;
+    AhlpLight*         light;
+    AhlpLightWork*     work;
+    void**             scratch;
+    u8*                head;
+    RoomDraw05Scratch* blk;
+    POLY_G4*           prim;
+    s32                a;
+    s32                b;
+    s32                c;
+    s32                d;
+    s16                lvl;
+    s32                half;
+    s32                mask;
 
     lvl   = level;
     light = &D_80115188[index & 1];
@@ -305,13 +290,13 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;
         *scratch = head - 0x14;
-        blk      = (AhlpLightScratch*)(head - 0x14);
+        blk      = (RoomDraw05Scratch*)(head - 0x14);
         gte_SetTransMatrix(&Gfx_ViewWorldMtx);
         gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(pos);
         gte_rtps();
-        gte_stsxy(&((AhlpLightScratch*)(head - 0x14))->sx);
-        gte_stflg(&((AhlpLightScratch*)(head - 0x14))->flag);
+        gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
+        gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
             light->state        = 2;
@@ -324,8 +309,8 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
             work->y             = pos->vy;
             work->z             = pos->vz;
             light->work.field_0 = 0;
-            blk->outer          = 0xC000 / ((AhlpLightScratch*)(head - 0x14))->otz;
-            blk->inner          = 0x1800 / ((AhlpLightScratch*)(head - 0x14))->otz;
+            blk->rOuter         = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            blk->rInner         = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
                 prim           = (POLY_G4*)gGpuPrimCursor;
@@ -337,16 +322,16 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 half = lvl >> 1;
                 setRGB2(prim, half, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->outer * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->outer * rcos(a)) >> 12);
+                prim->x0 = blk->sx + ((blk->rOuter * rsin(a)) >> 12);
+                prim->y0 = blk->sy + ((blk->rOuter * rcos(a)) >> 12);
                 b        = a + 0x100;
-                prim->x1 = blk->sx + ((blk->outer * rsin(b)) >> 12);
-                prim->y1 = blk->sy + ((blk->outer * rcos(b)) >> 12);
+                prim->x1 = blk->sx + ((blk->rOuter * rsin(b)) >> 12);
+                prim->y1 = blk->sy + ((blk->rOuter * rcos(b)) >> 12);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 c        = a + 0x200;
-                prim->x3 = blk->sx + ((blk->outer * rsin(c)) >> 12);
-                prim->y3 = blk->sy + ((blk->outer * rcos(c)) >> 12);
+                prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 12);
+                prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 12);
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
@@ -359,14 +344,14 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->outer * rsin(a)) >> 13);
-                prim->y0 = blk->sy + ((blk->outer * rcos(a)) >> 13);
-                prim->x1 = blk->sx + ((blk->outer * rsin(b)) >> 13);
-                prim->y1 = blk->sy + ((blk->outer * rcos(b)) >> 13);
+                prim->x0 = blk->sx + ((blk->rOuter * rsin(a)) >> 13);
+                prim->y0 = blk->sy + ((blk->rOuter * rcos(a)) >> 13);
+                prim->x1 = blk->sx + ((blk->rOuter * rsin(b)) >> 13);
+                prim->y1 = blk->sy + ((blk->rOuter * rcos(b)) >> 13);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
-                prim->x3 = blk->sx + ((blk->outer * rsin(c)) >> 13);
-                prim->y3 = blk->sy + ((blk->outer * rcos(c)) >> 13);
+                prim->x3 = blk->sx + ((blk->rOuter * rsin(c)) >> 13);
+                prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 13);
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
@@ -383,15 +368,15 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->inner * rsin(d)) >> 13);
-                prim->y0 = blk->sy + ((blk->inner * rcos(d)) >> 13);
-                prim->x1 = blk->sx + ((blk->outer * rsin(a)) >> 12);
-                prim->y1 = blk->sy + ((blk->outer * rcos(a)) >> 12);
+                prim->x0 = blk->sx + ((blk->rInner * rsin(d)) >> 13);
+                prim->y0 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
+                prim->x1 = blk->sx + ((blk->rOuter * rsin(a)) >> 12);
+                prim->y1 = blk->sy + ((blk->rOuter * rcos(a)) >> 12);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 d        = a + 0x400;
-                prim->x3 = blk->sx + ((blk->inner * rsin(d)) >> 13);
-                prim->y3 = blk->sy + ((blk->inner * rcos(d)) >> 13);
+                prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 13);
+                prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
@@ -404,15 +389,15 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, lvl, 0, 0);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->inner * rsin(a)) >> 12);
-                prim->y0 = blk->sy + ((blk->inner * rcos(a)) >> 12);
-                prim->x1 = blk->sx + ((blk->outer * rsin(d)) >> 11);
-                prim->y1 = blk->sy + ((blk->outer * rcos(d)) >> 11);
+                prim->x0 = blk->sx + ((blk->rInner * rsin(a)) >> 12);
+                prim->y0 = blk->sy + ((blk->rInner * rcos(a)) >> 12);
+                prim->x1 = blk->sx + ((blk->rOuter * rsin(d)) >> 11);
+                prim->y1 = blk->sy + ((blk->rOuter * rcos(d)) >> 11);
                 prim->x2 = blk->sx;
                 prim->y2 = blk->sy;
                 d        = a + 0x800;
-                prim->x3 = blk->sx + ((blk->inner * rsin(d)) >> 12);
-                prim->y3 = blk->sy + ((blk->inner * rcos(d)) >> 12);
+                prim->x3 = blk->sx + ((blk->rInner * rsin(d)) >> 12);
+                prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 12);
                 addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);

@@ -549,13 +549,12 @@ void RoomsShared80180f94(UiList* list, UiObject* obj);
 /// item kind (a higher level of the same kind replaces the entry it finds).
 void RoomsShared8017e3f4(RoomShopList* shop, UiObject* obj, s32 item);
 
-/// 0x14-byte scratch block an elevator hall's light-shaft task takes from
-/// `G_SCRATCH_HEAD`. `vec` is the
-/// shaft's world position copied out of the task's `GsCOORDINATE2`
-/// (`workm.t`) and pushed through `GsWSMATRIX` with a single `RTPS` - but the
-/// screen point is kept too: `sx` / `sy` are the projected centre and `halfWidth`
-/// the shaft's on-screen half width, `spawnArg1`'s high byte scaled by `1 / otz`
-/// so the two `POLY_G4` halves narrow with distance.
+/// The scratch block a room's sprite or light-shaft drawer takes from
+/// `G_SCRATCH_HEAD` for one projected point: `vec` is the point in world
+/// space, pushed through `GsWSMATRIX` with a single `RTPS`; `sx` / `sy` are the
+/// projected centre and `otz` its depth. `halfWidth` is a size divided by
+/// `otz`, the on-screen half extent the primitive's corners are offset by, so
+/// it narrows with distance.
 typedef struct _RoomShaftScratch {
     /* 0x00 */ s32     otz;
     /* 0x04 */ s32     halfWidth;

@@ -145,20 +145,6 @@ typedef struct AcsBlockerShift {
     /* 0x4 */ u16 vz;
 } AcsBlockerShift;
 
-/// Per-frame scratch the sanctuary's flame sprite builds at `G_SCRATCH_HEAD`:
-/// `pos` is the packed `SVECTOR` fed to RTPS, `sx` / `sy` the projected screen
-/// point, `otz` the depth (`SZ3 >> 2`) the ordering-table slot is taken from
-/// and `half` the sprite's half-extent, `field_24 * 0x27 / otz`, so the flame
-/// shrinks with distance.
-typedef struct AcsSprayScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     half;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ u16     sx;
-    /* 0x12 */ u16     sy;
-} AcsSprayScratch;
-STATIC_ASSERT_SIZEOF(AcsSprayScratch, 0x14);
-
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// `G_SCRATCH_HEAD`: `v` holds the three corners of the shard's triangle,
 /// first scaled by `GpEffWork::angle` through the GTE's `gpf` interpolator
@@ -1046,7 +1032,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 }
 
 /// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
-/// refreshed and projected through `GsWSMATRIX` into an `AcsSprayScratch` block
+/// refreshed and projected through `GsWSMATRIX` into an `RoomShaftScratch` block
 /// taken from `G_SCRATCH_HEAD`; the projected point becomes the centre of a
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
 /// `field_24 * 0x27 / otz`, so the flame shrinks with distance and is dropped
@@ -1059,18 +1045,18 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// level plus its flicker amplitude on odd frames.
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
-    GpEffWork*       mem;
-    GsCOORDINATE2*   coord;
-    void**           scratch;
-    u8*              head;
-    AcsSprayScratch* blk;
-    POLY_FT4*        prim;
-    AcsSpriteLevels  base;
-    AcsSpriteLevels  step;
-    s32              param;
-    s32              lvl;
-    s16              x;
-    s16              y;
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    void**            scratch;
+    u8*               head;
+    RoomShaftScratch* blk;
+    POLY_FT4*         prim;
+    AcsSpriteLevels   base;
+    AcsSpriteLevels   step;
+    s32               param;
+    s32               lvl;
+    s16               x;
+    s16               y;
 
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
@@ -1079,7 +1065,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;
         *scratch = head - 0x14;
-        blk      = (AcsSprayScratch*)(head - 0x14);
+        blk      = (RoomShaftScratch*)(head - 0x14);
         if (arg0->state == 0) {
             base            = D_acropolis_sanctuary_8017D5D8;
             step            = D_acropolis_sanctuary_8017D5DC;
@@ -1091,12 +1077,12 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             mem->step       = step.v[mem->angle];
             arg0->state++;
         }
-        blk->pos.vx = *(u16*)&coord->workm.t[0];
-        blk->pos.vy = *(u16*)&coord->workm.t[1];
-        blk->pos.vz = *(u16*)&coord->workm.t[2];
+        blk->vec.vx = *(u16*)&coord->workm.t[0];
+        blk->vec.vy = *(u16*)&coord->workm.t[1];
+        blk->vec.vz = *(u16*)&coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->pos);
+        gte_ldv0(&blk->vec);
         gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1109,28 +1095,28 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             prim->tpage = 0x2B;
             prim->code |= 2;
             setRGB0(prim, lvl, lvl, lvl);
-            prim->clut = getClut(mem->angle * 0x10, 0x10E);
-            prim->u0   = mem->angle * 0x28;
-            prim->v0   = 0;
-            prim->u1   = mem->angle * 0x28 + 0x27;
-            prim->v1   = 0;
-            prim->u2   = mem->angle * 0x28;
-            prim->v2   = 0x27;
-            prim->u3   = mem->angle * 0x28 + 0x27;
-            prim->v3   = 0x27;
-            blk->half  = (mem->scale * 0x27) / blk->otz;
-            x          = blk->sx - (u16)blk->half;
-            prim->x2   = x;
-            prim->x0   = x;
-            x          = blk->sx + (u16)blk->half;
-            prim->x3   = x;
-            prim->x1   = x;
-            y          = blk->sy - (u16)blk->half;
-            prim->y1   = y;
-            prim->y0   = y;
-            y          = blk->sy + (u16)blk->half;
-            prim->y3   = y;
-            prim->y2   = y;
+            prim->clut     = getClut(mem->angle * 0x10, 0x10E);
+            prim->u0       = mem->angle * 0x28;
+            prim->v0       = 0;
+            prim->u1       = mem->angle * 0x28 + 0x27;
+            prim->v1       = 0;
+            prim->u2       = mem->angle * 0x28;
+            prim->v2       = 0x27;
+            prim->u3       = mem->angle * 0x28 + 0x27;
+            prim->v3       = 0x27;
+            blk->halfWidth = (mem->scale * 0x27) / blk->otz;
+            x              = blk->sx - (u16)blk->halfWidth;
+            prim->x2       = x;
+            prim->x0       = x;
+            x              = blk->sx + (u16)blk->halfWidth;
+            prim->x3       = x;
+            prim->x1       = x;
+            y              = blk->sy - (u16)blk->halfWidth;
+            prim->y1       = y;
+            prim->y0       = y;
+            y              = blk->sy + (u16)blk->halfWidth;
+            prim->y3       = y;
+            prim->y2       = y;
             addPrim((u_long*)(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                     prim);
         }

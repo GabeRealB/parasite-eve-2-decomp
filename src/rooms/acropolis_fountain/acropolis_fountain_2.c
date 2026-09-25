@@ -47,22 +47,6 @@ typedef struct AcropolisFountainSndWork {
     /* 0x2 */ u16 started;
 } AcropolisFountainSndWork;
 
-/// 0x14 scratch block `func_acropolis_fountain_8017DD44` takes from
-/// `G_SCRATCH_HEAD` for the fountain's water-spray sprite. `pos` is the
-/// coordinate's `workm` translation truncated to s16 and fed to `gte_ldv0`,
-/// `sx` / `sy` are the `gte_stsxy` of the single `RTPS` and `otz` its
-/// `gte_stszotz`. `half` is `0x4E00 / otz`, the on-screen half-extent the
-/// quad's four corners are offset by, so the sprite shrinks with distance;
-/// an `otz` below 0x11 is too close to the camera and the sprite is skipped.
-typedef struct AcropolisFountainSprayScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     half;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ u16     sx;
-    /* 0x12 */ u16     sy;
-} AcropolisFountainSprayScratch;
-STATIC_ASSERT_SIZEOF(AcropolisFountainSprayScratch, 0x14);
-
 extern s32 D_80070F70;
 
 extern GpObj4A  D_acropolis_fountain_8017E7A4;
@@ -179,69 +163,69 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 /// reaches 4 (the room is fading out).
 void func_acropolis_fountain_8017DD44(Task* task)
 {
-    void**                                  scratch;
-    u8*                                     head;
-    AcropolisFountainSprayScratch*          blk;
-    register AcropolisFountainSprayScratch* p asm("a0");
-    GsCOORDINATE2*                          coord;
-    POLY_FT4*                               prim;
-    s16                                     x;
-    s16                                     y;
-    u16                                     vz;
-    s32                                     level;
+    void**                     scratch;
+    u8*                        head;
+    RoomShaftScratch*          blk;
+    register RoomShaftScratch* p asm("a0");
+    GsCOORDINATE2*             coord;
+    POLY_FT4*                  prim;
+    s16                        x;
+    s16                        y;
+    u16                        vz;
+    s32                        level;
 
     coord = ((TmdObject*)task->extra)->coords;
     if (Gp_State1C->eventState < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
-        blk         = (AcropolisFountainSprayScratch*)(head - 0x14);
-        blk->pos.vx = *(u16*)&coord->workm.t[0];
-        blk->pos.vy = *(u16*)&coord->workm.t[1];
+        blk         = (RoomShaftScratch*)(head - 0x14);
+        blk->vec.vx = *(u16*)&coord->workm.t[0];
+        blk->vec.vy = *(u16*)&coord->workm.t[1];
         vz          = *(u16*)&coord->workm.t[2];
         *scratch    = blk;
         p           = blk;
-        blk->pos.vz = vz;
+        blk->vec.vz = vz;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&((AcropolisFountainSprayScratch*)(head - 0x14))->pos);
+        gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
         gte_rtps();
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        gte_stsxy(&((AcropolisFountainSprayScratch*)(head - 0x14))->sx);
+        gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
         gte_stszotz(&p->otz);
-        if (((AcropolisFountainSprayScratch*)(head - 0x14))->otz >= 0x11) {
-            level       = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4382;
-            prim->u0    = 0x50;
-            prim->v0    = 0;
-            prim->u1    = 0x77;
-            prim->v1    = 0;
-            prim->u2    = 0x50;
-            prim->v2    = 0x27;
-            prim->u3    = 0x77;
-            prim->v3    = 0x27;
-            prim->r0    = level;
-            prim->g0    = level;
-            prim->b0    = level;
-            prim->code |= 2;
-            blk->half   = 0x4E00 / ((AcropolisFountainSprayScratch*)(head - 0x14))->otz;
-            x           = blk->sx - (u16)blk->half;
-            prim->x2    = x;
-            prim->x0    = x;
-            x           = blk->sx + (u16)blk->half;
-            prim->x3    = x;
-            prim->x1    = x;
-            y           = blk->sy - (u16)blk->half;
-            prim->y1    = y;
-            prim->y0    = y;
-            y           = blk->sy + (u16)blk->half;
-            prim->y3    = y;
-            prim->y2    = y;
-            addPrim((u_long*)(((((u32)((AcropolisFountainSprayScratch*)(head - 0x14))->otz
+        if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
+            level          = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
+            prim->tpage    = 0x2B;
+            prim->clut     = 0x4382;
+            prim->u0       = 0x50;
+            prim->v0       = 0;
+            prim->u1       = 0x77;
+            prim->v1       = 0;
+            prim->u2       = 0x50;
+            prim->v2       = 0x27;
+            prim->u3       = 0x77;
+            prim->v3       = 0x27;
+            prim->r0       = level;
+            prim->g0       = level;
+            prim->b0       = level;
+            prim->code    |= 2;
+            blk->halfWidth = 0x4E00 / ((RoomShaftScratch*)(head - 0x14))->otz;
+            x              = blk->sx - (u16)blk->halfWidth;
+            prim->x2       = x;
+            prim->x0       = x;
+            x              = blk->sx + (u16)blk->halfWidth;
+            prim->x3       = x;
+            prim->x1       = x;
+            y              = blk->sy - (u16)blk->halfWidth;
+            prim->y1       = y;
+            prim->y0       = y;
+            y              = blk->sy + (u16)blk->halfWidth;
+            prim->y3       = y;
+            prim->y2       = y;
+            addPrim((u_long*)(((((u32)((RoomShaftScratch*)(head - 0x14))->otz
                                  << gDisplayState.otDepthShift) >>
                                 2) &
                                0xFFC) +
