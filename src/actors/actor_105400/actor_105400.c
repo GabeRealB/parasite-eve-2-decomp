@@ -1,41 +1,187 @@
 #include "common.h"
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "actors/actor_105400.h"
-#include "main/mem.h"
+#include "gameplay/1A8.h"
+#include "gameplay/1BC.h"
+#include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/sound.h"
+#include "main/wipsys.h"
 
-/// The spawn's offset pair; `field_8` is the vector the enemy's local
-/// position and the second list node are both seeded from.
-extern Actor05400Pose D_actor_105400_80133A30;
-
-/// The pair source `GpEnemy::param` points at; its `hpMax` is the HP the
-/// context's `field_40` is seeded with.
-extern GpPairSrcE D_actor_105400_8013CE30;
-
-/// HP/pose words read straight out of the overlay data: `[0]` is the value
-/// stored in `Actor05400Work::field_33C`, which the per-frame handler reads as
-/// `Actor05400Work::field_338`.
-extern u16 D_actor_105400_8013CE34[];
-
-/// Sound-event base the spawn ORs `(enemy id >> 12) << 8` into.
-extern s32 D_actor_105400_8013CE60;
-
-/// One pan/volume row per `gGameSession::at4.loc.view`, played at spawn.
+extern Actor05400Clip   D_actor_105400_8013CE84[];
 extern Actor05400SndRow D_actor_105400_8013CE64[];
+extern u32              D_actor_105400_8013CE5C;
+extern s32              D_actor_105400_8013CE50[];
+extern SVECTOR          D_actor_105400_80133A40[];
 
-/// Task descriptors the spawn hands `Gp_SpawnEnemyFromTable` (entry 1 is the
-/// per-frame dispatcher `func_actor_105400_801337DC`).
-extern TaskDesc D_actor_105400_8013CEA0[];
+/// Hit handler of the main body, the first step of the tick. After the
+/// cooldown `field_332` has run out, each of the two contact records the
+/// player's attack claimed deals damage by distance: a tenth of it while the
+/// part object is alive (`field_336` clear), in which case the body cannot
+/// drop below 1 hit point, otherwise the full amount, quadrupled on a critical
+/// roll. A surviving body enters its hit reaction (idle state 1, pose 2); a
+/// killed one moves the task to its death handler, waiting in death state 3
+/// with pose 3. An attack id differing from the previous record's spawns its
+/// hit effect; every record restarts the cooldown from the id's parameter 2
+/// and plays the hit sound.
+void func_actor_105400_80131E3C(Actor05400* arg0)
+{
+    Actor05400Scratch* scr;
+    Actor05400Work*    work;
+    GpEnemy*           enemy;
+    GsCOORDINATE2*     coord;
+    s32                damage;
+    s32                lastId;
+    s32                val;
+    s32                snd;
+    s32                i;
 
-/// Animation bank `func_800B3F84` builds the work block's clip context from.
-extern u8 D_actor_105400_8013CEB8[];
+    scr    = --*(Actor05400Scratch**)0x1F8003FC;
+    coord  = arg0->field_2C->field_8;
+    work   = arg0->field_1C;
+    enemy  = arg0->field_20;
+    lastId = 0;
+    if (work->field_332 != 0) {
+        work->field_332--;
+        if ((work->field_332 << 0x10) <= 0) {
+            work->field_332 = 0;
+        }
+        if (work->field_332 != 0) {
+            goto end;
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        if ((work->rec18[i].key & 0xFFFF0000) != 0x20000) {
+            continue;
+        }
+        scr->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+        scr->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+        scr->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        damage        = Gp_ComputeDamage(work->rec18[i].key, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
+        if (work->field_336 == 0) {
+            damage /= 10;
+        } else if (Gp_RollEnemyChance(enemy, work->rec18[i].key, 0) != 0) {
+            damage     *= 4;
+            scr->ofs.vx = D_actor_105400_80133A40[work->field_334].vx;
+            scr->ofs.vy = D_actor_105400_80133A40[work->field_334].vy;
+            scr->ofs.vz = D_actor_105400_80133A40[work->field_334].vz;
+            Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
+        }
+        func_800DA6E8(&enemy->node, damage, 0);
+        func_800E2C78((GpObj40*)enemy, work->rec18[i].key, damage, 0);
+        enemy->hp -= damage;
+        if (enemy->hp <= 0) {
+            if (work->field_336 == 0) {
+                enemy->hp = 1;
+            } else {
+                arg0->field_30  = 2;
+                work->field_32E = 3;
+                work->field_330 = 2;
+                work->field_338 = 0;
+                work->field_320 = 3;
+            }
+        } else {
+            work->field_32C = 1;
+            work->field_328 = 0;
+            work->field_320 = 2;
+        }
+        if (lastId != work->rec18[i].key) {
+            lastId      = work->rec18[i].key;
+            val         = Gp_GetIdParam1(lastId) & 0xFFFF;
+            scr->ofs.vx = D_actor_105400_80133A40[work->field_334].vx;
+            scr->ofs.vy = D_actor_105400_80133A40[work->field_334].vy;
+            scr->ofs.vz = D_actor_105400_80133A40[work->field_334].vz;
+            if (val == 3) {
+                Gp_SpawnEff(0x6007F, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
+            } else {
+                func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
+            }
+        }
+        val = Gp_GetIdParam2(work->rec18[i].key);
+        if (val > 0) {
+            work->field_332 = val;
+        }
+        snd = D_actor_105400_8013CE50[2] | ((arg0->field_20->placeKey >> 12) << 8);
+        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+    }
+end:
+    Gp_ClearRec18Occupied(work->rec18);
+    *(Actor05400Scratch**)0x1F8003FC += 1;
+}
 
-/// The message table the task is put on (`Task::msgTable`).
-extern u8 D_actor_105400_80133A00[];
+/// Idle schedule of the enemy, one of the steps the tick handler
+/// `func_actor_105400_80133468` runs each frame. The sub-state (`field_32C`)
+/// picks what it does: state 0 walks `D_actor_105400_8013CE84` once the
+/// countdown `field_32A` has run out, and on that table's terminator row
+/// resets the row index, reseeds the countdown from the gameplay LCG and plays
+/// the sound id `D_actor_105400_8013CE5C` with the placement number in the
+/// high nibble of `GpEnemy::placeKey`; state 1 (entered on a hit) walks
+/// `D_actor_105400_8013CE90` and moves to state 2 on its terminator; state 2
+/// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
+/// entry of `D_actor_105400_80133A18`. The row's `field_2` is the scale
+/// `func_actor_105400_801336D4` applies to the saved coordinate matrix
+/// `field_2FC`, 0x1000 when no row was read, and while the session's
+/// `viewReady` is 1 the per-view row of `D_actor_105400_8013CE64` is enqueued
+/// with the work block's sound id.
+void func_actor_105400_8013222C(Actor05400* arg0)
+{
+    Actor05400Work* work;
+    GsCOORDINATE2*  coord;
+    u16             scale;
+    s32             pan;
+    s32             sndId;
 
-INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400", func_actor_105400_80131E3C);
-
-INCLUDE_ASM("actors/nonmatchings/actor_105400/actor_105400", func_actor_105400_8013222C);
+    work  = arg0->field_1C;
+    coord = arg0->field_2C->field_8;
+    scale = 0x1000;
+    switch ((s16)work->field_32C) {
+        case 0:
+            if ((s16)work->field_32A <= 0) {
+                scale = D_actor_105400_8013CE84[(s16)work->field_328].field_2;
+                if (D_actor_105400_8013CE84[(s16)work->field_328].field_0 != 0) {
+                    work->field_328 = 0;
+                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                    work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                    sndId           = D_actor_105400_8013CE5C |
+                            (((u16)arg0->field_20->placeKey >> 12) << 8);
+                    pan = (s8)Gp_GetObjPan(coord);
+                    SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
+                } else {
+                    work->field_328 = work->field_328 + 1;
+                }
+            } else {
+                work->field_32A = work->field_32A - 1;
+            }
+            break;
+        case 1:
+            scale = D_actor_105400_8013CE90[(s16)work->field_328].field_2;
+            if (D_actor_105400_8013CE90[(s16)work->field_328].field_0 != 0) {
+                work->field_328 = 0;
+                work->field_32C = 2;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+            } else {
+                work->field_328 = work->field_328 + 1;
+            }
+            break;
+        case 2:
+            if ((s16)work->field_324 >= D_actor_105400_80133A18[(s16)work->field_320] + 0x23) {
+                work->field_320 = 1;
+                work->field_32C = 0;
+            }
+            break;
+    }
+    func_actor_105400_801336D4(arg0, &work->field_2FC, scale, 1);
+    if (gGameSession->viewReady == 1) {
+        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
+                            D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
+    }
+}
 INCLUDE_RODATA("actors/nonmatchings/actor_105400/actor_105400", D_actor_105400_80131E24);
 
 INCLUDE_RODATA("actors/nonmatchings/actor_105400/actor_105400", D_actor_105400_80131E30);
