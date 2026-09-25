@@ -466,7 +466,6 @@ extern Actor403100AnimTable D_actor_403100_8015570C;
 extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  Gp_WeaponIdBase[];
 
-
 extern s16 D_80073BA0;
 extern u8  D_801153F4;
 extern u8  D_80165FC0;
