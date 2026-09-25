@@ -2992,7 +2992,6 @@ void func_800D0C34(Task* arg0)
     register s16    result asm("v0");
     SPRT_16*        p;
     DR_TPAGE*       dr;
-    void**          scratch;
     s32             flags[2];
     s32             i;
     s16             which;
@@ -3004,7 +3003,6 @@ void func_800D0C34(Task* arg0)
     s32             flag;
 
     i        = 0;
-    scratch  = (void**)G_SCRATCH_HEAD;
     stage    = gGameSession->at4.loc.stage;
     obj      = arg0->spawnArg2;
     icons    = D_8010F0E0[stage - 1];
@@ -3039,17 +3037,17 @@ void func_800D0C34(Task* arg0)
             }
             bit = (u16)result;
             if (bit == 2 || bit == 0x802) {
-                temp = (GpMapCursorPos*)((u8*)*scratch - 0x1C);
+                temp = (GpMapCursorPos*)(SCRATCH_HEAD(u8) - 0x1C);
                 TOUCH_REG(temp);
-                pos            = temp;
-                pos->field_14  = 0;
-                pos->field_12  = 0;
-                pos->field_10  = 0;
-                *scratch       = pos;
-                pos->x         = icons[(u8)i].x;
-                p              = (SPRT_16*)gGpuPrimCursor;
-                gGpuPrimCursor = p + 1;
-                pos->y         = icons[(u8)i].y;
+                pos                          = temp;
+                pos->field_14                = 0;
+                pos->field_12                = 0;
+                pos->field_10                = 0;
+                SCRATCH_HEAD(GpMapCursorPos) = pos;
+                pos->x                       = icons[(u8)i].x;
+                p                            = (SPRT_16*)gGpuPrimCursor;
+                gGpuPrimCursor               = p + 1;
+                pos->y                       = icons[(u8)i].y;
                 setlen(p, 3);
                 setcode(p, 0x7F);
                 if (bit == 2) {
@@ -3073,7 +3071,7 @@ void func_800D0C34(Task* arg0)
                 setlen(dr, one);
                 dr->code[0] = 0xE100000E;
                 addPrim(&gGpuCurrentOt[(s16)obj->drawOrder - 0x1B], dr);
-                SCRATCH_POP_BYTES_AT(scratch, scratchSize);
+                SCRATCH_POP_BYTES(scratchSize);
             }
         }
     next:
@@ -4590,7 +4588,6 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
     u8*                        verts;
     register GpMapMarkScratch* scratch asm("t0");
     u32*                       cur;
-    void**                     scratchHead;
     s32                        type;
     u32                        word;
     s32                        count;
@@ -4599,18 +4596,17 @@ void func_800D4270(UiObject* obj, GpMapMarkMesh* mesh, s32 mode, s32 dp)
     s32                        minX;
     s32                        minY;
 
-    scratchHead    = (void**)G_SCRATCH_HEAD;
-    otz            = *(s16*)&obj->drawOrder;
-    verts          = mesh->verts;
-    cur            = (u32*)mesh->prims;
-    tw.y           = 0;
-    tw.x           = 0;
-    scratch        = (GpMapMarkScratch*)((u8*)*scratchHead - sizeof(GpMapMarkScratch));
-    *scratchHead   = scratch;
-    dr             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    tw.h           = 0xFF;
-    tw.w           = 0xFF;
+    otz                            = *(s16*)&obj->drawOrder;
+    verts                          = mesh->verts;
+    cur                            = (u32*)mesh->prims;
+    tw.y                           = 0;
+    tw.x                           = 0;
+    scratch                        = (GpMapMarkScratch*)(SCRATCH_HEAD(u8) - sizeof(GpMapMarkScratch));
+    SCRATCH_HEAD(GpMapMarkScratch) = scratch;
+    dr                             = (DR_MODE*)gGpuPrimCursor;
+    gGpuPrimCursor                 = dr + 1;
+    tw.h                           = 0xFF;
+    tw.w                           = 0xFF;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
     scratch->offX = 0;

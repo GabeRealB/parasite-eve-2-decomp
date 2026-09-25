@@ -1464,7 +1464,6 @@ void func_800B1EFC(Task* arg0)
 
 void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 {
-    void**        scratch;
     u8*           head;
     GpRgbScratch* c0;
     GpRgbScratch* c1;
@@ -1472,10 +1471,9 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     u16           color;
     u16           packed;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    c0       = (GpRgbScratch*)(head - 0x18);
-    *scratch = c0;
+    head                       = SCRATCH_HEAD(u8);
+    c0                         = (GpRgbScratch*)(head - 0x18);
+    SCRATCH_HEAD(GpRgbScratch) = c0;
 
     color = *arg0;
     c0->b = color;
@@ -2825,20 +2823,18 @@ void Gp_SpawnArea(GpAreaKey* arg0)
 
 void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
 {
-    void**              scratch;
     u8*                 head;
     GpFloorQuadScratch* block;
     POLY_FT4*           prim;
     register s32        c0 asm("v1");
     register s32        f7 asm("a1");
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    head = SCRATCH_HEAD(u8);
     {
         register u8* tmp asm("v0");
-        tmp      = head - 0x40;
-        block    = (GpFloorQuadScratch*)tmp;
-        *scratch = tmp;
+        tmp              = head - 0x40;
+        block            = (GpFloorQuadScratch*)tmp;
+        SCRATCH_HEAD(u8) = tmp;
     }
     if (arg2 == NULL) {
         ((GpFloorQuadScratch*)(head - 0x40))->vec[0].vx = -(arg1 >> 1);
@@ -3509,7 +3505,6 @@ static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
 
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
-    void**            scratch;
     u8*               head;
     register SVECTOR* vec asm("s2");
     SVECTOR*          block;
@@ -3522,18 +3517,17 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     srcx = arg1->pos.vx;
     dstx = arg0->vx;
     SOFT_TOUCH_REG2(srcx, dstx);
-    scratch                       = (void**)G_SCRATCH_HEAD;
-    head                          = *scratch;
+    head                          = SCRATCH_HEAD(u8);
     block                         = (SVECTOR*)(head - 0x28);
     vec                           = block;
     ((SVECTOR*)(head - 0x28))->vx = srcx - dstx;
     SOFT_TOUCH_REG(block);
-    vec->vy  = arg1->pos.vy - arg0->vy;
-    *scratch = block;
-    vec->vz  = arg1->pos.vz - arg0->vz;
-    coord    = &gGfxViewCoord;
-    scale    = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
-    scale    = scale - arg1->field_2;
+    vec->vy               = arg1->pos.vy - arg0->vy;
+    SCRATCH_HEAD(SVECTOR) = block;
+    vec->vz               = arg1->pos.vz - arg0->vz;
+    coord                 = &gGfxViewCoord;
+    scale                 = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+    scale                 = scale - arg1->field_2;
     if (scale >= 0) {
         scale = -scale;
     }
@@ -3547,7 +3541,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(arg2);
-    SCRATCH_POP_BYTES_AT(scratch, 0x28);
+    SCRATCH_POP_BYTES(0x28);
 }
 
 void Gp_FreeSlot4TmdBuffers(void)

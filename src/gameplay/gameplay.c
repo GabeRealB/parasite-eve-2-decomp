@@ -7351,18 +7351,16 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     slot = gameGetPtrSlot(3);
     {
-        void**       scratch;
         register u8* newhead asm("v1");
 
-        scratch  = (void**)G_SCRATCH_HEAD;
-        head     = *scratch;
-        newhead  = head - 0x60;
-        sc       = (GpCircleScratch*)newhead;
-        coord    = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
-        sc->rx   = arg1;
-        sc->ry   = arg2;
-        base     = gDisplayState.animFrame << 4;
-        *scratch = sc;
+        head                          = SCRATCH_HEAD(u8);
+        newhead                       = head - 0x60;
+        sc                            = (GpCircleScratch*)newhead;
+        coord                         = (GsCOORDINATE2*)((TmdObject*)slot->extra)->coords;
+        sc->rx                        = arg1;
+        sc->ry                        = arg2;
+        base                          = gDisplayState.animFrame << 4;
+        SCRATCH_HEAD(GpCircleScratch) = sc;
     }
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
@@ -7484,7 +7482,6 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32         y2;
     s32         z2;
     s32         scaled;
-    void**      scratch;
     u8*         head;
 
     if (arg0 == 0) {
@@ -7500,14 +7497,13 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg1  += 0x64;
     temp_x = arg1 * arg1;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    node     = Gp_LinkList;
-    head    -= 8;
-    *scratch = head;
-    vec      = (SVECTOR*)head;
-    ry2      = temp_y >> 8;
-    rx2      = temp_x >> 8;
+    head             = SCRATCH_HEAD(u8);
+    node             = Gp_LinkList;
+    head            -= 8;
+    SCRATCH_HEAD(u8) = head;
+    vec              = (SVECTOR*)head;
+    ry2              = temp_y >> 8;
+    rx2              = temp_x >> 8;
 
     if (node != NULL) {
         do {
@@ -8047,7 +8043,6 @@ after_uv:
 
 void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
-    void**          scratch;
     register u8*    newhead asm("v0");
     u8*             head;
     GpXformScratch* block;
@@ -8074,13 +8069,12 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     cx = x + 0x23;
     cy = y + 0x23;
     func_800A63B4(cx, cy, 0);
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    node     = Gp_LinkList;
-    newhead  = head - 0x48;
-    block    = (GpXformScratch*)newhead;
-    *scratch = newhead;
-    mode     = func_800B9D80(0x400);
+    head             = SCRATCH_HEAD(u8);
+    node             = Gp_LinkList;
+    newhead          = head - 0x48;
+    block            = (GpXformScratch*)newhead;
+    SCRATCH_HEAD(u8) = newhead;
+    mode             = func_800B9D80(0x400);
     if (node != NULL) {
         vec = (SVECTOR*)(head - 8);
         do {
@@ -8393,16 +8387,14 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 
 void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 {
-    void**        scratch;
     register u8*  head asm("v0");
     GpHudScratch* block;
     s32           val;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    head     = head - 0x1C;
-    block    = (GpHudScratch*)head;
-    *scratch = head;
+    head             = SCRATCH_HEAD(u8);
+    head             = head - 0x1C;
+    block            = (GpHudScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     if (func_800B9D80(0x100000) != 0) {
         block->field_14 = 0x6A;
         block->field_16 = -0x35;
@@ -8447,21 +8439,19 @@ void Gp_UpdateLinkXforms(void)
     {
         Task*               slot;
         register TmdObject* extra asm("v1");
-        void**              scratch;
         register u8*        newhead asm("v1");
 
         slot = gameGetPtrSlot(3);
         if (slot == NULL) {
             return;
         }
-        scratch = (void**)G_SCRATCH_HEAD;
         extra   = (TmdObject*)slot->extra;
-        head    = *scratch;
+        head    = SCRATCH_HEAD(u8);
         player  = (GsCOORDINATE2*)extra->coords;
         newhead = head - 0x48;
         block   = (GpXformScratch*)newhead;
         TOUCH_REG(block);
-        *scratch = newhead;
+        SCRATCH_HEAD(u8) = newhead;
         TransposeMatrix(&player->workm, &block->mat);
     }
     if (node != NULL) {
@@ -9249,7 +9239,6 @@ void Gp_LoadStageView(void)
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
-    void**            scratch;
     u8*               head;
     register MATRIX*  src asm("a3");
     _GpRelMatScratch* tmp;
@@ -9259,11 +9248,10 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     VECTOR*           vec;
     VECTOR*           out;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    src      = arg0;
-    tmp      = (_GpRelMatScratch*)(head - 0x30);
-    *scratch = tmp;
+    head                           = SCRATCH_HEAD(u8);
+    src                            = arg0;
+    tmp                            = (_GpRelMatScratch*)(head - 0x30);
+    SCRATCH_HEAD(_GpRelMatScratch) = tmp;
     TOUCH_REG3(tmp, src, head);
 
     t4               = src->m[0][0];
@@ -9296,7 +9284,7 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     out           = (VECTOR*)arg2->t;
     ApplyMatrixLV(&tmp->rot, vec, out);
 
-    SCRATCH_POP_BYTES_AT(scratch, 0x30);
+    SCRATCH_POP_BYTES(0x30);
 }
 
 s32 Gp_TrySpawnViewTask(s32 arg0)

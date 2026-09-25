@@ -444,7 +444,6 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
 {
     u8           param2[4];
     u8*          param1;
-    void**       scratch;
     void*        head;
     void*        temp;
     s32          c50;
@@ -459,14 +458,13 @@ void Gp_EnqueueCompanionCd(s32 arg0, s32 arg1)
         return;
     }
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    c50      = 0x50;
-    c4       = 4;
-    c6       = 6;
-    head     = *scratch;
-    temp     = (u8*)head - 8;
-    param1   = temp;
-    *scratch = temp;
+    c50                = 0x50;
+    c4                 = 4;
+    c6                 = 6;
+    head               = SCRATCH_HEAD(void);
+    temp               = (u8*)head - 8;
+    param1             = temp;
+    SCRATCH_HEAD(void) = temp;
 
     gGameSession->field_80 = 0;
     param1[3]              = 0;

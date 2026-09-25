@@ -17,7 +17,6 @@
 
 void Gp_DrawEffSprite81(Task* arg0)
 {
-    void**                  scratch;
     u8*                     head;
     register GpRingScratch* block asm("t1");
     TmdObject*              extra;
@@ -31,9 +30,8 @@ void Gp_DrawEffSprite81(Task* arg0)
     s32                     len;
     s32                     code;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
     extra                                   = arg0->extra;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     coord                                   = (GsCOORDINATE2*)extra->coords;
     mem                                     = arg0->spawnArg2;
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
@@ -42,10 +40,10 @@ void Gp_DrawEffSprite81(Task* arg0)
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&coord->workm.t[1];
-    vz            = *(u16*)&coord->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy               = *(u16*)&coord->workm.t[1];
+    vz                          = *(u16*)&coord->workm.t[2];
+    SCRATCH_HEAD(GpRingScratch) = block;
+    block->vec.vz               = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);

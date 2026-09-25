@@ -150,7 +150,6 @@ void Gp_TickState1C(void)
 
 s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
-    void**        scratch;
     u8*           head;
     GpRayScratch* block;
     SVECTOR*      dir;
@@ -158,13 +157,12 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     s32           ret;
     u16           vz;
 
-    scratch                                = (void**)G_SCRATCH_HEAD;
-    head                                   = *scratch;
+    head                                   = SCRATCH_HEAD(u8);
     block                                  = (GpRayScratch*)(head - 0x10);
     ((GpRayScratch*)(head - 0x10))->pos.vx = *(u16*)&arg0->workm.t[0];
     block->pos.vy                          = *(u16*)&arg0->workm.t[1];
     vz                                     = *(u16*)&arg0->workm.t[2];
-    *scratch                               = block;
+    SCRATCH_HEAD(GpRayScratch)             = block;
     block->dir.vx                          = 0;
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
@@ -188,26 +186,24 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
         arg1->flg = 0;
         Gp_UpdateCoord(arg1);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    SCRATCH_POP_BYTES(0x10);
     return ret;
 }
 
 s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
 {
-    void**        scratch;
     u8*           head;
     GpRayScratch* block;
     SVECTOR*      dir;
     s32           ret;
     u16           vz;
 
-    scratch                                = (void**)G_SCRATCH_HEAD;
-    head                                   = *scratch;
+    head                                   = SCRATCH_HEAD(u8);
     block                                  = (GpRayScratch*)(head - 0x10);
     ((GpRayScratch*)(head - 0x10))->pos.vx = *(u16*)&arg0->vx;
     block->pos.vy                          = *(u16*)&arg0->vy;
     vz                                     = *(u16*)&arg0->vz;
-    *scratch                               = block;
+    SCRATCH_HEAD(GpRayScratch)             = block;
     block->dir.vx                          = 0;
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
@@ -427,7 +423,6 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 
 void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
-    void**        scratch;
     u8*           head;
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -437,8 +432,7 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32           otz;
     u16           vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    head = SCRATCH_HEAD(u8);
     USE_REG(head);
     {
         register u16 vx asm("v0");
@@ -450,10 +444,10 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         tmp   = head - 0x1C;
         block = (GpArcScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy              = *(u16*)&arg0->workm.t[1];
+    vz                         = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD(GpArcScratch) = block;
+    block->vec.vz              = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -503,7 +497,6 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 
 void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -513,8 +506,7 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     s32            otz;
     u16            vz;
 
-    scratch = (void**)G_SCRATCH_HEAD;
-    head    = *scratch;
+    head = SCRATCH_HEAD(u8);
     USE_REG(head);
     {
         register u16 vx asm("v0");
@@ -526,10 +518,10 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
         tmp   = head - 0x18;
         block = (GpRingScratch*)tmp;
     }
-    block->vec.vy = *(u16*)&arg0->workm.t[1];
-    vz            = *(u16*)&arg0->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block->vec.vy               = *(u16*)&arg0->workm.t[1];
+    vz                          = *(u16*)&arg0->workm.t[2];
+    SCRATCH_HEAD(GpRingScratch) = block;
+    block->vec.vz               = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -579,7 +571,6 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 
 void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
 {
-    void**           scratch;
     u8*              head;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -590,13 +581,12 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
     s32              ang2;
     u16              vz;
 
-    scratch                                   = (void**)G_SCRATCH_HEAD;
-    head                                      = *scratch;
+    head                                      = SCRATCH_HEAD(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = *(u16*)&arg0->workm.t[1];
     vz                                        = *(u16*)&arg0->workm.t[2];
-    *scratch                                  = block;
+    SCRATCH_HEAD(GpFxQuadScratch)             = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -638,12 +628,11 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
-    void**         scratch;
     u8*            head;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -654,13 +643,12 @@ void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
     s32            clutIdx;
     u16            vz;
 
-    scratch                                 = (void**)G_SCRATCH_HEAD;
-    head                                    = *scratch;
+    head                                    = SCRATCH_HEAD(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = *(u16*)&arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = *(u16*)&arg0->workm.t[1];
     vz                                      = *(u16*)&arg0->workm.t[2];
-    *scratch                                = block;
+    SCRATCH_HEAD(GpRingScratch)             = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -697,12 +685,11 @@ void func_800EB6E8(GsCOORDINATE2* arg0, u16 arg1, u16 arg2, u16 arg3)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x18);
+    SCRATCH_POP_BYTES(0x18);
 }
 
 void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -715,11 +702,10 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
     s16            r0;
     s16            r1;
 
-    r1       = arg1 + 0x100;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    r1               = arg1 + 0x100;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
@@ -792,7 +778,6 @@ void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
 
 void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
 {
-    void**         scratch;
     register u8*   head asm("v0");
     GpBandScratch* block;
     SVECTOR*       op;
@@ -805,11 +790,10 @@ void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
     s16            r0;
     s16            r1;
 
-    r1       = arg1 + arg2;
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = (u8*)*scratch - 0x118;
-    block    = (GpBandScratch*)head;
-    *scratch = head;
+    r1               = arg1 + arg2;
+    head             = SCRATCH_HEAD(u8) - 0x118;
+    block            = (GpBandScratch*)head;
+    SCRATCH_HEAD(u8) = head;
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
     for (i = 0; i < 16; i++) {
