@@ -648,4 +648,16 @@ typedef struct OverlayHotspot {
 } OverlayHotspot;
 STATIC_ASSERT_SIZEOF(OverlayHotspot, 0xC);
 
+/// One window of a caption schedule, a table ordered by descending `upper`
+/// and ended by an `upper` of -1. While the session's scene clock lies in
+/// (`lower * 30`, `upper * 30`], the first matching window starts caption
+/// script `script` at line key `key`.
+typedef struct OverlayCapWindow {
+    s32 upper;
+    s32 lower;
+    s32 script;
+    s32 key;
+} OverlayCapWindow;
+STATIC_ASSERT_SIZEOF(OverlayCapWindow, 0x10);
+
 #endif /* OVERLAY_H */

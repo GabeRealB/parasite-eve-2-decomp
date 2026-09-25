@@ -46212,7 +46212,7 @@ func_..._8014B3C8(M2C_FIELD(temp_v0, s32*, 8), 0x80, 1,
                   M2C_FIELD(temp_v0, u8*, 0) | ((M2C_FIELD(temp_v0, u8*, 1) & 0x10) * 0x10));
 ```
 
-Typing that literally - a local `Actor215100Caption* line = &tab[idx];` - stalls at
+Typing that literally - a local `GpEvt12* line = &tab[idx];` - stalls at
 99.27% with `regs=8`. The target computes the element address as
 `addu v0, <idx*0xC>, <base>`; the hoisted local produces
 `addu v1, <base>, <idx*0xC>`, so the sum lands in the other register and every

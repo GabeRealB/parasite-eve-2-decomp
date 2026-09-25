@@ -232,26 +232,6 @@ typedef struct {
 } DumpingHoleEntity4;
 
 typedef struct {
-    u8  field_0;
-    u8  field_1;
-    u8  _pad2[0x2];
-    u8  field_4;
-    u8  field_5;
-    u8  _pad6[0x2];
-    s32 field_8;
-} DumpingHoleSpawnElem;
-
-/// One entry of the room's caption schedule: while the scene clock lies in
-/// `(lower * 30, upper * 30]` the caption `script` is started at line `key`.
-/// An `upper` of -1 ends the table, which is ordered by descending `upper`.
-typedef struct {
-    s32 upper;
-    s32 lower;
-    s32 script;
-    s32 key;
-} DumpingHoleCapWindow;
-
-typedef struct {
     /* 0x00 */ char magic[0x8];
     /* 0x08 */ s32  field_8;
     /* 0x0C */ s32  field_C;
@@ -340,9 +320,9 @@ extern s32                    D_shelter_b3_dumping_hole_8018965C;
 extern s32                    D_shelter_b3_dumping_hole_8018968C;
 extern s32                    D_shelter_b3_dumping_hole_801899A4;
 extern TaskDesc               D_shelter_b3_dumping_hole_8018AFBC;
-extern DumpingHoleSpawnElem*  D_shelter_b3_dumping_hole_8018F4BC;
+extern GpEvt12*               D_shelter_b3_dumping_hole_8018F4BC;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
-extern DumpingHoleCapWindow   D_shelter_b3_dumping_hole_8018B5A0[];
+extern OverlayCapWindow       D_shelter_b3_dumping_hole_8018B5A0[];
 extern GlyphUvwh*             D_shelter_b3_dumping_hole_8018F4B8;
 extern s32                    D_shelter_b3_dumping_hole_8018F4B4;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C0;
@@ -2303,9 +2283,9 @@ s32 func_shelter_b3_dumping_hole_80181D68(s32 arg0)
 
 s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
 {
-    DumpingHoleSpawnElem* entry;
+    GpEvt12* entry;
 
-    entry                              = ((DumpingHoleSpawnElem**)D_shelter_b3_dumping_hole_8018F4B4)[arg0];
+    entry                              = ((GpEvt12**)D_shelter_b3_dumping_hole_8018F4B4)[arg0];
     D_shelter_b3_dumping_hole_8018F4BC = entry;
     if (entry == NULL) {
         return 1;
@@ -2887,10 +2867,10 @@ s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
 
 s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
 {
-    s32                   sentinel = -1;
-    s32                   base     = (s32)D_shelter_b3_dumping_hole_8018F4BC;
-    s32                   target   = D_shelter_b3_dumping_hole_8018F4CA;
-    DumpingHoleSpawnElem* e        = (DumpingHoleSpawnElem*)(arg0 * sizeof(DumpingHoleSpawnElem) + base);
+    s32      sentinel = -1;
+    s32      base     = (s32)D_shelter_b3_dumping_hole_8018F4BC;
+    s32      target   = D_shelter_b3_dumping_hole_8018F4CA;
+    GpEvt12* e        = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
 
 loop:
     if (e->field_8 != sentinel) {

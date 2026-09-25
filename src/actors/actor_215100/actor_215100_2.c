@@ -4,7 +4,6 @@
 #include "gte.h"
 
 #include "actors/actor.h"
-#include "actors/actor_215100.h"
 #include "actors/actors_shared_80132614.h"
 #include "actors/actors_shared_801326ac.h"
 #include "gameplay/1BC.h"
@@ -49,24 +48,6 @@ typedef struct Actor215100CharRec {
     /* 0x7 */ u8 field_7;
 } Actor215100CharRec;
 STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
-
-/// One entry of the caption schedule `func_actor_215100_8014AFAC` scans while
-/// the actor waits to be talked to.
-///
-/// The entry whose window contains the session's caption clock
-/// (`GameSession::sceneClock`, which that function ticks down once the caption
-/// system goes idle) names the script to start and the line key to start it at:
-/// it is taken when `field_0 * 30 >= clock` and `field_4 * 30 < clock`, and the
-/// table is ordered by descending `field_0`, so the first match wins. A
-/// `field_0` of -1 terminates the scan. The table itself lives in the overlay's
-/// trailing data (`D_actor_215100_80154514`), not in this unit.
-typedef struct Actor215100CapWindow {
-    /* 0x0 */ s32 field_0; // window upper bound, x30; -1 terminates the table
-    /* 0x4 */ s32 field_4; // window lower bound, x30
-    /* 0x8 */ s32 field_8; // caption script index, the `func_actor_215100_8014B2B8` arg0
-    /* 0xC */ s32 field_C; // the line key to start that script at, its arg1
-} Actor215100CapWindow;
-STATIC_ASSERT_SIZEOF(Actor215100CapWindow, 0x10);
 
 void func_actor_215100_8014C874(Task* task);
 void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
@@ -120,14 +101,14 @@ extern GlyphUvwh* D_actor_215100_8015E654;
 extern GlyphUvwh  D_8010FB70[];
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
-extern Actor215100Caption** D_actor_215100_8015E650;
-extern Actor215100Caption*  D_actor_215100_8015E658;
-extern s16                  D_actor_215100_8015E65C;
-extern s16                  D_actor_215100_8015E65E;
-extern s16                  D_actor_215100_8015E660;
-extern s16                  D_actor_215100_8015E662;
-extern s16                  D_actor_215100_8015E664;
-extern s16                  D_actor_215100_8015E666;
+extern GpEvt12** D_actor_215100_8015E650;
+extern GpEvt12*  D_actor_215100_8015E658;
+extern s16       D_actor_215100_8015E65C;
+extern s16       D_actor_215100_8015E65E;
+extern s16       D_actor_215100_8015E660;
+extern s16       D_actor_215100_8015E662;
+extern s16       D_actor_215100_8015E664;
+extern s16       D_actor_215100_8015E666;
 /// Frames left before the caret starts drawing.
 extern u8 D_actor_215100_8015E66C;
 /// Caret grey level (pulses between 9 and 15) and its direction flag.
@@ -142,16 +123,16 @@ extern s16                D_actor_215100_801544EE;
 extern Actor215100CharRec D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
 /// `field_0`.
-extern Actor215100CapWindow D_actor_215100_80154514[];
-extern u8                   D_80115690;
-void                        func_actor_215100_8014B0D4(void);
-s32                         func_actor_215100_8014B1B0(GpCapFile* file);
-s32                         func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-s16                         func_actor_215100_8014BDFC(u16* arg0);
-s16                         func_actor_215100_8014C06C(u16* arg0);
-s16                         func_actor_215100_8014C298(u16* arg0);
-s32                         func_actor_215100_8014C418(s32 arg0);
-void                        func_actor_215100_8014BEE8(void);
+extern OverlayCapWindow D_actor_215100_80154514[];
+extern u8               D_80115690;
+void                    func_actor_215100_8014B0D4(void);
+s32                     func_actor_215100_8014B1B0(GpCapFile* file);
+s32                     func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+s16                     func_actor_215100_8014BDFC(u16* arg0);
+s16                     func_actor_215100_8014C06C(u16* arg0);
+s16                     func_actor_215100_8014C298(u16* arg0);
+s32                     func_actor_215100_8014C418(s32 arg0);
+void                    func_actor_215100_8014BEE8(void);
 
 extern u8 D_80072729;
 
@@ -550,8 +531,8 @@ void func_actor_215100_8014AF0C(void)
 
 /// Drives the caption schedule while the actor waits to be talked to: state 0
 /// arms it, and state 1 scans `D_actor_215100_80154514` for the window
-/// containing `gGameSession.sceneClock` - the first entry whose `field_0 * 30`
-/// has not dropped below the clock and whose `field_4 * 30` has - and, when it
+/// containing `gGameSession.sceneClock` - the first entry whose `upper * 30`
+/// has not dropped below the clock and whose `lower * 30` has - and, when it
 /// finds one, starts that entry's script at its own line key with the task's
 /// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
 /// caption system is busy or `Gp_StateF0.field_4` is up.
@@ -569,12 +550,12 @@ void func_actor_215100_8014AFAC(Task* task, s32 arg1)
         case 1:
             script = 0;
             key    = arg1;
-            for (i = 0; D_actor_215100_80154514[i].field_0 != -1; i++) {
+            for (i = 0; D_actor_215100_80154514[i].upper != -1; i++) {
                 time = gGameSession->sceneClock;
-                if ((D_actor_215100_80154514[i].field_0 * 30 >= time) &&
-                    (D_actor_215100_80154514[i].field_4 * 30 < time)) {
-                    script = D_actor_215100_80154514[i].field_8;
-                    key    = D_actor_215100_80154514[i].field_C;
+                if ((D_actor_215100_80154514[i].upper * 30 >= time) &&
+                    (D_actor_215100_80154514[i].lower * 30 < time)) {
+                    script = D_actor_215100_80154514[i].script;
+                    key    = D_actor_215100_80154514[i].key;
                     break;
                 }
             }
@@ -656,7 +637,7 @@ s32 func_actor_215100_8014B1B0(GpCapFile* file)
     }
 
     D_actor_215100_8015E654 = (GlyphUvwh*)file->field_8;
-    D_actor_215100_8015E650 = (Actor215100Caption**)((GpCapPtrTable*)file->field_10 + 1);
+    D_actor_215100_8015E650 = (GpEvt12**)((GpCapPtrTable*)file->field_10 + 1);
     return 1;
 }
 
@@ -666,8 +647,8 @@ s32 func_actor_215100_8014B1B0(GpCapFile* file)
 /// such script, 0 once it is playing; `arg2` is the line delay.
 s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
 {
-    Actor215100Caption* caption;
-    s16                 entry;
+    GpEvt12* caption;
+    s16      entry;
 
     caption                 = D_actor_215100_8015E650[arg0];
     D_actor_215100_8015E658 = caption;
@@ -1260,15 +1241,15 @@ s32 func_actor_215100_8014C360(u16* arg0)
 
 s32 func_actor_215100_8014C418(s32 arg0)
 {
-    s32                 flag;
-    s32                 id;
-    s32                 base;
-    Actor215100Caption* p;
+    s32      flag;
+    s32      id;
+    s32      base;
+    GpEvt12* p;
 
     flag = -1;
     id   = D_actor_215100_8015E666;
     base = (s32)D_actor_215100_8015E658;
-    p    = (Actor215100Caption*)(arg0 * sizeof(Actor215100Caption) + base);
+    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
 loop:
     if (p->field_8 == flag) {
         goto done;

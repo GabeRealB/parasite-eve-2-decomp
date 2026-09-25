@@ -131,16 +131,6 @@ typedef struct {
 } GarbageIncineratorWork;
 STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 
-/// One window of the caption schedule: while the scene clock lies in
-/// (`field_4 * 30`, `field_0 * 30`], caption script `field_8` is started at
-/// line key `field_C`. A `field_0` of -1 ends the table.
-typedef struct {
-    s32 field_0;
-    s32 field_4;
-    s32 field_8;
-    s32 field_C;
-} GarbageIncineratorCapWindow;
-
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
 
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
@@ -169,8 +159,8 @@ extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 extern u8 D_80073BA9;
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
-extern GarbageIncineratorCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
-extern u8                          D_80114CF8;
+extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
+extern u8               D_80114CF8;
 
 /// Task table entry spawned once when the controller starts.
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
@@ -1087,12 +1077,12 @@ void func_shelter_b3_garbage_incinerator_8017FA58(Task* task, s32 arg1)
         case 1:
             script = 0;
             key    = arg1;
-            for (i = 0; D_shelter_b3_garbage_incinerator_801871A8[i].field_0 != -1; i++) {
+            for (i = 0; D_shelter_b3_garbage_incinerator_801871A8[i].upper != -1; i++) {
                 time = gGameSession->sceneClock;
-                if ((D_shelter_b3_garbage_incinerator_801871A8[i].field_0 * 30 >= time) &&
-                    (D_shelter_b3_garbage_incinerator_801871A8[i].field_4 * 30 < time)) {
-                    script = D_shelter_b3_garbage_incinerator_801871A8[i].field_8;
-                    key    = D_shelter_b3_garbage_incinerator_801871A8[i].field_C;
+                if ((D_shelter_b3_garbage_incinerator_801871A8[i].upper * 30 >= time) &&
+                    (D_shelter_b3_garbage_incinerator_801871A8[i].lower * 30 < time)) {
+                    script = D_shelter_b3_garbage_incinerator_801871A8[i].script;
+                    key    = D_shelter_b3_garbage_incinerator_801871A8[i].key;
                     break;
                 }
             }
