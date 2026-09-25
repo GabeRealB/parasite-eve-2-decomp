@@ -24,203 +24,12 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// Per-actor work block for the enemy task `D_actor_444000_80161878` points
-/// at, reached through the `Task::work` slot (0x1C) rather than being a
-/// `TaskIdMap` here.
-///
-/// `func_actor_444000_8013AFF8` allocates it with `memCalloc(0xF24, 0)` and
-/// stores the result in that slot, so the size below is the allocation rather
-/// than a guess. `field_0` is the leading state word, which
-/// `func_actor_444000_80143D7C` reads with `lhu` and range-checks and the
-/// 0x7D9 message handler `func_actor_444000_80143F38` clears;
-/// `func_actor_444000_80143490` writes the byte at 0xEAC. The remaining named
-/// fields are the block `func_actor_444000_801435CC` re-arms when `field_4` is
-/// set. Fill in the padding as the remaining functions are matched.
-///
-/// 0xC..0x784 is six back-to-back animation blocks, each a `GpAnimCtx` followed
-/// by its own `GpAnimSlot[N]` and an N-entry 0x10-byte table -- the three
-/// argument groups `func_actor_444000_8013AFF8` hands to `func_800B3F84`, which
-/// is what anchors every offset here. They pair up (0/1, 2/3, 4/5) with eight
-/// slots in the first pair and four in the others;
-/// `func_actor_444000_80133F64` seeds the even member's slots while resetting
-/// the odd member's.
-typedef struct Actor444000Work {
-    /* 0x000 */ u16        field_0; // state index
-    /* 0x002 */ s16        field_2;
-    /* 0x004 */ s16        field_4; // reset request: non-zero makes func_actor_444000_801435CC re-arm the block
-    /* 0x006 */ s16        field_6; // sub-state counter, cleared by that reset and compared against 0xA
-    /* 0x008 */ byte       pad_8[0x4];
-    /* 0x00C */ GpAnimCtx  anim0;
-    /* 0x020 */ GpAnimSlot slots0[8];
-    /* 0x160 */ byte       aux0[0x80]; // GpAnimCtx.poses, one 0x10-byte record per slot
-    /* 0x1E0 */ GpAnimCtx  anim1;
-    /* 0x1F4 */ GpAnimSlot slots1[8];
-    /* 0x334 */ byte       aux1[0x80];
-    /* 0x3B4 */ GpAnimCtx  anim2;
-    /* 0x3C8 */ GpAnimSlot slots2[4];
-    /* 0x468 */ byte       aux2[0x40];
-    /* 0x4A8 */ GpAnimCtx  anim3;
-    /* 0x4BC */ GpAnimSlot slots3[4];
-    /* 0x55C */ byte       aux3[0x40];
-    /* 0x59C */ GpAnimCtx  anim4;
-    /* 0x5B0 */ GpAnimSlot slots4[4];
-    /* 0x650 */ byte       aux4[0x40];
-    /* 0x690 */ GpAnimCtx  anim5;
-    /* 0x6A4 */ GpAnimSlot slots5[4];
-    /* 0x744 */ byte       aux5[0x40];
-    /// Per-part yaw the escort model is being driven to, one entry per part of
-    /// the fifth escort's model, and the angle each part is currently at.
-    /// `func_actor_444000_80133010` picks the targets from `field_7A4` and the
-    /// fight's progress counter, then walks every `field_794` toward its
-    /// `field_784` by at most `field_7A6` a call.
-    /* 0x784 */ s16  field_784[7];
-    /* 0x792 */ byte pad_792[0x2];
-    /* 0x794 */ s16  field_794[7];
-    /* 0x7A2 */ byte pad_7A2[0x2];
-    /* 0x7A4 */ s16  field_7A4; // escort pose index, switched on by func_actor_444000_80133010
-    /* 0x7A6 */ s16  field_7A6; // most a field_794 entry may move in one call
-                                /// The masked `slots0[3].field_2` frame the escort-order tick
-                                /// (`func_actor_444000_8013EC84`) last saw, so each of its one-shot cues
-                                /// only fires on the step the animation first reaches that frame.
-    /* 0x7A8 */ s32 field_7A8;
-    /// The masked `slots0[1]` / `slots0[2]` frame the arena tick
-    /// (`func_actor_444000_8013FB74`) last saw, so its two one-shot cues only fire
-    /// on the step the animation reaches their frame. Same role as `field_7D8`,
-    /// which the other ticks use.
-    /* 0x7AC */ s32 field_7AC;
-    /* 0x7B0 */ s8  field_7B0;
-    /* 0x7B1 */ s8  field_7B1; // set while the blended tick path runs
-                               /// Animation id currently playing; `func_actor_444000_80134040` latches
-                               /// `field_7B3` here once it has reseeded every slot.
-    /* 0x7B2 */ s8   field_7B2;
-    /* 0x7B3 */ s8   field_7B3;
-    /* 0x7B4 */ u16  field_7B4; // frames since the block was re-armed
-    /* 0x7B6 */ s16  field_7B6;
-    /* 0x7B8 */ s16  field_7B8;
-    /* 0x7BA */ s16  field_7BA;
-    /* 0x7BC */ s16  field_7BC; // animation id the slot resets seed from
-    /* 0x7BE */ s16  field_7BE; // GpAnimSlot.rate the resets seed with
-    /* 0x7C0 */ s16  field_7C0;
-    /* 0x7C2 */ byte pad_7C2[0x2];
-    /* 0x7C4 */ s16  field_7C4;
-    /* 0x7C6 */ byte pad_7C6[0x2];
-    /* 0x7C8 */ s16  field_7C8; // yaw the drive step walks toward its target, clamped to +/-0x200 per call
-                                /// Frames since the arena tick last (re)sent the player its message 0x3FF
-                                /// animation; the retries in `func_actor_444000_8013FB74` are bounded by it.
-    /* 0x7CA */ u16  field_7CA;
-    /* 0x7CC */ byte pad_7CC[0x4];
-    /* 0x7D0 */ byte field_7D0[0x8]; // start of a 0x20-byte run zeroed whenever the block is re-armed
-                                     /// The masked `slots0[2].field_2` value the 0x1C-arrival check in
-                                     /// `func_actor_444000_80140E28` last saw, so the script spawn only fires on
-                                     /// the step the animation reaches that frame rather than every step after.
-    /* 0x7D8 */ s32  field_7D8;
-    /* 0x7DC */ byte pad_7DC[0x16];
-    /* 0x7F2 */ s8   field_7F2;
-    /* 0x7F3 */ u8   field_7F3;
-    /// One collision group per body part the boss can be struck on: the
-    /// coordinate a landed hit spawns its effect at, followed by that part's
-    /// own `GpRec18` table. `func_actor_444000_8013AFF8` publishes
-    /// `hits[0].recs` as `GpEnemy::recs`, and the hit handlers
-    /// (`func_actor_444000_8013C060` for group 0,
-    /// `func_actor_444000_8013C4B0` for groups 1 and 2, ...) each scan five
-    /// records of their own group. The count is what the used multiples of
-    /// 0x98 bound, not a figure read out of the game.
-    /* 0x7F4 */ Actor403200HitGroup hits[9];
-    /// The tenth collision object, the one `func_actor_444000_8013AFF8` links by
-    /// hand rather than through `func_8010C980`: a kind-3 `GpObj` whose `ctx.d4rec`
-    /// is `d4rec`, whose own `recs` points at the `GpRec18` table
-    /// `recs2`. The arena tick raises `obj.flags` bit 0x8000 while the swipe is
-    /// live and clears it otherwise.
-    /* 0xD4C */ GpObj        obj;
-    /* 0xD6C */ GpActorD4Rec d4rec;
-    /* 0xD84 */ GpRec18      recs2[5];
-    /// The light and colour matrices the spawn state points the host model and
-    /// every escort model at (`TmdObject::lightMtx` / `field_20`).
-    /* 0xDFC */ MATRIX lightMtx;
-    /* 0xE1C */ MATRIX colorMtx;
-    /// Free coordinate the arena tick rebuilds from `field_7C8` every step and
-    /// pushes through `Gp_UpdateCoord`.
-    /* 0xE3C */ Actor403200DropCoord field_E3C;
-    /* 0xE8C */ s16                  field_E8C; // Gp_GetIdParam2 of the hit group 0 took
-    /* 0xE8E */ s16                  field_E8E; // Gp_GetIdParam2 of the hit groups 3, 4 and 5 took
-    /* 0xE90 */ s16                  field_E90; // Gp_GetIdParam2 of the hit groups 6, 7 and 8 took
-    /* 0xE92 */ s16                  field_E92; // Gp_GetIdParam2 of the hit groups 1 and 2 took
-                                                /// Yaw the arena tick walks toward `field_E96` in steps of 0x32, snapping
-                                                /// once the two are within 0x33 of each other. `field_E96` is the target
-                                                /// the state ladder picks each tick and `field_E98` the companion drop the
-                                                /// shared floor-marker helper takes.
-    /* 0xE94 */ s16  field_E94;
-    /* 0xE96 */ s16  field_E96;
-    /* 0xE98 */ s16  field_E98;
-    /* 0xE9A */ byte pad_E9A[0x12];
-    /// Screen-shake request written from outside the task by
-    /// `func_actor_444000_80143490`: 1, 2 and 3 pick a shake length, anything
-    /// else leaves the driver alone. `field_EAD` is the value the driver has
-    /// already armed, so a change is what starts a new shake; `field_EAE` is
-    /// the frames still to run and `field_EAF` the amplitude handed to
-    /// `Display_ClampField126`.
-    /* 0xEAC */ u8 field_EAC;
-    /* 0xEAD */ u8 field_EAD;
-    /* 0xEAE */ u8 field_EAE;
-    /* 0xEAF */ s8 field_EAF;
-    /// Message 0x3FF payload the arena tick sends the player, pointed at
-    /// `D_actor_444000_80161670`.
-    /* 0xEB0 */ GpAnimArg anim;
-    /// The three payload bytes of the last 0x7DB message
-    /// `func_actor_444000_8013ACD0` accepted, kept whether or not the id half
-    /// selected one of its cases.
-    /* 0xEC4 */ u8   field_EC4;
-    /* 0xEC5 */ u8   field_EC5;
-    /* 0xEC6 */ u8   field_EC6;
-    /* 0xEC7 */ byte pad_EC7[0x1];
-    /// Set while the arena tick has an animation installed on the player;
-    /// `field_ECA` is the reply message 0x3F9 gave when it asked for the hold, so
-    /// the two differing is what makes the tick re-send the animation.
-    /* 0xEC8 */ s16 field_EC8;
-    /* 0xECA */ s16 field_ECA;
-    /// The seven escorts `func_actor_444000_8013AFF8` spawns with
-    /// `Gp_SpawnEnemyFromTable`; the resets walk them to push the host's
-    /// `TmdObject::flags` onto each escort's own model object.
-    /* 0xECC */ GpEnemy* field_ECC[7];
-    /// Two nearby-enemy slots, each dropped once its HP runs out; the spawn
-    /// state clears them in a loop, which is what makes them an array.
-    /* 0xEE8 */ GpEnemy* field_EE8[2];
-    /// The enemy `func_actor_444000_801404C0` drops into the arena every tenth
-    /// sub-state step once the fight passes 0x3D.
-    /* 0xEF0 */ GpEnemy* field_EF0;
-    /* 0xEF4 */ s16      field_EF4;
-    /* 0xEF6 */ s16      field_EF6;
-    /* 0xEF8 */ s16      field_EF8;
-    /* 0xEFA */ s16      field_EFA;
-    /* 0xEFC */ s16      field_EFC; // the field_EFA the colour update last ran for
-    /* 0xEFE */ s16      field_EFE;
-    /* 0xF00 */ s16      field_F00; // pitch the head tracker walks toward its target, clamped to 0..0x500
-    /* 0xF02 */ s16      field_F02; // raised with the message 0x3FF the 0x17 sub-state sends the player
-    /* 0xF04 */ s16      field_F04;
-    /* 0xF06 */ s16      field_F06;
-    /* 0xF08 */ s16      field_F08;
-    /* 0xF0A */ s16      field_F0A; // damage pool the hit handler for groups 3, 4 and 5 draws down
-    /* 0xF0C */ s16      field_F0C; // damage pool the hit handler for groups 6, 7 and 8 draws down
-    /* 0xF0E */ s16      field_F0E; // damage pool the hit handler for groups 1 and 2 draws down
-    /* 0xF10 */ s16      field_F10; // stagger countdown: the tick spins here until it runs out
-    /* 0xF12 */ s16      field_F12;
-    /* 0xF14 */ s16      field_F14; // eighths of it is how many extra re-arm steps the reset runs
-    /* 0xF16 */ s16      field_F16;
-    /* 0xF18 */ byte     pad_F18[0x2];
-    /* 0xF1A */ u8       field_F1A; // free-running counter bumped on every heal tick
-    /* 0xF1B */ s8       field_F1B;
-    /* 0xF1C */ s8       field_F1C; // countdown, decremented while positive
-    /* 0xF1D */ s8       field_F1D;
-    /* 0xF1E */ byte     pad_F1E[0x6];
-} Actor444000Work;
-STATIC_ASSERT_SIZEOF(Actor444000Work, 0xF24);
-
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_444000_80161860` points at, which is a different and much smaller
-/// block than the enemy's `Actor444000Work` above.
+/// block than the enemy's `Actor403200Work` above.
 ///
 /// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
 /// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
@@ -254,7 +63,7 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
-/// `Actor444000Work::field_7C4`, and later the normalised, GPF-scaled step the
+/// `Actor403200Work::field_7C4`, and later the normalised, GPF-scaled step the
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `Gfx_RotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
@@ -945,7 +754,7 @@ void func_actor_444000_80132CB8(Task* task, s16 scale, s16 drop, s16 index)
 /// was handed; anything past the six it knows poses like the 0x54-step phase.
 void func_actor_444000_80133010(Task* task)
 {
-    Actor444000Work* work = task->work;
+    Actor403200Work* work = task->work;
     s16              i;
 
     if (((TmdObject*)work->field_ECC[4]->task->extra)->buffer == NULL) {
@@ -1190,7 +999,7 @@ void func_actor_444000_80133010(Task* task)
 /// refresh part 3, the root of the fifth escort's model and part 4.
 void func_actor_444000_80133C58(Task* task, s16 arg1)
 {
-    Actor444000Work* work = task->work;
+    Actor403200Work* work = task->work;
     s16              value;
 
     value = arg1;
@@ -1231,7 +1040,7 @@ void func_actor_444000_80133C58(Task* task, s16 arg1)
 /// it, part 4 against it, each net of the pitch it already has.
 void func_actor_444000_80133DE4(Task* task, s16 arg1)
 {
-    Actor444000Work* work = task->work;
+    Actor403200Work* work = task->work;
     s16              value;
     s16              pitch4;
     s16              pitch3;
@@ -1275,7 +1084,7 @@ void func_actor_444000_80133DE4(Task* task, s16 arg1)
 /// `field_7BC`.
 void func_actor_444000_80133F64(Task* task)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     s32              i;
 
     work            = task->work;
@@ -1307,7 +1116,7 @@ void func_actor_444000_80133F64(Task* task)
 /// comes from the `[field_7B2][field_7B3]` transition table.
 void func_actor_444000_80134040(Task* arg0)
 {
-    Actor444000Work* work = arg0->work;
+    Actor403200Work* work = arg0->work;
     s32              i;
 
     if (work->field_7B2 != work->field_7B3) {
@@ -1338,7 +1147,7 @@ void func_actor_444000_801341C4(Task* arg0)
 {
     GpAnimPose       pose0;
     GpAnimPose       pose1;
-    Actor444000Work* work     = arg0->work;
+    Actor403200Work* work     = arg0->work;
     s32              blend    = work->field_7C0;
     s32              invBlend = 0x1000 - blend;
     s16              i;
@@ -1382,8 +1191,8 @@ void func_actor_444000_801341C4(Task* arg0)
 /// reports done. The three trailing flags run the shared reaction helpers.
 void func_actor_444000_8013441C(Task* arg0)
 {
-    Actor444000Work* work = arg0->work;
-    Actor444000Work* w;
+    Actor403200Work* work = arg0->work;
+    Actor403200Work* w;
     s32              i;
 
     if (work->field_7B0 == 1) {
@@ -1536,7 +1345,7 @@ static __inline__ void Actor444000_StepForward(GsCOORDINATE2* coord)
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(SVECTOR);
 }
 
-/// The run-out / turn / run-back pass, stepped by `Actor444000Work::field_F08`.
+/// The run-out / turn / run-back pass, stepped by `Actor403200Work::field_F08`.
 ///
 /// A reset request re-arms the block: the model's flag word and the enemy's
 /// link state are cleared, both colour steps are switched on, animation 2 is
@@ -1555,7 +1364,7 @@ void func_actor_444000_8013482C(Task* task)
     Actor444000RunScratch* sc;
     OverlayMat*            mat;
     TmdObject*             tmd;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               enemy;
     GsCOORDINATE2*         coord;
     GsCOORDINATE2*         model;
@@ -1835,7 +1644,7 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
 /// step 0xA0 enqueues the collapse cue.
 void func_actor_444000_80135448(Task* task)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     GpEnemy*         enemy;
     TmdObject*       tmd;
     MATRIX           mat;
@@ -2307,15 +2116,15 @@ void func_actor_444000_80137594(GpEnemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
     GpEnemy*             owner;
-    Actor444000Work*     host;
+    Actor403200Work*     host;
     SVECTOR              pos;
     SVECTOR              vec;
 
     owner = task->parent->spawnArg2;
     host  = owner->task->work;
 
-    if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
-        (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12 ||
+    if (D_actor_444000_80144A68 == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
+        host->field_0 == 0xC || host->field_0 == 0x12 ||
         (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -2368,7 +2177,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Task* task)
 void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
-    Actor444000Work*     host;
+    Actor403200Work*     host;
     GpEnemy*             owner;
     u8*                  head;
     SVECTOR*             dir;
@@ -2381,8 +2190,8 @@ void func_actor_444000_8013799C(GpEnemy* enemy, Task* task)
     owner = task->parent->spawnArg2;
     host  = owner->task->work;
 
-    if (D_actor_444000_80144A68 == 1 || (s16)host->field_0 == 0x10 || (s16)host->field_0 == 5 ||
-        (s16)host->field_0 == 0xC || (s16)host->field_0 == 0x12) {
+    if (D_actor_444000_80144A68 == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
+        host->field_0 == 0xC || host->field_0 == 0x12) {
         task->state++;
         Gp_UnlinkObj(&work->obj0);
         return;
@@ -2514,7 +2323,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
     GpEnemy*             owner;
-    Actor444000Work*     host;
+    Actor403200Work*     host;
     Task*                player;
     SVECTOR              vec;
     s32                  sfx;
@@ -3625,7 +3434,7 @@ void func_actor_444000_8013A3AC(GpEnemy* enemy, Task* task)
 /// itself once the counter runs out.
 void func_actor_444000_8013A77C(Task* task)
 {
-    Actor444000Work* work = task->work;
+    Actor403200Work* work = task->work;
     s32              phase;
 
     if (work->field_EAC != work->field_EAD) {
@@ -3727,10 +3536,10 @@ void func_actor_444000_8013A77C(Task* task)
 s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
 {
     TmdObject*       tmd;
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* buffers;
-    Actor444000Work* rebuilt;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* buffers;
+    Actor403200Work* rebuilt;
     TmdObject*       hostTmd;
     TmdObject*       escortTmd;
     s32              flags;
@@ -3867,7 +3676,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 /// raising eight floor vertices and flattening the model's rotation.
 s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, GpCmdArg* msg)
 {
-    Actor444000Work* work  = task->work;
+    Actor403200Work* work  = task->work;
     GpEnemy*         enemy = task->spawnArg2;
     SVECTOR*         verts;
     s32              action;
@@ -3933,7 +3742,7 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, GpCmdArg* msg)
 /// matrix lives in a frame taken off `G_SCRATCH_HEAD`, which is handed back
 /// once the rotation has been copied out; inlined so each scratch-head access
 /// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor444000Work* work)
+static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* work)
 {
     GsCOORDINATE2*        coord = ((TmdObject*)task->extra)->coords;
     ActorScaleRotScratch* sc;
@@ -3964,7 +3773,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor444000Work* wo
     *(u8**)G_SCRATCH_HEAD            = *(u8**)G_SCRATCH_HEAD + sizeof(ActorScaleRotScratch);
 }
 
-/// Spawn state of the arena boss: allocate its `Actor444000Work`, wire the host
+/// Spawn state of the arena boss: allocate its `Actor403200Work`, wire the host
 /// enemy up to the model's root coordinate and its nine collision objects, then
 /// spawn the seven escorts that make up the rest of the creature.
 ///
@@ -3983,9 +3792,9 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor444000Work* wo
 /// before the fight announces itself with message 0x7DA.
 void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
 {
-    Actor444000Work* work;
-    Actor444000Work* buffers;
-    Actor444000Work* escorts;
+    Actor403200Work* work;
+    Actor403200Work* buffers;
+    Actor403200Work* escorts;
     OverlayMat*      mtx;
     TmdObject*       tmd;
     TmdObject*       model;
@@ -4309,7 +4118,7 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
 void func_actor_444000_8013C060(Task* task)
 {
     Actor403200HitScratch* sc;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               enemy;
     GpRec18*               recs;
     PlayerStatus*          cfg;
@@ -4441,7 +4250,7 @@ found:
 void func_actor_444000_8013C4B0(Task* task)
 {
     Actor403200HitScratch* sc;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
@@ -4559,7 +4368,7 @@ hit:
             sc->rot.vx = 0;
             sc->rot.vz = 0x3E8;
             Gp_SpawnEff(0x6009C, ((TmdObject*)work->field_ECC[3]->task->extra)->coords, 0, &sc->rot);
-            if ((s16)work->field_0 != 9) {
+            if (work->field_0 != 9) {
                 work->field_0 = 8;
                 work->field_2 = -1;
             }
@@ -4621,7 +4430,7 @@ out:
 void func_actor_444000_8013CA60(Task* task)
 {
     Actor403200HitScratch* sc;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
@@ -4824,7 +4633,7 @@ out:
 void func_actor_444000_8013D128(Task* task)
 {
     Actor403200HitScratch* sc;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
     GsCOORDINATE2*         coord;
@@ -5018,9 +4827,9 @@ out:
 /// every escort's model buffers.
 void func_actor_444000_8013D810(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* dying;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* dying;
     s16              i;
     s16              j;
 
@@ -5107,8 +4916,8 @@ static __inline__ void Actor444000_FlattenRotation(GsCOORDINATE2* coord, s32 vy)
 /// like a copy-paste slip in the original but is what the ROM does.
 void func_actor_444000_8013D96C(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
     s16              i;
 
     work = arg0->work;
@@ -5181,13 +4990,13 @@ void func_actor_444000_8013D96C(Task* arg0)
 /// its two spawned escorts.
 void func_actor_444000_8013E058(Task* task)
 {
-    Actor444000Work*        work  = task->work;
+    Actor403200Work*        work  = task->work;
     GpEnemy*                enemy = task->spawnArg2;
     Task*                   slot3;
     GameActor*              actor;
     Actor444000DragScratch* sc;
-    Actor444000Work*        escorts;
-    Actor444000Work*        buffers;
+    Actor403200Work*        escorts;
+    Actor403200Work*        buffers;
     PlayerStatus*           cfg;
     GsCOORDINATE2*          coord;
     GsCOORDINATE2*          facing;
@@ -5462,7 +5271,7 @@ void func_actor_444000_8013E058(Task* task)
 /// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
 /// opposite yaw is stowed in `field_7C4` for the drive step. The normalised
 /// direction scaled to 0x384 is where the player is asked to stand.
-static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor444000Work* work,
+static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work* work,
                                                     Task* player, Actor444000WarpScratch* sc,
                                                     PlayerStatus* cfg)
 {
@@ -5549,9 +5358,9 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor444000Work*
 void func_actor_444000_8013EC84(Task* arg0)
 {
     Actor444000WarpScratch* sc;
-    Actor444000Work*        work;
-    Actor444000Work*        escorts;
-    Actor444000Work*        buffers;
+    Actor403200Work*        work;
+    Actor403200Work*        escorts;
+    Actor403200Work*        buffers;
     GpEnemy*                enemy;
     Task*                   player;
     PlayerStatus*           cfg;
@@ -5765,9 +5574,9 @@ void func_actor_444000_8013EC84(Task* arg0)
 /// cancels the animation with message 0x3F1 and drops the hold.
 void func_actor_444000_8013FB74(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* buffers;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* buffers;
     GpEnemy*         enemy;
     Task*            player;
     Task*            target;
@@ -5951,7 +5760,7 @@ scanned:
     }
 
     mode = work->field_EC8;
-    if (mode == 1 && (s16)work->field_0 != 0xD) {
+    if (mode == 1 && work->field_0 != 0xD) {
         count           = work->field_7CA + 1;
         work->field_7CA = count;
         if (work->field_ECA == mode) {
@@ -6029,8 +5838,8 @@ scanned:
 /// second animation slot raises its flag.
 void func_actor_444000_801404C0(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
     GpEnemy*         enemy;
     GpEnemy*         spawned;
     GsCOORDINATE2*   coord;
@@ -6156,9 +5965,9 @@ void func_actor_444000_801404C0(Task* arg0)
 /// rebuild.
 void func_actor_444000_80140BBC(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* buffers;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* buffers;
     TmdObject*       tmd;
     TmdObject*       escortTmd;
     OverlayMat*      mtx;
@@ -6238,9 +6047,9 @@ void func_actor_444000_80140BBC(Task* arg0)
 /// so the spawn does not repeat while the frame is held.
 void func_actor_444000_80140E28(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* buffers;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* buffers;
     GpEnemy*         obj;
     TmdObject*       tmd;
     TmdObject*       escortTmd;
@@ -6297,7 +6106,7 @@ void func_actor_444000_80140E28(Task* arg0)
 
 void func_actor_444000_8014105C(Task* arg0)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     GpEnemy*         obj;
     TmdObject*       tmd;
     s32              state;
@@ -6361,7 +6170,7 @@ void func_actor_444000_8014105C(Task* arg0)
 void func_actor_444000_801411C8(Task* arg0)
 {
     Actor403200HitScratch* sc;
-    Actor444000Work*       work;
+    Actor403200Work*       work;
     GpEnemy*               enemy;
     Task*                  player;
     GsCOORDINATE2*         coord;
@@ -6499,7 +6308,7 @@ void func_actor_444000_801411C8(Task* arg0)
 void func_actor_444000_80141618(Task* task)
 {
     Actor403200SpawnScratch* sc;
-    Actor444000Work*         work;
+    Actor403200Work*         work;
     GpEnemy*                 host;
     GpEnemy*                 escort;
     PlayerStatus*            cfg;
@@ -6696,9 +6505,9 @@ out:
 /// the player's coordinate matrix through the shared drive step.
 void func_actor_444000_80141DFC(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
-    Actor444000Work* buffers;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
+    Actor403200Work* buffers;
     GpEnemy*         obj;
     GpEnemy*         child;
     GpAreaKey*       sessionKey;
@@ -6917,7 +6726,7 @@ void func_actor_444000_80142254(void)
 
 /// Per-frame body of the boss task: refreshes the host model's coordinate,
 /// times out the "model buffers freed" countdown, re-lights the host and its
-/// escorts, then runs the state handler `Actor444000Work::field_0` selects and
+/// escorts, then runs the state handler `Actor403200Work::field_0` selects and
 /// republishes every collision group.
 ///
 /// `Gp_StateF0.field_4` gates how much of that runs. While the controller task is
@@ -6946,7 +6755,7 @@ void func_actor_444000_80142254(void)
 void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
 {
     PlayerStatus*    cfg  = &Player_Status;
-    Actor444000Work* work = task->work;
+    Actor403200Work* work = task->work;
     VECTOR           pos;
     TaskFunc         handlers[0x15] = {
         func_actor_444000_8013D810,
@@ -6971,8 +6780,8 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         func_actor_444000_8013D96C,
         NULL,
     };
-    Actor444000Work* escorts;
-    Actor444000Work* flagged;
+    Actor403200Work* escorts;
+    Actor403200Work* flagged;
     s32              view;
     s16              i;
     s16              j;
@@ -7009,7 +6818,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
     }
     Gp_UpdateActorColor(work->field_EFA != 0 ? enemy : work->field_ECC[3], &pos, 0, 0);
 
-    if ((s16)work->field_0 == 0xB) {
+    if (work->field_0 == 0xB) {
         ((TmdObject*)work->field_ECC[4]->task->extra)->otOffset = -1;
     } else {
         ((TmdObject*)work->field_ECC[4]->task->extra)->otOffset = 0;
@@ -7017,7 +6826,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 0:
-            if ((s16)work->field_0 != 0) {
+            if (work->field_0 != 0) {
                 if (view == 9) {
                     flagged                          = task->work;
                     flagged->field_7F3               = 0;
@@ -7043,7 +6852,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
             break;
 
         case 1:
-            if ((s16)work->field_0 != 0) {
+            if (work->field_0 != 0) {
                 if (view == 9) {
                     flagged                          = task->work;
                     flagged->field_7F3               = 0;
@@ -7104,7 +6913,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
     SCRATCH_SP -= 0x1C;
 
     if (enemy->hp > 0) {
-        if (work->field_EC8 != 1 && cfg->hp > 0 && (s16)work->field_0 != 0xD) {
+        if (work->field_EC8 != 1 && cfg->hp > 0 && work->field_0 != 0xD) {
             if (work->field_E92 > 0) {
                 work->field_E92--;
             } else {
@@ -7132,7 +6941,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
             enemy->hp               = 1;
             D_actor_444000_80144A68 = 0;
         }
-        if (enemy->hp <= 0 && (s16)work->field_0 != 0) {
+        if (enemy->hp <= 0 && work->field_0 != 0) {
             switch (work->field_F12) {
                 case 0:
                     D_actor_444000_80144A68                = 1;
@@ -7161,7 +6970,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         }
     }
 
-    if (work->field_2 != (s16)work->field_0) {
+    if (work->field_2 != work->field_0) {
         work->field_4 = 1;
         work->field_6 = 0;
     } else {
@@ -7171,10 +6980,10 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         work->field_4 = 0;
     }
     work->field_2 = work->field_0;
-    handlers[(s16)work->field_0](task);
+    handlers[work->field_0](task);
 
-    if (work->field_0 < 2 || (s16)work->field_0 == 5 || (s16)work->field_0 == 0x12 ||
-        (s16)work->field_0 == 0x13 || (s16)work->field_0 == 0xC) {
+    if ((u16)work->field_0 < 2 || work->field_0 == 5 || work->field_0 == 0x12 ||
+        work->field_0 == 0x13 || work->field_0 == 0xC) {
         enemy->node.state.b.flags              = 1;
         work->field_ECC[3]->node.state.b.flags = 1;
         work->field_ECC[0]->node.state.b.flags = 1;
@@ -7197,15 +7006,15 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         work->field_ECC[1]->node.state.b.flags = 8;
     }
 
-    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 0x12 && (s16)work->field_0 != 0x13 &&
-        (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC && work->field_EFA == 1) {
+    if (work->field_0 != 0 && work->field_0 != 0x12 && work->field_0 != 0x13 &&
+        work->field_0 != 5 && work->field_0 != 0xC && work->field_EFA == 1) {
         work->hits[0].obj.flags |= 0x8000;
     } else {
         work->hits[0].obj.flags &= 0x7FFF;
     }
 
-    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 0x12 && (s16)work->field_0 != 0x13 &&
-        (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC && work->field_EFA != 1) {
+    if (work->field_0 != 0 && work->field_0 != 0x12 && work->field_0 != 0x13 &&
+        work->field_0 != 5 && work->field_0 != 0xC && work->field_EFA != 1) {
         work->hits[1].obj.flags |= 0x8000;
         work->hits[2].obj.flags |= 0x8000;
     } else {
@@ -7213,8 +7022,8 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         work->hits[2].obj.flags &= 0x7FFF;
     }
 
-    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC &&
-        (s16)work->field_0 != 0x13 && (s16)work->field_0 != 0x12) {
+    if (work->field_0 != 0 && work->field_0 != 5 && work->field_0 != 0xC &&
+        work->field_0 != 0x13 && work->field_0 != 0x12) {
         work->hits[3].obj.flags |= 0x8000;
         work->hits[4].obj.flags |= 0x8000;
         work->hits[5].obj.flags |= 0x8000;
@@ -7224,8 +7033,8 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         work->hits[5].obj.flags &= 0x7FFF;
     }
 
-    if ((s16)work->field_0 != 0 && (s16)work->field_0 != 5 && (s16)work->field_0 != 0xC &&
-        (s16)work->field_0 != 0x13 && (s16)work->field_0 != 0x12) {
+    if (work->field_0 != 0 && work->field_0 != 5 && work->field_0 != 0xC &&
+        work->field_0 != 0x13 && work->field_0 != 0x12) {
         work->hits[6].obj.flags |= 0x8000;
         work->hits[7].obj.flags |= 0x8000;
         work->hits[8].obj.flags |= 0x8000;
@@ -7246,7 +7055,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
     Gp_ClearRec18Occupied(work->hits[8].recs);
     Gp_ClearRec18Occupied(work->recs2);
 
-    if ((s16)work->field_0 != 5) {
+    if (work->field_0 != 5) {
         func_actor_444000_8013A77C(task);
     }
 
@@ -7286,7 +7095,7 @@ void func_actor_444000_80142F28(Task* arg0)
         Gp_DestroyEnemy,
     };
     SVECTOR          result;
-    Actor444000Work* work;
+    Actor403200Work* work;
     GpEnemy*         enemy;
     Task*            player;
     SVECTOR*         verts;
@@ -7366,7 +7175,7 @@ void func_actor_444000_80142F28(Task* arg0)
                         func_actor_444000_80132CB8(arg0, work->field_E94, work->field_E98, 6);
                     }
 
-                    if (work->field_F08 == 0 || (work->field_F08 == 1 && (s16)work->field_0 != 9)) {
+                    if (work->field_F08 == 0 || (work->field_F08 == 1 && work->field_0 != 9)) {
                         GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->coords;
                         GsCOORDINATE2* selfCoord   = ((TmdObject*)arg0->extra)->coords;
                         s32            x           = work->field_E94 + selfCoord->coord.t[0];
@@ -7396,7 +7205,7 @@ void func_actor_444000_80142F28(Task* arg0)
             /* Re-read: the calls above can drop the fight back to state 0. The
                `goto` is what lets the `state == 0` edge reach the reset
                directly, as the ROM does. */
-            if ((s16)work->field_0 != 0) {
+            if (work->field_0 != 0) {
                 goto skipGrid;
             }
         }
@@ -7444,11 +7253,11 @@ void func_actor_444000_80143374(s32 arg0, s16 arg1)
 /// detach the enemy's contact records, then tear the enemy down.
 void func_actor_444000_801433B8(Task* arg0)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     GpEnemy*         enemy;
     s16              i;
 
-    work  = (Actor444000Work*)arg0->work;
+    work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2;
     if (work != NULL) {
         for (i = 0; i < 7; i++) {
@@ -7471,7 +7280,7 @@ void func_actor_444000_801433B8(Task* arg0)
 
 void func_actor_444000_80143490(s8 arg0)
 {
-    ((Actor444000Work*)D_actor_444000_80161878->work)->field_EAC = arg0;
+    ((Actor403200Work*)D_actor_444000_80161878->work)->field_EAC = arg0;
 }
 
 void func_actor_444000_801434A8(s16 arg0)
@@ -7490,7 +7299,7 @@ s16 func_actor_444000_801434B4(void)
 /// yaw presets in `field_7C4`, alternating every 60 counts.
 void func_actor_444000_801434C4(Task* arg0)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     s16              tick;
 
     work = arg0->work;
@@ -7519,7 +7328,7 @@ void func_actor_444000_801434C4(Task* arg0)
 
 void func_actor_444000_801435CC(Task* arg0)
 {
-    Actor444000Work* work;
+    Actor403200Work* work;
     GpEnemy*         obj;
     TmdObject*       tmd;
     s32              id;
@@ -7791,12 +7600,12 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
 s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpXformArg* placement)
 {
-    Actor444000Work* work = arg0->work;
+    Actor403200Work* work = arg0->work;
 
     ((TmdObject*)arg0->extra)->coords->coord.t[0] = placement->pos.vx;
     ((TmdObject*)arg0->extra)->coords->coord.t[1] = placement->pos.vy;
     ((TmdObject*)arg0->extra)->coords->coord.t[2] = placement->pos.vz;
-    if ((u32)(work->field_0 - 0x12) >= 2U) {
+    if ((u32)((u16)work->field_0 - 0x12) >= 2U) {
         Gfx_RotMatrixX(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vx, 1);
         Gfx_RotMatrixY(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vy, 0);
         Gfx_RotMatrixZ(&((TmdObject*)arg0->extra)->coords->coord, placement->rot.vz, 0);
@@ -7812,7 +7621,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, GpXformArg* placement)
 /// enemy whose HP has run out.
 s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
 {
-    Actor444000Work* work = arg0->work;
+    Actor403200Work* work = arg0->work;
     GpEnemy*         obj  = arg0->spawnArg2;
 
     switch (arg2) {
@@ -7841,7 +7650,7 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
 
 s32 func_actor_444000_80143F38(Task* arg0)
 {
-    ((Actor444000Work*)arg0->work)->field_0 = 0;
+    ((Actor403200Work*)arg0->work)->field_0 = 0;
     return 1;
 }
 
@@ -7851,8 +7660,8 @@ s32 func_actor_444000_80143F38(Task* arg0)
 /// the ordinary re-arm in `func_actor_444000_8013441C`.
 void func_actor_444000_80143F4C(Task* arg0)
 {
-    Actor444000Work* work;
-    Actor444000Work* escorts;
+    Actor403200Work* work;
+    Actor403200Work* escorts;
     s16              i;
 
     work = arg0->work;
