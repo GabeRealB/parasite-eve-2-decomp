@@ -25,9 +25,9 @@
 /// `func_actor_323000_80163EA0` binds to `TmdObject::lightMtx` / `field_20`
 /// sit between the animation block and the tail.
 typedef struct Actor323000Work {
-    /// Animation state, the same slot `ActorShared80164af0Work` names
-    /// `field_0`; `func_actor_323000_80164A54` picks it from a message, and
-    /// the animation handler `ActorsShared80164af0` restarts it.
+    /// Animation state, the index `func_actor_323000_801645A4` dispatches on;
+    /// `func_actor_323000_80164A54` picks it from a message, and the message
+    /// 0x7D3 handler `func_actor_323000_80164AF0` restarts it at 1.
     /* 0x000 */ s16 field_0;
     /// State `func_actor_323000_801645A4` ran last frame; `field_4` is set
     /// when `field_0` differs from it.
@@ -35,8 +35,12 @@ typedef struct Actor323000Work {
     /* 0x004 */ s16 field_4;
     /// Frame counter `func_actor_323000_80163A30` advances; zeroed by the
     /// re-init handler below.
-    /* 0x006 */ s16        field_6;
-    /* 0x008 */ byte       pad_8[0x14];
+    /* 0x006 */ s16  field_6;
+    /* 0x008 */ byte pad_8[0xE];
+    /// Yaw of the root coordinate as the placement handler
+    /// `func_actor_323000_80164954` leaves it, read back from the matrix.
+    /* 0x016 */ s16        field_16;
+    /* 0x018 */ byte       pad_18[4];
     /* 0x01C */ GpAnimCtx  anim;
     /* 0x030 */ GpAnimSlot slots[18];
     /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx.poses`.
@@ -189,5 +193,13 @@ void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 /// restart state 0, and 3 keeps state `mode` as it stands. Every other code
 /// only stores the bytes. Reached as `fns[code](task, arg1, msg, arg3)`.
 s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 arg3);
+
+/// Descriptor state table `func_actor_323000_80164CE4` dispatches through:
+/// the spawn handler, the per-frame driver and `Gp_DestroyEnemy`.
+extern GpEnemyTaskFuncTable3 D_actor_323000_80161E34;
+
+void func_actor_323000_80161E8C(GsCOORDINATE2* coord, s16 yaw);
+void func_actor_323000_8016331C(Task* task);
+void func_actor_323000_80164B18(Task* task);
 
 #endif

@@ -1,0 +1,263 @@
+#include "common.h"
+
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
+#include "actors/actor_323000.h"
+#include "gameplay/gameplay.h"
+#include "rooms/rooms_shared_80182078.h"
+
+/// Carries `v` from the local frame `coord` up the `GsCOORDINATE2::sub` parent
+/// chain into world space, using a 0x20 scratch block from `G_SCRATCH_HEAD`.
+static __inline__ void Actor323000_ToWorld(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    {
+        register GsCOORDINATE2* parent asm("v0");
+        parent                                                                                              = coord;
+        ((RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk)))->coord = parent;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk);
+        blk = (RoomsShared80182078Walk*)tmp;
+    }
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
+/// The same walk as `Actor323000_ToWorld`, spelled without its register
+/// bindings; each caller site needs its own form to match.
+static __inline__ void Actor323000_ToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
+{
+    RoomsShared80182078Walk* blk;
+
+    blk         = (RoomsShared80182078Walk*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(RoomsShared80182078Walk));
+    blk->coord  = coord;
+    blk->vec.vx = v->vx;
+    blk->vec.vy = v->vy;
+    blk->vec.vz = v->vz;
+
+    *(void**)G_SCRATCH_HEAD = blk;
+    while (blk->coord != NULL) {
+        gte_SetTransMatrix(&blk->coord->coord);
+        gte_SetRotMatrix(&blk->coord->coord);
+        gte_ldv0(&blk->vec);
+        gte_rtv0tr();
+        gte_stlvnl(blk->out);
+        gte_stflg(&blk->flag);
+        blk->vec.vx = *(u16*)&blk->out[0];
+        blk->vec.vy = *(u16*)&blk->out[1];
+        blk->vec.vz = *(u16*)&blk->out[2];
+        blk->coord  = blk->coord->sub;
+    }
+    v->vx = blk->vec.vx;
+    v->vy = blk->vec.vy;
+    v->vz = blk->vec.vz;
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(RoomsShared80182078Walk);
+}
+
+/// Pushes `coord` `push` units away from each obstacle among the first
+/// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
+/// 0x400 of every other obstacle's. Bearings are taken in world space from the
+/// frame's position, relative to the point one unit in front of it. Returns
+/// whether any push was applied; returns 0 at once when
+/// `gGameSession->viewReady` is 1.
+s32 func_actor_323000_80162BD0(GsCOORDINATE2* coord, GpRec18* recs, s16 count, s16 push)
+{
+    void**                      scratch;
+    void**                      tail;
+    u8*                         head;
+    RoomsShared80182078Scratch* st;
+    u16                         vz;
+    s16                         d;
+    s16                         dz;
+    s32                         t;
+    s32                         hit;
+
+    if (gGameSession->viewReady == 1) {
+        return 0;
+    }
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* tmp asm("v0");
+        tmp = head - sizeof(RoomsShared80182078Scratch);
+        st  = (RoomsShared80182078Scratch*)tmp;
+    }
+    st->eye.vx = *(u16*)&coord->coord.t[0];
+    st->eye.vy = *(u16*)&coord->coord.t[1];
+    vz         = *(u16*)&coord->coord.t[2];
+    *scratch   = st;
+    st->eye.vz = vz;
+
+    Actor323000_ToWorld(coord->sub, &st->eye);
+
+    st->aim.vx = 0;
+    st->aim.vy = 0;
+    st->aim.vz = 0x1000;
+
+    Actor323000_ToWorld2(coord, &st->aim);
+
+    for (st->i = 0; st->i < count; st->i++) {
+        if (recs[st->i].key == 0) {
+            st->angle[st->i] = 0x7FFE;
+            break;
+        }
+        st->kind = recs[st->i].key & 0xFFFF0000;
+        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
+            st->angle[st->i] = 0x7FFF;
+        } else {
+            st->delta.vx     = *(u16*)&recs[st->i].point.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&recs[st->i].point.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&recs[st->i].point.vz - *(u16*)&st->eye.vz;
+            st->delta.vz     = dz;
+            st->angle[st->i] = ratan2(st->delta.vx, dz);
+
+            st->delta.vx     = *(u16*)&st->aim.vx - *(u16*)&st->eye.vx;
+            st->delta.vy     = *(u16*)&st->aim.vy - *(u16*)&st->eye.vy;
+            dz               = *(u16*)&st->aim.vz - *(u16*)&st->eye.vz;
+            st->delta.vz     = dz;
+            st->angle[st->i] = *(u16*)&st->angle[st->i] - ratan2(st->delta.vx, dz);
+
+            d = st->angle[st->i];
+            if (st->angle[st->i] < 0) {
+            wrapUp1:
+                if (d < -0x800) {
+                    d += 0x1000;
+                    goto wrapUp1;
+                }
+            } else {
+            wrapDown1:
+                if (d > 0x800) {
+                    d -= 0x1000;
+                    goto wrapDown1;
+                }
+            }
+            st->angle[st->i] = d;
+        }
+    }
+
+    st->hit = 0;
+    for (st->i = 0; st->i < count; st->i++) {
+        if (st->angle[st->i] == 0x7FFE) {
+            break;
+        }
+        if (st->angle[st->i] == 0x7FFF) {
+            continue;
+        }
+        for (st->j = 0; st->j < count; st->j++) {
+            if (st->i == st->j) {
+                continue;
+            }
+            if (st->angle[st->j] == 0x7FFF) {
+                continue;
+            }
+            if (st->angle[st->j] != 0x7FFE) {
+                st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
+                d        = st->diff;
+                if (st->diff < 0) {
+                wrapUp2:
+                    if (d < -0x800) {
+                        d += 0x1000;
+                        goto wrapUp2;
+                    }
+                } else {
+                wrapDown2:
+                    if (d > 0x800) {
+                        d -= 0x1000;
+                        goto wrapDown2;
+                    }
+                }
+                t        = d;
+                st->diff = t;
+                SOFT_BARRIER();
+                if (t < 0) {
+                    t = -t;
+                }
+                if (t >= 0x401) {
+                    break;
+                }
+                if (st->angle[st->j] != 0x7FFE) {
+                    if (st->j + 1 < count) {
+                        continue;
+                    }
+                }
+            }
+            st->hit = 1;
+            Gfx_RotMatrixY(&st->m,
+                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
+                           1);
+            Gfx_MatrixCol2(&st->m, &st->aim);
+            VectorNormalSS(&st->aim, &st->aim);
+            gte_lddp(-push);
+            gte_ldsv(&st->aim);
+            gte_gpf12();
+            gte_stsv(&st->delta);
+            coord->coord.t[0] += st->delta.vx;
+            coord->coord.t[2] += st->delta.vz;
+            break;
+        }
+    }
+
+    tail  = (void**)G_SCRATCH_HEAD;
+    hit   = st->hit;
+    *tail = (u8*)*tail + sizeof(RoomsShared80182078Scratch);
+    return hit;
+}
+
+/// Tick of the animation slots while the blend context is live: slots 1..10
+/// sample both contexts and write their pose mixed by `field_83C` (the blend
+/// context gets the 0x1000 complement), each rate seeded from `field_832`
+/// (three below it) and `field_83A`; slots 11..17 only tick the main context.
+void func_actor_323000_8016331C(Task* task)
+{
+    GpAnimPose       pose;
+    GpAnimPose       blendPose;
+    GpAnimCtx*       anim;
+    s16              weight;
+    s16              i;
+    Actor323000Work* work;
+
+    work   = (Actor323000Work*)task->work;
+    weight = work->field_83C;
+    anim   = &work->anim;
+    for (i = 1; i < 0x12; i++) {
+        if (i < 0xB) {
+            work->blendSlots[i].rate = work->field_83A;
+            work->slots[i].rate      = (u8)(work->field_832 - 3);
+            func_800B3448(anim, i, (s32)&pose, 0);
+            func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+            Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+        } else {
+            work->slots[i].rate = (u8)(work->field_832 - 3);
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+    }
+}

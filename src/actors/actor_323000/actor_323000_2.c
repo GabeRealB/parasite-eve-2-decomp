@@ -1,9 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_323000.h"
-#include "actors/actors_shared_801366fc.h"
-#include "actors/actors_shared_80132808.h"
-#include "actors/actors_shared_8016331c.h"
 #include "gameplay/3CD8.h"
 #include "psyq/inline_c.h"
 #include "gte.h"
@@ -338,7 +335,7 @@ void func_actor_323000_80163A30(Task* task)
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {
-        ActorsShared8016331c(task);
+        func_actor_323000_8016331C(task);
         if (work->blendSlots[1].flags & 1) {
             work->field_82A = 0;
         }
@@ -369,11 +366,11 @@ void func_actor_323000_80163A30(Task* task)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        ActorsShared80132808(&((TmdObject*)task->extra)->coords[2], thirdAngle);
+        func_actor_323000_80161E8C(&((TmdObject*)task->extra)->coords[2], thirdAngle);
         ((TmdObject*)task->extra)->coords[2].flg = 0;
-        ActorsShared80132808(&((TmdObject*)task->extra)->coords[3], thirdAngle);
+        func_actor_323000_80161E8C(&((TmdObject*)task->extra)->coords[3], thirdAngle);
         ((TmdObject*)task->extra)->coords[3].flg = 0;
-        ActorsShared80132808(&((TmdObject*)task->extra)->coords[4], (s16)clampedAngle / 2);
+        func_actor_323000_80161E8C(&((TmdObject*)task->extra)->coords[4], (s16)clampedAngle / 2);
         ((TmdObject*)task->extra)->coords[4].flg = 0;
     }
     turnWork     = (Actor323000Work*)task->work;
@@ -407,7 +404,7 @@ void func_actor_323000_80163A30(Task* task)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    ActorsShared80132808(&((TmdObject*)task->extra)->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    func_actor_323000_80161E8C(&((TmdObject*)task->extra)->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     ((TmdObject*)task->extra)->coords[10].flg = 0;
     sound                                     = func_actor_323000_80163448(task, work);
     if (sound != 0) {
@@ -436,7 +433,7 @@ void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback = ActorsShared801366fc;
+    task->exitCallback = func_actor_323000_80164B18;
     work2              = (Actor323000Work*)task->work;
     tmd                = (TmdObject*)task->extra;
     tmd->lightMtx      = &work2->light;
