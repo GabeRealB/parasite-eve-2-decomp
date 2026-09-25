@@ -6,8 +6,6 @@
 #include <psyq/inline_c.h>
 #include "gte.h"
 
-#include "actors/actor_100700.h"
-#include "actors/actor_100700_spawn.h"
 #include "actors/actors_shared_80135b58.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3CD8.h"
@@ -18,6 +16,248 @@
 #include "main/sound.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/pairsrc.h"
+#include "gameplay/3FB8.h"
+
+typedef struct Actor00700Obj2C {
+    /* 0x00 */ byte           pad_0[8];
+    /* 0x08 */ GsCOORDINATE2* field_8;
+    /* 0x0C */ s16            field_C;
+    /* 0x0E */ byte           pad_E[0x16];
+    /* 0x24 */ s8             field_24;
+    /* 0x25 */ s8             field_25;
+} Actor00700Obj2C;
+
+typedef union Actor00700HitRecord {
+    GpRec18 rec;
+    struct {
+        u32       header;
+        GpFixed16 id;
+    } hit;
+} Actor00700HitRecord;
+
+typedef union Actor00700ContactStorage {
+    MATRIX matrix;
+    struct {
+        byte    pad_0[8];
+        GpRec18 recs[3];
+    } contacts;
+    struct {
+        /* 0x00 */ byte   pad_0[0x20];
+        /* 0x20 */ MATRIX rotation;
+    } quad;
+} Actor00700ContactStorage;
+STATIC_ASSERT_SIZEOF(Actor00700ContactStorage, 0x50);
+
+typedef struct Actor00700Work {
+    /* 0x000 */ byte                     pad_0[0x154];
+    /* 0x154 */ Actor00700HitRecord      field_154;
+    /* 0x16C */ byte                     pad_16C[0x20];
+    /* 0x18C */ GpRec18                  field_18C;
+    /* 0x1A4 */ byte                     pad_1A4[0x38];
+    /* 0x1DC */ byte                     field_1DC[0x1E];
+    /* 0x1FA */ u16                      field_1FA;
+    /* 0x1FC */ byte                     field_1FC[0x18];
+    /* 0x214 */ byte                     field_214[0x10];
+    /* 0x224 */ GpEffArg                 field_224;
+    /* 0x22C */ Actor00700ContactStorage field_22C;
+    /* 0x27C */ byte                     field_27C[0x20];
+    /* 0x29C */ byte                     pad_29C[0x10];
+    /* 0x2AC */ s32                      field_2AC;
+    /* 0x2B0 */ s32                      field_2B0;
+    /* 0x2B4 */ s32                      field_2B4;
+    /* 0x2B8 */ byte                     pad_2B8[4];
+    /* 0x2BC */ s32                      field_2BC;
+    /* 0x2C0 */ s32                      field_2C0;
+    /* 0x2C4 */ s32                      field_2C4;
+    /* 0x2C8 */ byte                     pad_2C8[0xC];
+    /* 0x2D4 */ s16                      field_2D4;
+    /* 0x2D6 */ s16                      field_2D6;
+    /* 0x2D8 */ s16                      field_2D8;
+    /* 0x2DA */ s16                      field_2DA;
+    /* 0x2DC */ s16                      field_2DC;
+    /* 0x2DE */ s16                      field_2DE;
+    /* 0x2E0 */ s16                      field_2E0;
+    /* 0x2E2 */ s16                      field_2E2;
+    /* 0x2E4 */ s16                      field_2E4;
+    /* 0x2E6 */ s16                      field_2E6;
+    /* 0x2E8 */ byte                     pad_2E8[0x14];
+    /* 0x2FC */ byte                     field_2FC[0x1E];
+    /* 0x31A */ u16                      field_31A;
+    /* 0x31C */ byte                     pad_31C[0x18];
+    /* 0x334 */ GpEffArg                 field_334; // record the hit's effect is spawned with
+    /* 0x33C */ GsCOORDINATE2*           field_33C;
+    /* 0x340 */ MATRIX                   field_340;
+    /* 0x360 */ s32                      field_360;
+    /* 0x364 */ s32                      field_364;
+    /* 0x368 */ s32                      field_368;
+    /* 0x36C */ byte                     pad_36C[4];
+    /* 0x370 */ SVECTOR                  field_370;
+    /* 0x378 */ s16                      field_378;
+    /* 0x37A */ s16                      field_37A;
+    /* 0x37C */ s16                      field_37C;
+    /* 0x37E */ u16                      field_37E;
+    /* 0x380 */ s16                      field_380;
+    /* 0x382 */ u16                      field_382;
+    /* 0x384 */ s16                      field_384;
+    /* 0x386 */ s16                      field_386;
+    /* 0x388 */ s16                      field_388;
+    /* 0x38A */ u16                      field_38A;
+    /* 0x38C */ u16                      field_38C;
+    /* 0x38E */ u16                      field_38E;
+    /* 0x390 */ s16                      field_390;
+    /* 0x392 */ u16                      field_392;
+    /* 0x394 */ s16                      field_394;
+    /* 0x396 */ s16                      field_396;
+    /* 0x398 */ s16                      field_398;
+} Actor00700Work;
+
+typedef struct Actor00700Ctx {
+    /* 0x00 */ byte           pad_0[4];
+    /* 0x04 */ MATRIX*        field_4;
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ byte           pad_A[6];
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ s32            field_20;
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ byte           pad_28[0x14];
+    /* 0x3C */ GpAreaPlace*   field_3C;
+    /* 0x40 */ s16            field_40;
+    /* 0x42 */ byte           pad_42[6];
+    /* 0x48 */ u8             field_48;
+    /* 0x49 */ byte           pad_49[3];
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D[3];
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ s32            field_54;
+} Actor00700Ctx;
+
+typedef struct Actor00700 {
+    /* 0x00 */ byte             pad_0[0x1C];
+    /* 0x1C */ Actor00700Work*  field_1C;
+    /* 0x20 */ Actor00700Ctx*   field_20;
+    /* 0x24 */ byte             pad_24[8];
+    /* 0x2C */ Actor00700Obj2C* field_2C;
+    /* 0x30 */ s32              field_30;
+} Actor00700;
+
+typedef struct Actor00700StateFuncTable3 {
+    void (*funcs[3])(Actor00700Ctx*, Actor00700*);
+} Actor00700StateFuncTable3;
+
+/// 0x18-byte frame this overlay allocates on the scratchpad stack; only the
+/// `SVECTOR` at +0x10 is used by `Actor00700_Fn012E4`; the vector holds
+/// the player displacement in `Actor00700_Fn02820`.
+typedef struct Actor00700RotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR rot;
+} Actor00700RotScratch;
+STATIC_ASSERT_SIZEOF(Actor00700RotScratch, 0x18);
+
+/// Four rotated corners and the projected center/depth on the scratchpad.
+typedef struct Actor00700QuadScratch {
+    /* 0x00 */ SVECTOR v[4];
+    /* 0x20 */ s32     sxy;
+    /* 0x24 */ s32     otz;
+} Actor00700QuadScratch;
+STATIC_ASSERT_SIZEOF(Actor00700QuadScratch, 0x28);
+
+typedef struct Actor00700TexEntry {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 pad_1;
+    /* 0x2 */ u8 v;
+    /* 0x3 */ u8 pad_3;
+} Actor00700TexEntry;
+STATIC_ASSERT_SIZEOF(Actor00700TexEntry, 4);
+
+/// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
+typedef struct Actor00700SpawnWork {
+    /* 0x000 */ u8      field_0[0x14];
+    /* 0x014 */ u8      field_14[0xA0];
+    /* 0x0B4 */ u8      field_B4[0x40];
+    /* 0x0F4 */ MATRIX  field_F4;
+    /* 0x114 */ MATRIX  field_114;
+    /* 0x134 */ u8      field_134[8];
+    /* 0x13C */ void*   field_13C;
+    /* 0x140 */ void*   field_140;
+    /* 0x144 */ u16     field_144;
+    /* 0x146 */ u16     field_146;
+    /* 0x148 */ u16     field_148;
+    /* 0x14A */ u8      pad_14A[0x2];
+    /* 0x14C */ s32     field_14C;
+    /* 0x150 */ u16     field_150;
+    /* 0x152 */ u16     field_152;
+    /* 0x154 */ GpRec18 field_154;
+    /* 0x16C */ u8      field_16C[8];
+    /* 0x174 */ void*   field_174;
+    /* 0x178 */ void*   field_178;
+    /* 0x17C */ u16     field_17C;
+    /* 0x17E */ u16     field_17E;
+    /* 0x180 */ u16     field_180;
+    /* 0x182 */ u8      pad_182[0x2];
+    /* 0x184 */ s32     field_184;
+    /* 0x188 */ u16     field_188;
+    /* 0x18A */ u16     field_18A;
+    /* 0x18C */ GpRec18 field_18C[4];
+    /* 0x1EC */ u8      field_1EC[8];
+    /* 0x1F4 */ void*   field_1F4;
+    /* 0x1F8 */ void*   field_1F8;
+    /* 0x1FC */ u16     field_1FC;
+    /* 0x1FE */ u16     field_1FE;
+    /* 0x200 */ u16     field_200;
+    /* 0x202 */ u8      pad_202[0x2];
+    /* 0x204 */ s32     field_204;
+    /* 0x208 */ u16     field_208;
+    /* 0x20A */ u16     field_20A;
+    /* 0x20C */ GpRec18 field_20C;
+    /* 0x224 */ void*   field_224;
+    /* 0x228 */ u16     field_228;
+    /* 0x22A */ u16     field_22A;
+    /* 0x22C */ u8      pad_22C[0x80];
+    /* 0x2AC */ s32     field_2AC;
+    /* 0x2B0 */ s32     field_2B0;
+    /* 0x2B4 */ s32     field_2B4;
+    /* 0x2B8 */ u8      pad_2B8[0x1E];
+    /* 0x2D6 */ u16     field_2D6;
+    /* 0x2D8 */ u8      pad_2D8[0x4];
+    /* 0x2DC */ u16     field_2DC;
+    /* 0x2DE */ u8      pad_2DE[0x16];
+} Actor00700SpawnWork;
+STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
+
+/// The 0x39C-byte block `Actor00700_Fn00060` allocates. Larger than
+/// `Actor00700SpawnWork` and laid out differently: the pose buffer
+/// `func_800B3F84` fills sits at +0x12C instead of +0xB4, and the four
+/// `GpObj` render nodes it links (`Gp_LinkObj` shapes 3/2/2/3, each with its
+/// own `GpRec18` table) start at +0x1DC rather than +0x134.
+typedef struct Actor00700InitWork {
+    /* 0x000 */ byte           pad_0[0x14];
+    /* 0x014 */ byte           field_14[0x118];
+    /* 0x12C */ byte           field_12C[0x70];
+    /* 0x19C */ MATRIX         field_19C;
+    /* 0x1BC */ MATRIX         field_1BC;
+    /* 0x1DC */ GpObj          obj1;
+    /* 0x1FC */ GpRec18        rec1;
+    /* 0x214 */ GpObj          obj2;
+    /* 0x234 */ GpRec18        rec2;
+    /* 0x24C */ byte           pad_24C[0x30];
+    /* 0x27C */ GpObj          obj3;
+    /* 0x29C */ GpRec18        rec3;
+    /* 0x2B4 */ byte           pad_2B4[0x48];
+    /* 0x2FC */ GpObj          obj4;
+    /* 0x31C */ GpRec18        rec4;
+    /* 0x334 */ GsCOORDINATE2* field_334;
+    /* 0x338 */ u16            field_338;
+    /* 0x33A */ u16            field_33A;
+    /* 0x33C */ byte           pad_33C[0x42];
+    /* 0x37E */ u16            field_37E;
+    /* 0x380 */ s16            field_380;
+    /* 0x382 */ byte           pad_382[0x1A];
+} Actor00700InitWork;
+STATIC_ASSERT_SIZEOF(Actor00700InitWork, 0x39C);
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
