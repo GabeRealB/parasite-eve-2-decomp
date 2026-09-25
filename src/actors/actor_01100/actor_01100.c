@@ -1812,240 +1812,159 @@ void Actor01100_Fn039D0(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
     }
 }
 
+/// Bearing of the player (actor slot 0) from `self`, measured in `self`'s own
+/// frame and folded into -0x800..0x800; 0 when there is no player.
+static __inline__ s16 _actor01100BearingToPlayer(GpCoord* self)
+{
+    GpCoord*             other;
+    ActorBearingScratch* blk;
+    s32                  angle;
+
+    if (Gp_ActorSlots[0] == NULL) {
+        return 0;
+    }
+    other         = Gp_ActorSlots[0]->extra.tmd->coords;
+    blk           = SCRATCH_PUSH(ActorBearingScratch);
+    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
+    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
+    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
+    TransposeMatrix(&self->workm, &blk->frame);
+    _actor01100RotSv(&blk->frame, &blk->delta);
+    angle = ratan2(blk->delta.vx, blk->delta.vz);
+    if (angle >= 0x801) {
+        angle -= 0x1000;
+    } else if (angle < -0x800) {
+        angle += 0x1000;
+    }
+    SCRATCH_POP(ActorBearingScratch);
+    return angle;
+}
+
+/// Squared distance from `self` to the player (pointer slot 3), or
+/// 0x7FFFFFFF when there is none.
+static __inline__ s32 _actor01100DistSqToPlayer(GpCoord* self)
+{
+    Task*    player;
+    GpCoord* other;
+    SVECTOR* vec;
+    s32      dist;
+
+    player = gameGetPtrSlot(3);
+    if (player == NULL) {
+        return 0x7FFFFFFF;
+    }
+    other   = player->extra.tmd->coords;
+    vec     = SCRATCH_PUSH(SVECTOR);
+    vec->vx = other->workm.t[0] - self->workm.t[0];
+    vec->vy = other->workm.t[1] - self->workm.t[1];
+    vec->vz = other->workm.t[2] - self->workm.t[2];
+    dist    = Gfx_ApplyMatrixNoSf(vec, vec);
+    SCRATCH_POP(SVECTOR);
+    return dist;
+}
+
 void Actor01100_Fn03BAC(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    SVECTOR              local;
-    GpCoord*             self0;
-    GpCoord*             self;
-    GpCoord*             other;
-    GpCoord*             self2;
-    TmdObject*           playerObj;
-    MATRIX*              selfWorkm;
-    Task*                player;
-    SVECTOR*             sv;
-    s32                  angle;
-    s32                  wrapped;
-    s32                  angle3;
-    s32                  target;
-    s32                  yaw1;
-    s32                  yaw;
-    s32                  dist;
-    s32                  otherY;
-    s32                  selfY;
-    s32                  state;
-    s16                  cur;
-    s16                  next;
-    s8                   latch;
-    u16                  timer;
-    s32                  t;
-    s32                  xSelf;
-    s32                  xOther;
-    ActorBearingScratch* head0;
-    ActorBearingScratch* head3;
-    ActorBearingScratch* pop0;
-    ActorBearingScratch* pop3;
-    SVECTOR*             pop8;
-    ActorBearingScratch* deltaX0;
-    ActorBearingScratch* deltaX3;
-    ActorBearingScratch* vec0;
-    ActorBearingScratch* vec3;
-    void*                matrix0;
-    void*                matrix3;
+    GpCoord* self;
+    s16      angle;
+    s32      goal;
+    s32      yaw;
+    s16      cur;
+    s16      next;
+    s8       latch;
+    s32      t;
 
     if (work->field_BA8 == 0) {
         work->field_BA4 = 1;
-        self0           = task->extra.tmd->coords;
-        if (Gp_ActorSlots[0] == NULL) {
-            angle = 0;
-        } else {
-            other     = Gp_ActorSlots[0]->extra.tmd->coords;
-            selfWorkm = &self0->workm;
-            __asm__("lui %0, 0x1F80" : "=r"(head0) : "r"(other));
-            head0   = *(ActorBearingScratch**)((u8*)head0 + 0x3FC);
-            deltaX0 = head0 - 1;
-            vec0    = head0 - 1;
-
-            deltaX0->delta.vx = (s16)(other->workm.t[0] - self0->workm.t[0]);
-            otherY            = (u16)other->workm.t[1];
-            selfY             = (u16)self0->workm.t[1];
-            __asm__("addiu %0, %1, -0x20" : "=r"(matrix0) : "r"(head0), "r"(otherY), "r"(selfY));
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec0) : "memory");
-            vec0->delta.vy = (s16)(otherY - selfY);
-            vec0->delta.vz = (s16)(other->workm.t[2] - self0->workm.t[2]);
-            TransposeMatrix(selfWorkm, matrix0);
-
-            local = vec0->delta;
-            gte_SetRotMatrix(matrix0);
-            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0();
-            gte_stsv(&vec0->delta);
-
-            wrapped = ratan2(deltaX0->delta.vx, vec0->delta.vz);
-            if (wrapped >= 0x801) {
-                wrapped -= 0x1000;
-            } else if (wrapped < -0x800) {
-                wrapped += 0x1000;
-            }
-            __asm__("lui %0, 0x1F80" : "=r"(pop0));
-            pop0  = *(ActorBearingScratch**)((u8*)pop0 + 0x3FC);
-            angle = wrapped;
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop0 + 1) : "memory");
-        }
-        work->field_B90 = angle;
+        work->field_B90 = _actor01100BearingToPlayer(task->extra.tmd->coords);
         Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
         work->field_B8C = ((Gp_LcgState >> 0x10) & 0x1F) + 2;
-        work->field_BA8 = (u8)work->field_BA8 + 1;
+        work->field_BA8++;
     }
 
     latch = work->field_BA8;
     if (latch == 1) {
-        yaw1 = work->field_B90;
-        if (yaw1 < -0x600) {
-            yaw1 = -0x600;
-        } else if (yaw1 >= 0x601) {
-            yaw1 = 0x600;
+        goal = work->field_B90;
+        if (goal < -0x600) {
+            goal = -0x600;
+        } else if (goal >= 0x601) {
+            goal = 0x600;
         }
         cur = work->field_B8E;
-        if (cur < yaw1) {
-            next            = (u16)work->field_B8E + 0xC0;
+        if (cur < goal) {
+            next            = work->field_B8E + 0xC0;
             work->field_B8E = next;
-            if (yaw1 < next) {
-                work->field_B8E = yaw1;
+            if (goal < next) {
+                work->field_B8E = goal;
             }
-        } else if (yaw1 < cur) {
-            next            = (u16)work->field_B8E - 0xC0;
+        } else if (goal < cur) {
+            next            = work->field_B8E - 0xC0;
             work->field_B8E = next;
-            if (next < yaw1) {
-                work->field_B8E = yaw1;
+            if (next < goal) {
+                work->field_B8E = goal;
             }
         } else {
             Gp_ArmStateF0(1);
-            work->field_BA8 = (u8)work->field_BA8 + 1;
+            work->field_BA8++;
         }
     } else if (latch == 2) {
-        timer           = (u16)work->field_B8C - 1;
-        work->field_B8C = timer;
-        if ((s16)timer < 0) {
+        if (--work->field_B8C < 0) {
             work->field_BA4 = 4;
-            work->field_BA8 = (u8)work->field_BA8 + 1;
+            work->field_BA8++;
         }
     }
 
     if (work->field_BA8 == 3) {
-        self = task->extra.tmd->coords;
-        if (Gp_ActorSlots[0] == NULL) {
-            angle3 = 0;
-        } else {
-            other     = Gp_ActorSlots[0]->extra.tmd->coords;
-            selfWorkm = &self->workm;
-            __asm__("lui %0, 0x1F80" : "=r"(head3) : "r"(other));
-            head3   = *(ActorBearingScratch**)((u8*)head3 + 0x3FC);
-            deltaX3 = head3 - 1;
-            vec3    = head3 - 1;
-
-            deltaX3->delta.vx = (s16)(other->workm.t[0] - self->workm.t[0]);
-            otherY            = (u16)other->workm.t[1];
-            selfY             = (u16)self->workm.t[1];
-            __asm__("addiu %0, %1, -0x20" : "=r"(matrix3) : "r"(head3), "r"(otherY), "r"(selfY));
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(vec3) : "memory");
-            vec3->delta.vy = (s16)(otherY - selfY);
-            vec3->delta.vz = (s16)(other->workm.t[2] - self->workm.t[2]);
-            TransposeMatrix(selfWorkm, matrix3);
-
-            local = vec3->delta;
-            gte_SetRotMatrix(matrix3);
-            __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
-            gte_rtv0();
-            gte_stsv(&vec3->delta);
-
-            angle3 = ratan2(deltaX3->delta.vx, vec3->delta.vz);
-            if (angle3 >= 0x801) {
-                angle3 -= 0x1000;
-            } else if (angle3 < -0x800) {
-                angle3 += 0x1000;
-            }
-            __asm__("lui %0, 0x1F80" : "=r"(pop3));
-            pop3 = *(ActorBearingScratch**)((u8*)pop3 + 0x3FC);
-            __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop3 + 1) : "memory");
-        }
-
-        yaw             = (s16)angle3;
-        work->field_B90 = angle3;
+        self            = task->extra.tmd->coords;
+        angle           = _actor01100BearingToPlayer(self);
+        yaw             = angle;
+        work->field_B90 = angle;
         if (yaw < -0x600) {
             yaw = -0x600;
         } else if (yaw >= 0x601) {
             yaw = 0x600;
         }
-        target = yaw - 0xC0;
-        cur    = work->field_B8E;
-        if (cur < target) {
-            work->field_B8E = (u16)work->field_B8E + 0xC0;
+        cur = work->field_B8E;
+        if (cur < yaw - 0xC0) {
+            work->field_B8E += 0xC0;
         } else if (yaw + 0xC0 < cur) {
-            work->field_B8E = (u16)work->field_B8E - 0xC0;
+            work->field_B8E -= 0xC0;
         } else {
             work->field_B8E = yaw;
         }
 
         yaw = work->field_B90;
         if (yaw >= 0x11) {
-            (self)->param.rot.vy = (u16)(self)->param.rot.vy + 0x10;
+            self->param.rot.vy += 0x10;
         } else if (yaw < -0x10) {
-            (self)->param.rot.vy = (u16)(self)->param.rot.vy - 0x10;
+            self->param.rot.vy -= 0x10;
         } else {
-            (self)->param.rot.vy = (u16)(self)->param.rot.vy + yaw;
+            self->param.rot.vy += yaw;
         }
-        timer                = (u16)(self)->param.rot.vy & 0xFFF;
-        (self)->param.rot.vy = timer;
-        Gfx_RotMatrixY(&self->coord, timer, 1);
+        self->param.rot.vy &= 0xFFF;
+        Gfx_RotMatrixY(&self->coord, self->param.rot.vy, 1);
         self->flg = 0;
 
-        if ((u32)(((u16)work->field_B90 + 0x7F) & 0xFFFF) < 0xFFU) {
+        if ((u16)(work->field_B90 + 0x7F) < 0xFF) {
             if (task->spawnArg1 != 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                t           = ((Gp_LcgState >> 0x10) % 3) & 0xFFFF;
+                t           = (u16)((Gp_LcgState >> 0x10) % 3);
                 if (t <= 0) {
-                    SCHED_BARRIER();
-                    state = 0xC;
+                    work->state = 0xC;
                 } else if (t < 2) {
-                    state = 0xD;
+                    work->state = 0xD;
                 } else {
-                    SOFT_BARRIER();
-                    state = 0xB;
+                    work->state = 0xB;
+                }
+            } else if (_actor01100DistSqToPlayer(task->extra.tmd->coords) <= 0xA62B0F) {
+                if (yaw >= 0) {
+                    work->state = 0xD;
+                } else {
+                    work->state = 0xC;
                 }
             } else {
-                self2  = task->extra.tmd->coords;
-                player = gameGetPtrSlot(3);
-                if (player == NULL) {
-                    dist = 0x7FFFFFFF;
-                } else {
-                    playerObj = player->extra.tmd;
-                    other     = playerObj->coords;
-                    xSelf     = (u16)self2->workm.t[0];
-                    xOther    = (u16)other->workm.t[0];
-                    __asm__("lui %0, 0x1F80" : "=r"(sv) : "r"(xSelf), "r"(xOther));
-                    sv        = *(SVECTOR**)((u8*)sv + 0x3FC);
-                    sv[-1].vx = (s16)(xOther - xSelf);
-                    otherY    = (u16)other->workm.t[1];
-                    selfY     = (u16)self2->workm.t[1];
-                    __asm__("addiu %0, %1, -8" : "=r"(sv) : "r"(sv), "r"(otherY), "r"(selfY));
-                    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(sv) : "memory");
-                    sv->vy = (s16)(otherY - selfY);
-                    sv->vz = (s16)((u16)other->workm.t[2] - (u16)self2->workm.t[2]);
-                    dist   = Gfx_ApplyMatrixNoSf(sv, sv);
-                    __asm__("lui %0, 0x1F80" : "=r"(pop8));
-                    pop8 = *(SVECTOR**)((u8*)pop8 + 0x3FC);
-                    __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(pop8 + 1) : "memory");
-                }
-                if (dist <= 0xA62B0F) {
-                    state = 0xD;
-                    if (yaw < 0) {
-                        state = 0xC;
-                    }
-                } else {
-                    state = 0xE;
-                }
+                work->state = 0xE;
             }
-            work->state     = state;
             work->field_BA8 = 0;
         }
     }
