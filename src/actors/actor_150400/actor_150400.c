@@ -1,7 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("actors/nonmatchings/actor_150400/actor_150400", D_actor_150400_80131E24);
-
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -28,6 +26,44 @@ extern GpMsgEntry D_actor_150400_8013C8C4[];
 
 extern s16            D_80071076;
 extern GpAreaApplyRec D_80183BE0;
+
+/// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
+/// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
+/// State 0 places the model's coordinate (the two copies differ only in z) and
+/// moves on to 1; `func_actor_150400_80131F9C` puts both copies into state 2,
+/// which slides them along x by 4 a frame up to 0x406. The model is drawn only
+/// while the save's view byte is 5; otherwise its flags are set to 0x84, which
+/// hides it.
+void func_actor_150400_80131E24(Task* task)
+{
+    TmdObject*     obj   = task->extra;
+    GsCOORDINATE2* coord = obj->coords;
+
+    if (task->state == 0) {
+        coord->coord.t[0] = 0x2DA;
+        coord->coord.t[1] = -0x564;
+        if (task->spawnArg1 == 1) {
+            coord->coord.t[2] = -0x116C;
+        } else {
+            coord->coord.t[2] = -0x1018;
+        }
+        coord->flg = 0;
+        task->state++;
+    }
+    if (task->state == 2) {
+        coord->coord.t[0] += 4;
+        if (coord->coord.t[0] > 0x406) {
+            coord->coord.t[0] = 0x406;
+        }
+        coord->flg = 0;
+    }
+    if (Mc_SaveData.at4.loc.view != 5) {
+        obj->flags = 0x84;
+    } else {
+        obj->flags    = 0;
+        obj->otOffset = 0;
+    }
+}
 
 void func_actor_150400_80131ECC(void)
 {

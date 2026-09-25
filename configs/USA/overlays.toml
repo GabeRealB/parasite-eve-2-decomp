@@ -4158,11 +4158,13 @@ objects = [
 ]
 
 [actors.overlays.actor_150400]
+label = "Code starts at 0x4: the first function is a leaf with no stack prologue, so the span detector starts at the next function's; the task descriptor at 0xED0 names 0x80131E24 as the entry"
 slot = 1
 id = 139
+text = ["0x4", "0xB0C"]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_150400/actor_150400", rodata = "0x4", text = "0xAC" },
+  { unit = "actor_150400/actor_150400", text = "0x4" },
   { lib = true, unit = "actors_shared_80132a1c", text = "0x408" },
   { lib = true, unit = "actors_shared_80131e24", text = "0x5C0" },
   { unit = "actor_150400/actor_150400_2", text = "0x614" },
