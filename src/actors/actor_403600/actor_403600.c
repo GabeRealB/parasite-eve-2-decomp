@@ -3088,7 +3088,7 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix((MATRIX*)(D_actor_403600_801606A0 + 0x24), transposed);
+        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3111,10 +3111,10 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 2);
+        gte_stclmv(&transposed->m[0][1]);
         gte_ldclmv(head - 0x3C);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 4);
+        gte_stclmv(&transposed->m[0][2]);
 
         *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
         *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
@@ -3156,8 +3156,8 @@ u32* func_actor_403600_801379B4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     index += 4;
                 } while (i < 3);
 
-                gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
-                gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
                 gte_ldv3(projected, scratch + 0x20, scratch + 0x28);
                 gte_rtpt();
                 gte_stflg(&arg0->gteFlag);
@@ -3240,7 +3240,7 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         saved = (MATRIX*)(head - 0x40);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix((MATRIX*)(D_actor_403600_801606A0 + 0x24), transposed);
+        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3263,10 +3263,10 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 2);
+        gte_stclmv(&transposed->m[0][1]);
         gte_ldclmv(head - 0x3C);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 4);
+        gte_stclmv(&transposed->m[0][2]);
 
         *(s32*)(scratch + 0x7C) = *(s16*)(scratch + 0x10);
         *(s32*)(scratch + 0x80) = *(s16*)(scratch + 0x12);
@@ -3311,8 +3311,8 @@ u32* func_actor_403600_80138004(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     index += 4;
                 } while (i < 4);
 
-                gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
-                gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
                 index = scratch + 0x18;
                 gte_ldv3(index, scratch + 0x20, scratch + 0x28);
                 gte_rtpt();
@@ -3413,7 +3413,7 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         SOFT_USE_REG(saved);
         gte_ReadRotMatrix(saved);
         transposed = (MATRIX*)(head - 0x20);
-        TransposeMatrix((MATRIX*)(D_actor_403600_801606A0 + 0x24), transposed);
+        TransposeMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm, transposed);
 
         coord = (u8*)D_actor_403600_801606A0;
         SOFT_BARRIER();
@@ -3433,10 +3433,10 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         gte_stclmv(transposed);
         gte_ldclmv(head - 0x3E);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 2);
+        gte_stclmv(&transposed->m[0][1]);
         gte_ldclmv(head - 0x3C);
         gte_rtir();
-        gte_stclmv((u8*)transposed + 4);
+        gte_stclmv(&transposed->m[0][2]);
 
         *(s32*)(scratch + 0x70) = *(s16*)(scratch + 0x10);
         *(s32*)(scratch + 0x74) = *(s16*)(scratch + 0x12);
@@ -3457,8 +3457,8 @@ u32* func_actor_403600_801386EC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     if (*(s16*)(scratch + 0x1A) > 0) {
                         *(s16*)(scratch + 0x1A) = 0;
                     }
-                    gte_SetRotMatrix((u8*)D_actor_403600_801606A0 + 0x24);
-                    gte_SetTransMatrix((u8*)D_actor_403600_801606A0 + 0x24);
+                    gte_SetRotMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
+                    gte_SetTransMatrix(&((GsCOORDINATE2*)D_actor_403600_801606A0)->workm);
                     gte_ldv0(saved);
                     gte_rtps();
                     gte_stsz(&arg0->gteResult);
