@@ -13,7 +13,7 @@
 #include "main/tmd.h"
 #include "weapons/m4a1_grenade.h"
 
-/// Equipped-weapon index; `Gp_GetItemSlot(D_80073BA9 + 0x7F)` is the slot the
+/// Equipped-weapon index; `Gp_GetItemSlot(Player_Status.weapon + 0x7F)` is the slot the
 /// player is holding, and its `attachId` is the attachment id the sound bank is
 /// keyed on. A main-executable global with no module header yet.
 

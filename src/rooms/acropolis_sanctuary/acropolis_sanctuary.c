@@ -141,10 +141,10 @@ typedef struct AcsSpriteLevels {
     /* 0x0 */ u8 v[3];
 } AcsSpriteLevels;
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `D_80071075` and `D_80114C12` gate the cutscene task's setup (the latter is
-/// the cutscene/among-us mode flag) and `D_8007218A` picks which of the two
+/// `gDisplayState.pendingMode` and `D_80114C12` gate the cutscene task's setup (the latter is
+/// the cutscene/among-us mode flag) and `Mc_SaveData.characterId` picks which of the two
 /// weapon-id bases that record uses. `gDisplayState.roomVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
@@ -321,7 +321,7 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 }
 
 /// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
-/// the equipped-weapon index in `D_80073BA9`, has `Gp_PlayerWeaponId` stamp the
+/// the equipped-weapon index in `Player_Status.weapon`, has `Gp_PlayerWeaponId` stamp the
 /// current weapon model id into its `field_0`, then sends it.
 void func_acropolis_sanctuary_8017D8CC(void)
 {

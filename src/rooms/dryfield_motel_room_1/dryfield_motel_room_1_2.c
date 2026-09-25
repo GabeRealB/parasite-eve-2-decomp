@@ -12,10 +12,10 @@
 
 #include "rooms/dryfield_motel_room_1.h"
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `D_80071075` and `D_80114C12` (the cutscene mode flag) gate the room task's
-/// setup, and `D_8007218A` picks which of the two weapon-id bases that record
+/// `gDisplayState.pendingMode` and `D_80114C12` (the cutscene mode flag) gate the room task's
+/// setup, and `Mc_SaveData.characterId` picks which of the two weapon-id bases that record
 /// uses.
 extern s8 D_80114C12;
 

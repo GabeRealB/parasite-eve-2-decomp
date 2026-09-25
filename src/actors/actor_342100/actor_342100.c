@@ -21,8 +21,8 @@
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the base
-/// weapon id records are numbered from, and `D_8007218A` selects the alternate
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the base
+/// weapon id records are numbered from, and `Mc_SaveData.characterId` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
 
 /// Single-entry spawn table of the screen-wave task
@@ -589,7 +589,7 @@ void func_actor_342100_80162C88(void)
 /// from the coordinate array `gameGetPtrSlot(3)`'s display object owns.
 ///
 /// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
-/// state 1. State 1 fires only on a frame the `D_80070F70` gate lets through,
+/// state 1. State 1 fires only on a frame the `gDisplayState.animFrame` gate lets through,
 /// and which pick that is depends on the task's `spawnArg1`: the zero arm
 /// takes the same four parts as state 0 at scale 0x10, the non-zero arm the
 /// whole table at scale 0x100.
@@ -781,8 +781,8 @@ void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2)
 
 /// Point the overlay's slot-3 task at the animation set `arg0 + 0x2F` and hand
 /// the work block's `field_3C` the same value, then install the set with
-/// message 0x3E8. The set's block is `D_80073BA9 + 1` under the alternate
-/// weapon configuration and `D_80073BA9 + 0x22` otherwise; its `field_4` is the
+/// message 0x3E8. The set's block is `Player_Status.weapon + 1` under the alternate
+/// weapon configuration and `Player_Status.weapon + 0x22` otherwise; its `field_4` is the
 /// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
 void func_actor_342100_8016334C(s32 arg0)
 {

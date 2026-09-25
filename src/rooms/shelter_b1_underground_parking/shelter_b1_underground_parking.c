@@ -2682,7 +2682,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
 /// The player must not be aiming (`field_954 != 2`), captions must be idle,
 /// the session room must be 7 or later, and the model root must stand with X
 /// below -0x1266 and Z inside [-0x7CF, 0x7D0), with `D_80114C12 != 1` and
-/// `D_80071075` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
+/// `gDisplayState.pendingMode` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
 /// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
 /// takes the weapon away and runs the handoff.
 void func_shelter_b1_underground_parking_801826C0(void)

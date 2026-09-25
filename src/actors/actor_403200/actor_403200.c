@@ -98,7 +98,7 @@ void func_actor_403200_80141018(Task* arg0);
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
 /// ordered against the message-argument store.
-/// Equipped weapon variant added to `Gp_WeaponIdBase[D_8007218A[0] - 1]`.
+/// Equipped weapon variant added to `Gp_WeaponIdBase[Mc_SaveData.characterId[0] - 1]`.
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
 

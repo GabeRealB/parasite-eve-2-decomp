@@ -51,7 +51,7 @@ void func_8004BFF8(s16 angle, MATRIX* matrix);
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Main-executable globals with no module header yet: `D_80114C12` is the
-/// cutscene-mode flag and `D_80071075` is a live cutscene. `func_80182360` is
+/// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_80182360` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 extern s8 D_80114C12;
 void      func_80182360(s32);

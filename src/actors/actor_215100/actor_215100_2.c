@@ -143,7 +143,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 /// Otherwise the player has to be standing in the zone — its model root's X
 /// below -0x1806 and its Z inside [0x10CD, 0x1644) — not aiming
 /// (`GameActor.field_954 != 2`), with the caption system idle, `D_80115768`
-/// and `D_80071075` clear, its yaw inside one of the two 0x3FF-wide windows
+/// and `gDisplayState.pendingMode` clear, its yaw inside one of the two 0x3FF-wide windows
 /// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
 /// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
 /// message, caption command 0x14 and the scene task `D_actor_215100_8014CF6C`.

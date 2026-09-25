@@ -1002,7 +1002,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 }
 
 /// Per-frame driver of the twelve helipad lights. Flags `Gp_State1C->groundShade`
-/// while view 0x12 is active, folds the frame counter `D_80070F70 * 4` into a
+/// while view 0x12 is active, folds the frame counter `gDisplayState.animFrame * 4` into a
 /// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.

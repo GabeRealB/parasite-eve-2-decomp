@@ -545,7 +545,7 @@ void func_dryfield_night_main_street_8017E118(void)
 /// `D_...80182230` contains the current view (entries 2 and 3 are cleared once
 /// nibble 0x7F is set) and publishes the view's `roomEffectMode`. In views 8
 /// and 0x13 it spawns 0x30 randomly placed 0x601B2 effects on entering the
-/// view, and one more on each run with bit 0 of `D_80070F70` set while it
+/// view, and one more on each run with bit 0 of `gDisplayState.animFrame` set while it
 /// stays. `spawnArg1` holds the view seen on the previous run.
 void func_dryfield_night_main_street_8017E484(Task* task)
 {

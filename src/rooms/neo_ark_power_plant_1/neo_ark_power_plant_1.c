@@ -44,7 +44,7 @@ const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
 
 /// Second state of the room task, run every frame. While nibble 0xDE is clear
 /// it sends message 0x7D6 to the slot-4 task, and when that returns 0 with
-/// `D_80114C12` not 1 and `D_80071075` clear, it sets nibbles 0xDE and 0xF6,
+/// `D_80114C12` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `D_8007272D` to 0x16 and starts the event script at
 /// `D_neo_ark_power_plant_1_8017EB7C`. When `Mc_SaveData.at4.loc.view` is 3 and nibble 0xFB

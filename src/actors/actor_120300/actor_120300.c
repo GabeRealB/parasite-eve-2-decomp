@@ -303,12 +303,12 @@ void func_actor_120300_801321C8(Task* arg0)
 /// event state is set, a finished 0x3ED query advances `field_4D2` from
 /// `D_actor_120300_8014095C` and restarts that animation. The switch sends
 /// 0x3F4 animation payloads, 0x3E9 placement records and the 0x3E8 weapon
-/// record (`D_80073BA9`, with `D_8007218A` selecting the +1 or +0x22 block),
+/// record (`Player_Status.weapon`, with `Mc_SaveData.characterId` selecting the +1 or +0x22 block),
 /// then clears the request. Cases 20 and 21 step the facing in `field_4DC`
 /// and copy it onto the player's aim yaw.
 ///
 /// Cases 13 and 18 keep the weapon-id locals block-scoped. One pseudo shared
-/// by both cases schedules the `D_80073BA9` load ahead of the flag load.
+/// by both cases schedules the `Player_Status.weapon` load ahead of the flag load.
 void func_actor_120300_80132338(Task* arg0)
 {
     union {
@@ -1009,7 +1009,7 @@ void func_actor_120300_80132C60(Task* arg0)
 /// slots 1..19 to the 8 it first parks in `field_4D4`.
 /// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
 /// zero argument additionally hands the task at 0x4B4 the player-weapon record
-/// (`GpAnimArg`, built from the equip-slot addend `D_80073BA9`), lifts
+/// (`GpAnimArg`, built from the equip-slot addend `Player_Status.weapon`), lifts
 /// `field_4E0` to 0x1000 and drops the pending overlay replacement.  The
 /// request codes at 0x4C0 and 0x4C8 are cleared either way, so any phase
 /// counter armed alongside them restarts from the top.
@@ -1178,7 +1178,7 @@ void func_actor_120300_801335D8(Task* arg0)
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is
-/// up (`D_80114C12` / `D_80071075`), builds the work block, then either arms
+/// up (`D_80114C12` / `gDisplayState.pendingMode`), builds the work block, then either arms
 /// play (`func_actor_120300_80133330`) once flag nibble 0x2D is set or sends
 /// the slot-3 weapon record and starts the script. States 1-4 step the area
 /// records, the pending `Gp_TakePendingObj4C` cue, and the overlay-load

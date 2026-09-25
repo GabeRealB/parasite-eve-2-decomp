@@ -897,7 +897,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 /// Draws a pulsing light shaft at the task's coordinate origin. The origin is
 /// projected once through `GsWSMATRIX` (`RTPS`) into a 0x14-byte
 /// `G_SCRATCH_HEAD` block; anything with `otz` below 0x11 is dropped.
-/// `spawnArg1`'s low byte scales the frame counter `D_80070F70`, and the
+/// `spawnArg1`'s low byte scales the frame counter `gDisplayState.animFrame`, and the
 /// product's low byte is folded into a 0..0x80 triangle wave that drives the
 /// red channel of one corner; its high byte is the shaft length, divided by
 /// `otz` so the two `POLY_G4` halves narrow with distance.

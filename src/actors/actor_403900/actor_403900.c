@@ -665,7 +665,7 @@ void func_actor_403900_80132E34(Task* arg0)
 /// per-difficulty `D_actor_403900_80153C10`, otherwise by an LCG roll whose
 /// chance grows with the attempt count `field_6F6`; a raised `field_6F4`
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
-/// spawns the spark, sends message 0x400 and clears `D_80073BA0`; state 7
+/// spawns the spark, sends message 0x400 and clears `Player_Status.hp`; state 7
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
 void func_actor_403900_8013314C(Task* arg0)
 {

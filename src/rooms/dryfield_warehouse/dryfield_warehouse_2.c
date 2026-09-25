@@ -73,7 +73,7 @@ extern s16 D_dryfield_warehouse_8017FBAC[];
 /// turns the display back on and, while `DwhWork::playerEffActive` is up, ends
 /// the weapon effect and re-sends the player-weapon record. The owner is then
 /// handed that same 0x3E8 record -- `GpAnimArg::animBlock.index` is the equipped weapon's
-/// animation id, `D_80073BA9` plus 1 or 0x22 depending on `D_8007218A`, with 1
+/// animation id, `Player_Status.weapon` plus 1 or 0x22 depending on `Mc_SaveData.characterId`, with 1
 /// and 0 padding it out -- followed by the room's placement as msg 0x3E9.
 ///
 /// The session's weapon id is synced to 2 once, and `D_dryfield_warehouse_801821C4`
@@ -277,15 +277,15 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
 
 /// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
 /// `DwhWork` block. State 0 arms the script once: a `D_80114C12` of 1 or a live
-/// `D_80071075` both mean the cutscene is already up, so it does nothing.
+/// `gDisplayState.pendingMode` both mean the cutscene is already up, so it does nothing.
 /// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `Mem_Malloc` kills the task, but the record below is dispatched either way --
 /// fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
 ///
 /// The 0x3E8 record is rebuilt here rather than taken from its owner: `GpAnimArg`
-/// field 0 is the equipped weapon's animation id, `D_80073BA9` plus 1 or 0x22
-/// depending on `D_8007218A`, and 1 and 0 pad it out. It is dispatched to a
+/// field 0 is the equipped weapon's animation id, `Player_Status.weapon` plus 1 or 0x22
+/// depending on `Mc_SaveData.characterId`, and 1 and 0 pad it out. It is dispatched to a
 /// freshly fetched slot 3, not to the work block's owner.
 ///
 /// State 0 then falls into state 1, which only steps the machine, so a task

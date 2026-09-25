@@ -199,10 +199,10 @@ extern OverlayHotspot D_dryfield_breezeway_80182DDC[];
 /// below, together with the room task's coordinate frame.
 extern u8 D_dryfield_breezeway_80183164[];
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `D_8007218A` picks which of the two weapon-id bases that record uses.
-/// `D_80071075` gates the "everything is dead" message and `D_80114C12` the
+/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses.
+/// `gDisplayState.pendingMode` gates the "everything is dead" message and `D_80114C12` the
 /// cutscene/among-us mode flag: the second arming state machine below waits for
 /// both to be clear.
 extern s8  D_80114C12;
@@ -346,12 +346,12 @@ extern s32 D_dryfield_breezeway_80181F90;
 /// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
 ///
 /// State 0 arms the room, but only while no cutscene is running
-/// (`D_80114C12 != 1`) and the area is not cleared (`D_80071075 == 0`) --
+/// (`D_80114C12 != 1`) and the area is not cleared (`gDisplayState.pendingMode == 0`) --
 /// otherwise it returns having done nothing, which retires the task on the
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
 /// slot-3 msg 0x3E8 (`GpAnimArg`, the record `Gp_MsgPlayerWeapon` also builds:
-/// `field_0` off the equipped-weapon index in `D_80073BA9`, `field_4` and
+/// `field_0` off the equipped-weapon index in `Player_Status.weapon`, `field_4` and
 /// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
 /// opening cutscene through `func_800E8634`, which is what raises
 /// `gGameSession::eventState`. It then advances to state 1.
@@ -576,7 +576,7 @@ void func_dryfield_breezeway_8017E464(Task* arg0)
     }
 }
 
-/// Main-executable symbols with no module header yet: `D_80070F70` is the
+/// Main-executable symbols with no module header yet: `gDisplayState.animFrame` is the
 /// frame counter the prop's swing angle is derived from, and `func_8004BFF8`
 /// is the Y rotation builder `ActorsShared80139948` also reaches.
 ///
@@ -595,7 +595,7 @@ extern GpImgRec D_dryfield_breezeway_80183144;
 /// `GpImgRec`s the first time it runs (`Task::killCountdown` is zero, and the
 /// increment latches it so a later frame never reloads them), rebuilds the
 /// event task's display object matrix as the same pure Y rotation of
-/// `rsin(D_80070F70 * 16)` the prop's swing builds -- one full turn every 256
+/// `rsin(gDisplayState.animFrame * 16)` the prop's swing builds -- one full turn every 256
 /// frames -- and re-seeds `func_dryfield_breezeway_8017EB8C` at the reset
 /// position (0, 0x20) rather than at the cursor the prop's scan passes.
 ///
@@ -669,7 +669,7 @@ void func_dryfield_breezeway_8017E65C(Task* task)
 }
 
 /// Breathes the room's hanging prop: rebuilds the display object's coordinate
-/// matrix as a pure Y rotation of `rsin(D_80070F70 * 16)` -- one full turn
+/// matrix as a pure Y rotation of `rsin(gDisplayState.animFrame * 16)` -- one full turn
 /// every 256 frames -- off an identity built the same word-at-a-time way
 /// `func_dryfield_breezeway_8017E464` builds the event work's two matrices, then
 /// re-seeds the hotspot scan `func_dryfield_breezeway_8017EB8C` at the

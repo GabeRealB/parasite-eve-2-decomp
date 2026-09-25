@@ -852,7 +852,7 @@ void func_mine_secret_passage_8017F948(Task* arg0)
 /// 0x29), an inner one of half-extent `size` and an outer one of
 /// `size * 3 / 2`, each scaled by 0x37 / otz, plus a
 /// `func_mine_secret_passage_80180020` quad on the ground beneath it. Bit 0 of
-/// `D_80070F70` picks the inner square's texture, and the frame counter the
+/// `gDisplayState.animFrame` picks the inner square's texture, and the frame counter the
 /// outer one's CLUT. It also switches the `Gp_RoomCoords[2]` light on at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.

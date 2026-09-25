@@ -143,7 +143,7 @@ extern Task* D_actor_444000_80161878;
 /// 0xFF-terminated area-record list this overlay applies on entry.
 extern GpAreaApplyRec D_8018FB6C[];
 
-/// Main-executable globals with no module header yet: `D_80071075` gates the
+/// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// event on the "everything is dead" state, and `D_8007272D` is the ending
 /// selector the death sequence latches.
 

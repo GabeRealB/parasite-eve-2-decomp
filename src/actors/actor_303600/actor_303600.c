@@ -103,7 +103,7 @@ extern u8 D_actor_303600_80162AF0[];
 extern u8 D_actor_303600_80162DD8[];
 
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
-/// live `D_80071075` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
+/// live `gDisplayState.pendingMode` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
 extern s8 D_80114C12;
 
@@ -219,7 +219,7 @@ void func_actor_303600_80161F40(Task* arg0)
 }
 
 /// Cutscene controller for the overlay. State 0 arms it once: a `D_80114C12` of
-/// 1 or a live `D_80071075` both mean a cutscene is already up, so the state is
+/// 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the state is
 /// left where it is and the task returns; otherwise it allocates the
 /// `Actor303600Work` block, zeroes it, parks the `gameGetPtrSlot(3)` task in
 /// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with

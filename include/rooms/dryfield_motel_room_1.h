@@ -113,7 +113,7 @@ void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 
 /// Main loop of the room's cutscene task. State 0 arms it once -- a `D_80114C12`
-/// of 1 or a live `D_80071075` both mean a cutscene is already up, so the task
+/// of 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the task
 /// only steps the script. Otherwise it builds the work block, sends the slot-3
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
 /// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
@@ -122,7 +122,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the
-/// equip-slot id `D_80073BA9` plus 1 in the alternate weapon block, plus 0x22
+/// equip-slot id `Player_Status.weapon` plus 1 in the alternate weapon block, plus 0x22
 /// in the base one, `field_4` 9, the rest of the frame zero), then copy the
 /// player matrix translation into `Dmr1Work::field_14` .. `field_1C` and send
 /// them back to slot 4 as message 0x3E9. Same slot-3 record the actors'

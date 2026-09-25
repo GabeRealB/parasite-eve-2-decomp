@@ -1051,7 +1051,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
 /// the task. The task coordinate's origin is projected once through
 /// `GsWSMATRIX` (`RTPS`) into a 0x14-byte `G_SCRATCH_HEAD` block; anything
 /// nearer than `otz` 0x11 is not drawn. The red level pulses with the global
-/// counter `D_80070F70` times `spawnArg1`'s low byte, folded into a 0..0x80
+/// counter `gDisplayState.animFrame` times `spawnArg1`'s low byte, folded into a 0..0x80
 /// triangle; `spawnArg1`'s second byte sets the quads' extent, divided by
 /// `otz` so they shrink with distance.
 void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)

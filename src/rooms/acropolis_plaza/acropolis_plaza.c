@@ -237,9 +237,9 @@ extern GpObj4A D_acropolis_plaza_8019923C;
 extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void Stage_RequestMidiFromMap(s32 arg0);
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `D_8007218A` picks which of the two weapon-id bases that record uses.
+/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses.
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.

@@ -1797,7 +1797,7 @@ void func_actor_356100_80165B30(Task* arg0)
 /// in mode 2, takes the player offset again through
 /// `actorMatrixPositionYaw` and — if the turn is within 0x10 and the
 /// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
-/// one of the two blocks `D_8007218A` selects, then queries message 0x3F8 and
+/// one of the two blocks `Mc_SaveData.characterId` selects, then queries message 0x3F8 and
 /// on acceptance moves to state 0xC, sets `field_B68` and re-sends the handler
 /// as message 0x3FF. Bit 0 of `field_68` forces `field_0` to 7 on clip 4, and
 /// past clip 0x10 the actor is pushed one normalised unit away from the player

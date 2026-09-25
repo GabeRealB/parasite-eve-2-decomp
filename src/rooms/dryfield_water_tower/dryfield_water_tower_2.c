@@ -169,10 +169,10 @@ extern Task* D_dryfield_water_tower_801876AC;
 /// 0x7C-byte scratch block into the task's `work` first.
 extern Task* D_dryfield_water_tower_801876A4;
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
-/// `D_8007218A` picks which of the two weapon-id bases that record uses; the
-/// alternate block is indexed by `D_80073BA9` plus 1 against the base block's
+/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses; the
+/// alternate block is indexed by `Player_Status.weapon` plus 1 against the base block's
 /// plus 0x22.
 
 /// The two scalars the cap-arrival test below reads out of the room's data.
@@ -288,8 +288,8 @@ extern s8 D_80114C11;
 extern u32 D_dryfield_water_tower_80181B00;
 
 /// Main-executable gates the cap script checks, with no module header yet:
-/// the script only runs while `D_80073BA0` is non-zero, and its state 8 holds
-/// back on `D_80114C12` == 1 or a non-zero `D_80071075`.
+/// the script only runs while `Player_Status.hp` is non-zero, and its state 8 holds
+/// back on `D_80114C12` == 1 or a non-zero `gDisplayState.pendingMode`.
 extern s8 D_80114C12;
 
 /// The raised-cap sources the cap script restores the room's script-table
@@ -1153,7 +1153,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 /// State 8 of the cap script, one call per frame, returning non-zero once the
 /// step is complete. On its first frame (`field_58` 0) it hands the room's two
 /// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
-/// frames while `D_80114C12` is 1 or `D_80071075` is set; after that it waits
+/// frames while `D_80114C12` is 1 or `gDisplayState.pendingMode` is set; after that it waits
 /// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
 static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 {
@@ -1184,7 +1184,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
 /// runs. It does nothing while the session's `field_65` or `D_80114C11` is set
-/// or `D_80073BA0` is zero. State 0 allocates the 0x7C-byte
+/// or `Player_Status.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
 /// restores the room's three pairs of script-table blocks; state 1 spawns
 /// entries 1 and 2 of the same table into `field_44` / `field_48` and state 2
@@ -1347,8 +1347,8 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// at 0x801820E4.
 ///
 /// Republishes the player's weapon to slot 3 (msg 0x3E8) the way
-/// `func_actor_136100_8013467C` does -- `D_80073BA9` picked through
-/// `D_8007218A` is the record's `field_0` -- but fills the two halfword slots
+/// `func_actor_136100_8013467C` does -- `Player_Status.weapon` picked through
+/// `Mc_SaveData.characterId` is the record's `field_0` -- but fills the two halfword slots
 /// from that script argument: `field_8` is its "non-zero" flag and `field_C`
 /// the halfword itself.
 void func_dryfield_water_tower_8017F700(s32 arg0)
@@ -1610,7 +1610,7 @@ void func_dryfield_water_tower_8017FBE8(Task* task)
 
 /// Room entry point: install the player's weapon animation set on slot 3
 /// (message 0x3E8) unless `Gp_StateC08.field_A` says a battle is running or
-/// `D_80071075` says one has just ended, then allocate the `DwtwWork` the room
+/// `gDisplayState.pendingMode` says one has just ended, then allocate the `DwtwWork` the room
 /// task hangs off `Task::work` (killing the task if the allocation fails),
 /// zero it, park the slot-3 task in `field_0` and the room task itself in
 /// `D_dryfield_water_tower_801876AC`, and resolve `field_4` / `field_8` from

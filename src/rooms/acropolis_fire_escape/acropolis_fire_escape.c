@@ -1763,7 +1763,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
 
 /// Draws a pulsing flare at the task's coordinate, projected through
 /// `GsWSMATRIX`, and nothing when its depth is 0x10 or less. The brightness is
-/// a triangle wave of `D_80070F70` times the low byte of `spawnArg1`; bit 16
+/// a triangle wave of `gDisplayState.animFrame` times the low byte of `spawnArg1`; bit 16
 /// tints it cyan instead of red, and bits 8-15 size it, divided by the depth.
 /// A negative `spawnArg1` draws a radial glow of `POLY_G4` wedges with four
 /// longer rays; otherwise a flat diamond of two `POLY_G4`s, with two crossed

@@ -48,10 +48,10 @@ typedef struct AobFlareScratch {
 } AobFlareScratch;
 STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `D_8007218A` picks which of the two weapon-id bases that record uses, and
-/// `D_80071075` / `D_80114C12` gate the scene's setup (the latter is the
+/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses, and
+/// `gDisplayState.pendingMode` / `D_80114C12` gate the scene's setup (the latter is the
 /// cutscene/among-us mode flag). `Mc_SaveData.at4.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 extern s8 D_80114C12;
@@ -73,7 +73,7 @@ extern u16     D_acropolis_observatory_8017FEB8[8];
 /// The observatory's scene task. State 0 allocates the `AobSceneWork` block,
 /// captures slot 3 in it and cues the scene with the 0x3F4 record at
 /// `D_acropolis_observatory_8017FE60`; it does nothing at all while the
-/// cutscene flag `D_80114C12` or `D_80071075` is set. States 1, 2 and 4 just
+/// cutscene flag `D_80114C12` or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
 /// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
 /// `Gp_ArmStateF0`, state 5 republishes the player's weapon to slot 3 and puts
 /// the session back into field mode, and state 6 releases slot 3 (msg 0x3F1)

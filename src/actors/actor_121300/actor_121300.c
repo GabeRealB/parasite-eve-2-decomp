@@ -141,10 +141,10 @@ typedef struct Actor121300DebrisWork {
 } Actor121300DebrisWork;
 STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
-/// `D_8007218A` picks which of the two weapon-id bases that record uses, and
-/// `D_80071075` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
+/// `Mc_SaveData.characterId` picks which of the two weapon-id bases that record uses, and
+/// `gDisplayState.pendingMode` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
 extern s8 D_80114C12;
 
 extern void func_8017F334(s32 arg0);
@@ -1043,9 +1043,9 @@ void func_actor_121300_80133BFC(Task* arg0)
 
 /// State machine of the cutscene actor, run once per frame from its slot.
 /// State 0 waits until no other cutscene is up -- a `D_80114C12` of 1 or a live
-/// `D_80071075` means one is -- and then builds the work block through
+/// `gDisplayState.pendingMode` means one is -- and then builds the work block through
 /// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
-/// message 0x3E8 record is `D_80073BA9` plus 1 in the alternate weapon block
+/// message 0x3E8 record is `Player_Status.weapon` plus 1 in the alternate weapon block
 /// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
 /// zero.  State 1 hands the cutscene's two script blocks to `func_800E8634`,
 /// state 2 spawns the `D_actor_121300_8013D390[9]` child while the session is

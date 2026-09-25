@@ -96,8 +96,8 @@ extern Actor503500Work D_actor_503500_80176574;
 /// 18-entry table of per-slot u16 counters, indexed by slot in
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
 extern u16 D_actor_503500_80176D64[];
-/// Main-executable globals with no module header yet: `D_80071075` gates the
-/// "everything is dead" message, `D_80073BA0` is the remaining-enemy count and
+/// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
+/// "everything is dead" message, `Player_Status.hp` is the remaining-enemy count and
 /// `D_80114C12` the cutscene/among-us mode flag.
 extern s8 D_80114C12;
 /// Main-executable flag byte cleared when the boss enters state 2; also written

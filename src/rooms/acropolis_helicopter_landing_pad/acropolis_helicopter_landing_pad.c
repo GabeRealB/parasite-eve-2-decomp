@@ -43,7 +43,7 @@ typedef struct AhlpEnemyWork {
 STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 
 /// Main-executable globals with no module header yet, both of which hold the
-/// phase tick back from phase 2: `D_80114C12` while it equals 1, `D_80071075`
+/// phase tick back from phase 2: `D_80114C12` while it equals 1, `gDisplayState.pendingMode`
 /// while it is non-zero.
 extern s8 D_80114C12;
 
@@ -203,7 +203,7 @@ void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
 
 /// Per-frame phase tick of the room's script task. In phase 1 it posts msg
 /// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `D_80114C12` nor
-/// `D_80071075` holds it back, it moves to phase 2, starts the script pair
+/// `gDisplayState.pendingMode` holds it back, it moves to phase 2, starts the script pair
 /// and queues sound 0xA2. Camera view 5 of the session raises
 /// `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
 /// `gGameSession->eventState` resets `D_acropolis_helicopter_landing_pad_80187F84`.

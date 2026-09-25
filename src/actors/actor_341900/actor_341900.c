@@ -156,8 +156,8 @@ typedef struct Actor341900AnimCmd {
 } Actor341900AnimCmd;
 STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
-/// base weapon id records are numbered from, and `D_8007218A` selects the
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// base weapon id records are numbered from, and `Mc_SaveData.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
@@ -916,8 +916,8 @@ void func_actor_341900_80163584(s16 arg0)
 
 /// Installs one animation set on slot 3 (message 0x3E8) and then warps it to
 /// the overlay's fixed placement (message 0x3E9), cancelling any pending CD
-/// command replacement on the way out. The set is `D_80073BA9 + 1` for the
-/// alternate weapon block and `D_80073BA9 + 0x22` for the base one; its
+/// command replacement on the way out. The set is `Player_Status.weapon + 1` for the
+/// alternate weapon block and `Player_Status.weapon + 0x22` for the base one; its
 /// `field_4` is 9, the rest of the frame is zero.
 void func_actor_341900_801635A4(void)
 {

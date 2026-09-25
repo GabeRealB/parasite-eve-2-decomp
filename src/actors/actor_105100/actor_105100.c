@@ -225,7 +225,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 extern s32 D_80115728;
 
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
-/// live `D_80071075` means a cutscene is already up, so the death handler skips
+/// live `gDisplayState.pendingMode` means a cutscene is already up, so the death handler skips
 /// message 0x13F4.
 extern s8 D_80114C12;
 

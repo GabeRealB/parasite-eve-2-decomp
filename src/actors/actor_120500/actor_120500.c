@@ -73,7 +73,7 @@ extern u32 D_actor_120500_80138408[];
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
 
 /// Flags the tick checks before bringing the actor up (`D_80114C12` /
-/// `D_80071075`), and the one it raises alongside the view tasks
+/// `gDisplayState.pendingMode`), and the one it raises alongside the view tasks
 /// (`gDisplayState.at100.flags.flipMode`).
 extern s8 D_80114C12;
 
@@ -325,7 +325,7 @@ void func_actor_120500_801322A0(Task* arg0)
 }
 
 /// Per-frame body of the actor task, entry 4 of the task table. State 0 waits
-/// until `D_80114C12` is not 1 and `D_80071075` is clear, then brings the actor
+/// until `D_80114C12` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
 /// up through `func_actor_120500_801322A0`, sends the task in pointer slot 3
 /// the equipped-weapon animation as message 0x3E8 and installs the two
 /// `func_800E8634` blocks; state 1 kills the actor once the session's

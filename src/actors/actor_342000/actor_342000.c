@@ -609,8 +609,8 @@ void func_actor_342000_801628C8(Task* arg0)
     }
 }
 
-/// Main-executable globals with no module header yet: `D_80073BA9` is the
-/// base weapon id, `D_8007218A` selects the alternate animation block.
+/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// base weapon id, `Mc_SaveData.characterId` selects the alternate animation block.
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
 extern u8 D_actor_342000_801647E8[];
@@ -623,7 +623,7 @@ extern GpXformArg D_actor_342000_80164930;
 /// changes for the slot-3 task, the step-2 wait on 0x3F0 plus an 11-tick
 /// delay, and step 8's sound cue) and clears it. Cases 5 and 7 keep their
 /// weapon id locals block-scoped; sharing one pseudo across both cases moves
-/// the `D_80073BA9` load ahead of the flag load.
+/// the `Player_Status.weapon` load ahead of the flag load.
 void func_actor_342000_80162BBC(Task* arg0)
 {
     Actor342000EventWork* work;
@@ -1372,7 +1372,7 @@ void func_actor_342000_80164364(s32 arg0)
 }
 
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
-/// the animation set the current weapon selects (`D_80073BA9 + 1` for the
+/// the animation set the current weapon selects (`Player_Status.weapon + 1` for the
 /// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
 /// `gameGetPtrSlot(3)` returns), raises 0x3F3, kills the child in
 /// `field_64`, and cancels any pending CD command replacement.

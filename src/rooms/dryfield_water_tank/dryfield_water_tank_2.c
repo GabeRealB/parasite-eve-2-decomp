@@ -44,9 +44,9 @@ typedef struct DwtWork {
 STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 
 /// Main-executable globals with no module header yet: the cutscene task
-/// refuses to start while `D_80114C12` is 1 or `D_80071075` is non-zero.
-/// `D_80073BA9` is the equipped-weapon index the slot-3 msg 0x3E8 animation
-/// record is keyed on, and `D_8007218A` picks which of the two weapon-id bases
+/// refuses to start while `D_80114C12` is 1 or `gDisplayState.pendingMode` is non-zero.
+/// `Player_Status.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
+/// record is keyed on, and `Mc_SaveData.characterId` picks which of the two weapon-id bases
 /// that record uses.
 extern s8 D_80114C12;
 
@@ -334,8 +334,8 @@ void func_dryfield_water_tank_8017E78C(Task* task)
 /// `DwtWork` block in `Task::work`, republishes this task as
 /// `D_dryfield_water_tank_80188D50` so the room's script commands can reach
 /// that block, and hands slot 3 the 0x3E8 message carrying the animation set of the
-/// equipped weapon: `D_80073BA9 + 1` for the alternate block and
-/// `D_80073BA9 + 0x22` for the base one. A failed `Mem_Malloc` kills the task
+/// equipped weapon: `Player_Status.weapon + 1` for the alternate block and
+/// `Player_Status.weapon + 0x22` for the base one. A failed `Mem_Malloc` kills the task
 /// outright instead of returning, so the message and the state step still run
 /// on that path. States 2, 3 and 4 only step; state 1 runs the per-frame
 /// driver once the session is up, or steps when it has already torn down;

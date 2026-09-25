@@ -651,7 +651,7 @@ void func_dryfield_main_street_8017E4A4(s32 arg0)
 /// Per-frame room task. On its first run it stores the ids 0x60293-0x60295 in
 /// three gameplay globals. Each run it publishes the current view's
 /// `roomEffectMode`. In view 8 it spawns 0x30 randomly placed 0x601B1 effects
-/// on entering the view, and one more on each run with bit 0 of `D_80070F70`
+/// on entering the view, and one more on each run with bit 0 of `gDisplayState.animFrame`
 /// set while it stays. `spawnArg1` holds the view seen on the previous run.
 void func_dryfield_main_street_8017E4B0(Task* task)
 {

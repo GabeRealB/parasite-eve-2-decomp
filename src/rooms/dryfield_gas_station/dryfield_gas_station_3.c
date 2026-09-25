@@ -198,7 +198,7 @@ void func_dryfield_gas_station_801803C0(Task* task)
 }
 
 /// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
-/// `D_80114C12` of 1 and a live `D_80071075` both mean the cutscene is already
+/// `D_80114C12` of 1 and a live `gDisplayState.pendingMode` both mean the cutscene is already
 /// up), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
 /// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
 /// `D_dryfield_gas_station_80184BD4` so the room's script helpers can reach that block.

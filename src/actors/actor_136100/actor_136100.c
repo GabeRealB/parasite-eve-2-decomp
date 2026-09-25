@@ -315,7 +315,7 @@ void func_actor_136100_80132284(Task* arg0)
 }
 
 /// Build the 0x3E8 weapon record (`GpAnimArg`) for `anim` from the equip-slot
-/// addend (`D_80073BA9`), arm `field_4DE` with it and send it to slot 3.
+/// addend (`Player_Status.weapon`), arm `field_4DE` with it and send it to slot 3.
 ///
 /// A macro rather than an inline: the record must be one frame slot shared by
 /// every expansion, while the work pointer and the id stay per-expansion
@@ -795,7 +795,7 @@ void func_actor_136100_80133558(Task* arg0)
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
 /// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
-/// (`GpAnimArg`) built from the equip-slot addend (`D_80073BA9`), the pair
+/// (`GpAnimArg`) built from the equip-slot addend (`Player_Status.weapon`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
 /// way past.
 ///
@@ -848,7 +848,7 @@ void func_actor_136100_80133690(void)
 /// value/countdown pairs, sends the 0x7D4 cue to the host task, re-arms all
 /// nineteen animation slots with the work block's slot count at 3, then re-sends
 /// the two placement cues and the 0x3E8 weapon record (`GpAnimArg`) built from the
-/// equip-slot addend (`D_80073BA9`).  `arg0 == 1` additionally resets the
+/// equip-slot addend (`Player_Status.weapon`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
 /// Two `task->work` loads reach the block: the stores to `field_4C4` /

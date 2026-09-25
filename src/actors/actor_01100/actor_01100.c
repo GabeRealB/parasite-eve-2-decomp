@@ -40,7 +40,7 @@ extern GpPairSrcE Actor01100_D07510;
 extern u8         Actor01100_D15604[];
 
 /// Effect ids `Actor01100_Fn02960` passes to `Gp_SpawnEff`: `D_8011574C`
-/// at the model root when the low four bits of `D_80070F70` are clear, and
+/// at the model root when the low four bits of `gDisplayState.animFrame` are clear, and
 /// `D_80115738` for the splash.
 extern s32 D_80115738;
 extern s32 D_8011574C;
@@ -3845,7 +3845,7 @@ void Actor01100_Fn06E4C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
 /// countdown, and on the frame it reaches zero cues the 0x400B0004 event - the
 /// actor's id byte at 0xB88 in bits 8..15, the variant byte at 0xBB8 in bit 22,
 /// pan and depth from the frame block - through `SndEvt_EnqueueType6`. The
-/// scratch byte at 0x64 then takes 0xC while bit 0 of `D_80070F70` is set and 8
+/// scratch byte at 0x64 then takes 0xC while bit 0 of `gDisplayState.animFrame` is set and 8
 /// otherwise, and the trigger at 0xBA9 ends the sub-state by clearing both the
 /// state and the latch.
 void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)

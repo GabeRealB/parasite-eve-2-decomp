@@ -1600,7 +1600,7 @@ void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
 
 /// A glow at the world position of `coord`: two camera-facing textured
 /// squares, an inner one of half-size `size` whose texture follows bit 0 of
-/// `D_80070F70` and an outer one of `size * 3 / 2` whose palette alternates
+/// `gDisplayState.animFrame` and an outer one of `size * 3 / 2` whose palette alternates
 /// each frame, plus a mark on the ground beneath it when the ground is found.
 /// It also sets the `Gp_RoomCoords[2]` light at the glow's position with a
 /// flickering orange intensity. Nothing is drawn when the projection

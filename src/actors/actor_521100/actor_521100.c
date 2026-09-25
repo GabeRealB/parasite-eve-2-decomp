@@ -632,7 +632,7 @@ void func_actor_521100_80132958(Task* arg0)
 /// block's `field_698` and `field_696`, wrapped into [-0x800, 0x800] and then
 /// narrowed by `field_69C` being armed with 0x50; the request goes out only
 /// while fewer than 0x4E2 units of the actor's health are left, the latch
-/// `field_6BE` is clear, `D_80073BA0` (the remaining-enemy count) is positive
+/// `field_6BE` is clear, `Player_Status.hp` (the remaining-enemy count) is positive
 /// and the player's own `GameActor::field_954` is not its mode 2. On acceptance
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
