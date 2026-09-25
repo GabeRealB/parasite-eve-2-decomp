@@ -312,20 +312,6 @@ typedef struct {
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
-/// Overlay of `GpCoord64.data.coord` plus the 0x10-byte tail. `Gp_EffCtlTask6B`
-/// holds `&Gp_RoomCoords[0].data.coord` as this type so `field_50` / `field_58`
-/// are addressed from the coordinate pointer (`s5 + 0x50` / `s5 + 0x58`).
-typedef struct _GpCoordTail {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ s16           field_50;
-    /* 0x52 */ s16           field_52;
-    /* 0x54 */ s16           field_54;
-    /* 0x56 */ s16           pad_56;
-    /* 0x58 */ s32           field_58;
-    /* 0x5C */ s32           field_5C;
-} GpCoordTail;
-STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
-
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
 /// starts as `(0, 0x1000, 0)`, is rotated by `Gfx_ViewWorldMtx`, then added

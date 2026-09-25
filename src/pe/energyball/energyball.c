@@ -110,7 +110,7 @@ void func_energyball_8012F180(Task* arg0)
     EnergyBallWork* work;
     GpCoord64*      slot;
     GsCOORDINATE2*  sc;
-    GpCoordTail*    tail;
+    GpPointLight*   tail;
     GsCOORDINATE2   ground;
     VECTOR          vec;
     GsCOORDINATE2*  player;
@@ -123,7 +123,7 @@ void func_energyball_8012F180(Task* arg0)
 
     slot  = &Gp_RoomCoords[arg0->spawnArg1 + 4];
     sc    = &slot->data.coord;
-    tail  = (GpCoordTail*)sc;
+    tail  = &slot->data.light;
     coord = ((TmdObject*)arg0->extra)->coords;
     fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
@@ -212,13 +212,13 @@ void func_energyball_8012F180(Task* arg0)
                 mem->pos.vz = 0;
             }
             slot->framesLeft = 2;
-            tail->field_58   = 0x100;
-            tail->field_5C   = 0x1000;
+            tail->inner      = 0x100;
+            tail->outer      = 0x1000;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->field_52   = r;
-            tail->field_50   = (u16)tail->field_52 >> 1;
-            tail->field_54   = tail->field_52 >> 1;
+            tail->head.g     = r;
+            tail->head.r     = (u16)tail->head.g >> 1;
+            tail->head.b     = tail->head.g >> 1;
             sc->coord.t[0]   = coord->coord.t[0];
             sc->coord.t[1]   = coord->coord.t[1];
             sc->coord.t[2]   = coord->coord.t[2];
@@ -277,13 +277,13 @@ void func_energyball_8012F180(Task* arg0)
             coord->flg         = 0;
             Gp_UpdateCoord(coord);
             slot->framesLeft = 2;
-            tail->field_58   = 0x100;
-            tail->field_5C   = 0x1000;
+            tail->inner      = 0x100;
+            tail->outer      = 0x1000;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->field_52   = r;
-            tail->field_50   = (u16)tail->field_52 >> 1;
-            tail->field_54   = tail->field_52 >> 1;
+            tail->head.g     = r;
+            tail->head.r     = (u16)tail->head.g >> 1;
+            tail->head.b     = tail->head.g >> 1;
             sc->coord.t[0]   = coord->coord.t[0];
             sc->coord.t[1]   = coord->coord.t[1];
             sc->coord.t[2]   = coord->coord.t[2];

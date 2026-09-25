@@ -60,7 +60,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     GsCOORDINATE2* player;
     GpCoord64*     base;
     GsCOORDINATE2* slotc;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     GpMtxWords*    dstm;
     GpMtxWords*    srcm;
     GpEffWork*     spawned;
@@ -82,7 +82,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     mem->age = (u16)mem->age + 1;
     base     = Gp_RoomCoords;
     slotc    = &base->data.coord;
-    slot     = (GpCoordTail*)slotc;
+    slot     = &base->data.light;
     switch (arg0->state) {
         case 0:
             if (Gp_StateC08.field_3 == -2) {
@@ -226,13 +226,13 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 }
             }
             base->framesLeft  = 4;
-            slot->field_58    = (mem->index << 9) + 0x200;
-            slot->field_5C    = slot->field_58 * 16;
+            slot->inner       = (mem->index << 9) + 0x200;
+            slot->outer       = slot->inner * 16;
             Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
             amp               = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->field_50    = amp;
-            slot->field_52    = (u16)slot->field_50 >> 1;
-            slot->field_54    = slot->field_50 >> 2;
+            slot->head.r      = amp;
+            slot->head.g      = (u16)slot->head.r >> 1;
+            slot->head.b      = slot->head.r >> 2;
             slotc->coord.t[0] = coord->coord.t[0];
             slotc->coord.t[1] = coord->coord.t[1];
             tz                = coord->coord.t[2];

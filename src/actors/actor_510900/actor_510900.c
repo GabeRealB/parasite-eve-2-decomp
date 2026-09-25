@@ -87,7 +87,7 @@ void func_actor_510900_80131F24(Task* arg0)
 {
     GpEffWork*              mem;
     GsCOORDINATE2*          coord;
-    GpCoordTail*            slot;
+    GpPointLight*           slot;
     GpCoord64*              base;
     GpEffWork*              eff;
     Actor510900MatrixWords* mat;
@@ -98,7 +98,7 @@ void func_actor_510900_80131F24(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     base  = &Gp_RoomCoords[2];
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             base->framesLeft = 0;
@@ -125,11 +125,11 @@ void func_actor_510900_80131F24(Task* arg0)
     }
     Gp_UpdateCoord(coord);
     if (base->framesLeft != 0) {
-        slot->field_50 = 0x1000;
-        slot->field_52 = 0x800;
-        slot->field_54 = 0x400;
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        slot->head.r = 0x1000;
+        slot->head.g = 0x800;
+        slot->head.b = 0x400;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         base->framesLeft--;
         Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
@@ -157,8 +157,8 @@ void func_actor_510900_80131F24(Task* arg0)
                 }
             }
             base->framesLeft = 0x10;
-            slot->field_58   = 0x1F40;
-            slot->field_5C   = 0x2710;
+            slot->inner      = 0x1F40;
+            slot->outer      = 0x2710;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             bits             = Gp_LcgState >> 16;
             /* The `field_24 + 0x10000` sums below are evaluated as their own
@@ -228,8 +228,8 @@ void func_actor_510900_80131F24(Task* arg0)
             break;
         case 2:
             base->framesLeft = 0x10;
-            slot->field_58   = 0x1F40;
-            slot->field_5C   = 0x2710;
+            slot->inner      = 0x1F40;
+            slot->outer      = 0x2710;
             for (i = 0; i < 3; i++) {
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
@@ -354,12 +354,12 @@ void func_actor_510900_80131F24(Task* arg0)
                     }
                 }
                 base->framesLeft = 0x10;
-                slot->field_58   = 0x1F40;
-                slot->field_5C   = 0x2710;
+                slot->inner      = 0x1F40;
+                slot->outer      = 0x2710;
             } else if (mem->age < 0x3C) {
                 base->framesLeft = 2;
-                slot->field_58   = 0x190;
-                slot->field_5C   = 0x190;
+                slot->inner      = 0x190;
+                slot->outer      = 0x190;
                 Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
                 mem->move.vx     = -((Gp_LcgState >> 16) % 0x280) - 0x80;
                 mem->move.vy     = 0x80;
@@ -826,7 +826,7 @@ void func_actor_510900_801340E8(Task* arg0)
 {
     GpCoord64*              base;
     GsCOORDINATE2*          cam;
-    GpObj44*                ext;
+    GpPointLight*           ext;
     GpEffWork*              eff;
     GsCOORDINATE2*          coord;
     Actor510900MatrixWords* mat;
@@ -862,11 +862,11 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_SpawnEff(0x600A4, coord, 1, NULL);
     }
     base->framesLeft = 4;
-    ext->field_58    = 0xFA0;
-    ext->field_5C    = 0x12C0;
-    ext->field_50    = 0xC00;
-    ext->field_52    = 0x800;
-    ext->field_54    = 0x400;
+    ext->inner       = 0xFA0;
+    ext->outer       = 0x12C0;
+    ext->head.r      = 0xC00;
+    ext->head.g      = 0x800;
+    ext->head.b      = 0x400;
     Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &cam->coord);
     cam->flg = 0;
     Gp_ReleaseState1CMem(eff, arg0);

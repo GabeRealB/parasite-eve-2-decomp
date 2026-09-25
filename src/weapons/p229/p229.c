@@ -42,14 +42,14 @@ void func_p229_8011D1DC(Task* task)
     GpEffWork*     work;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     u8             rgb[3];
     s32            i;
 
     work  = (GpEffWork*)task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
     base  = &Gp_RoomCoords[0];
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
 
     if (Gp_State1C->eventState >= 2) {
         return;
@@ -58,16 +58,16 @@ void func_p229_8011D1DC(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            slot->coord.coord.t[0] = coord->coord.t[0];
-            slot->coord.coord.t[1] = coord->coord.t[1];
-            slot->coord.coord.t[2] = coord->coord.t[2];
-            base->data.coord.flg   = 0;
-            slot->field_50         = 0x1000;
-            slot->field_52         = 0x1000;
-            slot->field_54         = 0x1000;
-            slot->field_58         = 0xFA0;
-            slot->field_5C         = 0x12C0;
-            base->framesLeft       = 4;
+            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+            slot->head.u.coord.coord.t[2] = coord->coord.t[2];
+            base->data.coord.flg          = 0;
+            slot->head.r                  = 0x1000;
+            slot->head.g                  = 0x1000;
+            slot->head.b                  = 0x1000;
+            slot->inner                   = 0xFA0;
+            slot->outer                   = 0x12C0;
+            base->framesLeft              = 4;
 
             coord->sub        = work->parent;
             coord->coord.t[0] = D_p229_8011E0F0.vx;
@@ -106,8 +106,8 @@ void func_p229_8011D1DC(Task* task)
     for (i = 0; i < 4; i++) {
         func_p229_8011D860(coord, D_p229_8012B658[i], work->period);
     }
-    if (slot->field_58 >= 0x191) {
-        slot->field_58 -= 0x190;
+    if (slot->inner >= 0x191) {
+        slot->inner -= 0x190;
     }
     if (work->age >= 7) {
         Gp_ReleaseState1CMem(work, task);

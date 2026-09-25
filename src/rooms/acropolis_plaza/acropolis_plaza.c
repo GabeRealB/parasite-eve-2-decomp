@@ -71,18 +71,6 @@ typedef struct AcropolisPlazaBeamWork {
     /* 0x28 */ s16 spread;
 } AcropolisPlazaBeamWork;
 
-/// View of a room light starting at `GpCoord64.data.coord`.
-typedef struct AcropolisPlazaLightView {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ s16           red;
-    /* 0x52 */ s16           green;
-    /* 0x54 */ s16           blue;
-    /* 0x56 */ s16           pad;
-    /* 0x58 */ s32           radius;
-    /* 0x5C */ s32           falloff;
-} AcropolisPlazaLightView;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaLightView, 0x60);
-
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
 /// reads once in state 0: `view` seeds both `CdCmd_Queue.field_1EE` and
 /// `field_1EA`, and a non-zero `noStream` skips the opening stream request
@@ -1909,7 +1897,7 @@ void func_acropolis_plaza_801802C0(Task* task)
 {
     // Work spans both passes; s4 is reused for transient draw state.
     GpCoord64*                       entry;
-    AcropolisPlazaLightView*         light;
+    GpPointLight*                    light;
     GsCOORDINATE2*                   coord;
     GsCOORDINATE2*                   lightCoord;
     register AcropolisPlazaBeamWork* work asm("s5");
@@ -1929,10 +1917,10 @@ void func_acropolis_plaza_801802C0(Task* task)
 
     slot       = task->spawnArg1;
     entry      = &Gp_RoomCoords[slot & 7];
-    light      = (AcropolisPlazaLightView*)&entry->data.coord;
+    light      = &entry->data.light;
     coord      = ((TmdObject*)task->extra)->coords;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2;
-    lightCoord = &light->coord;
+    lightCoord = &light->head.u.coord;
     if (task->state == 0) {
         work->yaw   = (slot & 1) << 11;
         task->state = task->state + 1;
@@ -1992,11 +1980,11 @@ void func_acropolis_plaza_801802C0(Task* task)
             lightCoord->coord.t[2] = coord->coord.t[2];
             lightCoord->flg        = 0;
             entry->framesLeft      = 2;
-            light->radius          = 0x600;
-            light->falloff         = work->spread + 0x600;
-            light->red             = red << 4;
-            light->green           = green << 4;
-            light->blue            = blue << 4;
+            light->inner           = 0x600;
+            light->outer           = work->spread + 0x600;
+            light->head.r          = red << 4;
+            light->head.g          = green << 4;
+            light->head.b          = blue << 4;
             blk->vec[1].vx         = -0x200;
             blk->vec[1].vy         = 0;
             blk->vec[1].vz         = work->depth;

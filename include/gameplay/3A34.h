@@ -195,48 +195,22 @@ typedef struct _GpRoomCoordRec {
 } GpRoomCoordRec;
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
-/// 0x58-byte coordinate object in `GpRoomCoordSet.arr58`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `gGfxViewCoord` and clears `coord.flg`.
-typedef struct _GpCoord58 {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad_50[8];
-} GpCoord58;
-STATIC_ASSERT_SIZEOF(GpCoord58, 0x58);
-
-/// 0x60-byte coordinate object in `GpRoomCoordSet.arr60`. Same `coord.sub` /
-/// `coord.flg` init as `GpCoord58`. Same size as `GpCoordTail`.
-typedef struct _GpCoord60 {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad_50[0x10];
-} GpCoord60;
-STATIC_ASSERT_SIZEOF(GpCoord60, 0x60);
-
-/// 0x6C-byte coordinate object in `GpRoomCoordSet.arr6C`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `gGfxViewCoord`, builds `coord.coord` as an
-/// orthonormal basis from `dir` (and a perpendicular scratch vector),
-/// and clears `coord.flg`.
-typedef struct _GpCoord6C {
-    /* 0x00 */ GsCOORDINATE2 coord;
-    /* 0x50 */ byte          pad_50[8];
-    /* 0x58 */ SVECTOR       dir;
-    /* 0x60 */ byte          pad_60[0xC];
-} GpCoord6C;
-STATIC_ASSERT_SIZEOF(GpCoord6C, 0x6C);
-
-/// Room coordinate tables returned by `Gp_GetRoomCoordSet` (`GpRoomCoordRec.field_0`).
-/// `Gp_UpdateRoomCoords` parents each array to `gGfxViewCoord` on first run, then
-/// updates them every frame via `Gp_UpdateCoord` / `Gp_UpdateCoordEx`.
+/// A room view's own lights, returned by `Gp_GetRoomCoordSet`
+/// (`GpRoomCoordRec.field_0`): its directional, point and spot lights.
+/// `Gp_UpdateRoomCoords` parents each light to `gGfxViewCoord` on first run,
+/// builds each spot light's orientation from its `dir`, then updates them every
+/// frame via `Gp_UpdateCoordEx`.
 typedef struct _GpRoomCoordSet {
-    /* 0x00 */ s32        n58;
-    /* 0x04 */ GpCoord58* arr58;
-    /* 0x08 */ s32        n60;
-    /* 0x0C */ GpCoord60* arr60;
-    /* 0x10 */ s32        n6C;
-    /* 0x14 */ GpCoord6C* arr6C;
+    /* 0x00 */ s32           n58;
+    /* 0x04 */ GpLight*      arr58; // directional lights
+    /* 0x08 */ s32           n60;
+    /* 0x0C */ GpPointLight* arr60; // point lights
+    /* 0x10 */ s32           n6C;
+    /* 0x14 */ GpSpotLight*  arr6C; // spot lights
 } GpRoomCoordSet;
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 
-/// 0x6C-byte walk overlay of `GpCoord6C` starting at `dir`. `Gp_UpdateRoomCoords`
+/// 0x6C-byte walk overlay of `GpSpotLight` starting at `dir`. `Gp_UpdateRoomCoords`
 /// increments this by one object per loop.
 typedef struct _Gp6CDirWalk {
     /* 0x00 */ SVECTOR dir;
@@ -244,14 +218,14 @@ typedef struct _Gp6CDirWalk {
 } Gp6CDirWalk;
 STATIC_ASSERT_SIZEOF(Gp6CDirWalk, 0x6C);
 
-/// 0x6C-byte walk overlay of `GpCoord6C` starting at `coord.coord`.
+/// 0x6C-byte walk overlay of `GpSpotLight` starting at `head.u.coord.coord`.
 typedef struct _Gp6CMatWalk {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ byte   pad[0x4C];
 } Gp6CMatWalk;
 STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
 
-/// Overlay of `GpCoord6C` starting at `coord.sub`. `dir` is at +0xC, so a
+/// Overlay of `GpSpotLight` starting at `head.u.coord.sub`. `dir` is at +0xC, so a
 /// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
 /// object. `Gp_UpdateRoomCoords` writes `sub` as `gGfxViewCoord`.
 typedef struct _Gp6CMid {
@@ -290,31 +264,6 @@ typedef struct _GpSVec3x3 {
     /* 0x0C */ SVECTOR3 field_C;
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
-
-/// Cone-light overlay of the same object as `GpObj44`.
-/// `field_24` is the light matrix (Z column is the cone axis; `t` is the
-/// world position, same words as `GpObj44.field_38`). `field_60` /
-/// `field_64` are inner/outer radii (squared then `>> 2`, like
-/// `GpObj44.field_58` / `field_5C`). `field_68` is the cone angle fed
-/// to `rcos` as `field_68 >> 1`.
-typedef struct _GpObj68 {
-    /* 0x00 */ byte   pad_0[0x24];
-    /* 0x24 */ MATRIX field_24;
-    /* 0x44 */ s16    field_44;
-    /* 0x46 */ byte   pad_46[4];
-    /* 0x4A */ s16    field_4A;
-    /* 0x4C */ byte   pad_4C[4];
-    /* 0x50 */ s16    field_50;
-    /* 0x52 */ s16    field_52;
-    /* 0x54 */ s16    field_54;
-    /* 0x56 */ byte   pad_56[2];
-    /* 0x58 */ s32    field_58;
-    /* 0x5C */ s32    field_5C;
-    /* 0x60 */ s32    field_60;
-    /* 0x64 */ s32    field_64;
-    /* 0x68 */ s32    field_68;
-} GpObj68;
-STATIC_ASSERT_SIZEOF(GpObj68, 0x6C);
 
 /// A trigger quad on the `Gp_PendingObj4C` / `Gp_Obj4CList` lists.
 /// `next` and signed `field_4B` are the `Gp_PendingObj4C` list walked by
@@ -537,12 +486,12 @@ typedef struct _GpPerspScratch {
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
 /// Nearest room light selected by `func_800D78A4`. `kind` is -1 when no
-/// light is selected, 1 for `GpRoomCoordSet.arr60`, or 2 for `arr6C`.
-/// `light` points to the selected coordinate entry; `field_4` is cleared.
+/// light is selected, 1 for a point light, or 2 for a spot light.
+/// `light` points to the selected light; `field_4` is cleared.
 typedef struct _GpNearestLight {
-    /* 0x00 */ s32   kind;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ void* light;
+    /* 0x00 */ s32      kind;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ GpLight* light;
 } GpNearestLight;
 STATIC_ASSERT_SIZEOF(GpNearestLight, 0xC);
 
@@ -586,12 +535,12 @@ STATIC_ASSERT_SIZEOF(GpMtxCol, 0xE);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightFalloff` /
 /// `Gp_LightPoint` / `Gp_LightPointRoom`.
-/// `vec` is the halved XYZ from `GpObj44.field_18` (`Gp_LightFalloff`) or
-/// from `field_38 -` a world `VECTOR3` (`Gp_LightPoint` / `Gp_LightPointRoom`).
+/// `vec` is the halved local position (`Gp_LightFalloff`) or the halved
+/// world position less a world `VECTOR3` (`Gp_LightPoint` / `Gp_LightPointRoom`).
 /// `distSq` is `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2`
-/// from `field_5C` / `field_58` (`Gp_LightPointRoom` first stores
-/// `field_5C / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
-/// is 0, `0x1000`, or the 12.4 falloff copied to `field_4A`.
+/// from `outer` / `inner` (`Gp_LightPointRoom` first stores
+/// `outer / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
+/// is 0, `0x1000`, or the 12.4 falloff copied to the light's `scale`.
 typedef struct _GpAttnScratch {
     /* 0x00 */ VECTOR vec;
     /* 0x10 */ s32    distSq;
@@ -791,7 +740,7 @@ STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
 /// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
 /// `dir` is that output (then overwritten by the GPF-scaled color).
-/// `scale` holds `GpObj44.field_4A` loaded into IR0.
+/// `scale` holds the light's `scale` loaded into IR0.
 typedef struct _GpLightScratch {
     /* 0x00 */ VECTOR  in;
     /* 0x10 */ SVECTOR dir;
@@ -800,10 +749,10 @@ typedef struct _GpLightScratch {
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
 /// 0x3C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D759C`.
-/// `in` is `-GpObj44.field_18` fed to `Gfx_NormalizeLightDir`. `dir` is
+/// `in` is the light's negated local position fed to `Gfx_NormalizeLightDir`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
-/// `mtx` is `Transpose(Gfx_ViewWorldMtx) * field_4C->workm` (rotation only).
-/// `scale` holds `GpObj44.field_4A` loaded into IR0.
+/// `mtx` is `Transpose(Gfx_ViewWorldMtx) * parent->workm` (rotation only).
+/// `scale` holds the light's `scale` loaded into IR0.
 typedef struct _GpViewLightScratch {
     /* 0x00 */ VECTOR  in;
     /* 0x10 */ SVECTOR dir;
@@ -1169,10 +1118,10 @@ void       Gp_DrawWeaponLabel(Task* arg0);
 /// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* arg0);
-s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
-s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
-s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
-void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
+s32  Gp_LightPointRoom(GpPointLight* arg0, VECTOR3* arg1);
+s32  Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1);
+s32  Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1);
+void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
@@ -1193,7 +1142,7 @@ void Gp_RemapActorColor(struct GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// when `gGameSession->field_65 == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void Gp_LightFalloff(GpObj44* arg0);
+void Gp_LightFalloff(GpPointLight* arg0);
 void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
 /// How far a coordinate's origin lies from the current view's projection plane,
 /// in the form the sound events take their depth argument: saturated to ±0x7FFF
@@ -1220,12 +1169,12 @@ GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
 s32             Gp_CountRoomCoords(void);
 s32             Gp_GetRoomCoordSet(GpAreaKey* arg0);
 void            func_800D96C8(Task* arg0);
-s32             Gp_GetObjLuma(GpObj44* arg0);
+s32             Gp_GetObjLuma(GpLight* arg0);
 /// World X of the object's position.
 s32             Gp_GetObjTransX(GsCOORDINATE2* coord);
-void            func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
-void            func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
-void            func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3);
+void            func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+void            func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+void            func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void            Gp_BindDefaultMtx(Task* arg0);
 void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);

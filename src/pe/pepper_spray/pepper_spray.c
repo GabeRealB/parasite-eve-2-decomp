@@ -36,7 +36,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     s32            i;
     s32            age;
     s32            tz;
@@ -46,7 +46,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     u8             rgb[3];
 
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     mem   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
     if ((D_80114C0B == -2) || (Gp_State1C->fadeState != 0)) {
@@ -58,25 +58,25 @@ void func_pepper_spray_8012EF34(Task* arg0)
     mem->age = age;
     switch (arg0->state) {
         case 0:
-            slot->coord.coord.t[0] = coord->coord.t[0];
-            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
-            yaw                    = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
-            slot->coord.coord.t[1] = coord->coord.t[1];
-            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
-            spread                 = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            tz                     = coord->coord.t[2];
-            base->data.coord.flg   = 0;
-            slot->field_50         = 0x1000;
-            slot->field_52         = 0x1000;
-            slot->field_54         = 0x1000;
-            slot->field_58         = 0xFA0;
-            slot->field_5C         = 0x12C0;
-            base->framesLeft       = 6;
-            slot->coord.coord.t[2] = tz;
-            mem->period            = 0xE0;
-            mem->scale             = yaw;
-            mem->angle             = spread;
-            arg0->state            = 1;
+            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
+            yaw                           = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
+            spread                        = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            tz                            = coord->coord.t[2];
+            base->data.coord.flg          = 0;
+            slot->head.r                  = 0x1000;
+            slot->head.g                  = 0x1000;
+            slot->head.b                  = 0x1000;
+            slot->inner                   = 0xFA0;
+            slot->outer                   = 0x12C0;
+            base->framesLeft              = 6;
+            slot->head.u.coord.coord.t[2] = tz;
+            mem->period                   = 0xE0;
+            mem->scale                    = yaw;
+            mem->angle                    = spread;
+            arg0->state                   = 1;
             for (i = 0; i < 6; i++) {
                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
                 D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
@@ -96,8 +96,8 @@ void func_pepper_spray_8012EF34(Task* arg0)
     for (i = 0; i < 6; i++) {
         func_pepper_spray_8012F634(coord, D_pepper_spray_8012FB9C[i], mem->period);
     }
-    if (slot->field_58 >= 0x191) {
-        slot->field_58 -= 0x190;
+    if (slot->inner >= 0x191) {
+        slot->inner -= 0x190;
     }
     if (mem->age >= 9) {
         Gp_ReleaseState1CMem(mem, arg0);

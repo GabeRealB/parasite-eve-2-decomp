@@ -6,52 +6,59 @@
 #include <psyq/libgte.h>
 #include <psyq/libgs.h>
 
-/// Sparse overlay of a light source: an object whose head is a
-/// `GsCOORDINATE2`, so its `workm` is the light's world matrix and its light
-/// fields follow at 0x50. `Gp_GetObjLuma`
-/// treats `field_44` as a room-id filter against `gGameSession->at4.loc.view`
-/// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
-/// weighted `field_50/52/54` luminance. `func_800D9794` casts to
-/// `GsCOORDINATE2` for `workm.t` as a `VECTOR*`, loads `field_4A` into GTE
-/// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D98C4` /
-/// `func_800D9A30` subtract `workm.t` from a world `VECTOR` and write
-/// the negated normalized direction.
-/// `Gp_LightFalloff` halves `field_18` as XYZ, compares distance² against
-/// inner `field_58` and outer `field_5C` (each squared then `>> 2`), and
-/// writes the attenuated luminance to `field_38.vx` (same word as
-/// `GsCOORDINATE2.workm.t[0]`) plus the 12.4 scale to `field_4A`.
-/// `Gp_LightPoint` instead subtracts a world `VECTOR3` from `field_38`
-/// (same words as `GsCOORDINATE2.workm.t`),
-/// writes the scale to `field_4A`, and returns the luminance.
-/// `Gp_LightPointRoom` is that same subtract, plus the `field_44` room-id
-/// filter and an `|dx|` / `|dz|` reject against `field_5C / 2` before
-/// the squared-radius test.
-/// `Gp_LightCone` is the cone-light variant (`GpObj68`): same room-id
-/// filter and halved `field_24.t -` world `VECTOR3`, but outer/inner
-/// radii are `field_64` / `field_60`, and the normalized direction is
-/// dotted with `field_24` column 2 against `rcos(field_68 >> 1)`.
-/// `func_800D759C` overlays `GsCOORDINATE2` at offset 0: `field_18` is
-/// `coord.t`, `field_4C` is `sub`. It normalizes `-field_18`, rotates that
-/// direction by `Transpose(Gfx_ViewWorldMtx) * sub->workm`, then writes the
-/// negated row into `arg3->field_1C` and the IR0-scaled `field_50` color
-/// into `arg3->field_20` (same matrix slots as `func_800D9794`).
-typedef struct _GpObj44 {
-    /* 0x00 */ byte           pad_0[0x18];
-    /* 0x18 */ VECTOR3        field_18;
-    /* 0x24 */ byte           pad_24[0x14];
-    /* 0x38 */ VECTOR3        field_38;
-    /* 0x44 */ s16            field_44;
-    /* 0x46 */ byte           pad_46[4];
-    /* 0x4A */ s16            field_4A;
-    /* 0x4C */ GsCOORDINATE2* field_4C;
-    /* 0x50 */ s16            field_50;
-    /* 0x52 */ s16            field_52;
-    /* 0x54 */ s16            field_54;
-    /* 0x56 */ byte           pad_56[2];
-    /* 0x58 */ s32            field_58;
-    /* 0x5C */ s32            field_5C;
-} GpObj44;
-STATIC_ASSERT_SIZEOF(GpObj44, 0x60);
+/// A light source: a coordinate that places it, and the colour it casts.
+///
+/// Every light a model is lit by is one of these or begins with one - the
+/// room's directional lights are exactly this, its point and spot lights and
+/// gameplay's transient lights extend it - so the code that ranks the lights
+/// around a model and loads the winners into its light matrices takes any of
+/// them through this type.
+///
+/// The coordinate is an ordinary `GsCOORDINATE2`, parented to the view and
+/// updated with it, whose `coord.t` is where the light sits and whose `workm` is
+/// where that is in the world. A light never uses the coordinate's `param` or
+/// its link upwards, so it keeps two values of its own in those words, which
+/// `at` names.
+typedef struct GpLight {
+    union {
+        GsCOORDINATE2 coord; // the light's placement, parented to the view
+        struct {
+            u32            flg;
+            MATRIX         local;  // `coord.coord`: `t` is the light's position under its parent
+            MATRIX         world;  // `coord.workm`: `t` is the light's world position
+            s16            room;   // view the light belongs to; 0 lights every view
+            byte           pad_46[4];
+            s16            scale;  // attenuation last computed for the point being lit, 1.0 = 0x1000
+            GsCOORDINATE2* parent; // `coord.sub`, the coordinate the light hangs from
+        } at;                      // the same words as the lighting code reads them
+    } u;
+    s16  r;                        // colour, fed to the colour matrix scaled by `u.at.scale`
+    s16  g;
+    s16  b;
+    byte pad_56[2];
+} GpLight;
+STATIC_ASSERT_SIZEOF(GpLight, 0x58);
+
+/// A light that fades with distance: full strength within `inner` of its
+/// world position, falling to nothing at `outer`.
+typedef struct GpPointLight {
+    GpLight head;
+    s32     inner; // radius the light is at full strength within
+    s32     outer; // radius beyond which it casts nothing
+} GpPointLight;
+STATIC_ASSERT_SIZEOF(GpPointLight, 0x60);
+
+/// A point light narrowed to a cone: `dir` is the axis the room data aims it
+/// along, from which gameplay builds `head.u.at.local` so its Z column is that
+/// axis, and `angle` is the cone's full opening.
+typedef struct GpSpotLight {
+    GpLight head;
+    SVECTOR dir;   // the cone's axis, as the room data gives it
+    s32     inner; // radius the light is at full strength within
+    s32     outer; // radius beyond which it casts nothing
+    s32     angle; // full opening angle of the cone (0x1000 a full turn)
+} GpSpotLight;
+STATIC_ASSERT_SIZEOF(GpSpotLight, 0x6C);
 
 /// One of the eight transient point lights gameplay keeps on top of a room's
 /// own lights, which effects, weapons, parasite energies, actors and rooms
@@ -67,7 +74,7 @@ typedef struct _GpCoord64 {
     s32 framesLeft;          // frames the light stays lit; 0 leaves the slot dark
     union {
         GsCOORDINATE2 coord; // where the light is, parented to the view
-        GpObj44       light; // the same object read as a light: colour and falloff radii
+        GpPointLight  light; // the same object read as a light: colour and falloff radii
     } data;
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);

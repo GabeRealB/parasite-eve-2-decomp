@@ -5310,27 +5310,27 @@ void func_actor_403100_8013D11C(Task* arg0)
 {
     GsCOORDINATE2* coords;
     GpCoord64*     slot;
-    GpObj44*       light;
+    GpPointLight*  light;
     s16            value;
     u32            random;
 
-    coords               = ((TmdObject*)arg0->extra)->coords;
-    slot                 = &Gp_RoomCoords[2];
-    slot->framesLeft     = 8;
-    light                = &slot->data.light;
-    light->field_58      = 0x300;
-    random               = Gp_LcgState * 5 + 0x71357911;
-    light->field_5C      = 0x3000;
-    value                = ((random >> 16) & 0x700) + 0x800;
-    light->field_50      = value;
-    light->field_52      = value >> 3;
-    light->field_54      = value >> 4;
-    coords              += 3;
-    light->field_18.vx   = coords->coord.t[0];
-    light->field_18.vy   = coords->coord.t[1];
-    light->field_18.vz   = coords->coord.t[2];
-    Gp_LcgState          = random;
-    slot->data.coord.flg = 0;
+    coords                      = ((TmdObject*)arg0->extra)->coords;
+    slot                        = &Gp_RoomCoords[2];
+    slot->framesLeft            = 8;
+    light                       = &slot->data.light;
+    light->inner                = 0x300;
+    random                      = Gp_LcgState * 5 + 0x71357911;
+    light->outer                = 0x3000;
+    value                       = ((random >> 16) & 0x700) + 0x800;
+    light->head.r               = value;
+    light->head.g               = value >> 3;
+    light->head.b               = value >> 4;
+    coords                     += 3;
+    light->head.u.at.local.t[0] = coords->coord.t[0];
+    light->head.u.at.local.t[1] = coords->coord.t[1];
+    light->head.u.at.local.t[2] = coords->coord.t[2];
+    Gp_LcgState                 = random;
+    slot->data.coord.flg        = 0;
 }
 void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {

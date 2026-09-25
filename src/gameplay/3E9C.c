@@ -32,7 +32,7 @@ void Gp_EffCtlTask2B(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     s32            temp;
     s32            idx;
     s32            t2;
@@ -42,29 +42,29 @@ void Gp_EffCtlTask2B(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-                mem->index             = temp;
-                arg0->spawnArg1        = (u8)arg0->spawnArg1;
-                slot->coord.coord.t[0] = coord->coord.t[0];
-                slot->coord.coord.t[1] = coord->coord.t[1];
-                t2                     = coord->coord.t[2];
-                base->data.coord.flg   = 0;
-                slot->field_50         = 0xC00;
-                slot->field_52         = 0xC00;
-                slot->field_54         = 0xC00;
-                slot->field_58         = 0xFA0;
-                slot->field_5C         = 0x12C0;
-                slot->coord.coord.t[2] = t2;
-                coord->sub             = mem->parent;
-                coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
-                coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
-                coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
-                coord->flg             = 0;
+                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                mem->index                    = temp;
+                arg0->spawnArg1               = (u8)arg0->spawnArg1;
+                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+                t2                            = coord->coord.t[2];
+                base->data.coord.flg          = 0;
+                slot->head.r                  = 0xC00;
+                slot->head.g                  = 0xC00;
+                slot->head.b                  = 0xC00;
+                slot->inner                   = 0xFA0;
+                slot->outer                   = 0x12C0;
+                slot->head.u.coord.coord.t[2] = t2;
+                coord->sub                    = mem->parent;
+                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1].vx;
+                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1].vy;
+                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
+                coord->flg                    = 0;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1) {
                     case 1:
@@ -131,8 +131,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                 arg0->state++;
                 break;
         }
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         count = mem->age;
         if (mem->scale < count) {
@@ -146,34 +146,34 @@ void Gp_EffCtlTask6A(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     GpState1C*     st;
     s32            t2;
 
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                slot->coord.coord.t[0]    = coord->coord.t[0];
-                slot->coord.coord.t[1]    = coord->coord.t[1];
-                t2                        = coord->coord.t[2];
-                base->data.coord.flg      = 0;
-                slot->field_54            = 0xC00;
-                slot->field_52            = 0xC00;
-                slot->field_50            = 0xC00;
-                slot->field_58            = 0xFA0;
-                slot->field_5C            = 0x12C0;
-                Gp_RoomCoords->framesLeft = 4;
-                slot->coord.coord.t[2]    = t2;
-                coord->sub                = mem->parent;
-                coord->coord.t[0]         = D_801124DC[arg0->spawnArg1].vx;
-                coord->coord.t[1]         = D_801124DC[arg0->spawnArg1].vy;
-                coord->coord.t[2]         = D_801124DC[arg0->spawnArg1].vz;
-                coord->flg                = 0;
+                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+                t2                            = coord->coord.t[2];
+                base->data.coord.flg          = 0;
+                slot->head.b                  = 0xC00;
+                slot->head.g                  = 0xC00;
+                slot->head.r                  = 0xC00;
+                slot->inner                   = 0xFA0;
+                slot->outer                   = 0x12C0;
+                Gp_RoomCoords->framesLeft     = 4;
+                slot->head.u.coord.coord.t[2] = t2;
+                coord->sub                    = mem->parent;
+                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1].vx;
+                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1].vy;
+                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
+                coord->flg                    = 0;
                 Gp_UpdateCoord(coord);
                 mem->move.vx = 0;
                 mem->move.vy = 0;
@@ -203,8 +203,8 @@ void Gp_EffCtlTask6A(Task* arg0)
                 arg0->state++;
                 break;
         }
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         if (mem->age >= 5) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -217,7 +217,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     GpState1C*     st;
     s32            temp;
     s32            idx;
@@ -225,31 +225,31 @@ void Gp_EffCtlTask6B(Task* arg0)
     s32            count;
 
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     st    = Gp_State1C;
     if (st->eventState < 2) {
         mem->age++;
         if (arg0->state == 0) {
-            temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-            mem->index             = temp;
-            arg0->spawnArg1        = (u8)arg0->spawnArg1;
-            slot->coord.coord.t[0] = coord->coord.t[0];
-            slot->coord.coord.t[1] = coord->coord.t[1];
-            t2                     = coord->coord.t[2];
-            base->data.coord.flg   = 0;
-            slot->field_50         = 0xC00;
-            slot->field_52         = 0xC00;
-            slot->field_54         = 0xC00;
-            slot->field_58         = 0xFA0;
-            slot->field_5C         = 0x12C0;
-            slot->coord.coord.t[2] = t2;
-            coord->sub             = mem->parent;
-            coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
-            coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
-            coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
-            coord->flg             = 0;
+            temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->index                    = temp;
+            arg0->spawnArg1               = (u8)arg0->spawnArg1;
+            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+            t2                            = coord->coord.t[2];
+            base->data.coord.flg          = 0;
+            slot->head.r                  = 0xC00;
+            slot->head.g                  = 0xC00;
+            slot->head.b                  = 0xC00;
+            slot->inner                   = 0xFA0;
+            slot->outer                   = 0x12C0;
+            slot->head.u.coord.coord.t[2] = t2;
+            coord->sub                    = mem->parent;
+            coord->coord.t[0]             = D_801124DC[arg0->spawnArg1].vx;
+            coord->coord.t[1]             = D_801124DC[arg0->spawnArg1].vy;
+            coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
+            coord->flg                    = 0;
             Gp_UpdateCoord(coord);
             mem->move.vx = 0;
             mem->move.vy = 0;
@@ -278,8 +278,8 @@ void Gp_EffCtlTask6B(Task* arg0)
                 Gp_State1C->burstRequest = 1;
             }
         }
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         count = mem->age;
         if (mem->scale < count) {
@@ -293,7 +293,7 @@ void func_800ED42C(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     SVECTOR*       vec;
     s32            temp;
     s32            t2;
@@ -303,29 +303,29 @@ void func_800ED42C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-                mem->index             = temp;
-                arg0->spawnArg1        = (u8)arg0->spawnArg1;
-                slot->coord.coord.t[0] = coord->coord.t[0];
-                slot->coord.coord.t[1] = coord->coord.t[1];
-                t2                     = coord->coord.t[2];
-                base->data.coord.flg   = 0;
-                slot->field_50         = 0xE00;
-                slot->field_52         = 0xA00;
-                slot->field_54         = 0xA00;
-                slot->field_58         = 0xFA0;
-                slot->field_5C         = 0x12C0;
-                slot->coord.coord.t[2] = t2;
-                coord->sub             = mem->parent;
-                coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
-                coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
-                coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
-                coord->flg             = 0;
+                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                mem->index                    = temp;
+                arg0->spawnArg1               = (u8)arg0->spawnArg1;
+                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+                t2                            = coord->coord.t[2];
+                base->data.coord.flg          = 0;
+                slot->head.r                  = 0xE00;
+                slot->head.g                  = 0xA00;
+                slot->head.b                  = 0xA00;
+                slot->inner                   = 0xFA0;
+                slot->outer                   = 0x12C0;
+                slot->head.u.coord.coord.t[2] = t2;
+                coord->sub                    = mem->parent;
+                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1].vx;
+                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1].vy;
+                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1].vz;
+                coord->flg                    = 0;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1) {
                     case 1:
@@ -467,8 +467,8 @@ void func_800ED42C(Task* arg0)
                 }
                 break;
         }
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         count = mem->age;
         if (mem->scale < count) {
@@ -482,7 +482,7 @@ void Gp_EffCtlTask6C(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     s32            temp;
     s32            idx;
     s32            t2;
@@ -494,29 +494,29 @@ void Gp_EffCtlTask6C(Task* arg0)
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     base  = Gp_RoomCoords;
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
-                mem->index             = temp;
-                arg0->spawnArg1        = (u8)arg0->spawnArg1;
-                slot->coord.coord.t[0] = coord->coord.t[0];
-                slot->coord.coord.t[1] = coord->coord.t[1];
-                t2                     = coord->coord.t[2];
-                base->data.coord.flg   = 0;
-                slot->field_50         = 0xC00;
-                slot->field_52         = 0xC00;
-                slot->field_54         = 0xC00;
-                slot->field_58         = 0xFA0;
-                slot->field_5C         = 0x12C0;
-                slot->coord.coord.t[2] = t2;
-                coord->sub             = mem->parent;
-                coord->coord.t[0]      = D_801126FC[arg0->spawnArg1].vx;
-                coord->coord.t[1]      = D_801126FC[arg0->spawnArg1].vy;
-                coord->coord.t[2]      = D_801126FC[arg0->spawnArg1].vz;
-                coord->flg             = 0;
+                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                mem->index                    = temp;
+                arg0->spawnArg1               = (u8)arg0->spawnArg1;
+                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+                t2                            = coord->coord.t[2];
+                base->data.coord.flg          = 0;
+                slot->head.r                  = 0xC00;
+                slot->head.g                  = 0xC00;
+                slot->head.b                  = 0xC00;
+                slot->inner                   = 0xFA0;
+                slot->outer                   = 0x12C0;
+                slot->head.u.coord.coord.t[2] = t2;
+                coord->sub                    = mem->parent;
+                coord->coord.t[0]             = D_801126FC[arg0->spawnArg1].vx;
+                coord->coord.t[1]             = D_801126FC[arg0->spawnArg1].vy;
+                coord->coord.t[2]             = D_801126FC[arg0->spawnArg1].vz;
+                coord->flg                    = 0;
                 Gp_UpdateCoord(coord);
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 idx         = ((u32)rng >> 16) & 0x1FF;
@@ -569,8 +569,8 @@ void Gp_EffCtlTask6C(Task* arg0)
                 }
                 break;
         }
-        if (slot->field_58 >= 0x191) {
-            slot->field_58 -= 0x190;
+        if (slot->inner >= 0x191) {
+            slot->inner -= 0x190;
         }
         count = mem->age;
         if (mem->scale < count) {
@@ -2296,7 +2296,7 @@ void func_800F4308(Task* arg0)
     GsCOORDINATE2* coord;
     GsCOORDINATE2* roomCoord;
     GpCoord64*     room;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     TmdObject*     extra;
     SVECTOR*       vec;
     s16            flag;
@@ -2313,8 +2313,8 @@ void func_800F4308(Task* arg0)
     s32            tmp;
 
     room      = &Gp_RoomCoords[1];
-    slot      = (GpCoordTail*)&room->data.coord;
-    roomCoord = &slot->coord;
+    slot      = &room->data.light;
+    roomCoord = &slot->head.u.coord;
     extra     = arg0->extra;
     mem       = arg0->spawnArg2;
     flag      = Gp_State1C->eventState;
@@ -2374,11 +2374,11 @@ void func_800F4308(Task* arg0)
             }
             room->framesLeft      = 0x10;
             count                 = mem->age;
-            slot->field_5C        = 0x2580;
-            slot->field_50        = 0x1000;
-            slot->field_52        = 0xC00;
-            slot->field_54        = 0x800;
-            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            slot->outer           = 0x2580;
+            slot->head.r          = 0x1000;
+            slot->head.g          = 0xC00;
+            slot->head.b          = 0x800;
+            slot->inner           = (0x898 - (count * 0x64)) * 4;
             roomCoord->coord.t[0] = coord->coord.t[0];
             roomCoord->coord.t[1] = coord->coord.t[1];
             t2_10                 = coord->coord.t[2];
@@ -2453,11 +2453,11 @@ void func_800F4308(Task* arg0)
             }
             room->framesLeft      = 0x10;
             count                 = mem->age;
-            slot->field_5C        = 0x2580;
-            slot->field_50        = 0xC00;
-            slot->field_52        = 0xC00;
-            slot->field_54        = 0x800;
-            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            slot->outer           = 0x2580;
+            slot->head.r          = 0xC00;
+            slot->head.g          = 0xC00;
+            slot->head.b          = 0x800;
+            slot->inner           = (0x898 - (count * 0x64)) * 4;
             roomCoord->coord.t[0] = coord->coord.t[0];
             roomCoord->coord.t[1] = coord->coord.t[1];
             t2_11                 = coord->coord.t[2];
@@ -2516,11 +2516,11 @@ void func_800F4308(Task* arg0)
             }
             room->framesLeft      = 0x10;
             count                 = mem->age;
-            slot->field_5C        = 0x2580;
-            slot->field_50        = 0x800;
-            slot->field_52        = 0xC00;
-            slot->field_54        = 0x1000;
-            slot->field_58        = (0x898 - (count * 0x64)) * 4;
+            slot->outer           = 0x2580;
+            slot->head.r          = 0x800;
+            slot->head.g          = 0xC00;
+            slot->head.b          = 0x1000;
+            slot->inner           = (0x898 - (count * 0x64)) * 4;
             roomCoord->coord.t[0] = coord->coord.t[0];
             roomCoord->coord.t[1] = coord->coord.t[1];
             t2_12                 = coord->coord.t[2];

@@ -64,7 +64,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     GameActor*     actor;
     GpCoord64*     base;
     GsCOORDINATE2* light;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     GpMtxWords*    dstm;
     SVECTOR        pa;
     SVECTOR        pb;
@@ -77,7 +77,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 
     actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     light = &base->data.coord;
     work  = task->spawnArg2;
     coord = ((TmdObject*)task->extra)->coords;
@@ -120,13 +120,13 @@ void func_m4a1_javelin_8011D1E4(Task* task)
         case 1:
             Gp_UpdateCoord(coord);
             base->framesLeft = 4;
-            slot->field_58   = 0x100;
-            slot->field_5C   = 0x1000;
-            t                = (s16)(u16)slot->field_50 >> 1;
-            slot->field_50   = t;
-            slot->field_52   = t >> 2;
+            slot->inner      = 0x100;
+            slot->outer      = 0x1000;
+            t                = (s16)(u16)slot->head.r >> 1;
+            slot->head.r     = t;
+            slot->head.g     = t >> 2;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54   = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+            slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             light->flg = 0;
             if (work->scale == 0xC0) {
@@ -156,13 +156,13 @@ void func_m4a1_javelin_8011D1E4(Task* task)
         case 2:
             Gp_UpdateCoord(coord);
             base->framesLeft = 4;
-            slot->field_58   = 0x400;
-            slot->field_5C   = 0x4000;
+            slot->inner      = 0x400;
+            slot->outer      = 0x4000;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             rnd              = ((Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->field_54   = rnd;
-            slot->field_50   = rnd >> 1;
-            slot->field_52   = rnd >> 1;
+            slot->head.b     = rnd;
+            slot->head.r     = rnd >> 1;
+            slot->head.g     = rnd >> 1;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
             light->flg              = 0;

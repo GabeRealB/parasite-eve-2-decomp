@@ -582,7 +582,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
     GpEffWork*     eff;
     s32            i;
     s32            n;
@@ -621,14 +621,14 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 }
             }
             base             = &Gp_RoomCoords[4];
-            slot             = (GpCoordTail*)&base->data.coord;
+            slot             = &base->data.light;
             base->framesLeft = 4;
-            slot->field_58   = 0x15E0;
-            slot->field_5C   = 0x1900;
-            slot->field_50   = 0x800;
-            slot->field_52   = 0x800;
+            slot->inner      = 0x15E0;
+            slot->outer      = 0x1900;
+            slot->head.r     = 0x800;
+            slot->head.g     = 0x800;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54   = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
             Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
             base->data.coord.flg = 0;
             /* fallthrough */
@@ -654,13 +654,13 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                     }
                 }
                 base             = &Gp_RoomCoords[5];
-                slot             = (GpCoordTail*)&base->data.coord;
+                slot             = &base->data.light;
                 base->framesLeft = 4;
-                slot->field_58   = 0xFA0;
-                slot->field_5C   = 0x12C0;
-                slot->field_50   = 0xC00;
-                slot->field_52   = 0xC00;
-                slot->field_54   = 0x600;
+                slot->inner      = 0xFA0;
+                slot->outer      = 0x12C0;
+                slot->head.r     = 0xC00;
+                slot->head.g     = 0xC00;
+                slot->head.b     = 0x600;
                 Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
                 base->data.coord.flg = 0;
             }
@@ -834,10 +834,10 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
     GpCoord64*     base;
-    GpCoordTail*   slot;
+    GpPointLight*  slot;
 
     base  = &Gp_RoomCoords[4];
-    slot  = (GpCoordTail*)&base->data.coord;
+    slot  = &base->data.light;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     if (arg0->state == 3) {
@@ -852,17 +852,17 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
         case 0:
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
-            base->framesLeft       = 4;
-            slot->field_58         = 0x1900;
-            slot->field_5C         = 0x1C20;
-            slot->field_50         = 0x800;
-            slot->field_52         = 0x800;
-            Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
-            slot->field_54         = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            slot->coord.coord.t[0] = coord->coord.t[0];
-            slot->coord.coord.t[1] = coord->coord.t[1];
-            slot->coord.coord.t[2] = coord->coord.t[2];
-            base->data.coord.flg   = 0;
+            base->framesLeft              = 4;
+            slot->inner                   = 0x1900;
+            slot->outer                   = 0x1C20;
+            slot->head.r                  = 0x800;
+            slot->head.g                  = 0x800;
+            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
+            slot->head.b                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
+            slot->head.u.coord.coord.t[2] = coord->coord.t[2];
+            base->data.coord.flg          = 0;
             break;
         case 1:
             Gp_SpawnEff(0x6005E, coord, 0, NULL);

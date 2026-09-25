@@ -698,27 +698,27 @@ void Gp_UpdateRoomCoords(Task* arg0)
         vec      = (SVECTOR*)head;
         if (task->state == 0) {
             {
-                register GpCoord60* p asm("a0");
-                register GpCoord60* cur asm("s0");
-                GsCOORDINATE2*      parent;
+                register GpPointLight* p asm("a0");
+                register GpPointLight* cur asm("s0");
+                GsCOORDINATE2*         parent;
 
                 p = set->arr60;
                 if (set->n60 > 0) {
                     i      = 0;
                     parent = &gGfxViewCoord;
                     do {
-                        cur            = p;
-                        i             += 1;
-                        cur->coord.sub = parent;
-                        cur->coord.flg = 0;
-                        p              = cur + 1;
+                        cur                   = p;
+                        i                    += 1;
+                        cur->head.u.coord.sub = parent;
+                        cur->head.u.coord.flg = 0;
+                        p                     = cur + 1;
                     } while (i < set->n60);
                 }
             }
 
             {
-                register GpCoord6C*   obj asm("s3");
-                GpCoord6C*            cur;
+                register GpSpotLight* obj asm("s3");
+                GpSpotLight*          cur;
                 register Gp6CDirWalk* dirw asm("s2");
                 register Gp6CMatWalk* matw asm("s6");
 
@@ -727,7 +727,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 if (set->n6C > 0) {
                     parent6C = &gGfxViewCoord;
                     dirw     = (Gp6CDirWalk*)&obj->dir;
-                    matw     = (Gp6CMatWalk*)&obj->coord.coord;
+                    matw     = (Gp6CMatWalk*)&obj->head.u.coord.coord;
                     do {
                         cur                                                    = obj;
                         ((Gp6CMid*)((u8*)dirw - OFFSET_OF(Gp6CMid, dir)))->sub = parent6C;
@@ -749,20 +749,20 @@ void Gp_UpdateRoomCoords(Task* arg0)
                         vec->vy = -(s16)tmp;
                     join:
                         Gfx_OrthonormalBasis(&matw->mtx, &dirw->dir, vec);
-                        i             += 1;
-                        dirw          += 1;
-                        matw          += 1;
-                        cur->coord.flg = 0;
-                        obj           += 1;
+                        i                    += 1;
+                        dirw                 += 1;
+                        matw                 += 1;
+                        cur->head.u.coord.flg = 0;
+                        obj                  += 1;
                     } while (i < set->n6C);
                 }
             }
 
             j = 0;
             if (set->n58 > 0) {
-                register GpCoord58* p asm("a0");
-                register GpCoord58* cur asm("s0");
-                GsCOORDINATE2*      parent;
+                register GpLight* p asm("a0");
+                register GpLight* cur asm("s0");
+                GsCOORDINATE2*    parent;
 
                 p = set->arr58;
                 TOUCH_REG(j);
@@ -770,11 +770,11 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 if (i < set->n58) {
                     parent = &gGfxViewCoord;
                     do {
-                        cur            = p;
-                        i             += 1;
-                        cur->coord.sub = parent;
-                        cur->coord.flg = 0;
-                        p              = cur + 1;
+                        cur              = p;
+                        i               += 1;
+                        cur->u.coord.sub = parent;
+                        cur->u.coord.flg = 0;
+                        p                = cur + 1;
                     } while (i < set->n58);
                     j = 0;
                 }
@@ -826,8 +826,8 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     {
-        register GpCoord60* p asm("a0");
-        GpCoord60*          cur;
+        register GpPointLight* p asm("a0");
+        GpPointLight*          cur;
 
         p = set->arr60;
         TOUCH_REG(p);
@@ -835,7 +835,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n60 > 0) {
             do {
                 cur = p;
-                Gp_UpdateCoordEx(&cur->coord, &gGfxViewCoord);
+                Gp_UpdateCoordEx(&cur->head.u.coord, &gGfxViewCoord);
                 i += 1;
                 p  = cur + 1;
             } while (i < set->n60);
@@ -843,15 +843,15 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     {
-        register GpCoord6C* obj asm("s3");
-        register GpCoord6C* cur asm("s0");
+        register GpSpotLight* obj asm("s3");
+        register GpSpotLight* cur asm("s0");
 
         obj = set->arr6C;
         i   = 0;
         if (set->n6C > 0) {
             do {
                 cur = obj;
-                Gp_UpdateCoordEx(&cur->coord, &gGfxViewCoord);
+                Gp_UpdateCoordEx(&cur->head.u.coord, &gGfxViewCoord);
                 i  += 1;
                 obj = cur + 1;
             } while (i < set->n6C);
@@ -859,11 +859,11 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     if (set->n58 > 0) {
-        GpCoord58* p;
+        GpLight* p;
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
-            Gp_UpdateCoordEx(&p->coord, &gGfxViewCoord);
+            Gp_UpdateCoordEx(&p->u.coord, &gGfxViewCoord);
             i += 1;
             p += 1;
         }
@@ -872,30 +872,30 @@ void Gp_UpdateRoomCoords(Task* arg0)
     *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
+s32 Gp_LightPointRoom(GpPointLight* arg0, VECTOR3* arg1)
 {
-    void**            scratch;
-    u8*               head;
-    GpAttnScratch*    block;
-    register s32      vx asm("v0");
-    s32               lum;
-    GpObj44*          obj;
-    register GpObj44* obj2 asm("t2");
-    register VECTOR3* pos asm("t1");
-    s32               result;
-    s32               tooFar;
-    s32               r;
-    s32               g;
-    s32               b;
-    s32               dist;
-    s32               inner;
-    u16               scale;
-    u8*               ptr;
-    s16               room;
+    void**                 scratch;
+    u8*                    head;
+    GpAttnScratch*         block;
+    register s32           vx asm("v0");
+    s32                    lum;
+    GpPointLight*          obj;
+    register GpPointLight* obj2 asm("t2");
+    register VECTOR3*      pos asm("t1");
+    s32                    result;
+    s32                    tooFar;
+    s32                    r;
+    s32                    g;
+    s32                    b;
+    s32                    dist;
+    s32                    inner;
+    u16                    scale;
+    u8*                    ptr;
+    s16                    room;
 
     obj  = arg0;
     obj2 = obj;
-    room = obj2->field_44;
+    room = obj2->head.u.at.room;
     pos  = arg1;
     if (room != 0) {
         if ((u8)gGameSession->at4.loc.view != room) {
@@ -903,7 +903,7 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
         }
     }
     scratch = (void**)G_SCRATCH_HEAD;
-    vx      = obj2->field_38.vx;
+    vx      = obj2->head.u.at.world.t[0];
     head    = *scratch;
     vx     -= pos->vx;
     vx    >>= 1;
@@ -914,9 +914,9 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
         ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
         block                                   = tmp;
     }
-    block->vec.vy  = (obj2->field_38.vy - pos->vy) >> 1;
-    block->vec.vz  = (obj2->field_38.vz - pos->vz) >> 1;
-    vx             = obj->field_5C;
+    block->vec.vy  = (obj2->head.u.at.world.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (obj2->head.u.at.world.t[2] - pos->vz) >> 1;
+    vx             = obj->outer;
     block->scale   = 0;
     vx           >>= 1;
     block->outerSq = vx;
@@ -936,7 +936,7 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
         if (!tooFar) {
             register s32 sq asm("a0");
 
-            vx  = obj->field_5C;
+            vx  = obj->outer;
             lum = vx * vx;
             vx  = lum >> 2;
             TOUCH_REG(vx);
@@ -955,10 +955,10 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
     if (tooFar) {
         result = 0;
     } else {
-        block->innerSq = (obj->field_58 * obj->field_58) >> 2;
-        r              = obj->field_50;
-        g              = obj->field_52;
-        b              = obj->field_54;
+        block->innerSq = (obj->inner * obj->inner) >> 2;
+        r              = obj->head.r;
+        g              = obj->head.g;
+        b              = obj->head.b;
         block->scale   = 0x1000;
         lum            = (r * 8 + g * 6 + b * 2) >> 8;
         dist           = block->distSq;
@@ -986,12 +986,12 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
     }
     scale                 = block->scale;
     ptr                   = *(u8**)G_SCRATCH_HEAD;
-    obj2->field_4A        = scale;
+    obj2->head.u.at.scale = scale;
     *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
     return result;
 }
 
-s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
+s32 Gp_LightPoint(GpPointLight* arg0, VECTOR3* arg1)
 {
     register void**         scratch asm("a3");
     register u8*            head;
@@ -999,7 +999,7 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
     GpAttnScratch*          block;
     s32                     result;
     register s32            lum;
-    GpObj44*                obj;
+    GpPointLight*           obj;
     s32                     tooFar;
     s32                     r;
     s32                     g;
@@ -1013,18 +1013,18 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
 
     obj                                     = arg0;
     scratch                                 = (void**)G_SCRATCH_HEAD;
-    vx                                      = obj->field_38.vx;
+    vx                                      = obj->head.u.at.world.t[0];
     head                                    = *scratch;
     vx                                     -= arg1->vx;
     vx                                    >>= 1;
     tmp                                     = (GpAttnScratch*)(head - 0x20);
     ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
     block                                   = tmp;
-    block->vec.vy                           = (obj->field_38.vy - arg1->vy) >> 1;
-    block->vec.vz                           = (obj->field_38.vz - arg1->vz) >> 1;
+    block->vec.vy                           = (obj->head.u.at.world.t[1] - arg1->vy) >> 1;
+    block->vec.vz                           = (obj->head.u.at.world.t[2] - arg1->vz) >> 1;
     sq                                      = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->distSq                           = sq;
-    sq                                      = obj->field_5C;
+    sq                                      = obj->outer;
     lum                                     = sq * sq;
     sq                                      = lum >> 2;
     lum                                     = block->distSq;
@@ -1034,10 +1034,10 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
     tooFar                                  = (u32)sq < (u32)lum;
     block->scale                            = 0;
     if (!tooFar) {
-        block->innerSq = (obj->field_58 * obj->field_58) >> 2;
-        r              = obj->field_50;
-        g              = obj->field_52;
-        b              = obj->field_54;
+        block->innerSq = (obj->inner * obj->inner) >> 2;
+        r              = obj->head.r;
+        g              = obj->head.g;
+        b              = obj->head.b;
         block->scale   = 0x1000;
         lum            = (r * 8 + g * 6 + b * 2) >> 8;
         dist           = block->distSq;
@@ -1065,16 +1065,16 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
     }
     scale                 = block->scale;
     ptr                   = *(u8**)G_SCRATCH_HEAD;
-    obj->field_4A         = scale;
+    obj->head.u.at.scale  = scale;
     *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
     return result;
 }
 
-s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
+s32 Gp_LightCone(GpSpotLight* arg0, VECTOR3* arg1)
 {
-    GpObj68*                obj2;
+    GpSpotLight*            obj2;
     register VECTOR3*       pos;
-    register GpObj68*       obj asm("s1");
+    register GpSpotLight*   obj asm("s1");
     s32                     result;
     register void**         scratch asm("a1");
     register u8*            head asm("a2");
@@ -1096,7 +1096,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
 
     obj2 = arg0, pos = arg1, obj = obj2;
     TOUCH_REG3(obj2, pos, obj);
-    room   = obj->field_44;
+    room   = obj->head.u.at.room;
     result = 0;
     if (room != 0) {
         if ((u8)gGameSession->at4.loc.view != room) {
@@ -1104,19 +1104,19 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
         }
     }
     scratch                                 = (void**)G_SCRATCH_HEAD;
-    vx                                      = obj->field_24.t[0];
+    vx                                      = obj->head.u.at.world.t[0];
     head                                    = *scratch;
     vx                                     -= pos->vx;
     vx                                    >>= 1;
     addr                                    = head - 0x2C;
     ((GpSpotScratch*)(head - 0x2C))->vec.vx = vx;
     block                                   = (GpSpotScratch*)addr;
-    block->vec.vy                           = (obj->field_24.t[1] - pos->vy) >> 1;
-    block->vec.vz                           = (obj->field_24.t[2] - pos->vz) >> 1;
+    block->vec.vy                           = (obj->head.u.at.world.t[1] - pos->vy) >> 1;
+    block->vec.vz                           = (obj->head.u.at.world.t[2] - pos->vz) >> 1;
     TOUCH_REG(addr);
     sq             = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->distSq  = sq;
-    sq             = obj2->field_64;
+    sq             = obj2->outer;
     lum            = sq * sq;
     sq             = lum >> 2;
     lum            = block->distSq;
@@ -1129,15 +1129,15 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     } else {
         VECTOR* light;
 
-        block->innerSq = (obj2->field_60 * obj2->field_60) >> 2;
+        block->innerSq = (obj2->inner * obj2->inner) >> 2;
         light          = (VECTOR*)block;
         Gfx_NormalizeLightDir(light, (SVECTOR*)(head - 0x1C));
-        dot           = block->dir.vx * obj->field_24.m[0][2] + block->dir.vy * obj->field_24.m[1][2] + block->dir.vz * obj->field_24.m[2][2];
+        dot           = block->dir.vx * obj->head.u.at.world.m[0][2] + block->dir.vy * obj->head.u.at.world.m[1][2] + block->dir.vz * obj->head.u.at.world.m[2][2];
         block->cosAng = -dot >> 12;
-        if (rcos(obj2->field_68 >> 1) < block->cosAng) {
-            r            = obj2->field_50;
-            g            = obj2->field_52;
-            b            = obj2->field_54;
+        if (rcos(obj2->angle >> 1) < block->cosAng) {
+            r            = obj2->head.r;
+            g            = obj2->head.g;
+            b            = obj2->head.b;
             block->scale = 0x1000;
             lum          = (r * 8 + g * 6 + b * 2) >> 8;
             dist         = block->distSq;
@@ -1166,7 +1166,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     }
     scale                 = block->scale;
     ptr                   = *(u8**)G_SCRATCH_HEAD;
-    obj->field_4A         = scale;
+    obj->head.u.at.scale  = scale;
     *(u8**)G_SCRATCH_HEAD = ptr + 0x2C;
     return result;
 }
@@ -1180,7 +1180,7 @@ static __inline__ void solve_loadrot(MATRIX* m, SVECTOR* src)
     gte_ldv0(&tmp);
 }
 
-void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**                       scratch;
     u8*                          head;
@@ -1200,15 +1200,15 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
 
-    ((GpViewLightScratch*)(head - 0x3C))->in.vx = -arg1->field_18.vx;
-    block->in.vy                                = -arg1->field_18.vy;
+    ((GpViewLightScratch*)(head - 0x3C))->in.vx = -arg1->u.at.local.t[0];
+    block->in.vy                                = -arg1->u.at.local.t[1];
     *scratch                                    = block;
-    block->in.vz                                = -arg1->field_18.vz;
+    block->in.vz                                = -arg1->u.at.local.t[2];
     Gfx_NormalizeLightDir((VECTOR*)block, dir);
 
-    Gp_UpdateCoord(arg1->field_4C);
+    Gp_UpdateCoord(arg1->u.at.parent);
     TransposeMatrix(&Gfx_ViewWorldMtx, mtx);
-    gte_MulMatrix0(mtx, &arg1->field_4C->workm, mtx);
+    gte_MulMatrix0(mtx, &arg1->u.at.parent->workm, mtx);
 
     solve_loadrot(mtx, (SVECTOR*)(head - 0x2C));
     gte_rtv0();
@@ -1218,11 +1218,11 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     scale        = val;
     block->scale = val;
     gte_lddp(scale);
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -1236,9 +1236,9 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
 void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
     GpRoomCoordSet* set;
-    GpCoord60*      point;
-    GpCoord60*      current;
-    GpCoord6C*      cone;
+    GpPointLight*   point;
+    GpPointLight*   current;
+    GpSpotLight*    cone;
     VECTOR*         delta;
     u32             best;
     u32             dist;
@@ -1257,28 +1257,28 @@ void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
             for (i = 0; i < set->n60; i++, point = current + 1) {
                 current = point;
                 TOUCH_REG(current);
-                delta->vx = (current->coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (current->coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (current->coord.workm.t[2] - arg0->vz) >> 1;
+                delta->vx = (current->head.u.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (current->head.u.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (current->head.u.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
                     arg1->kind  = 1;
-                    arg1->light = current;
+                    arg1->light = &current->head;
                 }
             }
         }
         if (set->n6C > 0) {
             cone = set->arr6C;
             for (i = 0; i < set->n6C; i++, cone++) {
-                delta->vx = (cone->coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (cone->coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (cone->coord.workm.t[2] - arg0->vz) >> 1;
+                delta->vx = (cone->head.u.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (cone->head.u.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (cone->head.u.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
                     arg1->kind  = 2;
-                    arg1->light = cone;
+                    arg1->light = &cone->head;
                 }
             }
         }
@@ -1286,7 +1286,7 @@ void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     }
 }
 
-static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**                   scratch;
     u8*                      head;
@@ -1303,7 +1303,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     *scratch = block;
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)((GsCOORDINATE2*)arg1)->workm.t, dir);
+    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, dir);
     SOFT_USE_REG(block);
     SOFT_USE_REG(block);
 
@@ -1311,10 +1311,10 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     dirMtx->m[arg0][1] = block->dir.vy;
     dirMtx->m[arg0][2] = block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -1325,7 +1325,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -1341,20 +1341,20 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
-    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
+    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
+    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -1372,7 +1372,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -1388,20 +1388,20 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
-    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
+    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
+    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     block->scale = val;
     __asm__ volatile("mtc2 %0, $8" : "+&r"(val) : "r"(val));
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -1412,21 +1412,21 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-static __inline__ s32 solve_luma(GpObj44* arg0)
+static __inline__ s32 solve_luma(GpLight* arg0)
 {
     s16 val;
 
-    val = arg0->field_44;
+    val = arg0->u.at.room;
     if (val != 0 && (u8)gGameSession->at4.loc.view != val) {
         return 0;
     }
     {
         s32 r, g, b, lum;
-        r              = arg0->field_50;
-        g              = arg0->field_52;
-        b              = arg0->field_54;
-        arg0->field_4A = 0x1000;
-        lum            = r * 8 + g * 6 + b * 2;
+        r                = arg0->r;
+        g                = arg0->g;
+        b                = arg0->b;
+        arg0->u.at.scale = 0x1000;
+        lum              = r * 8 + g * 6 + b * 2;
         USE_REG3(lum, lum, lum);
         return (lum >> 8) + 0xF00;
     }
@@ -1583,7 +1583,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         register GpCoord64* p;
 
         register GpRec12* last;
-        GpObj44*          obj;
+        GpPointLight*     obj;
 
         p          = Gp_RoomCoords;
         pointIndex = 0;
@@ -1606,13 +1606,13 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n60 > 0) {
-        register GpCoord60* obj60;
+        register GpPointLight* obj60;
 
         obj60 = set->arr60;
         i     = 0;
 
         for (; i < set->n60;) {
-            val              = Gp_LightPointRoom((GpObj44*)obj60, (VECTOR3*)&block->pos);
+            val              = Gp_LightPointRoom(obj60, (VECTOR3*)&block->pos);
             block->intensity = val;
             solve_rank(block->slots, val, 1, (s32)obj60, &block->slots[3]);
             i++;
@@ -1621,14 +1621,14 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n6C > 0) {
-        register GpCoord6C* obj6C;
-        s32                 coneRank;
+        register GpSpotLight* obj6C;
+        s32                   coneRank;
 
         obj6C = set->arr6C;
         i     = 0;
 
         for (; i < set->n6C;) {
-            val              = Gp_LightCone((GpObj68*)obj6C, (VECTOR3*)&block->pos);
+            val              = Gp_LightCone(obj6C, (VECTOR3*)&block->pos);
             coneRank         = 2;
             block->intensity = val;
             solve_rank(block->slots, val, coneRank, (s32)obj6C, &block->slots[3]);
@@ -1638,12 +1638,12 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n58 > 0) {
-        register GpCoord58* obj58;
+        register GpLight* obj58;
 
         obj58 = set->arr58;
         i     = 0;
         for (; i < set->n58;) {
-            val              = solve_luma((GpObj44*)obj58);
+            val              = solve_luma(obj58);
             block->intensity = val;
             solve_rank0(block->slots, val, 0, (s32)obj58, block);
             i++;
@@ -1660,8 +1660,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         s32              end;
         GpSolveSlotView* slotArg;
 
-        GpObj44* light;
-        GpObj44* extraLight;
+        GpLight* light;
+        GpLight* extraLight;
 
         s32 delta;
         s32 amb;
@@ -1672,52 +1672,52 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
             slotArg = (GpSolveSlotView*)((GpRec12*)block + end);
 
             do {
-                light = (GpObj44*)block->slots[i].field_8;
+                light = (GpLight*)block->slots[i].field_8;
                 if (light != NULL) {
                     if (i == end - 1) {
                         cutoffPtr = &((GpSolveSlotView*)((GpRec12*)block + count))->field_8;
                         if (*cutoffPtr != 0) {
-                            GpObj44* cutoffLight;
+                            GpLight* cutoffLight;
                             s32      attenuation;
                             s32      diff;
                             s32      cutoffScale;
-                            cutoffLight = (GpObj44*)slotArg->field_8;
+                            cutoffLight = (GpLight*)slotArg->field_8;
                             delta       = 0;
                             if (((GpSolveSlotView*)((GpRec12*)block + count))->field_0 != 0) {
-                                attenuation = light->field_4A;
-                                cutoffScale = cutoffLight->field_4A;
+                                attenuation = light->u.at.scale;
+                                cutoffScale = cutoffLight->u.at.scale;
                                 diff        = attenuation - cutoffScale;
                                 if (diff < 0) {
                                     diff = 0;
                                 }
                                 if (diff < 0x200) {
-                                    diff            = (diff * attenuation) >> 9;
-                                    delta           = attenuation - diff;
-                                    light->field_4A = diff;
+                                    diff              = (diff * attenuation) >> 9;
+                                    delta             = attenuation - diff;
+                                    light->u.at.scale = diff;
                                 }
                             }
-                            extraLight     = (GpObj44*)slotArg->field_8;
+                            extraLight     = (GpLight*)slotArg->field_8;
                             delta        >>= 2;
                             amb            = (slotArg->field_4 >> 2) + delta;
                             colorMtx->t[2] = amb;
                             colorMtx->t[1] = amb;
                             colorMtx->t[0] = amb;
-                            colorMtx->t[0] = amb + (extraLight->field_50 >> 6);
-                            colorMtx->t[1] = colorMtx->t[1] + (extraLight->field_52 >> 6);
-                            colorMtx->t[2] = colorMtx->t[2] + (extraLight->field_54 >> 6);
+                            colorMtx->t[0] = amb + (extraLight->r >> 6);
+                            colorMtx->t[1] = colorMtx->t[1] + (extraLight->g >> 6);
+                            colorMtx->t[2] = colorMtx->t[2] + (extraLight->b >> 6);
                         }
                     }
 
                     switch (block->slots[i].field_0) {
                         case 1:
                         case 3:
-                            solve_func_800D98C4(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D98C4(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
                             break;
                         case 2:
-                            solve_func_800D9A30(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D9A30(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
                             break;
                         default:
-                            solve_func_800D9794(i, (GpObj44*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D9794(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
                             break;
                     }
                 }
@@ -2125,7 +2125,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void Gp_LightFalloff(GpObj44* arg0)
+void Gp_LightFalloff(GpPointLight* arg0)
 {
     register void**         scratch asm("a1");
     u8*                     head;
@@ -2145,24 +2145,24 @@ void Gp_LightFalloff(GpObj44* arg0)
 
     result                                  = 0;
     scratch                                 = (void**)G_SCRATCH_HEAD;
-    vx                                      = arg0->field_18.vx;
+    vx                                      = arg0->head.u.at.local.t[0];
     head                                    = *scratch;
     vx                                    >>= 1;
     tmp                                     = (GpAttnScratch*)(head - 0x20);
     ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
     block                                   = tmp;
-    block->vec.vy                           = arg0->field_18.vy >> 1;
-    block->vec.vz                           = arg0->field_18.vz >> 1;
+    block->vec.vy                           = arg0->head.u.at.local.t[1] >> 1;
+    block->vec.vz                           = arg0->head.u.at.local.t[2] >> 1;
     block->distSq                           = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
-    block->outerSq                          = (arg0->field_5C * arg0->field_5C) >> 2;
+    block->outerSq                          = (arg0->outer * arg0->outer) >> 2;
     tooFar                                  = (u32)block->outerSq < (u32)block->distSq;
     *scratch                                = block;
     block->scale                            = 0;
     if (!tooFar) {
-        block->innerSq = (arg0->field_58 * arg0->field_58) >> 2;
-        r              = arg0->field_50;
-        g              = arg0->field_52;
-        b              = arg0->field_54;
+        block->innerSq = (arg0->inner * arg0->inner) >> 2;
+        r              = arg0->head.r;
+        g              = arg0->head.g;
+        b              = arg0->head.b;
         block->scale   = 0x1000;
         lum            = (r * 8 + g * 6 + b * 2) >> 8;
         dist           = block->distSq;
@@ -2188,11 +2188,11 @@ void Gp_LightFalloff(GpObj44* arg0)
             }
         }
     }
-    scale                 = block->scale;
-    ptr                   = *(u8**)G_SCRATCH_HEAD;
-    arg0->field_38.vx     = result;
-    arg0->field_4A        = scale;
-    *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
+    scale                      = block->scale;
+    ptr                        = *(u8**)G_SCRATCH_HEAD;
+    arg0->head.u.at.world.t[0] = result;
+    arg0->head.u.at.scale      = scale;
+    *(u8**)G_SCRATCH_HEAD      = ptr + 0x20;
 }
 
 void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
@@ -2359,16 +2359,16 @@ void func_800D96C8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-s32 Gp_GetObjLuma(GpObj44* arg0)
+s32 Gp_GetObjLuma(GpLight* arg0)
 {
     s16 val;
 
-    val = arg0->field_44;
+    val = arg0->u.at.room;
     if (val != 0 && (u8)gGameSession->at4.loc.view != val) {
         return 0;
     }
-    arg0->field_4A = 0x1000;
-    return ((arg0->field_50 * 8 + arg0->field_52 * 6 + arg0->field_54 * 2) >> 8) + 0xF00;
+    arg0->u.at.scale = 0x1000;
+    return ((arg0->r * 8 + arg0->g * 6 + arg0->b * 2) >> 8) + 0xF00;
 }
 
 s32 Gp_GetObjTransX(GsCOORDINATE2* coord)
@@ -2376,7 +2376,7 @@ s32 Gp_GetObjTransX(GsCOORDINATE2* coord)
     return coord->workm.t[0];
 }
 
-void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**                   scratch;
     u8*                      head;
@@ -2394,17 +2394,17 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     *scratch = block;
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)((GsCOORDINATE2*)arg1)->workm.t, dir);
+    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
     dirMtx->m[arg0][2] = block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     scale        = val;
     block->scale = val;
     gte_lddp(scale);
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -2415,7 +2415,7 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -2432,21 +2432,21 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
-    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
+    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
+    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     scale        = val;
     block->scale = val;
     gte_lddp(scale);
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
@@ -2457,7 +2457,7 @@ void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
+void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     void**          scratch;
     u8*             head;
@@ -2474,21 +2474,21 @@ void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, TmdObject* arg3)
     dir          = (SVECTOR*)(head - 0xC);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - ((GsCOORDINATE2*)arg1)->workm.t[0];
-    block->in.vy = arg2->vy - ((GsCOORDINATE2*)arg1)->workm.t[1];
+    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
     *scratch     = block;
-    block->in.vz = arg2->vz - ((GsCOORDINATE2*)arg1)->workm.t[2];
+    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    val          = arg1->field_4A;
+    val          = arg1->u.at.scale;
     scale        = val;
     block->scale = val;
     gte_lddp(scale);
-    gte_ldsv(&arg1->field_50);
+    gte_ldsv(&arg1->r);
     gte_gpf12();
     gte_stsv(dir);
 
