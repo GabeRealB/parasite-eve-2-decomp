@@ -3959,13 +3959,11 @@ objects = [
 ]
 
 [actors.overlays.actor_323300]
-label = "func_actor_323300_80162360's 14-entry jump table starts at 0x14 (4 mod 8), so the function has to start a unit or GCC's .align 3 pads it"
 slot = 3
 id = 223
 objects = [
   { kind = "packageId" },
   { unit = "actor_323300/actor_323300", rodata = "0x4", text = "0x58" },
-  { unit = "actor_323300/actor_323300_2", rodata = "0x14", text = "0x540" },
   { kind = "model", at = "0x1A8C" },
   { kind = "model", at = "0x7404" },
   { kind = "data", at = "0xF490" },
