@@ -62,13 +62,6 @@ STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Message payload the message handler takes: only the halfword at 0x2 is
-/// read.
-typedef struct Actor151000Msg {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor151000Msg;
-
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
 extern Actor151000Work* D_actor_151000_8013D37C;
@@ -433,11 +426,11 @@ s32 func_actor_151000_80132810(Task* task, s32 arg1, GpXformArg* placement)
 
 /// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
 /// frames, message 1 sets `footsteps`, which turns the footsteps on. Anything else does nothing.
-s32 func_actor_151000_8013288C(Task* task, s32 arg1, Actor151000Msg* msg)
+s32 func_actor_151000_8013288C(Task* task, s32 arg1, GpCmdArg* msg)
 {
     s32 kind;
 
-    kind = msg->field_2;
+    kind = msg->command;
     switch (kind) {
         case 0:
             D_actor_151000_8013D37C->turnFrames = 0x14;

@@ -373,8 +373,8 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
 s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
-    RoomActorMsg msg;
-    u8           temp_s0;
+    GpCmdArg msg;
+    u8       temp_s0;
 
     if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
         func_800E8634((s32)&D_dryfield_night_saloon_g_r_80183C94, 0, (s32)&D_dryfield_night_saloon_g_r_801847A4);
@@ -403,7 +403,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
 /// carrying the session's two id bytes and a zero halfword. Then advance state.
 void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 {
-    RoomActorMsg msg;
+    GpCmdArg msg;
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);

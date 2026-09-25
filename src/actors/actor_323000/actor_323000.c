@@ -24,23 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_80182078.h"
 
-/// Payload of message 0x7DB in `D_actor_323000_801739D0`: `code` is the
-/// sub-command the handler selects on (0x202 here) and `mode` its variation.
-/// `func_actor_323000_80164A54` also reads the three leading bytes one at a
-/// time, through `Actor323000MsgBytes`.
-typedef struct Actor323000Msg {
-    /* 0x0 */ u16 code;
-    /* 0x2 */ u16 mode;
-} Actor323000Msg;
-
-/// Byte view of `Actor323000Msg`: `b0` and `b1` are the halves of `code` and
-/// `b2` the low half of `mode`.
-typedef struct Actor323000MsgBytes {
-    /* 0x0 */ u8 b0;
-    /* 0x1 */ u8 b1;
-    /* 0x2 */ u8 b2;
-} Actor323000MsgBytes;
-
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
 extern u8 D_actor_323000_8017387C[];
@@ -1324,20 +1307,18 @@ s32 func_actor_323000_80164954(Task* task, s32 arg1, GpXformArg* placement)
 /// the work block and, when `code` is 0x202, selects the state from `mode`:
 /// 1 starts state 2, 0 and 2 state 0, and 3 state 3. Other codes only store
 /// the bytes.
-s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 arg3)
+s32 func_actor_323000_80164A54(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 {
-    Actor323000Work*     work;
-    Actor323000MsgBytes* bytes;
+    Actor323000Work* work;
 
-    work  = (Actor323000Work*)task->work;
-    bytes = (Actor323000MsgBytes*)msg;
+    work = (Actor323000Work*)task->work;
 
-    work->field_91C = bytes->b0;
-    work->field_91D = bytes->b1;
-    work->field_91E = bytes->b2;
+    work->field_91C = msg->from.loc.stage;
+    work->field_91D = msg->from.loc.area;
+    work->field_91E = (u8)msg->command;
 
-    if (msg->code == 0x202) {
-        switch (msg->mode) {
+    if (msg->from.key == 0x202) {
+        switch (msg->command) {
             case 1:
                 work->field_0 = 2;
                 break;
@@ -1346,7 +1327,7 @@ s32 func_actor_323000_80164A54(Task* task, s32 arg1, Actor323000Msg* msg, s32 ar
                 work->field_0 = 0;
                 break;
             case 3:
-                work->field_0 = msg->mode;
+                work->field_0 = msg->command;
                 break;
         }
     }

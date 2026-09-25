@@ -291,16 +291,6 @@ typedef struct Actor107000Spawn2Work {
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
-/// same 4-byte record as `Actor143900Msg`. The second-form handler
-/// `Actor07000_Fn05AB8` reads the halfword at 0x2 as a command word: its
-/// low byte is the mode (1 reveals the specimen, 3 hides it) and bits 8..11
-/// pick the spawn point the reveal places the model at.
-typedef struct Actor107000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor107000Msg;
-
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj1B4`, and the enemy
 /// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
 /// `field_40`.
@@ -1435,7 +1425,7 @@ void Actor07000_Fn01EB0(Task* arg0)
     SCRATCH_SP += 0x48;
 }
 
-s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
+s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor107000Work* work;
     GpEnemy*         enemy;
@@ -1456,7 +1446,7 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
     work  = (Actor107000Work*)arg0->work;
     coord = obj->coords;
     if (state == 1) {
-        mode = arg2->field_2;
+        mode = arg2->command;
         if (mode == 4) {
             Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D08070);
             work->field_2B8 = 1;
@@ -1475,26 +1465,26 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
             return 0;
         }
     }
-    word = arg2->field_2 & 0xFF;
+    word = arg2->command & 0xFF;
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_8018B74C[arg2->field_2 >> 8].heading;
+                rot.vy            = D_8018B74C[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_8018B74C[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_8018B74C[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_8018B74C[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_8018B74C[arg2->command >> 8].x;
+                coord->coord.t[1] = D_8018B74C[arg2->command >> 8].y;
+                coord->coord.t[2] = D_8018B74C[arg2->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;
+                rot.vy            = D_801874C4[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_801874C4[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_801874C4[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_801874C4[arg2->command >> 8].x;
+                coord->coord.t[1] = D_801874C4[arg2->command >> 8].y;
+                coord->coord.t[2] = D_801874C4[arg2->command >> 8].z;
             }
             heading         = rot.vy;
             work->field_2B0 = heading;
@@ -3302,7 +3292,7 @@ void Actor07000_Fn0595C(Task* arg0)
 /// the model is turned to the spawn point's heading. Low byte 3 is the hide:
 /// the two bits and the pose flag go the other way, both nodes are hidden, the
 /// model's translation and rotation are zeroed, and the task moves to state 4.
-s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
+s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor107000Spawn2Work* work;
     GpEnemy*               enemy;
@@ -3314,7 +3304,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
     s32                    sound;
     s32                    pan;
 
-    word  = arg2->field_2;
+    word  = arg2->command;
     obj   = (TmdObject*)arg0->extra;
     enemy = arg0->spawnArg2;
     work  = (Actor107000Spawn2Work*)arg0->work;
@@ -3337,21 +3327,21 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, Actor107000Msg* arg2)
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_8018B74C[arg2->field_2 >> 8].heading;
+                rot.vy            = D_8018B74C[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_8018B74C[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_8018B74C[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_8018B74C[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_8018B74C[arg2->command >> 8].x;
+                coord->coord.t[1] = D_8018B74C[arg2->command >> 8].y;
+                coord->coord.t[2] = D_8018B74C[arg2->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;
+                rot.vy            = D_801874C4[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_801874C4[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_801874C4[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_801874C4[arg2->command >> 8].x;
+                coord->coord.t[1] = D_801874C4[arg2->command >> 8].y;
+                coord->coord.t[2] = D_801874C4[arg2->command >> 8].z;
             }
             Tmd_AllocBuffers(arg0->extra);
             ((TmdObject*)arg0->extra)->flags &= 0xFF7F;

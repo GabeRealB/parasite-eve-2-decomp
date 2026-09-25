@@ -125,15 +125,6 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-/// Payload the sender of message 0x2C00 passes as `Gp_DispatchMsg`'s `arg2`.
-/// The overlay's 0x2C00 handler, `Actor04400_Fn0648C`, tests the id at 0x0 and
-/// stores the halfword at 0x2 in `Actor104400Work::field_44C`.
-typedef struct Actor104400Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor104400Msg;
-STATIC_ASSERT_SIZEOF(Actor104400Msg, 0x4);
-
 extern u8                   Actor04400_D10814[]; // per animation id (1-based): the value to put in `field_44F`
 extern u8                   Actor04400_D10828[]; // per animation id (1-based): the animation to follow it
 extern GpPairSrcE           Actor04400_D0D318;   // the main enemy's `GpEnemy::param` record
@@ -3174,26 +3165,26 @@ s32 Actor04400_Fn063E4(Task* arg0)
 /// cross-jumped into one, but only separate bodies keep the jump table; a
 /// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
 /// handler index and is unused here.
-void Actor04400_Fn0648C(Task* arg0, s32 arg1, Actor104400Msg* arg2)
+void Actor04400_Fn0648C(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
-    if (arg2->field_0 == 0x2C00) {
-        switch (arg2->field_2 & 0xF) {
+    if (arg2->from.key == 0x2C00) {
+        switch (arg2->command & 0xF) {
             case 1:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 2:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 3:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 4:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 5:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
         }
     }

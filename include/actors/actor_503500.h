@@ -17,14 +17,6 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 
-/// Payload `func_actor_503500_80132664` takes as `Gp_DispatchMsg`'s `arg2`;
-/// `mode` selects one of four colour-matrix settings.
-typedef struct Actor503500ModeMsg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 mode;
-} Actor503500ModeMsg;
-STATIC_ASSERT_SIZEOF(Actor503500ModeMsg, 0x4);
-
 /// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
 /// that reach them disagree about. The 0x160 block parks its display node
 /// there -- `func_actor_503500_801372C8` links `obj` and

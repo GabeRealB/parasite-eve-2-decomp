@@ -14,15 +14,6 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Payload of the two-case message handler `func_actor_350500_80162ABC`:
-/// only the halfword at 0x2 is read, selecting the variant it latches into
-/// `Actor350500Work::field_4C4`.
-typedef struct Actor350500Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor350500Msg;
-STATIC_ASSERT_SIZEOF(Actor350500Msg, 0x4);
-
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `field_43F` byte. Absent, the defaults are anim 3 (or 2
 /// once `field_4C4` is set) and 1.
@@ -532,12 +523,12 @@ s32 func_actor_350500_801629DC(Task* task, s32 arg1, s32 mode)
 /// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
-s32 func_actor_350500_80162ABC(Task* task, s32 arg1, Actor350500Msg* msg)
+s32 func_actor_350500_80162ABC(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor350500Work* work;
 
     work = (Actor350500Work*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 1:
             work->field_4C4 = 0;
             break;

@@ -418,7 +418,7 @@ void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     GsCOORDINATE2*           coord = ((TmdObject*)arg0->extra)->coords;
-    RoomActorMsg             msg;
+    GpCmdArg                 msg;
 
     if (arg0->spawnArg1 == 0) {
         switch (state->field_58) {
@@ -909,7 +909,7 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
             break;
 
         case 1: {
-            RoomActorMsg msg;
+            GpCmdArg msg;
 
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
             msg.command = 2;
@@ -929,7 +929,7 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
             break;
 
         case 3: {
-            RoomActorMsg msg;
+            GpCmdArg msg;
 
             D_dryfield_water_tower_80187074.field_4A |= 0x40;
             if (state->field_66 == 2) {
@@ -945,7 +945,7 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
         }
 
         case 6: {
-            RoomActorMsg msg;
+            GpCmdArg msg;
 
             msg.command = 2;
             Gp_DispatchMsg(state->field_48, 0x7DB, (s32)&msg, 0);
@@ -953,7 +953,7 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
         }
 
         case 7: {
-            RoomActorMsg msg;
+            GpCmdArg msg;
 
             Gp_DispatchMsg(state->field_40, 0x3E9, (s32)&D_dryfield_water_tower_80181AD0, 0);
             msg.command = 3;
@@ -1026,9 +1026,9 @@ u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
     DryfieldWaterTowerState* work;
     GameSession*             session;
-    RoomActorMsg             msg0;
-    RoomActorMsg             msg2;
-    RoomActorMsg             msg4;
+    GpCmdArg                 msg0;
+    GpCmdArg                 msg2;
+    GpCmdArg                 msg4;
     u16                      objId;
     u8                       objA;
     u8                       objB;
@@ -1138,13 +1138,13 @@ u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
 
 /// State 7 of the cap script, one call per frame, returning non-zero once the
 /// step is complete. On its first frame (`field_58` 0) it sends message 0x7DA to
-/// the slot-4 game task with a `RoomActorMsg` record naming the current stage and
+/// the slot-4 game task with a `GpCmdArg` record naming the current stage and
 /// area and carrying 2 as the requested state, the reply message being 0x7DB;
 /// after that it waits for the `field_6C` latch.
 static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 {
     DryfieldWaterTowerState* work = (DryfieldWaterTowerState*)arg0->work;
-    RoomActorMsg             msg;
+    GpCmdArg                 msg;
 
     switch (work->field_58) {
         case 0:
@@ -1410,7 +1410,7 @@ void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placem
 /// task's kill countdown, and the payload's halfword becomes the task's state,
 /// so the 0x7DB sender picks the state the cap script resumes in. The opcode
 /// itself is never read, hence the named-but-unused `msgId`.
-void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, RoomActorMsg* msg)
+void func_dryfield_water_tower_8017F808(Task* task, s32 msgId, GpCmdArg* msg)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
 
@@ -1823,8 +1823,8 @@ void func_dryfield_water_tower_80180174(s16 arg0)
 /// the first time. The halfword it zeroes is the state the 0x7DB handler reads.
 void func_dryfield_water_tower_80180194(void)
 {
-    DwtwWork*    work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
-    RoomActorMsg msg;
+    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
+    GpCmdArg  msg;
 
     if (work->field_14 == 0) {
         Gp_ArmStateF0(1);

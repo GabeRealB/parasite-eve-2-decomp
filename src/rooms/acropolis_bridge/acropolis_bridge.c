@@ -535,7 +535,7 @@ void func_acropolis_bridge_8017DC1C(Task* arg0)
 
 void func_acropolis_bridge_8017DC68(Task* arg0)
 {
-    RoomActorMsg msg = { { { 1, 0xB } }, 1 };
+    GpCmdArg msg = { { { 1, 0xB } }, 1 };
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
@@ -1412,7 +1412,7 @@ void func_acropolis_bridge_8017F544(Task* task)
         work->field_A = 0;
         task->state   = 7;
     } else {
-        RoomActorMsg msg = { { { 1, 0xE } }, 2 };
+        GpCmdArg msg = { { { 1, 0xE } }, 2 };
 
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
@@ -3820,7 +3820,7 @@ void func_acropolis_bridge_8018532C(AcropolisBridgeWalkerWork* walker)
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
 /// the default flag set. Always reports success.
-s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, RoomActorMsg* msg)
+s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
     GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2;

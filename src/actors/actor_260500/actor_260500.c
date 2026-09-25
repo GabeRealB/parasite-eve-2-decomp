@@ -66,14 +66,6 @@ extern s16 D_actor_260500_80159D7C;
 /// update picks its step length from it.
 extern s16 D_actor_260500_80159E54;
 
-/// Payload of the actor's 0x7DB message; the handler reads only the halfword
-/// at 0x2.
-typedef struct Actor260500Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor260500Msg;
-STATIC_ASSERT_SIZEOF(Actor260500Msg, 0x4);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -393,9 +385,9 @@ s32 func_actor_260500_8014A79C(Task* task, s32 arg1, GpXformArg* placement)
 
 /// Message 0x7DB: a zero payload halfword at 0x2 arms the work block's
 /// `field_4B4` at 0x14.
-s32 func_actor_260500_8014A818(Task* task, s32 arg1, Actor260500Msg* msg)
+s32 func_actor_260500_8014A818(Task* task, s32 arg1, GpCmdArg* msg)
 {
-    if (msg->field_2 == 0) {
+    if (msg->command == 0) {
         D_actor_260500_80159E4C->field_4B4 = 0x14;
     }
     return 0;

@@ -92,14 +92,6 @@ typedef struct Actor317000SpawnAnim {
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
 extern void* D_actor_317000_8016CF40[];
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// its halfword at 0x2 selects the mode the handler latches.
-typedef struct Actor317000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor317000Msg;
-STATIC_ASSERT_SIZEOF(Actor317000Msg, 0x4);
-
 /// `func_800B4114` is not declared in `gameplay/1BC.h`; its callers here pass
 /// the animation id as a signed value.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -720,7 +712,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// `Gp_ExtractEuler` derives from its rotation matrix (`"rot"`) through
 /// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
 /// either way.
-s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)
+s32 func_actor_317000_80162CA0(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor317000Work* work;
     GsCOORDINATE2*   coord;
@@ -729,7 +721,7 @@ s32 func_actor_317000_80162CA0(Task* task, s32 arg1, Actor317000Msg* msg)
 
     work  = (Actor317000Work*)task->work;
     coord = ((TmdObject*)task->extra)->coords;
-    mode  = msg->field_2;
+    mode  = msg->command;
     switch (mode) {
         case 0:
             work->field_4C5 = 0;

@@ -214,22 +214,6 @@ typedef struct Actor421600Work {
 } Actor421600Work;
 STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 
-/// One halfword of an `Actor421600Msg`, which `func_actor_421600_80132A00`
-/// also reads as the raw byte triple it copies into `field_E90`.
-typedef union Actor421600MsgWord {
-    /* 0x00 */ u16 word;
-    /* 0x00 */ u8  bytes[2];
-} Actor421600MsgWord;
-
-/// Payload of the messages `func_actor_421600_80132A00` dispatches on:
-/// `field_0` is the opcode (0x109 drives the state machine, 0x1402 the state
-/// jumps) and `field_2` the sub-command. Same four bytes as `Actor00100Msg`.
-typedef struct Actor421600Msg {
-    /* 0x00 */ Actor421600MsgWord field_0;
-    /* 0x02 */ Actor421600MsgWord field_2;
-} Actor421600Msg;
-STATIC_ASSERT_SIZEOF(Actor421600Msg, 0x4);
-
 typedef struct Actor421600DamageScratch {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
@@ -731,7 +715,7 @@ s32 func_actor_421600_8013285C(GsCOORDINATE2* coord, GpRec18* movement, s16 arg2
 /// sub-command, the placement mode in `placeKey` and the progress counter
 /// `D_actor_421600_80151268`, the actor is dropped at a fixed spot with a new
 /// state. Returns 1 when the message was handled.
-s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, Actor421600Msg* arg2)
+s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor421600Work* work;
     GpEnemy*         enemy;
@@ -741,8 +725,8 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, Actor421600Msg* arg2)
     work  = arg0->work;
     enemy = arg0->spawnArg2;
 
-    if (arg2->field_0.word == 0x109) {
-        switch (arg2->field_2.word) {
+    if (arg2->from.key == 0x109) {
+        switch (arg2->command) {
             case 1:
                 work->field_EAA = work->field_EA8;
                 break;
@@ -760,15 +744,15 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, Actor421600Msg* arg2)
         return 1;
     }
 
-    work->field_E90.bytes[0] = arg2->field_0.bytes[0];
-    work->field_E90.bytes[1] = arg2->field_0.bytes[1];
-    work->field_E90.bytes[2] = arg2->field_2.bytes[0];
+    work->field_E90.bytes[0] = arg2->from.loc.stage;
+    work->field_E90.bytes[1] = arg2->from.loc.area;
+    work->field_E90.bytes[2] = (u8)arg2->command;
 
-    if (arg2->field_0.word != 0x1402) {
+    if (arg2->from.key != 0x1402) {
         return 0;
     }
 
-    switch (arg2->field_2.word) {
+    switch (arg2->command) {
         case 0:
             enemy->hp = D_actor_421600_8013EF3C;
             if ((enemy->placeKey >> 12) == 0) {

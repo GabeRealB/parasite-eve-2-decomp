@@ -254,8 +254,8 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
 void func_dryfield_motel_room_1_8017DF08(void)
 {
-    Dmr1Work*    work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    RoomActorMsg msg;
+    Dmr1Work* work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
+    GpCmdArg  msg;
 
     Gp_ArmStateF0(1);
     msg.from.loc.stage = gGameSession->at4.loc.stage;

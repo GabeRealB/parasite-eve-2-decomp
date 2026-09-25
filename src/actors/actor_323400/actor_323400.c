@@ -24,23 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/rooms_shared_80182078.h"
 
-/// Payload of message 0x7DB, which `func_actor_323400_80164974` answers.
-/// `code` is the sub-command it selects on (0x1602 here) and `mode` its
-/// variation; the handler also reads the three leading bytes one at a time,
-/// through `Actor323400MsgBytes`.
-typedef struct Actor323400Msg {
-    /* 0x0 */ u16 code;
-    /* 0x2 */ u16 mode;
-} Actor323400Msg;
-
-/// Byte view of `Actor323400Msg`: `b0` and `b1` are the halves of `code` and
-/// `b2` the low half of `mode`.
-typedef struct Actor323400MsgBytes {
-    /* 0x0 */ u8 b0;
-    /* 0x1 */ u8 b1;
-    /* 0x2 */ u8 b2;
-} Actor323400MsgBytes;
-
 /// Psy-Q `RotMatrixY`.
 void func_8004BFF8(s16 angle, MATRIX* matrix);
 
@@ -1303,21 +1286,19 @@ s32 func_actor_323400_80164874(Task* task, s32 arg1, GpXformArg* placement)
 /// 1 moves the root coordinate to (0x4330, 1, 0xA8C), marks it for rebuilding
 /// and starts state 2; 0 and 2 restart state 0; any other mode only stores the
 /// bytes.
-s32 func_actor_323400_80164974(Task* task, s32 arg1, Actor323400Msg* msg, s32 arg3)
+s32 func_actor_323400_80164974(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 {
-    Actor323000Work*     work;
-    Actor323400MsgBytes* bytes;
-    u16                  mode;
+    Actor323000Work* work;
+    u16              mode;
 
-    work  = (Actor323000Work*)task->work;
-    bytes = (Actor323400MsgBytes*)msg;
+    work = (Actor323000Work*)task->work;
 
-    work->field_91C = bytes->b0;
-    work->field_91D = bytes->b1;
-    work->field_91E = bytes->b2;
+    work->field_91C = msg->from.loc.stage;
+    work->field_91D = msg->from.loc.area;
+    work->field_91E = (u8)msg->command;
 
-    if (msg->code == 0x1602) {
-        mode = msg->mode;
+    if (msg->from.key == 0x1602) {
+        mode = msg->command;
         switch (mode) {
             case 1:
                 ((TmdObject*)task->extra)->coords->coord.t[0] = 0x4330;

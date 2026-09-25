@@ -125,18 +125,6 @@ typedef struct Actor312200Work {
 } Actor312200Work;
 STATIC_ASSERT_SIZEOF(Actor312200Work, 0x984);
 
-/// The four bytes of the id 0x7DB command, seen from the receiving end: the
-/// handler records the payload a byte at a time but tests the sender id and the
-/// action selector as the two halfwords they are, so both views are named.
-typedef union Actor312200Msg7DB {
-    u8 b[4];
-    struct {
-        /* 0x0 */ u16 id;
-        /* 0x2 */ u16 action;
-    } h;
-} Actor312200Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor312200Msg7DB, 0x4);
-
 /// Step table the seeding body `func_actor_312200_80162FB4` walks: one 5-byte
 /// row per clip the previous request latched in `Actor312200Work::field_890`,
 /// addressed by the requested clip in `field_892`. The byte it reads is handed
@@ -785,18 +773,18 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
 /// 1 takes state 2, actions 2, 3 and 4 take state 1, and the action itself is
 /// latched in the 0x892 timer. Either way the actor's `field_0` state word is
 /// raised to 1.
-s32 func_actor_312200_801636CC(Task* task, s32 msgId, Actor312200Msg7DB* msg)
+s32 func_actor_312200_801636CC(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor312200Work* work;
     s32              action;
 
     work            = (Actor312200Work*)task->work;
-    work->field_8B4 = msg->b[0];
-    work->field_8B6 = msg->b[1];
-    work->field_8B8 = msg->h.action;
+    work->field_8B4 = msg->from.loc.stage;
+    work->field_8B6 = msg->from.loc.area;
+    work->field_8B8 = msg->command;
 
-    if (msg->h.id == 0x301) {
-        action = msg->h.action;
+    if (msg->from.key == 0x301) {
+        action = msg->command;
         switch (action) {
             case 1:
                 work->field_892 = action;

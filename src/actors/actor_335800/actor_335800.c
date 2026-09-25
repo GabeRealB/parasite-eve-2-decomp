@@ -105,16 +105,6 @@ typedef struct Actor335800MainWork {
 } Actor335800MainWork;
 STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`.
-/// `func_dryfield_night_garage_801809A4` points it at a 4-byte record
-/// (`{ 0x1803, 2 }` then `{ 0x1803, 3 }`); `func_actor_104600_80133D74`
-/// likewise switches on the halfword at 0x2.
-typedef struct Actor335800Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor335800Msg;
-STATIC_ASSERT_SIZEOF(Actor335800Msg, 0x4);
-
 /// Per-view state the actor reaches through the sprite table
 /// (`Gp_SprtTables[stage - 1][room - 1].field_0[view - 1]->field_1CC`).
 /// `func_actor_335800_801622C0` writes both bytes to the same value -- 0 for
@@ -1073,12 +1063,12 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, Actor335800Msg* arg2, s32 arg3)
+s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, GpCmdArg* arg2, s32 arg3)
 {
     Actor335800MainWork* work;
 
     work = (Actor335800MainWork*)arg0->work;
-    if (arg2->field_2 == 0) {
+    if (arg2->command == 0) {
         work->field_504 = 0;
     }
     return 0;

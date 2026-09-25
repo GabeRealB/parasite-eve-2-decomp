@@ -55,25 +55,6 @@ typedef struct Actor341700SubWork {
 } Actor341700SubWork;
 STATIC_ASSERT_SIZEOF(Actor341700SubWork, 0x80);
 
-/// The three leading bytes of a command packet, as `func_actor_341700_8016CEB4`
-/// copies them into the work block.
-typedef struct Actor341700CmdBytes {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-} Actor341700CmdBytes;
-
-/// A command packet an actor task receives. The same four bytes are read both
-/// byte-wise (the copy above) and as halfwords — offset 0 is the opcode the
-/// handler tests against 0x2704 and offset 2 the sub-command it switches on —
-/// so the two views are modelled here rather than cast at the use sites.
-typedef union Actor341700Cmd {
-    /* 0x0 */ Actor341700CmdBytes bytes;
-    /* 0x0 */ u16                 halfs[2];
-} Actor341700Cmd;
-STATIC_ASSERT_SIZEOF(Actor341700Cmd, 0x4);
-
 /// Whole-unit part of the last movement step `func_actor_341700_8016B804`
 /// applied, rounded away from zero when the step had a fraction.
 extern SVECTOR D_actor_341700_80176360;
@@ -782,16 +763,16 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
 /// so the case list keeps three nodes and GCC's decision tree balances around
 /// `case 1`; dropping `case 2` makes `case 0` the root and the emitted branches
 /// come out in a different order.
-s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, Actor341700Cmd* cmd)
+s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, GpCmdArg* cmd)
 {
     Actor341700SubWork* work = (Actor341700SubWork*)task->work;
 
-    work->field_18 = cmd->bytes.field_0;
-    work->field_19 = cmd->bytes.field_1;
-    work->field_1A = cmd->bytes.field_2;
+    work->field_18 = cmd->from.loc.stage;
+    work->field_19 = cmd->from.loc.area;
+    work->field_1A = (u8)cmd->command;
 
-    if (cmd->halfs[0] == 0x2704) {
-        switch (cmd->halfs[1]) {
+    if (cmd->from.key == 0x2704) {
+        switch (cmd->command) {
             case 0:
                 work->field_0 = 0;
                 return 1;

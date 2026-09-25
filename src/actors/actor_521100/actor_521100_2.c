@@ -56,14 +56,6 @@ typedef struct Actor521100Work4B4 {
 } Actor521100Work4B4;
 STATIC_ASSERT_SIZEOF(Actor521100Work4B4, 0x4B4);
 
-/// 4-byte message record; the handler switches on the halfword at 0x2,
-/// the same shape as `Actor361100Msg`.
-typedef struct Actor521100Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor521100Msg;
-STATIC_ASSERT_SIZEOF(Actor521100Msg, 0x4);
-
 extern Actor521100Work4B4* D_actor_521100_8016A3D8;
 
 /// Stack copy `func_actor_521100_80136604` makes before the indirect call.
@@ -125,19 +117,19 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, Actor521100Msg* arg2)
+s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor521100Work* work;
 
     work = arg0->work;
-    switch (arg2->field_2) {
+    switch (arg2->command) {
         case 0:
             work->field_68C = 1;
             work->field_68E = 0;
             work->field_690 = 0;
             break;
         case 1:
-            work->field_694 = arg2->field_2;
+            work->field_694 = arg2->command;
             break;
     }
     return 0;
@@ -577,9 +569,9 @@ s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
 /// step (`Actor521100Work4B4::field_484`) and sends the task to state 2, the
 /// teardown entry `func_actor_521100_801360C4`; 3 kills both companions and
 /// then falls into 0, sharing its state store.
-s32 func_actor_521100_80136AE0(Task* task, s32 arg1, Actor521100Msg* msg)
+s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
 {
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 1:
             D_actor_521100_8016A3E0 = Task_SpawnFromTable(&D_actor_521100_8016A388, 1, 0, (s32)task);
             break;

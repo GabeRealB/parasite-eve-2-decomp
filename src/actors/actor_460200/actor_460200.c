@@ -101,12 +101,6 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
-/// Payload of the script opcodes that write the work block's `field_4EE`.
-typedef struct Actor460200FlagArgs {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  value;
-} Actor460200FlagArgs;
-
 /// Spawn argument (`Task::spawnArg2`) of the screen-capture task
 /// `func_actor_460200_80131E24`: `duration` seeds the task's kill countdown,
 /// and `done` is cleared on start, set when the countdown runs out, and ends
@@ -770,12 +764,12 @@ s32 func_actor_460200_80132C14(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: raise the work block's `field_4EE`, which lets the per-frame
 /// state spawn its effect, when the payload is exactly 1. Any other payload is
 /// ignored and leaves the flag as it was.
-s32 func_actor_460200_80132C8C(Task* task, s32 arg1, Actor460200FlagArgs* args)
+s32 func_actor_460200_80132C8C(Task* task, s32 arg1, GpCmdArg* args)
 {
     Actor460200Work* work;
     u16              value;
 
-    value = args->value;
+    value = args->command;
     work  = (Actor460200Work*)task->work;
     if (value == 1) {
         work->field_4EE = value;
@@ -1098,9 +1092,9 @@ s32 func_actor_460200_801334F0(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: set the work block's `field_4EE`, which selects whether the
 /// per-frame state blends the model toward the `gameGetPtrSlot(3)` task or away
 /// from it, to the payload.
-s32 func_actor_460200_80133568(Task* task, s32 arg1, Actor460200FlagArgs* args)
+s32 func_actor_460200_80133568(Task* task, s32 arg1, GpCmdArg* args)
 {
-    ((Actor460200PairWork*)task->work)->field_4EE = args->value;
+    ((Actor460200PairWork*)task->work)->field_4EE = args->command;
     return 0;
 }
 

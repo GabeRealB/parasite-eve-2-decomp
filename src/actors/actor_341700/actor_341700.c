@@ -27,15 +27,6 @@
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the overlay's 0x7DB handler, `func_actor_341700_801682DC`, reads the
-/// halfword at 0x2.
-typedef struct Actor341700Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor341700Msg;
-STATIC_ASSERT_SIZEOF(Actor341700Msg, 0x4);
-
 extern GpPairSrcE D_actor_341700_8017188C;   // the main enemy's `GpEnemy::param` record
 extern u8         D_actor_341700_80174CEC[]; // animation bank handed to `func_800B3F84`
 extern u8         D_actor_341700_80174D40[]; // stored into `Task::msgTable` by func_actor_341700_80162974
@@ -3004,26 +2995,26 @@ s32 func_actor_341700_80168234(Task* arg0)
 /// message halfword in `field_44C`. The five identical case bodies are
 /// cross-jumped into one, but only separate bodies keep the jump table; a
 /// single `case 1 ... 5` becomes a range test.
-void func_actor_341700_801682DC(Task* arg0, s32 arg1, Actor341700Msg* arg2)
+void func_actor_341700_801682DC(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
-    if (arg2->field_0 == 0x2C00) {
-        switch (arg2->field_2 & 0xF) {
+    if (arg2->from.key == 0x2C00) {
+        switch (arg2->command & 0xF) {
             case 1:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 2:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 3:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 4:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
             case 5:
-                work->field_44C = arg2->field_2;
+                work->field_44C = arg2->command;
                 break;
         }
     }

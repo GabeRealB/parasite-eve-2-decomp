@@ -413,7 +413,7 @@ const Actor00100PoseTable Actor00100_D00004 = { {
 /// Each LCG arm keeps its own `value` local: they are separate variables
 /// because the arms are separate blocks and one local shared between them
 /// changes which register the allocator picks in every arm.
-s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, Actor00100Msg* arg2)
+s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor00100PoseTable table;
     Actor00100PoseRow*  row;
@@ -436,8 +436,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, Actor00100Msg* arg2)
     work = arg0->work;
     ctx  = arg0->spawnArg2;
 
-    if (arg2->field_0.word == 0x109) {
-        kind = arg2->field_2.word;
+    if (arg2->from.key == 0x109) {
+        kind = arg2->command;
         switch (kind) {
             case 1:
                 work->field_C26 = 0x5A;
@@ -461,12 +461,12 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, Actor00100Msg* arg2)
         }
         return 1;
     } else {
-        work->field_C0C = arg2->field_0.bytes[0];
-        work->field_C0D = arg2->field_0.bytes[1];
-        work->field_C0E = arg2->field_2.bytes[0];
-        if (arg2->field_0.word == 0x104) {
+        work->field_C0C = arg2->from.loc.stage;
+        work->field_C0D = arg2->from.loc.area;
+        work->field_C0E = (u8)arg2->command;
+        if (arg2->from.key == 0x104) {
             table = Actor00100_D00004;
-            cmd   = arg2->field_2.word;
+            cmd   = arg2->command;
             switch (cmd) {
                 case 0:
                     work->field_0 = 0;
@@ -513,8 +513,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, Actor00100Msg* arg2)
                     break;
             }
         }
-        if (arg2->field_0.word == 0x1602) {
-            sub = arg2->field_2.word;
+        if (arg2->from.key == 0x1602) {
+            sub = arg2->command;
             switch (sub) {
                 case 0:
                     work->field_0 = 0;
@@ -536,8 +536,8 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, Actor00100Msg* arg2)
                     break;
             }
         }
-        if (arg2->field_0.word == 0x202) {
-            req = arg2->field_2.word;
+        if (arg2->from.key == 0x202) {
+            req = arg2->command;
             switch (req) {
                 case 0:
                     work->field_0 = 0;

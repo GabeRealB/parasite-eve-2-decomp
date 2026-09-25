@@ -23,17 +23,6 @@
 #include "main/wipsys.h"
 #include "psyq/abs.h"
 
-/// Payload `Actor04000_Fn06EA8` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
-/// The same four bytes as `Actor444000Msg7DA`: two id bytes followed by a
-/// halfword the receiver switches on.
-typedef struct Actor104000Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor104000Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor104000Msg7DA, 0x4);
-
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
 typedef union Actor104000Event {
@@ -2508,17 +2497,17 @@ extern TaskFunc Actor04000_D0C6EC[];
 
 void Actor04000_Fn06EA8(Task* arg0)
 {
-    Actor104000Msg7DA msg;
-    s16               i;
+    GpCmdArg msg;
+    s16      i;
 
     for (i = 0; i < 6; i++) {
         Actor04000_D0C718[i] = NULL;
     }
     Actor04000_D0C710[1] = NULL;
-    msg.field_0          = 3;
-    msg.field_1          = 0x10;
+    msg.from.loc.stage   = 3;
+    msg.from.loc.area    = 0x10;
     Actor04000_D0C710[0] = NULL;
-    msg.field_2          = 1;
+    msg.command          = 1;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
     arg0->state++;
 }

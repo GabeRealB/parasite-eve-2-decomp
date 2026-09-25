@@ -257,16 +257,6 @@ extern Actor560800PartPose D_actor_560800_80175494[];
 extern Actor560800PartPose D_actor_560800_80175554[];
 extern Actor560800PartPose D_actor_560800_80175614[];
 
-/// Payload `func_actor_560800_8013631C` passes as `Gp_DispatchMsg`'s `arg2` for
-/// message 0x7DB: the same 4-byte record the other actors send, whose halfword
-/// at 0x2 carries the value the receiver reads.
-typedef struct Actor560800Msg {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor560800Msg;
-STATIC_ASSERT_SIZEOF(Actor560800Msg, 0x4);
-
 /// Controller task of this overlay, published by `func_actor_560800_80135BD8`
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
@@ -2091,18 +2081,18 @@ void func_actor_560800_801362B0(s32 arg0)
 void func_actor_560800_801362E0(s16 arg0)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-    Actor560800Msg   msg;
+    GpCmdArg         msg;
 
-    msg.field_2 = arg0;
+    msg.command = arg0;
     Gp_DispatchMsg(work->field_20, 0x7DB, (s32)&msg, 0);
 }
 
 void func_actor_560800_8013631C(s16 arg0)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-    Actor560800Msg   msg;
+    GpCmdArg         msg;
 
-    msg.field_2 = arg0;
+    msg.command = arg0;
     Gp_DispatchMsg(work->field_24, 0x7DB, (s32)&msg, 0);
 }
 
@@ -3001,7 +2991,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
 /// rebuilds each part's colour matrix from its world translation, 5 and 6 put
 /// all eight parts into state 2 / 1, and the rest set this task's state and the
 /// `Actor560800PartsWork` halfwords at 0x44-0x4A.
-void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
+void func_actor_560800_801384EC(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor560800PartsWork* work;
     Task*                 part;
@@ -3010,7 +3000,7 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, Actor560800Msg* msg)
     s32                   i;
 
     work = (Actor560800PartsWork*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             i = 0;
             do {
@@ -3181,14 +3171,14 @@ extern s32 D_actor_560800_801756FC[];
 extern s32 D_actor_560800_80175714[];
 extern s32 D_actor_560800_8017572C[];
 
-void func_actor_560800_80138A4C(Task* task, s32 msgId, Actor560800Msg* msg)
+void func_actor_560800_80138A4C(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor560800ModelWork* work;
     TmdObject*            extra;
     VECTOR                vec;
 
     work = (Actor560800ModelWork*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             extra  = (TmdObject*)task->extra;
             vec.vx = extra->coords->workm.t[0];

@@ -331,7 +331,7 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
 
 void func_dryfield_breezeway_8017DDB0(Task* task)
 {
-    RoomActorMsg msg;
+    GpCmdArg msg;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);

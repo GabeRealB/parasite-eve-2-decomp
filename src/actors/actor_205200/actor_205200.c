@@ -736,12 +736,12 @@ s32 func_actor_205200_8014B914(s32 arg0)
 /// Message 0x7DB handler of the controller, listed in
 /// `D_actor_205200_8014CA78`. A non-zero payload halfword raises
 /// `Actor205200CtrlWork.field_2E` unless it is already set.
-s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, Actor205200Msg7DB* arg2)
+s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor205200CtrlWork* work;
 
     work = arg0->work;
-    if (arg2->field_2 != 0 && work->field_2E == 0) {
+    if (arg2->command != 0 && work->field_2E == 0) {
         work->field_2E = 1;
     }
     return 0;

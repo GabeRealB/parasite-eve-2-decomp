@@ -950,12 +950,12 @@ void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1)
 /// selector names into the work block's `field_33A` (1, 2 or both for
 /// selector 3; 0 is a no-op). Bit 1 releases the death handler from its wait,
 /// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
-s32 func_actor_105400_8013391C(Task* task, s32 msgId, ActorsShared8013391cMsg* msg)
+s32 func_actor_105400_8013391C(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor05300Work* work;
 
     work = (Actor05300Work*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             break;
         case 1:

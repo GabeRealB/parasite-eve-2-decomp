@@ -110,22 +110,6 @@ typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
-/// Message handed to the handler: a type word that selects the actor and a
-/// command word, over the same four bytes the handler also copies out one at
-/// a time.
-typedef union Actor01200Msg {
-    struct {
-        u8 b0;
-        u8 b1;
-        u8 b2;
-        u8 b3;
-    } bytes;
-    struct {
-        u16 type;
-        u16 cmd;
-    } words;
-} Actor01200Msg;
-
 /// 0xC-byte scratch taken from `0x1F8003FC` by the return-to-spawn walk: the
 /// offset to the spawn point and the clamped new yaw.
 typedef struct Actor01200TurnScratch {
@@ -1395,18 +1379,18 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, Actor01200Msg* arg2)
+s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor01200Work* work;
     GpEnemy*        ctx;
 
     work            = arg0->work;
     ctx             = arg0->spawnArg2;
-    work->field_194 = arg2->bytes.b0;
-    work->field_195 = arg2->bytes.b1;
-    work->field_196 = arg2->bytes.b2;
-    if (arg2->words.type == 0xB02) {
-        switch (arg2->words.cmd) {
+    work->field_194 = arg2->from.loc.stage;
+    work->field_195 = arg2->from.loc.area;
+    work->field_196 = (u8)arg2->command;
+    if (arg2->from.key == 0xB02) {
+        switch (arg2->command) {
             case 0:
                 work->field_0 = 0;
                 break;

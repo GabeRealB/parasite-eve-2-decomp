@@ -46,21 +46,6 @@ typedef struct Actor303600Work {
 } Actor303600Work;
 STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
 
-/// Payload `func_actor_303600_801624B0` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers:
-/// the session's two id bytes followed by the halfword the receiver switches on,
-/// here the selector 9 that the sender latches into `Actor303600Work::field_C`.
-/// `Gp_SendMsgType9` forwards that same payload under id 0x7DB to the slot-4
-/// task's type-9 children, which is where `func_actor_303600_80162870` reads it.
-/// This overlay sends selectors 1-5 from `func_actor_303600_80161F40` and 9 from
-/// the announcement functions; nothing in it sends selector 0.
-typedef struct Actor303600Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor303600Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor303600Msg7DA, 0x4);
-
 /// Light / colour matrix pair the overlay's actor hands to its model: the pair
 /// `func_actor_303600_80162950` allocates with `memCalloc(0x44, 0)` and parks
 /// in its own task's `Task::work` slot (0x1C, again not a `TaskIdMap`), so
@@ -176,42 +161,42 @@ void func_actor_303600_80161E60(Task* task)
 /// and spawns entries 3 and 1. The command is cleared on the way out.
 void func_actor_303600_80161F40(Task* arg0)
 {
-    Actor303600Work*  work = (Actor303600Work*)arg0->work;
-    Actor303600Work*  w;
-    Actor303600Msg7DA msg;
+    Actor303600Work* work = (Actor303600Work*)arg0->work;
+    Actor303600Work* w;
+    GpCmdArg         msg;
 
     switch (work->command) {
         case 0:
             break;
         case 1:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 1;
+            w                  = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 1;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 1;
             break;
         case 2:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 2;
+            w                  = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 2;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 2;
             break;
         case 3:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 3;
+            w                  = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 3;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 3;
             break;
         case 4:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 4;
+            w                  = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 4;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
@@ -221,10 +206,10 @@ void func_actor_303600_80161F40(Task* arg0)
             Task_SpawnFromTable(&D_actor_303600_80162E98, 1, 4, 0);
             break;
         case 5:
-            w           = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.field_0 = gGameSession->at4.loc.stage;
-            msg.field_1 = gGameSession->at4.loc.area;
-            msg.field_2 = 5;
+            w                  = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            msg.from.loc.stage = gGameSession->at4.loc.stage;
+            msg.from.loc.area  = gGameSession->at4.loc.area;
+            msg.command        = 5;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             w->field_C = 5;
             break;
@@ -384,13 +369,13 @@ void func_actor_303600_801623CC(Task* arg0)
 /// the flag so the message goes out only once.
 void func_actor_303600_801624B0(void)
 {
-    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-    Actor303600Msg7DA msg;
+    Actor303600Work* work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+    GpCmdArg         msg;
 
     if (work->field_E == 0) {
-        msg.field_0 = gGameSession->at4.loc.stage;
-        msg.field_1 = gGameSession->at4.loc.area;
-        msg.field_2 = 9;
+        msg.from.loc.stage = gGameSession->at4.loc.stage;
+        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.command        = 9;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
@@ -405,8 +390,8 @@ void func_actor_303600_801624B0(void)
 /// entry 3 -- so this runs exactly once per cutscene.
 void func_actor_303600_8016253C(void)
 {
-    Actor303600Work*  work;
-    Actor303600Msg7DA msg;
+    Actor303600Work* work;
+    GpCmdArg         msg;
 
     if (D_actor_303600_8016E4C4 != NULL) {
         taskKill(D_actor_303600_8016E4C4);
@@ -415,9 +400,9 @@ void func_actor_303600_8016253C(void)
 
     work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     if (work->field_E == 0) {
-        msg.field_0 = gGameSession->at4.loc.stage;
-        msg.field_1 = gGameSession->at4.loc.area;
-        msg.field_2 = 9;
+        msg.from.loc.stage = gGameSession->at4.loc.stage;
+        msg.from.loc.area  = gGameSession->at4.loc.area;
+        msg.command        = 9;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
@@ -559,12 +544,12 @@ void func_actor_303600_80162850(Task* task)
 /// negative one (-6.0 toward -48.0), and every other selector exits the task
 /// through its own `Task::exitCallback`.  `func_actor_303600_801627B8` is what
 /// consumes the ramped speed.
-s32 func_actor_303600_80162870(Task* task, s32 msgId, Actor303600Msg7DA* msg)
+s32 func_actor_303600_80162870(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor303600RigWork* work;
 
     work = (Actor303600RigWork*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             work->field_28 = 0x01800000;
             work->field_34 = 0x00080000;

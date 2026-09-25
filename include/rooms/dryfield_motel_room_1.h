@@ -58,11 +58,11 @@ STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
 /// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
 /// slot-3 record message 0x3E8 takes (`GpAnimArg`, `animBlock.index` the equipped weapon's
 /// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
-/// `RoomActorMsg` the 0x7DA poke takes in states 1 and 2. Same shape as the
+/// `GpCmdArg` the 0x7DA poke takes in states 1 and 2. Same shape as the
 /// breezeway's `DbwMsgBuf`.
 typedef union Dmr1MsgBuf {
-    /* 0x0 */ GpAnimArg    rec;
-    /* 0x0 */ RoomActorMsg msg;
+    /* 0x0 */ GpAnimArg rec;
+    /* 0x0 */ GpCmdArg  msg;
 } Dmr1MsgBuf;
 STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 
@@ -70,8 +70,8 @@ STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
 /// `Dmr1MsgBuf`; the first step of action 6 builds its 0x3E8 record in
 /// `shifted.rec`, eight bytes further in, for no reason the code shows.
 typedef union Dmr1DriverBuf {
-    /* 0x0 */ GpAnimArg    rec;
-    /* 0x0 */ RoomActorMsg msg;
+    /* 0x0 */ GpAnimArg rec;
+    /* 0x0 */ GpCmdArg  msg;
     struct {
         /* 0x0 */ s32       pad[2];
         /* 0x8 */ GpAnimArg rec;

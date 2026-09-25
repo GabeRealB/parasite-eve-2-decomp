@@ -153,11 +153,6 @@ typedef struct Actor100300Work {
     /* 0x6A2 */ s16               field_6A2;
 } Actor100300Work;
 
-typedef struct Actor100300DestroyArgs {
-    /* 0x00 */ byte pad_0[2];
-    /* 0x02 */ u16  field_2;
-} Actor100300DestroyArgs;
-
 s32 SndEvt_EnqueueType6(s32 sound, s32 pan, s32 depth);
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -2836,14 +2831,14 @@ s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor00300_Fn05434(Task* arg0, s32 arg1, Actor100300DestroyArgs* args)
+s32 Actor00300_Fn05434(Task* arg0, s32 arg1, GpCmdArg* args)
 {
     Actor100300Work* work;
     GpEnemy*         enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2;
-    if (args->field_2 != 0) {
+    if (args->command != 0) {
         enemy->recs = 0;
         Gp_UnlinkNode(&enemy->node);
         Gp_UnlinkObj(&work->obj480);

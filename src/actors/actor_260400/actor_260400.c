@@ -55,14 +55,6 @@ typedef struct Actor260400Work {
 } Actor260400Work;
 STATIC_ASSERT_SIZEOF(Actor260400Work, 0x4F8);
 
-/// Payload of the actor's 0x7DB message; the handler reads only the halfword
-/// at 0x2, which selects the action.
-typedef struct Actor260400Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor260400Msg;
-STATIC_ASSERT_SIZEOF(Actor260400Msg, 0x4);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -503,13 +495,13 @@ s32 func_actor_260400_8014AA28(Task* task, s32 arg1, GpXformArg* placement)
 /// starts a turn of 0x14 steps; case 1 enables and shows the helper's model,
 /// but only while `func_800B7420(0x88)` returns 0; case 2 disables it and
 /// hides the model again (flags 0x84).
-s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg)
+s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, GpCmdArg* msg)
 {
     TmdObject* obj;
     s32        mode;
 
     obj  = (TmdObject*)D_actor_260400_80154C70->field_4F0->extra;
-    mode = msg->field_2;
+    mode = msg->command;
 
     switch (mode) {
         case 0:

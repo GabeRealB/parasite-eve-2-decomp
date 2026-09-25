@@ -73,15 +73,6 @@ typedef struct Actor361100Work {
 } Actor361100Work;
 STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`.
-/// The overlay's 0x7DB handlers, `func_actor_361100_80163750` and
-/// `func_actor_361100_801630D4`, switch on the halfword at 0x2.
-typedef struct Actor361100Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor361100Msg;
-STATIC_ASSERT_SIZEOF(Actor361100Msg, 0x4);
-
 /// State block `func_actor_361100_80161E3C` allocates with `memCalloc(0xE8)`
 /// and parks in `Task::work` -- that slot is not a `TaskIdMap` here. The body
 /// seeds the two halfwords at `field_8E` / `field_E0` and then hands the block
@@ -983,12 +974,12 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode)
 /// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
 /// `field_4A0`; every other sub-command exits the task through its own
 /// `Task::exitCallback`.
-s32 func_actor_361100_801630D4(Task* task, s32 arg1, Actor361100Msg* msg)
+s32 func_actor_361100_801630D4(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor361100Work* work;
 
     work = (Actor361100Work*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             work->field_490 = 0;
             work->field_494 = 0;
@@ -1222,12 +1213,12 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode)
 /// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
 /// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
 /// exits the task through its own `Task::exitCallback`.
-s32 func_actor_361100_80163750(Task* task, s32 msgId, Actor361100Msg* msg)
+s32 func_actor_361100_80163750(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor361100Work* work;
 
     work = (Actor361100Work*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             work->field_480 = 0;
             work->field_484 = 0;

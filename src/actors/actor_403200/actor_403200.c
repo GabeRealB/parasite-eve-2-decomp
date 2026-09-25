@@ -39,28 +39,6 @@ typedef struct Actor403200SpawnRec {
 } Actor403200SpawnRec;
 STATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);
 
-/// Payload `func_actor_403200_8013C84C` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
-/// The same four bytes as `Actor444000Msg7DA`: two id bytes followed by a
-/// halfword the receiver switches on.
-typedef struct Actor403200Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor403200Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor403200Msg7DA, 0x4);
-
-/// The forwarded 0x7DB payload, saved bytewise and dispatched by its two
-/// halfwords: the sender id and action.
-typedef union Actor403200Msg7DB {
-    u8 b[4];
-    struct {
-        /* 0x0 */ u16 id;
-        /* 0x2 */ u16 action;
-    } h;
-} Actor403200Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor403200Msg7DB, 0x4);
-
 /// 0x20-byte scratchpad frame the state-selecting tick
 /// `func_actor_403200_8013EB64` carves off `SCRATCH_SP`. `delta` is the
 /// player-relative offset whose length is `dist`, the range the three
@@ -507,7 +485,7 @@ extern s8 D_actor_403200_8015F8E0;
 extern Task* D_actor_403200_8015F8F0;
 
 /// Shared 0x7DA payload buffer.
-extern Actor403200Msg7DA D_actor_403200_8015F8F4;
+extern GpCmdArg D_actor_403200_8015F8F4;
 
 /// The halfword at `D_actor_403200_8015F8F4 + 2` under its own label: the
 /// escort-spawn tick reaches the action selector both ways, so both names are
@@ -3489,7 +3467,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
 
 /// Handles message 0x7DB: records the payload and dispatches the sender's
 /// action to reset the escorts, select an attack, or finish the return pose.
-s32 func_actor_403200_80138748(Task* task, s32 msgId, Actor403200Msg7DB* msg)
+s32 func_actor_403200_80138748(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor403200Work* work;
     Actor403200Work* escorts;
@@ -3504,12 +3482,12 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, Actor403200Msg7DB* msg)
     work       = (Actor403200Work*)task->work;
     temp_enemy = (GpEnemy*)task->spawnArg2;
 
-    work->field_EC4 = msg->b[0];
-    work->field_EC5 = msg->b[1];
-    work->field_EC6 = msg->b[2];
+    work->field_EC4 = msg->from.loc.stage;
+    work->field_EC5 = msg->from.loc.area;
+    work->field_EC6 = (u8)msg->command;
 
-    if (msg->h.id == 0x2704) {
-        action = msg->h.action;
+    if (msg->from.key == 0x2704) {
+        action = msg->command;
         switch (action) {
             case 0:
                 work->field_0   = 0;
@@ -3592,8 +3570,8 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, Actor403200Msg7DB* msg)
         }
     }
 
-    if (msg->h.id == 0x2804) {
-        switch (msg->h.action) {
+    if (msg->from.key == 0x2804) {
+        switch (msg->command) {
             case 0:
                 work->field_0 = 0;
                 break;
@@ -3899,9 +3877,9 @@ void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     func_actor_403200_80133DD8(task);
 
-    D_actor_403200_8015F8F4.field_0 = 0;
-    D_actor_403200_8015F8F4.field_1 = 0x2C;
-    D_actor_403200_8015F8F4.field_2 = 0;
+    D_actor_403200_8015F8F4.from.loc.stage = 0;
+    D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+    D_actor_403200_8015F8F4.command        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
 
     work->field_E94 = work->field_E96 = 0x9C4;
@@ -5009,9 +4987,9 @@ void func_actor_403200_8013B8C4(Task* arg0)
         posp->vy        = 0;
         posp->vx        = 0;
         actorLocalToView(&((TmdObject*)arg0->extra)->coords[3], posp);
-        D_actor_403200_8015F8F4.field_0 = 0;
-        D_actor_403200_8015F8F4.field_1 = 0x2C;
-        D_actor_403200_8015F8F4.field_2 = 2;
+        D_actor_403200_8015F8F4.from.loc.stage = 0;
+        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command        = 2;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         {
             s16 armed               = 1;
@@ -5286,9 +5264,9 @@ void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     if (work->slots0[1].flags & 1) {
-        D_actor_403200_8015F8F4.field_0 = 0;
-        D_actor_403200_8015F8F4.field_1 = 0x2C;
-        D_actor_403200_8015F8F4.field_2 = 3;
+        D_actor_403200_8015F8F4.from.loc.stage = 0;
+        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         D_actor_403200_80141C5A = 0;
         work->field_7F2         = 0;
@@ -5360,9 +5338,9 @@ void func_actor_403200_8013C84C(Task* arg0)
     task  = gameGetPtrSlot(3);
     cfg   = &Player_Status;
     if (work->field_4 != 0) {
-        D_actor_403200_8015F8F4.field_0 = 0;
-        D_actor_403200_8015F8F4.field_1 = 0x2C;
-        D_actor_403200_8015F8F4.field_2 = 3;
+        D_actor_403200_8015F8F4.from.loc.stage = 0;
+        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         D_actor_403200_80141C5A = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
@@ -5413,11 +5391,11 @@ void func_actor_403200_8013C84C(Task* arg0)
                 goto wrapDown;
             }
         }
-        D_actor_403200_8015F8E0         = 0;
-        work->field_7C4                 = yaw;
-        D_actor_403200_8015F8F4.field_0 = 0;
-        D_actor_403200_8015F8F4.field_1 = 0x2C;
-        D_actor_403200_8015F8F4.field_2 = 3;
+        D_actor_403200_8015F8E0                = 0;
+        work->field_7C4                        = yaw;
+        D_actor_403200_8015F8F4.from.loc.stage = 0;
+        D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+        D_actor_403200_8015F8F4.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
         work->field_E96         = 0x9C4;
         D_actor_403200_80141C5A = 0;
@@ -6583,9 +6561,9 @@ void func_actor_403200_8013EF6C(Task* arg0)
             sc->i = 1;
         dispatch:
             if (work->field_EE8[sc->i] != NULL) {
-                D_actor_403200_8015F8F4.field_0 = 0;
-                D_actor_403200_8015F8F4.field_1 = 0x2C;
-                sel                             = work->field_F08;
+                D_actor_403200_8015F8F4.from.loc.stage = 0;
+                D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+                sel                                    = work->field_F08;
                 if (sel == 1) {
                     goto L_case1;
                 }
@@ -6598,16 +6576,16 @@ void func_actor_403200_8013EF6C(Task* arg0)
                 if (sc->i == 0) {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.field_2 = 3;
+                        D_actor_403200_8015F8F4.command = 3;
                     } else {
-                        D_actor_403200_8015F8F4.field_2 = 4;
+                        D_actor_403200_8015F8F4.command = 4;
                     }
                 } else {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.field_2 = 9;
+                        D_actor_403200_8015F8F4.command = 9;
                     } else {
-                        D_actor_403200_8015F8F4.field_2 = 0xA;
+                        D_actor_403200_8015F8F4.command = 0xA;
                     }
                 }
                 goto L_join;
@@ -6615,16 +6593,16 @@ void func_actor_403200_8013EF6C(Task* arg0)
                 if (sc->i == 0) {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.field_2 = 0xA;
+                        D_actor_403200_8015F8F4.command = 0xA;
                     } else {
-                        D_actor_403200_8015F8F4.field_2 = 0xB;
+                        D_actor_403200_8015F8F4.command = 0xB;
                     }
                 } else {
                     Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
                     if (!(((u32)Gp_LcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.field_2 = 4;
+                        D_actor_403200_8015F8F4.command = 4;
                     } else {
-                        D_actor_403200_8015F8F4.field_2 = 5;
+                        D_actor_403200_8015F8F4.command = 5;
                     }
                 }
                 goto L_join;
@@ -6635,10 +6613,10 @@ void func_actor_403200_8013EF6C(Task* arg0)
                     D_actor_403200_8015F8F6 = 0xB;
                 }
             L_join:
-                D_actor_403200_8015F8F4.field_2  = (u16)D_actor_403200_8015F8F4.field_2 << 8;
-                rnd                              = (Gp_LcgState * 5) + 0x71357911;
-                D_actor_403200_8015F8F4.field_2 |= ((((u32)rnd >> 16) % 3) * 0x10) | 1;
-                Gp_LcgState                      = rnd;
+                D_actor_403200_8015F8F4.command <<= 8;
+                rnd                               = (Gp_LcgState * 5) + 0x71357911;
+                D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
+                Gp_LcgState                       = rnd;
                 Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_403200_8015F8F4, 0);
             }
         }
@@ -7004,10 +6982,10 @@ after_mode:
             TOUCH_REG(slot);
             armed = 1;
             SOFT_BARRIER();
-            D_actor_403200_8015F8F4.field_0 = 0;
-            D_actor_403200_80141C50         = armed;
-            D_actor_403200_8015F8F4.field_1 = 0x2C;
-            D_actor_403200_8015F8F4.field_2 = 3;
+            D_actor_403200_8015F8F4.from.loc.stage = 0;
+            D_actor_403200_80141C50                = armed;
+            D_actor_403200_8015F8F4.from.loc.area  = 0x2C;
+            D_actor_403200_8015F8F4.command        = 3;
             Gp_DispatchMsg(gameGetPtrSlot(slot), 0x7DA, (s32)&D_actor_403200_8015F8F4, 0x7DB);
             D_actor_403200_80141C5A = 0;
         }

@@ -51,14 +51,6 @@ typedef struct Actor143900Work {
 } Actor143900Work;
 STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
-/// Payload the overlay's 0x7DB message handlers take as `Gp_DispatchMsg`'s
-/// `arg2`; both read only the halfword at 0x2.
-typedef struct Actor143900Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor143900Msg;
-STATIC_ASSERT_SIZEOF(Actor143900Msg, 0x4);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -421,9 +413,9 @@ s32 func_actor_143900_801326FC(Task* task, s32 arg1, GpXformArg* placement)
 /// Message 0x7DB handler of the first variant: when the payload's halfword at
 /// 0x2 is zero, starts a 0x14-step turn, which the update performs while the
 /// model plays animation 3.
-s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
+s32 func_actor_143900_80132778(Task* task, s32 arg1, GpCmdArg* msg)
 {
-    if (msg->field_2 == 0) {
+    if (msg->command == 0) {
         D_actor_143900_801496B8->field_4EC = 0x14;
     }
     return 0;
@@ -788,14 +780,14 @@ s32 func_actor_143900_801332E4(Task* task, s32 arg1, GpXformArg* placement)
 /// picks which of the two helper tasks' models is shown - 0 shows the second
 /// (`field_4F4`) and hides the first, 1 the reverse; any other value leaves
 /// both.
-s32 func_actor_143900_80133360(Task* task, s32 arg1, Actor143900Msg* msg)
+s32 func_actor_143900_80133360(Task* task, s32 arg1, GpCmdArg* msg)
 {
     TmdObject* first;
     TmdObject* second;
 
     first  = D_actor_143900_801496C4->field_4F0->extra;
     second = D_actor_143900_801496C4->field_4F4->extra;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             second->flags = 0;
             first->flags  = 0x80;

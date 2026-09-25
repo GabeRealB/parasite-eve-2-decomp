@@ -1704,12 +1704,12 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
 /// task state, mode 4 saves model part 0's coordinate and `field_7B6` before
 /// entering state 6, and mode 5 restores both.
-s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, Actor503500ModeMsg* msg)
+s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, GpCmdArg* msg)
 {
     Actor503500Work* work;
     GsCOORDINATE2*   coord;
 
-    switch (msg->mode) {
+    switch (msg->command) {
         case 0:
             func_actor_503500_SetBossState(arg0, 0);
             break;

@@ -58,7 +58,7 @@ s32 func_dryfield_motel_room_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 /// advance state.
 void func_dryfield_motel_room_1_8017D69C(Task* arg0)
 {
-    RoomActorMsg msg;
+    GpCmdArg msg;
 
     arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
     Game_SetPtrSlot(arg0, 7);

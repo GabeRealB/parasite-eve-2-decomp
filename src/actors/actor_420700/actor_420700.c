@@ -53,15 +53,6 @@ extern Task* D_actor_420700_8013EFE8;
 /// `func_actor_420700_801327EC`.
 extern Task* D_actor_420700_8013EFEC;
 
-/// Argument block of message 0x7DB, which arms the `field_4BC` ramp: the ramp
-/// starts at the end the mode walks away from, 0 for the rising modes 1 and 3
-/// and 0x1000 for the falling mode 2. Mode 0 is taken as a no-op, and a block
-/// whose leading id is not 0x1B02 is rejected.
-typedef struct Actor420700ModeArgs {
-    /* 0x0 */ u16 id;
-    /* 0x2 */ u16 mode;
-} Actor420700ModeArgs;
-
 void func_actor_420700_8013239C(Task* task);
 void func_actor_420700_80132478(Task* task);
 void func_actor_420700_801324EC(void);
@@ -433,13 +424,13 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
 /// test short, and adding the fourth node is what makes it split at the first
 /// case instead. See DECOMPILATION_LEARNINGS.md, "An empty case node changes
 /// the switch decision tree".
-s32 func_actor_420700_80132784(Task* task, s32 arg1, Actor420700ModeArgs* args)
+s32 func_actor_420700_80132784(Task* task, s32 arg1, GpCmdArg* args)
 {
-    if (args->id != 0x1B02) {
+    if (args->from.key != 0x1B02) {
         return -1;
     }
-    D_actor_420700_8013EFE0->field_4BA = args->mode;
-    switch (args->mode) {
+    D_actor_420700_8013EFE0->field_4BA = args->command;
+    switch (args->command) {
         case 0:
             break;
         case 1:

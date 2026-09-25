@@ -271,17 +271,6 @@ STATIC_ASSERT_SIZEOF(Actor01600CoordPos, 0x24);
 /// difference is computed into the scratch vector but never enters the sum.
 s32 Actor01600_Fn052C4(Task* arg0);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the overlay's message table routes 0x7DB to `Actor01600_Fn05B08`, which
-/// reads only the halfword at 0x2 and treats it as a sub-command selecting one
-/// of eight behaviours. Sibling overlays declare the same 4-byte record.
-typedef struct Actor01600Msg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor01600Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor01600Msg7DB, 0x4);
-
 extern Task*      Gp_ActorSlots[];
 extern GpDelayArg Actor01600_D12878;
 extern GpXformArg Actor01600_D12890;
@@ -3343,7 +3332,7 @@ s32 Actor01600_Fn05558(Task* arg0)
     }
 }
 
-s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, Actor01600Msg7DB* arg2)
+s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     SVECTOR         rot;
     GpEnemy*        ctx;
@@ -3357,7 +3346,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, Actor01600Msg7DB* arg2)
     work    = arg0->work;
     variant = ctx->place->variant;
 
-    switch (arg2->field_2) {
+    switch (arg2->command) {
         case 1:
             work->field_54A = 1;
             if (variant == 2) {

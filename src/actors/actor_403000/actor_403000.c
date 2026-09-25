@@ -254,14 +254,6 @@ typedef struct Actor403000DamageScratch {
 } Actor403000DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor403000DamageScratch, 0x34);
 
-/// Payload of message 0x7DA `func_actor_403000_80134F44` hands the slot-4 task
-/// when the actor is killed.
-typedef struct Actor403000Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor403000Msg7DA;
-
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by
 /// `func_actor_403000_801384E8`: `dir` holds the display object's first
 /// matrix column, normalised and scaled down into the push vector.
@@ -530,22 +522,22 @@ void func_actor_403000_8013D850(Task* arg0);
 /// (`GpEnemy::hp`), the animation state `field_0` is set to 0x13.
 void func_actor_403000_8013D910(Task* arg0);
 
-extern GpPairSrcE        D_actor_403000_8013DA00;
-extern GpPairSrcE        D_actor_403000_8013DA10;
-extern u32               D_actor_403000_80158B50;
-extern u32               D_actor_403000_80158C08;
-extern u32               D_actor_403000_80158C28;
-extern u32               D_actor_403000_80158CA8;
-extern u32               D_actor_403000_80158DD0;
-extern u8                D_80071075;
-extern s8                D_80114C12;
-extern s8                D_actor_403000_80158364[];
-extern void*             Gp_PlayerAnimBlkTbl[];
-extern u16               Gp_WeaponIdBase[];
-extern u8                D_80073BA9;
-extern s32               D_80070F70;
-extern s16               D_80073BA0;
-extern Actor403000Msg7DA D_actor_403000_80158D8C;
+extern GpPairSrcE D_actor_403000_8013DA00;
+extern GpPairSrcE D_actor_403000_8013DA10;
+extern u32        D_actor_403000_80158B50;
+extern u32        D_actor_403000_80158C08;
+extern u32        D_actor_403000_80158C28;
+extern u32        D_actor_403000_80158CA8;
+extern u32        D_actor_403000_80158DD0;
+extern u8         D_80071075;
+extern s8         D_80114C12;
+extern s8         D_actor_403000_80158364[];
+extern void*      Gp_PlayerAnimBlkTbl[];
+extern u16        Gp_WeaponIdBase[];
+extern u8         D_80073BA9;
+extern s32        D_80070F70;
+extern s16        D_80073BA0;
+extern GpCmdArg   D_actor_403000_80158D8C;
 
 /// Integer part of the last movement step `func_actor_403000_80132348`
 /// applied to the actor's root coordinate.
@@ -2044,9 +2036,9 @@ void func_actor_403000_80134F44(Task* arg0)
                 } else {
                     work->field_0 = 0x11;
                 }
-                D_actor_403000_80158D8C.field_0 = 9;
-                D_actor_403000_80158D8C.field_1 = 1;
-                D_actor_403000_80158D8C.field_2 = 3;
+                D_actor_403000_80158D8C.from.loc.stage = 9;
+                D_actor_403000_80158D8C.from.loc.area  = 1;
+                D_actor_403000_80158D8C.command        = 3;
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_403000_80158D8C, 0x7DB);
                 if ((s8)((TmdObject*)arg0->extra)->tpage == 0) {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);

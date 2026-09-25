@@ -207,12 +207,6 @@ typedef struct Actor100400AnimStride {
     /* 0x1E */ byte pad_1E[0xA];
 } Actor100400AnimStride;
 
-/// Event passed to `Actor00400_Fn0805C`; `field_2` selects the reaction (1-6).
-typedef struct Actor100400Msg {
-    /* 0x00 */ u16 field_0;
-    /* 0x02 */ u16 field_2;
-} Actor100400Msg;
-
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
 /// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
 /// equal `GameSession.at4.loc.stage` / `at4.loc.area`; `flags` bit 1 rejects the actor
@@ -4180,7 +4174,7 @@ const TaskFuncTable7 Actor00400_D00178 = { {
     Actor00400_Fn09FDC,
 } };
 
-void Actor00400_Fn0805C(Task* arg0, s32 arg1, Actor100400Msg* arg2)
+void Actor00400_Fn0805C(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor100400Work* work;
     GpEnemy*         obj;
@@ -4190,7 +4184,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, Actor100400Msg* arg2)
     work  = arg0->work;
     obj   = arg0->spawnArg2;
     coord = ((TmdObject*)arg0->extra)->coords;
-    switch (arg2->field_2) {
+    switch (arg2->command) {
         case 1:
             work->field_65E = 1;
             break;

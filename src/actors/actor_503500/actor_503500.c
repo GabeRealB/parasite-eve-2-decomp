@@ -205,12 +205,12 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_503500_80132664(Task* task, s32 arg1, Actor503500ModeMsg* msg)
+s32 func_actor_503500_80132664(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor503500ColorMtx* work;
 
     work = (Actor503500ColorMtx*)task->work;
-    switch (msg->mode) {
+    switch (msg->command) {
         case 0:
             work->field_45 = 0;
             work->field_40 = 0;

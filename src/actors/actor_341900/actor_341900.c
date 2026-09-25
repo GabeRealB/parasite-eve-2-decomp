@@ -68,19 +68,6 @@ typedef struct Actor341900Work {
 } Actor341900Work;
 STATIC_ASSERT_SIZEOF(Actor341900Work, 0x70);
 
-/// Session id payload sent to slot 4 as message 0x7DA, asking for the 0x7DB
-/// reply. `field_0` takes `GameSession.at4.loc.stage` and `field_1`
-/// `at4.loc.area`, the pair `func_actor_341900_80162EFC` also hands
-/// `Gp_FindWorkById` to find the session's work object. `field_2` is a
-/// selector: that function sends 0, the script callback
-/// `func_actor_341900_80163334` sends the script's argument.
-typedef struct Actor341900Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor341900Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor341900Msg7DA, 0x4);
-
 /// Work block allocated by `func_actor_341900_80162200` (`Mem_Malloc(0x44, 0)`)
 /// and parked in that task's `Task::work` slot, which is not a `TaskIdMap`
 /// here. The two matrices are the light/colour pair the function republishes
@@ -714,12 +701,12 @@ void func_actor_341900_80162AD4(Task* arg0)
 /// otherwise runs the two child dispatchers.
 void func_actor_341900_80162EFC(Task* arg0)
 {
-    Actor341900Msg7DA sp10;
-    Actor341900Work*  work;
-    Actor341900Work*  seqWork;
-    u8                sessionIdLo;
-    s32               temp_a2;
-    u16               var_s0;
+    GpCmdArg         sp10;
+    Actor341900Work* work;
+    Actor341900Work* seqWork;
+    u8               sessionIdLo;
+    s32              temp_a2;
+    u16              var_s0;
 
     switch (arg0->state) {
         case 0:
@@ -735,10 +722,10 @@ void func_actor_341900_80162EFC(Task* arg0)
                                     gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))
                                     ->field_0;
             }
-            sp10.field_0 = gGameSession->at4.loc.stage;
-            sessionIdLo  = gGameSession->at4.loc.area;
-            sp10.field_2 = 0;
-            sp10.field_1 = sessionIdLo;
+            sp10.from.loc.stage = gGameSession->at4.loc.stage;
+            sessionIdLo         = gGameSession->at4.loc.area;
+            sp10.command        = 0;
+            sp10.from.loc.area  = sessionIdLo;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&sp10, 0x7DB);
             seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(&D_actor_341900_80164190, 2, 0, (s32)arg0);
@@ -856,11 +843,11 @@ void func_actor_341900_8016332C(void)
 /// 0x7DB reply.
 void func_actor_341900_80163334(s16 arg0)
 {
-    Actor341900Msg7DA msg;
+    GpCmdArg msg;
 
-    msg.field_0 = gGameSession->at4.loc.stage;
-    msg.field_1 = gGameSession->at4.loc.area;
-    msg.field_2 = arg0;
+    msg.from.loc.stage = gGameSession->at4.loc.stage;
+    msg.from.loc.area  = gGameSession->at4.loc.area;
+    msg.command        = arg0;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
 

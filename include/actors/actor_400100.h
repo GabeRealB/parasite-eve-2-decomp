@@ -114,7 +114,7 @@ typedef struct Actor00100Work {
     /* 0xC04 */ s32                    field_C04;
     /* 0xC08 */ s32                    field_C08;
     /// Last message opcode/operands, kept for the debug display: the three
-    /// bytes of `Actor00100Msg` are latched here verbatim.
+    /// bytes of `GpCmdArg` are latched here verbatim.
     /* 0xC0C */ u8   field_C0C;
     /* 0xC0D */ u8   field_C0D;
     /* 0xC0E */ u8   field_C0E;
@@ -202,21 +202,6 @@ typedef struct Actor00100AvoidScratch16 {
     /* 0x6F */ u8       blocked;
 } Actor00100AvoidScratch16;
 STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch16, 0x70);
-
-/// One halfword of an `Actor00100Msg`, which the message system also hands to
-/// handlers as a raw byte triple.
-typedef union Actor00100MsgWord {
-    /* 0x00 */ u16 word;
-    /* 0x00 */ u8  bytes[2];
-} Actor00100MsgWord;
-
-/// Payload of the messages `Actor00100_Fn00E58` dispatches on. `field_0` is the
-/// opcode (0x104 / 0x109 / 0x202 / 0x1602) and `field_2` the sub-command.
-typedef struct Actor00100Msg {
-    /* 0x00 */ Actor00100MsgWord field_0;
-    /* 0x02 */ Actor00100MsgWord field_2;
-} Actor00100Msg;
-STATIC_ASSERT_SIZEOF(Actor00100Msg, 0x4);
 
 /// One entry of `Actor00100_D00004`: a translation plus the yaw applied after
 /// it. The first component is signed, the rest are not (the code sign-extends

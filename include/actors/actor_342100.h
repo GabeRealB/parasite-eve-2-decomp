@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/message.h"
 #include "main/task.h"
 
 /// Work block of the overlay's event/controller task -- the one
@@ -63,17 +64,6 @@ typedef struct Actor342100FadeWork {
     /* 0x6 */ u16  field_6;
 } Actor342100FadeWork;
 STATIC_ASSERT_SIZEOF(Actor342100FadeWork, 0x8);
-
-/// Payload `func_actor_342100_80163454` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x7DA and then re-sends verbatim as the 0x7DB the slot-4 task
-/// forwards. Two zero/action bytes followed by the halfword the receiver
-/// reads.
-typedef struct Actor342100Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor342100Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor342100Msg7DA, 0x4);
 
 /// The overlay's event/controller task, published by
 /// `func_actor_342100_801630A4`.

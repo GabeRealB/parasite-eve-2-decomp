@@ -429,7 +429,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
 void func_dryfield_water_tank_8017DEA4(Task* arg0)
 {
     DwtScriptWork* work;
-    RoomActorMsg   msg;
+    GpCmdArg       msg;
 
     work = (DwtScriptWork*)arg0->work;
     switch (arg0->state) {
@@ -529,7 +529,7 @@ void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placeme
 /// Message 0x7DB handler of the model task: restarts its script, clearing the
 /// script state and `field_54` in its work block and moving the task to the
 /// state the payload carries.
-void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, RoomActorMsg* msg)
+void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, GpCmdArg* msg)
 {
     DwtColorMtx* work;
     s32          state;

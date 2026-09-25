@@ -73,7 +73,7 @@ extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
 extern s16 D_neo_ark_forest_zone_80182DC4;
 
 /// The payload the room sends with message 0x7DB.
-extern RoomActorMsg D_neo_ark_forest_zone_80182E44;
+extern GpCmdArg D_neo_ark_forest_zone_80182E44;
 
 /// The room's five pending spawn values; a positive entry is handed to the
 /// first waiting object and then cleared.
@@ -260,7 +260,7 @@ void func_neo_ark_forest_zone_80180620(Task* task)
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, RoomActorMsg* msg)
+s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg* msg)
 {
     s32      result;
     u16      cmd;

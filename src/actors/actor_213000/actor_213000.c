@@ -42,14 +42,6 @@ typedef struct Actor213000Work {
 } Actor213000Work;
 STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
 
-/// Payload of message 0x7DB: the handler reads only the mode halfword at
-/// offset 2.
-typedef struct Actor213000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor213000Msg;
-STATIC_ASSERT_SIZEOF(Actor213000Msg, 0x4);
-
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -572,13 +564,13 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
 /// arm is only the `lw` plus a jump while modes 0 and 2 each keep their own
 /// `& 0xFF7F` copy. Which tails jump2 merges is decided by which jumps share a
 /// target label, not by how alike the bodies are.
-s32 func_actor_213000_8014A980(Task* task, s32 arg1, Actor213000Msg* msg)
+s32 func_actor_213000_8014A980(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor213000Work* work;
     Task*            child;
     u16              mode;
 
-    mode = msg->field_2;
+    mode = msg->command;
     work = (Actor213000Work*)task->work;
 
     switch (mode) {

@@ -67,12 +67,6 @@ typedef struct Actor160600Work {
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
 
-/// Payload of the script opcode that sets the work block's `field_4EE`.
-typedef struct Actor160600FlagArgs {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  value;
-} Actor160600FlagArgs;
-
 void func_actor_160600_80131FFC(Task* task);
 void func_actor_160600_80132208(GpEnemy* enemy, Task* task);
 void func_actor_160600_80132350(Task* task);
@@ -397,12 +391,12 @@ s32 func_actor_160600_80132614(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: sets the work block's `field_4EE`, which enables the
 /// per-frame effect spawns, when the payload is exactly 1; any other payload
 /// is ignored.
-s32 func_actor_160600_8013268C(Task* task, s32 arg1, Actor160600FlagArgs* args)
+s32 func_actor_160600_8013268C(Task* task, s32 arg1, GpCmdArg* args)
 {
     Actor160600Work* work;
     u16              value;
 
-    value = args->value;
+    value = args->command;
     work  = (Actor160600Work*)task->work;
     if (value == 1) {
         work->field_4EE = value;

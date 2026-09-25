@@ -173,14 +173,6 @@ STATIC_ASSERT_SIZEOF(Actor104600HitScratch, 0x38);
         : "r"(r0), "r"(r1), "i"(o0), "i"(o1), "i"(o2)      \
         : "$12", "$13", "$14", "memory")
 
-/// Payload a message sender hands the first enemy's message handler as its
-/// third argument; the handler reads only the halfword at 0x2, as a command
-/// word whose low byte is the mode and whose bits 8..11 pick a spawn point.
-typedef struct Actor104600Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor104600Msg;
-
 extern u8 D_801153F2[2];
 
 /// The first enemy's pair table, packed into its third body's key, and the
@@ -1256,7 +1248,7 @@ void Actor04600_Fn01E0C(Task* arg0)
 /// -0x800..0x800, the model's buffers are allocated and shown, the bodies are
 /// re-armed and the drop begins at the live stage. Mode 3 hides the model,
 /// disarms the bodies, resets the root and returns the task to state 3.
-s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, Actor104600Msg* arg2)
+s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor104600Work* work;
     GpEnemy*         enemy;
@@ -1277,7 +1269,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, Actor104600Msg* arg2)
     work  = (Actor104600Work*)arg0->work;
     coord = obj->coords;
     if (state == 1) {
-        mode = arg2->field_2;
+        mode = arg2->command;
         if (mode == 4) {
             Gp_SpawnEff(0x60080, coord, 0x400, &Actor04600_D058A8);
             work->field_2B8 = 1;
@@ -1296,26 +1288,26 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, Actor104600Msg* arg2)
             return 0;
         }
     }
-    word = arg2->field_2 & 0xFF;
+    word = arg2->command & 0xFF;
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
             if (gGameSession->at4.loc.area == 0x27) {
                 rot.vx            = 0;
-                rot.vy            = D_8018B74C[arg2->field_2 >> 8].heading;
+                rot.vy            = D_8018B74C[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_8018B74C[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_8018B74C[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_8018B74C[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_8018B74C[arg2->command >> 8].x;
+                coord->coord.t[1] = D_8018B74C[arg2->command >> 8].y;
+                coord->coord.t[2] = D_8018B74C[arg2->command >> 8].z;
                 sound             = (((((GpEnemy*)arg0->spawnArg2)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->at4.loc.area == 0x28) {
                 rot.vx            = 0;
-                rot.vy            = D_801874C4[arg2->field_2 >> 8].heading;
+                rot.vy            = D_801874C4[arg2->command >> 8].heading;
                 rot.vz            = 0;
-                coord->coord.t[0] = D_801874C4[arg2->field_2 >> 8].x;
-                coord->coord.t[1] = D_801874C4[arg2->field_2 >> 8].y;
-                coord->coord.t[2] = D_801874C4[arg2->field_2 >> 8].z;
+                coord->coord.t[0] = D_801874C4[arg2->command >> 8].x;
+                coord->coord.t[1] = D_801874C4[arg2->command >> 8].y;
+                coord->coord.t[2] = D_801874C4[arg2->command >> 8].z;
             }
             heading         = rot.vy;
             work->field_2B0 = heading;

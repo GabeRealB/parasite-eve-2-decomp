@@ -55,21 +55,6 @@ typedef struct Actor403600Pattern {
 } __attribute__((packed)) Actor403600Pattern;
 STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
 
-/// Incoming scripted message; field_2 selects the actor's transition.
-typedef struct Actor403600MsgArg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor403600MsgArg;
-STATIC_ASSERT_SIZEOF(Actor403600MsgArg, 0x4);
-
-/// Payload sent to the view task with message 0x7DB.
-typedef struct Actor403600Msg7DB {
-    /* 0x0 */ s8  field_0;
-    /* 0x1 */ s8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor403600Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor403600Msg7DB, 0x4);
-
 /// Coordinate frame with a word view of its rotation matrix.
 typedef union Actor403600ViewFrame {
     GsCOORDINATE2 view;
@@ -196,7 +181,7 @@ void func_actor_403600_801417A8(Task* arg0, s32 arg1);
 s32  func_actor_403600_80141840(Task* arg0);
 void func_actor_403600_80141B60(Task* arg0);
 void D_80181A48(Task* arg0);
-s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2);
+s32  func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 void func_actor_403600_80141F58(GsCOORDINATE2* arg0, s32 arg1);
 
@@ -4742,7 +4727,7 @@ common:
     }
 }
 
-s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2)
+s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     SVECTOR          angles;
     s32              messageZero;
@@ -4767,7 +4752,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, Actor403600MsgArg* arg2)
     Actor403600Work* childWork;
     TmdObject*       childObject;
 
-    message = arg2->field_2;
+    message = arg2->command;
     work    = arg0->work;
     enemy   = arg0->spawnArg2;
     switch (message) {
@@ -4933,8 +4918,8 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
     SVECTOR              effectOffset;
     Actor403600ViewFrame viewFrame;
     GpMtxWords*          matrixWords;
-    Actor403600Msg7DB    startMsg;
-    Actor403600Msg7DB    stopMsg;
+    GpCmdArg             startMsg;
+    GpCmdArg             stopMsg;
     s16                  viewIndex;
     s32                  transparency;
     s32                  upperRadius;
@@ -5034,9 +5019,9 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
         if (work->field_77C == 1) {
             DisplayState* display;
 
-            startMsg.field_0 = 4;
-            startMsg.field_1 = 0x16;
-            startMsg.field_2 = 0;
+            startMsg.from.loc.stage = 4;
+            startMsg.from.loc.area  = 0x16;
+            startMsg.command        = 0;
             Gp_DispatchMsg(D_actor_403600_801606B0, 0x7DB, (s32)&startMsg, 0);
             display = &gDisplayState;
             SOFT_TOUCH_REG(display);
@@ -5065,9 +5050,9 @@ void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
             Gp_SpawnEff(0x601C0, &viewFrame.view, 0x300, &effectOffset);
         }
         if ((s16)work->field_73A == 0x15E) {
-            stopMsg.field_0 = 4;
-            stopMsg.field_1 = 0x16;
-            stopMsg.field_2 = 1;
+            stopMsg.from.loc.stage = 4;
+            stopMsg.from.loc.area  = 0x16;
+            stopMsg.command        = 1;
             Gp_DispatchMsg(D_actor_403600_801606B0, 0x7DB, (s32)&stopMsg, 0);
         }
     } else {

@@ -135,10 +135,10 @@ extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
 /// slot-3 weapon record msg 0x3E8 takes (the `GpAnimArg` `Gp_MsgPlayerWeapon`
 /// also sends, with `field_4` set to this room's 9 and `field_C`/`field_10`
-/// zeroed), and `msg` the `RoomActorMsg` the 0x7DA prompt takes right after it.
+/// zeroed), and `msg` the `GpCmdArg` the 0x7DA prompt takes right after it.
 typedef union DbwMsgBuf {
-    /* 0x0 */ GpAnimArg    rec;
-    /* 0x0 */ RoomActorMsg msg;
+    /* 0x0 */ GpAnimArg rec;
+    /* 0x0 */ GpCmdArg  msg;
 } DbwMsgBuf;
 STATIC_ASSERT_SIZEOF(DbwMsgBuf, 0x14);
 
@@ -289,12 +289,12 @@ const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
 /// allocation the original compiler reached.
 void func_dryfield_breezeway_8017DEC0(Task* arg0)
 {
-    RoomActorMsg msg;
-    DbwMsgBuf    buf;
-    GpAnimArg*   rec;
-    DbwWork*     work;
-    s32          state;
-    s32          id;
+    GpCmdArg   msg;
+    DbwMsgBuf  buf;
+    GpAnimArg* rec;
+    DbwWork*   work;
+    s32        state;
+    s32        id;
 
     work  = (DbwWork*)arg0->work;
     state = work->field_C;
@@ -429,8 +429,8 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
 
 void func_dryfield_breezeway_8017E2D4(void)
 {
-    DbwWork*     work;
-    RoomActorMsg msg;
+    DbwWork* work;
+    GpCmdArg msg;
 
     work               = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     msg.from.loc.stage = gGameSession->at4.loc.stage;

@@ -23,16 +23,6 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 
-/// Script command payload of the overlay's message handlers -- the `arg2` of
-/// the id 0x7DB handler `func_actor_342000_80164110`, which reads `field_2`
-/// and latches it in `Actor342000Work::field_2AA`. Same shape as the
-/// neighbouring overlays' command payloads.
-typedef struct _Actor342000Cmd {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor342000Cmd;
-STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
-
 /// Per-instance work block for the overlay's model actor.
 ///
 /// `func_actor_342000_80162158` allocates it with `Mem_Malloc(0x2AC, 0)`,
@@ -63,7 +53,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Cmd, 0x4);
 /// `field_29C` / `field_2A0` are the actor's two child tasks; the per-frame tail
 /// of `func_actor_342000_801628C8` ticks them with `func_actor_342000_80161EA4`.
 ///
-/// `field_2AA` latches the `Actor342000Cmd::field_2` the id 0x7DB handler was
+/// `field_2AA` latches the `GpCmdArg::command` the id 0x7DB handler was
 /// last called with; command 0xA additionally refills `field_264` from the
 /// handler's second payload.
 ///
@@ -136,15 +126,6 @@ typedef struct Actor342000EventWork {
     /* 0x7E */ u16        field_7E;
 } Actor342000EventWork;
 STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
-
-/// Session id payload of message 0x7DA, sent to the `gameGetPtrSlot(4)` task
-/// by `func_actor_342000_8016382C`: `GameSession::at4.loc.stage`, then `at4.loc.area`.
-typedef struct Actor342000Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor342000Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor342000Msg7DA, 0x4);
 
 /// Colour-matrix work block of the overlay's model actor:
 /// `func_actor_342000_8016201C` `Mem_Malloc`s 0x44 bytes for it and parks it in
@@ -1053,7 +1034,7 @@ static inline void Actor342000_EnterArea(void)
 /// state 7's `D_8007216C` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
-    Actor342000Msg7DA     msg;
+    GpCmdArg              msg;
     Actor342000EventWork* work;
     Actor342000EventWork* ev;
     Actor342000EventWork* alloc;
@@ -1089,9 +1070,9 @@ void func_actor_342000_8016382C(Task* arg0)
             }
             work = (Actor342000EventWork*)arg0->work;
             if ((u8)gGameSession->skipEventIntro == 0) {
-                msg.field_0 = gGameSession->at4.loc.stage;
-                msg.field_1 = gGameSession->at4.loc.area;
-                msg.field_2 = 0;
+                msg.from.loc.stage = gGameSession->at4.loc.stage;
+                msg.from.loc.area  = gGameSession->at4.loc.area;
+                msg.command        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 work->field_5C = Task_SpawnFromTable(&D_actor_342000_80164FF8, 8, 0, (s32)arg0);
                 work->field_60 = Task_SpawnFromTable(&D_actor_342000_80164FF8, 9, 0, (s32)arg0);
@@ -1169,9 +1150,9 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_KillFx();
                 Actor342000_SetMode(7);
                 Actor342000_EnterArea();
-                msg.field_0 = gGameSession->at4.loc.stage;
-                msg.field_1 = gGameSession->at4.loc.area;
-                msg.field_2 = 0;
+                msg.from.loc.stage = gGameSession->at4.loc.stage;
+                msg.from.loc.area  = gGameSession->at4.loc.area;
+                msg.command        = 0;
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
                 arg0->killCountdown = 0;
                 arg0->state++;
@@ -1308,17 +1289,17 @@ void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
     work->coord.flg   = 0;
 }
 
-void func_actor_342000_80164110(Task* arg0, s32 arg1, Actor342000Cmd* arg2, GpXformArg* arg3)
+void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg* arg3)
 {
     Actor342000Work* work;
 
     work = (Actor342000Work*)arg0->work;
-    if (arg2->field_2 == 0xA) {
+    if (arg2->command == 0xA) {
         work->field_264.vx = arg3->pos.vx;
         work->field_264.vy = arg3->pos.vy;
         work->field_264.vz = arg3->pos.vz;
     }
-    work->field_2AA = arg2->field_2;
+    work->field_2AA = arg2->command;
 }
 
 void func_actor_342000_80164154(void)

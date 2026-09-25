@@ -28,7 +28,7 @@ extern u8      D_dryfield_night_motel_loft_8017EB78[];
 extern GpObj4A D_dryfield_night_motel_loft_80180440;
 
 /// The room's 0x7DB payload buffer.
-extern RoomActorMsg D_dryfield_night_motel_loft_8018092C;
+extern GpCmdArg D_dryfield_night_motel_loft_8018092C;
 
 void func_dryfield_night_motel_loft_8017D6F8(Task* arg0);
 

@@ -62,4 +62,22 @@ typedef struct GpDelayArg {
 } GpDelayArg;
 STATIC_ASSERT_SIZEOF(GpDelayArg, 0x18);
 
+/// A command to an actor, the payload of message 0x7DB. A sender hands it to
+/// one actor directly, or as message 0x7DA to the actor manager in pointer
+/// slot 4, which passes it on to its actors as 0x7DB. `from` says who the
+/// command is from, usually the stage and area of the room sending it; a
+/// receiver tests the two bytes together as one halfword before it acts on
+/// `command`.
+typedef struct GpCmdArg {
+    union {
+        struct {
+            u8 stage;
+            u8 area;
+        } loc;
+        u16 key; // `loc` read as one halfword, area in the high byte
+    } from;
+    u16 command; // What the receiver is to do: a state to enter or a request number
+} GpCmdArg;
+STATIC_ASSERT_SIZEOF(GpCmdArg, 4);
+
 #endif

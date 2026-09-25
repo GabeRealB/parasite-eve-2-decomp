@@ -58,7 +58,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(void)
 /// `func_800E8634`; elsewhere it sends message 0x7DB to the slot-4 task.
 void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
-    RoomActorMsg msg;
+    GpCmdArg msg;
 
     arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
     Game_SetPtrSlot(arg0, 7);

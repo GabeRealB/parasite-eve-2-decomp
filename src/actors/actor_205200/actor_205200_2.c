@@ -606,12 +606,12 @@ s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2)
 /// 0x7D5 one. A non-zero payload halfword sets `Actor205200Work.field_594`, the
 /// flag `func_actor_205200_8014C59C` tests to push the actor to state 2.
 /// Nothing reads the opcode itself, hence `arg1`.
-s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, Actor205200Msg7DB* arg2)
+s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor205200Work* work;
 
     work = arg0->work;
-    if (arg2->field_2 != 0) {
+    if (arg2->command != 0) {
         work->field_594 = 1;
     }
     return 0;

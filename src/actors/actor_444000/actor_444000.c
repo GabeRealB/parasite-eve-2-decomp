@@ -251,30 +251,6 @@ typedef struct Actor444000EventWork {
 } Actor444000EventWork;
 STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 
-/// Payload `func_actor_444000_801326DC` passes as `Gp_DispatchMsg`'s `arg2`
-/// for message 0x7DA, which the slot-4 task forwards to the 0x7DB handlers.
-/// The same four bytes as `AcropolisBridgeMsg7DA`: two id bytes followed by a
-/// halfword the receiver switches on.
-typedef struct Actor444000Msg7DA {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} Actor444000Msg7DA;
-STATIC_ASSERT_SIZEOF(Actor444000Msg7DA, 0x4);
-
-/// The same four bytes seen from the receiving end, in
-/// `func_actor_444000_8013ACD0`: the handler copies the three payload bytes
-/// into `Actor444000Work` one at a time, but tests the sender id and the
-/// action selector as the two halfwords they are, so both views are named.
-typedef union Actor444000Msg7DB {
-    u8 b[4];
-    struct {
-        /* 0x0 */ u16 id;
-        /* 0x2 */ u16 action;
-    } h;
-} Actor444000Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor444000Msg7DB, 0x4);
-
 /// Scratchpad frame `func_actor_444000_8013482C` carves off `G_SCRATCH_HEAD`
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
@@ -438,7 +414,7 @@ extern TaskDesc D_actor_444000_801616B0;
 /// Effect argument block the spawn state points at the host's root coordinate.
 extern GpEffArg D_actor_444000_80161880;
 /// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
-extern Actor444000Msg7DA D_actor_444000_80161888;
+extern GpCmdArg D_actor_444000_80161888;
 /// The halfword at `D_actor_444000_80161888 + 2` under its own label: the
 /// escort-spawn tick reaches the action selector both ways, so both names are
 /// declared (see DECOMPILATION_LEARNINGS.md, "A second label on the same run").
@@ -786,11 +762,11 @@ void func_actor_444000_80132694(void)
 
 void func_actor_444000_801326DC(void)
 {
-    Actor444000Msg7DA msg;
+    GpCmdArg msg;
 
-    msg.field_0 = 0;
-    msg.field_1 = 0x2C;
-    msg.field_2 = 3;
+    msg.from.loc.stage = 0;
+    msg.from.loc.area  = 0x2C;
+    msg.command        = 3;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
 
@@ -798,11 +774,11 @@ void func_actor_444000_801326DC(void)
 /// stage and area and the caller's selector. Nothing in the actor calls it.
 void func_actor_444000_80132724(s16 arg0)
 {
-    Actor444000Msg7DA msg;
+    GpCmdArg msg;
 
-    msg.field_0 = gGameSession->at4.loc.stage;
-    msg.field_1 = gGameSession->at4.loc.area;
-    msg.field_2 = arg0;
+    msg.from.loc.stage = gGameSession->at4.loc.stage;
+    msg.from.loc.area  = gGameSession->at4.loc.area;
+    msg.command        = arg0;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
 }
 
@@ -3902,19 +3878,19 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 /// re-arms the animation blocks and drops the model onto its start position,
 /// and 19 switches the host and its fourth escort to light mode 2 before
 /// raising eight floor vertices and flattening the model's rotation.
-s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, Actor444000Msg7DB* msg)
+s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor444000Work* work  = task->work;
     GpEnemy*         enemy = task->spawnArg2;
     SVECTOR*         verts;
     s32              action;
 
-    work->field_EC4 = msg->b[0];
-    work->field_EC5 = msg->b[1];
-    work->field_EC6 = msg->b[2];
+    work->field_EC4 = msg->from.loc.stage;
+    work->field_EC5 = msg->from.loc.area;
+    work->field_EC6 = (u8)msg->command;
 
-    if (msg->h.id == 0x2804) {
-        action = msg->h.action;
+    if (msg->from.key == 0x2804) {
+        action = msg->command;
         switch (action) {
             case 0:
                 work->field_0 = 0;
@@ -4311,9 +4287,9 @@ void func_actor_444000_8013AFF8(GpEnemy* enemy, Task* task)
     }
     func_actor_444000_8013441C(task);
 
-    D_actor_444000_80161888.field_0 = 0;
-    D_actor_444000_80161888.field_1 = 0x2C;
-    D_actor_444000_80161888.field_2 = 0;
+    D_actor_444000_80161888.from.loc.stage = 0;
+    D_actor_444000_80161888.from.loc.area  = 0x2C;
+    D_actor_444000_80161888.command        = 0;
     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
 
     work->field_E94 = work->field_E96 = 0xFA0;
@@ -5276,9 +5252,9 @@ void func_actor_444000_8013E058(Task* task)
         posp->vy        = 0;
         posp->vx        = 0;
         actorLocalToView(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords[3], posp);
-        D_actor_444000_80161888.field_0 = 0;
-        D_actor_444000_80161888.field_1 = 0x2C;
-        D_actor_444000_80161888.field_2 = 2;
+        D_actor_444000_80161888.from.loc.stage = 0;
+        D_actor_444000_80161888.from.loc.area  = 0x2C;
+        D_actor_444000_80161888.command        = 2;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
     }
 
@@ -5460,9 +5436,9 @@ void func_actor_444000_8013E058(Task* task)
     }
 
     if (work->slots0[1].flags & 1) {
-        D_actor_444000_80161888.field_0 = 0;
-        D_actor_444000_80161888.field_1 = 0x2C;
-        D_actor_444000_80161888.field_2 = 3;
+        D_actor_444000_80161888.from.loc.stage = 0;
+        D_actor_444000_80161888.from.loc.area  = 0x2C;
+        D_actor_444000_80161888.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
         work->field_0 = 0xA;
         for (sc->i = 0; sc->i < 2; sc->i++) {
@@ -5688,9 +5664,9 @@ void func_actor_444000_8013EC84(Task* arg0)
         Gp_ClearNodeSlots(&work->field_ECC[1]->node);
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> 12) << 8) | 0x4020000A, 1);
 
-        D_actor_444000_80161888.field_0 = 0;
-        D_actor_444000_80161888.field_1 = 0x2C;
-        D_actor_444000_80161888.field_2 = 3;
+        D_actor_444000_80161888.from.loc.stage = 0;
+        D_actor_444000_80161888.from.loc.area  = 0x2C;
+        D_actor_444000_80161888.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
     } else {
         sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
@@ -6660,8 +6636,8 @@ void func_actor_444000_80141618(Task* task)
         sc->i = 1;
     }
     if (work->field_EE8[sc->i] != NULL && work->field_F08 < 6) {
-        D_actor_444000_80161888.field_0 = 0;
-        D_actor_444000_80161888.field_1 = 0x2C;
+        D_actor_444000_80161888.from.loc.stage = 0;
+        D_actor_444000_80161888.from.loc.area  = 0x2C;
         switch (work->field_F08) {
             case 0:
             case 1:
@@ -6718,10 +6694,10 @@ void func_actor_444000_80141618(Task* task)
                 }
                 break;
         }
-        D_actor_444000_80161888.field_2  = (u16)D_actor_444000_80161888.field_2 << 8;
-        rnd                              = (Gp_LcgState * 5) + 0x71357911;
-        D_actor_444000_80161888.field_2 |= ((((u32)rnd >> 16) % 3) * 0x10) | 1;
-        Gp_LcgState                      = rnd;
+        D_actor_444000_80161888.command <<= 8;
+        rnd                               = (Gp_LcgState * 5) + 0x71357911;
+        D_actor_444000_80161888.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
+        Gp_LcgState                       = rnd;
         Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_444000_80161888, 0);
     }
 out:
@@ -7172,10 +7148,10 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         if (enemy->hp <= 0 && (s16)work->field_0 != 0) {
             switch (work->field_F12) {
                 case 0:
-                    D_actor_444000_80144A68         = 1;
-                    D_actor_444000_80161888.field_0 = 0;
-                    D_actor_444000_80161888.field_1 = 0x2C;
-                    D_actor_444000_80161888.field_2 = 3;
+                    D_actor_444000_80144A68                = 1;
+                    D_actor_444000_80161888.from.loc.stage = 0;
+                    D_actor_444000_80161888.from.loc.area  = 0x2C;
+                    D_actor_444000_80161888.command        = 3;
                     Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
                     break;
 

@@ -86,8 +86,8 @@ const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
 /// `gGameSession::at4.loc.place`.
 void func_acropolis_patio_8017D5EC(Task* arg0)
 {
-    RoomActorMsg msg;
-    s32          temp;
+    GpCmdArg msg;
+    s32      temp;
 
     arg0->msgTable = &D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);

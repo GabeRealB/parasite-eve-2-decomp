@@ -44,7 +44,7 @@ extern s32 D_8011574C;
 /// `in_struct`".
 extern s16 D_neo_ark_woodland_path_8018498E;
 
-extern RoomActorMsg D_neo_ark_woodland_path_80184A5C;
+extern GpCmdArg D_neo_ark_woodland_path_80184A5C;
 
 /// The room's five spawn slots: `func_neo_ark_woodland_path_8018046C` fills the
 /// first free one with a countdown and `func_neo_ark_woodland_path_80180B18`
@@ -999,7 +999,7 @@ const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, RoomActorMsg* msg)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg)
 {
     s32      result;
     u16      cmd;

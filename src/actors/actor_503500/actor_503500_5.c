@@ -1042,12 +1042,12 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_503500_801467C0(Task* task, s32 arg1, Actor503500ModeMsg* msg)
+s32 func_actor_503500_801467C0(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor503500Effect4CC* work;
 
     work = (Actor503500Effect4CC*)task->work;
-    switch (msg->mode) {
+    switch (msg->command) {
         case 0:
             work->field_4B0 = 0;
             work->field_4B4 = 0;

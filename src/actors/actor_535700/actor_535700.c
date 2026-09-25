@@ -106,13 +106,6 @@ typedef struct Actor535700SpawnWork {
 } Actor535700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor535700SpawnWork, 0x4C0);
 
-/// Message payload the message handlers take as `Gp_DispatchMsg`'s `arg2`:
-/// only the halfword at 0x2 is read.
-typedef struct Actor535700Msg {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor535700Msg;
-
 /// Fade countdown. `func_actor_535700_80131EF0` seeds it from its argument and
 /// spawns the fade task from `D_actor_535700_8013346C`; that task
 /// (`func_actor_535700_80131E24`) draws a full-screen black `TILE` into
@@ -501,11 +494,11 @@ s32 func_actor_535700_80132894(Task* task, s32 arg1, GpXformArg* placement)
 /// Message handler of the first enemy: message 0 arms the turn countdown
 /// `field_4B4` at 0x14 frames, message 1 sets `field_4BC`, which turns the
 /// footsteps on. Anything else does nothing.
-s32 func_actor_535700_80132910(Task* task, s32 arg1, Actor535700Msg* msg)
+s32 func_actor_535700_80132910(Task* task, s32 arg1, GpCmdArg* msg)
 {
     s32 kind;
 
-    kind = msg->field_2;
+    kind = msg->command;
     switch (kind) {
         case 0:
             D_actor_535700_80146844->field_4B4 = 0x14;

@@ -131,13 +131,6 @@ typedef struct Actor450800SpawnWork {
 } Actor450800SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor450800SpawnWork, 0x4C0);
 
-/// Message payload the overlay's message handlers take as `Gp_DispatchMsg`'s
-/// `arg2`: only the halfword at 0x2 is read.
-typedef struct Actor450800Msg {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor450800Msg;
-
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
 /// `Gp_SpawnEff` as the effect's position.
 const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
@@ -740,13 +733,13 @@ s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpXformArg* placement)
 /// in `Actor450800Work::field_4F8`. Both pointers, and `field_8` of the helper's
 /// model, are resolved before the switch: the ROM reads them there, and a
 /// scheduler pass cannot lift the loads into the entry block on its own.
-s32 func_actor_450800_80132CE0(Task* task, s32 arg1, Actor450800Msg* msg, s32 arg3)
+s32 func_actor_450800_80132CE0(Task* task, s32 arg1, GpCmdArg* msg, s32 arg3)
 {
     Actor450800Work* work  = (Actor450800Work*)task->work;
     TmdObject*       obj   = (TmdObject*)work->field_4F8->extra;
     GsCOORDINATE2*   coord = obj->coords;
     TmdObject*       self  = (TmdObject*)task->extra;
-    s32              mode  = msg->field_2;
+    s32              mode  = msg->command;
 
     switch (mode) {
         case 0:

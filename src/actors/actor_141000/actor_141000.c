@@ -102,14 +102,6 @@ typedef struct Actor141000CtrlWork {
 } Actor141000CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// its halfword at 0x2 chooses the variant the handler latches.
-typedef struct Actor141000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor141000Msg;
-STATIC_ASSERT_SIZEOF(Actor141000Msg, 0x4);
-
 /// Optional start animation for the 0x7DD placement handler: the preset's
 /// `field_4` and the `field_43F` byte. Absent, the defaults are anim 10 (or 2
 /// once `field_4C8` is latched) and 1.
@@ -1210,12 +1202,12 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
     return ret;
 }
 
-s32 func_actor_141000_80133F6C(Task* task, s32 arg1, Actor141000Msg* msg)
+s32 func_actor_141000_80133F6C(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor141000Work* work;
 
     work = (Actor141000Work*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 1:
             work->field_4C8 = 0;
             break;

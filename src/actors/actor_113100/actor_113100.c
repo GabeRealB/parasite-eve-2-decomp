@@ -105,15 +105,6 @@ typedef struct Actor113100Work {
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`; the
-/// halfword at 0x2 is the only part this actor's handler reads.
-typedef struct Actor113100Msg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor113100Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor113100Msg7DB, 0x4);
-
 /// Optional start animation for the 0x7DD handler: the preset's `field_4` and
 /// the `field_477` id byte. Absent, the defaults are anim 2 and id 1.
 typedef struct Actor113100SpawnAnim {
@@ -1033,14 +1024,14 @@ s32 func_actor_113100_8013333C(Task* task, s32 msgId, GpXformArg* args)
 /// deferred-kill flag that decides whether the model is drawn; 2 and 3 set the
 /// work block's `field_53C` mode byte to 1 and 0. Nothing reads the opcode
 /// itself, hence `msgId`.
-s32 func_actor_113100_801333B8(Task* task, s32 msgId, Actor113100Msg7DB* msg)
+s32 func_actor_113100_801333B8(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor113100Work* work;
     TmdObject*       model;
 
     work = (Actor113100Work*)task->work;
 
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             if (work->field_534 != NULL) {
                 model         = (TmdObject*)work->field_534->extra;

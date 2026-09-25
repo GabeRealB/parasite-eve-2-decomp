@@ -67,12 +67,6 @@ typedef struct Actor451100Work {
 } Actor451100Work;
 STATIC_ASSERT_SIZEOF(Actor451100Work, 0x4C0);
 
-/// Payload of the message handlers that only read the halfword at 0x2.
-typedef struct Actor451100Msg {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  field_2;
-} Actor451100Msg;
-
 /// Work block of the actor `func_actor_451100_801322D4` dispatches, published
 /// by its spawn handler so the actor's message handlers and animation helpers
 /// reach it without the task.
@@ -373,9 +367,9 @@ s32 func_actor_451100_80132610(Task* task, s32 arg1, GpXformArg* placement)
 /// Message 0x7DB handler of `D_actor_451100_8013F704`: a zero payload
 /// halfword sets the published block's `animArg` to 0x14, the count of frames
 /// the step routine turns the model while clip 3 plays.
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, Actor451100Msg* msg)
+s32 func_actor_451100_8013268C(Task* task, s32 arg1, GpCmdArg* msg)
 {
-    if (msg->field_2 == 0) {
+    if (msg->command == 0) {
         D_actor_451100_8014E744->animArg = 0x14;
     }
     return 0;

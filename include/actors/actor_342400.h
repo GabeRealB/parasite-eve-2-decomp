@@ -8,25 +8,6 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the same 4-byte record as `Actor335800Msg`. The overlay's 0x7DB handler,
-/// `func_actor_342400_801626AC`, reads the halfword at 0x2.
-typedef struct Actor342400Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor342400Msg;
-STATIC_ASSERT_SIZEOF(Actor342400Msg, 0x4);
-
-/// The same four bytes as the overlay builds them for its own 0x7DB send in
-/// `func_actor_342400_80163010`: two id bytes followed by the halfword
-/// (`Task::spawnArg1`) the receiver reads; see `Actor104000Msg7DA`.
-typedef struct Actor342400Msg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor342400Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor342400Msg7DB, 0x4);
-
 /// 8-byte record in the table at `D_actor_342400_8016BF58`, indexed by the
 /// halfword at `Task` 0x36 (the high half of `spawnArg1`). A child task that
 /// finishes writes 2 into `field_6` before killing itself.

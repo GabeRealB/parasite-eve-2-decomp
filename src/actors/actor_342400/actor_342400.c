@@ -96,7 +96,7 @@ void func_actor_342400_801621D8(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     if (work->enemy0 != NULL) {
         enemy = work->enemy0;
@@ -105,9 +105,9 @@ void func_actor_342400_801621D8(Task* arg0)
         if (enemy->hp <= 0) {
             work->enemy0 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-            msg.field_0 = 0;
-            msg.field_1 = 0;
-            msg.field_2 = 5;
+            msg.from.loc.stage = 0;
+            msg.from.loc.area  = 0;
+            msg.command        = 5;
             Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
             work->enemy0 = NULL;
         }
@@ -121,9 +121,9 @@ void func_actor_342400_801621D8(Task* arg0)
         if (enemy->hp <= 0) {
             work->enemy1 = NULL;
         } else if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-            msg.field_0 = 0;
-            msg.field_1 = 0;
-            msg.field_2 = 5;
+            msg.from.loc.stage = 0;
+            msg.from.loc.area  = 0;
+            msg.command        = 5;
             Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
             work->enemy1 = NULL;
         }
@@ -198,10 +198,10 @@ s16 func_actor_342400_801624A4(void)
     return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
 }
 
-void func_actor_342400_801626AC(Task* arg0, s32 arg1, Actor342400Msg* arg2)
+void func_actor_342400_801626AC(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     Actor342400CtrlWork* work = (Actor342400CtrlWork*)arg0->work;
-    u16                  id   = arg2->field_2;
+    u16                  id   = arg2->command;
 
     if (id == 4) {
         work->field_4 = id;
@@ -392,18 +392,18 @@ void func_actor_342400_80162C10(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->field_4 > 60) {
-        obj             = task->extra;
-        obj->clut       = 2;
-        obj->tpage      = 0;
-        enemy->workType = 0x900;
-        msg.field_0     = 0;
-        msg.field_1     = 0x2C;
-        msg.field_2     = arg0->spawnArg1;
+        obj                = task->extra;
+        obj->clut          = 2;
+        obj->tpage         = 0;
+        enemy->workType    = 0x900;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0x2C;
+        msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         arg0->state++;
     }
@@ -420,7 +420,7 @@ void func_actor_342400_80162CBC(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -431,9 +431,9 @@ void func_actor_342400_80162CBC(Task* arg0)
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-        msg.field_0 = 0;
-        msg.field_1 = 0x2C;
-        msg.field_2 = 5;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0x2C;
+        msg.command        = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
         taskKill(arg0);
@@ -471,18 +471,18 @@ void func_actor_342400_80162E6C(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->field_4 > 60) {
-        obj             = task->extra;
-        obj->tpage      = 2;
-        obj->clut       = 4;
-        enemy->workType = 0x900;
-        msg.field_0     = 0;
-        msg.field_1     = 0x2A;
-        msg.field_2     = arg0->spawnArg1;
+        obj                = task->extra;
+        obj->tpage         = 2;
+        obj->clut          = 4;
+        enemy->workType    = 0x900;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0x2A;
+        msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         arg0->state++;
     }
@@ -499,7 +499,7 @@ void func_actor_342400_80162F1C(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     GsCOORDINATE2*        coord;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy;
     task  = enemy->task;
@@ -510,9 +510,9 @@ void func_actor_342400_80162F1C(Task* arg0)
         return;
     }
     if (func_actor_342400_801626CC(gGameSession->enemyCullZone, coord->coord.t[0], coord->coord.t[2])) {
-        msg.field_0 = 0;
-        msg.field_1 = 0;
-        msg.field_2 = 5;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0;
+        msg.command        = 5;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
         D_actor_342400_8016BF58[(s16)(arg0->spawnArg1 >> 16)].field_6 = 2;
         taskKill(arg0);
@@ -530,18 +530,18 @@ void func_actor_342400_80163010(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy0;
     if (enemy != NULL) {
-        task            = enemy->task;
-        obj             = task->extra;
-        obj->tpage      = 3;
-        obj->clut       = 5;
-        enemy->workType = 0x900;
-        msg.field_0     = 0;
-        msg.field_1     = 0x2E;
-        msg.field_2     = arg0->spawnArg1;
+        task               = enemy->task;
+        obj                = task->extra;
+        obj->tpage         = 3;
+        obj->clut          = 5;
+        enemy->workType    = 0x900;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0x2E;
+        msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
     }
     work->field_8 = 0;
@@ -554,7 +554,7 @@ void func_actor_342400_801630A4(Task* arg0)
     GpEnemy*              enemy;
     Task*                 task;
     TmdObject*            obj;
-    Actor342400Msg7DB     msg;
+    GpCmdArg              msg;
 
     enemy = work->enemy1;
     func_actor_342400_801632D4(arg0);
@@ -562,14 +562,14 @@ void func_actor_342400_801630A4(Task* arg0)
         if (++work->field_8 <= 0x3C) {
             return;
         }
-        task            = work->enemy1->task;
-        obj             = task->extra;
-        obj->tpage      = 3;
-        obj->clut       = 5;
-        enemy->workType = 0x900;
-        msg.field_0     = 0;
-        msg.field_1     = 0x2E;
-        msg.field_2     = arg0->spawnArg1;
+        task               = work->enemy1->task;
+        obj                = task->extra;
+        obj->tpage         = 3;
+        obj->clut          = 5;
+        enemy->workType    = 0x900;
+        msg.from.loc.stage = 0;
+        msg.from.loc.area  = 0x2E;
+        msg.command        = arg0->spawnArg1;
         Gp_DispatchMsg(task, 0x7DB, (s32)&msg, 0);
     }
     work->field_8 = 0;

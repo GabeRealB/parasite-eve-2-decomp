@@ -113,23 +113,6 @@ extern u8 D_actor_123200_80137154[];
 /// Message table the spawn handler publishes as `Task::msgTable`.
 extern u8 D_actor_123200_80137214[];
 
-/// Message packet handed to `func_actor_123200_80133EDC`. Its first three bytes
-/// are copied into the work block, and its first four are then re-read as a
-/// message type and a command.
-typedef union Actor123200Msg {
-    struct {
-        u8 b0;
-        u8 b1;
-        u8 b2;
-        u8 b3;
-    } bytes;
-    struct {
-        u16 type;
-        u16 cmd;
-    } words;
-} Actor123200Msg;
-STATIC_ASSERT_SIZEOF(Actor123200Msg, 0x4);
-
 /// While this is 1, the push-out helpers return without moving anything and
 /// the forward step is skipped.
 extern u8 D_80072729;
@@ -999,18 +982,18 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
 /// commands: 1 selects display mode 2, at full scale when the top nibble of
 /// the enemy's `placeKey` is 1 and at quarter scale otherwise; 2 selects mode 1
 /// at full scale; 3 selects mode 0. Always returns 0.
-s32 func_actor_123200_80133EDC(Task* task, s32 arg1, Actor123200Msg* msg)
+s32 func_actor_123200_80133EDC(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor123200Work* work;
     GpEnemy*         enemy;
 
     work            = (Actor123200Work*)task->work;
     enemy           = (GpEnemy*)task->spawnArg2;
-    work->field_194 = msg->bytes.b0;
-    work->field_195 = msg->bytes.b1;
-    work->field_196 = msg->bytes.b2;
-    if (msg->words.type == 0xB02) {
-        switch ((s32)msg->words.cmd) {
+    work->field_194 = msg->from.loc.stage;
+    work->field_195 = msg->from.loc.area;
+    work->field_196 = (u8)msg->command;
+    if (msg->from.key == 0xB02) {
+        switch ((s32)msg->command) {
             case 1:
                 if ((enemy->placeKey >> 12) == 1) {
                     work->field_21C = 0x1000;

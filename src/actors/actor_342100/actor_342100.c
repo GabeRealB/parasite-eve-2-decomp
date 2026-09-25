@@ -837,15 +837,15 @@ void func_actor_342100_80163408(void)
 /// `Task::spawnArg1`.
 void func_actor_342100_80163454(s32 arg0)
 {
-    Actor342100Work*  work = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    Actor342100Msg7DA msg;
+    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
+    GpCmdArg         msg;
 
     if (arg0 == 0) {
         SndEvt_EnqueueType6(0x54270005, 0, 0);
         Gp_PulseState1C();
-        msg.field_1 = 0x2C;
-        msg.field_0 = 0;
-        msg.field_2 = 4;
+        msg.from.loc.area  = 0x2C;
+        msg.from.loc.stage = 0;
+        msg.command        = 4;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
         if (work->field_30 != NULL) {
             Gp_DispatchMsg(work->field_30, 0x7DB, (s32)&msg, 0);

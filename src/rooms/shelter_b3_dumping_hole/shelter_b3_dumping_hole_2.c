@@ -989,8 +989,8 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 {
     DumpingHoleEntity* work = (DumpingHoleEntity*)arg0->work;
     union {
-        GpAnimArg    anim;
-        RoomActorMsg loc;
+        GpAnimArg anim;
+        GpCmdArg  loc;
     } msg;
     u8 area;
 
@@ -1118,7 +1118,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 {
     DumpingHoleEntity*      work = (DumpingHoleEntity*)arg0->work;
-    RoomActorMsg            msg;
+    GpCmdArg                msg;
     DumpingHoleDebrisSeed   seed;
     DumpingHoleDebrisEntry* e;
     DumpingHoleDebrisEntry* p;
@@ -1357,7 +1357,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 /// the same body.
 void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
 {
-    RoomActorMsg msg;
+    GpCmdArg msg;
 
     msg.from.loc.stage = gGameSession->at4.loc.stage;
     msg.from.loc.area  = gGameSession->at4.loc.area;
@@ -1734,17 +1734,17 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
     u8*                  head2;
     u32                  scratch2;
     u16                  i;
-    RoomActorMsg*        loc3;
-    RoomActorMsg*        loc5;
+    GpCmdArg*            loc3;
+    GpCmdArg*            loc5;
     s32*                 p;
     union {
-        s32          words[5];
-        RoomActorMsg loc;
-        SVECTOR      vec[4];
+        s32      words[5];
+        GpCmdArg loc;
+        SVECTOR  vec[4];
     } buf;
     union {
-        SVECTOR      vec;
-        RoomActorMsg loc;
+        SVECTOR  vec;
+        GpCmdArg loc;
     } buf2;
     s32 words[5];
 
@@ -2046,7 +2046,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
 void func_shelter_b3_dumping_hole_80181430(void)
 {
     DumpingHoleEntity4* ent;
-    RoomActorMsg        desc;
+    GpCmdArg            desc;
     s32                 desc3[5];
     s32*                p3;
 
@@ -3120,7 +3120,7 @@ void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, RoomActorMsg* arg2)
+void func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, GpCmdArg* arg2)
 {
     _ShelterB3DumpingHoleCtrlWork* ent = (_ShelterB3DumpingHoleCtrlWork*)arg0->work;
     if (arg2->command == 4) {
@@ -3294,7 +3294,7 @@ void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
-    RoomActorMsg                     desc;
+    GpCmdArg                         desc;
     _ShelterB3DumpingHoleSingleWork* ent = (_ShelterB3DumpingHoleSingleWork*)arg0->work;
     GpEnemy*                         t0  = ent->enemy;
     Task*                            t00 = t0->task;
@@ -3343,7 +3343,7 @@ void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
-    RoomActorMsg                     desc;
+    GpCmdArg                         desc;
     _ShelterB3DumpingHoleSingleWork* ent = (_ShelterB3DumpingHoleSingleWork*)arg0->work;
     GpEnemy*                         t0  = ent->enemy;
     Task*                            t00 = t0->task;
@@ -3377,7 +3377,7 @@ void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
 
 void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
-    RoomActorMsg                   desc;
+    GpCmdArg                       desc;
     _ShelterB3DumpingHolePairWork* ent = (_ShelterB3DumpingHolePairWork*)arg0->work;
     GpEnemy*                       t0  = ent->enemy0;
 
@@ -3407,9 +3407,9 @@ void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             return;
         }
         {
-            Task*        t00 = ent->enemy1->task;
-            TmdObject*   p   = t00->extra;
-            RoomActorMsg desc;
+            Task*      t00 = ent->enemy1->task;
+            TmdObject* p   = t00->extra;
+            GpCmdArg   desc;
             p->tpage            = 3;
             p->clut             = 5;
             t->workType         = 0x900;

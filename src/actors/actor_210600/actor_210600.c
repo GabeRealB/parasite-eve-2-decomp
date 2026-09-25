@@ -66,13 +66,6 @@ typedef struct Actor210600Work {
 } Actor210600Work;
 STATIC_ASSERT_SIZEOF(Actor210600Work, 0x8D8);
 
-/// Payload of message 0x7DB: the sender id and a selector.
-typedef struct Actor210600Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor210600Msg;
-STATIC_ASSERT_SIZEOF(Actor210600Msg, 0x4);
-
 /// Step table the seeding body `func_actor_210600_8014B2C0` walks: one 5-byte
 /// row per clip the previous request latched in `Actor210600Work::field_880`,
 /// addressed by the requested clip in `field_882`. The byte it reads is handed
@@ -803,14 +796,14 @@ s32 func_actor_210600_8014B6A0(Task* task, s32 msgId, GpXformArg* placement)
 /// comes from sender 0x401 with selector 1, it requests clip 1 through the
 /// reset step at rate 0x10 and clears `Actor210600Work::field_890` so the
 /// update state runs. Always reports the message handled.
-s32 func_actor_210600_8014B770(Task* task, s32 msgId, Actor210600Msg* msg)
+s32 func_actor_210600_8014B770(Task* task, s32 msgId, GpCmdArg* msg)
 {
     Actor210600Work* work;
     u16              selector;
 
     work = (Actor210600Work*)task->work;
-    if (msg->field_0 == 0x401) {
-        selector = msg->field_2;
+    if (msg->from.key == 0x401) {
+        selector = msg->command;
         if (selector == 1) {
             work->field_886.half = 0x10;
             work->field_882      = selector;

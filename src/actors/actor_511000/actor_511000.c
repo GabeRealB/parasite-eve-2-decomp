@@ -90,14 +90,6 @@ typedef struct Actor511000Work2 {
 } Actor511000Work2;
 STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 
-/// Payload of message 0x7DB; the handler `func_actor_511000_8013287C` reads
-/// the halfword at 0x2 as its mode.
-typedef struct Actor511000Msg {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor511000Msg;
-STATIC_ASSERT_SIZEOF(Actor511000Msg, 0x4);
-
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void func_actor_511000_80131E78(Task* arg0);
@@ -620,13 +612,13 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 /// falling through the hide block: retail's single epilogue is only reached
 /// that way, the hide block and the shared return merging into one block whose
 /// first label sits on the value store.
-s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, Actor511000Msg* msg)
+s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, GpCmdArg* msg)
 {
     Actor511000Work2* work;
     Task*             child;
     u16               mode;
 
-    mode = msg->field_2;
+    mode = msg->command;
     work = (Actor511000Work2*)((GameActor*)arg0->work);
 
     switch (mode) {

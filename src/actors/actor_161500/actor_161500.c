@@ -92,12 +92,6 @@ typedef struct Actor161500Work {
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
-/// Payload of the script opcode that writes the work block's `field_4EE`.
-typedef struct Actor161500FlagArgs {
-    /* 0x0 */ byte pad_0[2];
-    /* 0x2 */ u16  value;
-} Actor161500FlagArgs;
-
 void func_actor_161500_8013252C(Task* task);
 void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
 void func_actor_161500_8013284C(Task* task);
@@ -582,9 +576,9 @@ s32 func_actor_161500_80132B10(Task* task, s32 arg1, GpXformArg* placement)
 /// Script opcode: sets the work block's `field_4EE`, which selects whether the
 /// per-frame body turns the actor's head toward the player or away, to the
 /// payload.
-s32 func_actor_161500_80132B88(Task* task, s32 arg1, Actor161500FlagArgs* args)
+s32 func_actor_161500_80132B88(Task* task, s32 arg1, GpCmdArg* args)
 {
-    ((Actor161500Work*)task->work)->field_4EE = args->value;
+    ((Actor161500Work*)task->work)->field_4EE = args->command;
     return 0;
 }
 

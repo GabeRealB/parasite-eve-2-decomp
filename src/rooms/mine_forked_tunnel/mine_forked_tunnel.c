@@ -220,7 +220,7 @@ void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// local-alloc's quantity rank is built from those counts, so the wrapper -
 /// and only the wrapper - lifts the six placement reads above the placement
 /// pointer and gives `$v0` to the values instead of the address.
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, RoomActorMsg* msg)
+s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
 {
     GpXformArg            placement;
     GpXformArg*           place;

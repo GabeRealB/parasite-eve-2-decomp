@@ -123,14 +123,6 @@ typedef struct Actor323300MtxWork {
 } Actor323300MtxWork;
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the halfword at 0x2 is the only part `func_actor_323300_80162360` reads.
-typedef struct Actor323300Msg7DB {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor323300Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor323300Msg7DB, 0x4);
-
 /// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
 /// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `func_actor_323300_801628B8`,
@@ -378,7 +370,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// the child at `field_4B8`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
 /// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
-s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpXformArg* place)
+s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* place)
 {
     Actor323300Work* w;
     Actor323300Work* work;
@@ -391,7 +383,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, GpX
     s32              i;
 
     w = (Actor323300Work*)arg0->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             func_actor_323300_80162208(arg0, 0x7D5, 1, 0);
             break;

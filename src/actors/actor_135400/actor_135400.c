@@ -90,15 +90,6 @@ typedef struct Actor135400MainWork {
 } Actor135400MainWork;
 STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
 
-/// Payload the sender of message 0x7DB passes as `Gp_DispatchMsg`'s `arg2`;
-/// the halfword at 0x2 is the only part this actor's handler reads.
-typedef struct Actor135400Msg7DB {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u16 field_2;
-} Actor135400Msg7DB;
-STATIC_ASSERT_SIZEOF(Actor135400Msg7DB, 0x4);
-
 /// The two placements `func_actor_135400_80132064` starts the actor from. The
 /// spawn copies the pair in one go and then hands the branch picked by game
 /// flag 0x6C to the 0x7D4 handler `func_actor_135400_8013276C`.
@@ -597,13 +588,13 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
 /// 0 and 1 show and hide that task's model (flag 0x80), 2 and 3 set
 /// and clear `headAim`, 4 hands the part task a `spawnArg1` of 1, and 5 sets
 /// that to 3 and then shows the model. Nothing reads the message id.
-s32 func_actor_135400_801328DC(Task* task, s32 msgId, Actor135400Msg7DB* msg, s32 arg3)
+s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
 {
     Actor135400MainWork* work;
     TmdObject*           model;
 
     work = (Actor135400MainWork*)task->work;
-    switch (msg->field_2) {
+    switch (msg->command) {
         case 0:
             if (work->field_4BC != NULL) {
                 model         = (TmdObject*)work->field_4BC->extra;
