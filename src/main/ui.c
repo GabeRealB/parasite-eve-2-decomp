@@ -885,8 +885,6 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     POLY_G3*         p;
     s16              x;
     s32              y;
-    u32              mask;
-    u32              mask_hi;
     register u_long* ot asm("a2");
     s32              y0;
     u16              t;
@@ -954,21 +952,17 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
         }
     }
 
-    mask    = 0xFFFFFF;
-    p->r0   = 0x9F;
-    p->g0   = 0x7F;
-    p->b0   = 0xBF;
-    p->r2   = 0xDF;
-    p->r1   = 0xDF;
-    p->g2   = 0xCF;
-    p->g1   = 0xCF;
-    p->b2   = 0xFF;
-    p->b1   = 0xFF;
-    ot      = gGpuCurrentOt;
-    mask_hi = 0xFF000000;
-    p->tag  = (p->tag & mask_hi) | (ot[(s16)arg1->field_14 + 1] & mask);
-    ot[(s16)arg1->field_14 + 1] =
-        (ot[(s16)arg1->field_14 + 1] & mask_hi) | ((u32)p & mask);
+    p->r0 = 0x9F;
+    p->g0 = 0x7F;
+    p->b0 = 0xBF;
+    p->r2 = 0xDF;
+    p->r1 = 0xDF;
+    p->g2 = 0xCF;
+    p->g1 = 0xCF;
+    p->b2 = 0xFF;
+    p->b1 = 0xFF;
+    ot    = gGpuCurrentOt;
+    addPrim(&ot[(s16)arg1->field_14 + 1], p);
 }
 
 void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
@@ -2743,8 +2737,6 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     POLY_F3*      p;
     u16           temp_v0;
-    u32           mask;
-    u32           mask_hi;
     register u32* ot asm("a2");
 
     p              = (POLY_F3*)gGpuPrimCursor;
@@ -2784,15 +2776,11 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         p->y1 = tv1;
         p->x2 = tv0 + 4;
     }
-    mask                  = 0xFFFFFF;
     PRIM_COLOR_WORD(p, 0) = arg3 * 2;
     setlen(p, 4);
     setcode(p, 0x20);
-    ot      = gGpuCurrentOt;
-    mask_hi = 0xFF000000;
-    p->tag  = (p->tag & mask_hi) | (ot[(s16)arg0->field_14 + 1] & mask);
-    ot[(s16)arg0->field_14 + 1] =
-        (ot[(s16)arg0->field_14 + 1] & mask_hi) | ((u32)p & mask);
+    ot = gGpuCurrentOt;
+    addPrim(&ot[(s16)arg0->field_14 + 1], p);
 }
 
 void Ui_WaitCdThenOverlay(Task* arg0)

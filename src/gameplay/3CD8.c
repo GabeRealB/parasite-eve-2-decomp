@@ -1173,7 +1173,6 @@ void func_800E62C0(void)
     s32          offset;
     s32          color;
     u32          mask;
-    u32          mask_hi;
     u_long*      ot;
 
     if (D_801155BE != 0) {
@@ -1204,10 +1203,8 @@ void func_800E62C0(void)
         setRGB2(p, color, color, color);
         mask = 0xFFFFFF;
         SOFT_TOUCH_REG_USE(p, mask);
-        mask_hi = 0xFF000000;
-        ot      = gGpuCurrentOt;
-        p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
-        ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
+        ot = gGpuCurrentOt;
+        addPrim(&ot[2], p);
         if (D_8010FB84 == 0) {
             D_8010FB80++;
             if (D_8010FB80 >= 15) {

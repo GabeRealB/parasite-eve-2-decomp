@@ -564,8 +564,6 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     POLY_F4*      poly;
     s32*          opz;
     DisplayState* ds;
-    u32           mask;
-    register u32  maskHi asm("t4");
     register u32  clipMask asm("t3");
     u16*          rec;
     s32           sz;
@@ -577,8 +575,6 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
         opz      = &ws->gteResult;
         clipMask = 0x80000000;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec = (u16*)stream;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -614,10 +610,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                                 gte_avsz4();
                                 gte_stotz(opz);
                                 gte_stotz(opz);
-                                poly->tag =
-                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                                *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                    (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                             }
                         }
                     }
@@ -636,8 +629,6 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     POLY_F3*      poly;
     s32*          opz;
     DisplayState* ds;
-    register u32  mask asm("t1");
-    register u32  maskHi asm("t4");
     register u32  clipMask asm("t3");
     u16*          rec;
     s32           sz;
@@ -649,8 +640,6 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
         opz      = &ws->gteResult;
         clipMask = 0x80000000;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec = (u16*)stream;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -675,10 +664,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
                             gte_avsz3();
                             gte_stotz(opz);
                             gte_stotz(opz);
-                            poly->tag =
-                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                         }
                     }
                 }
@@ -2200,18 +2186,14 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     POLY_GT3*     poly;
     s32*          opz;
     DisplayState* ds;
-    u32           mask;
-    u32           maskHi;
     u16*          rec;
     u8*           verts;
     u8*           norms;
 
     poly = (POLY_GT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+        opz = &ws->gteResult;
+        ds  = &gDisplayState;
         do {
             rec   = (u16*)stream;
             verts = (u8*)ws->verts;
@@ -2235,9 +2217,7 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
                         setcode(poly, 0x36);
                     }
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2253,8 +2233,6 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     POLY_GT4*     poly;
     s32*          opz;
     DisplayState* ds;
-    register u32  mask asm("t2");
-    u32           maskHi;
     u32           clipMask;
     s32*          flg;
     u16*          rec;
@@ -2267,8 +2245,6 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)stream;
             verts = (u8*)ws->verts;
@@ -2306,9 +2282,7 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
                             setcode(poly, 0x3E);
                         }
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2326,18 +2300,14 @@ u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_FT3*             poly;
     s32*                  opz;
     DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
     u16*                  rec;
     u8*                   verts;
 
     ws   = arg0;
     poly = (POLY_FT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+        opz = &ws->gteResult;
+        ds  = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2353,9 +2323,7 @@ u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     setlen(poly, 7);
                     setcode(poly, 0x25);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2372,8 +2340,6 @@ u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_FT4*             poly;
     s32*                  opz;
     DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2386,8 +2352,6 @@ u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2414,9 +2378,7 @@ u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 9);
                         setcode(poly, 0x2D);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2434,8 +2396,6 @@ u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_GT4*             poly;
     s32*                  opz;
     DisplayState*         ds;
-    register u32          mask asm("t1");
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2448,8 +2408,6 @@ u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2474,9 +2432,7 @@ u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         gte_stsxy2(&poly->x3);
                         gte_avsz4();
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2494,8 +2450,6 @@ u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F4*              poly;
     s32*                  opz;
     DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2508,8 +2462,6 @@ u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2536,9 +2488,7 @@ u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 5);
                         setcode(poly, 0x28);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2556,8 +2506,6 @@ u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_F3*              poly;
     s32*                  opz;
     DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2570,8 +2518,6 @@ u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2589,9 +2535,7 @@ u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 4);
                         setcode(poly, 0x20);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2609,18 +2553,14 @@ u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_FT3*             poly;
     s32*                  opz;
     DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
     u16*                  rec;
     u8*                   verts;
 
     ws   = arg0;
     poly = (POLY_FT3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+        opz = &ws->gteResult;
+        ds  = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2636,9 +2576,7 @@ u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     setlen(poly, 7);
                     setcode(poly, 0x27);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2655,8 +2593,6 @@ u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_FT4*             poly;
     s32*                  opz;
     DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2669,8 +2605,6 @@ u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2697,9 +2631,7 @@ u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 9);
                         setcode(poly, 0x2F);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2717,18 +2649,14 @@ u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_G3*              poly;
     s32*                  opz;
     DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
     u16*                  rec;
     u8*                   verts;
 
     ws   = arg0;
     poly = (POLY_G3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+        opz = &ws->gteResult;
+        ds  = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2756,9 +2684,7 @@ u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     setlen(poly, 6);
                     setcode(poly, 0x30);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2775,18 +2701,14 @@ u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_G3*              poly;
     s32*                  opz;
     DisplayState*         ds;
-    u32                   mask;
-    u32                   maskHi;
     u16*                  rec;
     u8*                   verts;
 
     ws   = arg0;
     poly = (POLY_G3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
-        opz    = &ws->gteResult;
-        ds     = &gDisplayState;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
+        opz = &ws->gteResult;
+        ds  = &gDisplayState;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2814,9 +2736,7 @@ u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     setlen(poly, 6);
                     setcode(poly, 0x32);
                     gte_stotz(opz);
-                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                    *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                        (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2833,8 +2753,6 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_G4*              poly;
     s32*                  opz;
     DisplayState*         ds;
-    register u32          mask asm("t2");
-    u32                   maskHi;
     u32                   clipMask;
     s32*                  flg;
     u16*                  rec;
@@ -2847,8 +2765,6 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)arg2;
             verts = (u8*)ws->verts;
@@ -2891,9 +2807,7 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 8);
                         setcode(poly, 0x38);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                        *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                            (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2910,8 +2824,6 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags
     POLY_G4*      poly;
     s32*          opz;
     DisplayState* ds;
-    register u32  mask asm("t2");
-    u32           maskHi;
     u32           clipMask;
     s32*          flg;
     u16*          rec;
@@ -2923,8 +2835,6 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags
         clipMask = 0x80000000;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
-        mask     = 0xFFFFFF;
-        maskHi   = 0xFF000000;
         do {
             rec   = (u16*)stream;
             verts = (u8*)ws->verts;
@@ -2968,9 +2878,7 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags
                             setlen(poly, 8);
                             setcode(poly, 0x3A);
                             gte_stotz(opz);
-                            poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & mask);
-                            *(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) =
-                                (*(u_long*)(((((u32)ws->gteResult << ds->otDepthShift) >> 2) & 0xFFC) + (s32)ws->ot) & maskHi) | ((u32)poly & mask);
+                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                         }
                     }
                 }

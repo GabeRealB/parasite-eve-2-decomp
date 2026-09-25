@@ -1363,16 +1363,15 @@ void func_shelter_r47_80183E24(void)
     setcode(&p->sprt, 0x64);
     sprt = &p->sprt;
     MargePrim(p, sprt);
-    sprt->clut        = 0x3FC4;
-    sprt->x0          = -0x96;
-    sprt->y0          = 0x3F;
-    sprt->u0          = 0x50;
-    sprt->w           = 0x38;
-    sprt->v0          = 0;
-    sprt->h           = 0x10;
-    sprt->code       |= 3;
-    p->tpage.tag      = (p->tpage.tag & 0xFF000000) | (gGpuCurrentOt[11] & 0xFFFFFF);
-    gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
+    sprt->clut  = 0x3FC4;
+    sprt->x0    = -0x96;
+    sprt->y0    = 0x3F;
+    sprt->u0    = 0x50;
+    sprt->w     = 0x38;
+    sprt->v0    = 0;
+    sprt->h     = 0x10;
+    sprt->code |= 3;
+    addPrim(&gGpuCurrentOt[11], p);
 }
 
 void func_shelter_r47_80183F0C(void)
@@ -1388,16 +1387,15 @@ void func_shelter_r47_80183F0C(void)
     setcode(&p->sprt, 0x64);
     sprt = &p->sprt;
     MargePrim(p, sprt);
-    sprt->clut        = 0x3FC5;
-    sprt->x0          = -0x90;
-    sprt->y0          = 0x50;
-    sprt->u0          = 0x50;
-    sprt->v0          = 0x10;
-    sprt->w           = 0x38;
-    sprt->h           = 0x10;
-    sprt->code       |= 3;
-    p->tpage.tag      = (p->tpage.tag & 0xFF000000) | (gGpuCurrentOt[11] & 0xFFFFFF);
-    gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
+    sprt->clut  = 0x3FC5;
+    sprt->x0    = -0x90;
+    sprt->y0    = 0x50;
+    sprt->u0    = 0x50;
+    sprt->v0    = 0x10;
+    sprt->w     = 0x38;
+    sprt->h     = 0x10;
+    sprt->code |= 3;
+    addPrim(&gGpuCurrentOt[11], p);
 }
 
 void func_shelter_r47_80183FF4(Task* task, s16 arg1)
@@ -1416,16 +1414,15 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
     p->tpage.code[0] = 0xE100002F;
     setcode(&p->sprt, 0x64);
     MargePrim(p, sprt);
-    sprt->clut        = 0x3FC2;
-    sprt->code       |= 3;
-    sprt->x0          = state->field_20;
-    sprt->y0          = -0x67;
-    sprt->u0          = 0;
-    sprt->v0          = D_shelter_r47_801875EC[arg1];
-    sprt->w           = 0x50;
-    sprt->h           = 0xA;
-    p->tpage.tag      = (p->tpage.tag & 0xFF000000) | (gGpuCurrentOt[11] & 0xFFFFFF);
-    gGpuCurrentOt[11] = (gGpuCurrentOt[11] & 0xFF000000) | ((u32)p & 0xFFFFFF);
+    sprt->clut  = 0x3FC2;
+    sprt->code |= 3;
+    sprt->x0    = state->field_20;
+    sprt->y0    = -0x67;
+    sprt->u0    = 0;
+    sprt->v0    = D_shelter_r47_801875EC[arg1];
+    sprt->w     = 0x50;
+    sprt->h     = 0xA;
+    addPrim(&gGpuCurrentOt[11], p);
 }
 
 void func_shelter_r47_80184124(Task* task, s16 arg1)

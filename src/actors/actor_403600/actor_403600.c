@@ -1865,7 +1865,6 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32           light;
     s32           upper_limit;
     s32*          opz;
-    u32           mask;
     u16*          rec;
     u8*           verts;
     u8*           norms;
@@ -1929,18 +1928,7 @@ u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     setlen(poly, 9);
                     setcode(poly, 0x36);
                     gte_stotz(opz);
-                    mask      = 0xFFFFFF;
-                    poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                             0xFFC) +
-                                            (s32)arg0->ot) &
-                                 mask);
-                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->ot) =
-                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->ot) &
-                         0xFF000000) |
-                        ((u32)poly & mask);
+                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -1956,7 +1944,6 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_GT3*     poly;
     s32*          opz;
     DisplayState* ds;
-    u32           mask;
     u32           clip_mask;
     u16*          rec;
     s32           light;
@@ -1977,7 +1964,6 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
-        mask        = 0xFFFFFF;
         do {
             rec = (u16*)arg2;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -2050,16 +2036,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setlen(poly, 9);
                             setcode(poly, 0x36);
                             gte_stotz(opz);
-                            poly->tag = (poly->tag & 0xFF000000) |
-                                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                    (s32)arg0->ot) &
-                                         mask);
-                            *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                       (s32)arg0->ot) =
-                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                            (s32)arg0->ot) &
-                                 0xFF000000) |
-                                ((u32)poly & mask);
+                            addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                         }
                     }
                 }
@@ -2171,17 +2148,7 @@ u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         setlen(poly, 12);
                         setcode(poly, 0x3E);
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                                 0xFFC) +
-                                                (s32)arg0->ot) &
-                                     mask);
-                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->ot) =
-                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->ot) &
-                             0xFF000000) |
-                            ((u32)poly & mask);
+                        addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }
@@ -2198,7 +2165,6 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     POLY_GT4*     poly;
     s32*          opz;
     DisplayState* ds;
-    u32           mask;
     u32           clip_mask;
     u16*          rec;
     s32           light;
@@ -2219,8 +2185,6 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         clip_mask   = 0x80000000;
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
-        mask        = 0xFFFFFF;
-        SOFT_TOUCH_REG(mask);
         do {
             rec = (u16*)arg2;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -2316,16 +2280,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 setcode(poly, 0x3E);
                                 gte_stotz(opz);
                                 gte_stotz(opz);
-                                poly->tag = (poly->tag & 0xFF000000) |
-                                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                        (s32)arg0->ot) &
-                                             mask);
-                                *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                           (s32)arg0->ot) =
-                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                                (s32)arg0->ot) &
-                                     0xFF000000) |
-                                    ((u32)poly & mask);
+                                addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                             }
                         }
                     }
@@ -2351,7 +2306,6 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32           light;
     s32           upper_limit;
     s32*          opz;
-    u32           mask;
     u16*          rec;
     u8*           verts;
     u8*           norms;
@@ -2417,18 +2371,7 @@ u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     }
                     poly->code &= 0xFE;
                     gte_stotz(opz);
-                    mask      = 0xFFFFFF;
-                    poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                             0xFFC) +
-                                            (s32)arg0->ot) &
-                                 mask);
-                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->ot) =
-                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->ot) &
-                         0xFF000000) |
-                        ((u32)poly & mask);
+                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2451,7 +2394,6 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32           light;
     s32           upper_limit;
     s32*          opz;
-    u32           mask;
     u16*          rec;
     u8*           verts;
     u8*           norms;
@@ -2517,18 +2459,7 @@ u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                     }
                     poly->code = (poly->code & 0xFE) | 2;
                     gte_stotz(opz);
-                    mask      = 0xFFFFFF;
-                    poly->tag = (poly->tag & 0xFF000000) |
-                                (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                             0xFFC) +
-                                            (s32)arg0->ot) &
-                                 mask);
-                    *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                               (s32)arg0->ot) =
-                        (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                    (s32)arg0->ot) &
-                         0xFF000000) |
-                        ((u32)poly & mask);
+                    addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                 }
             }
             poly++;
@@ -2640,17 +2571,7 @@ u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                         }
                         poly->code &= 0xFE;
                         gte_stotz(opz);
-                        poly->tag = (poly->tag & 0xFF000000) |
-                                    (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) &
-                                                 0xFFC) +
-                                                (s32)arg0->ot) &
-                                     mask);
-                        *(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                   (s32)arg0->ot) =
-                            (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
-                                        (s32)arg0->ot) &
-                             0xFF000000) |
-                            ((u32)poly & mask);
+                        addPrim(&arg0->ot[((u32)arg0->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
                     }
                 }
             }

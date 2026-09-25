@@ -2192,8 +2192,6 @@ void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
     GpSprtElem*   elem;
     DisplayState* ds;
     u_long*       otBase;
-    u32           mask;
-    u32           maskHi;
 
     i = 0;
     if (Gp_SprtLists[0] == NULL) {
@@ -2204,13 +2202,9 @@ void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
     if (arg1->field_2 != 0) {
         ds     = &gDisplayState;
         otBase = gGpuCurrentOt;
-        mask   = 0xFFFFFF;
-        maskHi = 0xFF000000;
         do {
             if (arg1->field_4 == 0) {
-                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) & mask);
-                *(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) =
-                    (*(u_long*)(((((u32)elem->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
+                addPrim(&otBase[((u32)elem->otz << ds->otDepthShift) >> 4 & 0x3FF], prim);
             }
             prim++;
             i++;
