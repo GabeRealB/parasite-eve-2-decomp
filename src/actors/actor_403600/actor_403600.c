@@ -129,136 +129,6 @@ void func_actor_403600_80134398(Task* arg0);
 #define actor_403600_ldv0_dep(vector, matrix) \
     __asm__ volatile("lwc2 $0,0(%0);lwc2 $1,4(%0)" : : "r"(vector), "r"(matrix))
 
-#define actor_403600_fade_rgb(p, scale, first) \
-    __asm__ volatile(                          \
-        "mult %0, %1\n\t"                      \
-        "mflo %0\n\t"                          \
-        "lbu $2, -2(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $7\n\t"                          \
-        "lbu $2, -1(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $8\n\t"                          \
-        "lbu $2, 9(%2)\n\t"                    \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $9\n\t"                          \
-        "lbu $2, 10(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $10\n\t"                         \
-        "lbu $2, 11(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $11\n\t"                         \
-        "lbu $2, 21(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "mflo $12\n\t"                         \
-        "lbu $2, 22(%2)\n\t"                   \
-        "nop\n\t"                              \
-        "mult $2, %1\n\t"                      \
-        "sra %0, %0, 7\n\t"                    \
-        "sb %0, -3(%2)\n\t"                    \
-        "sra %0, $7, 7\n\t"                    \
-        "sb %0, -2(%2)\n\t"                    \
-        "mflo $13\n\t"                         \
-        "lbu $2, 23(%2)\n\t"                   \
-        "sra %0, $8, 7\n\t"                    \
-        "mult $2, %1\n\t"                      \
-        "sb %0, -1(%2)\n\t"                    \
-        "sra %0, $9, 7\n\t"                    \
-        "sb %0, 9(%2)\n\t"                     \
-        "sra %0, $10, 7\n\t"                   \
-        "sb %0, 10(%2)\n\t"                    \
-        "sra %0, $11, 7\n\t"                   \
-        "sb %0, 11(%2)\n\t"                    \
-        "sra %0, $12, 7\n\t"                   \
-        "sb %0, 21(%2)\n\t"                    \
-        "sra %0, $13, 7\n\t"                   \
-        "sb %0, 22(%2)\n\t"                    \
-        "mflo $7\n\t"                          \
-        "sra %0, $7, 7\n\t"                    \
-        "sb %0, 23(%2)"                        \
-        : "+r"(first)                          \
-        : "r"(scale), "r"(p)                   \
-        : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "hi", "lo", "memory")
-
-#define actor_403600_fade_rgb_staged(p, scale, first) \
-    __asm__ volatile(                                 \
-        "mult %0, %1\n\t"                             \
-        "mflo %0\n\t"                                 \
-        "lbu $2, -2(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $7\n\t"                                 \
-        "lbu $2, -1(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $8\n\t"                                 \
-        "lbu $2, 9(%2)\n\t"                           \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $9\n\t"                                 \
-        "lbu $2, 10(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $10\n\t"                                \
-        "lbu $2, 11(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $11\n\t"                                \
-        "lbu $2, 21(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $12\n\t"                                \
-        "lbu $2, 22(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "mflo $13\n\t"                                \
-        "lbu $2, 23(%2)\n\t"                          \
-        "nop\n\t"                                     \
-        "mult $2, %1\n\t"                             \
-        "sra %0, %0, 7\n\t"                           \
-        "sb %0, -3(%2)\n\t"                           \
-        "sra %0, $7, 7\n\t"                           \
-        "sb %0, -2(%2)\n\t"                           \
-        "sra %0, $8, 7\n\t"                           \
-        "sb %0, -1(%2)\n\t"                           \
-        "sra %0, $9, 7\n\t"                           \
-        "mflo $14\n\t"                                \
-        "sb %0, 33(%2)\n\t"                           \
-        "andi $2, %0, 0xFF\n\t"                       \
-        "mult $2, %1\n\t"                             \
-        "sra %0, $10, 7\n\t"                          \
-        "mflo $8\n\t"                                 \
-        "sb %0, 34(%2)\n\t"                           \
-        "andi $2, %0, 0xFF\n\t"                       \
-        "mult $2, %1\n\t"                             \
-        "sra %0, $11, 7\n\t"                          \
-        "mflo $7\n\t"                                 \
-        "sb %0, 35(%2)\n\t"                           \
-        "andi $2, %0, 0xFF\n\t"                       \
-        "mult $2, %1\n\t"                             \
-        "sra %0, $12, 7\n\t"                          \
-        "sb %0, 21(%2)\n\t"                           \
-        "sra %0, $13, 7\n\t"                          \
-        "sb %0, 22(%2)\n\t"                           \
-        "sra %0, $14, 7\n\t"                          \
-        "sb %0, 23(%2)\n\t"                           \
-        "sra %0, $8, 7\n\t"                           \
-        "sb %0, 33(%2)\n\t"                           \
-        "sra %0, $7, 7\n\t"                           \
-        "sb %0, 34(%2)\n\t"                           \
-        "mflo $9\n\t"                                 \
-        "sra %0, $9, 7\n\t"                           \
-        "sb %0, 35(%2)"                               \
-        : "+r"(first)                                 \
-        : "r"(scale), "r"(p)                          \
-        : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "hi", "lo", "memory")
-
 extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
 extern s32           D_actor_403600_8016069C;
@@ -2327,7 +2197,6 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32*          opz;
     DisplayState* ds;
     u32           mask;
-    u32           mask_hi;
     u32           clip_mask;
     u16*          rec;
     s32           light;
@@ -2337,7 +2206,6 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32           lower_delta;
     s32           sz;
     s32           idx;
-    s32           first;
     u8*           sz_table;
     s16           upper_y;
     s16           lower_y;
@@ -2350,7 +2218,6 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         upper_limit = 0x168 - light;
         ds          = &gDisplayState;
         mask        = 0xFFFFFF;
-        mask_hi     = 0xFF000000;
         do {
             rec = (u16*)arg2;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -2385,9 +2252,27 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                     PRIM_COLOR_WORD(poly, 1) = 0;
                                     PRIM_COLOR_WORD(poly, 2) = 0;
                                 } else {
-                                    first       = (u8)poly->r0;
+                                    s32 faded;
+
                                     upper_delta = 0x80 - upper_delta;
-                                    actor_403600_fade_rgb((u8*)poly + 7, upper_delta, first);
+                                    faded       = (poly->r0 * upper_delta) >> 7;
+                                    poly->r0    = faded;
+                                    faded       = (poly->g0 * upper_delta) >> 7;
+                                    poly->g0    = faded;
+                                    faded       = (poly->b0 * upper_delta) >> 7;
+                                    poly->b0    = faded;
+                                    faded       = (poly->r1 * upper_delta) >> 7;
+                                    poly->r1    = faded;
+                                    faded       = (poly->g1 * upper_delta) >> 7;
+                                    poly->g1    = faded;
+                                    faded       = (poly->b1 * upper_delta) >> 7;
+                                    poly->b1    = faded;
+                                    faded       = (poly->r2 * upper_delta) >> 7;
+                                    poly->r2    = faded;
+                                    faded       = (poly->g2 * upper_delta) >> 7;
+                                    poly->g2    = faded;
+                                    faded       = (poly->b2 * upper_delta) >> 7;
+                                    poly->b2    = faded;
                                 }
                             }
                             if (light != 0) {
@@ -2405,7 +2290,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                             setlen(poly, 9);
                             setcode(poly, 0x36);
                             gte_stotz(opz);
-                            poly->tag = (poly->tag & mask_hi) |
+                            poly->tag = (poly->tag & 0xFF000000) |
                                         (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
                                                     (s32)arg0->ot) &
                                          mask);
@@ -2413,7 +2298,7 @@ u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                        (s32)arg0->ot) =
                                 (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
                                             (s32)arg0->ot) &
-                                 mask_hi) |
+                                 0xFF000000) |
                                 ((u32)poly & mask);
                         }
                     }
@@ -2554,7 +2439,6 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32*          opz;
     DisplayState* ds;
     u32           mask;
-    u32           mask_hi;
     u32           clip_mask;
     u16*          rec;
     s32           light;
@@ -2564,7 +2448,6 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     s32           lower_delta;
     s32           sz;
     s32           idx;
-    s32           first;
     u8*           sz_table;
     s16           upper_y;
     s16           lower_y;
@@ -2578,7 +2461,6 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
         ds          = &gDisplayState;
         mask        = 0xFFFFFF;
         SOFT_TOUCH_REG(mask);
-        mask_hi = 0xFF000000;
         do {
             rec = (u16*)arg2;
             gte_ldSXYP(PRIM_XY_WORD(poly, 0));
@@ -2625,9 +2507,36 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                         PRIM_COLOR_WORD(poly, 2) = 0;
                                         PRIM_COLOR_WORD(poly, 3) = 0;
                                     } else {
-                                        first       = (u8)poly->r0;
+                                        s32 faded;
+
+                                        // Vertex 1's colour is faded into vertex 3 and then faded
+                                        // again with it, while vertex 1 keeps its own colour; the
+                                        // original writes it that way.
                                         upper_delta = 0x80 - upper_delta;
-                                        actor_403600_fade_rgb_staged((u8*)poly + 7, upper_delta, first);
+                                        faded       = (poly->r0 * upper_delta) >> 7;
+                                        poly->r0    = faded;
+                                        faded       = (poly->g0 * upper_delta) >> 7;
+                                        poly->g0    = faded;
+                                        faded       = (poly->b0 * upper_delta) >> 7;
+                                        poly->b0    = faded;
+                                        faded       = (poly->r1 * upper_delta) >> 7;
+                                        poly->r3    = faded;
+                                        faded       = (poly->g1 * upper_delta) >> 7;
+                                        poly->g3    = faded;
+                                        faded       = (poly->b1 * upper_delta) >> 7;
+                                        poly->b3    = faded;
+                                        faded       = (poly->r2 * upper_delta) >> 7;
+                                        poly->r2    = faded;
+                                        faded       = (poly->g2 * upper_delta) >> 7;
+                                        poly->g2    = faded;
+                                        faded       = (poly->b2 * upper_delta) >> 7;
+                                        poly->b2    = faded;
+                                        faded       = (poly->r3 * upper_delta) >> 7;
+                                        poly->r3    = faded;
+                                        faded       = (poly->g3 * upper_delta) >> 7;
+                                        poly->g3    = faded;
+                                        faded       = (poly->b3 * upper_delta) >> 7;
+                                        poly->b3    = faded;
                                     }
                                 }
                                 if (light != 0) {
@@ -2647,7 +2556,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                 setcode(poly, 0x3E);
                                 gte_stotz(opz);
                                 gte_stotz(opz);
-                                poly->tag = (poly->tag & mask_hi) |
+                                poly->tag = (poly->tag & 0xFF000000) |
                                             (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
                                                         (s32)arg0->ot) &
                                              mask);
@@ -2655,7 +2564,7 @@ u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
                                            (s32)arg0->ot) =
                                     (*(u_long*)(((((u32)arg0->gteResult << ds->otDepthShift) >> 2) & 0xFFC) +
                                                 (s32)arg0->ot) &
-                                     mask_hi) |
+                                     0xFF000000) |
                                     ((u32)poly & mask);
                             }
                         }
