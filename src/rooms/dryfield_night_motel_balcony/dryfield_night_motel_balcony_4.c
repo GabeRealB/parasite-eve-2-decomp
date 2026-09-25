@@ -200,7 +200,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
 }
 
 /// Projects the world-space points `arg0[0]` and `arg0[1]` through
-/// `Gfx_ViewWorldMtx` and, when both project, joins them with a glowing
+/// `gGfxViewCoord.workm` and, when both project, joins them with a glowing
 /// capsule of gouraud `POLY_G4`s: a wedge fan around each projected centre and
 /// a strip between them, three quads per 0x400 step across half a turn
 /// anchored to the screen-space angle between the two centres. `arg1` is a
@@ -337,7 +337,7 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the point `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag
+/// Projects the point `arg0` through `gGfxViewCoord.workm` and, when the GTE flag
 /// is non-negative, queues one semi-transparent `POLY_FT4` sprite centred on
 /// it: tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, UV column `(s16)arg1 * 40`,
 /// on-screen half-extent `(s16)arg2 * 39 / otz`, and a grey that alternates

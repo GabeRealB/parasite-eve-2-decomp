@@ -1035,7 +1035,7 @@ void func_dryfield_night_factory_80181BB4(Task* task)
     task->state = task->state + 1;
 }
 
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when it lands in front of
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when it lands in front of
 /// the camera, draws a disc of sixteen gouraud wedges and a four-pointed inner
 /// cross around it. The radii are `(s16)arg1` scaled by 64 and 8 over the
 /// depth. `arg2` packs the tint as four nibbles `[shift][r][g][b]`; bit 0 of

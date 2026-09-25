@@ -268,7 +268,7 @@ void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glow at a world-space point: projects `arg0` through
-/// `Gfx_ViewWorldMtx` and, when the resulting OTZ is at least 0x11, queues
+/// `gGfxViewCoord.workm` and, when the resulting OTZ is at least 0x11, queues
 /// four gouraud `POLY_G4` wedges around the projected centre, dark at the rim
 /// and coloured at the centre. The on-screen radius is `(s16)arg1 * 64 / otz`.
 /// The centre colour takes red from bits 8..15 of `arg2` and green and blue

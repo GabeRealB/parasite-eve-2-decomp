@@ -549,7 +549,7 @@ void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
 /// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by
-/// `Gfx_ViewWorldMtx`, then projected through `GsWSMATRIX`. One `RTPS` plus
+/// `gGfxViewCoord.workm`, then projected through `GsWSMATRIX`. One `RTPS` plus
 /// one `RTPT` project the four corners; a negative `gte_stflg` drops the
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
 /// the frame picked by the low bit of `gDisplayState.animFrame`, tinted

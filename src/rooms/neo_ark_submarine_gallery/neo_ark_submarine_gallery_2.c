@@ -515,7 +515,7 @@ void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
-/// Projects `arg0` and `arg0 + 1` through `Gfx_ViewWorldMtx` and sweeps three
+/// Projects `arg0` and `arg0 + 1` through `gGfxViewCoord.workm` and sweeps three
 /// gouraud `POLY_G4` wedges per 0x400 step around the screen-space angle between
 /// the two centres, lit with the colour packed in `arg2`. Each `otz` past 0x50
 /// is pulled 0x40 closer before it sets the radius and the OT slot.
@@ -672,7 +672,7 @@ void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
 /// the projected centre. An `otz` past 0x50 is pulled 0x40 closer before it
 /// sets the radius and the OT slot.

@@ -435,7 +435,7 @@ void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
+/// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
 /// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads lit at the centre line and black
 /// at the rim, in two 0x400 steps around the angle between the projected
@@ -586,7 +586,7 @@ void func_shelter_b2_operating_room_8017E118(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
+/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
 /// brightened slightly on odd frames.
@@ -1274,7 +1274,7 @@ void func_shelter_b2_operating_room_80180060(GpCoord* coord, s16 size)
 
 /// Draws a flat quad facing the camera around the coordinate's world
 /// position: the four unit corners of `D_80111E38` scaled by `arg1`, turned by
-/// `Gfx_ViewWorldMtx` and moved to that position, then projected through
+/// `gGfxViewCoord.workm` and moved to that position, then projected through
 /// `GsWSMATRIX`. Unless the projection flags an error it queues one
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on

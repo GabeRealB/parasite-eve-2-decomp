@@ -194,7 +194,7 @@ void func_shelter_b1_control_room_8017F150(Task* task)
 }
 
 /// Draws a glowing bar between the world points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when either
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when either
 /// projection flags an error. Each end gets a half-disc of gouraud wedges of
 /// radius `(s16)arg1 * 64` over its depth, joined by quads across the bar. The
 /// lit vertices take the colour packed in `arg2`, one nibble per channel in
@@ -344,7 +344,7 @@ void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glowing disc at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
+/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
 /// wedges of radius `(s16)arg1 * 64` over the depth, black at the rim. The
 /// centre takes the colour packed in `arg2`, one nibble per channel in the
 /// high nibble, with bit 3 following the animation frame.

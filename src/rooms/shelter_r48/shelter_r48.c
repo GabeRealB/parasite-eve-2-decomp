@@ -1941,7 +1941,7 @@ void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
     SCRATCH_POP_BYTES(0x2C);
 }
 
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag is
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when the GTE flag is
 /// non-negative, queues a glow of gouraud `POLY_G4` wedges around the projected
 /// point: an outer ring pairing a half-brightness wedge at full radius with a
 /// full-brightness one at half radius, then four inner cross wedges in the

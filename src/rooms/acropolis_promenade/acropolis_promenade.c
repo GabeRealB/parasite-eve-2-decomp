@@ -858,7 +858,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
 }
 
 /// Draws a radial glow at the world-space point `arg0`: the point is
-/// projected through `Gfx_ViewWorldMtx` and, when the GTE flag is
+/// projected through `gGfxViewCoord.workm` and, when the GTE flag is
 /// non-negative, sixteen gouraud wedges (eight at the outer radius in the
 /// half-brightness colour, eight at half that radius in the full colour) plus
 /// four cross wedges reaching out from the inner radius are queued around the

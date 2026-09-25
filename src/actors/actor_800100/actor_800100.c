@@ -104,7 +104,7 @@ STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
 /// 0x30-byte block from `G_SCRATCH_HEAD` used by
 /// `func_actor_800100_80162E90` to draw the projectile's ground splash: the
 /// four corners of the unit quad `D_80111E38`, each scaled to the splash
-/// half-size, rotated flat into view space by `Gfx_ViewWorldMtx` and moved to
+/// half-size, rotated flat into view space by `gGfxViewCoord.workm` and moved to
 /// the traced ground point. `sxy` is where they land on screen, `vec[0]`
 /// through a single `RTPS` and the rest through one `RTPT`. Same shape as the
 /// m4a1_pyke dart's splash block, but with `otz` and `flag` kept on the stack
@@ -635,7 +635,7 @@ void func_actor_800100_80162A14(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 
 /// Draws the projectile's ground splash at the traced ground point `pos`: the
 /// unit quad `D_80111E38` scaled to `width` half-size, laid flat by
-/// `Gfx_ViewWorldMtx`, and projected through `GsWSMATRIX` into a 0x30-byte
+/// `gGfxViewCoord.workm`, and projected through `GsWSMATRIX` into a 0x30-byte
 /// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
 void func_actor_800100_80162E90(VECTOR3* pos, s32 width)

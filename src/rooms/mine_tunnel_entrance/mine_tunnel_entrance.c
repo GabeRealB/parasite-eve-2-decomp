@@ -143,7 +143,7 @@ void func_mine_tunnel_entrance_8017D720(void)
 }
 
 /// Draws one screen-aligned textured quad at the world-space point `arg0`: projects
-/// it through `Gfx_ViewWorldMtx` and, when the projection flag is non-negative,
+/// it through `gGfxViewCoord.workm` and, when the projection flag is non-negative,
 /// queues a semi-transparent `POLY_FT4` (tpage 0x2B, clut `(arg1 & 0x3F) |
 /// 0x4380`) into the ordering table at its depth. `arg1` also picks the
 /// 40-texel UV column; `arg2` is the half-extent in world units, scaled to

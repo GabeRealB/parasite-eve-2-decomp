@@ -115,7 +115,7 @@ void func_dryfield_night_cellar_8017D748(Task* task)
 }
 
 /// Draws one glow sprite at the world-space point `arg0`. The point is
-/// projected through `Gfx_ViewWorldMtx`; when the GTE flag word is
+/// projected through `gGfxViewCoord.workm`; when the GTE flag word is
 /// non-negative, one semi-transparent `POLY_FT4` is queued at its OTZ (tpage
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `(s16)arg1` also picks the 40-texel
 /// wide texture column, `(s16)arg2` is the half-extent scaled by 39 / OTZ,

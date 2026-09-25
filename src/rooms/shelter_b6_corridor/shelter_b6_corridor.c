@@ -423,7 +423,7 @@ void func_shelter_b6_corridor_8017E238(Task* task)
 }
 
 /// Draws a glowing bar between the world points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when either
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when either
 /// projection flags an error. Each end gets a half-disc of gouraud wedges of
 /// radius `(s16)arg1 * 64` over its depth, and a strip of quads joins them
 /// across the bar. The lit vertices take the colour packed in `arg2`, one

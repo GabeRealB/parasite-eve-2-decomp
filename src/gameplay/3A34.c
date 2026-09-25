@@ -1204,7 +1204,7 @@ void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
     Gfx_NormalizeLightDir((VECTOR*)block, dir);
 
     Gp_UpdateCoord(arg1->u.at.parent);
-    TransposeMatrix(&Gfx_ViewWorldMtx, mtx);
+    TransposeMatrix(&gGfxViewCoord.workm, mtx);
     gte_MulMatrix0(mtx, &arg1->u.at.parent->workm, mtx);
 
     solve_loadrot(mtx, (SVECTOR*)(head - 0x2C));
@@ -1548,8 +1548,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->pos.vy   = pos->vy;
         block->pos.vz   = pos->vz;
         block->local.vx = (u16)pos->vx - (u16)world->workm.t[0];
-        SCHED_BARRIER();
-        src             = &Gfx_ViewWorldMtx;
+        TOUCH_REG(world);
+        src             = &gGfxViewCoord.workm;
         block->local.vy = (u16)pos->vy - (u16)world->workm.t[1];
         block->local.vz = (u16)pos->vz - (u16)world->workm.t[2];
 
@@ -2778,7 +2778,7 @@ void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     SCRATCH_HEAD(GpLockScanScratch) = block;
     Gp_UpdateCoord(&gGfxViewCoord);
     srcp = &((GpLockScanScratch*)(head - 0x38))->src;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(srcp);
     gte_rtv0();
     gte_stsv(&block->self);
@@ -4595,7 +4595,7 @@ void func_800DDC2C(GpObj* arg0)
     block->src[1].vz                        = (u16)obj->pos.vz + ((-(dir->vz * (u16)obj->radius)) >> 12);
     coord                                   = obj->coord;
     SCRATCH_HEAD_AT(scratch, GpEdgeScratch) = block;
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
     {
         register VECTOR* out asm("a2");
@@ -4739,7 +4739,7 @@ void func_800DE150(GpObj* arg0)
     block              = (GpEdgeScratch*)(head - 0x50);
     mat                = (MATRIX*)(head - 0x20);
     src                = (SVECTOR*)arg0->ctx.d4rec;
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
         block->src[i].vx = (u16)src[i].vx + (u16)arg0->pos.vx;
@@ -5470,7 +5470,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 
     SCRATCH_HEAD(u8) = tmp;
 
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->origin);
     gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x40));
@@ -5478,7 +5478,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->origin.vy += gGfxViewCoord.workm.t[1];
     block->origin.vz += gGfxViewCoord.workm.t[2];
 
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->verts[0]);
     gte_rtv0();
     gte_stlvnl(block);
@@ -5486,7 +5486,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->verts[0].vy           += block->origin.vy;
     block->verts[0].vz           += block->origin.vz;
 
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&arg0->normal);
     gte_rtv0();
     gte_stlvnl((VECTOR*)(head - 0x30));
@@ -5511,7 +5511,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
         return 0;
     }
 
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
 
     i   = 1;
     out = (VECTOR*)(head - 0x70);

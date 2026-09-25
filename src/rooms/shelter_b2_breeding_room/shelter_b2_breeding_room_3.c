@@ -640,7 +640,7 @@ void func_shelter_b2_breeding_room_8017FAD8(GpCoord* coord, s16 size)
 
 /// Draws a flat quad facing the camera around the coordinate's world
 /// position: the four unit corners of `D_80111E38` scaled by `arg1`, turned by
-/// `Gfx_ViewWorldMtx` and moved to that position, then projected through
+/// `gGfxViewCoord.workm` and moved to that position, then projected through
 /// `GsWSMATRIX`. Unless the projection flags an error it queues one
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on

@@ -134,7 +134,7 @@ void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
 }
 
 /// Draws a flickering gouraud glow joining the two points `arg0[0]` and
-/// `arg0[1]`, projected through `Gfx_ViewWorldMtx`: three `POLY_G4` wedges per
+/// `arg0[1]`, projected through `gGfxViewCoord.workm`: three `POLY_G4` wedges per
 /// quarter-turn sweep, sized by `arg1` over depth and tinted by the three
 /// colour nibbles packed in `arg2`, with the frame-counter bit mixed in.
 void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2)
@@ -282,7 +282,7 @@ void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a flickering gouraud disc of four `POLY_G4` wedges at `arg0`,
-/// projected through `Gfx_ViewWorldMtx`, sized by `arg1` over depth and tinted
+/// projected through `gGfxViewCoord.workm`, sized by `arg1` over depth and tinted
 /// by the three colour nibbles packed in `arg2`, with the frame-counter bit
 /// mixed in.
 void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2)

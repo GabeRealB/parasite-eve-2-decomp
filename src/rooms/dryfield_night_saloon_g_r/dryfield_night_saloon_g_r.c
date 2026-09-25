@@ -686,7 +686,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// it projects, queues one semi-transparent `POLY_FT4` centred on it: tpage
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
 /// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level

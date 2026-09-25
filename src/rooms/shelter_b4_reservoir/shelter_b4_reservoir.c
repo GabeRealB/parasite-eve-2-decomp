@@ -686,8 +686,8 @@ void func_shelter_b4_reservoir_8017EA00(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
     for (; e->count != -1; e++) {
         s->dx   = e->width;
@@ -760,8 +760,8 @@ void func_shelter_b4_reservoir_8017EE04(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
     for (; e->count != -1; e++) {
         s->dx   = e->width;
@@ -836,8 +836,8 @@ void func_shelter_b4_reservoir_8017F23C(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F80;
     for (; e->count != -1; e++) {
         s->dx   = e->width / e->count;
@@ -913,8 +913,8 @@ void func_shelter_b4_reservoir_8017F674(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_reservoir_80184F82;
     c                                   = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
     for (; e->count != -1; e++) {
@@ -994,8 +994,6 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     GpCoord*                 root;
     GpCoord*                 c;
     GpCoord                  coord;
-    MATRIX*                  view;
-    GpCoord*                 parent;
     s32                      i;
     s32                      offset;
     s32                      roll;
@@ -1033,15 +1031,13 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
         if (GameFlag_GetNibble(0xB7) != 0) {
             if (gGameSession->waterY < root->coord.t[1] && work->field_22 != 0) {
                 for (i = 0; i < 2; i++) {
-                    parent = &gGfxViewCoord;
-                    view   = &Gfx_ViewWorldMtx;
-                    c      = &player->extra.tmd->coords[i * 3 + 14];
+                    c = &player->extra.tmd->coords[i * 3 + 14];
                     Gp_UpdateCoord(c);
                     work->field_26 = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(view, &c->workm, &coord.coord);
-                    coord.sub        = parent;
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &c->workm, &coord.coord);
+                    coord.sub        = &gGfxViewCoord;
                     coord.coord.t[1] = gGameSession->waterY;
                     coord.flg        = 0;
                     Gp_UpdateCoord(&coord);
@@ -1677,7 +1673,7 @@ void func_shelter_b4_reservoir_80181668(GpCoord* coord, u16 frame, s16 size)
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
+/// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
 /// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads lit at the centre line and black
 /// at the rim, in two 0x400 steps around the angle between the projected
@@ -1717,8 +1713,8 @@ void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -1828,7 +1824,7 @@ void func_shelter_b4_reservoir_801818F0(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`, unless the projection flags an error. A disc of screen
+/// `gGfxViewCoord.workm`, unless the projection flags an error. A disc of screen
 /// radius `arg1 * 64 / otz` is built from gouraud wedges lit at the centre and
 /// black at the rim, alternating half brightness at full radius with full
 /// brightness at half radius; four spikes at half brightness reach out
@@ -1865,8 +1861,8 @@ void func_shelter_b4_reservoir_80182134(SVECTOR* arg0, s32 arg1, s32 arg2)
         block   = (RoomDraw05Scratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&block->sx);
@@ -2599,7 +2595,7 @@ void func_shelter_b4_reservoir_80183E80(GpCoord* coord, s16 size)
 
 /// Draws a flat quad facing the camera around the coordinate's world
 /// position: the four unit corners of `D_80111E38` scaled by `arg1`, turned by
-/// `Gfx_ViewWorldMtx` and moved to that position, then projected through
+/// `gGfxViewCoord.workm` and moved to that position, then projected through
 /// `GsWSMATRIX`. Unless the projection flags an error it queues one
 /// semi-transparent textured quad (tpage 0x28, clut 0x428C) tinted
 /// (0x30, 0x20, 0x20), alternating between two 32-texel frames from U 0xC0 on
@@ -2632,7 +2628,7 @@ void func_shelter_b4_reservoir_801843AC(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

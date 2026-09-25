@@ -175,7 +175,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 }
 
 /// Draws a pulsing red marker at the world-space point `arg0`: projects it
-/// through `Gfx_ViewWorldMtx` and, when the GTE flag is non-negative, queues
+/// through `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues
 /// two gouraud `POLY_G4` diamonds and two gouraud `LINE_G3` diagonals around
 /// the projected centre. `arg2` is a signed half-extent; the on-screen radius
 /// is `(s16)arg2 * 32 / otz`. `arg1` scales `gDisplayState.animFrame` into
@@ -273,7 +273,7 @@ void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
 /// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The
 /// unit corners are scaled by 250 in the y/z plane, rotated by the matrix
 /// `Gfx_RotMatrixX` builds from `gDisplayState.animFrame << 7`, moved to `arg0`, and
-/// projected through `Gfx_ViewWorldMtx`. Nothing is queued when the GTE flag
+/// projected through `gGfxViewCoord.workm`. Nothing is queued when the GTE flag
 /// word is negative.
 void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 {
@@ -972,7 +972,7 @@ void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
 }
 
 /// Draws a flickering flat quad at the coordinate `arg0`: scales the unit quad
-/// `D_80111E38` by `arg1` in the x/z plane, rotates it by `Gfx_ViewWorldMtx`
+/// `D_80111E38` by `arg1` in the x/z plane, rotates it by `gGfxViewCoord.workm`
 /// with no translation, adds `arg0->workm.t`, and projects the four corners
 /// through `GsWSMATRIX`. When the GTE flag is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x28, clut 0x428C) coloured

@@ -1466,7 +1466,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
 }
 
 /// Draws a glow around the world point `arg0`: projects it through
-/// `Gfx_ViewWorldMtx` and, when the GTE flag is non-negative, queues four
+/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues four
 /// gouraud `POLY_G4` quads that together make a disc around the projected
 /// centre, lit at the centre and black at the rim. The on-screen radius is
 /// `(s16)arg1 * 64 / otz`. `arg2` packs the centre colour as three RGB

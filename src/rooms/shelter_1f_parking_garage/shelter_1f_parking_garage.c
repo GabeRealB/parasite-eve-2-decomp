@@ -605,7 +605,7 @@ void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, 
 }
 
 /// Draws a round glow at the world point `arg0`: projected through
-/// `Gfx_ViewWorldMtx` and, when its OTZ is at least 0x11, four gouraud
+/// `gGfxViewCoord.workm` and, when its OTZ is at least 0x11, four gouraud
 /// wedges lit at the centre and black at the rim. `arg1` is the half-extent
 /// (the on-screen radius is `(s16)arg1 * 64 / otz`) and `arg2` the colour: a
 /// red byte at bits 8-15 and two-bit green and blue at bits 4 and 0, each

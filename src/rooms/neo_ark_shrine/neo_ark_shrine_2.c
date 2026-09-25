@@ -910,7 +910,7 @@ void func_neo_ark_shrine_8017F8DC(Task* task)
     }
 }
 
-/// Projects the world-space point `pos` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `pos` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4` sprite
 /// centred on it (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects
 /// the 40-texel UV column `(s16)arg1 * 40` at v=0..0x27, and `arg2` is a signed

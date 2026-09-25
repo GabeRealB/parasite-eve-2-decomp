@@ -56,7 +56,7 @@ void func_actor_341300_8016398C(s32 arg0);
 void func_actor_341300_801639CC(s32 arg0);
 
 /// Draws the two textured quads at fixed positions: each is four fixed
-/// model-space corners projected through `Gfx_ViewWorldMtx`, emitted as a
+/// model-space corners projected through `gGfxViewCoord.workm`, emitted as a
 /// POLY_FT4 at the depth `RotTransPers3` returns, and skipped when the
 /// projection flags an error.
 void func_actor_341300_80161E84(void)

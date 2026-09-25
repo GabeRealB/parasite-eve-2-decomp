@@ -293,7 +293,7 @@ STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
-/// starts as `(0, 0x1000, 0)`, is rotated by `Gfx_ViewWorldMtx`, then added
+/// starts as `(0, 0x1000, 0)`, is rotated by `gGfxViewCoord.workm`, then added
 /// onto `pos` and passed to `func_800DE7CC`.
 typedef struct _GpRayScratch {
     /* 0x0 */ SVECTOR pos;

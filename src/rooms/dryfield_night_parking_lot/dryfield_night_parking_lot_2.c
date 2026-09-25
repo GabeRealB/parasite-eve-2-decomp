@@ -77,7 +77,7 @@ void func_dryfield_night_parking_lot_8017DC88(void)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the OTZ is at least 0x11, queues one semi-transparent `POLY_FT4` (tpage
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380`) centred on it. `(s16)arg1` also selects
 /// the 40-texel UV column `arg1 * 40`, rows 0..0x27. `arg2` is a signed

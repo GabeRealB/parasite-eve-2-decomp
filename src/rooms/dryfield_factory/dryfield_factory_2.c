@@ -677,7 +677,7 @@ void func_dryfield_factory_80181BB4(Task* task)
     task->state = task->state + 1;
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
 /// inner cross wedges, tinted. `arg1` is a
 /// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and

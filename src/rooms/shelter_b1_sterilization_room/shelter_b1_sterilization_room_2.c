@@ -896,7 +896,7 @@ void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 ar
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a glow of gouraud `POLY_G4` wedges
 /// around the projected centre: an eight-step disc of radius
 /// `(s16)arg2 * 64 / otz`, each wedge paired with a half-radius copy, then

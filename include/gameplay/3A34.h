@@ -451,7 +451,7 @@ STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
-/// `Gfx_ViewWorldMtx` rotates it into `self`, the world-space aim origin.
+/// `gGfxViewCoord.workm` rotates it into `self`, the world-space aim origin.
 /// `node` is the candidate `Gp_LinkList` node's world position; both are
 /// handed to `func_800E0308` as the line-of-sight segment.
 typedef struct _GpLockScanScratch {
@@ -695,7 +695,7 @@ STATIC_ASSERT_SIZEOF(GpAxisScratch, 0x20);
 /// `GpObj.pos` offset by `ctx.dir->dir` (as an SVECTOR) scaled by
 /// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `ctx.d4rec`
 /// leads with (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
-/// is `Gfx_ViewWorldMtx * coord->workm`. `pos` holds the rotated endpoints
+/// is `gGfxViewCoord.workm * coord->workm`. `pos` holds the rotated endpoints
 /// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
 /// `func_800DE2C0`.
 typedef struct _GpEdgeScratch {
@@ -739,7 +739,7 @@ STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 /// 0x3C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D759C`.
 /// `in` is the light's negated local position fed to `Gfx_NormalizeLightDir`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
-/// `mtx` is `Transpose(Gfx_ViewWorldMtx) * parent->workm` (rotation only).
+/// `mtx` is `Transpose(gGfxViewCoord.workm) * parent->workm` (rotation only).
 /// `scale` holds the light's `scale` loaded into IR0.
 typedef struct _GpViewLightScratch {
     /* 0x00 */ VECTOR  in;

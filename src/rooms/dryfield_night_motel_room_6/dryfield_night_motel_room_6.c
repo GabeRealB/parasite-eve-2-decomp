@@ -2311,7 +2311,7 @@ void func_dryfield_night_motel_room_6_80181C80(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 48 / otz`. `arg1` scales `gDisplayState.animFrame`
@@ -2407,7 +2407,7 @@ void func_dryfield_night_motel_room_6_80181CD8(SVECTOR* arg0, s32 arg1, s32 arg2
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
 /// inner cross wedges around the projected centre. `arg2` is a signed
 /// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and

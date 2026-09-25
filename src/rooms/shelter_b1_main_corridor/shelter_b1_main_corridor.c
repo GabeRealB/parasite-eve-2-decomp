@@ -1322,7 +1322,7 @@ void func_shelter_b1_main_corridor_8017FD60(GpCoord* coord, s16 size)
 
 /// Draws a semi-transparent textured square at `arg0`'s world translation,
 /// unless the projection flags an error: the unit square in the XZ plane,
-/// scaled by `arg1` and turned by `Gfx_ViewWorldMtx`'s rotation. The square is tinted (0x30, 0x20, 0x20) and its
+/// scaled by `arg1` and turned by `gGfxViewCoord.workm`'s rotation. The square is tinted (0x30, 0x20, 0x20) and its
 /// texture alternates between two cells with the frame counter.
 void func_shelter_b1_main_corridor_8018028C(GpCoord* arg0, s32 arg1)
 {

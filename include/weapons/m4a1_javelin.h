@@ -35,7 +35,7 @@ STATIC_ASSERT_SIZEOF(M4a1JavelinLineScratch, 0x14);
 /// Fixed local offset the guide beam's coordinate hangs at.
 extern SVECTOR D_m4a1_javelin_8011FA90;
 /// `(0, 0x800, 0)`: the probe offset `func_800DE7CC` traces each beam segment
-/// against, rotated into world space by `Gfx_ViewWorldMtx` first.
+/// against, rotated into world space by `gGfxViewCoord.workm` first.
 extern SVECTOR D_m4a1_javelin_8011FA98;
 /// Per-segment `flags` for `func_m4a1_javelin_8011DAB0`, walked from the far
 /// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap

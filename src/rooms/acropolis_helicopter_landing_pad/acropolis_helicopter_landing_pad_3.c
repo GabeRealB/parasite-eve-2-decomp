@@ -251,7 +251,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// non-zero (switching the slot off once it reaches 4) and unless the
 /// current view's bit is set in the light's
 /// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
-/// projected through `Gfx_ViewWorldMtx` into a `G_SCRATCH_HEAD` block and,
+/// projected through `gGfxViewCoord.workm` into a `G_SCRATCH_HEAD` block and,
 /// when the GTE flag word is clean, the record is refreshed and two rings of
 /// flat-shaded `POLY_G4` fans are linked into the OT at the light's `otz`: 16
 /// wedges of the outer radius (a dim `level >> 1` layer under a `level` one)

@@ -1662,7 +1662,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
 }
 
 /// Draws a glint at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`: two gouraud quads forming a diamond and two gouraud
+/// `gGfxViewCoord.workm`: two gouraud quads forming a diamond and two gouraud
 /// three-point lines across it, of radius `(s16)arg2 * 32` over the depth.
 /// The lit vertices pulse in green and blue at a rate of `(s16)arg1` times the
 /// animation frame. Nothing is drawn when the projection flags an error.
@@ -1757,7 +1757,7 @@ void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a star-shaped glow at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`: a disc of gouraud wedges at radius `(s16)arg2 * 64`
+/// `gGfxViewCoord.workm`: a disc of gouraud wedges at radius `(s16)arg2 * 64`
 /// over the depth, a brighter disc at half that radius, and four cross
 /// wedges reaching out from an inner radius of `(s16)arg2 * 8` over the depth.
 /// The lit vertices pulse in green and blue at a rate of `(s16)arg1` times the

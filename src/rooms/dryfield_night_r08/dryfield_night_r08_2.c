@@ -268,7 +268,7 @@ void func_dryfield_night_r08_8017DB4C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects the world point `arg0` through `Gfx_ViewWorldMtx` and, when its OTZ
+/// Projects the world point `arg0` through `gGfxViewCoord.workm` and, when its OTZ
 /// is above 0x10, queues one semi-transparent `POLY_FT4` sprite centred on it:
 /// tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, and the 40-texel-wide UV cell
 /// `(s16)arg1` selects. `(s16)arg2` is the half-extent; the on-screen radius is

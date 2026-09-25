@@ -631,7 +631,7 @@ void func_dryfield_night_motel_lobby_801812F8(void)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
@@ -727,7 +727,7 @@ void func_dryfield_night_motel_lobby_80181404(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a gouraud glow around the projected
 /// centre: eight wedges at the outer radius in half the pulse colour, eight at
 /// half that radius in the full colour, and four cross wedges reaching from
@@ -867,7 +867,7 @@ void func_dryfield_night_motel_lobby_80181878(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x14);
 }
 
-/// Projects the point `arg0` through `Gfx_ViewWorldMtx` and, when the GTE flag
+/// Projects the point `arg0` through `gGfxViewCoord.workm` and, when the GTE flag
 /// is non-negative, queues one semi-transparent `POLY_FT4` sprite centred on it:
 /// UV column `(s16)arg1 * 40`, on-screen half-extent `(s16)arg2 * 39 / otz`, and
 /// an RGB that alternates between 0x20 and 0x30 with `animFrame`. It reserves

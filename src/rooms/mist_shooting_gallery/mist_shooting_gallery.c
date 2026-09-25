@@ -1911,7 +1911,7 @@ void func_mist_shooting_gallery_801811EC(void)
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
+/// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
 /// Each end is a halfGpGridParamsdisc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads lit at the centre line and black
 /// at the rim, in two 0x400 steps around the angle between the projected
@@ -2062,7 +2062,7 @@ void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
+/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `arg1 * 64 / otz`. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB),
 /// brightened slightly on odd frames.

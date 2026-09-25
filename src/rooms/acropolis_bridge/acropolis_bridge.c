@@ -2754,7 +2754,7 @@ const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 };
 
 /// Draws a flickering star-shaped glow at the world-space point `arg0`. The
-/// point is projected through `Gfx_ViewWorldMtx`, and when the GTE flag is
+/// point is projected through `gGfxViewCoord.workm`, and when the GTE flag is
 /// non-negative a sixteen-wedge gouraud disc of radius `(s16)arg1 * 64 / otz`
 /// is queued around it, alternating full and half brightness, followed by a
 /// four-armed inner cross of radius `(s16)arg1 * 8 / otz`. `arg2` packs one

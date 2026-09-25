@@ -24,7 +24,7 @@
 SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
 
 /// `(0, 0x800, 0)`: the probe offset `func_800DE7CC` traces each beam segment
-/// against, rotated into world space by `Gfx_ViewWorldMtx` first.
+/// against, rotated into world space by `gGfxViewCoord.workm` first.
 SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 
 /// Per-segment `flags` for `func_m4a1_javelin_8011DAB0`, walked from the far

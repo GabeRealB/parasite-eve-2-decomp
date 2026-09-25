@@ -582,7 +582,7 @@ void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
 /// found under the flare. `ground`'s `workm` translation is the traced point
 /// and `spin` the quad's half-size: the unit quad `D_80111E38` is scaled by it
-/// in the ground plane (Y stays 0), rotated by `Gfx_ViewWorldMtx` so the quad
+/// in the ground plane (Y stays 0), rotated by `gGfxViewCoord.workm` so the quad
 /// lies flat in world space, and moved onto the ground point. One `RTPS` plus
 /// one `RTPT` project the four corners, and the whole quad is dropped if the
 /// first corner fails its `FLAG` check. The texture is the two-frame 0x28-page

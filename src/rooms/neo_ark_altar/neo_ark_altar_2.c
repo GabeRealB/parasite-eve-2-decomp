@@ -638,7 +638,7 @@ void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR*
 }
 
 /// Walls in one altar tile. The view matrix is re-derived from
-/// `gGfxViewCoord` and `Gfx_ViewWorldMtx` pushed into the GTE first, then each
+/// `gGfxViewCoord` and `gGfxViewCoord.workm` pushed into the GTE first, then each
 /// of the tile's four sides goes to `func_neo_ark_altar_8017E658` as its two
 /// corners at the floor height `y0` and at `y0 - arg1`, so `arg1` is how far a
 /// side drops below the tile. The sides walk the tile rectangle

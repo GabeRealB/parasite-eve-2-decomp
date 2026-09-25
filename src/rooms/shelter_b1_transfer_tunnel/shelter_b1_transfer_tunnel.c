@@ -159,7 +159,7 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
     }
 }
 
-/// Projects `arg0[0]` and `arg0[1]` through `Gfx_ViewWorldMtx` and, when the
+/// Projects `arg0[0]` and `arg0[1]` through `gGfxViewCoord.workm` and, when the
 /// second point's OTZ is above 0x10, queues gouraud `POLY_G4` wedges at the
 /// first point, bands joining the two ends and wedges at the second point,
 /// sweeping from the angle `arg2`. The radius at each end is
@@ -295,7 +295,7 @@ void func_shelter_b1_transfer_tunnel_8017D830(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when its OTZ is above 0x10,
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when its OTZ is above 0x10,
 /// queues four gouraud `POLY_G4` wedges forming a red disc around it, of radius
 /// `arg1 * 64 / otz`. The centre's red level alternates between 0x20 and 0x28
 /// on odd and even frames.
@@ -964,7 +964,7 @@ void func_shelter_b1_transfer_tunnel_8017F594(GpCoord* coord, s16 size)
 }
 
 /// Draws a flat textured sprite at the coordinate's world position: the unit
-/// quad `D_80111E38`, scaled by `arg1` and turned by `Gfx_ViewWorldMtx`'s
+/// quad `D_80111E38`, scaled by `arg1` and turned by `gGfxViewCoord.workm`'s
 /// rotation, is offset to `arg0->workm.t` and projected through `GsWSMATRIX`.
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even

@@ -95,7 +95,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
 /// the resulting OTZ is at least 0x11, queues two gouraud `POLY_G4` diamonds
 /// and two gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1`

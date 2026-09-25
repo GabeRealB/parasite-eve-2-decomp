@@ -76,7 +76,7 @@ void func_shelter_1f_tent_8017FE10(void)
 }
 
 /// Draws a glowing capsule between the world points `arg0` and `arg0 + 1`,
-/// projected through `Gfx_ViewWorldMtx`. Each end is a disc of radius
+/// projected through `gGfxViewCoord.workm`. Each end is a disc of radius
 /// `(s16)arg1 * 64` over its depth; for each 0x400 step across half a turn
 /// from the screen-space angle between the ends, one gouraud `POLY_G4` wedge
 /// is queued at each end and one band joins them. The lit vertices, at the
@@ -227,7 +227,7 @@ void func_shelter_1f_tent_8017FFAC(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the inner
@@ -305,7 +305,7 @@ void func_shelter_1f_tent_801807F0(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 48 / otz`. `arg1` scales `gDisplayState.animFrame`
@@ -401,7 +401,7 @@ void func_shelter_1f_tent_80180B90(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
 /// inner cross wedges around the projected centre. `arg2` is a signed
 /// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and

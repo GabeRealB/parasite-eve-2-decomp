@@ -124,7 +124,7 @@ void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
     }
 }
 
-/// Projects `arg0[0]` and `arg0[1]` through `Gfx_ViewWorldMtx` and, when both
+/// Projects `arg0[0]` and `arg0[1]` through `gGfxViewCoord.workm` and, when both
 /// project, sweeps half a turn of gouraud `POLY_G4` wedges around the line
 /// between them: a cap on each end and a band joining the two, with radii
 /// `(s16)arg1 * 64 / otz` at each end. The lit vertices take the colour packed
@@ -883,7 +883,7 @@ void func_shelter_b1_elevator_hall_8017F980(GpCoord* coord, s16 size)
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
-/// `Gfx_ViewWorldMtx`, offsets it by `arg0->workm.t` and projects the corners
+/// `gGfxViewCoord.workm`, offsets it by `arg0->workm.t` and projects the corners
 /// through `GsWSMATRIX`. When they project, queues one semi-transparent
 /// `POLY_FT4` (tpage 0x28, clut 0x428C, colour `(0x30, 0x20, 0x20)`) whose
 /// texture column alternates between two 32-texel frames with the frame

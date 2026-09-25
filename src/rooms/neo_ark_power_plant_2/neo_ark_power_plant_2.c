@@ -209,7 +209,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, unless
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, unless
 /// the GTE flags the projection, queues four gouraud `POLY_G4` wedges filling a
 /// disc around it, tinted at the centre and black at the rim. `arg1` is the
 /// radius in world units, scaled by depth; `arg2` is the tint as three 4-bit

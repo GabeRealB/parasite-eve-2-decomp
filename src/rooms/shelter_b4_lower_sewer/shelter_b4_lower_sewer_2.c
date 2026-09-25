@@ -135,7 +135,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
+/// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
 /// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads bright at the centre line and
 /// black at the rim, in two 0x400 steps around the angle between the projected

@@ -68,7 +68,7 @@ void func_dryfield_night_trailer_coach_80182924(void)
     }
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
@@ -164,7 +164,7 @@ void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, s32 arg
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
 /// inner cross wedges around the projected centre. `arg2` is a signed
 /// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and
@@ -304,7 +304,7 @@ void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg
 }
 
 /// Draws a glow joining two points: `arg0` and `arg0 + 1` are projected through
-/// `Gfx_ViewWorldMtx`, and nothing is drawn if either projection sets the GTE
+/// `gGfxViewCoord.workm`, and nothing is drawn if either projection sets the GTE
 /// error flag. Each point gets a radius of `(s16)arg1 * 64` over its own OTZ.
 /// Starting from the screen-space angle between the two projected centres, the
 /// sweep lays a gouraud `POLY_G4` fan around each centre and a band joining

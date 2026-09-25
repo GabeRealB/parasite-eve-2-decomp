@@ -180,7 +180,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
 }
 
 /// Draws a glowing disc at the world point `arg0`: projected through
-/// `Gfx_ViewWorldMtx`, it becomes four `POLY_G4` wedges around the screen
+/// `gGfxViewCoord.workm`, it becomes four `POLY_G4` wedges around the screen
 /// position. `arg1` is the radius, scaled by 64 over the depth; `arg2` packs
 /// the centre vertex's colour as three 4-bit channels, OR'd with the
 /// frame-counter bit.

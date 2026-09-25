@@ -421,7 +421,7 @@ void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s32 arg2, s32 arg3)
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`, unless the projection flags an error: four gouraud
+/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
 /// wedges lit at the projected centre and black at the rim, of screen radius
 /// `(s16)arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels
 /// (0xRGB), brightened slightly on odd frames.
@@ -498,7 +498,7 @@ void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues an eight-wedge gouraud disc plus four
 /// inner cross wedges around the projected centre. `arg1` is a
 /// signed half-extent; on-screen radii are `(s16)arg1 * 64 / otz` (outer) and

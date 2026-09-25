@@ -4041,7 +4041,7 @@ void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, if
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
 /// the resulting OTZ is at least 0x11, queues four gouraud `POLY_G4` wedges
 /// around the projected centre. `arg1` is a signed half-extent; the on-screen
 /// radius is `(s16)arg1 * 64 / otz`. `arg2` scales the inner vertex by the
@@ -4175,7 +4175,7 @@ void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 
     } while (i < 3);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1` scales
@@ -4271,7 +4271,7 @@ void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 a
     SCRATCH_POP_BYTES(0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a sixteen-wedge gouraud disc plus two
 /// inner cross wedges around the projected centre. `arg2` is a signed
 /// half-extent; on-screen radii are `(s16)arg2 * 64 / otz` (outer) and

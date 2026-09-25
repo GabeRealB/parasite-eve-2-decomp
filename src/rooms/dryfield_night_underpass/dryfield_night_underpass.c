@@ -204,7 +204,7 @@ void func_dryfield_night_underpass_8017D95C(Task* task)
 }
 
 /// Draws one glow sprite at the world-space point `arg0`: projects it through
-/// `Gfx_ViewWorldMtx` and, when the GTE flag is non-negative, queues a
+/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues a
 /// semi-transparent `POLY_FT4` centred on the projection (tpage 0x2B, clut
 /// `(arg1 & 0x3F) | 0x4380`, UV column `(s16)arg1 * 40`). `arg2` is a signed
 /// half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. The grey level

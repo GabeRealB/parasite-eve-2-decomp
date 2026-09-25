@@ -94,7 +94,7 @@ void func_dryfield_night_breezeway_8017D680(Task* task)
 }
 
 /// Draws a pulsing red star at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`; nothing is drawn when the projection flags an error.
+/// `gGfxViewCoord.workm`; nothing is drawn when the projection flags an error.
 /// Two gouraud `POLY_G4` halves of a diamond and two `LINE_G3` diagonals
 /// surround the projected point, with radius `(s16)arg2 * 32` over its depth.
 /// The lit vertices take a red of `rsin(animFrame * arg1) / 34 + 0x78`, so
@@ -190,7 +190,7 @@ void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2)
 }
 
 /// Draws a glowing beam between the two world points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when either
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when either
 /// projection flags an error. Each end is a gouraud half-disc of radius
 /// `(s16)arg1 * 64` over its own depth, lit at the centre and dark at the rim,
 /// turned to face the other end by the screen-space angle between the two
@@ -328,7 +328,7 @@ void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
 }
 
 /// Draws a textured, semi-transparent sprite at the world point `arg0`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when the projection
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when the projection
 /// flags an error. `arg1` picks the 40-texel column of tpage 0x2B and the clut
 /// `(arg1 & 0x3F) | 0x4380`; the half-size on screen is `(s16)arg2 * 39` over
 /// the depth. The grey tint flickers between 0x20 and 0x30 with the display

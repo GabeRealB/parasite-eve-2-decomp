@@ -86,7 +86,7 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
 }
 
 /// Draws a two-ended gouraud glow between the world points `arg0[0]` and
-/// `arg0[1]`, both projected through `Gfx_ViewWorldMtx`, when the second
+/// `arg0[1]`, both projected through `gGfxViewCoord.workm`, when the second
 /// point's OTZ is above 0x10. Each end's on-screen radius is `(s16)arg1 * 64`
 /// over its OTZ (the first clamped to at least 0x10). Two passes a quarter-turn
 /// apart, starting at angle `(s16)arg2`, each queue a `POLY_G4` wedge around the
@@ -223,7 +223,7 @@ void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects the world point `arg0` through `Gfx_ViewWorldMtx` and, when its OTZ
+/// Projects the world point `arg0` through `gGfxViewCoord.workm` and, when its OTZ
 /// is above 0x10, queues one semi-transparent `POLY_FT4` sprite centred on it:
 /// tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, and the 40-texel-wide UV cell
 /// `(s16)arg1` selects. `(s16)arg2` is the half-extent; the on-screen radius is

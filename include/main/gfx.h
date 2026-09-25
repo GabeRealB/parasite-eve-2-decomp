@@ -82,6 +82,5 @@ extern GpCoord Gfx_ViewOffsetCoord;
 /// are the two coordinates above it in the chain, which is why its own matrix
 /// holds a translation alone.
 extern GpCoord gGfxViewCoord;
-extern MATRIX  Gfx_ViewWorldMtx;
 
 #endif // GFX_H

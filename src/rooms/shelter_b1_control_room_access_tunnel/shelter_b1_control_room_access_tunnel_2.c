@@ -635,7 +635,7 @@ void func_shelter_b1_control_room_access_tunnel_801815D0(GpCoord* coord, s16 siz
 }
 
 /// Draws a flat textured sprite at the coordinate's world position: the unit
-/// quad `D_80111E38`, scaled by `arg1` and turned by `Gfx_ViewWorldMtx`'s
+/// quad `D_80111E38`, scaled by `arg1` and turned by `gGfxViewCoord.workm`'s
 /// rotation, is offset to `arg0->workm.t` and projected through `GsWSMATRIX`.
 /// Unless the GTE flags an error, one semi-transparent `POLY_FT4` is queued,
 /// its texture alternating between two 32-texel frames on odd and even

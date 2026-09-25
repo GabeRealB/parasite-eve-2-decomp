@@ -210,7 +210,7 @@ void func_neo_ark_substation_8017D874(void)
 }
 
 /// Draws a glow between the two world points `arg0[0]` and `arg0[1]`: both are
-/// projected through `Gfx_ViewWorldMtx`, and unless the GTE flags either
+/// projected through `gGfxViewCoord.workm`, and unless the GTE flags either
 /// projection, gouraud `POLY_G4` wedges are queued around each end and a band
 /// joins them, each tinted at the centre and black at the rim. `arg1` is the
 /// radius in world units, scaled by each point's depth; `arg2` is the tint as

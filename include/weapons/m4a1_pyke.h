@@ -23,7 +23,7 @@ STATIC_ASSERT_SIZEOF(M4a1PykeBeam, 0x38);
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_m4a1_pyke_8011E168`
 /// for the dart's ground splash. `vec` holds the four corners of the unit quad
 /// `D_80111E38`, scaled to the splash half-size, rotated flat into view space
-/// by `Gfx_ViewWorldMtx` and translated to `pos`; `sxy` is where they project
+/// by `gGfxViewCoord.workm` and translated to `pos`; `sxy` is where they project
 /// to on screen, `vec[0]` through a single `RTPS` and the rest through one
 /// `RTPT`. Same shape as the gameplay `GpQuadScratch`, but with `otz` and
 /// `flag` kept on the stack instead of in the block.

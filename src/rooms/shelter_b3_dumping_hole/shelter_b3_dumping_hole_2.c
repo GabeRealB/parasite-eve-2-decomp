@@ -3527,7 +3527,7 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 }
 
 /// Draws a glowing capsule between the world points `arg0` and `arg0 + 1`,
-/// projected through `Gfx_ViewWorldMtx`. Each end is a disc of radius
+/// projected through `gGfxViewCoord.workm`. Each end is a disc of radius
 /// `(s16)arg1 * 64` over its depth; for each 0x400 step across half a turn
 /// from the screen-space angle between the ends, one gouraud `POLY_G4` wedge
 /// is queued at each end and one band joins them. The lit vertices, at the
@@ -3679,7 +3679,7 @@ void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glowing disc at the world point `arg0`, projected through
-/// `Gfx_ViewWorldMtx`: four gouraud `POLY_G4` wedges of radius
+/// `gGfxViewCoord.workm`: four gouraud `POLY_G4` wedges of radius
 /// `(s16)arg1 * 64` over the depth, dark at the rim. The centre takes the
 /// colour packed in `arg2` (one nibble per channel), flickering with the
 /// animation frame. Nothing is drawn when the projection flags an error.

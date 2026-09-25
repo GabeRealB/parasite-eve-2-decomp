@@ -98,7 +98,7 @@ void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, unless
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, unless
 /// its OTZ is below 0x11, queues one semi-transparent `POLY_FT4` centred on it
 /// at that depth: tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, and the 40-texel
 /// texture column `(s16)arg1 * 40`, rows 0 to 0x27. `(s16)arg2` is the

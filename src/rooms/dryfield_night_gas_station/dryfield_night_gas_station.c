@@ -1425,7 +1425,7 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 /// Draws a marker for entry `arg0` of `D_dryfield_night_gas_station_80188580`:
 /// the vector is turned by a fixed -0x262 yaw, offset by
 /// `D_dryfield_night_gas_station_8017D650` and projected through
-/// `Gfx_ViewWorldMtx`. When the projection passes, a semi-transparent 3x3 dark
+/// `gGfxViewCoord.workm`. When the projection passes, a semi-transparent 3x3 dark
 /// red `TILE` with its draw-mode `DR_TPAGE` and a bright red `TILE_1` mark the
 /// point. The point is then projected again and once more displaced by
 /// (-0x3E8, +0x1F4, +0x1F4), and a semi-transparent `LINE_G2` runs from the
@@ -1542,7 +1542,7 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 /// per-part coordinate array, 0x280 (part 8) in, composed into an identity
 /// rotation on the stack; the beacon vector `D_dryfield_night_gas_station_8017D658`
 /// is rotated by it twice - as-is and 0x190 further up - and both points are
-/// added to that world position and projected through `Gfx_ViewWorldMtx`. Once
+/// added to that world position and projected through `gGfxViewCoord.workm`. Once
 /// both `RotTransPers` FLAG words pass, a semi-transparent `LINE_G2` between
 /// them, whose red channel flickers with `rand() % 100 - 0x7E`, and its
 /// draw-mode `DR_TPAGE` are linked into OT slot 0xA.
@@ -2076,7 +2076,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
 }
 
 /// Projects the world-space points `arg0[0]` and `arg0[1]` through
-/// `Gfx_ViewWorldMtx` and, when both project, joins them with a capsule of
+/// `gGfxViewCoord.workm` and, when both project, joins them with a capsule of
 /// gouraud `POLY_G4`s: a half-disc wedge fan around each point and a quad
 /// strip between them, three quads per 0x400 step of the angle between the
 /// two centres. `arg1` is a signed half-extent scaled by depth; the lit
@@ -2226,7 +2226,7 @@ void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// it projects, queues one semi-transparent `POLY_FT4` centred on it: tpage
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
 /// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level

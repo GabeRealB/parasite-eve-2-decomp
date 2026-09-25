@@ -442,7 +442,7 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
 }
 
 /// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
-/// `width` half-size, laid flat by `Gfx_ViewWorldMtx` and moved to the traced
+/// `width` half-size, laid flat by `gGfxViewCoord.workm` and moved to the traced
 /// ground point `pos`, then projected through `GsWSMATRIX` into a 0x30-byte
 /// `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.

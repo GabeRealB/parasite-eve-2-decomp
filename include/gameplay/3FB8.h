@@ -368,7 +368,7 @@ STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
 /// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.pos`) in
 /// `vec1`. `Gp_EffLineTaskA3` rotates `move` through
-/// `parent->coord` and `Gfx_ViewWorldMtx`, scales by `age << 11 + 0x1000`,
+/// `parent->coord` and `gGfxViewCoord.workm`, scales by `age << 11 + 0x1000`,
 /// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
 /// `sxy0` / `sxy1` receive `gte_stsxy`, `flag` `gte_stflg` and `otz`
 /// `gte_stszotz`, giving the two endpoints of a trail `LINE_F2` /

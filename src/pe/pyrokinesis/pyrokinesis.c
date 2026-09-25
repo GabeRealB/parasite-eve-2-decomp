@@ -608,7 +608,7 @@ void func_pyrokinesis_80130130(GpCoord* arg0, s32 arg1, s16 arg2)
 
 /// Draws the scorch mark the cone leaves on the floor: the unit quad
 /// `D_80111E38` is scaled to `arg1` half-size, laid flat into view space with
-/// `Gfx_ViewWorldMtx` (rotation only, translation from `GsWSMATRIX`) and
+/// `gGfxViewCoord.workm` (rotation only, translation from `GsWSMATRIX`) and
 /// offset by `arg0->workm.t`, then its four corners are projected through
 /// `GsWSMATRIX`. On a non-negative `gte_stflg` it queues one semi-transparent
 /// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame

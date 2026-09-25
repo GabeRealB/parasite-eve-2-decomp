@@ -651,7 +651,7 @@ void func_mine_forked_tunnel_8017E48C(s32 arg0)
 }
 
 /// Draws one glow sprite at the world-space point `arg0`: projects it through
-/// `Gfx_ViewWorldMtx` and, when `gte_stflg` is non-negative, queues one
+/// `gGfxViewCoord.workm` and, when `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`).
 /// `arg1` selects the 40-texel UV column `(s16)arg1 * 40` at v=0..0x27. `arg2`
 /// is a signed half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. RGB

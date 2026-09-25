@@ -98,7 +98,7 @@ void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects `arg0[0]` and `arg0[1]` through `Gfx_ViewWorldMtx` and, when the
+/// Projects `arg0[0]` and `arg0[1]` through `gGfxViewCoord.workm` and, when the
 /// second point's OTZ is above 0x10, queues gouraud `POLY_G4` quads for a cone
 /// between them: wedges at the first point, bands joining the two ends and
 /// wedges at the second point, starting from the angle `arg2`. The radius at
@@ -235,7 +235,7 @@ void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s32 arg1
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when its OTZ is above 0x10,
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when its OTZ is above 0x10,
 /// queues four gouraud `POLY_G4` wedges forming a red disc around it, of radius
 /// `arg1 * 64 / otz`. The centre's red level alternates between 0x20 and 0x28
 /// on odd and even frames.

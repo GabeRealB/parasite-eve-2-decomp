@@ -4,7 +4,7 @@
 #include "common.h"
 
 /// Draws the ground shadow under an object: a flat textured quad whose corners
-/// are the unit corner table scaled by `size` and rotated by `Gfx_ViewWorldMtx`,
+/// are the unit corner table scaled by `size` and rotated by `gGfxViewCoord.workm`,
 /// centred on `pos`, and drawn with subtractive blending. `shade` is the
 /// vertex colour, with 0 drawing the texture unmodulated and a negative value
 /// drawing nothing; nothing is drawn either once `Gp_State1C->eventState`

@@ -215,7 +215,7 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(void)
 }
 
 /// Draws a glow disc at the world-space point `arg0`: projects it through
-/// `Gfx_ViewWorldMtx` and, when the GTE flag is non-negative, queues four
+/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues four
 /// gouraud `POLY_G4` wedges around the projected centre. `arg1` is a signed
 /// half-extent; the on-screen radius is `(s16)arg1 * 64 / otz`. `arg2` packs
 /// three RGB nibbles for the centre vertex, OR'd with a flicker of

@@ -150,7 +150,7 @@ typedef struct ActorsShared80138efcArg {
     /// matrix and then into view space with `mtx`.
     /* 0x10 */ SVECTOR vec;
     /* 0x18 */ byte    pad_18[0x8];
-    /// Transpose of `Gfx_ViewWorldMtx`, refreshed on the frames the splash
+    /// Transpose of `gGfxViewCoord.workm`, refreshed on the frames the splash
     /// check runs.
     /* 0x20 */ MATRIX mtx;
     /// Pose buffers of the two animation contexts. While `field_BA2` is

@@ -224,7 +224,7 @@ void Room_Util19(Task* task, s32 arg1, s32 arg2);
 /// back with `lb`, so it is signed.
 void Room_Util36(s32 arg0);
 void Room_SaveUi01(Task* task);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
 /// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
 /// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
@@ -232,7 +232,7 @@ void Room_SaveUi01(Task* task);
 /// `((field_8 & 1) * 16) + 0x20` on all three channels. Same 0x10 scratch
 /// layout as `Room_Draw13`.
 void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the OTZ is at least
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when the OTZ is at least
 /// 0x11, queues one semi-transparent `POLY_FT4` (tpage 0x2B, clut
 /// `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
@@ -241,11 +241,11 @@ void Room_Draw17(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// layout as `Room_Draw25`.
 void Room_Draw20(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Handwritten GTE routine. Projects the world-space point `arg0` through
-/// `Gfx_ViewWorldMtx` and emits screen-aligned quads there; `arg1` is a signed
+/// `gGfxViewCoord.workm` and emits screen-aligned quads there; `arg1` is a signed
 /// half-extent divided by the projected depth and `arg2` packs the primitive's
 /// page/blend bits.
 void Room_Draw21(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when the OTZ is at least
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when the OTZ is at least
 /// 0x11, queues four gouraud `POLY_G4` wedges around the projected centre.
 /// `arg1` is a signed half-extent; the on-screen radius is `arg1 * 64 / otz`.
 void Room_Draw25(SVECTOR* arg0, s16 arg1);
@@ -257,7 +257,7 @@ void Room_Draw30(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Same body as `Room_Draw30`, but green is `blend * (((arg2 << 16) >> 20) & 3)`
 /// and blue `blend * (arg2 & 3)`.
 void Room_Draw29(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
 /// non-negative, queues four gouraud `POLY_G4` wedges around the projected
 /// centre. `arg1` is a signed half-extent; the on-screen radius is
 /// `(s16)arg1 * 64 / otz`. `arg2` packs three RGB nibbles for the lit inner
@@ -266,7 +266,7 @@ void Room_Draw13(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// Same four-wedge gouraud disc as `Room_Draw13`, but the scratch block keeps
 /// `radius` at 0x4 and `flag` at 0x8.
 void Room_Draw31(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
 /// non-negative, queues two gouraud `POLY_G4` diamonds and two gouraud
 /// `LINE_G3` diagonals around the projected centre. Same 0x10 scratch layout
 /// as `Room_Draw13`. `arg2` is a signed half-extent; the on-screen radius is
@@ -281,7 +281,7 @@ void Room_Draw18(SVECTOR* arg0, s32 arg1, s32 arg2);
 /// (same 0x10 scratch layout), but the on-screen radius is
 /// `(s16)arg2 * 48 / otz` rather than `* 32`.
 void Room_Draw32(SVECTOR* arg0, s32 arg1, s32 arg2);
-/// Projects `arg0` through `Gfx_ViewWorldMtx` and, when `gte_stflg` is
+/// Projects `arg0` through `gGfxViewCoord.workm` and, when `gte_stflg` is
 /// non-negative, queues a sixteen-wedge gouraud disc plus two inner cross
 /// wedges around the projected centre. `arg2` is a signed half-extent;
 /// on-screen radii are `(s16)arg2 * 64 / otz` (outer) and `(s16)arg2 * 8 / otz`
@@ -328,7 +328,7 @@ void Room_Draw16(GpCoord* arg0, s32 arg1, s32 arg2);
 /// radius is `(s16)arg3 * 39 / otz`.
 void Room_Draw35(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
-/// with `Gfx_ViewWorldMtx` and adds `arg0->workm.t`, then projects the four
+/// with `gGfxViewCoord.workm` and adds `arg0->workm.t`, then projects the four
 /// corners through `GsWSMATRIX`. When `gte_stflg` is non-negative, queues one
 /// semi-transparent `POLY_FT4` (tpage 0x28, clut 0x428C) coloured
 /// `(0x30, 0x20, 0x20)`. The frame counter picks between two UV columns:
@@ -336,7 +336,7 @@ void Room_Draw35(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 /// scratch layout as `GpQuadScratch` (`otz` is not incremented).
 void Room_Draw06(GpCoord* arg0, s32 arg1);
 /// Projects two world-space points (`arg0` and `arg0 + 1`) through
-/// `Gfx_ViewWorldMtx` and, when the second OTZ is at least 0x11, queues
+/// `gGfxViewCoord.workm` and, when the second OTZ is at least 0x11, queues
 /// gouraud `POLY_G4` wedges: a half-disc at each projected centre plus
 /// connecting slices. `arg1` is a signed half-extent; on-screen radii are
 /// `(s16)arg1 * 64 / otz`. `arg2` is a signed angle offset. The first OTZ is
@@ -535,7 +535,7 @@ STATIC_ASSERT_SIZEOF(RoomGlowScratch, 0x18);
 
 /// 0xC-byte scratch block `Room_Draw20`, `Room_Draw25`, `Room_Draw29` and
 /// `Room_Draw30` take from `G_SCRATCH_HEAD`. `otz` is the `gte_stszotz` of
-/// `arg0` through `Gfx_ViewWorldMtx`; `sx`/`sy` are that screen point and
+/// `arg0` through `gGfxViewCoord.workm`; `sx`/`sy` are that screen point and
 /// `radius` is `(s16)arg2 * 39 / otz` for `Room_Draw20` or `(s16)arg1 * 64 /
 /// otz` for the gouraud discs, the on-screen half-extent of the primitive.
 typedef struct _RoomDraw25Scratch {
@@ -548,7 +548,7 @@ STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 
 /// 0x10-byte scratch block `Room_Draw13`, `Room_Draw17`, `Room_Draw18`,
 /// `Room_Draw32` and `Room_Draw38` take from `G_SCRATCH_HEAD`. `otz` is the
-/// `gte_stszotz` of `arg0` through `Gfx_ViewWorldMtx`, `flag` is `gte_stflg`
+/// `gte_stszotz` of `arg0` through `gGfxViewCoord.workm`, `flag` is `gte_stflg`
 /// (the primitives are dropped when it is negative), `radius` is
 /// `(s16)arg1 * 64 / otz` for `Room_Draw13`, `(s16)arg2 * 39 / otz` for
 /// `Room_Draw17`, `(s16)arg2 * 32 / otz` for `Room_Draw18`/`Room_Draw38` and
@@ -564,7 +564,7 @@ typedef struct _RoomDraw13Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw13Scratch, 0x10);
 
 /// 0x14-byte scratch block `Room_Draw05` takes from `G_SCRATCH_HEAD`. Same
-/// projection as `RoomDraw13Scratch` (`arg0` through `Gfx_ViewWorldMtx`, one
+/// projection as `RoomDraw13Scratch` (`arg0` through `gGfxViewCoord.workm`, one
 /// `RTPS`) plus a second radius: `rOuter` is `(s16)arg2 * 64 / otz` and
 /// `rInner` is `(s16)arg2 * 8 / otz`. `flag` is `gte_stflg` and `sx`/`sy` are
 /// the projected centre.
@@ -579,7 +579,7 @@ typedef struct _RoomDraw05Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw05Scratch, 0x14);
 
 /// 0x10-byte scratch block `Room_Draw31` takes from `G_SCRATCH_HEAD`. Same
-/// projection as `RoomDraw13Scratch` (`arg0` through `Gfx_ViewWorldMtx`, one
+/// projection as `RoomDraw13Scratch` (`arg0` through `gGfxViewCoord.workm`, one
 /// `RTPS`) but `radius` sits at 0x4 and `flag` at 0x8. `radius` is
 /// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
 /// wedges.
@@ -594,7 +594,7 @@ STATIC_ASSERT_SIZEOF(RoomDraw31Scratch, 0x10);
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from `G_SCRATCH_HEAD`. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
-/// through `Gfx_ViewWorldMtx`.
+/// through `gGfxViewCoord.workm`.
 /// `otz0`/`otz1` are the `gte_stszotz` of those points, `r0`/`r1` are
 /// `(s16)arg1 * 64 / otz`, and `sx0`/`sy0` plus `sx1`/`sy1` are the two
 /// `gte_stsxy` centres.

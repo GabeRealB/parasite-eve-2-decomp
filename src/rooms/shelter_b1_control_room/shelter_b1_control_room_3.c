@@ -638,7 +638,7 @@ void func_shelter_b1_control_room_801812E4(GpCoord* coord, s16 size)
 }
 
 /// Draws a flat textured quad centred on the coordinate's world translation:
-/// the unit quad `D_80111E38` scaled by `arg1` is rotated by `Gfx_ViewWorldMtx`,
+/// the unit quad `D_80111E38` scaled by `arg1` is rotated by `gGfxViewCoord.workm`,
 /// moved to the translation and projected through `GsWSMATRIX`. Unless the
 /// projection flags an error it queues one semi-transparent `POLY_FT4`
 /// (tpage 0x28, clut 0x428C, colour 0x30/0x20/0x20) whose texture alternates

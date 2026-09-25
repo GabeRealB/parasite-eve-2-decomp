@@ -2650,7 +2650,7 @@ void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it with
-/// `Gfx_ViewWorldMtx` (no GTE translation) and adds `arg0->workm.t`, then
+/// `gGfxViewCoord.workm` (no GTE translation) and adds `arg0->workm.t`, then
 /// projects the four corners through `GsWSMATRIX`. When `gte_stflg` is
 /// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x28, clut
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The display's animation frame

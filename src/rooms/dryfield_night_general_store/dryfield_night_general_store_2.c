@@ -17,7 +17,7 @@ extern SVECTOR D_dryfield_night_general_store_8017E80C;
 extern SVECTOR D_dryfield_night_general_store_8017E81C;
 
 /// Draws a glowing beam between the two points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn when either
+/// projected through `gGfxViewCoord.workm`; nothing is drawn when either
 /// projection flags an error. Each end is a gouraud half-disc of radius
 /// `(s16)arg1 * 64` over its depth, lit at the centre and dark at the rim,
 /// turned to face the other end by the screen-space angle between the two

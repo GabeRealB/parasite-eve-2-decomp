@@ -307,7 +307,7 @@ void func_mine_cavern_8017E474(Task* arg0)
 }
 
 /// Draws a glow joining the two points `arg0[0]` and `arg0[1]`, projected
-/// through `Gfx_ViewWorldMtx`; nothing is drawn unless both project. `arg1` is
+/// through `gGfxViewCoord.workm`; nothing is drawn unless both project. `arg1` is
 /// the half-extent, scaled by each end's depth. Starting from the screen-space
 /// angle between the ends, for each 0x400 step over half a turn it queues three
 /// gouraud `POLY_G4`s: a wedge of each end and the band between them. The lit
@@ -457,7 +457,7 @@ void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
 /// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
 /// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
@@ -1173,7 +1173,7 @@ void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat into view space
-/// with `Gfx_ViewWorldMtx` (no GTE translation) and adds `arg0->workm.t`, then
+/// with `gGfxViewCoord.workm` (no GTE translation) and adds `arg0->workm.t`, then
 /// projects the four corners through `GsWSMATRIX`. When `gte_stflg` is
 /// non-negative, queues one semi-transparent `POLY_FT4` (tpage 0x28, clut
 /// 0x428C) coloured `(0x30, 0x20, 0x20)`. The frame counter picks between two

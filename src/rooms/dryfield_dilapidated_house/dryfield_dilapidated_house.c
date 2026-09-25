@@ -951,7 +951,7 @@ void func_dryfield_dilapidated_house_8017EB60(Task* task)
 
 /// Projects the eight local-space markers at
 /// `D_dryfield_dilapidated_house_801866B4` through the parent task's
-/// `DdhCoordWork` matrix and `Gfx_ViewWorldMtx`, then queues two red
+/// `DdhCoordWork` matrix and `gGfxViewCoord.workm`, then queues two red
 /// `LINE_F2`s as an X at each screen point in `gGpuCurrentOt[10]`.
 void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 {
@@ -1025,7 +1025,7 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
 /// Debug view of the two cubic Bezier segments whose control points start at
 /// `D_dryfield_dilapidated_house_801866B4`: samples each at 21 positions,
 /// projects every point through the parent task's `DdhCoordWork` matrix and
-/// `Gfx_ViewWorldMtx`, and queues a small `LINE_F2` X at it in
+/// `gGfxViewCoord.workm`, and queues a small `LINE_F2` X at it in
 /// `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
 void func_dryfield_dilapidated_house_8017EE58(Task* task)
 {

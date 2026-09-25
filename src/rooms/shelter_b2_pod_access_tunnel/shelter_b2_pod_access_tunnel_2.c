@@ -129,7 +129,7 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 }
 
 /// Projects the two ends of the segment `arg0[0]`..`arg0[1]` through
-/// `Gfx_ViewWorldMtx` and, when the second end lies beyond depth 0x10, queues a
+/// `gGfxViewCoord.workm` and, when the second end lies beyond depth 0x10, queues a
 /// glowing beam of gouraud `POLY_G4` quads: a half-disc around the first end,
 /// the band joining the two ends and a half-disc around the second. `arg1` is
 /// the world half-width, scaled by 64 over each end's depth, and `arg2` the
@@ -1174,7 +1174,7 @@ void func_shelter_b2_pod_access_tunnel_80180894(GpCoord* coord, s16 size)
 }
 
 /// Scales the unit quad `D_80111E38` by `arg1`, rotates it flat by
-/// `Gfx_ViewWorldMtx`, offsets it by `arg0->workm.t` and projects the corners
+/// `gGfxViewCoord.workm`, offsets it by `arg0->workm.t` and projects the corners
 /// through `GsWSMATRIX`. When they project, queues one semi-transparent
 /// `POLY_FT4` (tpage 0x28, clut 0x428C, colour `(0x30, 0x20, 0x20)`) whose
 /// texture column alternates between two 32-texel frames with the frame

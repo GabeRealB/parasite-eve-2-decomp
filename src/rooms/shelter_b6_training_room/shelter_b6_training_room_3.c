@@ -164,7 +164,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
 }
 
 /// Draws a glowing capsule between the world points `arg0[0]` and `arg0[1]`:
-/// both are projected through `Gfx_ViewWorldMtx` and, for each 0x400 step of
+/// both are projected through `gGfxViewCoord.workm` and, for each 0x400 step of
 /// the half turn around the screen-space angle between them, three `POLY_G4`s
 /// are queued - a wedge at each end and a band joining them. `arg1` is the
 /// half-width, scaled by 64 over each end's depth; `arg2` packs the lit
@@ -314,7 +314,7 @@ void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2)
 }
 
 /// Draws a glowing disc at the world point `arg0`: projected through
-/// `Gfx_ViewWorldMtx`, it becomes four `POLY_G4` wedges around the screen
+/// `gGfxViewCoord.workm`, it becomes four `POLY_G4` wedges around the screen
 /// position. `arg1` is the radius, scaled by 64 over the depth; `arg2` packs
 /// the centre vertex's colour as three 4-bit channels, OR'd with the
 /// frame-counter bit.

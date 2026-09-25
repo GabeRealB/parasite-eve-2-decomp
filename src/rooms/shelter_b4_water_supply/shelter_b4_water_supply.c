@@ -447,8 +447,8 @@ void func_shelter_b4_water_supply_8017DE74(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = D_shelter_b4_water_supply_80182638;
     for (; e->end != -1; e++) {
         w->dx = e->width / 2;
@@ -584,8 +584,8 @@ void func_shelter_b4_water_supply_8017E5D8(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = D_shelter_b4_water_supply_80182638;
     for (; e->end != -1; e++) {
         w->dx = e->width / 16;
@@ -742,8 +742,6 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     GpCoord*                     ctlCoords;
     GpCoord*                     part;
     GpCoord                      surface;
-    MATRIX*                      mtx;
-    GpCoord*                     view;
     s32                          i;
     u32                          rnd;
 
@@ -764,17 +762,15 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             D_shelter_b4_water_supply_801826E0[i].vz = part->workm.t[2];
         }
     } else if (Gp_State1C->eventState == 0 && gGameSession->waterY < ctlCoords->coord.t[1]) {
-        view = &gGfxViewCoord;
-        i    = 0;
-        mtx  = &Gfx_ViewWorldMtx;
+        i = 0;
         for (; i < 2; i++) {
             part = &ctl->extra.tmd->coords[14 + i * 3];
             Gp_UpdateCoord(part);
             splash->strength = ABS(D_shelter_b4_water_supply_801826E0[i].vx - part->workm.t[0]) +
                                ABS(D_shelter_b4_water_supply_801826E0[i].vy - part->workm.t[1]) +
                                ABS(D_shelter_b4_water_supply_801826E0[i].vz - part->workm.t[2]) + 0x20;
-            Gp_WorldToLocal(mtx, &part->workm, &surface.coord);
-            surface.sub        = view;
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
+            surface.sub        = &gGfxViewCoord;
             surface.coord.t[1] = gGameSession->waterY;
             surface.flg        = 0;
             Gp_UpdateCoord(&surface);
@@ -1270,8 +1266,8 @@ void func_shelter_b4_water_supply_80180260(SVECTOR* arg0, s32 arg1, s32 arg2)
         block    = (RoomDraw11Scratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
@@ -2022,7 +2018,7 @@ void func_shelter_b4_water_supply_8018226C(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

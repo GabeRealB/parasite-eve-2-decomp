@@ -1578,7 +1578,7 @@ void func_mine_refuge_8017FFBC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4` sprite
 /// centred on the projected point (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`).
 /// `arg1` also picks the 40-texel-wide texture column `(s16)arg1 * 40`, rows
@@ -1674,7 +1674,7 @@ void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
 /// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
 /// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
@@ -1770,7 +1770,7 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues a glow of gouraud `POLY_G4` wedges
 /// around the projected centre: an eight-wedge disc of radius
 /// `(s16)arg2 * 64 / otz`, each wedge paired with a half-radius copy, then four
@@ -1905,7 +1905,7 @@ void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-/// Projects the world-space point `arg0` through `Gfx_ViewWorldMtx` and, when
+/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues three concentric rings of eight
 /// gouraud `POLY_G4` wedges around the projected centre. The first ring's
 /// radius is `(s16)arg1 * 64 / otz`; each later ring doubles it and halves the

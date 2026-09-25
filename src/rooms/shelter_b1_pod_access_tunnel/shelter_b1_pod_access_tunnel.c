@@ -655,7 +655,7 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
 }
 
 /// Draws a gouraud band between the two points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`: a half-disc fan at each end and a
+/// projected through `gGfxViewCoord.workm`: a half-disc fan at each end and a
 /// quad strip joining them, three `POLY_G4`s per 0x400 step of the screen
 /// angle between the two centres. `arg1` scales the radii by depth. The lit
 /// vertices take the colour packed 4 bits per channel in `arg2`, with the

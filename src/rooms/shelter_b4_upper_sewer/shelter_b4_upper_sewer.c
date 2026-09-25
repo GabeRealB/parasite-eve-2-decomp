@@ -990,7 +990,7 @@ void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
 }
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
-/// projected through `Gfx_ViewWorldMtx`; nothing is drawn unless both project.
+/// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
 /// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads bright at the centre line and
 /// black at the rim, in two 0x400 steps around the angle between the projected
@@ -1731,7 +1731,7 @@ void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space
-/// through `Gfx_ViewWorldMtx` and moved to the coordinate's position, then
+/// through `gGfxViewCoord.workm` and moved to the coordinate's position, then
 /// projected through `GsWSMATRIX`. Queues one semi-transparent textured quad
 /// (tpage 0x28, clut 0x428C) tinted (0x30, 0x20, 0x20), alternating between two
 /// texture frames on odd and even frames, unless the projection flags an error.
@@ -3239,7 +3239,7 @@ void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
 }
 
 /// Draws a flat mark: a quad of half-size `arg1` laid flat in view space
-/// through `Gfx_ViewWorldMtx` and moved to the coordinate's position, then
+/// through `gGfxViewCoord.workm` and moved to the coordinate's position, then
 /// projected through `GsWSMATRIX`. Queues one semi-transparent textured quad
 /// (tpage 0x28, clut 0x428C) tinted (0x30, 0x20, 0x20), alternating between two
 /// texture frames on odd and even frames, unless the projection flags an error.
