@@ -1,5 +1,11 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+#include <psyq/inline_c.h>
+#include "gte.h"
+
 #include "actors/actor_260400.h"
 
 #include "gameplay/1BC.h"
@@ -26,6 +32,36 @@ extern s32      D_actor_260400_8014D610;
 extern u8       D_actor_260400_80154BE8[];
 extern TaskDesc D_actor_260400_80154C18[];
 extern u8       D_actor_260400_80154C30[];
+
+extern u8 D_80072729;
+
+/// Steps the task's model `amount` units along its facing (the coordinate
+/// matrix's z column, normalised and scaled on the GTE), using a scratch-pad
+/// vector; skipped while `D_80072729` is 1.
+static __inline__ void Actor260400_MoveForward(Task* task, s16 amount)
+{
+    GsCOORDINATE2* coord;
+    SVECTOR*       head;
+    SVECTOR*       vec;
+
+    coord = ((TmdObject*)task->extra)->coords;
+    if (D_80072729 != 1) {
+        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
+        vec                        = head - 1;
+        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        Gfx_MatrixCol2(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12();
+        gte_stsv(vec);
+        coord->coord.t[0]          += head[-1].vx;
+        coord->coord.t[1]          += vec->vy;
+        coord->coord.t[2]          += vec->vz;
+        coord->flg                  = 0;
+        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+    }
+}
 
 void func_actor_260400_80149E38(void)
 {
@@ -158,4 +194,50 @@ void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400", func_actor_260400_8014A200);
+/// Per-frame update: reset modes 1 and 2 run their one-shot reseed (blended or
+/// plain) and switch to mode 3. In mode 3 the walking animations 2, 0xE and 0xF
+/// step the model forward while `field_4EA` counts down, by a distance the
+/// approach mode in `D_actor_260400_80154C78` picks, and blend into animation
+/// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
+/// while `field_4EC` counts down. Mode 3 then ticks the animation.
+void func_actor_260400_8014A200(Task* task)
+{
+    GsCOORDINATE2*   coord = ((TmdObject*)task->extra)->coords;
+    Actor260400Work* work  = (Actor260400Work*)task->work;
+
+    if (D_actor_260400_80154C70->field_4B4 == 1) {
+        func_actor_260400_8014A888();
+        D_actor_260400_80154C70->field_4B4 = 3;
+    } else if (D_actor_260400_80154C70->field_4B4 == 2) {
+        func_actor_260400_8014A7F8();
+        D_actor_260400_80154C70->field_4B4 = 3;
+    } else if (D_actor_260400_80154C70->field_4B4 == 3) {
+        if (work->field_4B8 == 0xE || work->field_4B8 == 2 || work->field_4B8 == 0xF) {
+            if (work->field_4EA != 0) {
+                switch (D_actor_260400_80154C78) {
+                    case 0:
+                        Actor260400_MoveForward(task, 0x3C);
+                        break;
+                    case 1:
+                        Actor260400_MoveForward(task, -0xF);
+                        break;
+                    case 2:
+                        Actor260400_MoveForward(task, 0x19);
+                        break;
+                }
+                if (--work->field_4EA == 0) {
+                    work->field_4B4         = 1;
+                    D_actor_260400_80154BE4 = 10;
+                    work->field_4B8         = 0xD;
+                }
+            }
+        }
+        if (work->field_4B8 == 3 && work->field_4EC != 0) {
+            work->yaw += 0x33;
+            Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+            coord->flg = 0;
+            work->field_4EC--;
+        }
+        func_actor_260400_8014A7AC();
+    }
+}

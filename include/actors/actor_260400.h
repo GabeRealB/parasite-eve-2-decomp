@@ -78,6 +78,11 @@ extern s16 D_actor_260400_80154BE4;
 /// steps it and `func_actor_260400_8014A908` hands it the reseed.
 extern Task* D_actor_260400_80154C74;
 
+/// Approach mode the last `func_actor_260400_8014AB50` call selected; the
+/// update picks its walk distance from it. It is the image's trailing halfword,
+/// which the split covers as padding, so it has no symbol-file declaration.
+extern s16 D_actor_260400_80154C78;
+
 void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task);
 void func_actor_260400_8014A200(Task* task);
 void func_actor_260400_8014A550(Task* task);
@@ -86,6 +91,7 @@ void func_actor_260400_8014A630(Task* task);
 void func_actor_260400_8014A66C(Task* task);
 void func_actor_260400_8014A7AC(void);
 void func_actor_260400_8014A7F8(void);
+void func_actor_260400_8014A888(void);
 s32  func_actor_260400_8014A908(Task* task, s32 arg1, Actor260400AnimPreset* preset);
 s32  func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg);
 

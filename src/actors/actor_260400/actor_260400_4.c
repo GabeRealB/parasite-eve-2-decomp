@@ -4,7 +4,25 @@
 #include "gameplay/268.h"
 #include "main/tmd.h"
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_4", func_actor_260400_8014A888);
+/// `func_800B4114` is declared locally with a signed `arg2`; see the note in
+/// `include/gameplay/1BC.h`.
+void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
+/// Blended reseed: reseeds animation slots 1..0x13 of the work block from the
+/// current animation id with the latched reset argument
+/// `D_actor_260400_80154BE4`, and records that id as the one now playing.
+void func_actor_260400_8014A888(void)
+{
+    s32 i;
+
+    i = 1;
+    do {
+        func_800B4114(&D_actor_260400_80154C70->anim, i, D_actor_260400_80154C70->field_4B8, 0,
+                      D_actor_260400_80154BE4);
+        i++;
+    } while (i < 0x14);
+    D_actor_260400_80154C70->field_4B6 = D_actor_260400_80154C70->field_4B8;
+}
 
 /// Play-animation message handler: adopts the preset's animation id when it is
 /// one of the first 0x10, latching the reset mode -- 1 for the blended

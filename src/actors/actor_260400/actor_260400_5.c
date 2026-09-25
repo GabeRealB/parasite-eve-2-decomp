@@ -1,7 +1,10 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "actors/actor_260400.h"
 #include "gameplay/268.h"
+#include "main/gfx.h"
 #include "main/tmd.h"
 
 /// Message handler: the payload's halfword at 0x2 selects one of three
@@ -35,4 +38,43 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, Actor260400Msg* msg)
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_260400/actor_260400_5", func_actor_260400_8014AB50);
+/// Approach message handler: turns the model to face `target` -- away from it
+/// in mode 1 -- keeps the approach mode in `D_actor_260400_80154C78`, and
+/// stores the per-step distance of the walk the update then performs: the
+/// planar distance over 60 steps in mode 0, 15 in mode 1 and 25 otherwise.
+s32 func_actor_260400_8014AB50(Task* task, s32 arg1, VECTOR* target, s32 mode)
+{
+    GsCOORDINATE2*   coord;
+    Actor260400Work* work;
+    s32              dx;
+    s32              dz;
+    s32              steps;
+    s32              dist;
+    s32              angle;
+
+    coord                   = ((TmdObject*)task->extra)->coords;
+    work                    = (Actor260400Work*)task->work;
+    D_actor_260400_80154C78 = mode;
+    dx                      = target->vx - coord->coord.t[0];
+    dz                      = target->vz - coord->coord.t[2];
+    angle                   = ratan2(dx, dz);
+    work->yaw               = angle;
+    if (D_actor_260400_80154C78 == 1) {
+        work->yaw = angle + 0x800;
+    }
+    Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+    dist  = SquareRoot0(dx * dx + dz * dz);
+    steps = 0x19;
+    switch (D_actor_260400_80154C78) {
+        case 0:
+            steps = 0x3C;
+            break;
+        case 1:
+            steps = 0xF;
+            break;
+        case 2:
+            break;
+    }
+    work->field_4EA = dist / steps;
+    return 0;
+}
