@@ -187,4 +187,12 @@ typedef struct RoomWaterSurface {
 } RoomWaterSurface;
 STATIC_ASSERT_SIZEOF(RoomWaterSurface, 0xC);
 
+/// The spawn argument of a room model task whose visibility follows a 2-bit
+/// game flag: the task hides its model while the flag `flagId` names reads 2.
+/// Nothing else of the record is read.
+typedef struct RoomFlagModelArg {
+    u8 unk0[8];
+    u8 flagId;
+} RoomFlagModelArg;
+
 #endif /* ROOMS_ROOM_H */

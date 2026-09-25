@@ -24,13 +24,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// Spawn argument of a model task whose visibility follows a 2-bit game flag;
-/// `flagId` selects the flag.
-typedef struct {
-    u8 unk0[8];
-    u8 flagId;
-} _SpawnArg;
-
 extern s32 func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern s16 D_80071076;
@@ -78,7 +71,7 @@ void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
 {
     TmdObject* obj = task->extra;
 
-    if (Gp_GetCurBit2Flag(((_SpawnArg*)task->spawnArg2)->flagId) == 2) {
+    if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2)->flagId) == 2) {
         obj->flags |= 0x80;
     } else {
         obj->flags &= ~0x80;

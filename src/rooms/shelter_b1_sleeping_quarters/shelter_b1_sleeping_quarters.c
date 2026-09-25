@@ -7,14 +7,8 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "rooms/room.h"
 #include "rooms/room_common.h"
-
-/// Spawn argument of a model task whose visibility follows a 2-bit game flag;
-/// `flagId` selects the flag.
-typedef struct {
-    u8 unk0[8];
-    u8 flagId;
-} _SpawnArg;
 
 extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
@@ -28,7 +22,7 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
     TmdObject* obj = task->extra;
 
-    if (Gp_GetCurBit2Flag(((_SpawnArg*)task->spawnArg2)->flagId) == 2) {
+    if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2)->flagId) == 2) {
         obj->flags |= 0x80;
     } else {
         obj->flags &= ~0x80;
