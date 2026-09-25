@@ -1,10 +1,16 @@
 #include "common.h"
 
-#include "actors/actors_shared_8013845c_sub0.h"
+#include "actors/actor_143000.h"
 
+#include "main/task.h"
 #include "rooms/room_common.h"
 
-void ActorsShared8013845cSub0(Task* task)
+/// State 0 of the action-prompt task: resets both prompt slots before the
+/// first cursor frame -- clears the position accumulators and the two
+/// buttons' held-frame counters, parks the target id (the cursor speed) at
+/// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
+/// highlighted -- and steps the task on one state.
+void func_actor_143000_80133C90(Task* task)
 {
     RoomActionPrompt* prompt = &D_80114D28;
     s32               i;

@@ -5,11 +5,15 @@
 
 #include "main/task.h"
 
+/// Work block of the actor's callback task. `promptKind` is the picked hotspot's
+/// prompt display mode, copied from its `Actor143000Rect::field_A` by
+/// `func_actor_143000_801325F0` and handed to `func_800D4E78` when
+/// `func_actor_143000_80133698` re-spawns the prompt.
 typedef struct Actor143000Work {
     /* 0x00 */ byte pad_0[2];
     /* 0x02 */ u16  field_2;
     /* 0x04 */ s16  field_4;
-    /* 0x06 */ u8   field_6;
+    /* 0x06 */ s8   promptKind;
     /* 0x07 */ s8   field_7;
     /* 0x08 */ s16  field_8;
     /* 0x0A */ s16  field_A;
@@ -81,5 +85,11 @@ void func_actor_143000_80133C2C(void);
 void func_actor_143000_80133CF0(Task* arg0);
 void func_actor_143000_80133334(Actor143000Rect* arg0, u8 r, u8 g, u8 b);
 void func_actor_143000_80133EE4(Task* arg0);
+
+/// State 1 of the action-prompt task: the per-frame cursor driver.
+void func_actor_143000_80131F80(Task* task);
+
+/// State 0 of the action-prompt task: resets both prompt slots.
+void func_actor_143000_80133C90(Task* task);
 
 #endif

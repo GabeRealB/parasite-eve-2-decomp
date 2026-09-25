@@ -39,8 +39,8 @@ extern char             D_actor_143000_80135C20[];
 extern u8               D_actor_143000_80135C38[];
 void                    func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
 
-/// Per-frame cursor driver of the security-room action prompt, run as state 1
-/// of the prompt task. The Acropolis security room carries the same body, twice.
+/// Per-frame cursor driver of the action prompt, run as state 1 of the prompt
+/// task that `func_actor_143000_80133578` dispatches.
 ///
 /// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
 /// 2 port 1 only, anything else both. For each port it integrates the analog
@@ -57,7 +57,7 @@ void                    func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
 /// `step` carries the analog delta first and the d-pad heading afterwards, and
 /// `idx` indexes the button slots in `u16` units so that `i` survives as the
 /// loop counter.
-void ActorsShared8013845cSub1(Task* task)
+void func_actor_143000_80131F80(Task* task)
 {
     RoomActionPrompt* prompt;
     PadState*         pad;
@@ -283,7 +283,7 @@ void func_actor_143000_801325F0(Actor143000* arg0)
                     prompt->mode     = 0;
                     prompt->targetId = 0;
                     work->field_2    = p->field_8;
-                    work->field_6    = p->field_A;
+                    work->promptKind = p->field_A;
                     arg0->field_30   = 3;
                     return;
                 }
