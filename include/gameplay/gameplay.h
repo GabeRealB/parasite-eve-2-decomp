@@ -192,7 +192,7 @@ typedef struct _GpStateC08 {
     /* 0x12 */ s16  field_12;
     /* 0x14 */ s16  field_14;
     /* 0x16 */ s8   field_16;
-    /* 0x17 */ u8   field_17;
+    /* 0x17 */ s8   field_17;
 } GpStateC08;
 STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
 

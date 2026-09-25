@@ -4754,134 +4754,77 @@ void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     }
 }
 
-s32 Gp_CheckAttachThreshold(s32 arg0)
+/// Inline copy of `Gp_GetAttachLevel`.
+static __inline__ s32 getAttachLevel(s32 idx)
 {
-    PlayerStatus*     cfg;
-    PlayerStatus*     p;
-    register s32      result asm("t0");
-    register s32      ret asm("v1");
-    s32               n;
-    register GpRec16* recs asm("v1");
-    register s32      off asm("v0");
-    GpStateF0*        state;
-    GpStateC08*       c08;
-    u8*               table;
-    s32               cond;
-    s32               flag;
-    u16               val;
+    PlayerStatus* p;
+    u8*           table;
+    s32           cond;
+    s32           lvl;
 
-    cfg    = &Player_Status;
-    result = 0;
-    if (arg0 >= 0xC) {
-        ret = 1;
+    if (idx >= 0xC) {
+        lvl = 1;
     } else {
-        p = cfg;
+        p = &Player_Status;
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = cfg->field_26 == 4;
+            cond = p->field_26 == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
-        ret = table[arg0];
-        if (ret == 0) {
-            ret = 1;
+        lvl = table[idx];
+        if (lvl == 0) {
+            lvl = 1;
         }
-        if (p->peStateFlags & 0x80) {
-            if (ret < 3) {
-                ret++;
-            }
+        if ((p->peStateFlags & 0x80) && lvl < 3) {
+            lvl++;
         }
     }
-    n = ret;
+    return lvl;
+}
 
-    state = &Gp_StateF0;
-    if ((Gp_StateF0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
-        flag = 1;
-    } else {
-        flag = 0;
+/// Inline copy of `Gp_IsStateF0Active`.
+static __inline__ s32 isStateF0Active_(void)
+{
+    GpStateF0* p;
+
+    p = &Gp_StateF0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        return 1;
     }
+    return 0;
+}
 
-    if (flag == 0) {
-        recs = Gp_IdParamHi;
-        off  = (arg0 * 3 + n) * 16;
-        TOUCH_REG(off);
-        off += 4;
-        TOUCH_REG(off);
-        off += (s32)recs;
-        val  = *(u16*)off;
-        if (cfg->mp < val) {
-            result = 1;
-        } else if (arg0 != 7) {
-            result = 1;
-        } else if (cfg->hpMax == cfg->hp) {
+/// Reads column `field` of the `Gp_IdParamHi` row that attach `idx` uses at
+/// level `lvl`.
+static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
+{
+    return Gp_IdParamHi[idx * 3 + lvl].field[field];
+}
+
+s32 Gp_CheckAttachThreshold(s32 arg0)
+{
+    PlayerStatus* cfg;
+    s32           result;
+    s32           n;
+
+    cfg    = &Player_Status;
+    result = 0;
+    n      = getAttachLevel(arg0);
+
+    if (!isStateF0Active_()) {
+        if (cfg->mp < _gpAttachParam(arg0, n, 2) || arg0 != 7 || cfg->hpMax == cfg->hp) {
             result = 1;
         }
     } else if (arg0 < 0xC) {
-        if (cfg->peStateFlags & 0x10) {
+        if ((cfg->peStateFlags & 0x10) || (!(cfg->peStateFlags & 0x80) && cfg->mp < _gpAttachParam(arg0, n, 2) && Mc_SaveData.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && Mc_SaveData.cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->peStateFlags & 0x80) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
             result = 1;
-        } else {
-            if (!(cfg->peStateFlags & 0x80)) {
-                recs = Gp_IdParamHi;
-                off  = (arg0 * 3 + n) * 16;
-                TOUCH_REG(off);
-                off += 4;
-                TOUCH_REG(off);
-                off += (s32)recs;
-                val  = *(u16*)off;
-                if (cfg->mp < val) {
-                    if (Mc_SaveData.cheatMode == 0) {
-                        result = 1;
-                        goto done;
-                    }
-                }
-            }
-            if (arg0 == 6) {
-                c08 = &Gp_StateC08;
-                if (c08->field_16 != 0) {
-                    if ((s8)c08->field_17 != 0) {
-                        result = 1;
-                        goto done;
-                    }
-                }
-            }
-            if (arg0 == 7) {
-                if (cfg->hpMax == cfg->hp) {
-                    if (Mc_SaveData.cheatMode == 0) {
-                        result = 1;
-                        goto done;
-                    }
-                }
-            }
-            if (arg0 == 0xB) {
-                if (D_80115724 >= 3) {
-                    result = 1;
-                    goto done;
-                }
-            }
-            if (cfg->peStateFlags & 0x80) {
-                if (arg0 >= 6) {
-                    result = 1;
-                } else {
-                    recs = Gp_IdParamHi;
-                    off  = (arg0 * 3 + n) * 16;
-                    TOUCH_REG(off);
-                    off += 4;
-                    TOUCH_REG(off);
-                    off += (s32)recs;
-                    val  = *(u16*)off;
-                    if (val * 2 >= cfg->hp) {
-                        result = 1;
-                    }
-                }
-            }
         }
     }
-
-done:
     return result;
 }
 
@@ -5442,39 +5385,6 @@ static __inline__ u8* getAttachLevels(void)
     return Gp_DebugAttachLevels;
 }
 
-/// Inline copy of `Gp_GetAttachLevel`.
-static __inline__ s32 getAttachLevel(s32 idx)
-{
-    PlayerStatus* p;
-    u8*           table;
-    s32           cond;
-    s32           lvl;
-
-    if (idx >= 0xC) {
-        lvl = 1;
-    } else {
-        p = &Player_Status;
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
-            cond = 0;
-        } else {
-            cond = p->field_26 == 4;
-        }
-        if (cond == 0) {
-            table = Mc_SaveData.attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
-        }
-        lvl = table[idx];
-        if (lvl == 0) {
-            lvl = 1;
-        }
-        if ((p->peStateFlags & 0x80) && lvl < 3) {
-            lvl++;
-        }
-    }
-    return lvl;
-}
-
 /// Inline copy of `func_800A7E5C(0)`: the HUD category can be swapped only
 /// while the player actor is idle, no CD request is pending and the
 /// `Gp_ItemGrantCooldown` cooldown has expired.
@@ -5515,18 +5425,6 @@ static __inline__ s32 hudSwapReady(void)
     ret = 0;
 done:
     return ret;
-}
-
-/// Inline copy of `Gp_IsStateF0Active`.
-static __inline__ s32 isStateF0Active_(void)
-{
-    GpStateF0* p;
-
-    p = &Gp_StateF0;
-    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
-        return 1;
-    }
-    return 0;
 }
 
 /// Inline copy of `Gp_CdIdleIfF0Active`.
