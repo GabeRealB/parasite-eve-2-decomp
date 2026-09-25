@@ -17,8 +17,6 @@ typedef struct EnergyShotScale {
 STATIC_ASSERT_SIZEOF(EnergyShotScale, 8);
 
 extern EnergyShotScale D_energyshot_801300E4[];
-/// Splat-split last half of the third `D_energyshot_801300E4` row (`field_6` of
-/// index 2). State 1's `field_20 == 2` beam pass shifts this as a bare `u16`.
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 extern s32 D_energyshot_801300FC[];
 

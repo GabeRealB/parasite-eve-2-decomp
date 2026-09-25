@@ -1,0 +1,2 @@
+// Overlay-local symbols for energyshot.
+D_energyshot_801300E4 = 0x801300E4; // type:EnergyShotScale size:0x18
