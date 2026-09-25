@@ -8,6 +8,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/light.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -63,9 +64,6 @@ extern s8 D_8007218B;
 /// Sound emitter positions for the cavern's four ambient loops, indexed by the
 /// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
 extern SVECTOR D_mine_cavern_8018E39C[4];
-
-/// The shared light records in main BSS; the cavern owns one per emitter point.
-extern AhlpLight D_801150C0[];
 
 /// Parameters `func_mine_cavern_80181CAC` writes into a cavern light record.
 /// `D_mine_cavern_8018E368` is the base the LCG draw is added to.
@@ -1570,25 +1568,25 @@ void func_mine_cavern_80181864(void)
     }
 }
 
-/// Switches on the light record for cavern point `point`: fills it from the
-/// cavern's light parameters and the point's position in
-/// `D_mine_cavern_8018E39C`, with `field_5C` jittered by a draw from the shared
-/// LCG.
+/// Switches on transient light slot `4 + point` for cavern point `point`: fills
+/// it from the cavern's light parameters and the point's position in
+/// `D_mine_cavern_8018E39C`, with the outer radius jittered by a draw from the
+/// shared LCG.
 void func_mine_cavern_80181CAC(s16 point)
 {
-    AhlpLight*     light = &D_801150C0[point];
-    AhlpLightWork* work  = &light->work;
+    GpCoord64*    light = &Gp_RoomCoords[4 + point];
+    GpPointLight* work  = &light->data.light;
 
-    light->state        = 2;
-    work->field_58      = D_mine_cavern_8018E366;
-    work->field_5C      = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
-    work->field_50      = D_mine_cavern_8018E360;
-    work->field_52      = D_mine_cavern_8018E362;
-    work->field_54      = D_mine_cavern_8018E364;
-    work->x             = D_mine_cavern_8018E39C[point].vx;
-    work->y             = D_mine_cavern_8018E39C[point].vy;
-    work->z             = D_mine_cavern_8018E39C[point].vz;
-    light->work.field_0 = 0;
+    light->framesLeft          = 2;
+    work->inner                = D_mine_cavern_8018E366;
+    work->outer                = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
+    work->head.r               = D_mine_cavern_8018E360;
+    work->head.g               = D_mine_cavern_8018E362;
+    work->head.b               = D_mine_cavern_8018E364;
+    work->head.u.at.local.t[0] = D_mine_cavern_8018E39C[point].vx;
+    work->head.u.at.local.t[1] = D_mine_cavern_8018E39C[point].vy;
+    work->head.u.at.local.t[2] = D_mine_cavern_8018E39C[point].vz;
+    light->data.coord.flg      = 0;
 }
 
 /// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of

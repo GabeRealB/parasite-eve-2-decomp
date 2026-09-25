@@ -10,6 +10,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/light.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
@@ -66,7 +67,6 @@ extern s8        D_8007106B;
 extern s32       D_80070F70;
 extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
-extern AhlpLight D_80115188[2];
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
 
 void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
@@ -249,9 +249,9 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
     states[arg0->state](arg0);
 }
 
-/// Draws one helipad floodlight glow. Light `index` owns record `index & 1`
-/// of `D_80115188`; the light is skipped while `Gp_State1C->eventState` is
-/// non-zero (clearing the record's `state` once it reaches 4) and unless the
+/// Draws one helipad floodlight glow. Light `index` owns transient light slot
+/// `6 + (index & 1)`; the light is skipped while `Gp_State1C->eventState` is
+/// non-zero (switching the slot off once it reaches 4) and unless the
 /// current view's bit is set in the light's
 /// `D_acropolis_helicopter_landing_pad_80184EE0` mask. Otherwise `pos` is
 /// projected through `Gfx_ViewWorldMtx` into a `G_SCRATCH_HEAD` block and,
@@ -261,8 +261,8 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// and four inner-radius blades whose intensity is `level >> 1`.
 void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
-    AhlpLight*         light;
-    AhlpLightWork*     work;
+    GpCoord64*         light;
+    GpPointLight*      work;
     void**             scratch;
     u8*                head;
     RoomDraw05Scratch* blk;
@@ -276,11 +276,11 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
     s32                mask;
 
     lvl   = level;
-    light = &D_80115188[index & 1];
-    work  = &light->work;
+    light = &Gp_RoomCoords[6 + (index & 1)];
+    work  = &light->data.light;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
-            light->state = 0;
+            light->framesLeft = 0;
         }
     } else {
         mask = D_acropolis_helicopter_landing_pad_80184EE0[index] & (1 << ((Gp_GetViewIndex() & 0xFF) - 1));
@@ -299,18 +299,18 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
         gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
-            light->state        = 2;
-            work->field_58      = 0x640;
-            work->field_5C      = 0x3200;
-            work->field_50      = level * 16;
-            work->field_52      = 0;
-            work->field_54      = 0;
-            work->x             = pos->vx;
-            work->y             = pos->vy;
-            work->z             = pos->vz;
-            light->work.field_0 = 0;
-            blk->rOuter         = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-            blk->rInner         = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            light->framesLeft          = 2;
+            work->inner                = 0x640;
+            work->outer                = 0x3200;
+            work->head.r               = level * 16;
+            work->head.g               = 0;
+            work->head.b               = 0;
+            work->head.u.at.local.t[0] = pos->vx;
+            work->head.u.at.local.t[1] = pos->vy;
+            work->head.u.at.local.t[2] = pos->vz;
+            light->data.coord.flg      = 0;
+            blk->rOuter                = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            blk->rInner                = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
                 prim           = (POLY_G4*)gGpuPrimCursor;

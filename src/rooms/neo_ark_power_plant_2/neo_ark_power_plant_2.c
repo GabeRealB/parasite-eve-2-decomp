@@ -8,6 +8,7 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/3A34.h"
+#include "gameplay/light.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
@@ -23,13 +24,12 @@
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern u8        D_80071075;
-extern s8        D_8007272D;
-extern s8        D_80114C12;
-extern AhlpLight D_801150C0[];
-extern s32       D_8011572C;
-extern s32       D_80115750;
-extern s32       D_80115758;
+extern u8  D_80071075;
+extern s8  D_8007272D;
+extern s8  D_80114C12;
+extern s32 D_8011572C;
+extern s32 D_80115750;
+extern s32 D_80115758;
 
 extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
 extern s32            D_neo_ark_power_plant_2_801802A8;
@@ -167,9 +167,10 @@ void func_neo_ark_power_plant_2_8017D854(Task* task)
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 {
-    u32            rnd;
-    u16            intensity;
-    AhlpLightWork* work;
+    u32           rnd;
+    u16           intensity;
+    GpPointLight* work;
+    GpCoord64*    light;
 
     if (arg0->state == 0) {
         D_80115758  = 0x601DC;
@@ -192,20 +193,21 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
             }
             break;
         case 8:
-            D_801150C0[0].state        = 4;
-            work                       = &D_801150C0[0].work;
-            work->field_58             = 0x400;
-            work->field_5C             = 0x4000;
-            D_801150C0[0].work.field_0 = 0;
+            light                      = &Gp_RoomCoords[4];
+            light->framesLeft          = 4;
+            work                       = &light->data.light;
+            work->inner                = 0x400;
+            work->outer                = 0x4000;
+            light->data.coord.flg      = 0;
             rnd                        = Gp_LcgState * 5 + 0x71357911;
             Gp_LcgState                = rnd;
             intensity                  = ((rnd >> 16) & 0x700) + 0x800;
-            work->field_54             = intensity;
-            work->field_50             = intensity >> 1;
-            work->field_52             = intensity >> 1;
-            work->x                    = D_neo_ark_power_plant_2_80180668.vx;
-            work->y                    = D_neo_ark_power_plant_2_80180668.vy;
-            work->z                    = D_neo_ark_power_plant_2_80180668.vz;
+            work->head.b               = intensity;
+            work->head.r               = intensity >> 1;
+            work->head.g               = intensity >> 1;
+            work->head.u.at.local.t[0] = D_neo_ark_power_plant_2_80180668.vx;
+            work->head.u.at.local.t[1] = D_neo_ark_power_plant_2_80180668.vy;
+            work->head.u.at.local.t[2] = D_neo_ark_power_plant_2_80180668.vz;
             break;
     }
 }
