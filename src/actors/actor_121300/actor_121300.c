@@ -302,21 +302,21 @@ void func_actor_121300_80133064(Task* task)
                 }
                 break;
             case 1:
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 1);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 2);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 3);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 4);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 5);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 6);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 7);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 8);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 9);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 4, dispatch->spawnArg1, 0xA);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 5, dispatch->spawnArg1, 0xB);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 6, dispatch->spawnArg1, 0xC);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 7, dispatch->spawnArg1, 0xD);
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 8, dispatch->spawnArg1, 0xE);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 0);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 1);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 2);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 3);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 4);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 5);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 6);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 7);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 8);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 9);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 4, dispatch->spawnArg1, 0xA);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 5, dispatch->spawnArg1, 0xB);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 6, dispatch->spawnArg1, 0xC);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 7, dispatch->spawnArg1, 0xD);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 8, dispatch->spawnArg1, 0xE);
                 break;
             default:
                 return;

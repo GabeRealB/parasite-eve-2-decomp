@@ -196,15 +196,14 @@ void func_actor_121300_80133580(Task* arg0, s16 arg1)
     }
 }
 
-extern void     func_8017F334(s32 arg0);
-extern void     func_8017F340(u8 arg0, u8 arg1);
-extern TaskDesc ActorsShared80136280Desc;
-extern s16      D_actor_121300_8013D41C;
+extern void func_8017F334(s32 arg0);
+extern void func_8017F340(u8 arg0, u8 arg1);
+extern s16  D_actor_121300_8013D41C;
 
 /// Waypoint walker: while the current `Actor121300Work::field_49E` waypoint of
 /// `D_actor_121300_8013CC20` is live, counts three frames on it, then retunes
 /// the view through `func_8017F340`, bumps the value `func_8017F334` passes on
-/// and spawns the `ActorsShared80136280Desc[3]` child seeded with the new
+/// and spawns the `D_actor_121300_8013D390[3]` child seeded with the new
 /// waypoint index.
 void func_actor_121300_80133730(Task* arg0)
 {
@@ -226,7 +225,7 @@ void func_actor_121300_80133730(Task* arg0)
                         func_8017F340((u8)(work->field_4A6 - 1), 1);
                     }
                     func_8017F334(work->field_4A6 + 1);
-                    Task_SpawnFromTable(&ActorsShared80136280Desc, 3, work->field_4A6, 0);
+                    Task_SpawnFromTable(&D_actor_121300_8013D390, 3, work->field_4A6, 0);
                     work->field_4A4 = 0;
                     work->field_4A6 = (s16)((u16)work->field_4A6 + 1);
                 }
@@ -293,9 +292,9 @@ void func_actor_121300_80133854(Task* arg0)
         case 4:
             if ((u16)work->field_49A == 0) {
                 func_actor_121300_SetCC04(10);
-                work->field_47C = 0x3C;
-                work->field_47E = 0x100;
-                work->field_48C = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->field_47C);
+                work->wave.field_0 = 0x3C;
+                work->wave.field_2 = 0x100;
+                work->field_48C    = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
                 work->field_49A++;
             }
         case 3:
@@ -306,7 +305,7 @@ void func_actor_121300_80133854(Task* arg0)
             func_actor_121300_80133730(arg0);
             break;
         case 5:
-            work->field_480         = 2;
+            work->wave.field_4      = 2;
             queue->field_22A        = 0;
             D_actor_121300_8013D41C = 0;
             work->field_498         = 0;
@@ -344,17 +343,17 @@ void func_actor_121300_80133854(Task* arg0)
         case 10:
             switch ((u16)work->field_49A) {
                 case 0:
-                    work->field_47C = 8;
-                    work->field_47E = 0x100;
-                    work->field_48C = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->field_47C);
-                    work->field_49C = 0;
+                    work->wave.field_0 = 8;
+                    work->wave.field_2 = 0x100;
+                    work->field_48C    = Task_SpawnFromTable(&D_actor_121300_8013BBCC, 0, 0, (s32)&work->wave);
+                    work->field_49C    = 0;
                     work->field_49A++;
                     break;
                 case 1:
                     if (++work->field_49C >= 8) {
-                        work->field_480 = 1;
-                        work->field_47C = 8;
-                        work->field_498 = 0;
+                        work->wave.field_4 = 1;
+                        work->wave.field_0 = 8;
+                        work->field_498    = 0;
                     }
                     break;
             }
@@ -461,7 +460,7 @@ void func_actor_121300_80133854(Task* arg0);
 /// message 0x3E8 record is `D_80073BA9` plus 1 in the alternate weapon block
 /// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
 /// zero.  State 1 hands the cutscene's two script blocks to `func_800E8634`,
-/// state 2 spawns the `ActorsShared80136280Desc[9]` child while the session is
+/// state 2 spawns the `D_actor_121300_8013D390[9]` child while the session is
 /// still down, and state 3 blanks the display, marks save slot 9 / the state
 /// and re-arms the first tick before killing the task.
 ///
@@ -501,7 +500,7 @@ void func_actor_121300_80133D98(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_SpawnFromTable(&ActorsShared80136280Desc, 9, 0, 0);
+                Task_SpawnFromTable(&D_actor_121300_8013D390, 9, 0, 0);
                 arg0->state += 1;
             }
             break;
