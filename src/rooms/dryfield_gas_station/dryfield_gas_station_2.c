@@ -125,13 +125,13 @@ L_case5:
 /// `Task::spawnArg1`, killing itself once red has gone negative.
 void func_dryfield_gas_station_801801E4(Task* arg0)
 {
-    RoomFadeWork* fade;
-    RoomFadeWork* alloc;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
 
-    fade = (RoomFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

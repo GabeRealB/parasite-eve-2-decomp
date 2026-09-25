@@ -736,16 +736,16 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
 /// -- 1, 6 and up -- only draws the fade.
 void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
 {
-    RoomFadeWork*           work;
-    RoomFadeWork*           alloc;
+    OverlayFadeWork*        work;
+    OverlayFadeWork*        alloc;
     GarbageIncineratorWork* parent;
     TILE*                   tile;
     DR_TPAGE*               dr;
 
-    work = (RoomFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

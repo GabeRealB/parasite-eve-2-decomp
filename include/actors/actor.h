@@ -16,6 +16,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+#include "overlay.h"
 #include "rooms/rooms_shared_80182078.h"
 
 /*
@@ -1591,21 +1592,6 @@ typedef struct ActorWaveCtx {
     u8  field_B;
 } ActorWaveCtx;
 STATIC_ASSERT_SIZEOF(ActorWaveCtx, 0xC);
-
-/* Task work blocks. */
-
-/// Work block of the full-screen fade tasks, allocated eight bytes at a time
-/// and kept at `Task::work`: the three colour channels the fade overlay is
-/// drawn with, stepped toward black or clear by the task's rate each frame.
-/// The channels are signed, since a fade-in ends when a channel goes
-/// negative. The leading halfword is never touched.
-typedef struct ActorFadeWork {
-    byte pad_0[0x2];
-    s16  r;
-    s16  g;
-    s16  b;
-} ActorFadeWork;
-STATIC_ASSERT_SIZEOF(ActorFadeWork, 0x8);
 
 /* Helpers.
  *

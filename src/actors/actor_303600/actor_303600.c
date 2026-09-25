@@ -292,13 +292,13 @@ void func_actor_303600_8016216C(Task* arg0)
 /// below zero clears `D_actor_303600_8016E4C4` before killing the task.
 void func_actor_303600_801622E8(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -332,13 +332,13 @@ void func_actor_303600_801622E8(Task* arg0)
 /// 0xFF down past zero, is `func_actor_303600_801622E8`.
 void func_actor_303600_801623CC(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

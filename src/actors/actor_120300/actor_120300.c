@@ -1319,13 +1319,13 @@ void func_actor_120300_801337C4(Task* arg0)
 /// `r` reaches 0x100 the task kills itself.
 void func_actor_120300_80133B5C(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

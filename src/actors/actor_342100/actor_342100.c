@@ -312,63 +312,63 @@ void func_actor_342100_80161E70(Task* arg0)
 ///
 /// State 0 allocates the ramp, zeroes the three channels and parks the
 /// message record `D_actor_342100_801648F8` in `Task::msgTable`. States 2 and
-/// 3 step `field_2` -- the first by 0xA up to 0x50, the second by 1 up to
+/// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
-/// two ramps run back to back. State 4 steps `field_4` / `field_6` by 8; once
-/// `field_4` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
+/// two ramps run back to back. State 4 steps `g` / `b` by 8; once
+/// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
 /// filled white, the parent work block's wave ramp is sent to state 2, and state 5
 /// draws the full-screen white `TILE` + `DR_TPAGE` packed into
 /// `gGpuPrimCursor` before returning without the fade call. Every other state
 /// -- 1, 6 and up -- only draws the fade.
 void func_actor_342100_80162748(Task* arg0)
 {
-    Actor342100FadeWork* work;
-    Actor342100FadeWork* alloc;
-    Actor342100Work*     parent;
-    TILE*                tile;
-    DR_TPAGE*            dr;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
+    Actor342100Work* parent;
+    TILE*            tile;
+    DR_TPAGE*        dr;
 
-    work = (Actor342100FadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (Actor342100FadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
             }
             work           = alloc;
-            work->field_6  = 0;
-            work->field_4  = 0;
-            work->field_2  = 0;
+            work->b        = 0;
+            work->g        = 0;
+            work->r        = 0;
             arg0->msgTable = &D_actor_342100_801648F8;
             arg0->state   += 1;
             break;
         case 2:
-            work->field_2 += 0xA;
-            if ((s16)work->field_2 >= 0x51) {
-                work->field_2 = 0x50;
-                arg0->state   = 1;
+            work->r += 0xA;
+            if ((s16)work->r >= 0x51) {
+                work->r     = 0x50;
+                arg0->state = 1;
             }
             break;
         case 3:
-            work->field_2 += 1;
-            if ((s16)work->field_2 >= 0x100) {
-                work->field_2 = 0xFF;
-                arg0->state   = 1;
+            work->r += 1;
+            if ((s16)work->r >= 0x100) {
+                work->r     = 0xFF;
+                arg0->state = 1;
             }
             break;
         case 4:
-            work->field_4 += 8;
-            work->field_6 += 8;
-            if ((s16)work->field_4 >= 0x100) {
+            work->g += 8;
+            work->b += 8;
+            if ((s16)work->g >= 0x100) {
                 parent           = (Actor342100Work*)((Task*)arg0->spawnArg2)->work;
                 parent->field_24 = 2;
                 Display_SetMode(0xD010);
                 Mem_Set(Fs_ImgBuffers, 0xFF, 0x25800);
-                work->field_6 = 0xFF;
-                work->field_4 = 0xFF;
-                arg0->state   = 5;
+                work->b     = 0xFF;
+                work->g     = 0xFF;
+                arg0->state = 5;
             }
             break;
         case 5:
@@ -392,7 +392,7 @@ void func_actor_342100_80162748(Task* arg0)
             addPrim(gGpuCurrentOt - 16, dr);
             return;
     }
-    Fade_DrawOverlay((u8)work->field_2, (u8)work->field_4, (u8)work->field_6, 1);
+    Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->b, 1);
 }
 
 /// Advance the encounter's animation one step: the work block's `field_2C` is

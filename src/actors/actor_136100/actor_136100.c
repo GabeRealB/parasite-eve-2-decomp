@@ -1242,13 +1242,13 @@ void func_actor_136100_80133BC8(Task* arg0)
 /// `spawnArg1`, killing itself once `r` has gone negative.
 void func_actor_136100_801344AC(Task* arg0)
 {
-    ActorFadeWork* fade;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
 
-    fade = (ActorFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1280,13 +1280,13 @@ void func_actor_136100_801344AC(Task* arg0)
 /// kill itself immediately instead (the cutscene wants the display back).
 void func_actor_136100_80134588(Task* arg0)
 {
-    ActorFadeWork* fade;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
 
-    fade = (ActorFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

@@ -462,13 +462,13 @@ done_4C8:
 /// Once `r` has gone negative the screen is clear and the task kills itself.
 void func_actor_120500_80132708(Task* arg0)
 {
-    ActorFadeWork* fade;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
 
-    fade = (ActorFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -502,13 +502,13 @@ void func_actor_120500_80132708(Task* arg0)
 /// `r` reaches 0x100 the screen is black and the task kills itself.
 void func_actor_120500_801327E4(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

@@ -7,6 +7,7 @@
 
 #include "gameplay/message.h"
 #include "main/task.h"
+#include "overlay.h"
 
 /// A scripted event a room starts in answer to a message. The room's message
 /// handler builds the record, and if the event has not happened yet it copies
@@ -21,18 +22,6 @@ typedef struct RoomLatchedEvent {
     u8  fade;     // Non-zero starts the fade task (bank 1, type 0x31) over 30 frames once the capture has finished
 } RoomLatchedEvent;
 STATIC_ASSERT_SIZEOF(RoomLatchedEvent, 0xC);
-
-/// The colour ramp of a room's screen-fade task: an 8-byte block the task
-/// allocates for itself and keeps at `Task::work`. The task steps the three
-/// channels together every frame, up to fade out or down to fade in, and
-/// draws them as a full-screen overlay; its end test watches `r`.
-typedef struct RoomFadeWork {
-    byte pad_0[0x2];
-    s16  r;
-    s16  g;
-    s16  b;
-} RoomFadeWork;
-STATIC_ASSERT_SIZEOF(RoomFadeWork, 0x8);
 
 /// What a room's cutscene runner plays: the record a room hands the runner
 /// task as `Task::spawnArg2`. The runner forces the scene's view into the save

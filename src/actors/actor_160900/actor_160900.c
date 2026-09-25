@@ -1301,13 +1301,13 @@ void func_actor_160900_8013418C(Task* arg0)
 
 void func_actor_160900_801343E4(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1334,13 +1334,13 @@ void func_actor_160900_801343E4(Task* arg0)
 }
 void func_actor_160900_801344D8(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

@@ -1316,19 +1316,19 @@ s16 func_shelter_b3_dumping_hole_8017FB70(void)
 
 void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
 {
-    RoomFadeWork*      fade;
-    RoomFadeWork*      alloc;
+    OverlayFadeWork*   fade;
+    OverlayFadeWork*   alloc;
     DumpingHoleEntity* ent;
 
     ent  = D_shelter_b3_dumping_hole_8018F4A8->work;
-    fade = (RoomFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     if (ent->field_4C == 1) {
         taskKill(arg0);
         return;
     }
     switch (arg0->state) {
         case 0:
-            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

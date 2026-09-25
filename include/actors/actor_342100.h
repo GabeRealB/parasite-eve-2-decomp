@@ -46,25 +46,6 @@ typedef struct Actor342100Work {
 } Actor342100Work;
 STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 
-/// Eight-byte block the overlay's fade task (`func_actor_342100_80162748`)
-/// allocates with `Mem_Malloc(8, 0)` and parks in its own `Task::work` slot
-/// (0x1C, not a `TaskIdMap` here), so reach it with
-/// `(Actor342100FadeWork*)task->work`.
-///
-/// The three halfwords are the channels `Fade_DrawOverlay` draws, read as
-/// bytes at that call and as halfwords by the state machine that ramps them:
-/// state 2 steps `field_2` by 0xA until it passes 0x50, state 3 by 1 until it
-/// passes 0xFF, and state 4 steps `field_4` / `field_6` by 8 until `field_4`
-/// passes 0xFF, at which point the screen is blanked and state 5 draws the
-/// white overlay. `pad_0` is never touched.
-typedef struct Actor342100FadeWork {
-    /* 0x0 */ byte pad_0[0x2];
-    /* 0x2 */ u16  field_2;
-    /* 0x4 */ u16  field_4;
-    /* 0x6 */ u16  field_6;
-} Actor342100FadeWork;
-STATIC_ASSERT_SIZEOF(Actor342100FadeWork, 0x8);
-
 /// The overlay's event/controller task, published by
 /// `func_actor_342100_801630A4`.
 extern Task* D_actor_342100_80164BB8;

@@ -99,7 +99,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimStep, 0x4);
 /// That function allocates it with `Mem_Malloc(0x4CC, 0)`, `Mem_Set`s the same
 /// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
 /// is the allocation, not a guess. It is a third work block in this overlay,
-/// distinct from `Actor560800Work` and `ActorFadeWork`.
+/// distinct from `Actor560800Work` and `OverlayFadeWork`.
 ///
 /// `anim` is the animation context the block itself is handed to
 /// `Gp_AnimResetSlot` as, laid out the way every actor carries it: the context
@@ -138,7 +138,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// Work block `func_actor_560800_801376E0` allocates with `Mem_Malloc(0x28C, 0)`
 /// and stores in its own `Task::work` (0x1C), so the size below is the
 /// allocation, not a guess. A fourth work block in this overlay, distinct from
-/// `Actor560800Work`, `Actor560800AnimWork` and `ActorFadeWork`, and the
+/// `Actor560800Work`, `Actor560800AnimWork` and `OverlayFadeWork`, and the
 /// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
 ///
 /// It opens with the animation context - the context at 0, its slots at +0x14 -
@@ -194,7 +194,7 @@ STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 /// `Mem_Malloc(0x4C, 0)`, `Mem_Set`s the same 0x4C bytes and stores it in that
 /// task's `Task::work` (0x1C), so the size below is the allocation, not a
 /// guess. A fifth work block in this overlay, distinct from `Actor560800Work`,
-/// `Actor560800AnimWork`, `Actor560800ModelWork` and `ActorFadeWork`.
+/// `Actor560800AnimWork`, `Actor560800ModelWork` and `OverlayFadeWork`.
 ///
 /// `parts` is the eight part tasks the same function spawns from
 /// `D_actor_560800_8017575C` (index 1, spawn arg `i + 1`) and parks one per
@@ -1955,13 +1955,13 @@ void func_actor_560800_80135F50(Task* arg0)
 
 void func_actor_560800_80135FA0(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
@@ -1989,13 +1989,13 @@ void func_actor_560800_80135FA0(Task* arg0)
 
 void func_actor_560800_80136094(Task* arg0)
 {
-    ActorFadeWork* work;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* work;
+    OverlayFadeWork* alloc;
 
-    work = (ActorFadeWork*)arg0->work;
+    work = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

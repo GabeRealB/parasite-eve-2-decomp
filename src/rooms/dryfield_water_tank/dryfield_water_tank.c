@@ -585,17 +585,17 @@ void func_dryfield_water_tank_8017E1B4(void)
 /// kills itself. The fade-out half is `func_dryfield_water_tank_8017E3C4`.
 void func_dryfield_water_tank_8017E220(Task* arg0)
 {
-    RoomFadeWork* fade;
-    RoomFadeWork* alloc;
-    u8            r;
-    u8            g;
-    TILE*         tile;
-    DR_TPAGE*     dr;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
+    u8               r;
+    u8               g;
+    TILE*            tile;
+    DR_TPAGE*        dr;
 
-    fade = (RoomFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (RoomFadeWork*)Mem_Malloc(8, 0);
+            alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 goto kill;

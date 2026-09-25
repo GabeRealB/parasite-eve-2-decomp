@@ -762,13 +762,13 @@ void func_actor_341900_80162EFC(Task* arg0)
 /// killing the task once `r` has gone negative.
 void func_actor_341900_80163148(Task* arg0)
 {
-    ActorFadeWork* fade;
-    ActorFadeWork* alloc;
+    OverlayFadeWork* fade;
+    OverlayFadeWork* alloc;
 
-    fade = (ActorFadeWork*)arg0->work;
+    fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (ActorFadeWork*)memCalloc(8, 0);
+            alloc      = (OverlayFadeWork*)memCalloc(8, 0);
             arg0->work = (TaskIdMap*)alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
