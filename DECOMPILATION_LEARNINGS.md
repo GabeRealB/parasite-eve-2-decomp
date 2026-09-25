@@ -140583,3 +140583,16 @@ temporaries (`coords`, `inv`) had to stay block-scoped. When a pin sits on the
 source of an add/copy, try the destination's scope first - sweeping which
 locals are shared between sibling blocks is cheap (16 builds for four locals
 here) and one combination matched outright.
+
+## A local holding a table element takes the table's element type (Gp_ScaleDamage)
+
+`Gp_ScaleDamage` reads a column number out of a `u16` table and uses it to index
+a second table. With the column held in an `s32` local, expand emits one
+`(set (reg:SI) (zero_extend:SI (mem:HI)))` and the following byte load's `%hi`
+is scheduled after the `lhu` into the address register that just died (`$v0`).
+Declared `u16`, the local is an `HImode` pseudo loaded by a plain move and
+widened at its use, and the target order appears: `lui $a0, %hi(...)` ahead of
+the `lhu`, then `lbu $a0, %lo(...)($a0)`. The seed had faked exactly that pair
+with two `asm` statements. The same function's `hp / 10` needed its `s16`
+operand copied into an `s32` local first, or the quotient is narrowed to a
+short (`sll 16; sra 15` instead of `sll 1`) - see the clamped-halfword entry.

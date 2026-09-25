@@ -6631,23 +6631,15 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
 
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 {
-    s32                ret;
-    s32                lo;
-    s32                extra;
-    s8                 rem;
-    u16*               scaleTbl;
-    s32                hp;
-    register GpDmgRow* table asm("a1");
-    register u16*      cols asm("a0");
-    s32                val;
-    s32                addr;
-    s32                scale;
-    s32                div;
-    register u32       mag asm("v0");
+    u32 ret;
+    s32 lo;
+    u32 val;
+    s32 extra;
+    s32 hp;
+    u16 col;
 
-    ret = 0;
     if ((arg0 & 0xFFFF0000) != 0x40000) {
-        return ret;
+        return 0;
     }
 
     lo = arg0 & 0xFFF;
@@ -6656,64 +6648,21 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     }
 
     if (arg3 == 0) {
-        register s32 col asm("v1");
-        s32          row;
-
         hp    = Player_Status.hp;
-        table = Gp_DmgRows;
-        cols  = D_80113F54;
-        addr  = (s32)&cols[hp / 10];
-        asm("lui %0, %%hi(Gp_StateF0 + 0x2B)" : "=r"(row) : "r"(addr));
-        col = *(u16*)addr;
-        asm("lbu %0, %%lo(Gp_StateF0 + 0x2B)(%1)" : "=r"(row) : "r"(row), "r"(col));
-        col <<= 1;
-        SCHED_BARRIER();
-        col  += row * 20;
-        col  += (s32)table;
+        col   = D_80113F54[hp / 10];
+        val   = Gp_DmgRows[Gp_StateF0.field_2B].field_A[col] << 8;
         extra = Gp_StateC08.field_C;
-        col   = ((GpDmgSlot*)col)->field_A;
-        val   = col << 8;
         if (extra != 0) {
-            scaleTbl = D_80113CFC;
-            div      = extra / 16;
-            col      = (div - 1) * 2;
-            rem      = extra % 16;
-            scale    = scaleTbl[col + rem];
-            col      = val * scale;
-            TOUCH_REG(col);
-            mag = 0x51EB851F;
-            asm volatile("multu %0, %1" : : "r"(col), "r"(mag));
-            asm volatile("mfhi %0" : "=r"(col));
-            val = (u32)col >> 5;
+            val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
         }
     } else {
-        s32 col;
-        s32 row;
-
-        hp    = Mc_SaveData.companionHp;
-        table = Gp_DmgRows;
-        cols  = D_80113F54;
-        addr  = (s32)&cols[hp / 10];
-        asm("lui %0, %%hi(Gp_StateF0 + 0x2B)" : "=r"(row) : "r"(addr));
-        col = *(u16*)addr;
-        asm("lbu %0, %%lo(Gp_StateF0 + 0x2B)(%1)" : "=r"(row) : "r"(row), "r"(col));
-        col <<= 1;
-        SCHED_BARRIER();
-        col  += row * 20;
-        col  += (s32)table;
-        scale = ((GpDmgSlot*)col)->field_0;
-        val   = scale << 8;
+        hp  = Mc_SaveData.companionHp;
+        col = D_80113F54[hp / 10];
+        val = Gp_DmgRows[Gp_StateF0.field_2B].field_0[col] << 8;
     }
 
-    {
-        register s32 hi asm("v1");
-        mag = 0x51EB851F;
-        asm volatile("multu %0, %1" : : "r"(val), "r"(mag));
-        asm volatile("mfhi %0" : "=r"(hi));
-        val = (u32)hi >> 5;
-        hi  = lo * val;
-        ret = (u32)hi >> 8;
-    }
+    val = val / 100;
+    ret = lo * val >> 8;
     if (ret == 0) {
         if (lo != 0) {
             ret = 1;

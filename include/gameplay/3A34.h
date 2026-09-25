@@ -153,23 +153,14 @@ typedef struct _GpRec16 {
 } GpRec16;
 STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 
-/// 20-byte damage-scale row at `Gp_DmgRows`. Indexed by `Gp_StateF0.field_2B`.
-/// `Gp_ScaleDamage` adds `D_80113F54[hp / 10] * 2` onto the row base and
-/// then loads `field_A` (arg3 == 0, player HP) or `field_0` (arg3 != 0,
-/// `Mc_SaveData.companionHp`).
+/// One damage-scale row of `Gp_DmgRows`, selected by `Gp_StateF0.field_2B`.
+/// Each half holds five columns picked through `D_80113F54` by HP / 10:
+/// `field_A` scales against the player's HP, `field_0` against the companion's.
 typedef struct _GpDmgRow {
     /* 0x00 */ u16 field_0[5];
     /* 0x0A */ u16 field_A[5];
 } GpDmgRow;
 STATIC_ASSERT_SIZEOF(GpDmgRow, 0x14);
-
-/// Overlay of one column inside a `GpDmgRow` (`col * 2` from the row base).
-typedef struct _GpDmgSlot {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 pad_2[4];
-    /* 0xA */ u16 field_A;
-} GpDmgSlot;
-STATIC_ASSERT_SIZEOF(GpDmgSlot, 0xC);
 
 /// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
 /// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
