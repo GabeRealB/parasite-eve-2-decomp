@@ -140967,3 +140967,26 @@ steering locals. The same function's `set_rot_matrix_dep`/`ldv0_dep` asm
 variants stood for the copy-then-GTE sequence living inside an inline helper:
 the helper's own stack local keeps the `addiu vN,sp,0x10` out of CSE's reach,
 so it lands after the volatile `ctc2`s.
+## `SOFT_USE_REG` repeated on a hoisted tag mask stands for a second `addPrim` the tails were cross-jumped from (func_actor_403600_80134398)
+
+A trail-drawing loop held `0xFF000000` in `$a2`, saved around the `rsin`/`rcos`
+calls, and the old C set it in a local before the loop with four
+`SOFT_USE_REG`s. Those uses only inflated `REG_N_REFS` past
+`CALLER_SAVE_PROFITABLE` (`4 * calls < refs`). m2c had rendered the OT link as
+one shared tail with a `goto` from the other draw branch; writing the link in
+*both* branches doubles the mask's real in-loop refs, and jump2 cross-jumps the
+two tails back into one. Three further knobs sat in the same loop:
+
+- The loop pass hoists the masks only while `threshold * savings * lifetime >=
+  insn_count`, and `threshold` drops by 3 per earlier move. Reading the display
+  state through a local `ds = &gDisplayState` (not the global) keeps its
+  `lui/addiu` out of the move list and out of the loop count, leaving the
+  budget for both masks.
+- psyq `addPrim` masks `getaddr`'s value twice (extract, then insert), so it
+  gives `0xFFFFFF` three refs per link where an explicit
+  `(tag & 0xFF000000) | (x & 0xFFFFFF)` gives two. The global-alloc order of
+  the mask against the trail pointer and a counter fixed one of each: `addPrim`
+  in one branch, the explicit form in the other.
+- A trail pointer whose init lands *after* the hoisted constants is a
+  strength-reduced giv: write `point = &work->trail[i]` inside the loop, not a
+  pointer initialised before it and stepped at the bottom.

@@ -805,6 +805,13 @@ block_6:
 }
 const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
+/// Links primitive `p` at the head of ordering-table entry `ot`, as `addPrim`
+/// does, but by masking the two tag words directly instead of through its
+/// bitfields.
+#define _ACTOR403600_LINK_PRIM(ot, p)                         \
+    ((p)->tag = ((p)->tag & 0xFF000000) | (*(ot) & 0xFFFFFF), \
+     *(ot)    = (*(ot) & 0xFF000000) | ((u32)(p) & 0xFFFFFF))
+
 void func_actor_403600_80134398(Task* arg0)
 {
     MATRIX*       gteValue1;
@@ -821,23 +828,17 @@ void func_actor_403600_80134398(Task* arg0)
     Task*         player;
     s32           sp24;
     s32           sp28;
-    DisplayState* sp30;
-    s32*          ot;
-    u32           otOffset;
-    s32           sp34;
-    DisplayState* var_a1_3;
+    DisplayState* ds;
     s16           temp_s0_6;
     s16           temp_v1_10;
     s16           temp_v1_11;
     s16           temp_v1_8;
     s16           temp_v1_9;
-    s32*          temp_v0_6;
     s32           temp_a0_4;
     s32           temp_v1_13;
     s32           temp_v1_6;
     s32           var_a0;
     GpCoord*      var_a1_2;
-    s32           var_a2;
     s32           var_fp;
     s32           var_s4;
     s32           temp_s0_3;
@@ -868,12 +869,10 @@ void func_actor_403600_80134398(Task* arg0)
     /* One local holds the owner's work block, then the steering pass count,
      * then the address of the primitive being written: all three share a
      * single register allocation. */
-    s32                        shared;
-    Task*                      owner;
-    Actor403600ProjectileWork* work;
-    GpCoord*                   coord;
-    /* Keep the raw scratch head separate until the branch-delay copy. */
-    register void*                temp_v0 asm("v0");
+    s32                           shared;
+    Task*                         owner;
+    Actor403600ProjectileWork*    work;
+    GpCoord*                      coord;
     Actor403600ProjectileScratch* scratch;
     Actor403600ProjectileWork*    newWork;
     SVECTOR*                      temp_v0_4;
@@ -881,10 +880,7 @@ void func_actor_403600_80134398(Task* arg0)
     SVECTOR*                      point;
 
     coord  = arg0->extra.tmd->coords;
-    var_fp = (s32)&sp10;
     sp10   = D_actor_403600_80131E24;
-    /* Order the vector copy and actor load without fencing the stack address. */
-    __asm__("" : "+m"(sp10) : : "memory");
     player = Gp_ActorSlots[0];
     if (player == NULL) {
         Task_CallExit(arg0);
@@ -894,15 +890,13 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    temp_v0            = SCRATCH_HEAD(void);
-    temp_v0           -= 0x54;
-    SCRATCH_HEAD(void) = temp_v0;
-    scratch            = temp_v0;
+    SCRATCH_PUSH(Actor403600ProjectileScratch);
+    scratch = SCRATCH_HEAD(Actor403600ProjectileScratch);
     if (arg0->state == 0) {
         newWork = memCalloc(0x15C, 0);
         if (newWork == NULL) {
             Task_CallExit(arg0);
-            SCRATCH_POP_BYTES(0x54);
+            SCRATCH_POP(Actor403600ProjectileScratch);
             return;
         }
         arg0->work          = newWork;
@@ -947,9 +941,9 @@ void func_actor_403600_80134398(Task* arg0)
             gte_stsv(temp_s1);
 
             if (arg0->spawnArg1 == 0x1100) {
-                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], (SVECTOR*)var_fp);
+                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[14], &sp10);
             } else {
-                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[18], (SVECTOR*)var_fp);
+                Gp_CopyCoordOffset(arg0, &owner->extra.tmd->coords[18], &sp10);
             }
             if (arg0->spawnArg1 < 0x1000) {
                 Gp_SpawnEff(0x601BB, coord, 0x20, 0);
@@ -1186,21 +1180,11 @@ block_22:
         }
         var_s4 = var_fp;
         if (var_s4 < 0x20) {
-            var_a1_3 = &gDisplayState;
-            SOFT_USE_REG(var_a1_3);
-            coord  = (GpCoord*)0xFFFFFF;
-            var_a2 = 0xFF000000;
-            SOFT_USE_REG(var_a2);
-            SOFT_USE_REG(var_a2);
-            SOFT_USE_REG(var_a2);
-            SOFT_USE_REG(var_a2);
-
-            /* The byte offset is added to the base, not the base indexed:
-             * that puts the scaled index in the first operand of the addu. */
-            point = (SVECTOR*)(var_s4 * sizeof(SVECTOR) + (u32)work->trail);
+            ds = &gDisplayState;
             do {
                 shared                  = D_actor_403600_8016069C;
                 D_actor_403600_8016069C = shared + sizeof(POLY_FT4);
+                point                   = &work->trail[var_s4];
                 gte_ldv0(point);
                 gte_rtps();
                 gteValue3 = &scratch->sxy;
@@ -1216,7 +1200,7 @@ block_22:
                         if (arg0->status != 2) {
                             temp_a0_4 = scratch->otz;
                             if (temp_a0_4 >= 0) {
-                                scratch->spin.vx = (u16)((s32)(var_a1_3->screenDistance * 0x96) / temp_a0_4);
+                                scratch->spin.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
                             } else {
                                 scratch->spin.vx = 0x1000U;
                             }
@@ -1252,12 +1236,11 @@ block_22:
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
                             ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                            goto block_100;
+                            addPrim((u_long*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                    (POLY_FT4*)shared);
                         }
                     } else if (var_s4 >= (var_fp - 4)) {
                         temp_s0_6        = (u16)point->pad;
-                        sp30             = var_a1_3;
-                        sp34             = var_a2;
                         scratch->spin.vx = rsin(temp_s0_6);
                         scratch->spin.vy = rcos(temp_s0_6);
                         scratch->spin.vz = 0;
@@ -1268,7 +1251,7 @@ block_22:
                             } else if (arg0->status == 4) {
                                 var_a0 *= 2;
                             }
-                            gteValue7 = (var_a0 * var_a1_3->screenDistance) / scratch->otz;
+                            gteValue7 = (var_a0 * ds->screenDistance) / scratch->otz;
                             gte_lddp(gteValue7);
                             temp_v0_4 = &scratch->spin;
                             gte_ldsv(temp_v0_4);
@@ -1306,21 +1289,15 @@ block_22:
                         setlen((POLY_FT4*)shared, 9);
                         PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
                         ((POLY_FT4*)shared)->code               = 0x2E;
-                    block_100:
-                        otOffset                 = (((u32)(scratch->otz << var_a1_3->otDepthShift) >> 2) & 0xFFC);
-                        ot                       = (s32*)gGpuCurrentOt;
-                        ((POLY_FT4*)shared)->tag = (((POLY_FT4*)shared)->tag & var_a2) | (*(s32*)(otOffset + (s32)ot) & (s32)coord);
-                        temp_v0_6                = (s32*)((((u32)(scratch->otz << var_a1_3->otDepthShift) >> 2) & 0xFFC) + (s32)ot);
-                        *temp_v0_6               = (*temp_v0_6 & var_a2) | (shared & (s32)coord);
+                        _ACTOR403600_LINK_PRIM((u32*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
+                                               (POLY_FT4*)shared);
                     }
                 }
-                SOFT_USE_REG(work);
-                point  += sp28;
                 var_s4 += sp28;
             } while (var_s4 < 0x20);
         }
     }
-    SCRATCH_POP_BYTES(0x54);
+    SCRATCH_POP(Actor403600ProjectileScratch);
 }
 
 void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
