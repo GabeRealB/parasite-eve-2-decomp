@@ -13,6 +13,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/pairsrc.h"
 
 /// A `GpEnemy` seen through its node's flag byte alone: `field_14` is
 /// `GpEnemy::node.flags`.
@@ -82,6 +83,19 @@ typedef struct Actor104600RotScratch {
 } Actor104600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor104600RotScratch, 0x18);
 
+/// The 0x4C bytes `Actor04600_Fn00978` takes off the scratch stack: `delta`
+/// receives the `func_800E0C10` push-back and is then reused for offsets,
+/// `normal` is the normalized wall offset, and `result` is the word
+/// `func_800E0C10` reports through its last argument.
+typedef struct Actor104600ContactScratch {
+    /* 0x00 */ byte           pad_0[0x20];
+    /* 0x20 */ GpDeltaScratch delta;
+    /* 0x30 */ byte           pad_30[8];
+    /* 0x38 */ VECTOR         normal;
+    /* 0x48 */ s32            result;
+} Actor104600ContactScratch;
+STATIC_ASSERT_SIZEOF(Actor104600ContactScratch, 0x4C);
+
 /// The 0x2B0-byte work block of the package's second enemy, allocated by its
 /// spawn handler and parked in `Task::work`. It carries three `GpObj` bodies:
 /// the first points its `ctx.d4rec` at the `GpActorD4Rec` after it, the other
@@ -142,6 +156,34 @@ STATIC_ASSERT_SIZEOF(Actor104600HitScratch, 0x38);
 extern u32 Gp_LcgState;
 
 extern u8 D_801153F4;
+
+/// The first enemy's pair table, packed into its third body's key, and the
+/// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
+extern GpU16Pair  Actor04600_D0415C;
+extern GpPairSrcE Actor04600_D04160;
+
+/// The two script arguments the first enemy's death hands to
+/// `Gp_SpawnScript18`.
+extern u32 Actor04600_D04170[];
+extern u32 Actor04600_D0417C[];
+
+/// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
+extern u8 Actor04600_D05868[];
+
+/// The animation data `func_800B3F84` seeds the first enemy's slots from.
+extern u8 Actor04600_D05890[];
+
+/// Offset of the 0x60030 effect the first enemy's death spawns.
+extern SVECTOR Actor04600_D058A0;
+
+/// Offset of the 0x60080 effect the collapsing first enemy spawns.
+extern SVECTOR Actor04600_D058A8;
+
+/// The second enemy's record; `hpMax` seeds its HP.
+extern GpPairSrcE Actor04600_D058B4;
+
+/// The animation data `func_800B3F84` seeds the second enemy's slots from.
+extern u8 Actor04600_D064A8[];
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
 /// the note in `include/gameplay/1BC.h`.
