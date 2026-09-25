@@ -436,8 +436,8 @@ void func_actor_421600_8013EE0C(Task* arg0);
 
 static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor421600UpdateScratch** head)
 {
-    Actor421600UpdateScratch* p = *head - 1;
-    *head                       = p;
+    Actor421600UpdateScratch* p                     = SCRATCH_HEAD_AT(head, Actor421600UpdateScratch) - 1;
+    SCRATCH_HEAD_AT(head, Actor421600UpdateScratch) = p;
     return p;
 }
 static __inline__ s32 Actor421600_HasPlayerContact(GpRec18* records)

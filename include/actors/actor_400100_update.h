@@ -49,8 +49,8 @@ static __inline__ s16 Actor00100_InDirection(Task* actor, VECTOR* motion)
 }
 static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head)
 {
-    SVECTOR* p = *head - 1;
-    *head      = p;
+    SVECTOR* p                     = SCRATCH_HEAD_AT(head, SVECTOR) - 1;
+    SCRATCH_HEAD_AT(head, SVECTOR) = p;
     return p;
 }
 

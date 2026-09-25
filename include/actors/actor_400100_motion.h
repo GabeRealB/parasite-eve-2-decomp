@@ -21,12 +21,12 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     ActorScaleMatrixScratch* scratch;
     SVECTOR*                 vec;
 
-    head                                       = *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD;
-    scratch                                    = head - 1;
-    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD = scratch;
-    scratch->scale.vz                          = amount;
-    scratch->scale.vy                          = amount;
-    head[-1].scale.vx                          = amount;
+    head                                  = SCRATCH_HEAD(ActorScaleMatrixScratch);
+    scratch                               = head - 1;
+    SCRATCH_HEAD(ActorScaleMatrixScratch) = scratch;
+    scratch->scale.vz                     = amount;
+    scratch->scale.vy                     = amount;
+    head[-1].scale.vx                     = amount;
     ScaleMatrix(matrix, &scratch->scale);
     scratch->trans.vx = matrix->t[0];
     scratch->trans.vy = matrix->t[1];
@@ -36,10 +36,10 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(vec);
-    matrix->t[0]                                = scratch->trans.vx;
-    matrix->t[1]                                = scratch->trans.vy;
-    matrix->t[2]                                = scratch->trans.vz;
-    *(ActorScaleMatrixScratch**)G_SCRATCH_HEAD += 1;
+    matrix->t[0] = scratch->trans.vx;
+    matrix->t[1] = scratch->trans.vy;
+    matrix->t[2] = scratch->trans.vz;
+    SCRATCH_POP(ActorScaleMatrixScratch);
 }
 
 static __inline__ s16 Actor00100_HasRecord10(Task* actor)
@@ -69,16 +69,16 @@ static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
 {
     OverlayRangeScratch* head;
     OverlayRangeScratch* scratch;
-    head                                    = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
-    scratch                                 = head - 1;
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                             = pos->vx;
-    scratch->dz                             = pos->vz;
-    scratch->r                              = radius;
-    scratch->dx                            *= scratch->dx;
-    scratch->dz                            *= scratch->dz;
-    scratch->r                             *= scratch->r;
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD += 1;
+    head                              = SCRATCH_HEAD(OverlayRangeScratch);
+    scratch                           = head - 1;
+    SCRATCH_HEAD(OverlayRangeScratch) = scratch;
+    scratch->dx                       = pos->vx;
+    scratch->dz                       = pos->vz;
+    scratch->r                        = radius;
+    scratch->dx                      *= scratch->dx;
+    scratch->dz                      *= scratch->dz;
+    scratch->r                       *= scratch->r;
+    SCRATCH_POP(OverlayRangeScratch);
     return scratch->dx + scratch->dz >= scratch->r;
 }
 

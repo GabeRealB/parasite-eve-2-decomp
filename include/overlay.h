@@ -133,19 +133,19 @@ static __inline__ void overlayToWorld(GsCOORDINATE2* coord, SVECTOR* v)
 
     {
         register GsCOORDINATE2* parent asm("v0");
-        parent                                                                                    = coord;
-        ((OverlayWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(OverlayWalkScratch)))->coord = parent;
+        parent                                                                               = coord;
+        ((OverlayWalkScratch*)((u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch)))->coord = parent;
     }
     {
         register u8* tmp asm("v0");
-        tmp = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(OverlayWalkScratch);
+        tmp = (u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch);
         blk = (OverlayWalkScratch*)tmp;
     }
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
 
-    *(void**)G_SCRATCH_HEAD = blk;
+    SCRATCH_HEAD(void) = blk;
     while (blk->coord != NULL) {
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
@@ -162,7 +162,7 @@ static __inline__ void overlayToWorld(GsCOORDINATE2* coord, SVECTOR* v)
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayWalkScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayWalkScratch));
 }
 
 /// The walk of `overlayToWorld` without its register bindings. The callers
@@ -171,13 +171,13 @@ static __inline__ void overlayToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
-    blk         = (OverlayWalkScratch*)((u8*)*(void**)G_SCRATCH_HEAD - sizeof(OverlayWalkScratch));
+    blk         = (OverlayWalkScratch*)((u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch));
     blk->coord  = coord;
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
 
-    *(void**)G_SCRATCH_HEAD = blk;
+    SCRATCH_HEAD(void) = blk;
     while (blk->coord != NULL) {
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
@@ -194,7 +194,7 @@ static __inline__ void overlayToWorld2(GsCOORDINATE2* coord, SVECTOR* v)
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayWalkScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayWalkScratch));
 }
 
 /// The scratch-pad block of an in-radius test on the XZ plane: the two
@@ -214,16 +214,16 @@ static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
     OverlayRangeScratch* blk;
     s32                  ret;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
+    head                                      = SCRATCH_HEAD(u8);
     ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
     blk                                       = (OverlayRangeScratch*)(head - 0xC);
     blk->dz                                   = d->vz;
     blk->r                                    = r;
     ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD    = blk;
+    SCRATCH_HEAD(OverlayRangeScratch)         = blk;
     blk->dz                                  *= blk->dz;
     blk->r                                   *= blk->r;
-    *(u8**)G_SCRATCH_HEAD                     = head;
+    SCRATCH_HEAD(u8)                          = head;
     ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
@@ -405,13 +405,13 @@ static __inline__ s16 overlayBearingXZ(SVECTOR3* p, SVECTOR3* eye)
     u8*                head;
     OverlayAvoidDelta* d;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
+    head             = SCRATCH_HEAD(u8);
+    d                = (OverlayAvoidDelta*)(head - 0x10);
+    d->vx            = p->vx - eye->vx;
+    SCRATCH_HEAD(u8) = (u8*)d;
+    d->vy            = p->vy - eye->vy;
+    d->vz            = p->vz - eye->vz;
+    SCRATCH_HEAD(u8) = head;
     return ratan2(d->vx, d->vz);
 }
 
@@ -422,13 +422,13 @@ static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
     u8*                head;
     OverlayAvoidDelta* d;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx                 = p->vx - eye->vx;
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = p->vy - eye->vy;
-    d->vz                 = p->vz - eye->vz;
-    *(u8**)G_SCRATCH_HEAD = head;
+    head             = SCRATCH_HEAD(u8);
+    d                = (OverlayAvoidDelta*)(head - 0x10);
+    d->vx            = p->vx - eye->vx;
+    SCRATCH_HEAD(u8) = (u8*)d;
+    d->vy            = p->vy - eye->vy;
+    d->vz            = p->vz - eye->vz;
+    SCRATCH_HEAD(u8) = head;
     return ratan2(d->vx, d->vy);
 }
 
@@ -631,17 +631,17 @@ static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 
     OverlayRangeScratch* b;
     u8*                  head;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - 0xC;
-    b                     = (OverlayRangeScratch*)*(u8**)G_SCRATCH_HEAD;
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - 0xC;
+    b                = (OverlayRangeScratch*)SCRATCH_HEAD(u8);
 
-    b->dx                 = (s16)d->x;
-    b->dz                 = (s16)d->z;
-    b->r                  = r;
-    b->dx                 = b->dx * b->dx;
-    b->dz                 = b->dz * b->dz;
-    b->r                  = b->r * b->r;
-    *(u8**)G_SCRATCH_HEAD = head;
+    b->dx            = (s16)d->x;
+    b->dz            = (s16)d->z;
+    b->r             = r;
+    b->dx            = b->dx * b->dx;
+    b->dz            = b->dz * b->dz;
+    b->r             = b->r * b->r;
+    SCRATCH_HEAD(u8) = head;
     return b->dx + b->dz >= b->r;
 }
 
@@ -652,13 +652,13 @@ static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GsCOORDINATE2* coord)
 {
     u8*                head;
     OverlayAvoidDelta* d;
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    d                     = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx                 = pos->vx - coord->coord.t[0];
-    *(u8**)G_SCRATCH_HEAD = (u8*)d;
-    d->vy                 = pos->vy - coord->coord.t[1];
-    d->vz                 = pos->vz - coord->coord.t[2];
-    *(u8**)G_SCRATCH_HEAD = head;
+    head             = SCRATCH_HEAD(u8);
+    d                = (OverlayAvoidDelta*)(head - 0x10);
+    d->vx            = pos->vx - coord->coord.t[0];
+    SCRATCH_HEAD(u8) = (u8*)d;
+    d->vy            = pos->vy - coord->coord.t[1];
+    d->vz            = pos->vz - coord->coord.t[2];
+    SCRATCH_HEAD(u8) = head;
     return ratan2(d->vx, d->vz);
 }
 

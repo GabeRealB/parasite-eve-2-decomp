@@ -98,7 +98,8 @@ STATIC_ASSERT_SIZEOF(ActorBeamScratch, 0x8C);
 /// The scratch-pad allocation pointer seen as the one member of a struct.
 /// Reaching the pointer through a member rather than a bare word marks the
 /// access as a structure access, which lets the scheduler order it against
-/// the stores around it the way the original code was ordered.
+/// the stores around it the way the original code was ordered. The functions
+/// that use it do not compile the same through `SCRATCH_HEAD`.
 typedef struct ActorScratchStack {
     void* head;
 } ActorScratchStack;
@@ -1425,7 +1426,7 @@ typedef struct Actor403200HitScratch {
 STATIC_ASSERT_SIZEOF(Actor403200HitScratch, 0x30);
 
 /// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
-/// `SCRATCH_SP` for the escort-spawn tick: `delta` is the player-relative
+/// the scratch-pad stack for the escort-spawn tick: `delta` is the player-relative
 /// offset the tick yaws the host by, and `i` is the escort slot the loop and
 /// the 0x7DB message both index `Actor403200Work::field_EE8` with.
 typedef struct Actor403200SpawnScratch {
@@ -1436,7 +1437,7 @@ typedef struct Actor403200SpawnScratch {
 STATIC_ASSERT_SIZEOF(Actor403200SpawnScratch, 0xC);
 
 /// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
-/// off `SCRATCH_SP` to hand `func_800FDB18` an effect rotation together with
+/// off the scratch-pad stack to hand `func_800FDB18` an effect rotation together with
 /// the `GpEffArg` naming the coordinate the effect hangs off.
 typedef struct Actor403200EffScratch {
     SVECTOR  rot; // effect rotation, chosen from the attack's param 0
@@ -2280,10 +2281,10 @@ static __inline__ void actorRescaleYaw(GsCOORDINATE2* coord, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *scratch = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleRotScratch*)((u8*)head - 0x34);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2302,7 +2303,7 @@ static __inline__ void actorRescaleYaw(GsCOORDINATE2* coord, s16 scale)
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
@@ -2315,20 +2316,20 @@ static __inline__ void actorMoveForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* vec;
 
     if (Mc_SaveData.field_5C1 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        head                  = SCRATCH_HEAD(SVECTOR);
+        vec                   = head - 1;
+        SCRATCH_HEAD(SVECTOR) = vec;
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+        coord->coord.t[0] += head[-1].vx;
+        coord->coord.t[1] += vec->vy;
+        coord->coord.t[2] += vec->vz;
+        coord->flg         = 0;
+        SCRATCH_POP(SVECTOR);
     }
 }
 
@@ -2341,10 +2342,10 @@ static __inline__ void actorMoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* gteVec;
 
     if (Mc_SaveData.field_5C1 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        gteVec                     = vec;
+        head                  = SCRATCH_HEAD(SVECTOR);
+        vec                   = head - 1;
+        SCRATCH_HEAD(SVECTOR) = vec;
+        gteVec                = vec;
         if (amount != 0) {
             SOFT_TOUCH_REG(vec);
             Gfx_MatrixCol2(&coord->coord, vec);
@@ -2358,7 +2359,7 @@ static __inline__ void actorMoveForwardNonzero(GsCOORDINATE2* coord, s16 amount)
             coord->coord.t[2] += vec->vz;
             coord->flg         = 0;
         }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+        SCRATCH_POP(SVECTOR);
     }
 }
 
@@ -2371,20 +2372,20 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
 
     coord = ((TmdObject*)task->extra)->coords;
     if (Mc_SaveData.field_5C1 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        head                  = SCRATCH_HEAD(SVECTOR);
+        vec                   = head - 1;
+        SCRATCH_HEAD(SVECTOR) = vec;
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+        coord->coord.t[0] += head[-1].vx;
+        coord->coord.t[1] += vec->vy;
+        coord->coord.t[2] += vec->vz;
+        coord->flg         = 0;
+        SCRATCH_POP(SVECTOR);
     }
 }
 
@@ -2397,10 +2398,10 @@ static __inline__ void actorResetYaw(GsCOORDINATE2* coord)
     ActorScaleRotScratch* blk;
     s16                   ang;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *scratch = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleRotScratch*)((u8*)head - 0x34);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2420,7 +2421,7 @@ static __inline__ void actorResetYaw(GsCOORDINATE2* coord)
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     coord->coord.m[2][2] = *(u16*)&blk->m.m[2][2];
     coord->flg           = 0;
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
 }
 
 /// `actorRescaleYaw` with a separate scale on Y.
@@ -2432,10 +2433,10 @@ static __inline__ void actorRescaleYawY(GsCOORDINATE2* coord, s32 scale, s16 sca
     s16                   ang;
     u16                   m22;
 
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *scratch = blk;
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    blk                            = (ActorScaleRotScratch*)((u8*)head - 0x34);
+    SCRATCH_HEAD_AT(scratch, void) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2454,7 +2455,7 @@ static __inline__ void actorRescaleYawY(GsCOORDINATE2* coord, s32 scale, s16 sca
     coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
     coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
     m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
+    SCRATCH_POP_BYTES_AT(scratch, 0x34);
     coord->flg           = 0;
     coord->coord.m[2][2] = m22;
 }
@@ -2467,9 +2468,9 @@ static __inline__ void actorStepForward(GsCOORDINATE2* coord, s16 amount)
     SVECTOR* vec;
 
     if (Mc_SaveData.field_5C1 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
+        head                  = SCRATCH_HEAD(SVECTOR);
+        vec                   = head - 1;
+        SCRATCH_HEAD(SVECTOR) = vec;
         if (amount != 0) {
             SOFT_TOUCH_REG(vec);
             Gfx_MatrixCol2(&coord->coord, vec);
@@ -2483,7 +2484,7 @@ static __inline__ void actorStepForward(GsCOORDINATE2* coord, s16 amount)
             coord->coord.t[2] += vec->vz;
             coord->flg         = 0;
         }
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
+        SCRATCH_POP(SVECTOR);
     }
 }
 
@@ -2606,16 +2607,16 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 {
     OverlayRangeScratch* head;
     OverlayRangeScratch* scratch;
-    head                                    = *(OverlayRangeScratch**)G_SCRATCH_HEAD;
-    scratch                                 = head - 1;
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                             = pos->vx;
-    scratch->dz                             = pos->vz;
-    scratch->r                              = radius;
-    scratch->dx                            *= scratch->dx;
-    scratch->dz                            *= scratch->dz;
-    scratch->r                             *= scratch->r;
-    *(OverlayRangeScratch**)G_SCRATCH_HEAD += 1;
+    head                              = SCRATCH_HEAD(OverlayRangeScratch);
+    scratch                           = head - 1;
+    SCRATCH_HEAD(OverlayRangeScratch) = scratch;
+    scratch->dx                       = pos->vx;
+    scratch->dz                       = pos->vz;
+    scratch->r                        = radius;
+    scratch->dx                      *= scratch->dx;
+    scratch->dz                      *= scratch->dz;
+    scratch->r                       *= scratch->r;
+    SCRATCH_POP(OverlayRangeScratch);
     return scratch->dx + scratch->dz >= scratch->r;
 }
 
@@ -2629,13 +2630,13 @@ static __inline__ s32 actorPlayerContactMessage(GpEnemy* ctx, s32 mode)
 /// Relights `enemy` for the world position of `coord`.
 static __inline__ void actorUpdateColor(GpEnemy* enemy, GsCOORDINATE2* coord)
 {
-    VECTOR* block         = (VECTOR*)(*(u8**)0x1F8003FC - 0x10);
-    block->vx             = coord->workm.t[0];
-    block->vy             = coord->workm.t[1];
-    block->vz             = coord->workm.t[2];
-    *(VECTOR**)0x1F8003FC = block;
+    VECTOR* block        = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
+    block->vx            = coord->workm.t[0];
+    block->vy            = coord->workm.t[1];
+    block->vz            = coord->workm.t[2];
+    SCRATCH_HEAD(VECTOR) = block;
     Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)0x1F8003FC += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 /// Relights the enemy of `arg0` for the world position of its model's second
@@ -2647,16 +2648,16 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
     u8*            head;
     VECTOR*        block;
 
-    coord     = &((TmdObject*)arg0->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
+    coord                          = &((TmdObject*)arg0->extra)->coords[1];
+    scratch                        = SCRATCH_HEAD_ADDR;
+    head                           = SCRATCH_HEAD_AT(scratch, void);
+    block                          = (VECTOR*)(head - 0x10);
+    block->vx                      = coord->workm.t[0];
+    block->vy                      = coord->workm.t[1];
+    block->vz                      = coord->workm.t[2];
+    SCRATCH_HEAD_AT(scratch, void) = block;
     Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
 /// `actorTransformToView` spelled as a `for` loop with an early return.
@@ -2739,29 +2740,32 @@ static __inline__ s32 actorOutOfReach(SVECTOR* gap)
 {
     VECTOR3* v;
 
-    v                          = (VECTOR3*)(*(u8**)G_SCRATCH_HEAD - sizeof(VECTOR3));
-    *(VECTOR3**)G_SCRATCH_HEAD = v;
-    v->vx                      = gap->vx;
-    v->vy                      = gap->vz;
-    v->vz                      = 1000;
-    v->vx                      = v->vx * v->vx;
-    v->vy                      = v->vy * v->vy;
-    v->vz                      = v->vz * v->vz;
-    *(u8**)G_SCRATCH_HEAD      = *(u8**)G_SCRATCH_HEAD + sizeof(VECTOR3);
+    v                     = (VECTOR3*)(SCRATCH_HEAD(u8) - sizeof(VECTOR3));
+    SCRATCH_HEAD(VECTOR3) = v;
+    v->vx                 = gap->vx;
+    v->vy                 = gap->vz;
+    v->vz                 = 1000;
+    v->vx                 = v->vx * v->vx;
+    v->vy                 = v->vy * v->vy;
+    v->vz                 = v->vz * v->vz;
+    SCRATCH_POP_BYTES(sizeof(VECTOR3));
 
     return v->vx + v->vy >= v->vz;
 }
 
-/// The scratch-pad allocation pointer.
+/// The scratch-pad allocation pointer. These two stay inline functions rather
+/// than `SCRATCH_HEAD` at their call sites: inside an inlined body the
+/// pointer's constant address folds into each access, which the callers'
+/// code depends on.
 static __inline__ u8* actorGetScratchHead(void)
 {
-    return *(u8**)G_SCRATCH_HEAD;
+    return SCRATCH_HEAD(u8);
 }
 
 /// Moves the scratch-pad allocation pointer to `head`.
 static __inline__ void actorSetScratchHead(void* head)
 {
-    *(void**)G_SCRATCH_HEAD = head;
+    SCRATCH_HEAD(void) = head;
 }
 
 /// Wraps an angle into [-0x800, 0x800], spelled with backward jumps.
