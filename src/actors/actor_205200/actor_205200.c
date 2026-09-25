@@ -84,11 +84,11 @@ void func_8017E090(s32, s32);
 void func_8017EE08(s32, s32);
 void func_80182A14(s32, s32);
 
-void func_actor_205200_8014AB98(Actor205200* arg0);
-void func_actor_205200_8014ACD4(Actor205200* arg0);
+void func_actor_205200_8014AB98(Task* arg0);
+void func_actor_205200_8014ACD4(Task* arg0);
 s32  func_actor_205200_8014B914(s32 arg0);
-void func_actor_205200_8014B9D4(GpEnemy* arg0, Actor205200* arg1);
-void func_actor_205200_8014BA94(Actor205200* arg0);
+void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
+void func_actor_205200_8014BA94(Task* arg0);
 
 /// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
@@ -340,9 +340,9 @@ void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
     task->state    = 1;
 }
 
-void func_actor_205200_8014A958(GpEnemy* enemy, Actor205200* task)
+void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
 {
-    Actor205200CtrlWork* work = task->field_1C;
+    Actor205200CtrlWork* work = task->work;
     s16                  state;
     s32                  pulse;
 
@@ -402,13 +402,13 @@ void func_actor_205200_8014A958(GpEnemy* enemy, Actor205200* task)
                 }
                 break;
         }
-        task->field_2C->field_8->flg = 0;
+        ((TmdObject*)task->extra)->coords->flg = 0;
     }
 }
 
-void func_actor_205200_8014AB98(Actor205200* arg0)
+void func_actor_205200_8014AB98(Task* arg0)
 {
-    Actor205200CtrlWork* work  = arg0->field_1C;
+    Actor205200CtrlWork* work  = arg0->work;
     s32                  state = work->field_26;
 
     switch (state) {
@@ -420,7 +420,7 @@ void func_actor_205200_8014AB98(Actor205200* arg0)
                     Task_SpawnFromTable(&D_actor_205200_8014CA44, 0, 0, (s32)&D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->field_28 = 1;
-                    SndEvt_EnqueueType6(((arg0->field_20->placeKey >> 12) << 8) | 0x40340002, 0, 0);
+                    SndEvt_EnqueueType6(((((GpEnemy*)arg0->spawnArg2)->placeKey >> 12) << 8) | 0x40340002, 0, 0);
                 }
                 work->field_22 = 20;
                 work->field_26 = 1;
@@ -438,9 +438,9 @@ void func_actor_205200_8014AB98(Actor205200* arg0)
     }
 }
 
-void func_actor_205200_8014ACD4(Actor205200* arg0)
+void func_actor_205200_8014ACD4(Task* arg0)
 {
-    Actor205200CtrlWork* work = arg0->field_1C;
+    Actor205200CtrlWork* work = arg0->work;
     GpViewRec*           view;
     VECTOR               d;
     u32                  dist;
@@ -532,7 +532,7 @@ void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
 /// arms the hit-stun timer `field_70`, the effect timer `field_74` and the
 /// spark cooldown `field_76`. `arg1` is passed as 1 by
 /// `func_actor_205200_8014B9D4` and unused.
-void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
+void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 {
     VECTOR*              vec;
     Actor205200Part*     part;
@@ -546,9 +546,9 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
     s32                  clamped;
 
     vec   = --*(VECTOR**)0x1F8003FC;
-    coord = arg0->field_2C->field_8;
-    part  = (Actor205200Part*)arg0->field_1C;
-    enemy = arg0->field_20;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    part  = (Actor205200Part*)arg0->work;
+    enemy = arg0->spawnArg2;
     if (part->field_70 != 0) {
         part->field_70--;
         if (part->field_70 <= 0) {
@@ -578,10 +578,10 @@ void func_actor_205200_8014B048(Actor205200* arg0, s32 arg1)
             func_800DA6E8(&enemy->node, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {
-                arg0->field_30                                                        = 2;
-                part->field_72                                                        = 0;
-                ((Actor205200CtrlWork*)arg0->field_8->work)->field_18[part->field_78] = 0;
-                ((Actor205200CtrlWork*)arg0->field_8->work)->field_0[part->field_78]  = NULL;
+                arg0->state                                                          = 2;
+                part->field_72                                                       = 0;
+                ((Actor205200CtrlWork*)arg0->parent->work)->field_18[part->field_78] = 0;
+                ((Actor205200CtrlWork*)arg0->parent->work)->field_0[part->field_78]  = NULL;
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
@@ -712,9 +712,9 @@ void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
 /// record along with the task.
 void func_actor_205200_8014B8C0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    GpEnemyTaskFunc fns[2] = {
         func_actor_205200_8014A72C,
-        (void (*)(GpEnemy*, Task*))func_actor_205200_8014A958,
+        func_actor_205200_8014A958,
     };
 
     fns[task->state](task->spawnArg2, task);
@@ -737,11 +737,11 @@ s32 func_actor_205200_8014B914(s32 arg0)
 /// Message 0x7DB handler of the controller, listed in
 /// `D_actor_205200_8014CA78`. A non-zero payload halfword raises
 /// `Actor205200CtrlWork.field_2E` unless it is already set.
-s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* arg2)
+s32 func_actor_205200_8014B94C(Task* arg0, s32 arg1, Actor205200Msg7DB* arg2)
 {
     Actor205200CtrlWork* work;
 
-    work = arg0->field_1C;
+    work = arg0->work;
     if (arg2->field_2 != 0 && work->field_2E == 0) {
         work->field_2E = 1;
     }
@@ -752,7 +752,7 @@ s32 func_actor_205200_8014B94C(Actor205200* arg0, s32 arg1, Actor205200Msg7DB* a
 /// `func_actor_205200_8014B978` dispatches through by state.
 const GpEnemyTaskFuncTable3 D_actor_205200_80149E24 = {
     func_actor_205200_8014AE0C,
-    (GpEnemyTaskFunc)func_actor_205200_8014B9D4,
+    func_actor_205200_8014B9D4,
     func_actor_205200_8014B484,
 };
 
@@ -774,15 +774,15 @@ void func_actor_205200_8014B978(Task* arg0)
 /// The dispatch is written as gotos because that is the shape the switch's
 /// binary decision tree leaves behind - mode 0 shares the body with the
 /// default path, so its `break` is a jump into it.
-void func_actor_205200_8014B9D4(GpEnemy* arg0, Actor205200* arg1)
+void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
     Actor205200CtrlWork* parentWork;
     s32                  state;
     s32                  one;
 
-    part       = (Actor205200Part*)arg1->field_1C;
-    parentWork = (Actor205200CtrlWork*)arg1->field_8->work;
+    part       = (Actor205200Part*)arg1->work;
+    parentWork = (Actor205200CtrlWork*)arg1->parent->work;
     state      = D_801153F4;
     one        = 1;
     if (state == one) {
@@ -812,7 +812,7 @@ default_body:
         func_actor_205200_8014BA94(arg1);
     }
     if (parentWork->field_2E == 1) {
-        arg1->field_30 = 2;
+        arg1->state    = 2;
         part->field_72 = 2;
     }
 case1:
@@ -820,15 +820,15 @@ case1:
 }
 
 /// Counts a part's effect timer down and queues effect 7 every 0x40 ticks.
-void func_actor_205200_8014BA94(Actor205200* arg0)
+void func_actor_205200_8014BA94(Task* arg0)
 {
     Actor205200Part* part;
     u16              timer;
 
-    part           = (Actor205200Part*)arg0->field_1C;
+    part           = (Actor205200Part*)arg0->work;
     timer          = part->field_74 - 1;
     part->field_74 = timer;
     if (!(timer & 0x3F)) {
-        func_800FDB18(7, arg0->field_2C->field_8, NULL, &part->field_68);
+        func_800FDB18(7, ((TmdObject*)arg0->extra)->coords, NULL, &part->field_68);
     }
 }
