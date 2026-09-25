@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "actors/actor_143900.h"
-#include "actors/actors_shared_801326b4.h"
 #include "gameplay/1BC.h"
 
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
@@ -19,11 +18,11 @@ void func_actor_143900_801325A4(void)
 
     i = 1;
     do {
-        func_800B4114(&ActorsShared80131f9cWork->anim, i, ActorsShared80131f9cWork->field_4B8, 0,
+        func_800B4114(&D_actor_143900_801496B8->anim, i, D_actor_143900_801496B8->field_4B8, 0,
                       D_actor_143900_801413B8);
         i++;
     } while (i < 0x14);
-    ActorsShared80131f9cWork->field_4B6 = ActorsShared80131f9cWork->field_4B8;
+    D_actor_143900_801496B8->field_4B6 = D_actor_143900_801496B8->field_4B8;
 }
 
 /// Play-animation message handler: adopts `preset`'s animation id when it is
@@ -33,15 +32,15 @@ void func_actor_143900_801325A4(void)
 s32 func_actor_143900_80132624(Task* task, s32 arg1, Actor143900AnimPreset* preset)
 {
     if (preset->field_4 < 0x14) {
-        ActorsShared80131f9cWork->field_4B8 = preset->field_4;
+        D_actor_143900_801496B8->field_4B8 = preset->field_4;
         if (preset->field_8 != 0) {
-            ActorsShared80131f9cWork->field_4B4 = 1;
-            D_actor_143900_801413B8             = preset->field_C;
+            D_actor_143900_801496B8->field_4B4 = 1;
+            D_actor_143900_801413B8            = preset->field_C;
         } else {
-            ActorsShared80131f9cWork->field_4B4 = 2;
+            D_actor_143900_801496B8->field_4B4 = 2;
         }
-        ActorsShared80131f9cWork->field_4BA = 0;
-        func_actor_143900_80131FD4(ActorsShared801326b4Task);
+        D_actor_143900_801496B8->field_4BA = 0;
+        func_actor_143900_80131FD4(D_actor_143900_801496BC);
         return 0;
     }
     return -1;

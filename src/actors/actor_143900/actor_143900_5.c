@@ -13,7 +13,7 @@
 s32 func_actor_143900_80132778(Task* task, s32 arg1, Actor143900Msg* msg)
 {
     if (msg->field_2 == 0) {
-        ActorsShared80131f9cWork->field_4EC = 0x14;
+        D_actor_143900_801496B8->field_4EC = 0x14;
     }
     return 0;
 }
@@ -29,11 +29,11 @@ INCLUDE_ASM("actors/nonmatchings/actor_143900/actor_143900_5", func_actor_143900
 /// animation state is reset to mode 1 / id 2 before the shared tick runs.
 void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 {
-    VECTOR                    vec;
-    ActorsShared80132eccWork* work;
-    GsCOORDINATE2*            coord;
-    TmdObject*                obj;
-    Task*                     helper;
+    VECTOR            vec;
+    Actor143900Work2* work;
+    GsCOORDINATE2*    coord;
+    TmdObject*        obj;
+    Task*             helper;
 
     obj                     = task->extra;
     coord                   = obj->coords;
@@ -44,7 +44,7 @@ void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback      = ActorsShared80132ecc;
+    task->exitCallback      = func_actor_143900_80132ECC;
     coord->sub              = &gGfxViewCoord;
     enemy->field_4          = &coord->coord;
     enemy->node.flags       = 1;
@@ -91,7 +91,7 @@ void func_actor_143900_80132DEC(Task* task)
     };
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
-    D_actor_143900_801496C4 = (ActorsShared80132eccWork*)task->work;
+    D_actor_143900_801496C4 = (Actor143900Work2*)task->work;
     fns[task->state](task->spawnArg2, task);
 }
 

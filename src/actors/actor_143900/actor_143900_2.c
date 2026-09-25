@@ -6,10 +6,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-/// Second state of `ActorsShared80131f9c`: refreshes the model root's world
+/// Second state of the first variant's task: refreshes the model root's world
 /// matrix, relights the model from a point 0x320 above its translation, then
-/// runs the per-frame update and the ground shadow.
-void ActorsShared80131f9cSub1(GpEnemy* enemy, Task* task)
+/// runs the per-frame update and draws the ground shadow.
+void func_actor_143900_80132380(GpEnemy* enemy, Task* task)
 {
     TmdObject*     obj;
     GsCOORDINATE2* coord;
