@@ -27,7 +27,7 @@ void Actor04400_Fn02B8C();
 void Actor04400_Fn02D18(Task* arg0);
 void Actor04400_Fn031B8(Task* arg0);
 void Actor04400_Fn061B4(void);
-void Actor04400_Fn06520(Task* arg0, s16 arg1, u16* arg2);
+void Actor04400_Fn06520(Task* arg0, s16 part, SVECTOR3* pos);
 void Actor04400_Fn07360(Task* arg0);
 void func_8004BFF8(s32 angle, MATRIX* matrix);
 /// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
@@ -36,7 +36,7 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 s16  Actor04400_Fn06328(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
 s32  Actor04400_Fn063E4(Task* arg0);
-s16  Actor04400_Fn065F4(Task* arg0, s32 arg1);
+s32  Actor04400_Fn065F4(Task* arg0, s16 value);
 s16  Actor04400_Fn06618(Task* arg0);
 void Actor04400_Fn067A0(Task* arg0, s32 step);
 void Actor04400_Fn08208(Task* arg0);
@@ -547,7 +547,7 @@ void Actor04400_Fn00F7C(Task* arg0)
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
             Actor04400_Fn00874(arg0);
             if (work->field_432 == 1) {
-                Actor04400_Fn06520(arg0, 6, (u16*)&work->field_98);
+                Actor04400_Fn06520(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             Actor04400_UpdateRotation(arg0);
             Actor04400_Fn022A8(arg0, 0);
@@ -869,7 +869,7 @@ void Actor04400_Fn01E08(Task* arg0)
             }
             Actor04400_Fn02B8C(arg0);
             if (work->field_432 == 1) {
-                Actor04400_Fn06520(arg0, 6, &work->field_80);
+                Actor04400_Fn06520(arg0, 6, (SVECTOR3*)&work->field_80);
             }
             coord->flg = 0;
         case 1:

@@ -23,7 +23,7 @@ void Actor04400_Fn006A8(Task* arg0);
 void Actor04400_Fn02B8C();
 s16  Actor04400_Fn06328(Task* arg0);
 void Actor04400_Fn06374(Task* arg0, s32 arg1);
-s16  Actor04400_Fn065F4(Task* arg0, s32 arg1);
+s32  Actor04400_Fn065F4(Task* arg0, s16 value);
 s16  Actor04400_Fn06618(Task* arg0);
 void Actor04400_Fn067A0(Task* arg0, s32 step);
 void Actor04400_Fn06BC4(Task* arg0);
@@ -1418,9 +1418,32 @@ void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
     coord->flg        = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn06520);
+/// Moves the model so that part `part` lands on `pos`: sets the root
+/// translation to `pos` less the part's view-space offset from the root, and
+/// marks the part's coordinate dirty.
+void Actor04400_Fn06520(Task* arg0, s16 part, SVECTOR3* pos)
+{
+    MATRIX         local;
+    MATRIX         world;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* coords;
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn065F4);
+    coords = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
+    coord  = &coords[part];
+    Gp_UpdateCoord(coord);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+    coords->coord.t[0] = pos->vx - (world.t[0] - local.t[0]);
+    coords->coord.t[1] = pos->vy - (world.t[1] - local.t[1]);
+    coords->coord.t[2] = pos->vz - (world.t[2] - local.t[2]);
+    coord->flg         = 0;
+}
+
+/// Scales `value` by the animation speed `field_41C`, in 1/16 units.
+s32 Actor04400_Fn065F4(Task* arg0, s16 value)
+{
+    return (s32)((((Actor104400Work*)arg0->work)->field_41C * value) << 0xC) >> 0x10;
+}
 
 /// Same body as `ActorsShared8016974c`. This overlay's whole `.text` is already
 /// one shared span, so it cannot join that unit.
@@ -1624,7 +1647,18 @@ void Actor04400_Fn06B50(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn06BC4);
+/// Requests animation 0xC (kind 1, speed 0x10, `field_426` 8) and advances
+/// the sub-state.
+void Actor04400_Fn06BC4(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
+
+    work->field_426 = 8;
+    work->field_41C = 0x10;
+    work->field_418 = 0xC;
+    work->field_414 = 1;
+    work->field_422 = work->field_422 + 1;
+}
 
 void Actor04400_Fn06BF8(Task* arg0)
 {
@@ -1908,7 +1942,22 @@ void Actor04400_Fn07360(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn073C8);
+/// Sets `field_432`, which makes the per-frame callbacks hold part 6 in
+/// place, requests animation 7 (kind 2, speed 0x10) and advances the
+/// sub-state.
+void Actor04400_Fn073C8(Task* arg0)
+{
+    Actor104400Work* work;
+    Actor104400Work* work2;
+
+    work             = (Actor104400Work*)arg0->work;
+    work->field_432  = 1;
+    work2            = (Actor104400Work*)arg0->work;
+    work2->field_41C = 0x10;
+    work2->field_418 = 7;
+    work2->field_414 = 2;
+    work->field_422  = work->field_422 + 1;
+}
 
 /// Rebuild the model root's rotation: pitch about X by a sine sway driven by
 /// `field_442`, then turn by the heading `field_7A`, and copy the 3x3 into the
@@ -2430,7 +2479,18 @@ void Actor04400_Fn08160(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn08208);
+/// Requests animation 0xF (kind 1, speed 0x10, `field_426` 4) and advances
+/// the sub-state.
+void Actor04400_Fn08208(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
+
+    work->field_426 = 4;
+    work->field_41C = 0x10;
+    work->field_418 = 0xF;
+    work->field_414 = 1;
+    work->field_422 = work->field_422 + 1;
+}
 
 void Actor04400_Fn0823C(Task* arg0)
 {
@@ -2451,7 +2511,19 @@ void Actor04400_Fn0823C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_104400/actor_104400_4", Actor04400_Fn08290);
+/// Requests animation 0xF (kind 1, speed 0x10, `field_426` 8), advances the
+/// sub-state and arms `Gp_StateF0`.
+void Actor04400_Fn08290(Task* arg0)
+{
+    Actor104400Work* work = (Actor104400Work*)arg0->work;
+
+    work->field_426 = 8;
+    work->field_41C = 0x10;
+    work->field_418 = 0xF;
+    work->field_414 = 1;
+    work->field_422 = work->field_422 + 1;
+    Gp_ArmStateF0(1);
+}
 
 void Actor04400_Fn082E0(Task* arg0)
 {
