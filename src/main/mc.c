@@ -968,7 +968,7 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
     u8*           ptr1;
     u8*           ptr0;
     u8*           src;
-    s16*          dst;
+    u16*          dst;
     UiObject*     obj;
     McPromptPair* entry;
     McPromptPair* base;
@@ -981,10 +981,10 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
                 sum   = 0;
                 limit = 0x200;
                 MOVE_ZERO(slotIdx);
-                dst             = (s16*)&arg1->field_A1C;
+                dst             = &arg1->field_A1C;
                 src             = (u8*)arg1->field_18;
                 arg1->field_A1C = 0;
-                *(u16*)&dst[1]  = 0xFFFF;
+                dst[1]          = 0xFFFF;
                 do {
                     slotIdx += 1;
                     tmp      = (s8)*src;

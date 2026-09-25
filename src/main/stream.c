@@ -631,7 +631,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
     state = &CdCmd_Queue;
     switch (state->field_1E4) {
         case 0:
-            if (*(u16*)&D_8006AC5C == 0) {
+            if (D_8006AC5C == 0) {
                 state->field_248 = 0;
                 state->field_244 = 1;
             }
@@ -681,7 +681,7 @@ s32 func_8001FAE0(u16 arg0, s32 arg1)
                 state->field_242 = 0;
                 state->field_24E = 0;
                 state->field_1E4++;
-                if (*(u16*)&D_8006AC5C != 0) {
+                if (D_8006AC5C != 0) {
                     CdCmd_ClearBusy();
                 }
             }

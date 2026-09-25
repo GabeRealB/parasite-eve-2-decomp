@@ -353,8 +353,8 @@ void func_80030AB0(McWork* work)
     }
     Mc_UpdateTitleHeaderChecksum();
     Mc_UpdateTitleDataChecksum();
-    Mc_SaveData.bufferChecksum            = 0;
-    *(u16*)&Mc_SaveData.bufferChecksumInv = 0xFFFF;
+    Mc_SaveData.bufferChecksum    = 0;
+    Mc_SaveData.bufferChecksumInv = 0xFFFF;
 }
 
 void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)

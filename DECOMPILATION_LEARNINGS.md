@@ -65856,11 +65856,13 @@ For the inlined header checksum, `u16 sum` with `0xFFFF - (u32)sum` retained
 the subtraction and let the constant cross the verification call for reuse
 in the next checksum initializer. The signed accumulator had folded this to
 `nor` already in the early RTL. The final data checksum still became `nor`
-until the following `0xFFFF` store used an unsigned halfword view:
-`*(u16*)&Mc_SaveData.bufferChecksumInv = 0xFFFF`. Its signed field store had introduced
-`-1`, preventing constant reuse. The unsigned view preserved the shared
-`0xFFFF`, fixed the final sum/counter allocation too, and reached 100% without
-pins or empty asm. Keep the shared field type unchanged; use the cast locally.
+until the following `0xFFFF` store was unsigned. A store of `0xFFFF` to an
+`s16` field becomes `-1`, preventing constant reuse. The field,
+`McSaveData::bufferChecksumInv`, is the complement half of a checksum pair
+whose siblings are all `u16`, and nothing reads it signed; declared `u16`, the
+plain `Mc_SaveData.bufferChecksumInv = 0xFFFF` keeps the shared `0xFFFF`.
+When a store needs an unsigned view to match, suspect the field's declared
+signedness before reaching for a cast.
 
 
 ### A spilled draw counter can increment after the call in C and before it in MIPS

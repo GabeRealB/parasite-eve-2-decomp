@@ -77,7 +77,7 @@ extern u_long*  D_8006AC48[];
 extern u_long*  D_8006AC50[];
 extern u16      D_8006AC58;
 extern u16      D_8006AC5A;
-extern s16      D_8006AC5C;
+extern u16      D_8006AC5C;
 extern u16*     D_8006AC60;
 extern void*    D_8006AC64;
 extern u_long*  D_8006AC68;

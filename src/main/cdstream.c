@@ -552,8 +552,7 @@ void CdStream_ReadyMts(s32 interrupt, u8* result)
                             CdStream_State.countdown = (s16)(s8)CdStream_State.mtsParam;
                             if ((u16)CdStream_State.countdown != 0) {
                                 CdStream_State.field_4C = 2;
-                                /* This reset is non-volatile and fills the branch delay slot. */
-                                *(u16*)&D_80068B78 = 0;
+                                D_80068B78              = 0;
                                 goto unlock;
                             } else {
                                 goto mark_complete;

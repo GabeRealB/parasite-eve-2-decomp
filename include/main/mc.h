@@ -198,7 +198,7 @@ typedef struct {
     u16        dataChecksum;      // Sum over the save's data block
     u16        dataChecksumInv;   // Complement of `dataChecksum`, written with it
     u16        bufferChecksum;    // Sum over the first byte of each memcard buffer slot
-    s16        bufferChecksumInv; // Complement of `bufferChecksum`, written with it
+    u16        bufferChecksumInv; // Complement of `bufferChecksum`, written with it
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
 STATIC_ASSERT(OFFSET_OF(McSaveData, at4) == 4, McSaveData_at4);

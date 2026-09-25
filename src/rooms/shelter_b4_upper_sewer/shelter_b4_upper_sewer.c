@@ -34,7 +34,6 @@ extern u8  D_80115680;
 extern u8  D_80115690;
 extern s32 D_8007107C;
 extern s8  D_8007217B;
-extern s32 D_80070F70;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;
@@ -1667,12 +1666,12 @@ void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim                 = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor       = prim + 1;
-        ((u8*)&prim->tag)[3] = 9;
-        prim->code           = 0x2EU;
-        *(u16*)&prim->tpage  = 0x29;
-        if (D_80070F70 & 1) {
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        prim->code  = 0x2EU;
+        prim->tpage = 0x29;
+        if (gDisplayState.animFrame & 1) {
             prim->r0   = 0xA0;
             prim->g0   = 0x80;
             prim->b0   = 0x60;
@@ -1684,43 +1683,43 @@ void func_shelter_b4_upper_sewer_8018139C(GpCoord* coord, s16 size)
             prim->code = (u8)(prim->code | 1);
         }
         sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = *(u16*)&sc->sx - (u16)sc->step;
+        left     = sc->sx - sc->step;
         prim->x2 = left;
         prim->x0 = left;
-        right    = *(u16*)&sc->sx + (u16)sc->step;
+        right    = sc->sx + sc->step;
         prim->x3 = right;
         prim->x1 = right;
-        top      = *(u16*)&sc->sy - (u16)sc->step;
+        top      = sc->sy - sc->step;
         prim->y1 = top;
         prim->y0 = top;
-        bottom   = *(u16*)&sc->sy + (u16)sc->step;
+        bottom   = sc->sy + sc->step;
         prim->y3 = bottom;
         prim->y2 = bottom;
         addPrim(
             (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
-        prim                 = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor       = prim + 1;
-        ((u8*)&prim->tag)[3] = 9;
-        prim->code           = 0x2F;
-        prim->tpage          = 0x29;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        prim->code  = 0x2F;
+        prim->tpage = 0x29;
         prim->clut =
             (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
                   0x4300);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
         outerSize   = (s16)((s16)size * 3 / 2);
         sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = *(u16*)&sc->sx - (u16)sc->step;
+        outerLeft   = sc->sx - sc->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = *(u16*)&sc->sx + (u16)sc->step;
+        outerRight  = sc->sx + sc->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = *(u16*)&sc->sy - (u16)sc->step;
+        outerTop    = sc->sy - sc->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = *(u16*)&sc->sy + (u16)sc->step;
+        outerBottom = sc->sy + sc->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(
@@ -3175,12 +3174,12 @@ void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
     gte_stflg(&block->flag);
     if (sc->flag >= 0) {
         gte_stszotz(&block->otz);
-        prim                 = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor       = prim + 1;
-        ((u8*)&prim->tag)[3] = 9;
-        prim->code           = 0x2EU;
-        *(u16*)&prim->tpage  = 0x29;
-        if (D_80070F70 & 1) {
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        prim->code  = 0x2EU;
+        prim->tpage = 0x29;
+        if (gDisplayState.animFrame & 1) {
             prim->r0   = 0xA0;
             prim->g0   = 0x80;
             prim->b0   = 0x60;
@@ -3192,43 +3191,43 @@ void func_shelter_b4_upper_sewer_80185A2C(GpCoord* coord, s16 size)
             prim->code = (u8)(prim->code | 1);
         }
         sc->step = (s32)((s32)((s16)size * 0x37) / (s32)sc->otz);
-        left     = *(u16*)&sc->sx - (u16)sc->step;
+        left     = sc->sx - sc->step;
         prim->x2 = left;
         prim->x0 = left;
-        right    = *(u16*)&sc->sx + (u16)sc->step;
+        right    = sc->sx + sc->step;
         prim->x3 = right;
         prim->x1 = right;
-        top      = *(u16*)&sc->sy - (u16)sc->step;
+        top      = sc->sy - sc->step;
         prim->y1 = top;
         prim->y0 = top;
-        bottom   = *(u16*)&sc->sy + (u16)sc->step;
+        bottom   = sc->sy + sc->step;
         prim->y3 = bottom;
         prim->y2 = bottom;
         addPrim(
             (u_long*)((((u32)sc->otz << gDisplayState.otDepthShift) >> 2 & 0xFFC) +
                       (s32)gGpuCurrentOt),
             prim);
-        prim                 = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor       = prim + 1;
-        ((u8*)&prim->tag)[3] = 9;
-        prim->code           = 0x2F;
-        prim->tpage          = 0x29;
+        prim           = (POLY_FT4*)gGpuPrimCursor;
+        gGpuPrimCursor = prim + 1;
+        setlen(prim, 9);
+        prim->code  = 0x2F;
+        prim->tpage = 0x29;
         prim->clut =
             (s16)(((u32)(((gDisplayState.animFrame & 1) * 0x10) + 0x120) >> 4) |
                   0x4300);
         setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
         outerSize   = (s16)((s16)size * 3 / 2);
         sc->step    = (s32)((s32)(outerSize * 0x37) / (s32)sc->otz);
-        outerLeft   = *(u16*)&sc->sx - (u16)sc->step;
+        outerLeft   = sc->sx - sc->step;
         prim->x2    = outerLeft;
         prim->x0    = outerLeft;
-        outerRight  = *(u16*)&sc->sx + (u16)sc->step;
+        outerRight  = sc->sx + sc->step;
         prim->x3    = outerRight;
         prim->x1    = outerRight;
-        outerTop    = *(u16*)&sc->sy - (u16)sc->step;
+        outerTop    = sc->sy - sc->step;
         prim->y1    = outerTop;
         prim->y0    = outerTop;
-        outerBottom = *(u16*)&sc->sy + (u16)sc->step;
+        outerBottom = sc->sy + sc->step;
         prim->y3    = outerBottom;
         prim->y2    = outerBottom;
         addPrim(

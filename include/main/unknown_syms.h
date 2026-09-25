@@ -61,7 +61,7 @@ extern s32* D_8005DCB4[];
 
 extern volatile s32 D_800689E4;
 extern volatile s32 D_800689E8;
-extern s16          D_800689EC;
+extern u16          D_800689EC;
 extern u8           D_800689F0[];
 extern s8           D_80082748;
 extern s8           D_80082749;
@@ -85,7 +85,7 @@ extern volatile s16 D_80068B6A;
 extern void*        D_80068B6C;
 extern s32          D_80068B70;
 extern s32          D_80068B74;
-extern volatile u16 D_80068B78;
+extern u16          D_80068B78;
 extern CdlLOC       D_800827F8;
 extern u8           D_8007F2F0;
 extern u8           D_8007F8E0[0x2800];

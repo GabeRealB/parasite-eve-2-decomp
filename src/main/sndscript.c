@@ -448,7 +448,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             return -3;
         }
         entry = (SndVoiceParams*)((s32)header + offset);
-        if (*(u16*)&D_800689EC != 0) {
+        if (D_800689EC != 0) {
             if ((entry->flags & 0x80) != 0) {
                 return -5;
             }
