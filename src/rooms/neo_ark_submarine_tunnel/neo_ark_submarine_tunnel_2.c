@@ -684,7 +684,7 @@ void func_neo_ark_submarine_tunnel_80180D6C(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

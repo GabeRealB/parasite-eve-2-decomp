@@ -1879,8 +1879,8 @@ void func_shelter_b2_laboratory_80180AB4(SVECTOR* arg0, s32 arg1, s32 arg2)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -2021,8 +2021,8 @@ void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2)
         block = (_DrawScratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((_DrawScratch*)(head - 0x18))->sx);
@@ -2116,8 +2116,8 @@ void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2)
         block = (RoomDraw05Scratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);

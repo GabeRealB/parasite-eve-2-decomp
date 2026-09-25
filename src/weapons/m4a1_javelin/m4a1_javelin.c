@@ -127,7 +127,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->head.g     = t >> 2;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x400;
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->flg = 0;
             if (work->scale == 0xC0) {
                 task->state = 2;
@@ -163,7 +163,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->head.b     = rnd;
             slot->head.r     = rnd >> 1;
             slot->head.g     = rnd >> 1;
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
             light->flg              = 0;
             D_m4a1_javelin_8012EB66 = 0;
@@ -193,7 +193,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             pa.vy        = (u16)pb.vy;
             pa.vz        = (u16)pb.vz;
             if (Gp_State1C->groundTrace != 0) {
-                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
                 gte_rtv0();
                 gte_stsv(&qb);
@@ -213,7 +213,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                     pa.vz = (u16)pa.vz + work->pos.vz;
                     func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i],
                                                D_m4a1_javelin_8011FAAC[work->step]);
-                    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                    gte_SetRotMatrix(&gGfxViewCoord.workm);
                     gte_ldv0(&D_m4a1_javelin_8011FA98);
                     gte_rtv0();
                     gte_stsv(&qa);

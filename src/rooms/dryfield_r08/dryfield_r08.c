@@ -450,8 +450,8 @@ void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
     block    = (RoomDraw31Scratch*)tmp;
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw31Scratch*)(head - 0x10))->sx);
@@ -535,8 +535,8 @@ void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
         block   = (RoomDiscScratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&block->sx);

@@ -164,8 +164,8 @@ void func_shelter_b1_elevator_hall_8017DEB0(SVECTOR* arg0, s32 arg1, s32 arg2)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -916,7 +916,7 @@ void func_shelter_b1_elevator_hall_8017FEAC(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

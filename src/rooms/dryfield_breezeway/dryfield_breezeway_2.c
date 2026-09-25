@@ -1848,7 +1848,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 coord->coord.t[1] += delta.vy;
                 coord->coord.t[2] += delta.vz;
                 coord->flg         = 0;
-                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&delta);
                 gte_rtv0();
                 gte_stsv(&dir);

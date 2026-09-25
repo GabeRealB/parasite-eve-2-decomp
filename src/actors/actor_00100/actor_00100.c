@@ -359,7 +359,7 @@ s32 Actor00100_Fn00BF8(Task* arg0)
     s->local.vz      = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
     gte_stsv(&s->out);
@@ -372,7 +372,7 @@ s32 Actor00100_Fn00BF8(Task* arg0)
     s->local.vz = arg0->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
     gte_stsv(out);
@@ -691,8 +691,8 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &s->secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vy   = height;
         s->second.vy  = height;
         s->first.vx   = s->firstMatrix.t[0];
@@ -719,12 +719,12 @@ void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
         s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
         /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
-        view      = PARENT_OF(&Gfx_ViewWorldMtx, GpCoord, workm);
+           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
+        view      = &gGfxViewCoord;
         view->flg = 0;
         Gp_UpdateCoord(view);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {

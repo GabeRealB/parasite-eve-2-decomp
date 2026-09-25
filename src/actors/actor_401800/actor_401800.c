@@ -844,7 +844,7 @@ s32 func_actor_401800_80133918(Task* arg0)
     s->local.vz      = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
     gte_stsv(&s->out);
@@ -857,7 +857,7 @@ s32 func_actor_401800_80133918(Task* arg0)
     s->local.vz = arg0->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     out = (SVECTOR*)(head - 0x14);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtv0();
     gte_stsv(out);

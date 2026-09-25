@@ -167,7 +167,7 @@ s32 Gp_TraceGroundCoord(GpCoord* arg0, GpCoord* arg1)
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
     block->pos.vz                          = vz;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
     gte_rtv0();
@@ -177,7 +177,7 @@ s32 Gp_TraceGroundCoord(GpCoord* arg0, GpCoord* arg1)
     block->dir.vz += block->pos.vz;
     ret            = func_800DE7CC(dir, &block->pos, dir, NULL);
     if (ret == 1) {
-        world            = &Gfx_ViewWorldMtx;
+        world            = &gGfxViewCoord.workm;
         arg1->workm.t[0] = block->dir.vx;
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
@@ -208,7 +208,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
     block->pos.vz                          = vz;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
     gte_rtv0();

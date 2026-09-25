@@ -288,8 +288,8 @@ void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32
         head     = *scratch;
         *scratch = head - 0x14;
         blk      = (RoomDraw05Scratch*)(head - 0x14);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(pos);
         gte_rtps();
         gte_stsxy(&((RoomDraw05Scratch*)(head - 0x14))->sx);
@@ -611,7 +611,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             slot->head.g     = 0x800;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->data.coord.coord);
             base->data.coord.flg = 0;
             /* fallthrough */
         case 1:
@@ -643,7 +643,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 slot->head.r     = 0xC00;
                 slot->head.g     = 0xC00;
                 slot->head.b     = 0x600;
-                Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->data.coord.coord);
                 base->data.coord.flg = 0;
             }
             break;

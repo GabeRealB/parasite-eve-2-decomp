@@ -637,7 +637,7 @@ void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
         v->vx = tbl->x * arg1;
         v->vy = 0;
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

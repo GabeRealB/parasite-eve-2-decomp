@@ -1536,7 +1536,7 @@ void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* wo
             }
         }
         if (work->field_BB8 == 1) {
-            TransposeMatrix(&Gfx_ViewWorldMtx, &arg->mtx);
+            TransposeMatrix(&gGfxViewCoord.workm, &arg->mtx);
             if (!(gDisplayState.animFrame & 0xF)) {
                 GpCoord* c;
 

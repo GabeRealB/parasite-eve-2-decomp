@@ -1466,8 +1466,8 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
     func_8004BFF8(-0x262, &mtx.mat);
     vec = &D_dryfield_night_gas_station_80188580[arg0];
     ApplyMatrixSV(&mtx.mat, vec, &pos);
-    SetRotMatrix(&Gfx_ViewWorldMtx);
-    SetTransMatrix(&Gfx_ViewWorldMtx);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
     pos.vx += off.vx;
     pos.vy += off.vy;
     pos.vz += off.vz;
@@ -1507,8 +1507,8 @@ void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         val               = -0x262;
         func_8004BFF8(val, &mtx.mat);
         ApplyMatrixSV(&mtx.mat, vec, &pos);
-        SetRotMatrix(&Gfx_ViewWorldMtx);
-        SetTransMatrix(&Gfx_ViewWorldMtx);
+        SetRotMatrix(&gGfxViewCoord.workm);
+        SetTransMatrix(&gGfxViewCoord.workm);
         pos.vx += off.vx;
         pos.vy += off.vy;
         pos.vz += off.vz;
@@ -1587,8 +1587,8 @@ void func_dryfield_night_gas_station_801802EC(s32 arg0)
     p1.vx += pos.vx;
     p1.vy += pos.vy;
     p1.vz += pos.vz;
-    SetRotMatrix(&Gfx_ViewWorldMtx);
-    SetTransMatrix(&Gfx_ViewWorldMtx);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
     RotTransPers(&p0, &sxy, &p, &flag0);
     x0 = sxy;
     y0 = sxy >> 16;
@@ -2117,8 +2117,8 @@ void func_dryfield_night_gas_station_801812B4(SVECTOR* arg0, s32 arg1, s32 arg2)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -2261,8 +2261,8 @@ void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
     SOFT_TOUCH_REG(block);
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);

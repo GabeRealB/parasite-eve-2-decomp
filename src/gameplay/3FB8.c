@@ -587,7 +587,7 @@ void Gp_EffSprTask30(Task* arg0)
             coord->coord.t[1] += vec.vy;
             coord->coord.t[2] += vec.vz;
             coord->flg         = 0;
-            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+            gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&vec);
             gte_rtv0();
             gte_stsv(&dir);
@@ -5067,7 +5067,7 @@ void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2)
     gte_ldv0(arg2);
     gte_rtv0tr();
     gte_stlvnl(arg1->workm.t);
-    world = &Gfx_ViewWorldMtx;
+    world = &gGfxViewCoord.workm;
     Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
     arg1->sub = PARENT_OF(world, GpCoord, workm);
     arg1->flg = 0;

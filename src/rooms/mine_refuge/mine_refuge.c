@@ -1614,8 +1614,8 @@ void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
     SOFT_TOUCH_REG(block);
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
@@ -1707,8 +1707,8 @@ void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
         block = (GpRingScratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
@@ -1798,8 +1798,8 @@ void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
     head    = *scratch;
     block   = (MineRefugeGlowScratch*)(*scratch = head - 0x1C);
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((MineRefugeGlowScratch*)(head - 0x1C))->sx);
@@ -1933,8 +1933,8 @@ void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
     head    = *scratch;
     block   = (RoomDraw13Scratch*)(*scratch = head - 0x10);
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);

@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (19 symbols)
+// --- from main (20 symbols)
 Task_Reparent = 0x8002D14C; // absolute:True
 gameGetPtrSlot = 0x8002D22C; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
@@ -18,6 +18,7 @@ ratan2 = 0x8003D9C8; // absolute:True
 ApplyTransposeMatrixLV = 0x80044050; // absolute:True
 SndEvt_EnqueueType6 = 0x8005414C; // absolute:True
 SndEvt_EnqueueType7 = 0x800542D0; // absolute:True
+gGfxViewCoord = 0x80070F10; // absolute:True
 Gfx_ViewWorldMtx = 0x80070F34; // absolute:True
 Gp_LcgState = 0x80070F60; // absolute:True
 gDisplayState = 0x80070F68; // absolute:True

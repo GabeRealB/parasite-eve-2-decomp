@@ -614,8 +614,8 @@ void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = D_shelter_b2_main_corridor_80182E28;
     for (; e->count != -1; e++) {
         w->dx = e->width / 2;
@@ -1264,8 +1264,8 @@ void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s
         block    = (RoomDraw11Scratch*)tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw11Scratch*)(head - 0x18))->sx0);
@@ -1405,8 +1405,8 @@ void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
     SOFT_TOUCH_REG(block);
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     prim           = (POLY_FT4*)gGpuPrimCursor;

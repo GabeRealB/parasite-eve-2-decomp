@@ -370,8 +370,8 @@ void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface
     SCRATCH_HEAD(u8)  = head - 0xC;
     w                 = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     w->y = y;
     for (; e->count != -1; e++) {
         if (e->alongZ == 0) {
@@ -1030,8 +1030,8 @@ void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -1763,7 +1763,7 @@ void func_shelter_b4_upper_sewer_801818C8(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
@@ -3271,7 +3271,7 @@ void func_shelter_b4_upper_sewer_80185F58(GpCoord* arg0, s32 arg1)
         v->vx = prod;
         TOUCH_REG(v);
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

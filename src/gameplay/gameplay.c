@@ -1013,7 +1013,7 @@ void Gp_UpdateCoordEx(GpCoord* arg0, GpCoord* arg1)
     if (arg0->sub == NULL) {
         _gGpCurCoord = arg0;
         _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &arg0->workm, &arg0->coord);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->workm, &arg0->coord);
     } else {
         _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
     }
@@ -7358,7 +7358,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         base                          = gDisplayState.animFrame << 4;
         SCRATCH_HEAD(GpCircleScratch) = sc;
     }
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     if (arg3 & 4) {
         other      = &slot->extra.tmd->coords[4];
         sc->vec.vx = 0;

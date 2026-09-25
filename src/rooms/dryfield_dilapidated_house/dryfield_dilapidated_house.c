@@ -986,8 +986,8 @@ void func_dryfield_dilapidated_house_8017EBB8(Task* task)
         sc.vec.vx = (u16)sc.vec.vx + (u16)mtx->t[0];
         sc.vec.vy = (u16)sc.vec.vy + (u16)mtx->t[1];
         sc.vec.vz = (u16)sc.vec.vz + (u16)mtx->t[2];
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&sc.vec);
         gte_rtps();
         gte_stsxy(&sc.sxy);
@@ -1055,8 +1055,8 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         vec.vx = (u16)vec.vx + (u16)mtx->t[0];
         vec.vy = (u16)vec.vy + (u16)mtx->t[1];
         vec.vz = (u16)vec.vz + (u16)mtx->t[2];
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&vec);
         gte_rtps();
         gte_stsxy(&sxy);
@@ -1098,8 +1098,8 @@ void func_dryfield_dilapidated_house_8017EE58(Task* task)
         vec.vx = (u16)vec.vx + (u16)mtx->t[0];
         vec.vy = (u16)vec.vy + (u16)mtx->t[1];
         vec.vz = (u16)vec.vz + (u16)mtx->t[2];
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&vec);
         gte_rtps();
         gte_stsxy(&sxy);
@@ -1322,8 +1322,8 @@ void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* a
     b.vx += mtx->t[0];
     b.vy += mtx->t[1];
     b.vz += mtx->t[2];
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&a);
     gte_rtps();
     gte_stsxy(&proj[0].sxy);
@@ -1417,8 +1417,8 @@ void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
     p     = sxy;
     z     = sz;
     level = ((DdhCoordWork*)((Task*)task->spawnArg2)->work)->field_8;
-    SetRotMatrix(&Gfx_ViewWorldMtx);
-    SetTransMatrix(&Gfx_ViewWorldMtx);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
     for (i = 0; i < 16; i++) {
         gte_ldv3(v, v + 1, v + 16);
         gte_rtpt();

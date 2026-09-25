@@ -446,8 +446,6 @@ extern u8 D_80165FC0;
 void func_8017E128(s32 arg0);
 void func_80182730(void);
 
-extern MATRIX Gfx_ViewWorldMtx;
-
 /* Defined later in this file. */
 void func_actor_403100_801326DC(Actor403100Work* work);
 void func_actor_403100_8013712C(Task* arg0);
@@ -840,8 +838,8 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
     if (firstJoint != secondJoint) {
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
         second.vy  = (s16)height;
         first.vx   = firstMatrix.t[0];
@@ -897,8 +895,8 @@ void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16
         }
         gGfxViewCoord.flg = 0;
         Gp_UpdateCoord(&gGfxViewCoord);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
         if (flags >= 0) {
             poly           = gGpuPrimCursor;
@@ -1562,8 +1560,8 @@ void func_actor_403100_8013480C(Task* arg0, s32 arg1)
 
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     __asm__ volatile("lui %0,%%hi(D_actor_403100_80155808)" : "=r"(workHigh));
     __asm__ volatile("lw %0,%%lo(D_actor_403100_80155808)(%1)" : "=r"(work) : "r"(workHigh) : "memory");
     count = work->flags_634.h.high;
@@ -4480,7 +4478,7 @@ void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     matrices->m[2][2]                  = 0x1000;
     root                               = arg0->extra.tmd->coords;
     SCRATCH_HEAD(MATRIX)               = matrices;
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &root[3].workm, &worldMatrix);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &root[3].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
     delta.vy = D_actor_403100_80155808->field_9A - offsetY;

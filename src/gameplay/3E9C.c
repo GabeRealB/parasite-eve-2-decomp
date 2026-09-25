@@ -786,7 +786,7 @@ void Gp_EffLineTaskA3(Task* arg0)
         gte_ldv0(&mem->move);
         gte_rtv0();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
         gte_rtv0();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
@@ -1381,7 +1381,7 @@ void Gp_EffModelTask(Task* arg0)
     t2                 = coord->coord.t[2] + delta.vz;
     coord->flg         = 0;
     coord->coord.t[2]  = t2;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&delta);
     gte_rtv0();
     gte_stsv(&dir);
@@ -3002,7 +3002,7 @@ void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2)
         v->vx = tbl->x * arg1;
         v->vy = 0;
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);
@@ -3078,7 +3078,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
             v->vx = tbl->x * size;
             v->vy = 0;
             v->vz = tbl->y * size;
-            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+            gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(v);
             gte_rtv0();
             gte_stsv(v);
@@ -3242,7 +3242,7 @@ void Gp_EffAttachTask37(Task* arg0)
             coord->coord.t[1] += delta.vy;
             coord->coord.t[2] += delta.vz;
             coord->flg         = 0;
-            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+            gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&delta);
             gte_rtv0();
             gte_stsv(&dir);

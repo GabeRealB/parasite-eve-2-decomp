@@ -5,7 +5,7 @@
 // Names follow the overlay that defines each symbol, so a call reads the
 // same here as it does in main/ or gameplay/.
 
-// --- from main (180 symbols)
+// --- from main (181 symbols)
 Mem_ConfigureAuxHeap = 0x800144F8; // absolute:True
 CdFlush = 0x80015AF4; // absolute:True
 SetDispMask = 0x80017C00; // absolute:True
@@ -14,6 +14,7 @@ StoreImage = 0x80017FA4; // absolute:True
 MoveImage = 0x80018004; // absolute:True
 SetDrawArea = 0x80018A24; // absolute:True
 SetDrawOffset = 0x80018AA4; // absolute:True
+memcpy = 0x8001AEFC; // absolute:True
 printf = 0x8001AF3C; // absolute:True
 CdCmd_ActivatePhase1 = 0x8001C970; // absolute:True
 CdCmd_Enqueue = 0x8001D2B0; // absolute:True

@@ -164,8 +164,8 @@ s32 func_actor_135600_80131E68(GpCoord* coord, s32 arg1)
     v1.vy += pos.vy;
     v1.vz += pos.vz;
 
-    SetRotMatrix(&Gfx_ViewWorldMtx);
-    SetTransMatrix(&Gfx_ViewWorldMtx);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
 
     RotTransPers(&v0, &sxy0, &p, &flag);
     depth = RotTransPers(&v1, &sxy1, &p, &flag);

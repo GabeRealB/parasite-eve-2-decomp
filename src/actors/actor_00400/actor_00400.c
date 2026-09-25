@@ -350,7 +350,6 @@ void Actor00400_Fn09E70(Task* arg0);
 void Actor00400_Fn09F18(Task* arg0);
 void Actor00400_Fn09FDC(Task* arg0);
 
-extern MATRIX     Gfx_ViewWorldMtx;
 extern GpPairSrcE Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
 /// `key`.
@@ -755,8 +754,8 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s = (ActorBeamScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &s->secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vy   = height;
         s->second.vy  = height;
         s->first.vx   = s->firstMatrix.t[0];
@@ -783,12 +782,12 @@ void Actor00400_Fn00E3C(Task* actor, s16 firstJoint, s16 secondJoint, s16 width,
         s->corner3.vx = (s->second.vx + (offset3 >> 0xC)) - halfX;
         s->corner3.vz = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
         /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
-        view      = PARENT_OF(&Gfx_ViewWorldMtx, GpCoord, workm);
+           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
+        view      = &gGfxViewCoord;
         view->flg = 0;
         Gp_UpdateCoord(view);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                                  &s->screen2, &s->screen3, &s->perspective, &s->flags);
         if (s->flags >= 0) {
@@ -1840,8 +1839,8 @@ void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SV
     s                 = (Actor100400TextQuadScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor100400TextQuadScratch));
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screen0, &s->screen1, &s->screen2, &s->screen3,
                              &s->perspective, &s->flags);
     if (s->flags >= 0) {
@@ -4199,7 +4198,7 @@ void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
 
     coords = arg0->extra.tmd->coords;
     work   = arg0->work;
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[arg1].workm, &m);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[arg1].workm, &m);
     d.vx = work->field_5E4.vx - m.t[0];
     d.vy = work->field_5E4.vy - arg3 - m.t[1];
     d.vz = work->field_5E4.vz - m.t[2];

@@ -524,8 +524,8 @@ void func_dryfield_night_water_hole_8017DF28(Task* task)
     phase             = -(D_dryfield_night_water_hole_8018362C * 16);
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     for (; e->y != -1; e++) {
         step = e->width / 64;
         half = (s16)e->depth / 2;
@@ -699,7 +699,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                     splash->strength = ABS(D_dryfield_night_water_hole_801809F4[i].vx - part->workm.t[0]) +
                                        ABS(D_dryfield_night_water_hole_801809F4[i].vy - part->workm.t[1]) +
                                        ABS(D_dryfield_night_water_hole_801809F4[i].vz - part->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &part->workm, &surface.coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
                     surface.sub        = view;
                     surface.coord.t[1] = gGameSession->waterY;
                     surface.flg        = 0;
@@ -773,8 +773,8 @@ void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);

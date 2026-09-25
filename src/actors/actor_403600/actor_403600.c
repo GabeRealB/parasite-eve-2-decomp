@@ -964,7 +964,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 SOFT_TOUCH_REG_USE(saved3, actor);
                 saved3 += 12;
                 coord3  = &actor->extra.tmd->coords[i + 9];
-                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(saved3);
                 gte_rtv0();
                 gte_stsv(&scratch->a);
@@ -1044,7 +1044,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 node4 = actor->extra.tmd;
                 SOFT_USE_REG(node4);
                 coord4 = &node4->coords[part4];
-                TransposeMatrix(&Gfx_ViewWorldMtx, basis4);
+                TransposeMatrix(&gGfxViewCoord.workm, basis4);
                 Gp_UpdateCoord(coord4);
                 viewCoord4    = &gGfxViewCoord;
                 scratch->b.vx = (u16)coord4->workm.t[0] - (u16)viewCoord4->workm.t[0];
@@ -1089,7 +1089,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 arg2->limbTips[i].vy = (u16)scratch->b.vy + (u16)scratch->a.vy;
                 arg2->limbTips[i].vz = (u16)scratch->b.vz + (u16)scratch->a.vz;
 
-                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&saved4[12]);
                 gte_rtv0();
                 gte_stsv(&scratch->a);
@@ -1561,8 +1561,8 @@ block_22:
             arg0->status        = 2;
             arg0->killCountdown = 0x20;
         }
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         temp_v1_6 = arg0->spawnArg1 & 0xF;
         switch (temp_v1_6) {
             case 0:

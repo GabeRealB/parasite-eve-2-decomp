@@ -149,8 +149,8 @@ void func_shelter_b4_lower_sewer_8017D72C(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_lower_sewer_80181E6C;
     for (; e->end != -1; e++) {
         s->step = e->step / 32;
@@ -287,8 +287,8 @@ void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
     SCRATCH_HEAD(u8)  = head - 0xC;
     s                 = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     ((_SurfaceScratch*)(head - 0xC))->y = D_shelter_b4_lower_sewer_80181E6C;
     for (; e->end != -1; e++) {
         s->step = e->step / 8;

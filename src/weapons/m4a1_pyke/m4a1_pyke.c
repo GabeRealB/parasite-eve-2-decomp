@@ -106,7 +106,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.r = ((ang >> 16) & 0x700) + 0x400;
                     slot->head.g = (u16)slot->head.r >> 1;
                     slot->head.b = slot->head.r >> 2;
-                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->flg  = 0;
                     work->scale = 0x40;
                     break;
@@ -131,7 +131,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.r     = ((ang >> 16) & 0x700) + 0x800;
                     slot->head.g     = (u16)slot->head.r >> 1;
                     slot->head.b     = slot->head.r >> 2;
-                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->flg = 0;
                     break;
                 case 3:
@@ -470,7 +470,7 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
         block->vec[i].vx = tbl[i].x * width;
         block->vec[i].vy = 0;
         block->vec[i].vz = tbl[i].y * width;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&block->vec[i]);
         gte_rtv0();
         gte_stsv(&block->vec[i]);

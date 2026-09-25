@@ -1860,7 +1860,7 @@ void func_actor_510900_80138BF0(Task* arg0)
     SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
     scratch = (ActorAimScratch*)SCRATCH_HEAD(void);
 
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
     scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;
@@ -2218,7 +2218,7 @@ void func_actor_510900_801395AC(void* enemy, Task* task)
                     coord->coord.t[2] = 0;
                     coord->sub        = parentCoord;
                     if (r == 0xE) {
-                        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &parentCoord->workm, &work->field_544);
+                        Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &work->field_544);
                     }
                 } else {
                     r                  = r - 0xF;

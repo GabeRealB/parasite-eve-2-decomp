@@ -1413,7 +1413,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
     if (level >= 0) {
         SCRATCH_PUSH(RoomQuadProjScratch);
         blk = SCRATCH_HEAD(RoomQuadProjScratch);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         for (angle = start; angle < start + step * arg3; angle = next) {
             blk->v[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);
             blk->v[0].vy = v->vy;
@@ -1428,7 +1428,7 @@ void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3)
             blk->v[3].vx = outer->vx + ((rsin(next) * (s16)arg1) >> 12);
             blk->v[3].vy = outer->vy;
             blk->v[3].vz = outer->vz + ((rcos(next) * (s16)arg1) >> 12);
-            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+            gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&blk->v[0]);
             gte_rtps();
             gte_stsxy(&blk->sxy[0]);
@@ -1496,8 +1496,8 @@ void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
     block    = (RoomDraw13Scratch*)tmp;
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);

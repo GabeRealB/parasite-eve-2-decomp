@@ -3212,8 +3212,8 @@ void Actor04400_Fn06520(Task* arg0, s16 part, SVECTOR3* pos)
     coords = arg0->extra.tmd->coords;
     coord  = &coords[part];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
     coords->coord.t[0] = pos->vx - (world.t[0] - local.t[0]);
     coords->coord.t[1] = pos->vy - (world.t[1] - local.t[1]);
     coords->coord.t[2] = pos->vz - (world.t[2] - local.t[2]);

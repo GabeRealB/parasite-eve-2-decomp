@@ -592,8 +592,8 @@ void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16
     if (firstJoint != secondJoint) {
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &firstCoord->workm, &firstMatrix);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &secondCoord->workm, &secondMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
         second.vy  = (s16)height;
         first.vx   = firstMatrix.t[0];
@@ -620,12 +620,12 @@ void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16
         corner3.vx = (second.vx + (offset3 >> 0xC)) - halfX;
         corner3.vz = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
         /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `Gfx_ViewWorldMtx`, whose high half the GTE loads below share. */
-        viewCoord      = PARENT_OF(&Gfx_ViewWorldMtx, GpCoord, workm);
+           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
+        viewCoord      = &gGfxViewCoord;
         viewCoord->flg = 0;
         Gp_UpdateCoord(viewCoord);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3,
                               &perspective, &flags);
         if (flags >= 0) {
@@ -1161,7 +1161,7 @@ void func_actor_400500_801335E8(Task* arg0)
         saveA       = &work->field_9A0;
         soundCoords = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords[0xB]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords[0xB].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords[0xB].workm, &local);
         posA                 = saveA;
         posA->x              = local.t[0];
         posA->z              = local.t[2];
@@ -1174,7 +1174,7 @@ void func_actor_400500_801335E8(Task* arg0)
         saveB        = &work->field_9A0;
         soundCoords2 = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords2[8]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords2[8].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords2[8].workm, &local);
         posB                = saveB;
         posB->x             = local.t[0];
         posB->z             = local.t[2];
@@ -1188,8 +1188,8 @@ void func_actor_400500_801335E8(Task* arg0)
         coord  = &coords[0xB];
         Gp_UpdateCoord(coord);
         saveC = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local2);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
         dx                 = world.t[0] - local2.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx;
         posC               = saveC;
@@ -1206,8 +1206,8 @@ void func_actor_400500_801335E8(Task* arg0)
         coord  = &coords[8];
         Gp_UpdateCoord(coord);
         saveD = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local2);
         dx2                = local2.t[0] - local.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx2;
         posD               = saveD;
@@ -1333,7 +1333,7 @@ void func_actor_400500_80133B14(Task* arg0)
         saveA       = &work->field_9A0;
         soundCoords = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords[0xB]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords[0xB].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords[0xB].workm, &local);
         posA                 = saveA;
         posA->x              = local.t[0];
         posA->z              = local.t[2];
@@ -1346,7 +1346,7 @@ void func_actor_400500_80133B14(Task* arg0)
         saveB        = &work->field_9A0;
         soundCoords2 = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords2[8]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords2[8].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords2[8].workm, &local);
         posB                = saveB;
         posB->x             = local.t[0];
         posB->z             = local.t[2];
@@ -1360,8 +1360,8 @@ void func_actor_400500_80133B14(Task* arg0)
         coord  = &coords[0xB];
         Gp_UpdateCoord(coord);
         saveC = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local2);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
         dx                 = world.t[0] - local2.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx;
         posC               = saveC;
@@ -1378,8 +1378,8 @@ void func_actor_400500_80133B14(Task* arg0)
         coord  = &coords[8];
         Gp_UpdateCoord(coord);
         saveD = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local2);
         dx2                = local2.t[0] - local.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx2;
         posD               = saveD;
@@ -1504,7 +1504,7 @@ void func_actor_400500_8013403C(Task* arg0)
         saveA       = &work->field_9A0;
         soundCoords = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords[8]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords[8].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords[8].workm, &local);
         posA               = saveA;
         posA->x            = local.t[0];
         posA->z            = local.t[2];
@@ -1517,7 +1517,7 @@ void func_actor_400500_8013403C(Task* arg0)
         saveB        = &work->field_9A0;
         soundCoords2 = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&soundCoords2[0xB]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &soundCoords2[0xB].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &soundCoords2[0xB].workm, &local);
         posB                  = saveB;
         posB->x               = local.t[0];
         posB->z               = local.t[2];
@@ -1531,8 +1531,8 @@ void func_actor_400500_8013403C(Task* arg0)
         coord  = &coords[8];
         Gp_UpdateCoord(coord);
         saveC = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local2);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
         dx                 = world.t[0] - local2.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx;
         posC               = saveC;
@@ -1549,8 +1549,8 @@ void func_actor_400500_8013403C(Task* arg0)
         coord  = &coords[0xB];
         Gp_UpdateCoord(coord);
         saveD = &work->field_9A0;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local2);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local2);
         dx2                = local2.t[0] - local.t[0];
         coords->coord.t[0] = work->field_9A0.x - dx2;
         posD               = saveD;
@@ -2636,7 +2636,7 @@ void func_actor_400500_801361EC(Task* arg0)
                     pos2         = &work->field_9A0;
                     coords       = arg0->extra.tmd->coords;
                     Gp_UpdateCoord(&coords[11]);
-                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[11].workm, &local);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[11].workm, &local);
                     pos    = pos2;
                     pos->x = local.t[0];
                     pos->z = local.t[2];
@@ -2648,7 +2648,7 @@ void func_actor_400500_801361EC(Task* arg0)
             pos4    = &work->field_9A0;
             coords2 = arg0->extra.tmd->coords;
             Gp_UpdateCoord(&coords2[11]);
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords2[11].workm, &local);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coords2[11].workm, &local);
             pos3            = pos4;
             pos3->x         = local.t[0];
             pos3->z         = local.t[2];
@@ -3475,7 +3475,7 @@ void func_actor_400500_8013771C(Task* arg0)
                 playerCoords = Gp_ActorSlots[0]->extra.tmd->coords;
                 Gp_UpdateCoord(playerCoords + 4);
                 Gp_UpdateCoord(coord8);
-                viewWorld = &Gfx_ViewWorldMtx;
+                viewWorld = &gGfxViewCoord.workm;
                 Gp_WorldToLocal(viewWorld, &playerCoords[4].workm, &slot.mat);
                 Gp_WorldToLocal(viewWorld, &coords[8].workm, &parent);
                 dvec.vx = (u16)slot.mat.t[0] - (u16)parent.t[0];
@@ -4442,7 +4442,7 @@ void func_actor_400500_8013973C(Task* arg0)
         pos2        = &work->field_9A0;
         coordsEarly = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coordsEarly[3]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coordsEarly[3].workm, &rot.mat);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coordsEarly[3].workm, &rot.mat);
         pos                = pos2;
         pos->x             = rot.mat.t[0];
         pos->z             = rot.mat.t[2];
@@ -4459,7 +4459,7 @@ void func_actor_400500_8013973C(Task* arg0)
     coordsMain        = arg0->extra.tmd->coords;
     part3             = &coordsMain[3];
     Gp_UpdateCoord(part3);
-    view = &Gfx_ViewWorldMtx;
+    view = &gGfxViewCoord.workm;
     Gp_WorldToLocal(view, &coordsMain->workm, &local0);
     Gp_WorldToLocal(view, &coordsMain[3].workm, &local3);
     posMain                = posMain2;
@@ -4772,7 +4772,7 @@ void func_actor_400500_8013A0B8(Task* arg0)
         coord14 = &coords[0xE];
         Gp_UpdateCoord(coord14);
         pos2 = &work->field_9A0;
-        view = &Gfx_ViewWorldMtx;
+        view = &gGfxViewCoord.workm;
         Gp_WorldToLocal(view, &coords->workm, &rot.mat);
         Gp_WorldToLocal(view, &coord14->workm, &local2);
         dx                 = local2.t[0] - rot.mat.t[0];
@@ -5368,7 +5368,7 @@ void func_actor_400500_8013AF44(Task* arg0)
         pos2   = &work->field_9A0;
         coords = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coords[8]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[8].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[8].workm, &local);
         pos           = pos2;
         pos->x        = local.t[0];
         pos->z        = local.t[2];
@@ -6389,7 +6389,7 @@ void func_actor_400500_8013CA38(Task* arg0)
         pos2            = &work->field_9A0;
         coords          = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coords[0xE]);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0xE].workm, &local);
         pos             = pos2;
         pos->x          = local.t[0];
         pos->z          = local.t[2];
@@ -7106,7 +7106,7 @@ void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos* arg2)
 
     coord = &arg0->extra.tmd->coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->x    = local.t[0];
     arg2->z    = local.t[2];
     coord->flg = 0;

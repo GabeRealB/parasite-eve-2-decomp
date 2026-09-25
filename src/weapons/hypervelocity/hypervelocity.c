@@ -120,7 +120,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
             slot->head.r     = (u16)slot->head.b >> 1;
             slot->head.g     = (s16)(u16)slot->head.b >> 1;
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->flg = 0;
             if (task->spawnArg1 < 0) {
                 task->spawnArg1 = 0;
@@ -149,7 +149,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
             slot->head.r     = (u16)slot->head.b >> 1;
             slot->head.g     = (s16)(u16)slot->head.b >> 1;
-            Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->flg   = 0;
             work->scale += work->step;
             if (work->scale >= 0x100) {
@@ -616,7 +616,7 @@ void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
         v->vx = tbl->x * spin;
         v->vy = 0;
         v->vz = tbl->y * spin;
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_ldv0(v);
         gte_rtv0();
         gte_stsv(v);

@@ -82,8 +82,8 @@ void func_actor_341300_80161E84(void)
     s32       k;
     POLY_FT4* prim;
 
-    SetRotMatrix(&Gfx_ViewWorldMtx);
-    SetTransMatrix(&Gfx_ViewWorldMtx);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
     for (i = 0; i < 2; i++) {
         k = i * 4;
         RotTransPers(&v[k + 3], &sxy[k + 3], &p, &flag);

@@ -578,7 +578,7 @@ void Tmd_SetupDraw(TmdObject* obj)
 
         m = &ws->mat;
         TOUCH_REG(m);
-        src = &Gfx_ViewWorldMtx;
+        src = &gGfxViewCoord.workm;
         TOUCH_REG(src);
         flags = obj->flags;
         TOUCH_REG(flags);

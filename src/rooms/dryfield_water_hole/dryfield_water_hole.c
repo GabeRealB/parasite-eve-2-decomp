@@ -236,8 +236,8 @@ void func_dryfield_water_hole_8017D898(Task* task)
     phase             = -(D_dryfield_water_hole_801828D0 * 16);
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     for (; e->y != -1; e++) {
         step = e->width / 64;
         half = (s16)e->depth / 2;
@@ -409,7 +409,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     splash->strength = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &part->workm, &surface.coord);
+                    Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
                     surface.sub        = view;
                     surface.coord.t[1] = gGameSession->waterY;
                     surface.flg        = 0;

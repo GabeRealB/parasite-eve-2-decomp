@@ -101,7 +101,7 @@ void func_actor_510900_80131F24(Task* arg0)
             slot->inner -= 0x190;
         }
         base->framesLeft--;
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &base->data.coord.coord);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->data.coord.coord);
         base->data.coord.flg = 0;
         if (base->framesLeft == 0) {
             arg0->spawnArg1 = 0;
@@ -836,7 +836,7 @@ void func_actor_510900_801340E8(Task* arg0)
     ext->head.r      = 0xC00;
     ext->head.g      = 0x800;
     ext->head.b      = 0x400;
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &cam->coord);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
     cam->flg = 0;
     Gp_ReleaseState1CMem(eff, arg0);
 }

@@ -717,8 +717,8 @@ void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
         block   = (RoomDraw05Scratch*)(*scratch = head - 0x14);
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&block->sx);

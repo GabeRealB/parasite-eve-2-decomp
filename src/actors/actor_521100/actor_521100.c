@@ -1727,7 +1727,7 @@ void func_actor_521100_80134EDC(Task* arg0)
     SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
     scratch = (ActorAimScratch*)SCRATCH_HEAD(void);
 
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &head->workm, &scratch->view);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
     scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;

@@ -821,8 +821,8 @@ void func_actor_403000_80132AE0(GpCoord* parent)
     for (i = 0; i < 18; i++) {
         prim           = (POLY_FT4*)gGpuPrimCursor;
         gGpuPrimCursor = (DR_TPAGE*)(prim + 1);
-        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-        gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&D_actor_403000_80158DF0[i]);
         gte_rtps();
         gte_stsxy(&scratch->sxy.w);

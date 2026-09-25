@@ -110,7 +110,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x400;
                         slot->head.r     = (u16)slot->head.b >> 1;
                         slot->head.g     = (u16)slot->head.b >> 1;
-                        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->flg  = 0;
                         work->index = 0;
                         return;
@@ -170,7 +170,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x800;
                         slot->head.r     = (u16)slot->head.b >> 1;
                         slot->head.g     = (s16)(u16)slot->head.b >> 1;
-                        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &light->coord);
+                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->flg  = 0;
                         work->index = work->index + 1;
                         if (work->index >= 5) {

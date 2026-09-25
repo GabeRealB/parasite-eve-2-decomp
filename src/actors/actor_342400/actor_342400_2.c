@@ -3046,8 +3046,8 @@ void func_actor_342400_80169654(Task* arg0, s16 arg1, SVECTOR3* arg2)
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords->workm, &local);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &world);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
     coords->coord.t[0] = arg2->vx - (world.t[0] - local.t[0]);
     coords->coord.t[1] = arg2->vy - (world.t[1] - local.t[1]);
     coords->coord.t[2] = arg2->vz - (world.t[2] - local.t[2]);

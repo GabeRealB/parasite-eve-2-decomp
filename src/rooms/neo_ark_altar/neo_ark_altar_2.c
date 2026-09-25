@@ -661,8 +661,8 @@ void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     gGfxViewCoord.flg = 0;
     Gp_UpdateCoord(&gGfxViewCoord);
 
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
 
     tile = &base[arg0];
     y1   = y0 - arg1;

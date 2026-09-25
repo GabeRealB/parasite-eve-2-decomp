@@ -3169,7 +3169,7 @@ void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
         coord      = &arg0->extra.tmd->coords[D_actor_400600_80151B88[i]];
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &mtx);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &mtx);
         pts[i].vx = mtx.t[0];
         pts[i].vy = arg1;
         pts[i].vz = mtx.t[2];
@@ -3215,8 +3215,8 @@ void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shad
     s->corner3.vx = (arg1->vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
     s->corner3.vy = arg1->vy;
     s->corner3.vz = (arg1->vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
                              &s->screen2, &s->screen3, &s->perspective, &s->flags);
     if (s->flags >= 0) {
@@ -3902,7 +3902,7 @@ void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->x    = local.t[0];
     arg2->y    = local.t[1];
     arg2->z    = coords[0].coord.t[2];
@@ -3919,8 +3919,8 @@ void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0].workm, &root);
-    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, &local);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0] = arg2->x - (local.t[0] - root.t[0]);
     coords[0].coord.t[1] = arg2->y - (local.t[1] - root.t[1]);
     coords[0].flg        = 0;

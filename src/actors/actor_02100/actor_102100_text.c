@@ -805,7 +805,7 @@ void Actor02100_Fn011C4(Task* arg0)
                         scratch->from.vx = (u16)scratch->lock.vx;
                         scratch->from.vy = (u16)scratch->lock.vy;
                         scratch->from.vz = (u16)scratch->lock.vz;
-                        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                        gte_SetRotMatrix(&gGfxViewCoord.workm);
                         gte_ldv0(&scratch->from);
                         gte_rtv0();
                         gte_stlvnl(&scratch->transformed);
@@ -889,7 +889,7 @@ case2:
     scratch->shortVec.vx = (u16)scratch->vec.vx;
     scratch->shortVec.vy = (u16)scratch->vec.vy;
     scratch->shortVec.vz = (u16)scratch->vec.vz;
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&scratch->shortVec);
     gte_rtv0();
     gte_stlvnl(vec);

@@ -350,8 +350,8 @@ void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s
     b.vx += mtx->t[0];
     b.vy += mtx->t[1];
     b.vz += mtx->t[2];
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&a);
     gte_rtps();
     gte_stsxy(&proj[0].sxy);

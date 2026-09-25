@@ -203,7 +203,7 @@ void Gp_EffSprTask81(Task* arg0)
     coord->workm = parent->workm;
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
-    world = &Gfx_ViewWorldMtx;
+    world = &gGfxViewCoord.workm;
     Gp_WorldToLocal(world, &coord->workm, &coord->coord);
     coord->flg = 0;
     Gp_UpdateCoord(coord);

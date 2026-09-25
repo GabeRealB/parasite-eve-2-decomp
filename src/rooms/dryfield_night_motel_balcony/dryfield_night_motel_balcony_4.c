@@ -237,8 +237,8 @@ void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
         *scratch = tmp;
     }
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((OverlayPointPairScratch*)(head - 0x1C))->sx0);
@@ -371,8 +371,8 @@ void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, s32 arg
     SOFT_TOUCH_REG(block);
     *scratch = tmp;
 
-    gte_SetTransMatrix(&Gfx_ViewWorldMtx);
-    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
     gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
@@ -580,7 +580,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 coord->coord.t[1] += delta.vy;
                 coord->coord.t[2] += delta.vz;
                 coord->flg         = 0;
-                gte_SetRotMatrix(&Gfx_ViewWorldMtx);
+                gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&delta);
                 gte_rtv0();
                 gte_stsv(&dir);
