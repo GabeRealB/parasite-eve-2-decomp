@@ -951,50 +951,50 @@ void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
 /// 0x40 bytes of the scratch stack.
 ///
 /// `base` and `vec` hold the same address on purpose: the explicit `move`
-/// reproduces the original's `addiu`/`addu` pair, and the head-relative
-/// spelling of the vector copy and of the reloaded x keeps the scratch
+/// reproduces the original's `addiu`/`addu` pair, and reaching the block as
+/// `head - 1` for the vector copy, the matrix and the heading keeps the scratch
 /// pointer in `head`'s register. `COMPILER_BARRIER` stops cse from forwarding
 /// the reload of x from the store just above it.
 s32 func_actor_207200_8014CE20(GsCOORDINATE2* arg0, u32* arg1)
 {
-    SVECTOR        local;
-    GsCOORDINATE2* coord;
-    s32            angle;
-    s32            x;
-    s16            z;
-    void*          base;
-    void*          head;
-    void*          vec;
-    void*          matrix;
+    SVECTOR              local;
+    GsCOORDINATE2*       coord;
+    s32                  angle;
+    s32                  x;
+    s16                  z;
+    ActorBearingScratch* base;
+    ActorBearingScratch* head;
+    ActorBearingScratch* vec;
+    MATRIX*              matrix;
 
     coord = ((TmdObject*)(gameGetPtrSlot(3))->extra)->coords;
-    head  = SCRATCH_HEAD(void);
-    base  = head - 0x40;
+    head  = SCRATCH_HEAD(ActorBearingScratch);
+    base  = head - 1;
     __asm__("move %0,%1" : "=r"(vec) : "r"(base));
-    *(s16*)((s8*)base + 0) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    *(s16*)((s8*)vec + 2)  = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    SCRATCH_HEAD(void)     = vec;
-    *(s16*)((s8*)vec + 4)  = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-    matrix                 = head - 0x20;
+    base->delta.vx                    = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    vec->delta.vy                     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    SCRATCH_HEAD(ActorBearingScratch) = vec;
+    vec->delta.vz                     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    matrix                            = &(head - 1)->frame;
     TransposeMatrix(&arg0->workm, matrix);
-    local = *(SVECTOR*)((s8*)head - 0x40);
+    local = (head - 1)->delta;
     gte_SetRotMatrix(matrix);
     __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
     gte_rtv0();
-    gte_stsv(vec);
-    angle = ratan2(*(s16*)((s8*)head - 0x40), *(s16*)((s8*)vec + 4));
+    gte_stsv(&vec->delta);
+    angle = ratan2((head - 1)->delta.vx, vec->delta.vz);
     if (angle >= 0x801) {
         angle -= 0x1000;
     } else if (angle < -0x800) {
         angle += 0x1000;
     }
-    *(s16*)((s8*)vec + 0) = (s16)(coord->coord.t[0] - arg0->coord.t[0]);
+    vec->delta.vx = (s16)(coord->coord.t[0] - arg0->coord.t[0]);
     COMPILER_BARRIER();
-    x                     = *(s16*)((s8*)vec + 0);
-    z                     = coord->coord.t[2] - arg0->coord.t[2];
-    *(s16*)((s8*)vec + 4) = z;
-    *arg1                 = SquareRoot0((x * x) + (z * z));
-    SCRATCH_POP_BYTES(0x40);
+    x             = vec->delta.vx;
+    z             = coord->coord.t[2] - arg0->coord.t[2];
+    vec->delta.vz = z;
+    *arg1         = SquareRoot0((x * x) + (z * z));
+    SCRATCH_POP(ActorBearingScratch);
     return angle;
 }
 
@@ -1314,13 +1314,13 @@ void func_actor_207200_8014D77C(Task* task)
 void func_actor_207200_8014D7E8(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
 
-    head               = SCRATCH_HEAD(MATRIX);
+    head               = SCRATCH_HEAD(ActorScaleScratch);
     work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    scratch            = head - 1;
     SCRATCH_HEAD(void) = scratch;
     coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_49C >= 0x201) {
@@ -1338,7 +1338,7 @@ void func_actor_207200_8014D7E8(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 /// Re-picks the model part the enemy's `coord` points at and relinks its

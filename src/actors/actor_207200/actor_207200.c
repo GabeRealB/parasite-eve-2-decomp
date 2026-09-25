@@ -671,13 +671,13 @@ void func_actor_207200_8014B04C(Task* task)
 void func_actor_207200_8014B128(Task* arg0)
 {
     GsCOORDINATE2*     coord;
-    MATRIX*            head;
+    ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
 
-    head               = SCRATCH_HEAD(MATRIX);
+    head               = SCRATCH_HEAD(ActorScaleScratch);
     work               = arg0->work;
-    scratch            = (ActorScaleScratch*)((u8*)head - 0x30);
+    scratch            = head - 1;
     SCRATCH_HEAD(void) = scratch;
     coord              = (*(TmdObject**)&arg0->extra)->coords;
     if (work->field_2A0 >= 0x201) {
@@ -695,7 +695,7 @@ void func_actor_207200_8014B128(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->flg = 0;
-    SCRATCH_POP_BYTES(0x30);
+    SCRATCH_POP(ActorScaleScratch);
 }
 
 /// Exit callback of the small enemy: detaches the enemy's hit records,
