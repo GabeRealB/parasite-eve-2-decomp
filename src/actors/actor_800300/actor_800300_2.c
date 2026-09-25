@@ -365,6 +365,35 @@ void func_actor_800300_80162F98(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80163048);
+/// Switches the actor's update into its approach behaviour (entry 1 of the
+/// behaviour table), restarting the behaviour's step and counters and setting
+/// the approach timer to 60 frames.
+void func_actor_800300_80163048(GpActorWork* arg0)
+{
+    GameActor* actor;
 
-INCLUDE_ASM("actors/nonmatchings/actor_800300/actor_800300_2", func_actor_800300_80163074);
+    actor            = arg0->actor;
+    actor->field_956 = 1;
+    actor->field_95A = 1;
+    actor->field_954 = 0;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+    actor->field_93E = 0x3C;
+}
+
+/// Switches the actor's update into its turn-to-face behaviour (entry 2 of
+/// the behaviour table), restarting the behaviour's step and counters.
+void func_actor_800300_80163074(GpActorWork* arg0)
+{
+    GameActor* actor;
+
+    actor            = arg0->actor;
+    actor->field_956 = 2;
+    actor->field_954 = 0;
+    actor->field_958 = 0;
+    actor->field_95A = 1;
+    actor->field_95C = 0;
+    actor->field_95E = 0;
+    actor->field_942 = 0;
+}
