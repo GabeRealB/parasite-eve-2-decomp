@@ -857,7 +857,6 @@ void Mdec_ProcessDecode(void)
     s32           var_s1;
     register s32  var_s1_2 asm("s1");
     u8*           var_a0_2;
-    void*         temp_a1;
     s32           temp_a1_2;
     CdCmd58Entry* entry;
     CdCmdQueue*   p;
@@ -929,8 +928,6 @@ void Mdec_ProcessDecode(void)
                     /* Mirror target: andi a0; lw v1,%lo(368)(s5); sll s0,a0,2;
                        addu a1,v1,s0; lw v0,4(a1) */
                     register s32 base asm("v1");
-                    register s32 idx2 asm("v0");
-                    void*        a1p;
                     s32          t;
                     s32          field4;
 
@@ -940,16 +937,12 @@ void Mdec_ProcessDecode(void)
                                      : "r"(hi368));
                     temp_s0 = var_a0 * 4;
                     entry   = (CdCmd58Entry*)base;
-                    a1p     = (void*)((u8*)base + temp_s0);
-                    temp_a1 = a1p;
                     new_var = limit;
-                    field4  = *(s32*)((u8*)a1p + 4);
+                    field4  = entry->field_4[var_a0];
                     if (field4 != 0) {
-                        idx2 = var_a0 * 2;
-                        idx2 = base + idx2;
                         {
                             register s32 f24 asm("v0");
-                            f24 = *(s16*)(idx2 + 0x24);
+                            f24 = entry->field_24[var_a0];
                             __asm__ volatile(
                                 ".set\tnoreorder\n\t"
                                 "nop\n\t"
@@ -970,7 +963,7 @@ void Mdec_ProcessDecode(void)
                             __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
                                              : "=r"(b)
                                              : "r"(hi364));
-                            o        = *(s32*)((u8*)a1p + 4);
+                            o        = entry->field_4[var_a0];
                             var_a0_2 = b + o;
                         }
                     loop_21:
@@ -1145,7 +1138,7 @@ void Mdec_DecodeToVram(void)
                 do {
                     temp   = i & 0xFFFF;
                     rect.x = temp * 0x10;
-                    LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (temp * 0x1E00)));
+                    LoadImage(&rect, (u_long*)Fs_ImgBuffers->buffers[temp]);
                     i++;
                 } while ((u32)(i & 0xFFFF) < 0x14U);
                 rect.w = 0x140;
