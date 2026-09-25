@@ -191,7 +191,49 @@ void func_actor_143000_80131F80(Task* task)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_801323E0);
+/// Queues one 16x24 textured quad -- the action prompt cursor icon -- at
+/// (`x`, `y`) into the head of the current OT. `variant` is the prompt's
+/// `mode`: 0 draws nothing, 2 (a hotspot under the cursor) uses palette
+/// 0x3C87 and anything else 0x3C88.
+void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
+{
+    POLY_FT4* prim;
+    s16       px;
+    s16       py;
+
+    if (variant == 0) {
+        return;
+    }
+
+    prim           = (POLY_FT4*)gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+
+    px       = x - 2;
+    prim->x2 = px;
+    prim->x0 = px;
+    px       = x + 0xE;
+    prim->x3 = px;
+    prim->x1 = px;
+    py       = y - 2;
+    prim->y1 = py;
+    prim->y0 = py;
+    py       = y + 0x15;
+    prim->y3 = py;
+    prim->y2 = py;
+
+    prim->tpage = 0x1E;
+    if (variant == 2) {
+        prim->clut = 0x3C87;
+    } else {
+        prim->clut = 0x3C88;
+    }
+
+    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
+    setlen(prim, 9);
+    setcode(prim, 0x2D);
+
+    addPrim(gGpuCurrentOt, prim);
+}
 
 void func_actor_143000_801324C8(Task* arg0)
 {
@@ -586,4 +628,58 @@ void func_actor_143000_80132D10(Actor143000* arg0)
     }
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_143000/actor_143000", func_actor_143000_80133334);
+/// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
+/// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
+/// `Mc_SaveData.demoScene` or `D_8007218B` is 9, to show the hotspot rects.
+void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
+{
+    LINE_F2* line;
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y;
+    line->x1 = rect->x + rect->w;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x + rect->w;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y + rect->h;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+
+    line           = (LINE_F2*)gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setLineF2(line);
+    line->x0 = rect->x;
+    line->y0 = rect->y + rect->h;
+    line->x1 = rect->x;
+    line->y1 = rect->y;
+    line->r0 = r;
+    line->g0 = g;
+    line->b0 = b;
+    addPrim(gGpuCurrentOt + 1, line);
+}
