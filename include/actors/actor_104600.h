@@ -13,14 +13,6 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
-#include "gameplay/pairsrc.h"
-
-/// A `GpEnemy` seen through its node's flag byte alone: `field_14` is
-/// `GpEnemy::node.flags`.
-typedef struct Actor104600Ctx {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ u8   field_14;
-} Actor104600Ctx;
 
 /// The 0x2E4-byte work block of the package's first enemy, which both of its
 /// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
@@ -150,104 +142,5 @@ typedef struct Actor104600HitScratch {
     /* 0x30 */ byte           pad_30[8];
 } Actor104600HitScratch;
 STATIC_ASSERT_SIZEOF(Actor104600HitScratch, 0x38);
-
-/// Free-running random state: `state = state * 5 + 0x71357911`, read back
-/// through the high halfword.
-extern u32 Gp_LcgState;
-
-extern u8 D_801153F4;
-
-/// The first enemy's pair table, packed into its third body's key, and the
-/// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
-extern GpU16Pair  Actor04600_D0415C;
-extern GpPairSrcE Actor04600_D04160;
-
-/// The two script arguments the first enemy's death hands to
-/// `Gp_SpawnScript18`.
-extern u32 Actor04600_D04170[];
-extern u32 Actor04600_D0417C[];
-
-/// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
-extern u8 Actor04600_D05868[];
-
-/// The animation data `func_800B3F84` seeds the first enemy's slots from.
-extern u8 Actor04600_D05890[];
-
-/// Offset of the 0x60030 effect the first enemy's death spawns.
-extern SVECTOR Actor04600_D058A0;
-
-/// Offset of the 0x60080 effect the collapsing first enemy spawns.
-extern SVECTOR Actor04600_D058A8;
-
-/// The second enemy's record; `hpMax` seeds its HP.
-extern GpPairSrcE Actor04600_D058B4;
-
-/// The animation data `func_800B3F84` seeds the second enemy's slots from.
-extern u8 Actor04600_D064A8[];
-
-/// `func_800B4114` is deliberately declared locally with a signed `arg2`; see
-/// the note in `include/gameplay/1BC.h`.
-void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
-void Gp_UpdateCoord(GsCOORDINATE2* arg0);
-
-void Actor04600_Fn003D4(Task* arg0);
-void Actor04600_Fn00978(Task* arg0);
-void Actor04600_Fn01E0C(Task* arg0);
-void Actor04600_Fn02618(Task* arg0);
-void Actor04600_Fn0272C(Task* task);
-void Actor04600_Fn027BC(Task* arg0);
-void Actor04600_Fn02870(void* arg0, Task* arg1);
-void Actor04600_Fn028E0(Task* task);
-void Actor04600_Fn0294C(Task* arg0, GsCOORDINATE2* arg1);
-void Actor04600_Fn02B14(Task* arg0);
-void Actor04600_Fn02C08(Task* task);
-void Actor04600_Fn02CD4(Task* task);
-void Actor04600_Fn030A8(Task* arg0);
-void Actor04600_Fn0346C(Task* arg0);
-void Actor04600_Fn03CEC(Task* arg0);
-void Actor04600_Fn03D54(Task* task);
-void Actor04600_Fn03E10(Task* arg0);
-void Actor04600_Fn03EC0(void* arg0, Task* arg1);
-void Actor04600_Fn03F30(Task* task);
-void Actor04600_Fn0400C(Task* arg0);
-void Actor04600_Fn04100(Task* task);
-
-/// Rebinds the first enemy's animation id to its two helper slots unless
-/// `field_2D2` suppresses it: a changed id is remembered, its frame count
-/// restarts and both slots switch to it; otherwise the count ticks and the
-/// slots advance.
-static __inline__ void Actor04600_TickAnim(Task* task)
-{
-    Actor104600Work* work = (Actor104600Work*)task->work;
-    s32              i;
-    if (work->field_2D2 == 0) {
-        if (work->field_2B8 != work->field_2BA) {
-            work->field_2BA = work->field_2B8;
-            work->field_2BC = 0;
-            for (i = 1; i < 3; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
-            }
-        } else {
-            work->field_2BC++;
-            for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)work, i);
-            }
-        }
-    }
-}
-
-/// Colours the enemy from the world position of `coord`, staged in a `VECTOR`
-/// taken off the scratch stack.
-static __inline__ void Actor04600_UpdateColor(GpEnemy* enemy, GsCOORDINATE2* coord)
-{
-    VECTOR* block         = (VECTOR*)(*(u8**)0x1F8003FC - 0x10);
-    block->vx             = coord->workm.t[0];
-    block->vy             = coord->workm.t[1];
-    block->vz             = coord->workm.t[2];
-    *(VECTOR**)0x1F8003FC = block;
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)0x1F8003FC += 0x10;
-}
 
 #endif
