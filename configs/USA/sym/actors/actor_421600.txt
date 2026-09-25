@@ -3,3 +3,4 @@ D_actor_421600_80143EF4 = 0x80143EF4; // type:TmdSource size:0x24
 D_actor_421600_801443C8 = 0x801443C8; // type:TmdSource size:0x24
 D_actor_421600_80145124 = 0x80145124; // type:TmdSource size:0x24
 D_actor_421600_80145604 = 0x80145604; // type:TmdSource size:0x24
+D_actor_421600_80151268 = 0x80151268; // type:s16 size:0x2

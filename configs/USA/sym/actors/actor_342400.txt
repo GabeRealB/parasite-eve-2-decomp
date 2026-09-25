@@ -2,6 +2,7 @@
 D_actor_342400_8016CB6C = 0x8016CB6C; // type:TmdSource size:0x24
 D_actor_342400_8016D210 = 0x8016D210; // type:TmdSource size:0x24
 D_actor_342400_8016D780 = 0x8016D780; // type:TmdSource size:0x24
+D_actor_342400_80173AAC = 0x80173AAC; // type:u16 size:0x2
 
 // Referenced in another actor load slot, resident beside this one.
 D_80151E60 = 0x80151E60; // absolute:True

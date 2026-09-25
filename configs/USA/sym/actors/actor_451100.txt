@@ -1,1 +1,2 @@
 // Overlay-local symbols for actor_451100.
+D_actor_451100_8014E74C = 0x8014E74C; // type:s16 size:0x2

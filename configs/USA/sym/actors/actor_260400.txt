@@ -1,1 +1,2 @@
 // Overlay-local symbols for actor_260400.
+D_actor_260400_80154C78 = 0x80154C78; // type:s16 size:0x2
