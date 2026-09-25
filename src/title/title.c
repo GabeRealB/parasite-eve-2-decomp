@@ -608,14 +608,14 @@ void Title_EnqueueDemoScene(s32 arg0)
     GameSession*    gs;
     u8*             p2;
 
-    scratch = (void**)G_SCRATCH_HEAD;
+    scratch = SCRATCH_HEAD_ADDR;
     gs      = gGameSession;
     arg0    = arg0 + 0xA;
     p2      = (u8*)param2;
 
-    head     = *scratch;
-    param1   = (u8*)head - 8;
-    *scratch = param1;
+    head                         = SCRATCH_HEAD_AT(scratch, void);
+    param1                       = (u8*)head - 8;
+    SCRATCH_HEAD_AT(scratch, u8) = param1;
 
     gs->field_80    = 0;
     param1[3]       = 0;
