@@ -456,7 +456,7 @@ void tmdProcessStream(TmdObject* obj)
         }
     }
 done:
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
+    SCRATCH_POP_BYTES(0x88);
 }
 
 TmdObject* Tmd_Create(TmdSource* src, s32 flags)
@@ -628,7 +628,7 @@ void Tmd_SetupDraw(TmdObject* obj)
 
     Tmd_SetupGteMatrices(ws, flags, stream, obj);
 
-    *scratch = (u8*)*scratch + 0x98;
+    SCRATCH_POP_BYTES_AT(scratch, 0x98);
 }
 
 void Tmd_FreeBuffers(TmdObject* obj)

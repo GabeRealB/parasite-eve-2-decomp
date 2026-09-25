@@ -170,10 +170,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x34;
-    }
+    SCRATCH_POP_BYTES(0x34);
 }
 
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
@@ -292,10 +289,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x34;
-    }
+    SCRATCH_POP_BYTES(0x34);
 }
 
 void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
@@ -415,10 +409,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x44;
-    }
+    SCRATCH_POP_BYTES(0x44);
 }
 
 void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
@@ -467,7 +458,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
     arg1->vy = ratan2(block->mat.m[0][2], block->mat.m[2][2]);
     arg1->vz = ratan2(block->mat.m[1][0], block->mat.m[1][1]);
 
-    *scratch = (u8*)*scratch + 0x30;
+    SCRATCH_POP_BYTES_AT(scratch, 0x30);
 }
 
 void Gfx_TransposeRot(MATRIX* arg0, volatile MATRIX* arg1)
@@ -547,10 +538,10 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
     ScratchMat* p;
     s16         cos;
 
-    head                          = *(u8**)G_SCRATCH_HEAD;
-    block                         = (ScratchMat*)(head - 0x24);
-    *(ScratchMat**)G_SCRATCH_HEAD = block;
-    p                             = block;
+    head                     = SCRATCH_HEAD(u8);
+    block                    = (ScratchMat*)(head - 0x24);
+    SCRATCH_HEAD(ScratchMat) = block;
+    p                        = block;
 
     p->sin_val = rsin(angle);
     cos        = rcos(angle);
@@ -599,10 +590,7 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
         gte_MulMatrix0(arg0, p, arg0);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x24;
-    }
+    SCRATCH_POP_BYTES(0x24);
 }
 
 void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
@@ -612,10 +600,10 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
     ScratchMat* p;
     s16         cos;
 
-    head                          = *(u8**)G_SCRATCH_HEAD;
-    block                         = (ScratchMat*)(head - 0x24);
-    *(ScratchMat**)G_SCRATCH_HEAD = block;
-    p                             = block;
+    head                     = SCRATCH_HEAD(u8);
+    block                    = (ScratchMat*)(head - 0x24);
+    SCRATCH_HEAD(ScratchMat) = block;
+    p                        = block;
 
     p->sin_val = rsin(angle);
     cos        = rcos(angle);
@@ -660,10 +648,7 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
         gte_MulMatrix0(arg0, p, arg0);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x24;
-    }
+    SCRATCH_POP_BYTES(0x24);
 }
 
 void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
@@ -673,10 +658,10 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
     ScratchMat* p;
     s16         cos;
 
-    head                          = *(u8**)G_SCRATCH_HEAD;
-    block                         = (ScratchMat*)(head - 0x24);
-    *(ScratchMat**)G_SCRATCH_HEAD = block;
-    p                             = block;
+    head                     = SCRATCH_HEAD(u8);
+    block                    = (ScratchMat*)(head - 0x24);
+    SCRATCH_HEAD(ScratchMat) = block;
+    p                        = block;
 
     p->sin_val = rsin(angle);
     cos        = rcos(angle);
@@ -722,10 +707,7 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         gte_MulMatrix0(arg0, p, arg0);
     }
 
-    {
-        void** scratch = (void**)G_SCRATCH_HEAD;
-        *scratch       = (u8*)*scratch + 0x24;
-    }
+    SCRATCH_POP_BYTES(0x24);
 }
 
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
@@ -795,7 +777,7 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 
     VectorNormalS((VECTOR*)block, out);
 
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
@@ -855,7 +837,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     dest->m[2][1] = t5;
     dest->m[2][2] = t6;
 
-    *scratch = (u8*)*scratch + 0x20;
+    SCRATCH_POP_BYTES_AT(scratch, 0x20);
 }
 
 s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)

@@ -371,7 +371,7 @@ void Pad_TickEventBanks(PadState* arg0)
         pad->field_5B = 0;
     }
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 4;
+    SCRATCH_POP_BYTES(4);
 }
 
 void func_8002C1D8(void)
@@ -613,6 +613,5 @@ void Pad_UpdatePort0(void)
         offset += 0x5C;
     } while (i <= 0);
 
-    head  = (void**)G_SCRATCH_HEAD;
-    *head = (u8*)*head + 6;
+    SCRATCH_POP_BYTES(6);
 }

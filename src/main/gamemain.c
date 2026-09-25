@@ -292,7 +292,7 @@ void GameMain_Loop(void)
             GameMain_Init();
             __asm__ volatile("sw $zero, %%lo(GameMain_HaltFlags)(%0)" ::"r"(s4r) : "memory");
         after_init:
-            *(u32*)0x1F8003FC = 0x1F8003FC;
+            GameResetScratchHead();
             Pad_UpdatePort0();
 
             ps = (PadState*)Pad_States;

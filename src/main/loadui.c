@@ -62,14 +62,14 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
                     CdCmd_EnqueueUnlessStream(0x21, param1, (u8*)param2);
                     D_800626E8 = 0;
                 }
-                *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+                SCRATCH_POP_BYTES(8);
                 return;
         }
     }
 
     CdCmd_Enqueue(0x21, param1, (u8*)param2);
-    D_800626E8              = 1;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    D_800626E8 = 1;
+    SCRATCH_POP_BYTES(8);
 }
 
 s32 func_80042500(void)
