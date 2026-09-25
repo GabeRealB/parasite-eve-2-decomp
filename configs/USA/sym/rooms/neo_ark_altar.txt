@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_altar.
+D_neo_ark_altar_801800AE = 0x801800AE; // type:s16 size:0x2

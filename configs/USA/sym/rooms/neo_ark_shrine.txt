@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_shrine.
+D_neo_ark_shrine_8018686A = 0x8018686A; // type:s16 size:0x2

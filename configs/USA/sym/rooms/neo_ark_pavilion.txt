@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_pavilion.
+D_neo_ark_pavilion_80187A20 = 0x80187A20; // type:NeoArkPavilionEvent size:0xC

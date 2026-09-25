@@ -1,1 +1,5 @@
 // Overlay-local symbols for neo_ark_forest_zone.
+D_neo_ark_forest_zone_80182D62 = 0x80182D62; // type:s16 size:0x2
+D_neo_ark_forest_zone_80182D66 = 0x80182D66; // type:s16 size:0x2
+D_neo_ark_forest_zone_80182D6A = 0x80182D6A; // type:s16 size:0x2
+D_neo_ark_forest_zone_80182E48 = 0x80182E48; // type:NeoArkForestZoneEvent size:0xC

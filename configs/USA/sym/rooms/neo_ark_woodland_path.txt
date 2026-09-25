@@ -1,1 +1,4 @@
 // Overlay-local symbols for neo_ark_woodland_path.
+D_neo_ark_woodland_path_8018498E = 0x8018498E; // type:s16 size:0x2
+D_neo_ark_woodland_path_80184992 = 0x80184992; // type:s16 size:0x2
+D_neo_ark_woodland_path_80184996 = 0x80184996; // type:s16 size:0x2
