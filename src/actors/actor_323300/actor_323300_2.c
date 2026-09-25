@@ -18,6 +18,9 @@
 /// `gameplay/1BC.h`.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
+/// Global freeze byte: while set, the two dispatchers skip their state.
+extern u8 D_801153F4;
+
 /// Message 0x7DB handler: the payload halfword selects show, child spawn/kill,
 /// placement-plus-preset, or the part-6 effect. Case 12 inlines the 0x7D3
 /// preset body of `func_actor_323300_801628B8` against `D_actor_323300_801725C8`.
@@ -102,7 +105,18 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, Actor323300Msg7DB* msg, Act
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300_2", func_actor_323300_80162630);
+/// Per-frame dispatcher of the 0x504-block actor: runs its spawn, tick or exit
+/// state from `D_actor_323300_80161E24` by `Task::state`, skipping the frame
+/// while the global freeze byte is set.
+void func_actor_323300_80162630(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_323300_80161E24;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_actor_323300_8016269C(Task* arg0)
 {
@@ -205,9 +219,66 @@ void func_actor_323300_801627B4(Task* arg0)
     coord->flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300_2", func_actor_323300_801628B8);
+/// Message-0x7D3 handler, also called directly by the spawn handler and the
+/// two states of `func_actor_323300_801626F4` with a preset of their own. A
+/// changed bank index re-seeds the whole animation slot array through
+/// `func_800B3F84` from `D_actor_323300_80172558` and forgets the current
+/// animation id. A changed animation id is then stored and installed on every
+/// slot 1..0x12 - through `func_800B4114` when the preset's `field_8` is set
+/// and the slots have already been started, through `Gp_AnimResetSlot`
+/// otherwise - after which every slot is ticked once and `field_43C` latches.
+/// An unchanged id skips all of that. Returns 0.
+s32 func_actor_323300_801628B8(Task* task, s32 arg1, Actor323300AnimPreset* msg, s32 arg3)
+{
+    Actor323300Work* work;
+    TmdObject*       ext;
+    s32              i;
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300_2", func_actor_323300_801629F0);
+    work = (Actor323300Work*)task->work;
+    ext  = task->extra;
+    if (msg->field_0 != work->field_43E) {
+        work->field_43E = msg->field_0;
+        work->field_43D = -1;
+        func_800B3F84(&work->anim, D_actor_323300_80172558[work->field_43E], ext, work->pad_30C, work->slots);
+    }
+    if (msg->field_4 != work->field_43D) {
+        work->field_43D = msg->field_4;
+        if (msg->field_8 != 0 && work->field_43C != 0) {
+            for (i = 1; i < 0x13; i++) {
+                func_800B4114(&work->anim, i, work->field_43D, 0, msg->field_C);
+            }
+        } else {
+            for (i = 1; i < 0x13; i++) {
+                Gp_AnimResetSlot(&work->anim, i, work->field_43D);
+            }
+        }
+        for (i = 1; i < 0x13; i++) {
+            Gp_AnimTickIndex(&work->anim, i);
+        }
+        work->field_43C = 1;
+    }
+    return 0;
+}
+
+/// Message-0x7D4 handler: places the actor at `args`. The translation goes
+/// straight into the root part's local matrix, the Euler angles into the
+/// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
+/// clearing `flg` makes the world matrix be recomputed.
+s32 func_actor_323300_801629F0(Task* task, s32 msgId, Actor323300Placement* args, s32 arg3)
+{
+    Actor323300Coord* coord;
+
+    coord             = (Actor323300Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
 {
@@ -631,7 +702,25 @@ void func_actor_323300_8016359C(Task* arg0, s16 arg1)
     ((TmdObject*)arg0->extra)->coords[2].flg = 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300_2", func_actor_323300_8016369C);
+/// The 0x6B0 block's placement handler, the same body as
+/// `func_actor_323300_801629F0`: copies `args`' translation into the root
+/// part's local matrix and its Euler angles into the coordinate's `rot` slot,
+/// rebuilds the rotation from them and clears `flg`.
+s32 func_actor_323300_8016369C(Task* task, s32 msgId, Actor323300Placement* args, s32 arg3)
+{
+    Actor323300Coord* coord;
+
+    coord             = (Actor323300Coord*)((TmdObject*)task->extra)->coords;
+    coord->coord.t[0] = args->pos.vx;
+    coord->coord.t[1] = args->pos.vy;
+    coord->coord.t[2] = args->pos.vz;
+    coord->rot.vx     = args->rot.vx;
+    coord->rot.vy     = args->rot.vy;
+    coord->rot.vz     = args->rot.vz;
+    RotMatrix(&coord->rot, &coord->coord);
+    coord->flg = 0;
+    return 0;
+}
 
 /// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
 /// `func_actor_323300_80162BE4` parks in `Task::work`, and the twin of
@@ -676,4 +765,21 @@ s32 func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2
     return 0;
 }
 
-INCLUDE_ASM("actors/nonmatchings/actor_323300/actor_323300_2", func_actor_323300_80163840);
+const TaskFuncTable3 D_actor_323300_80161E6C = { {
+    func_actor_323300_80162BE4,
+    func_actor_323300_80162DF0,
+    func_actor_323300_801634B0,
+} };
+
+/// Per-frame dispatcher of the 0x6B0-block actor: runs its spawn, tick or exit
+/// state from `D_actor_323300_80161E6C` by `Task::state`, skipping the frame
+/// while the global freeze byte is set.
+void func_actor_323300_80163840(Task* task)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_actor_323300_80161E6C;
+    if (D_801153F4 == 0) {
+        sp.funcs[task->state](task);
+    }
+}

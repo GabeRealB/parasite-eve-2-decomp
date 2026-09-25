@@ -93,6 +93,17 @@ typedef struct {
 } Actor323300Placement;
 STATIC_ASSERT_SIZEOF(Actor323300Placement, 0x18);
 
+/// View of the `GsCOORDINATE2` at `TmdObject::coords` the placement handlers
+/// write through: the libgs `param` slot at 0x44 holds the Euler angles they
+/// store and then hand straight to `RotMatrix`.
+typedef struct Actor323300Coord {
+    /* 0x00 */ s32     flg;
+    /* 0x04 */ MATRIX  coord;
+    /* 0x24 */ MATRIX  workm;
+    /* 0x44 */ SVECTOR rot;
+} Actor323300Coord;
+STATIC_ASSERT_SIZEOF(Actor323300Coord, 0x4C);
+
 /// Word-wise view of a `MATRIX` used to splat an identity rotation: five
 /// aligned stores instead of nine halfword ones, each word holding two adjacent
 /// `m[][]` entries. The same shape `Actor206100Matrix` and `Actor403100Matrix`
@@ -175,6 +186,12 @@ typedef struct Actor323300Msg7DB {
 } Actor323300Msg7DB;
 STATIC_ASSERT_SIZEOF(Actor323300Msg7DB, 0x4);
 
+/// State tables the two per-frame dispatchers copy onto the stack and index
+/// by `Task::state`: spawn, tick and exit for the 0x504 block and for the
+/// 0x6B0 block respectively.
+extern const TaskFuncTable3 D_actor_323300_80161E24;
+extern const TaskFuncTable3 D_actor_323300_80161E6C;
+
 /// Animation source table `func_actor_323300_80162360` and
 /// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
 extern void* D_actor_323300_80172558[];
@@ -198,7 +215,7 @@ extern Actor323300AnimPreset D_actor_323300_801725DC;
 /// preset `D_actor_323300_80174A74` through it on the block's first anim start.
 extern void*                 D_actor_323300_80174A70[];
 extern Actor323300AnimPreset D_actor_323300_80174A74;
-extern Actor323300AnimPreset D_actor_323300_80174AB0;
+extern Actor323300Placement  D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
@@ -225,8 +242,8 @@ void func_actor_323300_80162BE4(Task* arg0);
 void func_actor_323300_80162DF0(Task* arg0);
 void func_actor_323300_801634B0(Task* arg0);
 void func_actor_323300_80163510(Task* arg0);
-s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, void* arg2, s32 arg3);
-void func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
+s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, Actor323300Placement* arg2, s32 arg3);
+s32  func_actor_323300_801628B8(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 s32  func_actor_323300_80163718(Task* arg0, s32 arg1, Actor323300AnimPreset* arg2, s32 arg3);
 /// Message-0x7D5 handler; `mode` is the four-way visibility switch
 /// `func_actor_511000_801327A0` and its twins take.
