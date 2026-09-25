@@ -314,42 +314,6 @@ static __inline__ void Actor01900_StepForwardHead(GsCOORDINATE2* coord, s16 amou
     }
 }
 
-/// `actorRescaleYaw` with a separate Y scale.
-static __inline__ void Actor01900_RescaleYawY(GsCOORDINATE2* coord, s32 scale, s16 scaleY)
-{
-    void**                scratch;
-    void*                 head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
-
-    scratch  = (void**)G_SCRATCH_HEAD;
-    head     = *scratch;
-    blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *scratch = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vx = scale;
-    blk->scale.vy = scaleY;
-    blk->scale.vz = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0] = *(u16*)&((ActorScaleRotScratch*)((u8*)head - 0x34))->m.m[0][0];
-    coord->coord.m[0][1] = *(u16*)&blk->m.m[0][1];
-    coord->coord.m[0][2] = *(u16*)&blk->m.m[0][2];
-    coord->coord.m[1][0] = *(u16*)&blk->m.m[1][0];
-    coord->coord.m[1][1] = *(u16*)&blk->m.m[1][1];
-    coord->coord.m[1][2] = *(u16*)&blk->m.m[1][2];
-    coord->coord.m[2][0] = *(u16*)&blk->m.m[2][0];
-    coord->coord.m[2][1] = *(u16*)&blk->m.m[2][1];
-    m22                  = *(u16*)&blk->m.m[2][2];
-    *scratch             = (u8*)*scratch + 0x34;
-    coord->flg           = 0;
-    coord->coord.m[2][2] = m22;
-}
-
 /// Rebuild `coord`'s Y rotation from its current yaw at unit scale.
 static __inline__ void Actor01900_ResetYaw(GsCOORDINATE2* coord)
 {
@@ -3133,44 +3097,6 @@ void Actor01900_Fn08724(Task* arg0)
     }
 }
 
-/// Tint a freshly spawned effect model from the enemy's area record.
-static __inline__ void Actor01900_TintEffect(GpEffWork* eff, GpEnemy* enemy)
-{
-    GpAreaKey    key;
-    GpAreaKey*   sessionKey;
-    GpAreaKey*   keyPtr;
-    u8           areaByte0;
-    GpAreaRec*   rec;
-    GpAreaPlace* entry;
-    TmdObject*   model;
-    s32          idx;
-    u32          raw;
-
-    if (eff != NULL) {
-        sessionKey = (GpAreaKey*)&gGameSession->at4.loc;
-        raw        = enemy->placeKey;
-        model      = (TmdObject*)eff->task->extra;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        areaByte0  = gGameSession->at4.loc.view;
-        idx        = raw >> 12;
-        SOFT_BARRIER();
-        keyPtr = &key;
-        TOUCH_REG(keyPtr);
-        key.view = areaByte0;
-        Gp_SyncAreaKeyIndex(keyPtr);
-        rec          = Gp_GetNestedAreaRec(&key);
-        entry        = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
-        model->tpage = entry->tpage;
-        model->clut  = entry->clut;
-        if (model->buffer != NULL) {
-            tmdProcessStream(model);
-            tmdProcessStream(model);
-        }
-    }
-}
-
 void Actor01900_Fn0892C(Task* arg0)
 {
     SVECTOR         vec;
@@ -3213,12 +3139,12 @@ void Actor01900_Fn0892C(Task* arg0)
                 vec.vy        = 0;
                 vec.vx        = 0;
                 eff           = Gp_SpawnEff(0xA0005, ((TmdObject*)arg0->extra)->coords + 9, 0x200, &vec);
-                Actor01900_TintEffect(eff, enemy);
+                actorTintEffect(eff, enemy);
             }
             if (work->field_6 == 5) {
                 D_80114B78[0] = &Actor01900_D10B68;
                 eff           = Gp_SpawnEff(0xA0005, ((TmdObject*)arg0->extra)->coords + 1, 0x200, NULL);
-                Actor01900_TintEffect(eff, enemy);
+                actorTintEffect(eff, enemy);
             }
             break;
         case 0x18:
@@ -3246,7 +3172,7 @@ void Actor01900_Fn0892C(Task* arg0)
             }
             cur = work->field_6;
             if (cur >= 0x1A) {
-                Actor01900_RescaleYawY(((TmdObject*)arg0->extra)->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+                actorRescaleYawY(((TmdObject*)arg0->extra)->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
             }
             break;
     }

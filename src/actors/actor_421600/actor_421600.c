@@ -536,87 +536,6 @@ static __inline__ s32 Actor421600_HasPlayerContact(GpRec18* records)
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-/// Accumulate `coord`'s parent chain into `mat`: seed it with the node's own
-/// rotation, then pre-multiply by each ancestor up to (but not including)
-/// `stop`, renormalising after every step. Returns whether the walk stopped on
-/// `stop` rather than running off the end of the chain.
-static __inline__ s32 _actor421600Accumulate(GsCOORDINATE2* coord, MATRIX* mat, GsCOORDINATE2* stop)
-{
-    MATRIX         matrix;
-    GsCOORDINATE2* cur;
-
-    cur  = coord->sub;
-    *mat = coord->coord;
-    while (1) {
-        if (cur == NULL) {
-            return 0;
-        }
-        if (cur == stop) {
-            return 1;
-        }
-        gte_SetRotMatrix(&cur->coord);
-        MulRotMatrix(mat);
-        MatrixNormal(mat, &matrix);
-        *mat = matrix;
-        cur  = cur->sub;
-    }
-}
-
-/// Turn the world-space rotation in `mat` back into one relative to `coord`'s
-/// parent: accumulate the chain above the parent up to the view coordinate,
-/// transpose it (the inverse of a rotation) and pre-multiply. Nothing to do
-/// when the parent already is the view coordinate. Returns `coord`.
-static __inline__ GsCOORDINATE2* _actor421600Localize(GsCOORDINATE2* coord, MATRIX* mat)
-{
-    MATRIX         matrix;
-    MATRIX         normal;
-    MATRIX         transposed;
-    GsCOORDINATE2* cur;
-    GsCOORDINATE2* view;
-
-    cur = coord->sub;
-    if (cur != &gGfxViewCoord) {
-        view   = &gGfxViewCoord;
-        matrix = cur->coord;
-        while (1) {
-            cur = cur->sub;
-            if (cur == NULL) {
-                break;
-            }
-            if (cur == view) {
-                __asm__ volatile(
-                    "lhu $12, 0(%0);"
-                    "lhu $13, 6(%0);"
-                    "lhu $14, 12(%0);"
-                    "sh $12, 0(%1);"
-                    "sh $13, 2(%1);"
-                    "sh $14, 4(%1);"
-                    "lhu $12, 2(%0);"
-                    "lhu $13, 8(%0);"
-                    "lhu $14, 14(%0);"
-                    "sh $12, 6(%1);"
-                    "sh $13, 8(%1);"
-                    "sh $14, 10(%1);"
-                    "lhu $12, 4(%0);"
-                    "lhu $13, 10(%0);"
-                    "lhu $14, 16(%0);"
-                    "sh $12, 12(%1);"
-                    "sh $13, 14(%1);"
-                    "sh $14, 16(%1);"
-                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
-                gte_SetRotMatrix(&transposed);
-                MulRotMatrix(mat);
-                break;
-            }
-            gte_SetRotMatrix(&cur->coord);
-            MulRotMatrix(&matrix);
-            MatrixNormal(&matrix, &normal);
-            matrix = normal;
-        }
-    }
-    return coord;
-}
-
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work
 /// matrix is borrowed from the scratchpad stack.
@@ -627,9 +546,9 @@ void func_actor_421600_80132004(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    _actor421600Accumulate(coord, rotation, &gGfxViewCoord);
+    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     func_8004BFF8(yaw, rotation);
-    out = _actor421600Localize(coord, rotation);
+    out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
@@ -2819,23 +2738,6 @@ static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
     return found;
 }
 
-static __inline__ s32 Actor421600_OutsideRadius(SVECTOR* pos, s16 radius)
-{
-    ActorRangeScratch* head;
-    ActorRangeScratch* scratch;
-    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
-    scratch                               = head - 1;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                           = pos->vx;
-    scratch->dz                           = pos->vz;
-    scratch->r                            = radius;
-    scratch->dx                          *= scratch->dx;
-    scratch->dz                          *= scratch->dz;
-    scratch->r                           *= scratch->r;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
-    return scratch->dx + scratch->dz >= scratch->r;
-}
-
 void func_actor_421600_80136C88(Task* arg0)
 {
     Actor421600Work*        work;
@@ -2880,7 +2782,7 @@ void func_actor_421600_80136C88(Task* arg0)
     head[-1].vec.vx = move->field_C[move->field_14].x - ((TmdObject*)arg0->extra)->coords->coord.t[0];
     scratch->vec.vy = 0;
     scratch->vec.vz = move->field_C[move->field_14].z - ((TmdObject*)arg0->extra)->coords->coord.t[2];
-    if (!Actor421600_OutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
         if (move->field_14 == 0)
             move->field_14 = 1;
         else
@@ -2923,9 +2825,9 @@ void func_actor_421600_80136C88(Task* arg0)
     scratch->vec.vx                        = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
     scratch->vec.vy                        = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
     scratch->vec.vz                        = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
-    if (!Actor421600_OutsideRadius(&scratch->vec, 2000)) {
+    if (!actorOutsideRadius(&scratch->vec, 2000)) {
         work->field_0 = 0x1C;
-    } else if (!Actor421600_OutsideRadius(&scratch->vec, 4000)) {
+    } else if (!actorOutsideRadius(&scratch->vec, 4000)) {
         coord          = ((TmdObject*)arg0->extra)->coords;
         angle          = ratan2(scratch->vec.vx, scratch->vec.vz);
         delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2937,12 +2839,6 @@ void func_actor_421600_80136C88(Task* arg0)
         }
     }
     *(Actor421600SeekScratch**)G_SCRATCH_HEAD += 1;
-}
-
-static __inline__ s32 Actor421600_PlayerContactMessage(GpEnemy* ctx, s32 mode)
-{
-    Task* player = gameGetPtrSlot(3);
-    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 void func_actor_421600_801373D4(Task* arg0)
@@ -3145,9 +3041,9 @@ void func_actor_421600_801373D4(Task* arg0)
                                 var_v0_15 = -var_v0_15;
                             }
                             if (var_v0_15 < 0x400) {
-                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 2);
+                                scratch->messageResult = actorPlayerContactMessage(ctx, 2);
                             } else {
-                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 3);
+                                scratch->messageResult = actorPlayerContactMessage(ctx, 3);
                             }
                         }
                         if (scratch->messageResult != 1) {
@@ -3172,9 +3068,9 @@ void func_actor_421600_801373D4(Task* arg0)
                                 var_v0_17 = -var_v0_17;
                             }
                             if (var_v0_17 < 0x400) {
-                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 0);
+                                scratch->messageResult = actorPlayerContactMessage(ctx, 0);
                             } else {
-                                scratch->messageResult = Actor421600_PlayerContactMessage(ctx, 1);
+                                scratch->messageResult = actorPlayerContactMessage(ctx, 1);
                             }
                         }
                         if (scratch->messageResult == 1) {
@@ -3498,7 +3394,7 @@ void func_actor_421600_80138750(Task* arg0)
         case 5:
             if (work->field_68 & 0x100) {
                 actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, vec);
-                outside = Actor421600_OutsideRadius(vec, 2000);
+                outside = actorOutsideRadius(vec, 2000);
                 if (outside) {
                     work->field_0 = 0x26;
                 } else {
@@ -3944,7 +3840,7 @@ void func_actor_421600_80139718(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
-    if (!Actor421600_OutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
         facing2  = ((TmdObject*)arg0->extra)->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -4069,8 +3965,8 @@ void func_actor_421600_80139718(Task* arg0)
     if ((s16)work->field_8 > (s16)work->field_EA6) {
         if ((s16)work->field_EAA <= 0) {
 
-            if (Actor421600_OutsideRadius(&scratch->target, radius)) {
-                if (!Actor421600_OutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
+            if (actorOutsideRadius(&scratch->target, radius)) {
+                if (!actorOutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
                     facing5  = ((TmdObject*)arg0->extra)->coords;
                     angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                     delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
@@ -4877,7 +4773,7 @@ void func_actor_421600_8013BA70(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
-    if (!Actor421600_OutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
         facing2  = ((TmdObject*)arg0->extra)->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -5006,8 +4902,8 @@ void func_actor_421600_8013BA70(Task* arg0)
     if ((s16)work->field_8 > (s16)work->field_EA2) {
         if ((s16)work->field_EAA <= 0) {
 
-            if (Actor421600_OutsideRadius(&scratch->target, radius)) {
-                if (!Actor421600_OutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
+            if (actorOutsideRadius(&scratch->target, radius)) {
+                if (!actorOutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
                     facing5  = ((TmdObject*)arg0->extra)->coords;
                     angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                     delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);

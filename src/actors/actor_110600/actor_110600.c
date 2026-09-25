@@ -181,28 +181,6 @@ typedef struct Actor110600TurnScratch {
 } Actor110600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor110600TurnScratch, 0x1C);
 
-/// Whether the XZ delta in `pos` falls outside the sphere of `radius`: the two
-/// components and the radius are squared through the scratch block, and the
-/// comparison is returned as a value — the `>=` is what makes the caller test
-/// the result against 0. The radius is a halfword so a `u16` cell can be fed
-/// in directly.
-static __inline__ s32 Actor110600_OutsideRadius(SVECTOR* pos, s16 radius)
-{
-    ActorRangeScratch* head;
-    ActorRangeScratch* scratch;
-    head                                  = *(ActorRangeScratch**)G_SCRATCH_HEAD;
-    scratch                               = head - 1;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD  = scratch;
-    scratch->dx                           = pos->vx;
-    scratch->dz                           = pos->vz;
-    scratch->r                            = radius;
-    scratch->dx                          *= scratch->dx;
-    scratch->dz                          *= scratch->dz;
-    scratch->r                           *= scratch->r;
-    *(ActorRangeScratch**)G_SCRATCH_HEAD += 1;
-    return scratch->dx + scratch->dz >= scratch->r;
-}
-
 /// 0x14-byte scratch block `func_actor_110600_80132958` carves off
 /// `G_SCRATCH_HEAD` to pick the patrol node nearest the walker. `dx` / `dz` are
 /// the axis deltas for the node under test and `dist` their squared sum, which
@@ -669,7 +647,7 @@ STATIC_ASSERT_SIZEOF(Actor110600ArrivalRange, 0xC);
 
 /// Reports whether the XZ delta staged in `d` is at least `r` long, squaring
 /// both sides in a 0xC-byte scratch block of its own so no comparison is done
-/// on a square root. The same test `Actor110600_OutsideRadius` runs, staged
+/// on a square root. The same test `actorOutsideRadius` runs, staged
 /// straight on the delta block rather than on a vector; the acropolis bridge
 /// room's `acropolisBridgeOutOfRange` is the same body.
 static __inline__ s32 Actor110600_ArrivalOutOfRange(Actor110600ArrivalDelta* d, s16 r)
@@ -2320,10 +2298,10 @@ void func_actor_110600_80135194(Task* arg0)
         }
     }
     if (abs(angle) < 0x3E8) {
-        if (Actor110600_OutsideRadius(&delta, work->field_C) == 0)
+        if (actorOutsideRadius(&delta, work->field_C) == 0)
             work->field_0 = 4;
     }
-    if (Actor110600_OutsideRadius(&delta, work->field_E) == 0)
+    if (actorOutsideRadius(&delta, work->field_E) == 0)
         work->field_0 = 4;
     func_actor_110600_80134728(arg0);
 }
@@ -2415,7 +2393,7 @@ void func_actor_110600_80135454(Task* arg0)
     delta.vx = (u16)D_80073B8C->t[0] - (u16)coord->coord.t[0];
     d->vy    = (u16)D_80073B8C->t[1] - (u16)coord->coord.t[1];
     d->vz    = (u16)D_80073B8C->t[2] - (u16)coord->coord.t[2];
-    if (Actor110600_OutsideRadius(&delta, 900) == 0)
+    if (actorOutsideRadius(&delta, 900) == 0)
         work->field_B86 = 0;
     walker           = (Actor110600Walker*)&work->field_B28;
     ramp             = work->field_B86;
@@ -2428,12 +2406,12 @@ void func_actor_110600_80135454(Task* arg0)
     angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     angle  = Actor110600_WrapHitAngle(angle);
     if (abs(angle) < 0x80) {
-        if (Actor110600_OutsideRadius(&delta, 500) != 0) {
-            if (Actor110600_OutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 25)
+        if (actorOutsideRadius(&delta, 500) != 0) {
+            if (actorOutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 25)
                 work->field_0 = 5;
         }
     }
-    if (Actor110600_OutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 91)
+    if (actorOutsideRadius(&delta, 1000) == 0 && work->field_BE0 >= 91)
         work->field_0 = 5;
     work->field_8A2 = angle;
     func_actor_110600_80134728(arg0);

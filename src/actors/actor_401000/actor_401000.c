@@ -396,7 +396,7 @@ extern char D_actor_401000_80144830;
 extern char D_actor_401000_8014599C;
 extern char D_actor_401000_80146190;
 
-/// 0 = movement running, 1 = frozen; the same flag byte `Actor01900_StepForward`
+/// 0 = movement running, 1 = frozen; the same flag byte `actorStepForward`
 /// and `actorMoveForward` test.
 extern u8 D_80072729;
 
@@ -1268,23 +1268,6 @@ void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
     *(u32*)G_SCRATCH_HEAD += 8;
 }
 
-static __inline__ s32 Actor401000_FindHit(SVECTOR* pos, GpRec18* records)
-{
-    s16 i;
-
-    for (i = 0; i < 12; i++) {
-        if (!records[i].key)
-            break;
-        if ((records[i].key & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key;
-        }
-    }
-    return 0;
-}
-
 void func_actor_401000_80133D50(Task* arg0)
 {
     PlayerStatus*    config = &Player_Status;
@@ -1315,7 +1298,7 @@ void func_actor_401000_80133D50(Task* arg0)
     if (enemy->hp > 0) {
         head  = *(ActorHitScratch**)G_SCRATCH_HEAD;
         s     = (*(ActorHitScratch**)G_SCRATCH_HEAD = head - 1);
-        s->id = Actor401000_FindHit(&head[-1].hitPos, work->field_8F0);
+        s->id = actorFindHit(&head[-1].hitPos, work->field_8F0);
         if (s->id != 0) {
             if (s->id & 0x8000) {
                 player       = gameGetPtrSlot(3);
@@ -2403,28 +2386,6 @@ void func_actor_401000_801374D4(Task* arg0)
     *(ActorAimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-/// Offset from `coord` to the translation of `m`; `actorConfigPositionDelta`
-/// for a bare matrix. Same body as `Actor401300_MatrixPositionDelta`.
-static __inline__ void Actor401000_MatrixPositionDelta(MATRIX* m, GsCOORDINATE2* coord, SVECTOR* pos)
-{
-    pos->vx = m->t[0] - coord->coord.t[0];
-    pos->vy = m->t[1] - coord->coord.t[1];
-    pos->vz = m->t[2] - coord->coord.t[2];
-}
-
-/// `actorPositionYaw` towards the translation of `m`. Same body as
-/// `Actor401300_MatrixPositionYaw`.
-static __inline__ s16 Actor401000_MatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* m)
-{
-    GsCOORDINATE2* coord;
-    s32            angle;
-
-    Actor401000_MatrixPositionDelta(m, ((TmdObject*)actor->extra)->coords, pos);
-    coord = ((TmdObject*)actor->extra)->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
 void func_actor_401000_801378DC(Task* arg0)
 {
     SVECTOR          delta;
@@ -2480,7 +2441,7 @@ void func_actor_401000_801378DC(Task* arg0)
     }
     func_actor_401000_80132EF0(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
-        angle = Actor401000_MatrixPositionYaw(arg0, &delta, D_80073B8C);
+        angle = actorMatrixPositionYaw(arg0, &delta, D_80073B8C);
         if (abs(angle) < 0x10 && !actorOutOfRange(&delta, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
@@ -3411,7 +3372,7 @@ void func_actor_401000_8013A930(Task* arg0)
 /// session's location key, let `Gp_SyncAreaKeyIndex` fill its table index, and
 /// copy the room's texture page / CLUT row into the model's `TmdObject`. The
 /// same body `func_actor_302600_80165A6C` writes out inline and
-/// `Actor401300_TintEffect` keeps as a helper; it has to be a helper here too
+/// `actorTintEffect` keeps as a helper; it has to be a helper here too
 /// rather than four copies in the caller, because each inline expansion gets
 /// its own `raw` / `model` / `idx` pseudos and the copies then share `$s0`
 /// block by block, while four uses of one variable rank `model` (96 refs/insn
@@ -3508,42 +3469,6 @@ void func_actor_401000_8013B1E4(Task* arg0)
     }
 }
 
-/// Rebuild `coord`'s Y rotation from its current yaw at unit scale, the same
-/// body as `Actor401300_ResetYaw` / `Actor01900_ResetYaw` (`coord->coord.m` is
-/// splatted back from the rotation scratch block and `flg` cleared so the local
-/// matrix is recomputed). The state-0x1A body below walks it down the model
-/// root's node run from `+2` to `+10`.
-static __inline__ void Actor401000_ResetYaw(GsCOORDINATE2* coord)
-{
-    void*                 head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-
-    head                    = *(void**)G_SCRATCH_HEAD;
-    blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
-    *(void**)G_SCRATCH_HEAD = blk;
-
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
-    blk->scale.vz = 1;
-    blk->scale.vy = 1;
-    blk->scale.vx = 1;
-    ScaleMatrix(&blk->m, &blk->scale);
-
-    coord->coord.m[0][0]    = *(u16*)&blk->m.m[0][0];
-    coord->coord.m[0][1]    = *(u16*)&blk->m.m[0][1];
-    coord->coord.m[0][2]    = *(u16*)&blk->m.m[0][2];
-    coord->coord.m[1][0]    = *(u16*)&blk->m.m[1][0];
-    coord->coord.m[1][1]    = *(u16*)&blk->m.m[1][1];
-    coord->coord.m[1][2]    = *(u16*)&blk->m.m[1][2];
-    coord->coord.m[2][0]    = *(u16*)&blk->m.m[2][0];
-    coord->coord.m[2][1]    = *(u16*)&blk->m.m[2][1];
-    coord->coord.m[2][2]    = *(u16*)&blk->m.m[2][2];
-    coord->flg              = 0;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
-}
-
 /// State-2 clip body and its 0x1A successor, the 401000 twin of
 /// `func_actor_401300_8013BB30` and `Actor01900_Fn0892C`. On the live-actor flag
 /// it arms the effect node, seeds the 0x8C0 spawn offset and the animation
@@ -3554,7 +3479,7 @@ static __inline__ void Actor401000_ResetYaw(GsCOORDINATE2* coord)
 /// state-0x1A arm gates on `flags_68` bit 0x100, dispatches the one-shot actions
 /// off `field_6 - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// `ratan2` at scale `0x1194 - (field_6 - 0x14) * 0xB`. Both arms end in
-/// `func_actor_401000_80132EF0` and `Actor401000_ResetYaw` on nodes 2..10.
+/// `func_actor_401000_80132EF0` and `actorResetYaw` on nodes 2..10.
 void func_actor_401000_8013B61C(Task* arg0)
 {
     Actor401000Work*      work;
@@ -3677,15 +3602,15 @@ void func_actor_401000_8013B61C(Task* arg0)
             break;
     }
     func_actor_401000_80132EF0(arg0);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 2);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 3);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 4);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 5);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 6);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 7);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 8);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 9);
-    Actor401000_ResetYaw(((TmdObject*)arg0->extra)->coords + 10);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 2);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 3);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 4);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 5);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 6);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 7);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 8);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 9);
+    actorResetYaw(((TmdObject*)arg0->extra)->coords + 10);
 }
 
 /// State-2 aim body, the 401000 twin of `func_actor_401300_8013CBAC` and

@@ -1833,7 +1833,7 @@ const TaskFuncTable9 D_actor_206100_80149E70 = {
 
 /// Push the model's second coordinate's world position onto `G_SCRATCH_HEAD`
 /// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
-/// inlined the way `Actor405800_UpdateColor` and `Actor400600_UpdateColor`
+/// inlined the way `actorUpdateModelColor` and `actorUpdateModelColor`
 /// inline it -- and it has to stay an inlined copy.  Only while expanding an
 /// inline body does cc1 keep the scratch head's absolute address folded into
 /// the memory operand (`lw $a1,0x1F8003FC` / `sw $a1,0x1F8003FC`, which the

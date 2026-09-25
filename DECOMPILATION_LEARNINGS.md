@@ -868,7 +868,7 @@ Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
 ## A unit-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
 
-`actorRescaleYaw(coord, 1)` and `Actor401800_ResetYaw(coord)` compute the
+`actorRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
 same thing, but only the second compiles to the target's tail in
 `func_actor_401800_8013BF48`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
@@ -73246,7 +73246,7 @@ sw    v0,8(s0)
 
 says the coordinate parameter is declared before the object parameter, even
 though the body writes `obj->field_8 = coord;`. Swapping the two parameters of
-`Actor444000_LinkWorkObj` was the last instruction of
+`actorLinkWorkObj` was the last instruction of
 `func_actor_444000_80139594`; the helper's other two call sites in the same TU
 still matched, because there the coordinate argument is a load rather than an
 address computation and nothing ties.
@@ -87186,7 +87186,7 @@ class of `vec` and takes an entry with **equal address cost and higher rtx
 cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
 `(plus head -8)` address only has equal-cost `(plus x 44)` alternatives and is
 left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
-reason. Fix in `Actor01900_Fn06100`: `Actor01900_StepForward` (reads `vec->vx`)
+reason. Fix in `Actor01900_Fn06100`: `actorStepForward` (reads `vec->vx`)
 instead of `Actor01900_StepForwardHead`.
 
 ## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
@@ -87196,7 +87196,7 @@ every instruction count, block and predicate matching and three changed sites:
 the scratch pop's released value staying live in `$s2` (target reloads into
 `$s2` and leaves the release in `$v0`), and the step's X read as `lh v1,
 -8($s2)` where the target has `lh v1, 0x2C($s2)`. The fix is the one already
-recorded above — `Actor356100_StepForward`, which reads `vec->vx`, instead of a
+recorded above — `actorStepForward`, which reads `vec->vx`, instead of a
 `head[-1]` copy. Three builds went into `.lreg`/`.jump`/`.combine` dumps,
 `find_best_addr` cost arithmetic and allocno priorities before a two-line
 corpus search turned up the answer that was already there
@@ -87221,7 +87221,7 @@ push form `*(T**)G_SCRATCH_HEAD -= 1; s = *(T**)G_SCRATCH_HEAD;` with the fields
 written through `s->` is the whole fix: the decremented value is a short-lived
 pseudo, the reload CSEs into the `move`, and the store still lands after the
 field writes. Read the copy as the signature of the compound push. The same
-function also needed `Actor01900_StepForward` rather than `StepForwardHead`
+function also needed `actorStepForward` rather than `StepForwardHead`
 after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").
 
 Same push when the block outlives a *call*: `ActorsShared80131e24Sub1` (the
@@ -97618,7 +97618,7 @@ of this pair, the walker arrival test `func_actor_110600_80132470` =
 `func_acropolis_bridge_80184024`, stages its XZ delta in an 8-byte block of `u16`
 cells and squares it through a `(s16)` cast — which is what the target's
 `lhu -0x8($t0)` reads are. `include/actors/actor_110600.h` already carried
-`Actor110600_OutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over an
+`actorOutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over an
 `SVECTOR`'s signed `vx`/`vz` cells, written for the aiming stage; re-expressing
 the ported body through it flips those loads to `lh` and misses. Take the
 sibling's source shape verbatim — its scratch structs and helper included, named
@@ -107037,7 +107037,7 @@ overlay's function is a template. This compares the twin's target against yours,
 dropped mask, one extra call, the `D_` symbol names, and the tail condition. Branch labels have
 to be normalized (`\.L\w+` → `.L`) or every block boundary shows as a diff.
 
-The twin's repeated block was a `static __inline__` helper, `Actor401300_TintEffect`, inlined at
+The twin's repeated block was a `static __inline__` helper, `actorTintEffect`, inlined at
 four spawn sites - and its *expansion* is byte-identical in the 401800 TU even though every
 surrounding struct offset differs. So transcribe the helper verbatim, barrier macros included:
 
@@ -107114,7 +107114,7 @@ literal; a helper boundary, not the macro, is what buys the displacement form.
 So when a twin's scratch block matches but the function it was pasted into does not, check
 whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
 *two* step helpers for this: `actorMoveForwardNonzero` (its own `gteVec` name for `vec`,
-used where the step is a variable) and `Actor401800_StepForward` (step applied through `vec`
+used where the step is a variable) and `actorStepForward` (step applied through `vec`
 itself, used by `8013945C` with the constant `-0x57`, and by the chase body
 `80137714` with `0x28` / `0x14`). Compiling `8013945C` against the
 `gteVec` variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
@@ -107519,7 +107519,7 @@ and not an allocation.
 `func_actor_401800_8013A2E8` is the patrol body its twins `Actor01900_Fn06F40`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
-`if (!Actor401800_OutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15)` — it
+`if (!actorOutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15)` — it
 scored 95.168% with 22 instructions too few, all of the loss inside one block:
 the target stores the three delta fields **twice**, re-materialising
 `work->field_C[work->field_14].x - coord->t[0]` for the second store of each.
@@ -107550,7 +107550,7 @@ re-materialise the two expressions feeding them.
 ## An inlined helper's statement order is a scheduling lever (`func_actor_401800_8013A2E8`, 2026-09-16)
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
-the same store. The TU's `Actor401800_OutOfRange` helper writes
+the same store. The TU's `actorOutOfRange` helper writes
 `*(ActorRangeScratch**)G_SCRATCH_HEAD = blk;` after `blk->dz` / `blk->r`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
 `dz` and `r`.
@@ -107957,7 +107957,7 @@ expansions of a `static __inline__` helper. Written out four times with one
 `model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
 `func_actor_302600_80165A6C` twin, which has the body only once), the body
 scored 84.126%; moved into `Actor401000_TintEffect` and called four times
-exactly as `Actor401300_TintEffect` is, it scored 100.000% on the first build.
+exactly as `actorTintEffect` is, it scored 100.000% on the first build.
 
 The mechanism is `global.c`'s allocno ordering. A variable assigned in four
 blocks is one pseudo with a whole-function live range, so it is a *global*
@@ -110414,7 +110414,7 @@ slots out in declaration order from the local base (`sp + outgoing_args_size`),
 so a declaration reorder can move the whole mismatch onto a *different*
 variable's stack slots - it does not remove it.
 
-The fix is the idiom `Actor401300_TintEffect` already uses: assign a pointer
+The fix is the idiom `actorTintEffect` already uses: assign a pointer
 local, touch it, and take the second address directly.
 
 ```c
@@ -110942,7 +110942,7 @@ scored 100.000% with every penalty zero on the first real attempt.
 name" is not a difference in shape. When the fuzzy tier is unanimous at 1.00
 and the exact tier disagrees, spend one diff before reaching for m2c - and read
 the matched sibling's C even when the diff is not empty, because the siblings'
-inline helpers (`Actor444000_AccumulateRotation` in `actor_444000_view.h`) name
+inline helpers (`actorAccumulateToView` in `actor_444000_view.h`) name
 the loop shapes the asm shows only as GTE sequences.
 
 Since such a helper is `static __inline__` and inlined at every use, its
@@ -111294,7 +111294,7 @@ Taking the address into a pointer local closes it:
 ```
 
 This is the idiom the matched 444000 sibling already uses
-(`include/actors/actor_444000_view.h` `Actor444000_LocalToView` keeps `posp` for
+(`include/actors/actor_444000_view.h` `actorLocalToView` keeps `posp` for
 the same reason), and the fix is not just the argument pair: the extra
 call-crossing `&pos` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
@@ -112615,7 +112615,7 @@ block, and three instructions differ (`addiu $s0,$s0,0x2c` vs
 `addiu $s0,$s2,0x2c`, then `lh $v1,-0x8(s2)` vs `lh $v1,0x2c(s2)`) at 99.871%.
 
 Spelling the three component reads through `vec` — the form
-`Actor01900_StepForward` already uses — lets the forwarded value stay an
+`actorStepForward` already uses — lets the forwarded value stay an
 expression and fold to `blk + 0x2C`, keeping the block pointer in the register
 the release left it in. 100.000% with `regs` 10 → 0.
 
@@ -112668,18 +112668,18 @@ For `func_actor_356100_80166CF0` the two spellings of one call site moved
 ```c
     if (work->field_97A == 0) {
         coord = arg0->field_2C->field_8;      /* 96.454%: branch=3 insert=9 delete=5 */
-        Actor356100_StepForward(coord, 0x78);
+        actorStepForward(coord, 0x78);
     } else {
         coord = arg0->field_2C->field_8;
-        Actor356100_StepForward(coord, 0x3C);
+        actorStepForward(coord, 0x3C);
     }
 ```
 versus
 ```c
     if (work->field_97A == 0) {
-        Actor356100_StepForward(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
+        actorStepForward(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
     } else {
-        Actor356100_StepForward(arg0->field_2C->field_8, 0x3C);
+        actorStepForward(arg0->field_2C->field_8, 0x3C);
     }
 ```
 
@@ -112840,8 +112840,8 @@ Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
 GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
 runs, i.e. when its definition is reached; a call above that point cannot
 inline and is emitted as a real `jal`. A scratch `base.c` holds one function and
-the headers, so helpers that live in the `.c` — here `Actor356100_YawTo`,
-`Actor356100_StepForward` and `Actor356100_PushRecords` — are not visible at all
+the headers, so helpers that live in the `.c` — here `actorYawTo`,
+`actorStepForward` and `Actor356100_PushRecords` — are not visible at all
 and become implicit declarations. Nothing warns under `-w`, the build passes,
 and the score is merely low: 60.998% with 491 instructions against the target's
 605, `delete=164`, because three inlined bodies (most of `PushRecords`) were
@@ -116516,8 +116516,8 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 }
 ```
 
-The `static __inline__` helpers `Actor405800_UpdateColor` and
-`Actor400600_UpdateColor` in their overlay headers are this same body, and this
+The `static __inline__` helpers `actorUpdateModelColor` and
+`actorUpdateModelColor` in their overlay headers are this same body, and this
 is why they are headers rather than call-site code.
 
 `func_actor_206100_8014E7D4` is the worked example.  The tail written at the
@@ -127212,7 +127212,7 @@ sp+0x28, and the declaration order is what puts them there. So the offsets need
 one declaration order and the address wants no pseudo, and only the second is
 negotiable. `actors_shared_8013231c.h`'s key block and the offset arithmetic are
 in `Actor135600Work`'s header; the fix is the corpus's usual barrier idiom, used
-in `Actor401300_TintEffect` and `func_actor_450800_80132160` for this same call
+in `actorTintEffect` and `func_actor_450800_80132160` for this same call
 pair:
 
 ```c

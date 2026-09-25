@@ -1184,29 +1184,6 @@ void func_actor_342400_801652A0(Task* arg0)
     }
 }
 
-/// Picks the per-axis step: the collision `step` when there is one and the
-/// push-out opposes it, otherwise whichever of the two is larger in the
-/// direction of `step`.
-static __inline__ s16 pick_step(s16 step, s16 push)
-{
-    if (step == 0) {
-        return push;
-    }
-    if ((step > 0 && push < 0) || (step < 0 && push > 0)) {
-        return step;
-    }
-    if (step > 0) {
-        if (push < step) {
-            return step;
-        }
-        return push;
-    }
-    if (push < step) {
-        return push;
-    }
-    return step;
-}
-
 /// Push-out of the model from contact record `rec`: how far `coord` sits
 /// inside the record's radius (`depth`), along the direction from the
 /// record's centre to the root part, carried into grid space.
@@ -1421,10 +1398,10 @@ void func_actor_342400_801653DC(Task* arg0, s16 arg1)
         work->field_40E--;
     }
     if (blocked == 0) {
-        work->field_80    += pick_step(stepX, maxX >> 3);
-        work->field_84    += pick_step(stepZ, maxZ >> 3);
-        coord->coord.t[0] += pick_step(stepX, maxX >> 3);
-        coord->coord.t[2] += pick_step(stepZ, maxZ >> 3);
+        work->field_80    += actorPickStep(stepX, maxX >> 3);
+        work->field_84    += actorPickStep(stepZ, maxZ >> 3);
+        coord->coord.t[0] += actorPickStep(stepX, maxX >> 3);
+        coord->coord.t[2] += actorPickStep(stepZ, maxZ >> 3);
         coord->flg         = 0;
     }
     *(u8**)G_SCRATCH_HEAD += 8;

@@ -274,19 +274,6 @@ static __inline__ void Actor04600_TickAnim(Task* task)
     }
 }
 
-/// Colours the enemy from the world position of `coord`, staged in a `VECTOR`
-/// taken off the scratch stack.
-static __inline__ void Actor04600_UpdateColor(GpEnemy* enemy, GsCOORDINATE2* coord)
-{
-    VECTOR* block         = (VECTOR*)(*(u8**)0x1F8003FC - 0x10);
-    block->vx             = coord->workm.t[0];
-    block->vy             = coord->workm.t[1];
-    block->vz             = coord->workm.t[2];
-    *(VECTOR**)0x1F8003FC = block;
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)0x1F8003FC += 0x10;
-}
-
 /// Spawn handler of the first enemy, entry 0 of `Actor04600_D00004`. A spawn
 /// arg whose high halfword is 1 destroys the enemy instead. Otherwise it
 /// allocates the 0x2E4-byte work block, points the model's light and colour
@@ -993,7 +980,7 @@ void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
                 ((TmdObject*)task->extra)->coords[0].flg = 0;
                 ((TmdObject*)task->extra)->coords[1].flg = 0;
                 Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-                Actor04600_UpdateColor(enemy, &((TmdObject*)task->extra)->coords[1]);
+                actorUpdateColor(enemy, &((TmdObject*)task->extra)->coords[1]);
             }
             break;
     }
@@ -1178,7 +1165,7 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
     work = (Actor104600Work*)arg1->work;
     switch (Gp_StateF0.field_4) {
         case 1:
-            Actor04600_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
+            actorUpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             break;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
@@ -1192,7 +1179,7 @@ void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
             Actor04600_Fn02CD4(arg1);
             Actor04600_Fn01E0C(arg1);
             Actor04600_TickAnim(arg1);
-            Actor04600_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
+            actorUpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             ((TmdObject*)arg1->extra)->coords->flg = 0;
             Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
             work->field_2BE -= 2;

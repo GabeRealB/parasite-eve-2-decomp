@@ -750,71 +750,6 @@ void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor204000_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                head;
-    ActorRangeScratch* blk;
-    s32                ret;
-
-    head                                    = *(u8**)0x1F8003FC;
-    ((ActorRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                     = (ActorRangeScratch*)(head - 0xC);
-    blk->dz                                 = d->vz;
-    blk->r                                  = r;
-    ((ActorRangeScratch*)(head - 0xC))->dx *= ((ActorRangeScratch*)(head - 0xC))->dx;
-    *(ActorRangeScratch**)0x1F8003FC        = blk;
-    blk->dz                                *= blk->dz;
-    blk->r                                 *= blk->r;
-    *(u8**)0x1F8003FC                       = head;
-    ret                                     = ((ActorRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
-}
-
-/// Wraps a 12-bit angle difference into [-0x800, 0x800].
-static __inline__ s16 Actor204000_WrapAngle(s16 angle)
-{
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    return angle;
-}
-
-/// Step `coord` `amount` units along its local Z axis unless movement is
-/// frozen. Same body as `Actor01900_StepForwardHead`.
-static __inline__ void Actor204000_StepForward(GsCOORDINATE2* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (D_80072729 != 1) {
-        head                       = *(SVECTOR**)G_SCRATCH_HEAD;
-        vec                        = head - 1;
-        *(SVECTOR**)G_SCRATCH_HEAD = vec;
-        Gfx_MatrixCol2(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]          += head[-1].vx;
-        coord->coord.t[1]          += vec->vy;
-        coord->coord.t[2]          += vec->vz;
-        coord->flg                  = 0;
-        *(SVECTOR**)G_SCRATCH_HEAD += 1;
-    }
-}
-
 extern Actor104000MsgArg Actor04000_D0C530;
 extern s32               Actor04000_D07094;
 extern s32               Actor04000_D070A0;
@@ -860,11 +795,11 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
         return;
     }
     if ((s16)work->field_6 == 8) {
-        Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0x32);
+        actorStepForward(((TmdObject*)arg1->extra)->coords, 0x32);
         return;
     }
     if ((s16)work->field_6 == 9) {
-        Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0x32);
+        actorStepForward(((TmdObject*)arg1->extra)->coords, 0x32);
     }
     work->field_0 = 0xC;
     head          = (Actor104000AimScratch*)SCRATCH_SP;
@@ -875,8 +810,8 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     sc->d.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
     coord         = ((TmdObject*)arg1->extra)->coords;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle     = Actor204000_WrapAngle(angle);
-    if (!Actor204000_OutOfRange(&sc->d, 600)) {
+    sc->angle     = actorWrapAngle(angle);
+    if (!actorOutOfRange(&sc->d, 600)) {
         mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
         if (mag < 0x200) {
             if (actor->field_954 != 2) {
@@ -884,7 +819,7 @@ void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
                 if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)work->field_47C, 0) == 0) {
                     coord     = ((TmdObject*)player->extra)->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                    sc->angle = Actor204000_WrapAngle(angle);
+                    sc->angle = actorWrapAngle(angle);
                     if (sc->angle < 0) {
                         Actor04000_D0C530.field_0 = Actor04000_D0C510;
                     } else {
@@ -1132,7 +1067,7 @@ void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
     delta.vx = D_80073B8C->t[0] - coord->coord.t[0];
     d->vy    = D_80073B8C->t[1] - coord->coord.t[1];
     d->vz    = D_80073B8C->t[2] - coord->coord.t[2];
-    if (!Actor204000_OutOfRange(d, 2000)) {
+    if (!actorOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
     }
@@ -1180,7 +1115,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     sc->d.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
     coord         = ((TmdObject*)arg1->extra)->coords;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle     = Actor204000_WrapAngle(angle);
+    sc->angle     = actorWrapAngle(angle);
     if (sc->angle > 0x10) {
         sc->angle = 0x10;
     }
@@ -1189,9 +1124,9 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     }
     sc->angle += ratan2(-((TmdObject*)arg1->extra)->coords->coord.m[2][0], ((TmdObject*)arg1->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, sc->angle, 1);
-    Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0x14);
+    actorStepForward(((TmdObject*)arg1->extra)->coords, 0x14);
     Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8);
-    if (Actor204000_OutOfRange(&sc->d, 1000)) {
+    if (actorOutOfRange(&sc->d, 1000)) {
         work->field_494++;
     } else {
         work->field_494 = 0;
@@ -1201,7 +1136,7 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     sc->d.vx                               = work->origin.vx - ((TmdObject*)arg1->extra)->coords->coord.t[0];
     sc->d.vy                               = 0;
     sc->d.vz                               = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
-    Actor204000_OutOfRange(&sc->d, 3000);
+    actorOutOfRange(&sc->d, 3000);
     if (work->field_494 > 0xF0) {
         work->field_0 = 8;
     }
@@ -1211,8 +1146,8 @@ void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     sc->d.vz  = Player_Status.coordMtx->t[2] - target->coord.t[2];
     coord     = ((TmdObject*)arg1->extra)->coords;
     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle = Actor204000_WrapAngle(angle);
-    if (!Actor204000_OutOfRange(&sc->d, 600)) {
+    sc->angle = actorWrapAngle(angle);
+    if (!actorOutOfRange(&sc->d, 600)) {
         mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
         if (mag < 0x200) {
             work->field_0 = 0xA;
@@ -1588,7 +1523,7 @@ found:
         angle    = ratan2(sc->d.vx, sc->d.vz) -
                 ratan2(-((TmdObject*)arg1->extra)->coords->workm.m[2][0], ((TmdObject*)arg1->extra)->coords->workm.m[2][2]);
         sc->angle = angle;
-        sc->angle = Actor204000_WrapAngle(angle);
+        sc->angle = actorWrapAngle(angle);
         Actor04000_Fn03D30(arg1, sc->angle, sc->id);
         snd = ((arg0->placeKey >> 12) << 8) | 0x40280003;
         pan = (s8)Gp_GetObjPan((GsCOORDINATE2*)((TmdObject*)arg1->extra)->coords);
@@ -1649,7 +1584,7 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     sc->d.vz      = work->patrol[work->patrolIdx].vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
     coord         = ((TmdObject*)arg1->extra)->coords;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle     = Actor204000_WrapAngle(angle);
+    sc->angle     = actorWrapAngle(angle);
     if (sc->angle > 0x20) {
         sc->angle = 0x20;
     }
@@ -1658,11 +1593,11 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     }
     sc->angle += ratan2(-((TmdObject*)arg1->extra)->coords->coord.m[2][0], ((TmdObject*)arg1->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, sc->angle, 1);
-    Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 5);
+    actorStepForward(((TmdObject*)arg1->extra)->coords, 5);
     if (Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8)) {
         work->field_6++;
     }
-    if (!Actor204000_OutOfRange(&sc->d, 400) || (s16)work->field_6 > 0x60) {
+    if (!actorOutOfRange(&sc->d, 400) || (s16)work->field_6 > 0x60) {
         if (work->patrolIdx == 0) {
             work->patrolIdx = 1;
         } else {
@@ -1675,10 +1610,10 @@ void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!Actor204000_OutOfRange(&sc->d, 2000)) {
+    if (!actorOutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (Actor204000_WrapAngle(angle) < 0x400 || !Actor204000_OutOfRange(&sc->d, 1000)) {
+        if (actorWrapAngle(angle) < 0x400 || !actorOutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1733,7 +1668,7 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     sc->d.vz                               = work->origin.vz - ((TmdObject*)arg1->extra)->coords->coord.t[2];
     coord                                  = ((TmdObject*)arg1->extra)->coords;
     angle                                  = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                              = Actor204000_WrapAngle(angle);
+    sc->angle                              = actorWrapAngle(angle);
     if (sc->angle > 0x10) {
         sc->angle = 0x10;
     }
@@ -1742,9 +1677,9 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     }
     sc->angle += ratan2(-((TmdObject*)arg1->extra)->coords->coord.m[2][0], ((TmdObject*)arg1->extra)->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&((TmdObject*)arg1->extra)->coords->coord, sc->angle, 1);
-    Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 8);
+    actorStepForward(((TmdObject*)arg1->extra)->coords, 8);
     Actor04000_Fn00798(((TmdObject*)arg1->extra)->coords, work->rec1B0, 8);
-    if (!Actor204000_OutOfRange(&sc->d, 80)) {
+    if (!actorOutOfRange(&sc->d, 80)) {
         work->field_0 = 1;
     }
     Actor04000_Fn0024C(((TmdObject*)arg1->extra)->coords, work->hits, 8, &sc->d);
@@ -1752,10 +1687,10 @@ void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     sc->d.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->d.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
     sc->d.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
-    if (!Actor204000_OutOfRange(&sc->d, 2000)) {
+    if (!actorOutOfRange(&sc->d, 2000)) {
         coord = ((TmdObject*)arg1->extra)->coords;
         angle = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (Actor204000_WrapAngle(angle) < 0x400 || !Actor204000_OutOfRange(&sc->d, 1000)) {
+        if (actorWrapAngle(angle) < 0x400 || !actorOutOfRange(&sc->d, 1000)) {
             work->field_0 = 4;
         }
     }
@@ -1874,12 +1809,12 @@ void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
         case 5:
         case 7:
         case 8:
-            Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, -0x78);
+            actorStepForward(((TmdObject*)arg1->extra)->coords, -0x78);
             break;
         case 11:
         case 12:
         case 14:
-            Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0xC8);
+            actorStepForward(((TmdObject*)arg1->extra)->coords, 0xC8);
             break;
         case 17:
             work->field_176 = 0x10;
@@ -1958,7 +1893,7 @@ void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
             }
             Actor04000_Fn00E6C(arg1);
             if ((s16)work->field_6 < 0xA) {
-                Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0x23);
+                actorStepForward(((TmdObject*)arg1->extra)->coords, 0x23);
             }
             if ((s16)work->field_6 < 4) {
                 ((TmdObject*)arg1->extra)->coords->coord.t[1] -= 0x67;
@@ -2045,13 +1980,13 @@ void Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1)
     work->field_6++;
     Actor04000_Fn00E6C(arg1);
     if (work->field_6 >= 0x13 && work->field_6 < 0x23) {
-        Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 4);
+        actorStepForward(((TmdObject*)arg1->extra)->coords, 4);
     }
     if (work->field_6 >= 0x23 && work->field_6 < 0x28) {
-        Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0xC);
+        actorStepForward(((TmdObject*)arg1->extra)->coords, 0xC);
     }
     if (work->field_6 >= 0x28 && work->field_6 < 0x31) {
-        Actor204000_StepForward(((TmdObject*)arg1->extra)->coords, 0x18);
+        actorStepForward(((TmdObject*)arg1->extra)->coords, 0x18);
         ((TmdObject*)arg1->extra)->coords->coord.t[1] += 0x28;
     }
     if ((s16)work->field_6 > 0x30) {

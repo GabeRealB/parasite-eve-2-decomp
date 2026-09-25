@@ -409,27 +409,6 @@ static __inline__ void Actor405800_TickAnim(Task* arg0)
     } while (i < 0x12);
 }
 
-/// `func_actor_405800_801387DC`'s body, inlined: push the model's second coordinate's
-/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
-static __inline__ void Actor405800_UpdateColor(Task* arg0)
-{
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-
-    coord     = &((TmdObject*)arg0->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
-    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
-}
-
 /// Queues, at ordering-table entry `otz`, a copy of the frame in the current
 /// draw buffer into the off-screen 320x240 VRAM area at (0x1C0, 0x100). In
 /// execution order the chain retargets drawing there, fills it near-black
@@ -1189,7 +1168,7 @@ void func_actor_405800_80133800(Task* arg0)
                 w->field_848 = 0;
             }
         case 1:
-            Actor405800_UpdateColor(arg0);
+            actorUpdateModelColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             Actor405800_ProjectPart(part);
             __asm__ volatile("lui %0, 0x1F80" : "=r"(head));
@@ -2112,26 +2091,6 @@ void func_actor_405800_801361F8(Task* arg0)
     work->field_854 = (ratan2(-v.vx, -v.vz) - actor->field_52) & 0xFFF;
 }
 
-static __inline__ s16 pick_step(s16 step, s16 push)
-{
-    if (step == 0) {
-        return push;
-    }
-    if ((step > 0 && push < 0) || (step < 0 && push > 0)) {
-        return step;
-    }
-    if (step > 0) {
-        if (push < step) {
-            return step;
-        }
-        return push;
-    }
-    if (push < step) {
-        return push;
-    }
-    return step;
-}
-
 void func_actor_405800_80136388(Task* arg0)
 {
     GpDeltaScratch   delta;
@@ -2288,10 +2247,10 @@ void func_actor_405800_80136388(Task* arg0)
         work->field_876 = 0;
     }
     if (blocked == 0) {
-        work->field_88.x  += pick_step(stepX, maxX >> 3);
-        work->field_88.z  += pick_step(stepZ, maxZ >> 3);
-        coord->coord.t[0] += pick_step(stepX, (u16)maxX >> 3);
-        coord->coord.t[2] += pick_step(stepZ, (u16)maxZ >> 3);
+        work->field_88.x  += actorPickStep(stepX, maxX >> 3);
+        work->field_88.z  += actorPickStep(stepZ, maxZ >> 3);
+        coord->coord.t[0] += actorPickStep(stepX, (u16)maxX >> 3);
+        coord->coord.t[2] += actorPickStep(stepZ, (u16)maxZ >> 3);
         coord->flg         = 0;
     }
 }

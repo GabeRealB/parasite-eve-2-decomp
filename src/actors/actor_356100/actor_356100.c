@@ -334,28 +334,6 @@ typedef struct Actor356100GroundCoord {
 } Actor356100GroundCoord;
 STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
-/// `Actor356100_PositionDelta` against an explicit matrix rather than the
-/// overlay's own `D_80073B8C` copy of the player coordinate.
-static __inline__ void Actor356100_MatrixPositionDelta(MATRIX* m, GsCOORDINATE2* coord, SVECTOR* pos)
-{
-    pos->vx = m->t[0] - coord->coord.t[0];
-    pos->vy = m->t[1] - coord->coord.t[1];
-    pos->vz = m->t[2] - coord->coord.t[2];
-}
-
-/// `actorPositionYaw` towards the translation of `m`. Same body as
-/// `Actor401300_MatrixPositionYaw`.
-static __inline__ s16 Actor356100_MatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* m)
-{
-    GsCOORDINATE2* coord;
-    s32            angle;
-
-    Actor356100_MatrixPositionDelta(m, ((TmdObject*)actor->extra)->coords, pos);
-    coord = ((TmdObject*)actor->extra)->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
 /// Payload of message 0x3E9 `func_actor_356100_801666B4` sends the player:
 /// the player's own position, then the heading away from this actor, so the
 /// player ends up moved one normalised unit along that direction. Same shape
@@ -1323,19 +1301,6 @@ void func_actor_356100_80163E2C(Task* arg0)
     *(Actor356100AimScratch**)G_SCRATCH_HEAD += 1;
 }
 
-/// Wrapped yaw from `coord`'s facing to an offset (`x`, `z`) already in hand.
-/// Same body as `Actor401300_YawTo` / `Actor01900_YawTo`, the pair
-/// `actorPositionYaw` above is spelled out as. The enter tick below and
-/// the collapse tick further down both read its turn back out of the scratch
-/// block they already hold, so it sits above them.
-static __inline__ s16 Actor356100_YawTo(GsCOORDINATE2* coord, s16 x, s16 z)
-{
-    s32 angle;
-
-    angle = ratan2(x, z);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-}
-
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
 /// movement is frozen, normalising the column with the GTE first and giving the
 /// 8-byte `G_SCRATCH_HEAD` block back afterwards. The guardless sibling of
@@ -1496,7 +1461,7 @@ void func_actor_356100_80164158(Task* arg0)
     yaw             = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->current    = yaw;
     aim->current    = actorNormalizeYaw(yaw);
-    aim->angle      = Actor356100_YawTo(((TmdObject*)arg0->extra)->coords, aim->delta.vx, aim->delta.vz);
+    aim->angle      = actorYawTo(((TmdObject*)arg0->extra)->coords, aim->delta.vx, aim->delta.vz);
     work->field_98E = aim->angle;
     diff            = aim->current - aim->target;
     if (ABS(diff) < 0x44 && (((s16)work->field_B66 / 2) + 3) < work->field_6 && ABS(aim->angle) < 0x80) {
@@ -1718,7 +1683,7 @@ void func_actor_356100_801653F4(Task* arg0)
         s->delta.vy                               = Player_Status.coordMtx->t[1] - cur->coord.t[1];
         s->delta.vz                               = Player_Status.coordMtx->t[2] - cur->coord.t[2];
         coord                                     = ((TmdObject*)arg0->extra)->coords;
-        s->angle                                  = Actor356100_YawTo(coord, head[-1].delta.vx, s->delta.vz);
+        s->angle                                  = actorYawTo(coord, head[-1].delta.vx, s->delta.vz);
         facing                                    = ((TmdObject*)arg0->extra)->coords;
         s->facing                                 = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_B48                           = s->facing;
@@ -1874,7 +1839,7 @@ void func_actor_356100_80165B30(Task* arg0)
 /// player and clearing the two halfwords next to `field_B68`. Each frame then
 /// re-runs the animation and, while the clip sits on 0x10 and the player is not
 /// in mode 2, takes the player offset again through
-/// `Actor356100_MatrixPositionYaw` and — if the turn is within 0x10 and the
+/// `actorMatrixPositionYaw` and — if the turn is within 0x10 and the
 /// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
 /// one of the two blocks `D_8007218A` selects, then queries message 0x3F8 and
 /// on acceptance moves to state 0xC, sets `field_B68` and re-sends the handler
@@ -1916,7 +1881,7 @@ void func_actor_356100_80166018(Task* arg0)
     }
     func_actor_356100_80163508(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
-        angle = Actor356100_MatrixPositionYaw(arg0, &pos, D_80073B8C);
+        angle = actorMatrixPositionYaw(arg0, &pos, D_80073B8C);
         if (abs(angle) < 0x10 && !actorOutOfRange(&pos, 0x44C)) {
             if (D_8007218A == 1) {
                 D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173230;
@@ -2136,7 +2101,7 @@ void func_actor_356100_801668FC(Task* arg0)
 /// same body as `Actor01900_Fn06100`. Going live resets the model and starts
 /// clip 3 at speed 8 with `field_97A` cleared and `field_B64` zeroed;
 /// otherwise the aim scratch takes the player offset, the root is pushed out of
-/// the `field_A58` collision records and `Actor356100_YawTo` gives the wrapped
+/// the `field_A58` collision records and `actorYawTo` gives the wrapped
 /// turn, which `field_98E` snapshots. A turn under 0x200 while the player is
 /// still within 0x384 moves the state to 0xB; the turn is then clamped to
 /// [-0x40, 0x40], the root yaw is re-derived from it and the root rescaled to a
@@ -2170,7 +2135,7 @@ void func_actor_356100_80166CF0(Task* arg0)
     actorConfigPositionDelta(&Player_Status, ((TmdObject*)arg0->extra)->coords, &aim->delta);
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     func_actor_356100_80163508(arg0);
-    ang             = Actor356100_YawTo(((TmdObject*)arg0->extra)->coords, aim->delta.vx, aim->delta.vz);
+    ang             = actorYawTo(((TmdObject*)arg0->extra)->coords, aim->delta.vx, aim->delta.vz);
     aim->angle      = ang;
     work->field_98E = ang;
     if (aim->angle < 0x200) {
@@ -2621,7 +2586,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GsCOORDINAT
 /// and the same body as `func_actor_401300_8013A5C0`. Going live resets the
 /// model and starts clip 1 at speed 0x10 with the 0x13 state parked in
 /// `field_97E`; otherwise the aim scratch takes the player offset,
-/// `Actor356100_YawTo` gives the wrapped turn, `field_98E` snapshots it, it is
+/// `actorYawTo` gives the wrapped turn, `field_98E` snapshots it, it is
 /// clamped to [-0x80, 0x80] and halved, the root yaw is re-derived from it and
 /// the root coordinate rescaled to a uniform 0x1194. Once the state has settled
 /// on 0x11 the collision step pushes the root out of the `field_A58` records
@@ -2662,7 +2627,7 @@ void func_actor_356100_801684F0(Task* arg0)
     aim               = (Actor356100AimScratch*)(*scratch = (SVECTOR*)(head - 1));
     aim->delta.vy     = Player_Status.coordMtx->t[1] - cur->coord.t[1];
     aim->delta.vz     = Player_Status.coordMtx->t[2] - cur->coord.t[2];
-    aim->angle        = Actor356100_YawTo(((TmdObject*)arg0->extra)->coords, head[-1].delta.vx, aim->delta.vz);
+    aim->angle        = actorYawTo(((TmdObject*)arg0->extra)->coords, head[-1].delta.vx, aim->delta.vz);
     work->field_98E   = aim->angle;
     if (ABS(aim->angle) <= 0x80 && work->field_97E == 2) {
         work->field_982 = 0x16;

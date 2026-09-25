@@ -497,27 +497,6 @@ static __inline__ void Actor400600_TickAnim(Task* arg0)
     } while (i < 0x12);
 }
 
-/// `func_actor_400600_8013A2C0`'s body, inlined: push the model's second coordinate's
-/// world position onto `G_SCRATCH_HEAD` and hand it to `Gp_UpdateActorColor`.
-static __inline__ void Actor400600_UpdateColor(Task* arg0)
-{
-    GsCOORDINATE2* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
-
-    coord     = &((TmdObject*)arg0->extra)->coords[1];
-    scratch   = (void**)G_SCRATCH_HEAD;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    *scratch  = block;
-    Gp_UpdateActorColor(arg0->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
-}
-
 void func_actor_400600_8013203C(Task* arg0)
 {
     Actor400600Work* work;
@@ -1200,7 +1179,7 @@ void func_actor_400600_801337A8(Task* arg0)
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            Actor400600_UpdateColor(arg0);
+            actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             if (work->field_75C.b.field_75E == 0) {
                 model->flags &= ~0x80;
@@ -3196,7 +3175,7 @@ void func_actor_400600_80137EF0(Task* arg0)
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            Actor400600_UpdateColor(arg0);
+            actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }

@@ -254,69 +254,6 @@ typedef struct Actor444000EffScratch {
 } Actor444000EffScratch;
 STATIC_ASSERT_SIZEOF(Actor444000EffScratch, 0x10);
 
-/// World position of `coord` as seen from `gGfxViewCoord`: `out` starts as the
-/// point in `coord`'s own space and is walked up the coordinate hierarchy, one
-/// `gte_rt` per level, until the view coordinate is reached. A hierarchy that
-/// does not end at the view coordinate leaves `out` untouched.
-static __inline__ void Actor444000_LocalToView(GsCOORDINATE2* coord, SVECTOR* out)
-{
-    SVECTOR acc;
-    VECTOR  v;
-    s32     flag;
-
-    acc.vx = out->vx;
-    acc.vy = out->vy;
-    acc.vz = out->vz;
-
-    for (;;) {
-        if (coord->sub == NULL) {
-            return;
-        }
-        if (coord != &gGfxViewCoord) {
-            gte_SetTransMatrix(&coord->coord);
-            gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&acc);
-            gte_rt();
-            gte_stlvnl(&v);
-            gte_stflg(&flag);
-            acc.vx = v.vx;
-            acc.vy = v.vy;
-            acc.vz = v.vz;
-            coord  = coord->sub;
-        } else {
-            out->vx = acc.vx;
-            out->vy = acc.vy;
-            out->vz = acc.vz;
-            return;
-        }
-    }
-}
-
-/// Accumulated world rotation of `coord`: `mat` starts as the coordinate's own
-/// rotation and is multiplied by each parent's in turn, renormalised at every
-/// level, until the chain reaches `gGfxViewCoord` (or runs out).
-static __inline__ void Actor444000_AccumulateRotation(GsCOORDINATE2* coord, MATRIX* mat)
-{
-    MATRIX         m;
-    GsCOORDINATE2* cur;
-
-    cur  = coord->sub;
-    *mat = coord->coord;
-    while (1) {
-        if (cur == NULL) {
-            return;
-        }
-        if (cur == &gGfxViewCoord) {
-            return;
-        }
-        gte_SetRotMatrix(&cur->coord);
-        MulRotMatrix(mat);
-        MatrixNormal(mat, &m);
-        *mat = m;
-        cur  = cur->sub;
-    }
-}
-
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -1127,61 +1064,6 @@ void func_actor_444000_801327E8(s16 action)
     work->field_2E = 0;
 }
 
-/// Turn the world-space rotation in `mat` back into one relative to `coord`'s
-/// parent: accumulate the chain above the parent up to the view coordinate,
-/// transpose it (the inverse of a rotation) and pre-multiply. Nothing to do
-/// when the parent already is the view coordinate.
-static __inline__ GsCOORDINATE2* _actor444000Localize(GsCOORDINATE2* coord, MATRIX* mat)
-{
-    MATRIX         matrix;
-    MATRIX         normal;
-    MATRIX         transposed;
-    GsCOORDINATE2* cur;
-    GsCOORDINATE2* view;
-
-    cur = coord->sub;
-    if (cur != &gGfxViewCoord) {
-        view   = &gGfxViewCoord;
-        matrix = cur->coord;
-        while (1) {
-            cur = cur->sub;
-            if (cur == NULL) {
-                break;
-            }
-            if (cur == view) {
-                __asm__ volatile(
-                    "lhu $12, 0(%0);"
-                    "lhu $13, 6(%0);"
-                    "lhu $14, 12(%0);"
-                    "sh $12, 0(%1);"
-                    "sh $13, 2(%1);"
-                    "sh $14, 4(%1);"
-                    "lhu $12, 2(%0);"
-                    "lhu $13, 8(%0);"
-                    "lhu $14, 14(%0);"
-                    "sh $12, 6(%1);"
-                    "sh $13, 8(%1);"
-                    "sh $14, 10(%1);"
-                    "lhu $12, 4(%0);"
-                    "lhu $13, 10(%0);"
-                    "lhu $14, 16(%0);"
-                    "sh $12, 12(%1);"
-                    "sh $13, 14(%1);"
-                    "sh $14, 16(%1);"
-                    : : "r"(&matrix), "r"(&transposed) : "$12", "$13", "$14", "memory");
-                gte_SetRotMatrix(&transposed);
-                MulRotMatrix(mat);
-                break;
-            }
-            gte_SetRotMatrix(&cur->coord);
-            MulRotMatrix(&matrix);
-            MatrixNormal(&matrix, &normal);
-            matrix = normal;
-        }
-    }
-    return coord;
-}
-
 /// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
 /// expressed back in its parent's frame, and refresh the coordinate. The work
 /// matrix is borrowed from the scratchpad stack.
@@ -1192,9 +1074,9 @@ void func_actor_444000_80132808(GsCOORDINATE2* coord, s16 yaw)
 
     *(MATRIX**)G_SCRATCH_HEAD -= 1;
     rotation                   = *(MATRIX**)G_SCRATCH_HEAD;
-    Actor444000_AccumulateRotation(coord, rotation);
+    actorAccumulateToView(coord, rotation);
     func_8004BFF8(yaw, rotation);
-    out = _actor444000Localize(coord, rotation);
+    out = actorLocalizeRotation(coord, rotation);
     __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
     Gp_UpdateCoord(out);
@@ -2204,8 +2086,8 @@ static __inline__ void Actor444000_SquashRotation(GsCOORDINATE2* coord, s16 y)
 /// body over: 0x14 switches the host and escort 3 to light mode 1, while the
 /// other three reparent escort 2, 4 and 3's model to `gGfxViewCoord`. That
 /// reparenting is why both halves of the part's placement have to be resolved
-/// by hand -- `Actor444000_AccumulateRotation` for the rotation it had up the
-/// chain and `Actor444000_LocalToView` for its origin -- the same pair
+/// by hand -- `actorAccumulateToView` for the rotation it had up the
+/// chain and `actorLocalToView` for its origin -- the same pair
 /// `func_actor_444000_80137594` uses. Past each of those sub-states the body
 /// sinks toward the host's own height 0x1E a step, clamped there, and squashes
 /// from 0x1000 to nothing over 0x28 steps, throwing effect 0x60196 at one of
@@ -2315,12 +2197,12 @@ void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x82:
-                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->coords[4], &mat);
+                actorAccumulateToView(&((TmdObject*)task->extra)->coords[4], &mat);
 
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
+                actorLocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
 
                 ((TmdObject*)work->field_ECC[2]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[2]->task->extra)->coords->coord      = mat;
@@ -2331,12 +2213,12 @@ void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x1DC:
-                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->coords[3], &mat);
+                actorAccumulateToView(&((TmdObject*)task->extra)->coords[3], &mat);
 
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[3], &pos);
+                actorLocalToView(&((TmdObject*)task->extra)->coords[3], &pos);
 
                 ((TmdObject*)work->field_ECC[3]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[3]->task->extra)->coords->coord      = mat;
@@ -2347,12 +2229,12 @@ void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x14A:
-                Actor444000_AccumulateRotation(&((TmdObject*)task->extra)->coords[4], &mat);
+                actorAccumulateToView(&((TmdObject*)task->extra)->coords[4], &mat);
 
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
+                actorLocalToView(&((TmdObject*)task->extra)->coords[4], &pos);
 
                 ((TmdObject*)work->field_ECC[4]->task->extra)->coords->sub        = &gGfxViewCoord;
                 ((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord      = mat;
@@ -2673,31 +2555,14 @@ void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
     norms[face + 1].vz = -0x1000;
 }
 
-/// Link one of the work block's display nodes: it hangs off the model's own
-/// coordinate, carries `rec` as its collision-record table and sits at `pos`
-/// in that coordinate's space with `field1C` as its extent.
-static __inline__ void Actor444000_LinkWorkObj(GsCOORDINATE2* coord, GpObj* obj, GpRec18* rec,
-                                               SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
-{
-    obj->coord    = coord;
-    obj->ctx.recs = rec;
-    obj->pos.vx   = pos->vx;
-    obj->pos.vy   = pos->vy;
-    obj->pos.vz   = pos->vz;
-    obj->radius   = field1C;
-    obj->flags    = 1;
-    Gp_LinkObj(prio, obj);
-    Gp_InitRec18Table(obj->ctx.recs, kind, 0);
-}
-
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
 /// allocate its work block and stand the model up where the host's first
 /// escort is, in view space.
 ///
 /// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
-/// part 1 have to be resolved by hand: `Actor444000_AccumulateRotation` walks
+/// part 1 have to be resolved by hand: `actorAccumulateToView` walks
 /// the part's coordinate chain up to the view coordinate for the rotation and
-/// `Actor444000_LocalToView` carries its origin along the same chain for the
+/// `actorLocalToView` carries its origin along the same chain for the
 /// translation. The model is then turned a quarter turn, its single display
 /// node is linked with a 0x394 extent, and that node is paired with the owning
 /// enemy so collisions against it reach this task.
@@ -2726,11 +2591,11 @@ void func_actor_444000_80137594(GpEnemy* enemy, Task* task)
     ((TmdObject*)task->extra)->coords->sub = &gGfxViewCoord;
     ((TmdObject*)task->extra)->flags       = 0;
 
-    Actor444000_AccumulateRotation(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1],
-                                   &((TmdObject*)task->extra)->coords->coord);
+    actorAccumulateToView(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1],
+                          &((TmdObject*)task->extra)->coords->coord);
 
     vec.vx = vec.vy = vec.vz = 0;
-    Actor444000_LocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1], &vec);
+    actorLocalToView(&((TmdObject*)host->field_ECC[0]->task->extra)->coords[1], &vec);
 
     ((TmdObject*)task->extra)->coords->coord.t[0] = vec.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
@@ -2741,7 +2606,7 @@ void func_actor_444000_80137594(GpEnemy* enemy, Task* task)
     Gp_UpdateCoord(((TmdObject*)task->extra)->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
-    Actor444000_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
+    actorLinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
 
     work->obj0.flags &= 0x7FFF;
     work->obj0.key    = Gp_PackObjPair(owner, 2);
@@ -2954,7 +2819,7 @@ void func_actor_444000_80137D4C(GpEnemy* enemy, Task* task)
     ((TmdObject*)task->extra)->colorMtx = &work->colorMtx;
 
     vec.vx = vec.vy = vec.vz = 0;
-    Actor444000_LocalToView(&((TmdObject*)host->field_ECC[1]->task->extra)->coords[1], &vec);
+    actorLocalToView(&((TmdObject*)host->field_ECC[1]->task->extra)->coords[1], &vec);
 
     ((TmdObject*)task->extra)->coords->coord.t[0] = vec.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
@@ -3065,27 +2930,6 @@ static __inline__ void Actor444000_ScaleRotation(GsCOORDINATE2* coord, s16 xz, s
     *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(Actor444000RotScratch);
 }
 
-/// Squared-distance test on a horizontal gap, run out of a `VECTOR3` carved
-/// off `G_SCRATCH_HEAD`: the vector holds the gap's x and z beside a 1000-unit
-/// reach, each component is squared in place, and the result says whether the
-/// gap is longer than the reach.
-static __inline__ s32 Actor444000_OutOfReach(SVECTOR* gap)
-{
-    VECTOR3* v;
-
-    v                          = (VECTOR3*)(*(u8**)G_SCRATCH_HEAD - sizeof(VECTOR3));
-    *(VECTOR3**)G_SCRATCH_HEAD = v;
-    v->vx                      = gap->vx;
-    v->vy                      = gap->vz;
-    v->vz                      = 1000;
-    v->vx                      = v->vx * v->vx;
-    v->vy                      = v->vy * v->vy;
-    v->vz                      = v->vz * v->vz;
-    *(u8**)G_SCRATCH_HEAD      = *(u8**)G_SCRATCH_HEAD + sizeof(VECTOR3);
-
-    return v->vx + v->vy >= v->vz;
-}
-
 /// Rise state of the enemy dispatched through `D_actor_444000_80131EA8`: for
 /// the first nine steps the model is stretched taller and thinner each step --
 /// horizontally `step * 400 + 0x800` and vertically `0x800 / step` -- around
@@ -3140,7 +2984,7 @@ void func_actor_444000_80138490(GpEnemy* enemy, Task* task)
         gap.vz = ((TmdObject*)task->extra)->coords->coord.t[2] -
                  ((TmdObject*)player->extra)->coords->coord.t[2];
 
-        if (Actor444000_OutOfReach(&gap) == 0 && actor->field_954 != 2 &&
+        if (actorOutOfReach(&gap) == 0 && actor->field_954 != 2 &&
             cfg->hp > 0) {
             D_actor_444000_80161898.field_14 = 0x28;
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_444000_80161898, 0) == 0) {
@@ -3258,7 +3102,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Task* task)
     ((TmdObject*)task->extra)->flags       = 0;
 
     vec.vx = vec.vy = vec.vz = 0;
-    Actor444000_LocalToView(&((TmdObject*)owner->task->extra)->coords[3], &vec);
+    actorLocalToView(&((TmdObject*)owner->task->extra)->coords[3], &vec);
 
     ((TmdObject*)task->extra)->coords->coord.t[0] = vec.vx;
     ((TmdObject*)task->extra)->coords->coord.t[1] = vec.vy;
@@ -3283,7 +3127,7 @@ void func_actor_444000_80138B94(GpEnemy* enemy, Task* task)
 
     vec.vx = vec.vy = vec.vz = 0;
 
-    Actor444000_LinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
+    actorLinkWorkObj(((TmdObject*)task->extra)->coords, &work->obj0, &work->rec0, &vec, 0x100, 3, 1);
 
     work->obj1.coord    = ((TmdObject*)task->extra)->coords;
     work->obj1.ctx.recs = &work->rec1;
@@ -3618,7 +3462,7 @@ void func_actor_444000_80139594(GpEnemy* enemy, Task* task)
     mtx->ident.m22     = 0x1000;
     Gfx_RotMatrixY(&mtx->mat, 0, 1);
 
-    Actor444000_LinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
+    actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
     work->obj.flags &= 0x7FFF;
 
     snd = ((owner->placeKey >> 12) << 8) | 0x4020000B;
@@ -3946,19 +3790,6 @@ void func_actor_444000_8013A1C4(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-/// Reads and writes the scratchpad head. Written as inlines for the same
-/// reason as `Actor444000_ReleaseRotScratch`: only inline-expanded code keeps
-/// the absolute `lui $at` form of the scratch-head accesses.
-static __inline__ u8* Actor444000_GetScratchHead(void)
-{
-    return *(u8**)G_SCRATCH_HEAD;
-}
-
-static __inline__ void Actor444000_SetScratchHead(void* head)
-{
-    *(void**)G_SCRATCH_HEAD = head;
-}
-
 /// Per-tick state of the spinner enemy. While `spin` is counting down the model
 /// only yaws in place -- 0x40 on phase 1 and -0x3C on phase 3 of every four
 /// frames -- and nothing else happens. Once it reaches zero the enemy homes on
@@ -4016,9 +3847,9 @@ void func_actor_444000_8013A3AC(GpEnemy* enemy, Task* task)
     step.vy -= ((TmdObject*)task->extra)->coords->coord.t[1];
     step.vz -= ((TmdObject*)task->extra)->coords->coord.t[2];
 
-    head = Actor444000_GetScratchHead();
+    head = actorGetScratchHead();
     sq   = (VECTOR3*)(head - sizeof(VECTOR3));
-    Actor444000_SetScratchHead(sq);
+    actorSetScratchHead(sq);
     angle  = work->field_98;
     sq->vx = step.vx;
     sq->vy = stepp->vz;
@@ -4026,7 +3857,7 @@ void func_actor_444000_8013A3AC(GpEnemy* enemy, Task* task)
     sq->vx = sq->vx * sq->vx;
     sq->vy = sq->vy * sq->vy;
     sq->vz = sq->vz * sq->vz;
-    Actor444000_SetScratchHead(head);
+    actorSetScratchHead(head);
     inside = sq->vx + sq->vy >= sq->vz;
     if (!inside) {
         task->state++;
@@ -5673,7 +5504,7 @@ void func_actor_444000_8013E058(Task* task)
         posp->vz        = 0;
         posp->vy        = 0;
         posp->vx        = 0;
-        Actor444000_LocalToView(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords[3], posp);
+        actorLocalToView(&((TmdObject*)((Task*)Gp_LookupSlot4(0))->extra)->coords[3], posp);
         D_actor_444000_80161888.field_0 = 0;
         D_actor_444000_80161888.field_1 = 0x2C;
         D_actor_444000_80161888.field_2 = 2;
@@ -5714,7 +5545,7 @@ void func_actor_444000_8013E058(Task* task)
     sc->dir.vz = 0;
     sc->dir.vy = 0;
     sc->dir.vx = 0;
-    Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &sc->dir);
+    actorLocalToView(&((TmdObject*)task->extra)->coords[4], &sc->dir);
 
     sc->dir.vx = *(u16*)&((TmdObject*)slot3->extra)->coords->coord.t[0] - (u16)sc->dir.vx;
     sc->dir.vy = *(u16*)&((TmdObject*)slot3->extra)->coords->coord.t[1] - (u16)sc->dir.vy;
@@ -5909,7 +5740,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor444000Work*
     sc->pos.vz = 0;
     sc->pos.vy = 0;
     sc->pos.vx = 0;
-    Actor444000_LocalToView(&((TmdObject*)task->extra)->coords[4], &sc->pos);
+    actorLocalToView(&((TmdObject*)task->extra)->coords[4], &sc->pos);
 
     sc->dir.vx = sc->pos.vx - ((TmdObject*)player->extra)->coords->coord.t[0];
     sc->dir.vy = 0;
@@ -6527,14 +6358,14 @@ void func_actor_444000_801404C0(Task* arg0)
                 D_actor_444000_80161850 = (u16)D_actor_444000_80161850 + 1;
             }
 
-            Actor444000_AccumulateRotation(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1],
-                                           &D_actor_444000_80161948[D_actor_444000_80161850].coord);
+            actorAccumulateToView(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1],
+                                  &D_actor_444000_80161948[D_actor_444000_80161850].coord);
             D_actor_444000_80161948[D_actor_444000_80161850].sub = &gGfxViewCoord;
 
             pos.vz = 0;
             pos.vy = 0;
             pos.vx = 0;
-            Actor444000_LocalToView(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1], &pos);
+            actorLocalToView(&((TmdObject*)work->field_ECC[0]->task->extra)->coords[1], &pos);
 
             D_actor_444000_80161948[D_actor_444000_80161850].coord.t[0] = pos.vx;
             D_actor_444000_80161948[D_actor_444000_80161850].coord.t[1] = pos.vy;
@@ -7702,7 +7533,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
 /// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
 /// and pushes the player back by the boss part's view-space depth less 0x7D0 --
 /// part 4 of the boss model carried up the coordinate chain by
-/// `Actor444000_LocalToView`. Whether the camera distance is then added to x or
+/// `actorLocalToView`. Whether the camera distance is then added to x or
 /// subtracted from z is the same split: patterns other than 1-in-state-9 widen
 /// x, the rest pull z in, and pattern 2 additionally floors z at 0x251C.
 ///
@@ -7788,7 +7619,7 @@ void func_actor_444000_80142F28(Task* arg0)
                             }
                         }
                         result.vx = result.vy = result.vz = 0;
-                        Actor444000_LocalToView(((TmdObject*)arg0->extra)->coords + 4, &result);
+                        actorLocalToView(((TmdObject*)arg0->extra)->coords + 4, &result);
                         {
                             GsCOORDINATE2* playerCoord = ((TmdObject*)player->extra)->coords;
                             s32            z           = result.vz - 0x7D0;

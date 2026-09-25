@@ -189,17 +189,6 @@ static __inline__ void Actor107000_TickAnim(Task* task)
     }
 }
 
-static __inline__ void Actor107000_UpdateColor(GpEnemy* enemy, GsCOORDINATE2* coord)
-{
-    VECTOR* block         = (VECTOR*)(*(u8**)0x1F8003FC - 0x10);
-    block->vx             = coord->workm.t[0];
-    block->vy             = coord->workm.t[1];
-    block->vz             = coord->workm.t[2];
-    *(VECTOR**)0x1F8003FC = block;
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    *(u8**)0x1F8003FC += 0x10;
-}
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
@@ -1160,7 +1149,7 @@ void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
                 ((TmdObject*)task->extra)->coords[0].flg = 0;
                 ((TmdObject*)task->extra)->coords[1].flg = 0;
                 Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
-                Actor107000_UpdateColor(enemy, &((TmdObject*)task->extra)->coords[1]);
+                actorUpdateColor(enemy, &((TmdObject*)task->extra)->coords[1]);
             }
             break;
     }
@@ -1363,7 +1352,7 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
     work = (Actor107000Work*)arg1->work;
     switch (Gp_StateF0.field_4) {
         case 1:
-            Actor107000_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
+            actorUpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             break;
         case 2:
             ((TmdObject*)arg1->extra)->flags = 0x80;
@@ -1377,7 +1366,7 @@ void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
             Actor07000_Fn02D78(arg1);
             Actor07000_Fn01EB0(arg1);
             Actor107000_TickAnim(arg1);
-            Actor107000_UpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
+            actorUpdateColor(arg0, &((TmdObject*)arg1->extra)->coords[1]);
             ((TmdObject*)arg1->extra)->coords->flg = 0;
             Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
             work->field_2BE -= 2;

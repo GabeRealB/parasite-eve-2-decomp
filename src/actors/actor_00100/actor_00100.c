@@ -2428,9 +2428,9 @@ void Actor00100_Fn0503C(Task* arg0)
                             var_v0_19 = -var_v0_19;
                         }
                         if (var_v0_19 < 0x400) {
-                            scratch->messageResult = Actor00100_PlayerContactMessage(ctx, 2);
+                            scratch->messageResult = actorPlayerContactMessage(ctx, 2);
                         } else {
-                            scratch->messageResult = Actor00100_PlayerContactMessage(ctx, 3);
+                            scratch->messageResult = actorPlayerContactMessage(ctx, 3);
                         }
                         if (scratch->messageResult != 1) {
                             work->field_BFC = 3;
@@ -2451,9 +2451,9 @@ void Actor00100_Fn0503C(Task* arg0)
                             var_v0_22 = -var_v0_22;
                         }
                         if (var_v0_22 < 0x400) {
-                            scratch->messageResult = Actor00100_PlayerContactMessage(ctx, 0);
+                            scratch->messageResult = actorPlayerContactMessage(ctx, 0);
                         } else {
-                            scratch->messageResult = Actor00100_PlayerContactMessage(ctx, 1);
+                            scratch->messageResult = actorPlayerContactMessage(ctx, 1);
                         }
                         if (scratch->messageResult == 1) {
                             ((GameActor*)player->work)->field_956 = 0xA;
