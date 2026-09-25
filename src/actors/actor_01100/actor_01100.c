@@ -117,7 +117,6 @@ typedef struct {
 } Actor101100StateFuncTable3;
 
 /// Scratchpad stack pointer, initialised by GameMain.
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 extern u8        Actor01100_D15660[];
 extern GpU16Pair Actor01100_D074D0[];
@@ -3496,11 +3495,11 @@ void Actor01100_Fn06554(Task* task)
     sp      = Actor01100_D00004;
     enemy   = task->spawnArg2;
     work    = task->work;
-    scratch = (u8*)(SCRATCH_SP -= 0x68);
+    scratch = (u8*)SCRATCH_PUSH_BYTES(0x68);
 
     scratch[0x64] = 0;
     sp.funcs[task->state](enemy, task, work, scratch);
-    SCRATCH_SP += 0x68;
+    SCRATCH_POP_BYTES(0x68);
 }
 
 /// State handlers of the secondary task this entry spawns: set-up
@@ -3670,12 +3669,12 @@ s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
         return 0;
     }
     coord = ((TmdObject*)actor->extra)->coords;
-    head  = *(void**)0x1F8003FC;
+    head  = SCRATCH_HEAD(void);
     vec   = head - 0x40;
 
     *(s16*)((s8*)head - 0x40) = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     *(s16*)((s8*)vec + 2)     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    *(void**)0x1F8003FC       = vec;
+    SCRATCH_HEAD(void)        = vec;
     *(s16*)((s8*)vec + 4)     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
 
     matrix = head - 0x20;
@@ -3694,7 +3693,7 @@ s32 Actor01100_Fn06954(GsCOORDINATE2* arg0, s32 arg1)
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    *(void**)0x1F8003FC = (void*)((u8*)*(void**)0x1F8003FC + 0x40);
+    SCRATCH_POP_BYTES(0x40);
     return result;
 }
 

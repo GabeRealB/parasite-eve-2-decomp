@@ -25,7 +25,6 @@
 #include "main/wipsys.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)0x1F8003FC)
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_444000_80161860` points at, which is a different and much smaller
@@ -110,8 +109,8 @@ typedef struct Actor444000WarpScratch {
 } Actor444000WarpScratch;
 STATIC_ASSERT_SIZEOF(Actor444000WarpScratch, 0x4C);
 
-/// 0x4C-byte scratchpad frame `func_actor_444000_8013E058` carves off
-/// `SCRATCH_SP` for the drag tick. `dir` starts as the player-relative offset in
+/// 0x4C-byte scratchpad frame `func_actor_444000_8013E058` takes off the
+/// scratch-pad stack for the drag tick. `dir` starts as the player-relative offset in
 /// the arena plane, is carried into view space, renormalised and then scaled by
 /// the per-frame pull the animation frame selects; `push` is the same vector as
 /// the 32-bit triple `func_80105B74` copies onto the player actor, `dist` is the
@@ -1266,7 +1265,7 @@ void func_actor_444000_8013441C(Task* arg0)
 /// scratchpad stack for the duration of the call.
 void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)(SCRATCH_SP -= sizeof(Actor403200EffScratch));
+    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
 
     sc->eff.spawnArgLo = 0x500;
     sc->eff.coord      = coord;
@@ -1313,7 +1312,7 @@ void func_actor_444000_80134688(GsCOORDINATE2* coord, s32 id)
             break;
     }
 
-    SCRATCH_SP += sizeof(Actor403200EffScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200EffScratch));
 }
 
 /// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
@@ -1373,9 +1372,9 @@ void func_actor_444000_8013482C(Task* task)
     s16                    ang;
     s32                    frame;
 
-    head        = (u8*)SCRATCH_SP;
-    SCRATCH_SP -= sizeof(Actor444000RunScratch);
-    sc          = (Actor444000RunScratch*)SCRATCH_SP;
+    head = SCRATCH_HEAD(u8);
+    SCRATCH_PUSH_BYTES(sizeof(Actor444000RunScratch));
+    sc = SCRATCH_HEAD(Actor444000RunScratch);
 
     work  = task->work;
     enemy = task->spawnArg2;
@@ -1572,7 +1571,7 @@ void func_actor_444000_8013482C(Task* task)
             break;
     }
 
-    SCRATCH_SP += sizeof(Actor444000RunScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor444000RunScratch));
 }
 
 /// Rebuild `coord`'s rotation around the yaw it already faces, left at full
@@ -4135,7 +4134,7 @@ void func_actor_444000_8013C060(Task* task)
     cfg   = &Player_Status;
     enemy = task->spawnArg2;
     work  = task->work;
-    sc    = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc    = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -4228,7 +4227,7 @@ found:
         enemy->hp -= sc->damage;
     }
 
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -4271,7 +4270,7 @@ void func_actor_444000_8013C4B0(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2;
     work = task->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -4411,7 +4410,7 @@ hit:
         }
     }
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_444000_8013C4B0`
@@ -4454,7 +4453,7 @@ void func_actor_444000_8013CA60(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2;
     work = task->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -4610,7 +4609,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -4657,7 +4656,7 @@ void func_actor_444000_8013D128(Task* task)
     cfg  = &Player_Status;
     host = task->spawnArg2;
     work = task->work;
-    sc   = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc   = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -4817,7 +4816,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Reset/teardown handler: when the work block is asking for a reset, arm the
@@ -5012,7 +5011,7 @@ void func_actor_444000_8013E058(Task* task)
     s16                     dz;
 
     slot3 = gameGetPtrSlot(3);
-    sc    = (Actor444000DragScratch*)(SCRATCH_SP -= sizeof(Actor444000DragScratch));
+    sc    = (Actor444000DragScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000DragScratch));
     actor = slot3->work;
 
     if (work->field_4 != 0) {
@@ -5242,7 +5241,7 @@ void func_actor_444000_8013E058(Task* task)
         }
     }
     work->field_F1C = 0;
-    SCRATCH_SP     += sizeof(Actor444000DragScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor444000DragScratch));
 }
 
 /// Escort-order tick of the arena fight: the state the boss runs while it has
@@ -5384,7 +5383,7 @@ void func_actor_444000_8013EC84(Task* arg0)
     cfg    = &Player_Status;
 
     if (work->field_4 != 0) {
-        sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
+        sc = (Actor444000WarpScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000WarpScratch));
 
         verts        = Gp_GridParams->field_8;
         verts[24].vy = 0x1F4;
@@ -5465,7 +5464,7 @@ void func_actor_444000_8013EC84(Task* arg0)
         D_actor_444000_80161888.command        = 3;
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&D_actor_444000_80161888, 0x7DB);
     } else {
-        sc = (Actor444000WarpScratch*)(SCRATCH_SP -= sizeof(Actor444000WarpScratch));
+        sc = (Actor444000WarpScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor444000WarpScratch));
         func_actor_444000_8013441C(arg0);
 
         if ((work->slots0[1].flags & 1) && work->field_7B3 == 0xF) {
@@ -5540,7 +5539,7 @@ void func_actor_444000_8013EC84(Task* arg0)
         }
     }
 
-    SCRATCH_SP += sizeof(Actor444000WarpScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor444000WarpScratch));
 }
 
 /// Tick of the arena fight that runs the boss' two swipes and keeps the player
@@ -5603,10 +5602,10 @@ void func_actor_444000_8013FB74(Task* arg0)
     s32              cuePan;
     u16              count;
 
-    work        = arg0->work;
-    enemy       = arg0->spawnArg2;
-    player      = gameGetPtrSlot(3);
-    SCRATCH_SP -= 0x30;
+    work   = arg0->work;
+    enemy  = arg0->spawnArg2;
+    player = gameGetPtrSlot(3);
+    SCRATCH_PUSH_BYTES(0x30);
 
     if (work->field_4 != 0) {
         work->field_F1D                  = 0xB;
@@ -5816,7 +5815,7 @@ scanned:
         }
     }
 
-    SCRATCH_SP += 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Per-tick state of the arena fight once it is under way. A reset request
@@ -6136,7 +6135,7 @@ void func_actor_444000_8014105C(Task* arg0)
         SndEvt_EnqueueType7((((u16)obj->placeKey >> 12) << 8) | 0x4020000D, 1);
         return;
     }
-    SCRATCH_SP -= 0xC;
+    SCRATCH_PUSH_BYTES(0xC);
     if (D_actor_444000_80144A70 >= 0x191) {
         work->field_7A4         = 0;
         D_actor_444000_80144A70 = (u16)D_actor_444000_80144A70 - 0xC8;
@@ -6145,7 +6144,7 @@ void func_actor_444000_8014105C(Task* arg0)
     if (work->slots0[1].flags & 1) {
         work->field_0 = 0xA;
     }
-    SCRATCH_SP += 0xC;
+    SCRATCH_POP_BYTES(0xC);
 }
 
 /// Idle/approach tick of the arena fight: re-arms the block on request, keeps
@@ -6268,7 +6267,7 @@ void func_actor_444000_801411C8(Task* arg0)
         return;
     }
 
-    sc           = (Actor403200HitScratch*)(SCRATCH_SP -= sizeof(Actor403200HitScratch));
+    sc           = (Actor403200HitScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200HitScratch));
     sc->delta.vx = ((TmdObject*)player->extra)->coords->coord.t[0] -
                    ((TmdObject*)arg0->extra)->coords->coord.t[0] - 0x51F;
     sc->delta.vy = ((TmdObject*)player->extra)->coords->coord.t[1] -
@@ -6296,7 +6295,7 @@ void func_actor_444000_801411C8(Task* arg0)
     } else {
         work->field_0 = 3;
     }
-    SCRATCH_SP += sizeof(Actor403200HitScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200HitScratch));
 }
 
 /// Escort-spawn tick of the arena fight: re-arms the block on request and, on
@@ -6327,7 +6326,7 @@ void func_actor_444000_80141618(Task* task)
     s16                      angle;
     u32                      frame;
 
-    sc   = (Actor403200SpawnScratch*)(SCRATCH_SP -= sizeof(Actor403200SpawnScratch));
+    sc   = (Actor403200SpawnScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200SpawnScratch));
     work = task->work;
     host = task->spawnArg2;
     if (work->field_4 != 0) {
@@ -6497,7 +6496,7 @@ void func_actor_444000_80141618(Task* task)
         Gp_DispatchMsg(work->field_EE8[sc->i]->task, 0x7DB, (s32)&D_actor_444000_80161888, 0);
     }
 out:
-    SCRATCH_SP += sizeof(Actor403200SpawnScratch);
+    SCRATCH_POP_BYTES(sizeof(Actor403200SpawnScratch));
 }
 
 /// Runs the arena attack sequence: restores the host and escort models, handles
@@ -6910,7 +6909,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
             return;
     }
 
-    SCRATCH_SP -= 0x1C;
+    SCRATCH_PUSH_BYTES(0x1C);
 
     if (enemy->hp > 0) {
         if (work->field_EC8 != 1 && cfg->hp > 0 && work->field_0 != 0xD) {
@@ -7059,7 +7058,7 @@ void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
         func_actor_444000_8013A77C(task);
     }
 
-    SCRATCH_SP += 0x1C;
+    SCRATCH_POP_BYTES(0x1C);
 }
 
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough
