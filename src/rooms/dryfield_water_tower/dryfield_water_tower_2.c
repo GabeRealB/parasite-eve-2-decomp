@@ -174,11 +174,6 @@ extern Task* D_dryfield_water_tower_801876AC;
 /// 0x7C-byte scratch block into the task's `work` first.
 extern Task* D_dryfield_water_tower_801876A4;
 
-/// `Mc_SaveData.at4.loc.view`, the saved location's view byte, spelled by
-/// address because that is the name the room imports. Two stores below name the
-/// field instead, where its struct spelling is needed for aliasing.
-extern u8 D_8007216C;
-
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
 /// `D_8007218A` picks which of the two weapon-id bases that record uses; the
@@ -892,7 +887,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `D_8007216C` and raise the session's `viewDirty`, the pair
+/// `field_68` in `Mc_SaveData.at4.loc.view` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
@@ -924,8 +919,8 @@ void func_dryfield_water_tower_8017E93C(Task* arg0)
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
         case 2:
-            D_8007216C              = state->field_68;
-            gGameSession->viewDirty = 1;
+            Mc_SaveData.at4.loc.view = state->field_68;
+            gGameSession->viewDirty  = 1;
             break;
 
         case 3: {
@@ -1051,11 +1046,11 @@ u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F1, 0, 0);
-                D_8007216C          = Gp_FindViewIndex(7);
-                session             = gGameSession;
-                session->viewDirty  = 1;
-                session->hideHud    = 0;
-                session->eventState = 0;
+                Mc_SaveData.at4.loc.view = Gp_FindViewIndex(7);
+                session                  = gGameSession;
+                session->viewDirty       = 1;
+                session->hideHud         = 0;
+                session->eventState      = 0;
                 SndEvt_EnqueueType6(0x52140006, 0, 0x20);
                 SndEvt_EnqueueType6(0x5214000C, 0, 0);
                 state->field_58 = 2;
@@ -1469,7 +1464,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 ///
 /// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
 /// says the view has already been announced, records the view in the saved
-/// location byte `D_8007216C`, sends its 0x7D4 placement
+/// location byte `Mc_SaveData.at4.loc.view`, sends its 0x7D4 placement
 /// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
@@ -1482,8 +1477,8 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
-    D_8007216C              = Gp_FindViewIndex(7);
-    gGameSession->viewDirty = 1;
+    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(7);
+    gGameSession->viewDirty  = 1;
     Gp_DispatchMsg(state->field_44, 0x7D4, (s32)&D_dryfield_water_tower_80181A58, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -1503,15 +1498,6 @@ void func_dryfield_water_tower_8017F908(void)
 /// `80181AD0` `func_dryfield_water_tower_8017FA5C` sends unconditionally goes
 /// to the slot-3 game task at `field_40` here, but only while `field_66` reads
 /// 2, the room's "the cap is following" state.
-///
-/// `Mc_SaveData.at4.loc.view` rather than the `D_8007216C` address the room imports:
-/// as a scalar the store is fixed-address against the struct traffic below, so
-/// `sched.c`'s `true_dependence` drops the output dependence between it and the
-/// `gGameSession` store and the scheduler sinks the byte store past the whole
-/// `gGameSession` pair. Naming the field keeps both MEMs in-struct and the store
-/// where the target has it; the `%hi`/`%lo` pair it prints relocates to the same
-/// two words. Measured; see `DECOMPILATION_LEARNINGS.md` on struct-typing and
-/// aliasing.
 void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
@@ -1532,13 +1518,6 @@ void func_dryfield_water_tower_8017F9AC(void)
 /// it hands the stream to view 9, restarts the prop task at `field_48` on state 1
 /// and gives it its 0x7D4 placement, moves the player to `80181AD0`, stops the pad
 /// scripts, plays event 0x5214000B and installs three of the room's effect tables.
-///
-/// `Mc_SaveData.at4.loc.view` rather than a bare `extern` for 0x8007216C: the store is
-/// a struct member, so the read of `field_48` below still conflicts with it in
-/// `true_dependence`. As a scalar global the pair is fixed-address against
-/// varying-struct and GCC 2.8.1 drops the dependence, which lets the scheduler
-/// sink the store into `Gp_DispatchMsg`'s delay slot. Measured; see
-/// `DECOMPILATION_LEARNINGS.md` on struct-typing and aliasing.
 void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
@@ -1849,8 +1828,8 @@ void func_dryfield_water_tower_80180220(void)
     Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
     Gp_DispatchMsg(work->field_0, 0x3E9, (s32)&D_dryfield_water_tower_801823A8, 0);
-    D_8007216C              = Gp_FindViewIndex(4);
-    gGameSession->viewDirty = 1;
+    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(4);
+    gGameSession->viewDirty  = 1;
     CdCmd_CancelReplaceAndActivate();
     Gp_RestoreStreamRng();
 }

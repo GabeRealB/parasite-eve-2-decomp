@@ -18,9 +18,6 @@
    whatever the caller had, so the declaration must stay unprototyped. */
 s32 Gp_DispatchMsg();
 
-/// `Mc_SaveData.at4.loc.view`, the saved location's view byte, spelled by
-/// address because that is the name the room imports.
-extern u8  D_8007216C;
 extern s16 D_80071076;
 
 /// The saved view byte the scene task keeps while its CAP command runs, and
@@ -180,7 +177,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
                 Gp_RunCapCmd(7, 0);
                 gGameSession->eventState        = 1;
-                D_dryfield_water_tower_8018768C = D_8007216C;
+                D_dryfield_water_tower_8018768C = Mc_SaveData.at4.loc.view;
                 arg0->state                     = arg0->state + 1;
                 return;
             }
@@ -205,7 +202,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
                 Gp_StateF0.field_4       = 0;
-                D_8007216C               = D_dryfield_water_tower_8018768C;
+                Mc_SaveData.at4.loc.view = D_dryfield_water_tower_8018768C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }

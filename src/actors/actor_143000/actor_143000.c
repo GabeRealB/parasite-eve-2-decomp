@@ -70,7 +70,6 @@ typedef struct Actor143000CaptureArgs {
 } Actor143000CaptureArgs;
 STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 
-extern s8              D_8007216C;
 extern s8              D_8007218B;
 extern s16             D_80114D08;
 extern TaskDesc        D_actor_143000_80134558;
@@ -863,7 +862,7 @@ void func_actor_143000_80133800(Task* arg0)
         gGameSession->eventState = 0;
         gGameSession->hideHud    = 0;
         Gp_StateF0.field_4       = 0;
-        D_8007216C               = D_actor_143000_80135C0C;
+        Mc_SaveData.at4.loc.view = D_actor_143000_80135C0C;
         Gp_MsgPlayer3F3(1);
     } else {
         Task_SpawnFromTable(&D_actor_143000_801350B0, 1, 0, (s32)&D_actor_143000_80135C08);

@@ -46,7 +46,6 @@ extern char          Gp_StrEmpty[];
 extern UiObject*     D_80067634;
 extern u8            D_80071072;
 extern s16           D_80071076;
-extern u8            D_8007216C;
 extern GpItemScan    D_80072724;
 extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
@@ -1694,7 +1693,7 @@ void func_shelter_1f_heliport_80180768(Task* task)
 void func_shelter_1f_heliport_801807C0(void)
 {
     s32 i;
-    s32 idx = D_8007216C;
+    s32 idx = Mc_SaveData.at4.loc.view;
 
     if (gGameSession->at4.loc.place < 3 && idx < 12) {
         if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {

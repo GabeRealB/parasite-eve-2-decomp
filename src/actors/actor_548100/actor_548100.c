@@ -209,7 +209,6 @@ void func_actor_548100_80134BA8(void);
 void func_actor_548100_80134BF0(void);
 
 extern u8                 D_80070F87;
-extern s8                 D_8007216C;
 extern TaskDesc           D_actor_548100_801351B4;
 extern GpMsgEntry         D_actor_548100_801351C0[];
 extern OverlayHotspot     D_actor_548100_801357E8[];
@@ -471,10 +470,10 @@ void func_actor_548100_80132420(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
-    task->msgTable  = D_actor_548100_801351C0;
-    task->work      = work;
-    D_8007216C      = 4;
+    task->spawnArg2          = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->msgTable           = D_actor_548100_801351C0;
+    task->work               = work;
+    Mc_SaveData.at4.loc.view = 4;
     SOFT_BARRIER();
     task->state += 1;
     if (GameFlag_GetNibble(0xBE) == 0) {
@@ -1880,7 +1879,7 @@ void func_actor_548100_80134E0C(Task* arg0)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = 3;
+    Mc_SaveData.at4.loc.view   = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);

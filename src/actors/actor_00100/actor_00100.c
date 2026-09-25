@@ -1532,7 +1532,7 @@ poseEnd:
             CdCmd_Enqueue(0x21, cmd38, cmd30);
         }
     }
-    if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x04010000) {
+    if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04010000) {
         func_801811C4(0x7D0);
     }
     Gp_ClearRec18Occupied(&work->objs[2].field_20);

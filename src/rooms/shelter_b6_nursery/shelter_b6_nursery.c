@@ -49,13 +49,6 @@ typedef struct _ShelterB6NurseryTriScratch {
     s32     flag;
 } _ShelterB6NurseryTriScratch;
 
-/// The save's location key, read byte-wise for its view and as one word for
-/// its area and stage together.
-typedef union _ShelterB6NurserySaveLoc {
-    GpAreaKey key;
-    s32       head;
-} _ShelterB6NurserySaveLoc;
-
 s32 rsin(s32);
 s32 rcos(s32);
 
@@ -86,9 +79,6 @@ extern s32          D_8013A84C;
 extern s32          D_8013A8DC;
 extern s32          D_8013AF8C;
 extern s32          D_8013BA84;
-
-/// Location key of the save data.
-extern _ShelterB6NurserySaveLoc D_8007216C;
 
 /// `Mc_SaveData.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
@@ -1284,7 +1274,7 @@ void func_shelter_b6_nursery_8017F4E8(Task* task)
             if (GameFlag_GetNibble(0) == 2) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((D_8007216C.head & 0xFFFF0000) == 0x01010000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x01010000) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }
@@ -1459,7 +1449,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (D_8007216C.key.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData.at4.loc.view != gGameSession->at4.loc.view) {
                 arg0->state++;
             }
             break;

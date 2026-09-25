@@ -66,7 +66,6 @@ extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
 extern s16 D_800691CA;
 extern s32 D_80070F70;
 extern s16 D_80071076;
-extern u8  D_8007216C;
 extern u8  D_8007216D;
 extern s8  D_8007217B;
 extern s16 D_80114D08;
@@ -336,7 +335,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             Gp_StateF0.field_4 = 0;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                D_8007216C = 5;
+                Mc_SaveData.at4.loc.view = 5;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -460,8 +459,8 @@ s32 func_shelter_b4_reservoir_8017E354(s32 arg0, s32 arg1, s32 arg2)
         Gp_MsgAlly3F3(0);
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
-        D_8007216C         = 6;
-        Gp_StateF0.field_4 = 2;
+        Mc_SaveData.at4.loc.view = 6;
+        Gp_StateF0.field_4       = 2;
         Task_SpawnFromTable(&D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;
@@ -533,7 +532,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
         coord->flg         = 0;
         coord->coord.t[1] += 4;
     }
-    if (D_8007216C != 8) {
+    if (Mc_SaveData.at4.loc.view != 8) {
         obj->flags = 0x84;
     } else {
         obj->flags    = 0;

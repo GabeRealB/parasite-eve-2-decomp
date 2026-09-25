@@ -440,7 +440,6 @@ extern u32                  D_actor_403100_801556EC[];
 extern u32                  D_actor_403100_8015572C[];
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
-extern s8                   D_8007216C;
 extern s8                   D_8007218A;
 extern u8                   D_80073BA9;
 extern Actor403100AnimTable D_actor_403100_8015570C;
@@ -3529,7 +3528,7 @@ void func_actor_403100_80138F88(Task* arg0)
         pan   = (s8)Gp_GetObjPan(&((TmdObject*)arg0->extra)->coords[4]);
         depth = gpGetObjDepth(&((TmdObject*)arg0->extra)->coords[4]);
         SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
-        D_8007216C                      = 0xB;
+        Mc_SaveData.at4.loc.view        = 0xB;
         *(s32*)(u32)&coords->coord.t[0] = -0x44C;
         work                            = D_actor_403100_80155808;
         SOFT_TOUCH_REG(work);
@@ -3705,7 +3704,7 @@ void func_actor_403100_801395EC(Task* arg0)
         entries                                   = D_actor_403100_80155814;
         obj                                       = &entries->obj;
         entry                                     = entries;
-        D_8007216C                                = 0x18;
+        Mc_SaveData.at4.loc.view                  = 0x18;
         *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
         D_actor_403100_80155808->field_5E8        = 0;
         D_actor_403100_80155808->field_604        = 0;
@@ -3934,7 +3933,7 @@ void func_actor_403100_80139E80(Task* arg0)
         D_actor_403100_80155808->field_5DE              = 0xE;
         D_actor_403100_80155808->field_5DA              = 2;
         *(s16*)(u32)&D_actor_403100_80155808->field_5EC = 0;
-        D_8007216C                                      = 0xC;
+        Mc_SaveData.at4.loc.view                        = 0xC;
         *(s32*)(u32)&coords->coord.t[0]                 = -0x44C;
         *(s32*)(u32)&coords->coord.t[2]                 = 0x1770;
         *(s32*)(u32)&coords->coord.t[1]                 = 0;
@@ -4039,7 +4038,7 @@ void func_actor_403100_8013A254(void)
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             if (D_actor_403100_8015580C->hp > 0) {
-                D_8007216C = 6;
+                Mc_SaveData.at4.loc.view = 6;
             }
             D_actor_403100_80155808->field_632             = 0;
             D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -4247,8 +4246,8 @@ void func_actor_403100_8013AC04(void)
     }
     D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
     if ((completed = finished != 0)) {
-        D_8007216C = 0x14;
-        task       = gameGetPtrSlot(3);
+        Mc_SaveData.at4.loc.view = 0x14;
+        task                     = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 2), 0) != 0) {
             gGameSession->suppressDeathChecks   = 1;
             gGameSession->areaBgmCountdown      = 0x7F;
@@ -4318,7 +4317,7 @@ void func_actor_403100_8013AE28(void)
             D_actor_403100_80155808->field_668.b.field_668 = 0;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             if (D_actor_403100_8015580C->hp > 0) {
-                D_8007216C = 4;
+                Mc_SaveData.at4.loc.view = 4;
             }
             gGameSession->field_12C             = 0;
             D_actor_403100_80155808->pad_670[3] = 0;

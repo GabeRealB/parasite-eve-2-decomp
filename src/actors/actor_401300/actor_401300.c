@@ -1236,7 +1236,7 @@ void func_actor_401300_80133A3C(Task* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &((TmdObject*)arg0->extra)->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }
-        if (snd != 0 && (*(s32*)&gGameSession->at4.loc.view & 0xFFFF0000) == 0x051D0000) {
+        if (snd != 0 && (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
@@ -2037,7 +2037,7 @@ void func_actor_401300_80136238(Task* arg0)
     aim                                    = *(ActorAimScratch**)G_SCRATCH_HEAD;
     ((TmdObject*)arg0->extra)->coords->flg = 0;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (*(s32*)&gGameSession->at4.loc.view & 0xFFFF0000) == 0x051D0000) {
+        if (func_actor_401300_80132FF4(arg0) == 1 && (*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -5197,7 +5197,7 @@ void func_actor_401300_80141C88(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
-        if ((*(s32*)&gGameSession->at4.loc.view & 0xFFFF0000) == 0x051D0000) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x051D0000) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;

@@ -766,7 +766,7 @@ void func_800AA548(s32 arg0)
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.at100.word & 0xFFFF00)) {
-        if (((*(s32*)&gGameSession->at4.loc.view & ~0xFF) == 0x03180200) && (gGameSession->at4.loc.warp == 2)) {
+        if (((*(u32*)&gGameSession->at4.loc & ~0xFF) == 0x03180200) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
             Mc_SaveData.at4.loc.view = gGameSession->at4.loc.view = rec.field_34;
@@ -1006,7 +1006,7 @@ void Gp_LoadState2(Task* task)
         save = &Mc_SaveData;
         TOUCH_REG(save); /* keeps `save` as `sess - 4` (addiu s0, s0, -4) */
         Mem_ConfigureAuxHeap(save->at4.loc.stage, save->at4.loc.area);
-        if ((*(u32*)&save->at4.loc.view & 0xFFFF0000) == 0x1050000) {
+        if ((*(u32*)&save->at4.loc & 0xFFFF0000) == 0x1050000) {
             Mem_SetActiveAuxHeap(true);
         }
         Mem_InitAux();

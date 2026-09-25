@@ -29,7 +29,6 @@
 /// into the shared tail. A plain `u8` declaration assembles to the same bytes but is
 /// scheduled one statement early.
 extern u8 D_80115690;
-extern u8 D_8007216C;
 
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -77,7 +76,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
 
     switch (task->state) {
         case 0:
-            D_8007216C               = 8;
+            Mc_SaveData.at4.loc.view = 8;
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             Gp_StateF0.field_4       = 2;
@@ -127,7 +126,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             }
             break;
         case 10:
-            D_8007216C               = 3;
+            Mc_SaveData.at4.loc.view = 3;
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
             Gp_StateF0.field_4       = 0;

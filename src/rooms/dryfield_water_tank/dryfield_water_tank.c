@@ -75,12 +75,6 @@ typedef struct DwtColorMtx {
 } DwtColorMtx;
 STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 
-/// 1-based index of the area record the room is showing, `Gp_FindViewIndex`'s
-/// result. The view gate reads it back next to `GameSession.viewDirty` when it
-/// commits a view switch; the entry cutscene saves and restores it around the
-/// capture it plays.
-extern u8 D_8007216C;
-
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
 extern s32 D_80070F6C[];
@@ -128,7 +122,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 break;
             }
             gGameSession->eventState       = 1;
-            D_dryfield_water_tank_80188D48 = D_8007216C;
+            D_dryfield_water_tank_80188D48 = Mc_SaveData.at4.loc.view;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_StartCapSlot(0xE, 0, 0);
@@ -152,7 +146,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
                 Gp_StateF0.field_4       = 0;
-                D_8007216C               = (u8)D_dryfield_water_tank_80188D48;
+                Mc_SaveData.at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
@@ -473,11 +467,11 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
-            D_8007216C              = Gp_FindViewIndex(3);
-            gGameSession->viewDirty = 1;
+            Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
+            gGameSession->viewDirty  = 1;
             /* The raw load is what makes this match: as `work->owner` it carries
              * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it
-             * against D_8007216C's store, so the store sinks into the call's
+             * against Mc_SaveData.at4.loc.view's store, so the store sinks into the call's
              * delay slot and the two request tails stop cross-jumping. */
             Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
             break;
@@ -563,11 +557,11 @@ void func_dryfield_water_tank_8017E1B4(void)
 {
     DwtScriptWork* work;
 
-    work       = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
-    D_8007216C = Gp_FindViewIndex(3);
+    work                     = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
+    Mc_SaveData.at4.loc.view = Gp_FindViewIndex(3);
     /* The cast is what makes this match: as `work->owner` the load carries
      * MEM_IN_STRUCT_P, and sched1's true_dependence then disregards it against
-     * D_8007216C's store (`%lo` addresses do not vary), so the store sinks into
+     * Mc_SaveData.at4.loc.view's store (`%lo` addresses do not vary), so the store sinks into
      * Gp_DispatchMsg's delay slot. Dropping the flag keeps the edge. */
     Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
     gGameSession->viewDirty = 1;

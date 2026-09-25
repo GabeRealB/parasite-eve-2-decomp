@@ -68,7 +68,6 @@ void              func_801848B4(void);
 void              func_80184954(void);
 extern TaskDesc   D_80185384;
 extern TaskDesc   D_801856B8;
-extern s8         D_8007216C;
 extern u8         D_80071085;
 extern u8         D_80071075;
 extern Task*      D_8018E0C4;
@@ -308,7 +307,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             break;
         case 1:
             Gp_MsgPlayerWeapon(0);
-            D_8007216C = 8;
+            Mc_SaveData.at4.loc.view = 8;
             func_801811C0(0);
             arg0->state++;
             break;
@@ -332,7 +331,7 @@ void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {
-        D_8007216C = 8;
+        Mc_SaveData.at4.loc.view = 8;
         func_801811C0(0);
     } else {
         func_80180390(1);

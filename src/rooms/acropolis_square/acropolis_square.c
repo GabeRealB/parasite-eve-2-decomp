@@ -57,13 +57,6 @@
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-/// The save's location key, written and compared byte-wise for its view and
-/// read as one word to test its view and area together.
-typedef union _AcropolisSquareSaveLoc {
-    GpAreaKey key;
-    s32       head;
-} _AcropolisSquareSaveLoc;
-
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
 extern s32          D_80070F70;
@@ -79,9 +72,6 @@ extern s32          D_80072A98;
 extern UiObjectDesc D_8010EFA0;
 extern s16          D_80114D08;
 extern u32          D_80115694;
-
-/// The location key at the start of `Mc_SaveData.at4`, through its own symbol.
-extern _AcropolisSquareSaveLoc D_8007216C;
 
 /// Index of the mirrored player's coordinate part each held-object reflection
 /// is parented to, by `Task::spawnArg1`.
@@ -717,7 +707,7 @@ void func_acropolis_square_8017D8C8(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((D_8007216C.head & 0xFF00FF) == 0x20005) {
+            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {
@@ -1978,7 +1968,7 @@ void func_acropolis_square_80181228(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
+                    if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x1010000) {
                         Gp_ApplyAreaRecs(&D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -2235,8 +2225,8 @@ void func_acropolis_square_80181AEC(Task* task)
             return;
 
         case 5:
-            if ((u32)(D_8007216C.key.view - 5) >= 3U) {
-                if (D_8007216C.key.view == 9) {
+            if ((u32)(Mc_SaveData.at4.loc.view - 5) >= 3U) {
+                if (Mc_SaveData.at4.loc.view == 9) {
                     goto checkArmed;
                 }
                 goto handOff;
@@ -2318,7 +2308,7 @@ void func_acropolis_square_80181DD0(Task* task)
             break;
 
         case 4:
-            D_8007216C.key.view = 0xD;
+            Mc_SaveData.at4.loc.view = 0xD;
             taskKill(task);
             break;
     }
@@ -2403,14 +2393,14 @@ void func_acropolis_square_80182148(Task* task)
             SOFT_BARRIER();
             goto advance;
         case 1:
-            D_8007216C.key.view = 7;
+            Mc_SaveData.at4.loc.view = 7;
             goto advance;
         case 3:
             Gp_RunCapCmd1(5);
             goto advance;
         case 6:
             Gp_RunCapCmd1(5);
-            D_8007216C.key.view = 8;
+            Mc_SaveData.at4.loc.view = 8;
             /* fallthrough */
         case 4:
         case 5:

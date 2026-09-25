@@ -47,7 +47,6 @@ extern s16           D_80071076;
 extern u8            D_80071086;
 extern u16           D_80072174;
 extern s8            D_80072176;
-extern u8            D_8007216C;
 extern u8            D_8007216D;
 extern GpItemScan    D_80072724;
 extern s8            D_8007272D;
@@ -2604,7 +2603,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
+                    if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x1010000) {
                         Gp_ApplyAreaRecs(&D_shelter_b1_underground_parking_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -2985,7 +2984,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 /// `gGameSession->at4.loc.view` selects an entry of the ambience table, and
 /// state 0 starts the loop with `SndEvt_EnqueueType6`. Once
 /// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
-/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `D_8007216C`,
+/// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `Mc_SaveData.at4.loc.view`,
 /// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
 /// entry with `SndEvt_EnqueueTypeA` and returns to state 1.
 void func_shelter_b1_underground_parking_80182FC8(Task* task)
@@ -3015,7 +3014,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
                 taskKill(task);
                 break;
             }
-            if (D_8007216C != gGameSession->at4.loc.view) {
+            if (Mc_SaveData.at4.loc.view != gGameSession->at4.loc.view) {
                 task->state = task->state + 1;
             }
             break;
@@ -3628,9 +3627,9 @@ void func_shelter_b1_underground_parking_80184304(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
-    task->work      = (TaskIdMap*)st;
-    D_8007216C      = 0x15;
+    task->spawnArg2          = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->work               = (TaskIdMap*)st;
+    Mc_SaveData.at4.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them
        by loop depth. The outer one keeps the state load below the mode store;
        the inner one lifts the work pointer's global-alloc priority back above
@@ -3750,7 +3749,7 @@ void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = 2;
+    Mc_SaveData.at4.loc.view   = 2;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
@@ -3789,7 +3788,7 @@ void func_shelter_b1_underground_parking_801847D0(Task* task)
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
         gGameSession->cutsceneHold = 0;
-        D_8007216C                 = 2;
+        Mc_SaveData.at4.loc.view   = 2;
         Task_RequestKill(task, 0);
     }
 }

@@ -28,13 +28,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// The save's location key, read byte-wise for its view and as one word for
-/// its area and stage together.
-typedef union _ShelterB2LaboratorySaveLoc {
-    GpAreaKey key;
-    u32       head;
-} _ShelterB2LaboratorySaveLoc;
-
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
 /// `G_SCRATCH_HEAD`: the projected centre `sx` / `sy`, its `otz` and GTE
 /// `flag`, and the on-screen `radius`. Nothing here reads the bytes between
@@ -67,9 +60,6 @@ extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern TaskDesc       D_80134564;
 extern GpAreaApplyRec D_80188888[];
-
-/// Location key of the save data.
-extern _ShelterB2LaboratorySaveLoc D_8007216C;
 
 /// View saved when the cutscene starts and restored when it ends.
 extern s32 D_80115694;
@@ -1282,7 +1272,7 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
             if ((GameFlag_GetNibble(0x7A) == 1) && (GameFlag_GetNibble(0) == 2)) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((D_8007216C.head & 0xFFFF0000) == 0x01010000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x01010000) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }
@@ -1553,7 +1543,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (D_8007216C.key.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData.at4.loc.view != gGameSession->at4.loc.view) {
                 arg0->state++;
             }
             break;

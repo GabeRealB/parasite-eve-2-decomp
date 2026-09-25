@@ -68,10 +68,6 @@ extern s32          D_80072A98;
 extern UiObjectDesc D_8010EFA0;
 extern s16          D_80114D08;
 
-/// The location key at the start of `Mc_SaveData.at4`, read as one word so
-/// several of its fields compare at once.
-extern s32 D_8007216C;
-
 /// `Mc_SaveData.companionType` (ally present), read through its own symbol.
 extern s8 D_8007217B;
 
@@ -1703,7 +1699,7 @@ void func_dryfield_night_motel_room_6_8017F64C(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((D_8007216C & 0xFF00FF) == 0x20005) {
+            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {
@@ -1984,7 +1980,7 @@ void func_dryfield_night_motel_room_6_801811F0(Task* task)
             if (GameFlag_GetNibble(0) == 2) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((D_8007216C & 0xFFFF0000) == 0x01010000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x01010000) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }

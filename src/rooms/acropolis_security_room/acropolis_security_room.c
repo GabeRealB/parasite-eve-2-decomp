@@ -131,7 +131,6 @@ typedef struct AsrQuadCorner {
 } AsrQuadCorner;
 STATIC_ASSERT_SIZEOF(AsrQuadCorner, 0x4);
 
-extern s8  D_8007216C;
 extern s16 D_80114D08;
 
 /// The tasks `func_acropolis_security_room_8017D77C` and
@@ -414,15 +413,15 @@ void func_acropolis_security_room_8017D9DC(Task* task)
         work->cameraId = D_acropolis_security_room_801826B4[0];
     }
     if (GameFlag_GetNibble(1) < 3) {
-        D_8007216C = 8;
+        Mc_SaveData.at4.loc.view = 8;
         /* Without this the scheduler hoists the `task->state` load above the
-           `D_8007216C` byte store to fill its load-delay slot. */
+           `Mc_SaveData.at4.loc.view` byte store to fill its load-delay slot. */
         SOFT_BARRIER();
         state = task->state;
         state++;
     } else {
-        D_8007216C = 5;
-        state      = stateElse;
+        Mc_SaveData.at4.loc.view = 5;
+        state                    = stateElse;
     }
     task->state = state;
     Display_AcquireRef();
@@ -529,11 +528,11 @@ void func_acropolis_security_room_8017DC7C(Task* task)
                 SndEvt_EnqueueType6(sfx, 0, 0);
             }
         }
-        if (((u8)D_8007216C == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
+        if (((u8)Mc_SaveData.at4.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(0xA) & 1)) {
             Gp_StartCapSlot(0xD, 0, 0);
             GameFlag_SetNibble(0xA, GameFlag_GetNibble(0xA) | 1);
         }
-        if (((u8)D_8007216C == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
+        if (((u8)Mc_SaveData.at4.loc.view == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
             (work->field_8 == 0) && (GameFlag_GetNibble(0x102) == 0)) {
             Gp_StartCapSlot(0xC, 0, 0);
             work->field_8 = 1;
@@ -996,7 +995,7 @@ loop:
     }
     GameFlag_SetNibble(0x2A, index);
 done:
-    D_8007216C = 4;
+    Mc_SaveData.at4.loc.view = 4;
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
@@ -1528,10 +1527,10 @@ void func_acropolis_security_room_8017FA18(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
-    task->msgTable  = D_acropolis_security_room_801826CC;
-    task->work      = (TaskIdMap*)st;
-    D_8007216C      = 6;
+    task->spawnArg2          = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
+    task->msgTable           = D_acropolis_security_room_801826CC;
+    task->work               = (TaskIdMap*)st;
+    Mc_SaveData.at4.loc.view = 6;
     SOFT_BARRIER();
     task->state++;
     st->field_0 = 0;
@@ -1611,7 +1610,7 @@ void func_acropolis_security_room_8017FC30(Task* task)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = 3;
+    Mc_SaveData.at4.loc.view   = 3;
     Display_ReleaseRef();
     taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
@@ -1701,7 +1700,7 @@ s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 a
 /// state: `frames` doubles as the fade level here, rising by 4 a frame and
 /// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
 /// point (0x80) the door chime is queued; once the level passes 0xFF the
-/// counter is reset for the next state and `D_8007216C` is set to 0x10.
+/// counter is reset for the next state and `Mc_SaveData.at4.loc.view` is set to 0x10.
 void func_acropolis_security_room_8017FE6C(Task* task)
 {
     AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
@@ -1714,8 +1713,8 @@ void func_acropolis_security_room_8017FE6C(Task* task)
         SndEvt_EnqueueType6(0x51060002, 0, 0);
     }
     if (st->frames >= 0x100) {
-        st->frames = 0;
-        D_8007216C = 0x10;
+        st->frames               = 0;
+        Mc_SaveData.at4.loc.view = 0x10;
         /* Without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store, dropping the load-delay `nop`. */
         SOFT_BARRIER();
@@ -1752,7 +1751,7 @@ void func_acropolis_security_room_8017FFD0(Task* arg0)
 
 void func_acropolis_security_room_80180010(Task* task)
 {
-    D_8007216C = 3;
+    Mc_SaveData.at4.loc.view = 3;
     /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
      * store, dropping the load-delay `nop` and making the body one instruction
      * short. */
@@ -1787,8 +1786,8 @@ void func_acropolis_security_room_801800A4(Task* task)
         SndEvt_EnqueueType6(0x51060002, 0, 0);
     }
     if (st->frames >= 0x100) {
-        st->frames = 0;
-        D_8007216C = 0xE;
+        st->frames               = 0;
+        Mc_SaveData.at4.loc.view = 0xE;
         /* Same load-delay shape as `func_acropolis_security_room_80180010`:
          * without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store and drops the delay `nop`. */
@@ -1820,8 +1819,8 @@ void func_acropolis_security_room_801801C4(Task* task)
 
 void func_acropolis_security_room_80180218(Task* task)
 {
-    D_80114D08 = 0xA;
-    D_8007216C = 3;
+    D_80114D08               = 0xA;
+    Mc_SaveData.at4.loc.view = 3;
     Display_ReleaseRef();
     func_800E9BDC(0, 0xF9FF);
     Task_RequestKill(task, 0);

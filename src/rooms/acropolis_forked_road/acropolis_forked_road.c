@@ -12,7 +12,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_8007107A;
-extern u8  D_8007216C;
 
 /// The room's message table, installed on its entry task.
 extern GpMsgEntry D_acropolis_forked_road_80180F14[];
@@ -84,7 +83,7 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             out->field_2 = 2;
         } else if (GameFlag_GetNibble(1) == 2) {
             if (in->field_5 == 0) {
-                D_8007216C = 7;
+                Mc_SaveData.at4.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 0, 0, 0);
                 GameFlag_SetNibble(1, 3);

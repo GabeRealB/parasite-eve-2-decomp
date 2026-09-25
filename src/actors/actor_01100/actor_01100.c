@@ -83,7 +83,6 @@ typedef struct Actor104900SpawnWork {
 } Actor104900SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor104900SpawnWork, 0xBCC);
 
-extern s32        D_8007216C;
 extern GpPairSrcE Actor01100_D074E8;
 extern GpPairSrcE Actor01100_D07510;
 extern u8         Actor01100_D15604[];
@@ -433,7 +432,7 @@ void Actor01100_Fn0097C(GpEnemy* enemy, Task* task)
         return;
     }
 
-    map = D_8007216C;
+    map = *(u32*)&Mc_SaveData.at4.loc;
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -936,7 +935,7 @@ s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, Actor104900SpawnWork* work, A
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((D_8007216C & 0xFFFF0000) == 0x05180000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x05180000) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -3004,7 +3003,7 @@ void Actor01100_Fn05678(
     u8*                        tmdC;
 
     extra = (TmdObject*)task->extra;
-    if (((D_8007216C & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
+    if (((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x05180000) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (D_80114C12 != 1) && (D_80071075 == 0) && (status->hp > 0)) {
@@ -3116,7 +3115,7 @@ void Actor01100_Fn05678(
     } else {
         time            = (u16)work->field_B8C - 1;
         work->field_B8C = time;
-        if (((time << 16) == 0) && ((D_8007216C & 0xFFFF0000) != 0x05180000)) {
+        if (((time << 16) == 0) && ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) != 0x05180000)) {
             work->field_BA6 = 0x10;
         }
     }
@@ -3379,7 +3378,7 @@ void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work = (ActorsShared80137fb8Work*)task->work;
-    map  = D_8007216C;
+    map  = *(u32*)&Mc_SaveData.at4.loc;
     mask = 0xFFFF0000;
     SOFT_TOUCH_REG(mask);
     map       &= mask;
@@ -3444,7 +3443,7 @@ void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord   = ((TmdObject*)task->extra)->coords;
-    area    = D_8007216C & 0xFFFF0000;
+    area    = *(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {

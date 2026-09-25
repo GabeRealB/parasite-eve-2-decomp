@@ -47,10 +47,6 @@
                      : "r"(src), "r"(dst) \
                      : "$12", "$13", "$14", "memory")
 
-/// The save's location key read as one word, so its view and area bytes are
-/// tested together.
-extern s32 D_8007216C;
-
 extern s32 D_80070F70;
 
 extern void func_807245E4(void*);
@@ -621,7 +617,7 @@ void func_acropolis_east_elevator_hall_8017D7A4(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((D_8007216C & 0xFF00FF) == 0x20005) {
+            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {

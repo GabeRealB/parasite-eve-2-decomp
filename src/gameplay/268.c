@@ -1505,7 +1505,7 @@ void Gp_RefreshItemRow(GpItemRec* arg0)
 
 void func_800B92CC(void)
 {
-    switch (*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) {
         case 0x1010000:
             func_80180804();
             break;

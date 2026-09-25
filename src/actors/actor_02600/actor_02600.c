@@ -447,7 +447,7 @@ void Actor02600_Fn00A94(Task* arg0)
     work                               = actor->work;
     coord                              = ((TmdObject*)actor->extra)->coords;
     state                              = work->field_39C;
-    sessionFlags                       = *(s32*)&gGameSession->at4.loc.view;
+    sessionFlags                       = *(u32*)&gGameSession->at4.loc;
     value                              = 0;
     switch (state) {
         case 0:

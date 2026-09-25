@@ -123,7 +123,6 @@ extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
 extern u8           D_80071086;
-extern u8           D_8007216C;
 extern u16          D_80072174;
 extern s8           D_80072176;
 extern u16          D_80072834;
@@ -1196,7 +1195,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
+                    if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x1010000) {
                         Gp_ApplyAreaRecs(&D_shelter_b1_sterilization_room_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1835,7 +1834,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             Fade_DrawOverlay(c, c, c, 2);
             break;
         case 2:
-            D_8007216C                 = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
+            Mc_SaveData.at4.loc.view   = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
             gGameSession->at4.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1].view;
             gGameSession->viewDirty    = 1;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E9,

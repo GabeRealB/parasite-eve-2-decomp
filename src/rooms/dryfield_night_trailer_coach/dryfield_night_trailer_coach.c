@@ -2525,7 +2525,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) == 0x1010000) {
+                    if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x1010000) {
                         Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -2835,13 +2835,11 @@ void func_dryfield_night_trailer_coach_80182864(void)
     func_800D4D2C((GameFlag_GetNibble(0xE0) == 0) ? 0x20 : 0x21);
 }
 
-extern u8 D_8007216C;
-
 void func_dryfield_night_trailer_coach_80182898(Task* task)
 {
     char pad[0x10];
 
-    if (D_8007216C == 5) {
+    if (Mc_SaveData.at4.loc.view == 5) {
         D_80071090 = 0;
     } else {
         D_80071090 = 3;

@@ -37,10 +37,6 @@ extern UiObjectDesc  D_8010D80C;
 extern RoomShopStock D_8010E138[];
 extern UiObjectDesc  D_8010EFA0;
 
-/// `Mc_SaveData.at4.loc.view`, spelled by address because the store below
-/// relocates against this name.
-extern u8 D_8007216C;
-
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
 /// chooses from, and the one it returns when no case matches.
 extern u16 D_shelter_b1_armory_80181E9C[];
@@ -1583,7 +1579,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            D_8007216C = D_shelter_b1_armory_8018557C;
+            Mc_SaveData.at4.loc.view = D_shelter_b1_armory_8018557C;
         advance:
             task->state = task->state + 1;
             break;

@@ -48,7 +48,6 @@ void func_neo_ark_shrine_80180570(GsCOORDINATE2* arg0, s32 arg1, u8* rgb);
 void func_neo_ark_shrine_80180DF4(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, s16 arg2, s16 arg3);
 void func_neo_ark_shrine_80181474(GsCOORDINATE2* arg0, s16 arg1, u8* arg2);
 
-extern s8  D_8007216C;
 extern u8  D_8007216D;
 extern s16 D_80114D08;
 extern s32 D_8011572C;
@@ -333,9 +332,9 @@ void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2 = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work      = (TaskIdMap*)st;
-    D_8007216C      = 0xB;
+    task->spawnArg2          = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->work               = (TaskIdMap*)st;
+    Mc_SaveData.at4.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
        pointer's (3*1/10) and the two swap callee-saved homes. Keeping the
@@ -424,9 +423,9 @@ void func_neo_ark_shrine_8017EED4(Task* task)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = 0xA;
+    Mc_SaveData.at4.loc.view   = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
-       `D_8007216C` byte store, which then fills `taskKill`'s delay slot. */
+       `Mc_SaveData.at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
     SOFT_BARRIER();
     taskKill((Task*)task->spawnArg2);
     Task_RequestKill(task, 0);
@@ -504,9 +503,9 @@ void func_neo_ark_shrine_8017F0F0(Task* task)
     st->timer = timer;
     if (timer >= 0x1EU) {
         Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 1, 0, 0);
-        D_8007216C = 0xE;
+        Mc_SaveData.at4.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
-           `D_8007216C` byte store to fill its load-delay slot. */
+           `Mc_SaveData.at4.loc.view` byte store to fill its load-delay slot. */
         SOFT_BARRIER();
         st->timer = 0;
         task->state++;
@@ -526,7 +525,7 @@ void func_neo_ark_shrine_8017F178(Task* task)
         st->timer = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 2, 0, 0);
-            D_8007216C = 0xD;
+            Mc_SaveData.at4.loc.view = 0xD;
             GameFlag_SetNibble(0xE9, 1);
             next = task->state + 1;
         } else {

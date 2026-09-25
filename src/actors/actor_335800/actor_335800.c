@@ -130,7 +130,6 @@ extern s32 D_actor_335800_80164F88;
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 extern s8       D_8007272D;
-extern u8       D_8007216C;
 extern u8       D_8007216D;
 extern TaskDesc D_80182834;
 
@@ -393,7 +392,7 @@ void func_actor_335800_8016224C(void)
         if (coord->coord.t[2] >= 0xC53) {
             areaId = 5;
         }
-        D_8007216C                  = areaId;
+        Mc_SaveData.at4.loc.view    = areaId;
         gGameSession->at4.loc.view  = areaId;
         gGameSession->viewDirty     = 1;
         gGameSession->roomObjsDirty = 1;

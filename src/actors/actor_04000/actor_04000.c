@@ -149,7 +149,6 @@ typedef struct Actor104000StateTable {
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
 extern u8      D_80072729;
-extern u8      D_8007216C;
 extern MATRIX* D_80073B8C;
 
 extern Task* Actor04000_D0C710[2];
@@ -2524,7 +2523,7 @@ void Actor04000_Fn06F54(Task* arg0)
         }
         arg0->state++;
     }
-    if (D_8007216C == 5) {
+    if (Mc_SaveData.at4.loc.view == 5) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 Gp_ArmStateF0(1);

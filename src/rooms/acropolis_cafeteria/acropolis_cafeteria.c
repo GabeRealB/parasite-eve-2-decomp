@@ -30,14 +30,13 @@ extern void Stage_RequestFromAreaTable(s32 arg0);
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern u8        D_80071075;
-extern s16       D_80071076;
-extern s16       D_8007107A;
-extern GpAreaKey D_8007216C;
-extern s8        D_8007216D;
-extern s16       D_80073BA0;
-extern s8        D_80114C12;
-extern u8        D_801156A4;
+extern u8  D_80071075;
+extern s16 D_80071076;
+extern s16 D_8007107A;
+extern s8  D_8007216D;
+extern s16 D_80073BA0;
+extern s8  D_80114C12;
+extern u8  D_801156A4;
 
 extern GpMsgEntry     D_acropolis_cafeteria_80182AA8[];
 extern TaskDesc       D_acropolis_cafeteria_80182AD8[];
@@ -203,9 +202,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                Gp_SetAreaObjId(&D_8007216C, 2, 1);
-                Gp_SyncAreaKeyIndex(&D_8007216C);
-                Gp_SpawnArea(&D_8007216C);
+                Gp_SetAreaObjId(&Mc_SaveData.at4.loc, 2, 1);
+                Gp_SyncAreaKeyIndex(&Mc_SaveData.at4.loc);
+                Gp_SpawnArea(&Mc_SaveData.at4.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }

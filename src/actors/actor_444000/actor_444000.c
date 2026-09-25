@@ -236,7 +236,7 @@ typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
     /* 0x20 */ Task* field_20; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-                               /// Area-record id published to `D_8007216C` on every enter/re-enter. The
+                               /// Area-record id published to `Mc_SaveData.at4.loc.view` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
                                /// while every reader takes the low byte, so both views are named.
     /* 0x28 */ union {
@@ -334,9 +334,6 @@ extern Task* D_actor_444000_80161878;
 extern s8 D_8007218A;
 extern u8 D_80073BA9;
 
-/// The area-record id the loader replays, and the view index that goes with it;
-/// `func_actor_444000_801321FC` republishes both whenever the room is entered.
-extern u8 D_8007216C;
 extern s8 D_8007216D;
 
 /// 0xFF-terminated area-record list this overlay applies on entry.
@@ -593,8 +590,8 @@ void func_actor_444000_801321FC(s32 arg0)
     work = (Actor444000EventWork*)D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
-            gGameSession->viewDirty = 1;
-            D_8007216C              = work->field_28.b;
+            gGameSession->viewDirty  = 1;
+            Mc_SaveData.at4.loc.view = work->field_28.b;
             break;
         case 1:
         case 2:
@@ -616,7 +613,7 @@ void func_actor_444000_801321FC(s32 arg0)
             gGameSession->eventRoomIndex = gGameSession->at4.loc.room - 1;
             gGameSession->field_133      = 1;
             gGameSession->roomObjsDirty  = 1;
-            D_8007216C                   = work->field_28.b;
+            Mc_SaveData.at4.loc.view     = work->field_28.b;
             Gp_ApplyAreaRecs(D_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);

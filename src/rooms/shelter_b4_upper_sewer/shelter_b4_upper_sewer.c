@@ -28,7 +28,6 @@
 #include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/shelter_b4_upper_sewer.h"
 
-extern u8  D_8007216C;
 extern s16 D_80114D08;
 extern s16 D_80071076;
 extern u8  D_80115680;
@@ -145,7 +144,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
         case 3:
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                D_8007216C = D_shelter_b4_upper_sewer_80188D2C;
+                Mc_SaveData.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -292,7 +291,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(s32 arg0, s32 arg1, s32 arg2)
 
 void func_shelter_b4_upper_sewer_8017DB94(void)
 {
-    D_8007216C = D_shelter_b4_upper_sewer_80188D2C;
+    Mc_SaveData.at4.loc.view = D_shelter_b4_upper_sewer_80188D2C;
 }
 
 void func_shelter_b4_upper_sewer_8017DBA8(Task* task)

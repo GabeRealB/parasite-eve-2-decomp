@@ -60,10 +60,6 @@ typedef struct {
 extern s32 D_80070F70;
 extern s8  D_8007272D;
 
-/// The save's location key, read as one word to test its view and area
-/// together.
-extern s32 D_8007216C;
-
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
 extern s32        D_acropolis_west_elevator_hall_80184620;
 extern s32        D_acropolis_west_elevator_hall_80184890;
@@ -653,7 +649,7 @@ void func_acropolis_west_elevator_hall_8017D7B0(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((D_8007216C & 0xFF00FF) == 0x20005) {
+            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {

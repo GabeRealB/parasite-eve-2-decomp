@@ -36,7 +36,6 @@ extern void func_800E8614(s32 arg0, s32 arg1);
 
 extern u8  D_80062737;
 extern s16 D_80071076;
-extern u8  D_8007216C;
 extern u8  D_8007216D;
 extern s16 D_8007A396;
 extern s16 D_80114D08;
@@ -272,7 +271,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->hideHud    = 0;
             D_80114D08               = 0xA;
             Gp_StateF0.field_4       = 0;
-            D_8007216C               = D_dryfield_night_saloon_g_r_80188FA4;
+            Mc_SaveData.at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

@@ -14,9 +14,6 @@
 #include "rooms/neo_ark_altar.h"
 #include "rooms/room_common.h"
 
-/// `Mc_SaveData.at4.loc.view`, the area id forced for the duration of the cutscene.
-extern u8 D_8007216C;
-
 /// 0xFF-terminated area-record list applied the first time the altar fires.
 extern GpAreaApplyRec D_neo_ark_altar_801800A0;
 
@@ -49,7 +46,7 @@ void func_neo_ark_altar_8017D668(Task* task)
 {
     switch (task->state) {
         case 0:
-            D_8007216C               = 5;
+            Mc_SaveData.at4.loc.view = 5;
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             Gp_StateF0.field_4       = 2;
@@ -113,7 +110,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             break;
         case 10:
             SetDispMask(1);
-            D_8007216C               = 2;
+            Mc_SaveData.at4.loc.view = 2;
             gGameSession->hideHud    = 0;
             gGameSession->eventState = 0;
             Gp_StateF0.field_4       = 0;

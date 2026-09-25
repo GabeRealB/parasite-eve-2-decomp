@@ -12,6 +12,7 @@
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -117,7 +118,6 @@ extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
 extern s8         D_8007218B;
 extern s32        D_80132D70;
 extern s32        D_80133088;
-extern GpAreaKey  D_8007216C;
 
 void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
 
@@ -151,7 +151,7 @@ void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
     GpAreaKey* key;
     s32        one;
 
-    key = &D_8007216C;
+    key = &Mc_SaveData.at4.loc;
     one = 1;
     do {
         stage = key->stage;

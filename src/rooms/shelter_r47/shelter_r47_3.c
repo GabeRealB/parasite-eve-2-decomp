@@ -19,8 +19,7 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_r47.h"
 
-extern GpAreaKey D_8007216C;
-extern s16       D_80114D08;
+extern s16 D_80114D08;
 
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
@@ -691,7 +690,7 @@ void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
-    D_8007216C.view            = state->field_29;
+    Mc_SaveData.at4.loc.view   = state->field_29;
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
@@ -715,14 +714,14 @@ void func_shelter_r47_801855B8(Task* task)
                 if (state->field_1C < 0) {
                     state->field_1C = 4;
                 }
-                D_8007216C.view = D_shelter_r47_801873FC[state->field_1C];
+                Mc_SaveData.at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
             case 3:
                 state->field_1C++;
                 if (state->field_1C >= 5) {
                     state->field_1C = 0;
                 }
-                D_8007216C.view = D_shelter_r47_801873FC[state->field_1C];
+                Mc_SaveData.at4.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
         }
         task->state++;

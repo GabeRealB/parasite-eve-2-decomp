@@ -25,8 +25,7 @@ typedef struct {
     s16 y;
 } ShelterR47MapMark;
 
-extern GpAreaKey D_8007216C;
-extern s16       D_80114D08;
+extern s16 D_80114D08;
 
 /// Menu input lock, counted down by `Gp_TickMenuLock`.
 extern s16 Gp_MenuLockDelay;
@@ -230,7 +229,7 @@ void func_shelter_r47_801816CC(Task* task)
         func_shelter_r47_80180F38(x_, y_, (id));               \
     }
 
-/// Per-frame draw of the cap script's selection screen. While `D_8007216C` is
+/// Per-frame draw of the cap script's selection screen. While `Mc_SaveData.at4.loc.view` is
 /// 0x14 it scrolls the background by `field_46`. Every positioned sprite is
 /// eased a quarter of the way toward its target each frame. `arg1` picks the
 /// layout: the entry drawn is `field_4F` when it is 0 and `field_50` otherwise,
@@ -250,7 +249,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
     s16              sel;
 
     work = (ShelterR47State*)task->work;
-    if (D_8007216C.view == 0x14) {
+    if (Mc_SaveData.at4.loc.view == 0x14) {
         if (work->field_52 & 1) {
             work->field_46--;
             if (work->field_46 < 0) {
@@ -909,8 +908,8 @@ void func_shelter_r47_80182E78(Task* task)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C.view            = state->field_4E;
-    /* Keeps the `spawnArg2` load below the `D_8007216C` store, so that it
+    Mc_SaveData.at4.loc.view   = state->field_4E;
+    /* Keeps the `spawnArg2` load below the `Mc_SaveData.at4.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
     SOFT_BARRIER();
     taskKill((Task*)task->spawnArg2);
@@ -961,13 +960,13 @@ void func_shelter_r47_80182FDC(Task* task)
     state = (ShelterR47State*)task->work;
     func_shelter_r47_80181914(task, 1);
     if ((s16)func_shelter_r47_80180C48(task) != 0) {
-        D_8007216C.view = D_shelter_r47_80186FAC[state->selection.index];
-        state->field_48 = 0;
-        work            = (ShelterR47State*)task->work;
-        work->field_3A  = 0xFF;
-        work->field_3C  = 0xFF;
-        work->field_3E  = 0xFF;
-        work->field_40  = 0xFF;
+        Mc_SaveData.at4.loc.view = D_shelter_r47_80186FAC[state->selection.index];
+        state->field_48          = 0;
+        work                     = (ShelterR47State*)task->work;
+        work->field_3A           = 0xFF;
+        work->field_3C           = 0xFF;
+        work->field_3E           = 0xFF;
+        work->field_40           = 0xFF;
         task->state++;
     }
 }
@@ -1128,10 +1127,10 @@ void func_shelter_r47_801833DC(Task* task, s16 arg1)
         case 1:
             if (!(state->toggles[1] & 1)) {
                 D_shelter_r47_80186FAC[1] = 0x12;
-                D_8007216C.view           = 0x12;
+                Mc_SaveData.at4.loc.view  = 0x12;
             } else {
                 D_shelter_r47_80186FAC[1] = 0x24;
-                D_8007216C.view           = 0x24;
+                Mc_SaveData.at4.loc.view  = 0x24;
             }
             break;
         case 3:

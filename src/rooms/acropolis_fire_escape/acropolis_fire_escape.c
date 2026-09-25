@@ -61,10 +61,6 @@ extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern GpAreaApplyRec D_80188888[];
 
-/// The save's location key read as one word; the cutscene's end compares its
-/// upper half against one location.
-extern s32 D_8007216C;
-
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
 extern s8 D_8007217B;
@@ -1269,7 +1265,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
             if (GameFlag_GetNibble(0) == 2) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((D_8007216C & 0xFFFF0000) == 0x01010000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x01010000) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }

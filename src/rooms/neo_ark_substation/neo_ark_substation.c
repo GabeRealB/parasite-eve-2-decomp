@@ -11,15 +11,12 @@
 #include "main/display.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "rooms/room_common.h"
-
-/// A view index kept outside the session; the ambience task compares it with
-/// the session's current view and retunes its loop when the two differ.
-extern u8 D_8007216C;
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
@@ -54,7 +51,7 @@ const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 /// in: `gGameSession->at4.loc.view` selects one of the room's nine `(pan, vol)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
-/// `D_8007216C` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
+/// `Mc_SaveData.at4.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
 /// along - and state 5 retunes the playing loop to the new entry with
 /// `SndEvt_EnqueueTypeA` and returns to state 1 to keep watching.
 void func_neo_ark_substation_8017D608(Task* task)
@@ -78,7 +75,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (D_8007216C != gGameSession->at4.loc.view) {
+            if (Mc_SaveData.at4.loc.view != gGameSession->at4.loc.view) {
                 task->state = task->state + 1;
             }
             break;

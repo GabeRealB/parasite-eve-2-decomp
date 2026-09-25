@@ -1607,7 +1607,7 @@ void Gp_FadeWorkTask(Task* arg0)
 
 void func_800B25B0(void)
 {
-    switch (*(u32*)&Mc_SaveData.at4.loc.view & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) {
         case 0x51B0000:
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;

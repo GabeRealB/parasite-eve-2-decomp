@@ -26,7 +26,6 @@
 #include <psyq/libgte.h>
 
 extern s16 D_80071076;
-extern s8  D_8007216C;
 extern s16 D_80114D08;
 
 /// The pending event message and request the gate latched, the flag saying
@@ -550,9 +549,9 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 if (!(GameFlag_GetNibble(0x49) & 2)) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) | 2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        D_8007216C = 0x12;
+                        Mc_SaveData.at4.loc.view = 0x12;
                     } else {
-                        D_8007216C = 0x13;
+                        Mc_SaveData.at4.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -570,9 +569,9 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 if (GameFlag_GetNibble(0x49) & 2) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) & ~2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        D_8007216C = 0x12;
+                        Mc_SaveData.at4.loc.view = 0x12;
                     } else {
-                        D_8007216C = 0x13;
+                        Mc_SaveData.at4.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -589,9 +588,9 @@ void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 SndEvt_EnqueueType6(id | 9, 0, 0);
                 GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) ^ 1);
                 if (GameFlag_GetNibble(0x47) == 0) {
-                    D_8007216C = 0x12;
+                    Mc_SaveData.at4.loc.view = 0x12;
                 } else {
-                    D_8007216C = 0x13;
+                    Mc_SaveData.at4.loc.view = 0x13;
                 }
                 state       = 6;
                 task->state = state;
@@ -897,9 +896,9 @@ void func_dryfield_night_factory_8018182C(Task* task)
     task->work      = (TaskIdMap*)work;
     task->msgTable  = D_dryfield_night_factory_80186EAC;
     if (GameFlag_GetNibble(0x48) == 0) {
-        D_8007216C = 0xC;
+        Mc_SaveData.at4.loc.view = 0xC;
     } else {
-        D_8007216C = 5;
+        Mc_SaveData.at4.loc.view = 5;
     }
     task->state++;
     Display_AcquireRef();
@@ -971,7 +970,7 @@ void func_dryfield_night_factory_80181A24(Task* arg0)
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_8007216C                 = 3;
+    Mc_SaveData.at4.loc.view   = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     SOFT_BARRIER();
     taskKill((Task*)arg0->spawnArg2);
@@ -992,9 +991,9 @@ void func_dryfield_night_factory_80181AB8(Task* task)
     prompt->mode     = 0;
     if (work->field_A != 0) {
         if (GameFlag_GetNibble(0x48) == 0) {
-            D_8007216C = 0xC;
+            Mc_SaveData.at4.loc.view = 0xC;
         } else {
-            D_8007216C = 5;
+            Mc_SaveData.at4.loc.view = 5;
         }
         work->field_8 = 0xA;
         work->field_A = 0;

@@ -15,7 +15,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
 extern u8 D_80071075;
-extern u8 D_8007216C;
 extern s8 D_8007272D;
 extern s8 D_80114C12;
 
@@ -50,10 +49,10 @@ const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
 /// `D_80114C12` not 1 and `D_80071075` clear, it sets nibbles 0xDE and 0xF6,
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `D_8007272D` to 0x16 and starts the event script at
-/// `D_neo_ark_power_plant_1_8017EB7C`. When `D_8007216C` is 3 and nibble 0xFB
+/// `D_neo_ark_power_plant_1_8017EB7C`. When `Mc_SaveData.at4.loc.view` is 3 and nibble 0xFB
 /// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.field_0` and
 /// starts the script at `D_neo_ark_power_plant_1_8017EEE4`. It re-arms the
-/// countdown to 4 while `D_8007216C` differs from the current view with 0xDE
+/// countdown to 4 while `Mc_SaveData.at4.loc.view` differs from the current view with 0xDE
 /// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
 /// 0, enqueues sound event 0x5511000A (as type 6 in view 7, type 7 elsewhere).
 void func_neo_ark_power_plant_1_8017D5EC(Task* task)
@@ -77,13 +76,13 @@ void func_neo_ark_power_plant_1_8017D5EC(Task* task)
             }
         }
     }
-    if ((D_8007216C == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
+    if ((Mc_SaveData.at4.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
         gGameSession->field_126 = 0;
         Gp_StateF0.field_0      = 0;
         func_800E8614((s32)&D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((D_8007216C != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((Mc_SaveData.at4.loc.view != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }

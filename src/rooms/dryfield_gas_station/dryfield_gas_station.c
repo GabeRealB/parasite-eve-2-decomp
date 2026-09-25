@@ -48,10 +48,6 @@ extern u8           D_80115598;
 /// Saved `Mc_SaveData.at4.loc.view` (area id), restored when the cutscene ends.
 extern s32 D_80115694;
 
-/// `Mc_SaveData.at4.loc.view`, i.e. the four-byte `GpAreaKey` prefix, read as one
-/// word: bits 16..31 are `field_6` / `field_7`.
-extern s32 D_8007216C;
-
 /// `Mc_SaveData.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
 extern s8 D_8007217B;
@@ -1220,7 +1216,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
             if (GameFlag_GetNibble(0) == 2) {
                 GameFlag_SetNibble(0, 3);
                 GameFlag_SetNibble(0xE, 4);
-                if ((D_8007216C & 0xFFFF0000) == 0x01010000) {
+                if ((*(u32*)&Mc_SaveData.at4.loc & 0xFFFF0000) == 0x01010000) {
                     Gp_ApplyAreaRecs(D_80188888);
                     func_800E3FAC(0xA2, 5);
                 }

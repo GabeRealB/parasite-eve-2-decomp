@@ -65,26 +65,18 @@ typedef struct MapMarkerOut {
     s8   field_3;
 } MapMarkerOut;
 
-/// The save's location key, read byte-wise for its view and as one word to
-/// test its view and area together.
-typedef union _NeoArkObservatorySaveLoc {
-    GpAreaKey key;
-    s32       head;
-} _NeoArkObservatorySaveLoc;
-
 /// A destination resolver: reads the area from its first record and writes the
 /// room through the second.
 typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
 
-extern s16                       D_80071076;
-extern _NeoArkObservatorySaveLoc D_8007216C;
-extern s8                        D_8007272D;
-extern TaskDesc                  D_80137EE4;
-extern TaskDesc                  D_80138694;
-extern TaskDesc                  D_8013C72C;
-extern TaskDesc                  D_8013CAEC;
-extern TaskDesc                  D_8013FC58;
-extern TaskDesc                  D_80140078;
+extern s16      D_80071076;
+extern s8       D_8007272D;
+extern TaskDesc D_80137EE4;
+extern TaskDesc D_80138694;
+extern TaskDesc D_8013C72C;
+extern TaskDesc D_8013CAEC;
+extern TaskDesc D_8013FC58;
+extern TaskDesc D_80140078;
 
 extern void func_80132220(void);
 extern void func_801322F8(void);
@@ -671,7 +663,7 @@ void func_neo_ark_observatory_8017D8A8(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((D_8007216C.head & 0xFF00FF) == 0x20005) {
+            if ((*(u32*)&Mc_SaveData.at4.loc & 0xFF00FF) == 0x20005) {
                 if (task->spawnArg1 == 0) {
                     halfWidth = 0x5F;
                 } else {
@@ -1176,13 +1168,13 @@ void func_neo_ark_observatory_8017FD7C(Task* task)
     s32 var_a0;
 
     if (gGameSession->eventState == 0) {
-        if (D_8007216C.key.view != 2) {
+        if (Mc_SaveData.at4.loc.view != 2) {
             Gp_MsgAlly3F3(2);
             return;
         }
     }
     var_a0 = 1;
-    if (D_8007216C.key.view == 3) {
+    if (Mc_SaveData.at4.loc.view == 3) {
         var_a0 = 2;
     }
     Gp_MsgAlly3F3(var_a0);

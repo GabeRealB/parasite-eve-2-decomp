@@ -759,7 +759,6 @@ extern GpXformArg D_actor_342000_80164818[2];
 extern GpXformArg D_actor_342000_80164848[2];
 extern GpXformArg D_actor_342000_80164878[2];
 extern GpXformArg D_actor_342000_801648D0;
-extern u8         D_8007216C;
 extern s32        D_80070F70;
 extern s32        D_80144A74;
 extern s32        D_80144A7C;
@@ -900,8 +899,8 @@ void func_actor_342000_80162F28(Task* arg0)
         case 0:
             break;
         case 4:
-            D_8007216C     = 8;
-            work->field_64 = Task_Spawn(1, 0x2D, 0x10, 0);
+            Mc_SaveData.at4.loc.view = 8;
+            work->field_64           = Task_Spawn(1, 0x2D, 0x10, 0);
             break;
         case 5:
             if (work->field_64 != NULL) {
@@ -927,7 +926,7 @@ void func_actor_342000_80162F28(Task* arg0)
             Gp_DispatchMsg(work->field_60, 0x7D4, (s32)&work->field_0[1], 0);
             return;
         case 7:
-            D_8007216C = work->field_78;
+            Mc_SaveData.at4.loc.view = work->field_78;
             break;
         case 8:
             switch ((u16)work->field_72) {
@@ -1031,7 +1030,7 @@ static inline void Actor342000_EnterArea(void)
 /// actors (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
 /// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
-/// state 7's `D_8007216C` store ahead of the state load, as in retail.
+/// state 7's `Mc_SaveData.at4.loc.view` store ahead of the state load, as in retail.
 void func_actor_342000_8016382C(Task* arg0)
 {
     GpCmdArg              msg;
@@ -1133,12 +1132,12 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 2) {
-                D_8007216C = 0x21;
+                Mc_SaveData.at4.loc.view = 0x21;
                 goto next;
             }
             break;
         case 7:
-            D_8007216C = 0x21;
+            Mc_SaveData.at4.loc.view = 0x21;
             SOFT_BARRIER();
             arg0->killCountdown = 0;
             arg0->state++;

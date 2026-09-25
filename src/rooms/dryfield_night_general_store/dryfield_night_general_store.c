@@ -13,7 +13,6 @@
 #include "rooms/room_common.h"
 
 extern s16 D_80071076;
-extern u8  D_8007216C;
 extern u8  D_80115598;
 extern u8  D_80115690;
 
@@ -35,7 +34,7 @@ extern TaskDesc D_dryfield_night_general_store_8017E798[];
 extern GpMsgEntry D_dryfield_night_general_store_8017E7BC[];
 
 /// The save's stage byte as it was when the cutscene began, restored into
-/// `D_8007216C` when the cutscene is cut short.
+/// `Mc_SaveData.at4.loc.view` when the cutscene is cut short.
 extern u8 D_dryfield_night_general_store_801858B4;
 
 /// The record handed to helper task 0x31 when the cutscene asks for it.
@@ -240,7 +239,7 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
 /// State 4 checks the CAP event key: 0xB spawns helper task 0x31 with a
 /// zeroed record whose `field_2` is 8 and moves on; any other key ends the
 /// cutscene - `Gp_StateF0.field_4` cleared, stage sound 0x5203000E, the saved stage
-/// byte written to `D_8007216C` and the weapon messages re-enabled. State 5
+/// byte written to `Mc_SaveData.at4.loc.view` and the weapon messages re-enabled. State 5
 /// queues sound event 0x80000000, points the save's location at area 0x26
 /// with the latched warp point and room, raises `D_80071076` and spawns
 /// helper task 0x11. Both finishing arms kill the task.
@@ -276,7 +275,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             }
             Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            D_8007216C = D_dryfield_night_general_store_801858B4;
+            Mc_SaveData.at4.loc.view = D_dryfield_night_general_store_801858B4;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

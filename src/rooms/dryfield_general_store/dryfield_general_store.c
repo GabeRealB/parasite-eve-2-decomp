@@ -14,10 +14,9 @@
 
 /// The two caption flags the store's cutscene task raises: `Gp_StateF0.field_4` while
 /// the script owns the screen and `D_80115690` when CAP command 0xF showed the
-/// letterbox. `D_8007216C` is the area-record id the same task publishes, and
+/// letterbox. `Mc_SaveData.at4.loc.view` is the area-record id the same task publishes, and
 /// `D_80071076` the "chapter advanced" halfword it sets on the way out.
 extern u8  D_80115690;
-extern u8  D_8007216C;
 extern s16 D_80071076;
 extern u8  D_80115598;
 
@@ -34,7 +33,7 @@ extern TaskDesc D_dryfield_general_store_8017E164;
 
 /// The stage byte `Mc_SaveData.at4.loc.view` held when the cutscene began, saved by
 /// `func_dryfield_general_store_8017DAC0`'s first state and restored into
-/// `D_8007216C` when the cutscene is cut short.
+/// `Mc_SaveData.at4.loc.view` when the cutscene is cut short.
 extern u8 D_dryfield_general_store_801856F8;
 
 /// The two script arguments, latched from the message that armed the cutscene
@@ -257,7 +256,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 /// helper task 0x31, which it spawns with a zeroed `GpFadeWork` record whose
 /// `field_2` selects variant 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
-/// `D_8007216C` and the player's weapon messages re-enabled.
+/// `Mc_SaveData.at4.loc.view` and the player's weapon messages re-enabled.
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
@@ -297,7 +296,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             }
             Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            D_8007216C = D_dryfield_general_store_801856F8;
+            Mc_SaveData.at4.loc.view = D_dryfield_general_store_801856F8;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

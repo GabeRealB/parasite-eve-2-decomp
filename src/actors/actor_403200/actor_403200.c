@@ -377,8 +377,6 @@ extern u8 D_80072729;
 
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 extern s16 D_80073BA0;
-/// View index the tick publishes when the selector and the task disagree.
-extern u8 D_8007216C;
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
 /// ordered against the message-argument store.
 extern s8 D_8007218A[];
@@ -7153,7 +7151,7 @@ after_mode:
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
         if (((Gp_GetViewIndex() & 0xFF) != scratch->view) &&
             (arg1->spawnArg1 >> 16) == 0) {
-            D_8007216C = scratch->view;
+            Mc_SaveData.at4.loc.view = scratch->view;
         }
     }
 

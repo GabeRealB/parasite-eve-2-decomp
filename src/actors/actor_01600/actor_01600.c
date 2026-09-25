@@ -3185,7 +3185,7 @@ s32 Actor01600_Fn05558(Task* arg0)
     ctx   = arg0->spawnArg2;
     work  = arg0->work;
     if ((u32)(gGameSession->at4.loc.stage - 2) < 2U) {
-        if ((*(u32*)&gGameSession->at4 & 0xFFFF00) == 0x220100) {
+        if ((*(u32*)&gGameSession->at4.loc & 0xFFFF00) == 0x220100) {
             if ((u16)work->field_4FE < 2U) {
                 work->field_4FE = 4;
             }
@@ -3230,14 +3230,14 @@ s32 Actor01600_Fn05558(Task* arg0)
                 }
                 work->field_532 = 1;
             } else if (scriptArg == 2) {
-                if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x030F0000) {
+                if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x030F0000) {
                     tableA            = Actor01600_D09F1C;
                     pos               = &Actor01600_D09F1C[(u16)ctx->placeKey >> 0xC];
                     coord->coord.t[0] = pos->vx;
                     coord->coord.t[1] = pos->vy;
                     coord->coord.t[2] = pos->vz;
                 }
-                if ((*(u32*)&gGameSession->at4 & 0xFFFF0000) == 0x04040000) {
+                if ((*(u32*)&gGameSession->at4.loc & 0xFFFF0000) == 0x04040000) {
                     tableB            = Actor01600_D09F3C;
                     pos2              = &Actor01600_D09F3C[(u16)ctx->placeKey >> 0xC];
                     coord->coord.t[0] = pos2->vx;

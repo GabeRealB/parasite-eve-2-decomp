@@ -31,7 +31,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s8  D_8007216C;
 extern s32 D_80070F70;
 extern u8  D_80072728;
 extern u8  D_80072729;
@@ -386,8 +385,8 @@ void func_acropolis_bridge_8017DB60(Task* arg0)
 void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
-        D_8007216C            = 8;
-        gGameSession->hideHud = 1;
+        Mc_SaveData.at4.loc.view = 8;
+        gGameSession->hideHud    = 1;
         Gp_MsgPlayer3F3(0);
         Gp_MsgPlayerWeapon(0);
         arg0->state = (s32)(arg0->state + 1);
@@ -409,11 +408,11 @@ void func_acropolis_bridge_8017DC68(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
-            D_8007216C            = 6;
-            gGameSession->hideHud = 0;
-            arg0->state           = (s32)(arg0->state + 1);
+            Mc_SaveData.at4.loc.view = 6;
+            gGameSession->hideHud    = 0;
+            arg0->state              = (s32)(arg0->state + 1);
         } else {
-            D_8007216C = 9;
+            Mc_SaveData.at4.loc.view = 9;
             Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
             arg0->state = (s32)(arg0->state + 1);
         }

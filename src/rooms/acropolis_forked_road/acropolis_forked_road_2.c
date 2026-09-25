@@ -46,9 +46,6 @@ extern s32 D_acropolis_forked_road_80185070;
 extern s32 D_acropolis_forked_road_80185038;
 extern s32 D_acropolis_forked_road_80185050;
 
-/// The camera view the room switches to once the return ride is over, and the
-/// selector that picks which of the two weapon-id bases the 0x3E8 record uses.
-extern u8 D_8007216C;
 extern s8 D_8007218A;
 
 extern s32 D_8011572C;
@@ -279,7 +276,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                D_8007216C = Gp_FindViewIndex(5);
+                Mc_SaveData.at4.loc.view = Gp_FindViewIndex(5);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
