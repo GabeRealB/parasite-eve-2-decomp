@@ -140477,3 +140477,32 @@ if ((*spawnArg >> 16) & 1) {
 When a load the target keeps below a global store is hoisted above it, look for
 the read that went through a pointer, not for a different declaration of the
 global.
+
+## Pinned loop constants and hand-hoisted `%hi` addresses mean the loop was written as gotos (Mdec_ProcessDecode, 2026-09-25)
+
+A function whose asm keeps `lui %hi(global)` and small loop constants (1,
+0x7F) in callee-saved registers across a loop was matched with register pins,
+`SCHED_BARRIER`s and hand-written branch blocks. None of it was needed: GCC
+2.8's loop pass hoists exactly those invariants into saved registers by
+itself when the loop is a plain `for (i = 0; i < 3; i++)` over the globals.
+When the target shows invariants living in `$s` registers across a loop,
+rewrite the goto-shaped loop as a structured one before steering anything.
+
+The same function showed two more causes a hack can hide: a missing inline
+helper (a finishing sequence shared with another function, whose own
+`q = &CdCmd_Queue` local made the target re-materialise the address), and a
+loop that must call the same function twice per iteration - GCC never
+duplicates a loop test containing a call, so both calls are in the source.
+
+## A matrix identity was an inline helper writing through a word struct (Gfx_InitCoordinateTrees, 2026-09-25)
+
+Identity stores that looked interleaved with unrelated statements, sometimes
+out of order, and sometimes needed `volatile`, all match as one call to
+`gfxSetRotIdentity(MATRIX*)` - a `static __inline__` function storing through
+`GpMtxWords`. Two things decide it. Struct stores (`w->m00_m01 = ONE`) are
+`MEM_IN_STRUCT_P`, so the scheduler keeps them ordered against neighbouring
+struct stores, where `*(s32*)&m->m[r][c]` stores are scalar and move; and
+inlining a function substitutes a stack matrix's frame address into some
+stores but not others, reproducing a split addressing no macro gives. If
+statements that belong together look scheduled apart, try the helper the
+original probably called before reordering statements by hand.
