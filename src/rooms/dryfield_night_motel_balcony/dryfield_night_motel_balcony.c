@@ -14,8 +14,6 @@
 #include "rooms/room_common.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
-extern s8 D_8007272D;
-
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 extern s8 D_80114C12;
 
@@ -207,7 +205,7 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         ret         = func_dryfield_night_motel_balcony_8017D694(&req, out);
         if (D_dryfield_night_motel_balcony_8018F2DC != 0) {
             GameFlag_SetNibble(0x30, 1);
-            D_8007272D = 3;
+            Mc_SaveData.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);
         }
     } else {

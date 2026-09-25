@@ -432,7 +432,7 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 }
 
 /// Cutscene script callback: stores `arg0` as the session's room and in the
-/// main-executable byte `D_8007216D`.
+/// main-executable byte `Mc_SaveData.at4.loc.room`.
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
     Mc_SaveData.at4.loc.room   = arg0;

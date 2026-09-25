@@ -26,8 +26,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern u8 D_80071090;
-
 /// The room's message table.
 extern GpMsgEntry D_neo_ark_bridge_80181F30[];
 
@@ -376,7 +374,7 @@ void func_neo_ark_bridge_8017D638(Task* task)
         }
         v    = (y0 + 0x78) + w;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otzOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;
@@ -666,7 +664,7 @@ void func_neo_ark_bridge_8017E28C(Task* task)
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
     SCRATCH_PUSH_BYTES(0x40);
-    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {

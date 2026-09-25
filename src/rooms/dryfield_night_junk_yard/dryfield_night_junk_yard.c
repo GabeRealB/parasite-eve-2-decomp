@@ -131,7 +131,7 @@ s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
 }
 
 /// Stores `arg0` as the session's current room number and mirrors it into the
-/// main-executable byte `D_8007216D`.
+/// main-executable byte `Mc_SaveData.at4.loc.room`.
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
     gGameSession->at4.loc.room = arg0;

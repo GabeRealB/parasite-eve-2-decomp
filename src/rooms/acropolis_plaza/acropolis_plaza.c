@@ -221,7 +221,6 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
 extern s16 D_acropolis_plaza_801987E0[];
 
-extern s8       D_8007106B;
 extern TaskDesc D_acropolis_plaza_80183824[];
 
 /// Gate `func_acropolis_plaza_8017FB50` applies to a pending `GpObj4C` event
@@ -241,7 +240,6 @@ extern void Stage_RequestMidiFromMap(s32 arg0);
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `D_8007218A` picks which of the two weapon-id bases that record uses.
-extern s8 D_8007218A;
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.
@@ -1123,7 +1121,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->field_1EA >= 0x60) {
                 rec                            = &buf.weapon.rec;
                 weaponId                       = Player_Status.weapon;
-                id                             = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                             = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.animBlock.index = id;
                 rec->field_4                   = 1;
                 buf.weapon.rec.field_8         = 0;
@@ -1456,7 +1454,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     switch (state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1506,7 +1504,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     switch (task->state) {
         case 0:
             weaponId            = Player_Status.weapon;
-            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -1615,7 +1613,7 @@ void func_acropolis_plaza_8017F9EC(Task* task)
 /// Steps the plaza's streamed scene, returning zero while it is still running.
 ///
 /// Seven steps driven by the pending `GpObj4C` event `Gp_TakePendingObj4C`
-/// reports. `ready` is that event's "take it" flag, qualified by `D_80073BAC`
+/// reports. `ready` is that event's "take it" flag, qualified by `Player_Status.field_24`
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
@@ -1867,7 +1865,7 @@ void func_acropolis_plaza_80180054(Task* task)
 void func_acropolis_plaza_80180270(Task* arg0)
 {
     Display_SpawnWithOt(D_acropolis_plaza_80183824, 0xA, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

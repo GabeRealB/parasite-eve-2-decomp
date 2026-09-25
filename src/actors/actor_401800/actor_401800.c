@@ -241,7 +241,6 @@ extern GpAnimArg D_actor_401800_80155A0C;
 
 extern GpAnimSet* D_actor_401800_801559F8[];
 extern GpAnimSet* D_actor_401800_801559F0[];
-extern s8         D_8007218A;
 
 extern GpDelayArg D_actor_401800_80155AF8;
 
@@ -2494,7 +2493,7 @@ static __inline__ s16 Actor401800_ViewYaw(GpCoord* coord, SVECTOR* dir)
 
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
-    if (D_8007218A == 1) {
+    if (Mc_SaveData.characterId == 1) {
         D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F8;
     } else {
         D_actor_401800_80155A0C.animBlock.ptr = D_actor_401800_801559F0;

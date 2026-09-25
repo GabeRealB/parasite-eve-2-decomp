@@ -145,7 +145,6 @@ STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
 /// `D_8007218A` picks which of the two weapon-id bases that record uses, and
 /// `D_80071075` / `D_80114C12` (the cutscene mode flag) gate the actor's setup.
-extern s8 D_8007218A;
 extern s8 D_80114C12;
 
 extern void func_8017F334(s32 arg0);
@@ -193,7 +192,7 @@ extern u16      D_actor_121300_8013D41C;
 /// is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
+/// behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist above it.
 void func_actor_121300_80131EB0(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -1071,7 +1070,7 @@ void func_actor_121300_80133D98(Task* arg0)
         case 0:
             if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 weaponId                    = Player_Status.weapon;
-                anim                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                        = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.animBlock.index = anim;
                 scratch.msg.field_4         = 1;
                 scratch.msg.field_8         = 0;

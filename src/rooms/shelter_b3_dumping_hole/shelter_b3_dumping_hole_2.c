@@ -293,7 +293,6 @@ extern s16                    D_shelter_b3_dumping_hole_80188154[];
 extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];
 extern s16                    D_shelter_b3_dumping_hole_80188184[];
-extern s8                     D_8007218A;
 extern s32                    D_shelter_b3_dumping_hole_8018819C[];
 extern u8                     D_shelter_b3_dumping_hole_801881CC;
 extern s32                    D_shelter_b3_dumping_hole_801881E4;
@@ -301,7 +300,6 @@ extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
 extern s8                     D_80114C12;
-extern s8                     D_8007272D[];
 extern s32                    D_shelter_b3_dumping_hole_801880A0[];
 extern s32                    D_shelter_b3_dumping_hole_80188640;
 extern s32                    D_shelter_b3_dumping_hole_80188A78;
@@ -936,7 +934,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = Player_Status.weapon;
-                        msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x2F;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -951,7 +949,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 2: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x32;
             msg.anim.field_8            = 0;
             msg.anim.field_C            = 0;
@@ -967,7 +965,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             {
                 DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId = Player_Status.weapon;
-                msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.field_4            = 9;
                 msg.anim.field_8            = 0;
                 msg.anim.field_C            = 0;
@@ -993,7 +991,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId = Player_Status.weapon;
-                        msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.field_4            = 0x30;
                         msg.anim.field_8            = 1;
                         msg.anim.field_C            = 0xA;
@@ -1008,7 +1006,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 6: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x33;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -1020,7 +1018,7 @@ void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 7: {
             DumpingHoleEntity* w2       = (DumpingHoleEntity*)arg0->work;
             s32                weaponId = Player_Status.weapon;
-            msg.anim.animBlock.index    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.animBlock.index    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.field_4            = 0x31;
             msg.anim.field_8            = 1;
             msg.anim.field_C            = 0xA;
@@ -1166,16 +1164,16 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_48                     = 0;
                 work->field_46                     = 0;
             }
-            w                     = (DumpingHoleEntity*)arg0->work;
-            w->field_0            = w->field_28->extra.tmd->coords->coord.t[0];
-            t                     = w->field_28;
-            w->field_4            = t->extra.tmd->coords->coord.t[1];
-            w->field_8            = t->extra.tmd->coords->coord.t[2];
-            w->field_12           = 0x400;
-            w->field_10           = 0;
-            w->field_14           = 0;
-            D_8007272D[0]         = 0xC;
-            gStageSceneMusicEntry = 3;
+            w                      = (DumpingHoleEntity*)arg0->work;
+            w->field_0             = w->field_28->extra.tmd->coords->coord.t[0];
+            t                      = w->field_28;
+            w->field_4             = t->extra.tmd->coords->coord.t[1];
+            w->field_8             = t->extra.tmd->coords->coord.t[2];
+            w->field_12            = 0x400;
+            w->field_10            = 0;
+            w->field_14            = 0;
+            Mc_SaveData.sceneEvent = 0xC;
+            gStageSceneMusicEntry  = 3;
             arg0->state++;
             break;
         case 1:
@@ -1198,7 +1196,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             Gp_DispatchMsg(w2->field_24, 0x3F7, (s32)&msg, 0);
             weaponId             = Player_Status.weapon;
             p                    = &anim;
-            anim.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim.animBlock.index = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             p->field_4           = 1;
             p->field_8           = 1;
             p->field_C           = 0xA;
@@ -1358,7 +1356,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
     Gp_DispatchMsg(ent->field_24, 0x3E9, (s32)&D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
-    desc[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
+    desc[0] = Player_Status.weapon + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
@@ -1669,7 +1667,7 @@ void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
+            buf.words[0]         = Player_Status.weapon + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
             buf.words[1]         = 9;
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
@@ -1986,7 +1984,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
     p3       = desc3;
-    desc3[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
+    desc3[0] = Player_Status.weapon + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
     p3[1]    = 1;
     desc3[2] = 0;
     desc3[3] = 0;
@@ -2026,7 +2024,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
             ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->at4.loc.view;
             Gp_MsgPlayerWeapon(0);
-            desc[0] = Player_Status.weapon + (D_8007218A == 1 ? 1 : 0x22);
+            desc[0] = Player_Status.weapon + (Mc_SaveData.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;
             desc[3] = 0xA;

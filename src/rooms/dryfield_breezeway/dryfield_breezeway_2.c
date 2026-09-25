@@ -205,7 +205,6 @@ extern u8 D_dryfield_breezeway_80183164[];
 /// `D_80071075` gates the "everything is dead" message and `D_80114C12` the
 /// cutscene/among-us mode flag: the second arming state machine below waits for
 /// both to be clear.
-extern s8  D_8007218A;
 extern s8  D_80114C12;
 extern s16 D_80114D08;
 
@@ -295,7 +294,7 @@ void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 2:
             rec                     = &buf.rec;
             id                      = Player_Status.weapon;
-            buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            buf.rec.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
             rec->field_4            = 9;
             rec->field_8            = 1;
             rec->field_C            = 0xA;
@@ -385,7 +384,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
             }
             id                  = Player_Status.weapon;
-            buf.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+            buf.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
             buf.field_4         = 1;
             buf.field_8         = 1;
             buf.field_C         = 0xA;
@@ -438,7 +437,7 @@ void func_dryfield_breezeway_8017E390(void)
     s32       id;
 
     id                      = Player_Status.weapon;
-    buf.rec.animBlock.index = (D_8007218A == 1) ? id + 1 : id + 0x22;
+    buf.rec.animBlock.index = (Mc_SaveData.characterId == 1) ? id + 1 : id + 0x22;
     buf.rec.field_4         = 9;
     buf.rec.field_8         = 0;
     buf.rec.field_C         = 0;

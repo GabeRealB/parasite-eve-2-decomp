@@ -395,7 +395,7 @@ void func_mist_shooting_gallery_80182B1C(Task* arg0)
 
 /// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the
 /// whole mini-game; otherwise the seventeen states run the banner countdown
-/// (`field_20` steps the sprite, `D_80072310` picks which variant), seed the
+/// (`field_20` steps the sprite, `Mc_SaveData.buttonLayout` picks which variant), seed the
 /// course by spawning individual records of `D_mist_shooting_gallery_80186900[0]`
 /// on a timer, and finally enter the wave loop of state 15. State 16 is the
 /// out-of-ammo banner: it is entered from anywhere the moment the equipped
@@ -705,7 +705,7 @@ void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// the countdown hold `D_80071075`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
 /// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
-/// wave loop over `D_mist_shooting_gallery_80186908`. `D_80072310` picks the
+/// wave loop over `D_mist_shooting_gallery_80186908`. `Mc_SaveData.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 void func_mist_shooting_gallery_8018341C(Task* arg0)
 {

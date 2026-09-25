@@ -34,7 +34,6 @@
 
 extern UiObjectDesc D_800611E4;
 extern UiObject*    D_80067634;
-extern s8           D_8007272D;
 extern UiObjectDesc D_8010EFA0;
 extern s8           D_80114C12;
 extern u8           D_80115598;
@@ -1327,7 +1326,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     Gp_ClearCollectedBit(0x117);
     func_800E8634((s32)&D_dryfield_night_gas_station_801840AC, 0, (s32)&D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
-    D_8007272D = 4;
+    Mc_SaveData.sceneEvent = 4;
     taskKill(arg0);
 }
 

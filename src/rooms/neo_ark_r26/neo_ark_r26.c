@@ -20,7 +20,7 @@ extern s32 D_neo_ark_r26_8017DFCC;
 extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 
 /// Script callback: unless attract demo 9 is playing, points the save's
-/// location at stage 5, area 0x1C, warp 1, room 1, sets `D_80071076`, spawns
+/// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.roomVariant`, spawns
 /// task 0x11 and starts loading that location.
 void func_neo_ark_r26_8017D5D0(void)
 {

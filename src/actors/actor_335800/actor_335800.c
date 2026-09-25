@@ -77,7 +77,6 @@ extern s32 D_actor_335800_80164F88;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern s8       D_8007272D;
 extern TaskDesc D_80182834;
 
 extern TaskDesc  D_actor_335800_80164DE0;
@@ -400,7 +399,7 @@ void func_actor_335800_80162408(void)
 
 void func_actor_335800_80162428(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 void func_actor_335800_80162434(s32 arg0)

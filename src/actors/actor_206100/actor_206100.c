@@ -691,7 +691,7 @@ const TaskFuncTable3 D_actor_206100_80149E24 = {
 /// modulated by the tint when `blend` is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
+/// behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist above it.
 void func_actor_206100_80149ED0(Task* task)
 {
     OverlayWaveCtx* ctx;

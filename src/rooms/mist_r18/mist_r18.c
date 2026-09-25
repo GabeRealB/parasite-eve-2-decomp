@@ -112,7 +112,6 @@ void func_mist_r18_8017E92C(Task* task);
 void func_mist_r18_8017E994(s32 tpage, s16 arg1);
 void func_mist_r18_8017ECF4(Task* arg0);
 
-extern s8 D_80071090;
 extern s8 D_80114C12;
 extern s8 D_801156F9;
 
@@ -871,7 +870,7 @@ void func_mist_r18_8017EC98(void)
 
 void func_mist_r18_8017ECC0(s8 arg0)
 {
-    D_80071090 = arg0;
+    gDisplayState.otDepthShift = arg0;
 }
 
 void func_mist_r18_8017ECCC(void)

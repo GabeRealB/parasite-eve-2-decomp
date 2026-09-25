@@ -159,10 +159,8 @@ STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// base weapon id records are numbered from, and `D_8007218A` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
-extern s8 D_8007218A;
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
-extern s8 D_8007272D;
 
 extern void func_80143490(s32 arg0);
 extern s32  D_80144A74;
@@ -500,7 +498,7 @@ void func_actor_341900_801628B8(Task* arg0)
                 s32 anim;
 
                 weaponId            = Player_Status.weapon;
-                anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.animBlock.index = anim;
                 msg.field_4         = 1;
                 msg.field_8         = 0;
@@ -540,7 +538,7 @@ void func_actor_341900_801628B8(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 9;
             msg.field_8         = 0;
@@ -723,8 +721,8 @@ void func_actor_341900_80162EFC(Task* arg0)
             gGameSession->flowFlags |= 3;
             goto next;
         case 1:
-            gStageSceneMusicEntry = 4;
-            D_8007272D            = 0xC;
+            gStageSceneMusicEntry  = 4;
+            Mc_SaveData.sceneEvent = 0xC;
             func_800E8634((s32)D_actor_341900_80163B48, 0, (s32)D_actor_341900_80163FB0);
         next:
             arg0->state += 1;
@@ -930,7 +928,7 @@ void func_actor_341900_801635A4(void)
 
     work                = (Actor341900Work*)D_actor_341900_80164208->work;
     weaponId            = Player_Status.weapon;
-    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 9;
     msg.field_8         = 0;

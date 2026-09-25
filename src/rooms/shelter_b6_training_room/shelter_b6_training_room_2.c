@@ -9,7 +9,6 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern s8 D_8007106B;
 /// The stream playback descriptors: the one-shot launcher, then the player.
 extern TaskDesc D_shelter_b6_training_room_8018431C[];
 
@@ -112,12 +111,12 @@ kill:
 }
 
 /// One-shot task: spawns the stream player, the second entry of the room's
-/// descriptor pair, as the display's owning task, sets `D_8007106B`, spawns
+/// descriptor pair, as the display's owning task, sets `gDisplayState.at100.flags.flipMode`, spawns
 /// the view tasks and kills itself.
 void func_shelter_b6_training_room_8017DD98(Task* arg0)
 {
     Display_SpawnWithOt(D_shelter_b6_training_room_8018431C, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

@@ -975,7 +975,7 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 }
 
 /// First state of the water task: clears the session counter the current
-/// display mode selects (`field_80` when `D_8007217B` is zero, `field_7E`
+/// display mode selects (`field_80` when `Mc_SaveData.companionType` is zero, `field_7E`
 /// otherwise) and moves on to the per-frame state.
 void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {

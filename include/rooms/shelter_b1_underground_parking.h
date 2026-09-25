@@ -82,7 +82,7 @@ void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
 /// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
 /// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
-/// result as the current room (both `D_8007216D` and the session's
+/// result as the current room (both `Mc_SaveData.at4.loc.room` and the session's
 /// `at4.loc.room`) and flags the room objects for relinking.
 void func_shelter_b1_underground_parking_8018491C(void);
 

@@ -436,7 +436,6 @@ extern u32                  D_actor_403100_801556EC[];
 extern u32                  D_actor_403100_8015572C[];
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
-extern s8                   D_8007218A;
 extern Actor403100AnimTable D_actor_403100_8015570C;
 extern GpAnimBlk*           Gp_PlayerAnimBlkTbl[];
 extern u16                  Gp_WeaponIdBase[];
@@ -5729,7 +5728,7 @@ void func_actor_403100_8013E1E4(void)
     GpAnimArg sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->sets[7];
+        D_actor_403100_8015570C.sets[4] = ((Actor403100AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->sets[7];
         sp.animBlock.ptr                = &D_actor_403100_8015570C;
         sp.field_8                      = 1;
         sp.field_C                      = 3;

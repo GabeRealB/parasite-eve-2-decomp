@@ -99,8 +99,6 @@ extern TaskDesc D_actor_443500_80140E38;
 
 extern GpAreaApplyRec D_8018A638;
 
-extern s8 D_8007272D;
-
 /// Default animation arguments, 0x14 bytes: `{ NULL, 0x1C, 1, 4, 0 }`.
 extern GpAnimArg D_actor_443500_80158728;
 
@@ -190,7 +188,7 @@ void func_actor_443500_80132048(void)
 
 void func_actor_443500_8013206C(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 /// Spawn handler: allocates the work block, seeds its head from the parent

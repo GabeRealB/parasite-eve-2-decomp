@@ -20,8 +20,6 @@
 #include "rooms/dryfield_night_dilapidated_house.h"
 #include "rooms/room_common.h"
 
-extern s8 D_8007106B;
-
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR D_dryfield_night_dilapidated_house_801872CC[];
 
@@ -124,12 +122,12 @@ L_case5:
 }
 
 /// Entry 0 of the room's two-entry descriptor table: spawns entry 1, the
-/// stream-playing task, with an ordering table, sets `D_8007106B`, spawns the
+/// stream-playing task, with an ordering table, sets `gDisplayState.at100.flags.flipMode`, spawns the
 /// view tasks and kills itself.
 void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 {
     Display_SpawnWithOt(&D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

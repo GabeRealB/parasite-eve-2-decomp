@@ -9,8 +9,6 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s8 D_80071068;
-
 void func_aya_20900_8011578C(Task* arg0)
 {
     TILE*     p;
@@ -111,9 +109,9 @@ s32 func_aya_20900_80115A14(Task* arg0)
                 work->index += 1;
             } else {
                 Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-                D_80071068  = 1;
-                work->fade  = 0xFF;
-                work->index = 2;
+                gDisplayState.at100.flags.imageSource = 1;
+                work->fade                            = 0xFF;
+                work->index                           = 2;
             }
             break;
         case 1:
@@ -121,9 +119,9 @@ s32 func_aya_20900_80115A14(Task* arg0)
             work->fade = fade;
             if ((s16)fade >= 0xFF) {
                 Mem_Set(Fs_ImgBuffers, 0, 0x25800);
-                D_80071068   = 1;
-                work->fade   = 0xFF;
-                work->index += 1;
+                gDisplayState.at100.flags.imageSource = 1;
+                work->fade                            = 0xFF;
+                work->index                          += 1;
             }
             showLogo = 0;
             break;
@@ -157,7 +155,7 @@ s32 func_aya_20900_80115A14(Task* arg0)
             fade       = work->fade + 8;
             work->fade = fade;
             if ((s16)fade >= 0xFF) {
-                D_80071068 = 0;
+                gDisplayState.at100.flags.imageSource = 0;
                 return 1;
             }
             break;

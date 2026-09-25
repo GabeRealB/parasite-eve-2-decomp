@@ -27,7 +27,6 @@ extern s32          D_replay_bonus_80119288;
 extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern GpItemDesc   D_8010DE38[];
-extern McItemRec    D_80072314[];
 extern s32          D_replay_bonus_80119284;
 
 void func_replay_bonus_801158C0(void)
@@ -199,7 +198,7 @@ void func_replay_bonus_80115D60(UiList* list, ReplayBonusCtx* ctx)
     s32        vis;
     s8         tmp;
 
-    rec   = D_80072314;
+    rec   = Mc_SaveData.itemRows;
     count = 0;
     ids   = ctx->itemList->itemIds;
     dest  = ids;

@@ -28,7 +28,6 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, GpAnimArg* args);
 
 s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags);
 
-extern s8 D_8007272D;
 extern u8 D_801156F9;
 
 extern s32 D_actor_460200_8013FC50;
@@ -304,7 +303,7 @@ void func_actor_460200_80132124(void)
 
 void func_actor_460200_80132204(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 void func_actor_460200_80132210(void)

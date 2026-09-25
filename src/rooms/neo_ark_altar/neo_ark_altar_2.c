@@ -53,8 +53,6 @@ typedef struct NeoArkAltarWork {
 } NeoArkAltarWork;
 STATIC_ASSERT_SIZEOF(NeoArkAltarWork, 0x10);
 
-extern s8 D_8007106B;
-
 extern NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
 extern s16 D_neo_ark_altar_801800AC;
@@ -164,12 +162,12 @@ L_case5:
 
 /// Entry 0 of `D_neo_ark_altar_8017EFC0`: spawns that table's entry 1 (the
 /// streaming task `func_neo_ark_altar_8017DA40`) with an ordering table,
-/// passing on this task's `spawnArg1`, sets `D_8007106B`, calls
+/// passing on this task's `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, calls
 /// `Gp_SpawnViewTasks` and ends.
 void func_neo_ark_altar_8017DBF0(Task* arg0)
 {
     Display_SpawnWithOt(D_neo_ark_altar_8017EFC0, 1, arg0->spawnArg1, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

@@ -208,7 +208,6 @@ void func_actor_548100_80134AE0(s32 id, u8 stop);
 void func_actor_548100_80134BA8(void);
 void func_actor_548100_80134BF0(void);
 
-extern u8                 D_80070F87;
 extern TaskDesc           D_actor_548100_801351B4;
 extern GpMsgEntry         D_actor_548100_801351C0[];
 extern OverlayHotspot     D_actor_548100_801357E8[];
@@ -1089,7 +1088,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
             bx             = D_actor_548100_801358E4[b].vx - 0x9E;
             by             = D_actor_548100_801358E4[b].vy - 0x76;
             setRECT(&rect, 0, 0, 0x140, 0xF0);
-            rect.y += D_80070F87 * 0x110;
+            rect.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[0x3FC], area);
             if (edge->flag_3 == 0) {
@@ -1106,7 +1105,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 } else {
                     setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
                 }
-                rect.y += D_80070F87 * 0x110;
+                rect.y += gDisplayState.drawBuffer * 0x110;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
@@ -1131,7 +1130,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                 } else {
                     setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
                 }
-                rect.y += D_80070F87 * 0x110;
+                rect.y += gDisplayState.drawBuffer * 0x110;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[0x3FC], area);
                 func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
@@ -1143,7 +1142,7 @@ void func_actor_548100_80133684(Actor548100Edge* edge)
                     setRECT(&rect, 0, 0, 0x140, pos + 0x78);
                 }
             }
-            rect.y += D_80070F87 * 0x110;
+            rect.y += gDisplayState.drawBuffer * 0x110;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[0x3FC], area);
             break;

@@ -57,7 +57,6 @@ void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1);
 void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task);
 
 /// Current screen id at 0x8007218B.
-extern s8 D_8007218B;
 
 /// Sound emitter positions for the cavern's four ambient loops, indexed by the
 /// emitter id `func_mine_cavern_801825C8` and its siblings are called with.
@@ -2019,7 +2018,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D65C;
-    if (D_8007218B != 3) {
+    if (Mc_SaveData.demoScene != 3) {
         sp.funcs[arg0->state](arg0);
     }
 }

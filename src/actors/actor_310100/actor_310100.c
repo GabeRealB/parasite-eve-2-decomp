@@ -113,7 +113,6 @@ extern u32      D_actor_310100_80179794;
 extern u32      D_actor_310100_801798B4;
 extern u32      D_actor_310100_801797FC;
 extern s16*     D_actor_310100_8017989C[];
-extern s8       D_8007106B;
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
@@ -205,7 +204,7 @@ void func_actor_310100_80161F80(Task* task)
 }
 
 /// Spawn tick of the actor task, registered as its task state handler: states 1
-/// and 2 — and state 0, which first parks `D_8007106B` at 2 — only step the
+/// and 2 — and state 0, which first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the
 /// state, and state 3 spawns the display model. `spawnArg1` picks which one:
 /// `D_actor_310100_80179920` with display id 0x6D, or `D_actor_310100_801798FC`
 /// with 0x6C. It then walks the nested area place list for the record carrying
@@ -225,7 +224,7 @@ void func_actor_310100_801620FC(Task* task)
     work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
     switch (task->state) {
         case 0:
-            D_8007106B = 2;
+            gDisplayState.at100.flags.flipMode = 2;
             /* fallthrough */
         case 1:
         case 2:
@@ -268,7 +267,7 @@ void func_actor_310100_801620FC(Task* task)
 }
 
 /// Second spawn tick of the actor task: states 1 and 2 — and state 0, which
-/// first parks `D_8007106B` at 2 — only step the state, and state 3 spawns the
+/// first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the state, and state 3 spawns the
 /// display model on the default list: `D_actor_310100_80179920` with display id
 /// 0x6D for `spawnArg1` 0, `D_actor_310100_801798FC` with 0x6C for 1, both at
 /// table index 2 with `arg2` 5 and 7. It then walks the nested area place list
@@ -289,7 +288,7 @@ void func_actor_310100_80162284(Task* task)
     work = (Actor310100Work*)((Task*)task->spawnArg2)->work;
     switch (task->state) {
         case 0:
-            D_8007106B = 2;
+            gDisplayState.at100.flags.flipMode = 2;
             /* fallthrough */
         case 1:
         case 2:

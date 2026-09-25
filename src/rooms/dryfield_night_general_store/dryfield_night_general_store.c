@@ -240,7 +240,7 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
 /// cutscene - `Gp_StateF0.field_4` cleared, stage sound 0x5203000E, the saved stage
 /// byte written to `Mc_SaveData.at4.loc.view` and the weapon messages re-enabled. State 5
 /// queues sound event 0x80000000, points the save's location at area 0x26
-/// with the latched warp point and room, raises `D_80071076` and spawns
+/// with the latched warp point and room, raises `gDisplayState.roomVariant` and spawns
 /// helper task 0x11. Both finishing arms kill the task.
 void func_dryfield_night_general_store_8017DAF0(Task* arg0)
 {

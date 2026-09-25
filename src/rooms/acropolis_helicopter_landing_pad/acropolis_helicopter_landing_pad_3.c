@@ -62,7 +62,6 @@ typedef struct AhlpFlareScratch {
 } AhlpFlareScratch;
 STATIC_ASSERT_SIZEOF(AhlpFlareScratch, 0x1C);
 
-extern s8        D_8007106B;
 extern SVECTOR   D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32       D_acropolis_helicopter_landing_pad_80184EE0[12];
 extern GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90;
@@ -157,7 +156,7 @@ L_case5:
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
     Display_SpawnWithOt(D_acropolis_helicopter_landing_pad_80184E68, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

@@ -174,7 +174,6 @@ extern Task* D_dryfield_water_tower_801876A4;
 /// `D_8007218A` picks which of the two weapon-id bases that record uses; the
 /// alternate block is indexed by `D_80073BA9` plus 1 against the base block's
 /// plus 0x22.
-extern s8 D_8007218A;
 
 /// The two scalars the cap-arrival test below reads out of the room's data.
 /// Both are reached through their own symbol but as record members rather than
@@ -182,10 +181,9 @@ extern s8 D_8007218A;
 /// store ahead of a later load only when the load is not a plain scalar opposed
 /// to a struct-member store (`true_dependence`'s aliasing test), and both blocks
 /// of the target's body depend on that order. `D_..._80181AA4` is `pos.vy` of
-/// the placement record at 0x80181AA0 and `D_80070F6C` is the flag word the
+/// the placement record at 0x80181AA0 and `gDisplayState.gameTick` is the flag word the
 /// case-2 `t[2]` offset is keyed on; each is one element of its own run here.
 extern s32 D_dryfield_water_tower_80181AA4[];
-extern s32 D_80070F6C[];
 
 /// The payloads of the cap-arrival test: the 0x7D4 records it publishes to
 /// itself. `80181AA0` is the placement record whose `pos.vy` is compared above,
@@ -456,7 +454,7 @@ void func_dryfield_water_tower_8017DE30(Task* arg0)
 /// placed record with 0x7D4 before advancing. State 2 counts `field_5A`; on the
 /// eleventh tick it restores the three script tables from the room's data and
 /// returns 1, and until then it mirrors the record's `pos.vz` into the cap's Z,
-/// nudged by 0xA while the `D_80070F6C` flag bit 2 is raised. Only the states
+/// nudged by 0xA while the `gDisplayState.gameTick` flag bit 2 is raised. Only the states
 /// that arrive there reach the shared 0x7D4 tail, and only state 2 reports
 /// arrival -- which is why `func_dryfield_water_tower_8017E1DC` masks the result
 /// with 0xFFFF to test it.
@@ -518,7 +516,7 @@ s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                 return 1;
             }
             coord->coord.t[2] = D_dryfield_water_tower_80181AA8;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[2] = D_dryfield_water_tower_80181AA8 + 0xA;
             }
             break;
@@ -645,7 +643,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// way the cap-arrival test does, by returning 1.
 ///
 /// State 0 is the lowering tick: it sinks the cap's Z by 0x14 a frame and snaps
-/// its Y to the run's lowered record, nudged by 5 while the `D_80070F6C` flag
+/// its Y to the run's lowered record, nudged by 5 while the `gDisplayState.gameTick` flag
 /// bit 2 is raised; once the cap's Z has passed that record's `pos.vz` it steps
 /// to state 1. Every frame of the state also spawns effect 0x60054 at the cap,
 /// offset in X by the room's per-frame table entry
@@ -677,7 +675,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
         case 0:
             coord->coord.t[2] += 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[1].pos.vy;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] > D_dryfield_water_tower_80181A40[1].pos.vz) {
@@ -702,7 +700,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A58.pos.vx;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[0] += 5;
             }
             break;
@@ -719,7 +717,7 @@ s32 func_dryfield_water_tower_8017E428(Task* arg0)
 ///
 /// State 0 is the lowering tick: it queues `SndEvt_EnqueueTypeB(0x5214000C,
 /// 0x7F)` once, sinks the cap's Z by 0x14 a frame and snaps its Y to the
-/// placement record's `pos.vy`, nudged by 5 while the `D_80070F6C` flag bit 2 is
+/// placement record's `pos.vy`, nudged by 5 while the `gDisplayState.gameTick` flag bit 2 is
 /// raised; once the cap's Z has sunk past that record's `pos.vz` it queues the
 /// same event again as 0x5214000C/0xA and steps to state 1. Every frame of the
 /// state also spawns effect 0x60054 at the cap, offset in X by the room's
@@ -748,7 +746,7 @@ s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             SndEvt_EnqueueTypeB(0x5214000C, 0x7F);
             coord->coord.t[2] -= 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[0].pos.vy;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] < D_dryfield_water_tower_80181A40[0].pos.vz) {
@@ -774,7 +772,7 @@ s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A40[0].pos.vx;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[0] += 5;
             }
             break;
@@ -1361,7 +1359,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     s32       value;
 
     weaponId            = Player_Status.weapon;
-    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     value               = arg0 & 0xFFFF;
     rec.animBlock.index = id;
     rec.field_4         = 1;
@@ -1645,7 +1643,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 return;
             }
             weaponId            = Player_Status.weapon;
-            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 1;

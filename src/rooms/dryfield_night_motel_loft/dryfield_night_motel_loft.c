@@ -13,7 +13,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s8 D_8007272D;
 extern u8 D_80115680;
 
 /// The room's message table, published at `Task::msgTable` by the room task.
@@ -115,7 +114,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     }
 }
 
-/// Sets the session's current room to `arg0` and mirrors it in `D_8007216D`.
+/// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData.at4.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
     gGameSession->at4.loc.room = arg0;
@@ -152,7 +151,7 @@ void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
         GameFlag_SetNibble(0x96, 1);
         func_800E8614((s32)&D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);
-        D_8007272D = 3;
+        Mc_SaveData.sceneEvent = 3;
     }
 }
 

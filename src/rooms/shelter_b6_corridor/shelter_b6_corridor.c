@@ -24,8 +24,6 @@
 #include "main/tmd.h"
 #include "rooms/room_common.h"
 
-extern u8 D_80070F87;
-
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Current displacement of the screen wave, recomputed every frame from the
@@ -212,7 +210,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_shelter_b6_corridor_801807EC[D_80070F87];
+                grid    = D_shelter_b6_corridor_801807EC[gDisplayState.drawBuffer];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {

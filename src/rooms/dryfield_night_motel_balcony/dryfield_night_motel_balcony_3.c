@@ -17,7 +17,6 @@
 #include "main/wipsys.h"
 #include "rooms/dryfield_night_motel_balcony.h"
 
-extern s8       D_8007106B;
 extern TaskDesc D_dryfield_night_motel_balcony_80182834;
 
 extern u8** D_dryfield_night_motel_balcony_80182C3C[];
@@ -25,7 +24,7 @@ extern u8** D_dryfield_night_motel_balcony_80182C3C[];
 void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 {
     Display_SpawnWithOt(&D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     SndEvt_EnqueueType7(0x60010001, 1);
     taskKill(arg0);

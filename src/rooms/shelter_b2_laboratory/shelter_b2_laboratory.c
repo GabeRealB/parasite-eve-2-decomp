@@ -45,7 +45,6 @@ extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 extern UiObjectDesc   D_800611E4;
 extern UiObject*      D_80067634;
-extern s8             D_8007272D;
 extern u16            D_8007A39C;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
@@ -1665,10 +1664,10 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             }
             return;
         case 1:
-            D_8007272D    = 0xE;
-            pair          = (GpSndParam*)&D_8007A39C;
-            pair->field_0 = 0;
-            pair->field_2 = 0;
+            Mc_SaveData.sceneEvent = 0xE;
+            pair                   = (GpSndParam*)&D_8007A39C;
+            pair->field_0          = 0;
+            pair->field_2          = 0;
             Task_SpawnFromTable(&D_80062774, 0, 0, 0);
             task->state++;
             return;

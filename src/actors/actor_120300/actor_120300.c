@@ -70,8 +70,6 @@ extern TaskDesc D_actor_120300_80141B6C[];
 /// is what keeps the caller's zero-extension.
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-extern s8             D_8007218A;
-extern s8             D_8007272D;
 extern s8             D_80114C12;
 extern s32            D_8017DD6C;
 extern s32            D_8017DEA4;
@@ -558,7 +556,7 @@ void func_actor_120300_80132338(Task* arg0)
 
             Gp_DispatchMsg(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, (s32)&D_actor_120300_80140ACC, 0);
             weaponId                 = Player_Status.weapon;
-            id                       = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             var_a1                   = 0x3E8;
             msg.anim.animBlock.index = id;
             msg.anim.field_4         = 1;
@@ -642,7 +640,7 @@ void func_actor_120300_80132338(Task* arg0)
             s32 id;
 
             weaponId                  = Player_Status.weapon;
-            id                        = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                        = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             var_a1                    = 0x3E8;
             msg2.anim.animBlock.index = id;
             msg2.anim.field_4         = 1;
@@ -1045,7 +1043,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D4, (s32)&D_actor_120300_80140B5C, 0);
     if (arg0 == 0) {
         weaponId            = Player_Status.weapon;
-        id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+        id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.animBlock.index = id;
         rec.field_4         = 1;
         rec.field_8         = 0;
@@ -1223,7 +1221,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     arg0->state = 4;
                 } else {
                     weaponId = Player_Status.weapon;
-                    if (D_8007218A == 1) {
+                    if (Mc_SaveData.characterId == 1) {
                         weaponId = weaponId + 1;
                     } else {
                         weaponId = weaponId + 0x22;
@@ -1238,7 +1236,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634((s32)&D_actor_120300_80140B94, 0, (s32)&D_actor_120300_80141524);
-                    D_8007272D = 2;
+                    Mc_SaveData.sceneEvent = 2;
                     SCHED_BARRIER();
                     arg0->state += 1;
                 }

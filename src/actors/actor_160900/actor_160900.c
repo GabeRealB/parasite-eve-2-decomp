@@ -108,11 +108,9 @@ extern TaskDesc D_actor_160900_8013FB50;
 extern ActorAnimStep D_actor_160900_8013F1CC[];
 extern u8            D_actor_160900_8013F198[];
 
-extern s8       D_8007218A;
 extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C;
-extern s8       D_8007272D;
 extern s8       D_80114C12;
 
 /// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
@@ -149,7 +147,7 @@ extern OverlayWaveRec6 D_actor_160900_8013FC08[30];
 /// tinted when the block's tint flag is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
+/// behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist above it.
 void func_actor_160900_80131EB0(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -780,7 +778,7 @@ void func_actor_160900_80133238(Task* arg0)
         case 3:
             if ((u16)work->field_4E == 0) {
                 x = Player_Status.weapon;
-                if (D_8007218A == 1) {
+                if (Mc_SaveData.characterId == 1) {
                     v = x + 1;
                 } else {
                     v = x + 0x22;
@@ -1251,7 +1249,7 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                D_8007272D = 0x1E;
+                Mc_SaveData.sceneEvent = 0x1E;
                 Task_RequestKill(arg0, 0);
             }
             break;

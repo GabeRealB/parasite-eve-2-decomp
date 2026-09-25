@@ -98,7 +98,6 @@ void func_actor_403200_80141018(Task* arg0);
 /// Player HP the per-frame tick reads before it latches the death cinematic.
 /// Equipped character, read as an in-struct byte so the weapon-anim load stays
 /// ordered against the message-argument store.
-extern s8 D_8007218A[];
 /// Equipped weapon variant added to `Gp_WeaponIdBase[D_8007218A[0] - 1]`.
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[];
 extern u16        Gp_WeaponIdBase[];
@@ -2185,7 +2184,7 @@ void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_403200_8015E710[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A[0] - 1] + Player_Status.weapon])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_403200_8015E710;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
@@ -6899,7 +6898,7 @@ after_mode:
                         work->anim.animBlock.ptr = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[D_8007218A[0] - 1] + Player_Status.weapon])
+                                 [Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])
                                 ->sets[7];
                         work->anim.field_4 = 4;
                         work->anim.field_8 = 1;

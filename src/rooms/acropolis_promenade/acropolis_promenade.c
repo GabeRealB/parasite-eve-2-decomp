@@ -46,8 +46,6 @@ typedef struct {
 } ApmPropWork;
 STATIC_ASSERT_SIZEOF(ApmPropWork, 0x4);
 
-extern s8 D_8007272D;
-
 extern s32          D_acropolis_promenade_80180F00;
 extern s32          D_acropolis_promenade_80181068;
 extern s32          D_acropolis_promenade_80181140;
@@ -127,7 +125,7 @@ void func_acropolis_promenade_8017D5E4(Task* task)
 /// game's progress nibbles.
 ///
 /// Message 0xA answers with the `field_2` refusal code 1 while the disc has no
-/// stream file open (`D_8007107A < 0 || D_8006AC30.sector == 0`) or nibble 1 is
+/// stream file open (`gDisplayState.field_112 < 0 || D_8006AC30.sector == 0`) or nibble 1 is
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
@@ -156,7 +154,7 @@ s32 func_acropolis_promenade_8017D70C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
         if (in->field_5 == 0) {
             out->field_2                   = 3;
             D_acropolis_promenade_801862D0 = *out;
-            D_8007272D                     = 4;
+            Mc_SaveData.sceneEvent         = 4;
         }
         return 1;
     }

@@ -286,7 +286,6 @@ void func_actor_403600_80134398(Task* arg0);
         : "r"(scale), "r"(p)                          \
         : "$2", "$7", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "hi", "lo", "memory")
 
-extern u8            D_80071090;
 extern TaskDesc      D_actor_403600_801421A0;
 extern s32           D_actor_403600_80160698;
 extern s32           D_actor_403600_8016069C;
@@ -346,7 +345,7 @@ void func_actor_403600_801320F8(s32 otz)
     } else {
     block_4:
         scratch->rect.x = 0;
-        scratch->rect.y = D_80070F87[0] * 0x110;
+        scratch->rect.y = gDisplayState.drawBuffer * 0x110;
         scratch->rect.w = 0x140;
         scratch->rect.h = 0xF0;
     }
@@ -1886,7 +1885,7 @@ void func_actor_403600_801353D0(ActorEffectState* arg0, GpCoord* arg1)
             if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, index *= 4, *(s32*)((s32)heightBase + index) != 0))) {
                 setlen(poly, 9);
                 poly->code   = 0x2D;
-                scratch->otz = (scratch->otz << D_80071090 & 0x3FFF) >> 4;
+                scratch->otz = (scratch->otz << gDisplayState.otDepthShift & 0x3FFF) >> 4;
                 if (scratch->maxOtz < scratch->otz) {
                     scratch->maxOtz = scratch->otz;
                 }

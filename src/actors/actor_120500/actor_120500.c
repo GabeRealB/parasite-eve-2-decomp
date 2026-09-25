@@ -71,13 +71,11 @@ extern u32 D_actor_120500_80138408[];
 
 /// Equipped-weapon id and the flag that selects which block of animation sets
 /// it indexes (`+1` when set to 1, `+0x22` otherwise).
-extern s8 D_8007218A;
 
 /// Flags the tick checks before bringing the actor up (`D_80114C12` /
 /// `D_80071075`), and the one it raises alongside the view tasks
-/// (`D_8007106B`).
+/// (`gDisplayState.at100.flags.flipMode`).
 extern s8 D_80114C12;
-extern s8 D_8007106B;
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
 /// `GpAnimArg::animBlock`; the messages select sets 0, 1 and 2 of it.
@@ -252,7 +250,7 @@ void func_actor_120500_80132028(Task* arg0)
             break;
         case 6:
             base = Player_Status.weapon;
-            if (D_8007218A == 1) {
+            if (Mc_SaveData.characterId == 1) {
                 anim = base + 1;
             } else {
                 anim = base + 0x22;
@@ -338,7 +336,7 @@ void func_actor_120500_801322A0(Task* arg0)
 /// clear. Request code 1 at 0x4C0 allocates the model's buffers, spawns the
 /// fade from black and places the actor with its own placement record. At
 /// 0x4C8, code 1 spawns the fade to black and code 2 sends message 0x3F3,
-/// spawns the streamed sequence, raises `D_8007106B` and spawns the view
+/// spawns the streamed sequence, raises `gDisplayState.at100.flags.flipMode` and spawns the view
 /// tasks. The model's part-1 translation goes to `func_800D7A9C` last.
 ///
 /// The request 0x4C8 dispatch is written with gotos: the labels reproduce
@@ -360,7 +358,7 @@ void func_actor_120500_8013241C(Task* arg0)
             if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
-                if (D_8007218A == 1) {
+                if (Mc_SaveData.characterId == 1) {
                     anim = anim + 1;
                 } else {
                     anim = anim + 0x22;
@@ -436,7 +434,7 @@ do_4C8_case1:
 do_4C8_case2:
     Gp_DispatchMsg(w->field_4B4, 0x3F3, 2, 0);
     Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
 clear_4C8:
     w->field_4C8 = 0;

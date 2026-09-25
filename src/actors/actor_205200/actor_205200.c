@@ -59,7 +59,6 @@ typedef struct Actor205200Part {
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
-extern u8              D_80070F87;
 extern s32             D_actor_205200_8014CA5C;
 extern OverlayWaveCtx* D_actor_205200_80156814;
 extern OverlayWaveRec  D_actor_205200_80156818[9];
@@ -237,7 +236,7 @@ void func_actor_205200_80149E54(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_actor_205200_80156A98[D_80070F87];
+                grid    = D_actor_205200_80156A98[gDisplayState.drawBuffer];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {

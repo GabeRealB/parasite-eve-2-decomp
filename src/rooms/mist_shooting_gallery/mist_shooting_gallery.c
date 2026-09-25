@@ -35,7 +35,7 @@
 #include "rooms/mist_shooting_gallery.h"
 
 /// The four bonusGpGridParamsmode blurbs shown by the gallery's help panel, indexed by
-/// `D_80072177`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
+/// `Mc_SaveData.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
 /// onto its stack before indexing it.
 typedef struct MistShootingGalleryModeTexts {
     /* 0x0 */ u8* text[4];
@@ -110,8 +110,6 @@ extern s32      func_8014AA54(GpSaveLoc* loc);
 extern void     func_8014AB6C(void);
 extern void     func_8014AF0C(void);
 extern void     func_8014C5E0(s32, s32, s32);
-extern s8       D_8007218B;
-extern s8       D_8007272D;
 extern s16      D_8007A396;
 extern s16      D_80114D08;
 extern s32      D_8014D038;
@@ -125,11 +123,8 @@ extern s32      D_80153D6C;
 /// load, so a plain `extern s8` here lets the scheduler hoist the following
 /// `arg0->state` load above the store. Indexing an array makes the store a
 /// struct reference and keeps the two in order.
-extern s8 D_80071068[];
-extern s8 D_8007106B;
 
-extern GpItemScan D_80072724;
-extern u8         Gp_DebugAttachLevels[];
+extern u8 Gp_DebugAttachLevels[];
 
 extern UiObjectDesc D_8010EFA0;
 
@@ -209,7 +204,7 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
     s32         i;
     s32         k;
 
-    scan   = &D_80072724;
+    scan   = &Mc_SaveData.carriedItems;
     row    = 0;
     levels = Gp_DebugAttachLevels;
     i      = row;
@@ -294,7 +289,7 @@ void func_mist_shooting_gallery_8017DE7C(DialogPrompt* arg0, UiObject* arg1)
     selected = arg0->field_C;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            scan       = &D_80072724;
+            scan       = &Mc_SaveData.carriedItems;
             weaponIdx  = &Player_Status.weapon;
             row        = &Gp_QtyById0[item];
             ammo       = row->field_1;
@@ -683,7 +678,7 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
             list->field_4 = 4;
             list->field_5 = 4;
         }
-        if (D_8007218B == 1) {
+        if (Mc_SaveData.demoScene == 1) {
             list->field_4 = 4;
             list->field_5 = 4;
         }
@@ -1118,7 +1113,7 @@ void func_mist_shooting_gallery_8017FC2C(Task* arg0)
         var_a0 = 0;
     }
     func_mist_shooting_gallery_801801E4(var_a0);
-    if (D_8007218B == 7) {
+    if (Mc_SaveData.demoScene == 7) {
         Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->at4.loc.warp == 7) {
         Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
@@ -1229,13 +1224,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, G
         }
         if (src->field_5 == 0) {
             if (dst->field_2 == 6) {
-                D_8007272D             = 2;
+                Mc_SaveData.sceneEvent = 2;
                 Player_Status.field_26 = 4;
                 gGameSession->hideHud  = 1;
                 Gp_ResetInventory();
             }
             if (dst->field_2 == 5) {
-                D_8007272D             = 1;
+                Mc_SaveData.sceneEvent = 1;
                 Player_Status.field_26 = 3;
                 gGameSession->hideHud  = 1;
                 Gp_ClearInventory();
@@ -1638,8 +1633,8 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
 
         case 1:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                D_80071068[0]       = 1;
-                arg0->killCountdown = 0;
+                gDisplayState.at100.flags.imageSource = 1;
+                arg0->killCountdown                   = 0;
                 arg0->state++;
                 return;
             }
@@ -1727,7 +1722,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
         }
 
         case 5:
-            D_80071068[0] = 0;
+            gDisplayState.at100.flags.imageSource = 0;
             taskKill(arg0);
             Display_ResetHeapWrapper();
             return;
@@ -1824,14 +1819,14 @@ void func_mist_shooting_gallery_801810D8(Task* task)
                 return;
             }
             Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 2, 0, 0);
-            D_8007106B = 0;
+            gDisplayState.at100.flags.flipMode = 0;
             Gp_SpawnViewTasks();
         case 1:
             task->state = task->state + 1;
             return;
         case 2:
             Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 1, 0, 0);
-            D_8007106B = 1;
+            gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             taskKill(task);
             return;

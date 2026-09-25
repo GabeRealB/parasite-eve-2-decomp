@@ -351,7 +351,7 @@ void func_dryfield_water_hole_8017DFA0(Task* task)
 }
 
 /// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `D_8007217B` is set, then advances to the drawing state.
+/// `field_7E` while `Mc_SaveData.companionType` is set, then advances to the drawing state.
 void func_dryfield_water_hole_8017E000(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {

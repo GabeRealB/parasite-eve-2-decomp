@@ -38,7 +38,6 @@ extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
-extern s8 D_8007272D;
 
 /// CAP countdown the tunnel reloads while its sequences run.
 extern s16 D_80114D08;
@@ -360,7 +359,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
                     break;
                 default:
                     if (src->field_5 == 0) {
-                        D_8007272D                                   = 0x18;
+                        Mc_SaveData.sceneEvent                       = 0x18;
                         D_neo_ark_eve_access_tunnel_801807A0.field_2 = dst->field_0;
                         D_neo_ark_eve_access_tunnel_801807A0.field_4 = dst->field_2;
                         D_neo_ark_eve_access_tunnel_801807A0.field_1 = dst->field_3;

@@ -42,8 +42,6 @@ extern s32 D_acropolis_forked_road_80185070;
 extern s32 D_acropolis_forked_road_80185038;
 extern s32 D_acropolis_forked_road_80185050;
 
-extern s8 D_8007218A;
-
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -209,7 +207,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId            = Player_Status.weapon;
-            rec.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.animBlock.index = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.field_4         = 1;
             rec.field_8         = 0;
             rec.field_C         = 0;

@@ -31,7 +31,6 @@ extern GpAreaApplyRec D_mine_cavern_8018E32C;
 extern s8 D_80114C12;
 
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
-extern s8 D_8007272D;
 
 s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -280,7 +279,7 @@ void func_mine_cavern_8017E0F4(s32 arg0)
 /// Room script callback: stores its argument into `D_8007272D`.
 void func_mine_cavern_8017E150(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 void func_mine_cavern_8017E15C(void)

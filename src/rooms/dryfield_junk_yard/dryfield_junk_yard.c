@@ -31,7 +31,6 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 /// Main-executable halfword the room task's second state waits on before it
 /// calls `func_80724608`.
 /// Signed byte of gameplay state the room's script callback stores into.
-extern s8 D_8007272D;
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
@@ -287,10 +286,10 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg)
 /// 0xD, argument 5): stores its argument into `D_8007272D`.
 void func_dryfield_junk_yard_8017DC54(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
-/// State 1 of the room task: once `D_8007107A` is non-zero and a slot-0xA
+/// State 1 of the room task: once `gDisplayState.field_112` is non-zero and a slot-0xA
 /// task exists, calls `func_80724608` on that task with the `"DOG"` name. The
 /// state never advances, so it repeats every frame.
 void func_dryfield_junk_yard_8017DC60(Task* task)

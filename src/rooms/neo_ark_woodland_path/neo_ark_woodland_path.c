@@ -20,8 +20,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern u8 D_80071090;
-
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// The room's message table, parked in the entry task by
@@ -378,7 +376,7 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
         }
         v    = (y0 + 0x78) + w;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otzOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;
@@ -665,7 +663,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
     SCRATCH_PUSH_BYTES(0x40);
-    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {

@@ -70,7 +70,6 @@ typedef struct Actor143000CaptureArgs {
 } Actor143000CaptureArgs;
 STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 
-extern s8              D_8007218B;
 extern s16             D_80114D08;
 extern TaskDesc        D_actor_143000_80134558;
 extern u8              D_actor_143000_80134570[];
@@ -361,7 +360,7 @@ void func_actor_143000_801325F0(Task* arg0)
         return;
     }
     prompt->targetId = 0x80;
-    if (D_8007218B == 9) {
+    if (Mc_SaveData.demoScene == 9) {
         func_actor_143000_80133C2C();
     }
     work->field_2 = 0;
@@ -461,7 +460,7 @@ const TaskFuncTable11 D_actor_143000_80131E84 = { {
 } };
 
 /// The codes `func_actor_143000_80132A04` accepts; the second only while
-/// `D_8007218B` is non-zero.
+/// `Mc_SaveData.demoScene` is non-zero.
 const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
 const char D_actor_143000_80131EBC[] = "YSD";
 
@@ -474,7 +473,7 @@ void func_actor_143000_80132A04(Task* arg0)
     temp_s0 = arg0->work;
     var_s2  = 0;
     if (arg0->killCountdown == 0) {
-        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (D_8007218B != 0))) {
+        if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (Mc_SaveData.demoScene != 0))) {
             var_s2 = 1;
         }
         temp_s0->field_C = var_s2;
@@ -696,7 +695,7 @@ void func_actor_143000_80132D10(Task* arg0)
 
 /// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
 /// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
-/// `Mc_SaveData.demoScene` or `D_8007218B` is 9, to show the hotspot rects.
+/// `Mc_SaveData.demoScene` or `Mc_SaveData.demoScene` is 9, to show the hotspot rects.
 void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;

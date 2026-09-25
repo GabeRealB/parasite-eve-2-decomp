@@ -278,7 +278,6 @@ extern GpDelayArg D_actor_401000_80155038;
 /// Animation blocks selected for the grab by the player-character flag.
 extern s32 D_actor_401000_80154F00;
 extern s32 D_actor_401000_80154F08;
-extern s8  D_8007218A;
 
 /// Free-running scroll the actor's forward draw accumulates into:
 /// `func_actor_401000_801365C8` adds `field_C04` to it every frame, and the
@@ -2344,7 +2343,7 @@ void func_actor_401000_801378DC(Task* arg0)
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &delta, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
-            if (D_8007218A == 1) {
+            if (Mc_SaveData.characterId == 1) {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F08;
             } else {
                 D_actor_401000_80154F1C.animBlock.ptr = &D_actor_401000_80154F00;

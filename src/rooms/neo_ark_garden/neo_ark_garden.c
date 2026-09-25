@@ -28,8 +28,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
-extern u8 D_80071090;
-
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
 extern GpMsgEntry D_neo_ark_garden_801813B0[];
@@ -381,7 +379,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         }
         v    = (y0 + 0x78) + w;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otzOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;
@@ -673,7 +671,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
     SCRATCH_PUSH_BYTES(0x40);
-    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {

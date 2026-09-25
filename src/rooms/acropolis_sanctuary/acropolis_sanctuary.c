@@ -145,11 +145,9 @@ typedef struct AcsSpriteLevels {
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `D_80071075` and `D_80114C12` gate the cutscene task's setup (the latter is
 /// the cutscene/among-us mode flag) and `D_8007218A` picks which of the two
-/// weapon-id bases that record uses. `D_80071076` is set to 1 alongside the
+/// weapon-id bases that record uses. `gDisplayState.roomVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
-extern s8 D_8007272D;
-extern s8 D_8007218A;
 extern s8 D_80114C12;
 
 extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
@@ -229,7 +227,7 @@ void func_acropolis_sanctuary_8017D5E0(Task* task)
         GameFlag_SetNibble(2, 2);
         func_800E8634((s32)&D_acropolis_sanctuary_80180B0C, 0, (s32)&D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
-        D_8007272D = 6;
+        Mc_SaveData.sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
         GameFlag_SetNibble(0x25, 1);
         func_800E3FAC(0xA2, 6);
@@ -410,7 +408,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
                 weaponId = Player_Status.weapon;
-                idx      = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                idx      = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.animBlock.index = idx;
                 weapon.rec.field_4         = 1;

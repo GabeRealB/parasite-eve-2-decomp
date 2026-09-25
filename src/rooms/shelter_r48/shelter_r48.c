@@ -33,8 +33,6 @@ extern s32      D_8014C540;
 extern s32      D_8014CAF8;
 extern s32      D_8014D158;
 
-extern u8 D_80071090;
-
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_r48_80182FB8[];
 
@@ -256,7 +254,7 @@ void func_shelter_r48_8017D660(Task* arg0)
         }
         v    = yTop + 0x78 + wave1;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;

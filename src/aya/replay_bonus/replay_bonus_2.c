@@ -34,7 +34,6 @@ extern UiObjectDesc D_replay_bonus_801191C4;
 extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
-extern s8           D_80071068;
 
 void func_replay_bonus_80116EC0(void);
 
@@ -432,10 +431,10 @@ void func_replay_bonus_80117A08(Task* arg0)
             ClearImage(&rect, 0, 0, 0);
             rect.y = 0x100;
             ClearImage(&rect, 0, 0, 0);
-            D_replay_bonus_801192A4 = -0x1E0;
-            D_80071068              = 0;
-            D_replay_bonus_801192B0 = 0;
-            arg0->killCountdown     = D_replay_bonus_80119294->hold0 * 6;
+            D_replay_bonus_801192A4               = -0x1E0;
+            gDisplayState.at100.flags.imageSource = 0;
+            D_replay_bonus_801192B0               = 0;
+            arg0->killCountdown                   = D_replay_bonus_80119294->hold0 * 6;
             CdCmd_StartOverlay(0U, 1U, 0xBU);
             CdCmd_EnqueueOverlay82();
             goto advance;

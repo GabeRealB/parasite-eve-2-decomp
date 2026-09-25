@@ -1481,7 +1481,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 }
 
 /// State 0 of the gas-station cutscene task. On the first visit
-/// (`D_80072170 == 1`) it spawns the room's event task and clears the three
+/// (`Mc_SaveData.at4.loc.warp == 1`) it spawns the room's event task and clears the three
 /// progression flags; otherwise it just asks the stage for area 1. Either way
 /// it advances to state 1 and raises the `D_80115598` flag.
 void func_dryfield_gas_station_8017FEDC(Task* arg0)

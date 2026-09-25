@@ -44,7 +44,6 @@ void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 a
 void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2);
 
-extern s8       D_8007218A;
 extern TaskDesc D_80164190;
 
 /// Four halfwords per entry, read as the two floor-level end points of a wall
@@ -1162,7 +1161,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
     switch (arg0->state) {
         case 0:
             v = Player_Status.weapon;
-            if (D_8007218A == 1) {
+            if (Mc_SaveData.characterId == 1) {
                 v = v + 1;
             } else {
                 v = v + 0x22;

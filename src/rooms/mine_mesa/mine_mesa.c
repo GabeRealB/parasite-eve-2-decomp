@@ -50,8 +50,6 @@ typedef struct {
     u8      unk10[8];
 } _MineMesaWall;
 
-extern s8  D_8007106B;
-extern s8  D_8007218B;
 extern s8  D_80114C12;
 extern u8  D_80115690;
 extern u8  D_801156F9;
@@ -441,7 +439,7 @@ void func_mine_mesa_8017DFC4(Task* arg0)
 void func_mine_mesa_8017E024(Task* arg0)
 {
     Display_SpawnWithOt(&D_mine_mesa_80181990, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }
@@ -1855,7 +1853,7 @@ void func_mine_mesa_80181358(Task* arg0)
         place      = (GpAreaPlace*)Gp_GetNestedAreaRec(&key)->field_0;
         tmd->tpage = place->tpage;
         tmd->clut  = place->clut;
-        if (D_8007218B == 10) {
+        if (Mc_SaveData.demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", (s8)place->tpage, (s8)place->clut, 0);
         }
         if (tmd->buffer != NULL) {

@@ -83,8 +83,6 @@ extern TaskDesc D_actor_136100_80140744[];
 extern s32 D_actor_136100_8013F3C4;
 extern s32 D_actor_136100_8013F3DC;
 
-extern s8      D_8007218A;
-extern s8      D_8007272D;
 extern s32     D_801833F4;
 extern s32     D_801834AC;
 extern s32     D_80183ACC;
@@ -162,7 +160,7 @@ s32 func_actor_136100_80131EC4(Task* arg0)
 
     msgWork             = (Actor136100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
-    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = idx;
     rec.field_4         = idx;
@@ -322,22 +320,22 @@ void func_actor_136100_80132284(Task* arg0)
 /// A macro rather than an inline: the record must be one frame slot shared by
 /// every expansion, while the work pointer and the id stay per-expansion
 /// pseudos -- shared, they globalise into one register across the switch.
-#define func_actor_136100_SendWeaponRec(task, anim, a, b)                         \
-    {                                                                             \
-        Actor136100Work* msgWork;                                                 \
-        s32              weaponId;                                                \
-        s32              id;                                                      \
-                                                                                  \
-        msgWork             = (Actor136100Work*)(task)->work;                     \
-        weaponId            = Player_Status.weapon;                               \
-        id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22; \
-        rec.animBlock.index = id;                                                 \
-        msgWork->field_4DE  = anim;                                               \
-        rec.field_4         = anim;                                               \
-        rec.field_8         = a;                                                  \
-        rec.field_C         = b;                                                  \
-        rec.field_10        = 0;                                                  \
-        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                \
+#define func_actor_136100_SendWeaponRec(task, anim, a, b)                                      \
+    {                                                                                          \
+        Actor136100Work* msgWork;                                                              \
+        s32              weaponId;                                                             \
+        s32              id;                                                                   \
+                                                                                               \
+        msgWork             = (Actor136100Work*)(task)->work;                                  \
+        weaponId            = Player_Status.weapon;                                            \
+        id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        rec.animBlock.index = id;                                                              \
+        msgWork->field_4DE  = anim;                                                            \
+        rec.field_4         = anim;                                                            \
+        rec.field_8         = a;                                                               \
+        rec.field_C         = b;                                                               \
+        rec.field_10        = 0;                                                               \
+        Gp_DispatchMsg(msgWork->field_4B4, 0x3E8, (s32) & rec, 0);                             \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -836,7 +834,7 @@ void func_actor_136100_80133690(void)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -890,7 +888,7 @@ void func_actor_136100_8013379C(s32 arg0)
 
     msgWork             = (Actor136100Work*)task->work;
     weaponId            = Player_Status.weapon;
-    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     msgWork->field_4DE  = 1;
     rec.field_4         = 1;
@@ -907,7 +905,7 @@ void func_actor_136100_8013379C(s32 arg0)
 }
 
 /// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
-/// id 5 (and `D_80073BAC` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
+/// id 5 (and `Player_Status.field_24` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
 /// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
@@ -1314,7 +1312,7 @@ void func_actor_136100_8013467C(void)
     s32       id;
 
     weaponId            = Player_Status.weapon;
-    id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = id;
     rec.field_4         = 1;
     rec.field_8         = 0;
@@ -1441,7 +1439,7 @@ void func_actor_136100_801349B4(s32 arg0)
     if (arg0 == 0) {
         GameFlag_SetNibble(0x4B, 6);
     } else {
-        D_8007272D = 8;
+        Mc_SaveData.sceneEvent = 8;
         GameFlag_SetNibble(0x4B, 0);
     }
 }

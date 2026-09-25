@@ -52,9 +52,8 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `D_8007218A` picks which of the two weapon-id bases that record uses, and
 /// `D_80071075` / `D_80114C12` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `D_8007216D` is the field-actor mode byte the
+/// cutscene/among-us mode flag). `Mc_SaveData.at4.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
-extern s8 D_8007218A;
 extern s8 D_80114C12;
 
 /// Payloads the observatory scene task sends: `..._8017FE60` is the record
@@ -137,7 +136,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
         case 5:
             weaponId            = Player_Status.weapon;
-            id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = id;
             rec.field_4         = 1;
             rec.field_8         = 0;

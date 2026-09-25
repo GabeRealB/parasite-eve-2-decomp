@@ -104,18 +104,17 @@ extern s8 D_80114C12;
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
 /// the preceding `field_79C` store ordered before it.
-extern s8 D_80071090[];
-s32       func_actor_503500_80133684(Task* arg0);
-void      func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2);
-void      func_actor_503500_801338E8(Task* arg0);
-void      func_actor_503500_80134408(Task* arg0);
-void      func_actor_503500_801345F4(Task* arg0);
-void      func_actor_503500_80134A24(Task* arg0);
-void      func_actor_503500_80134C68(Task* arg0);
-s32       func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
-s32       func_actor_503500_80133D40(Task* arg0, Actor503500Work* work);
-s32       func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work);
-s32       func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
+s32  func_actor_503500_80133684(Task* arg0);
+void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2);
+void func_actor_503500_801338E8(Task* arg0);
+void func_actor_503500_80134408(Task* arg0);
+void func_actor_503500_801345F4(Task* arg0);
+void func_actor_503500_80134A24(Task* arg0);
+void func_actor_503500_80134C68(Task* arg0);
+s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
+s32  func_actor_503500_80133D40(Task* arg0, Actor503500Work* work);
+s32  func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work);
+s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
 /// Asks slot `slot` to die: `arg2` becomes its `field_7E0`/`field_2A` flag
 /// and `arg3` its `field_752` countdown.
 void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
@@ -1049,9 +1048,9 @@ void func_actor_503500_801345F4(Task* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                work->field_79C = task;
-                D_80071090[0]   = 1;
-                work->field_7DA = work->field_7DA + 1;
+                work->field_79C            = task;
+                gDisplayState.otDepthShift = 1;
+                work->field_7DA            = work->field_7DA + 1;
             }
             break;
         case 2:
@@ -1095,7 +1094,7 @@ void func_actor_503500_801345F4(Task* arg0)
             break;
         case 6:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
-                D_80071090[0] = 0;
+                gDisplayState.otDepthShift = 0;
                 func_actor_503500_80135FB4(arg0, 0, 0);
                 work->field_7D2 = 0;
                 func_actor_503500_80136EFC(arg0, 0);
@@ -1206,8 +1205,8 @@ void func_actor_503500_80134C68(Task* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                D_80071090[0]   = 1;
-                work->field_7C0 = 0;
+                gDisplayState.otDepthShift = 1;
+                work->field_7C0            = 0;
                 work->field_7E1++;
             }
             break;
@@ -1233,8 +1232,8 @@ void func_actor_503500_80134C68(Task* arg0)
             break;
         case 5:
             if (func_actor_503500_80136014(arg0, 8) != 0) {
-                work->field_7E0 = 0;
-                D_80071090[0]   = 0;
+                work->field_7E0            = 0;
+                gDisplayState.otDepthShift = 0;
                 func_actor_503500_80135F9C(arg0, 0, 0);
                 func_actor_503500_80135FB4(arg0, 0, 0);
             }
@@ -1671,7 +1670,7 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090[0] = 0;
+    gDisplayState.otDepthShift = 0;
 }
 
 /// Boss message handler. Modes 0/1/2 enter states 0/5/7, mode 3 advances the
@@ -1860,7 +1859,7 @@ void func_actor_503500_80136048(Task* arg0)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, 0, 3);
-    D_80071090[0] = 0;
+    gDisplayState.otDepthShift = 0;
 }
 
 /// Reports whether the boss-wide gate is open; the body ignores its
@@ -2409,7 +2408,7 @@ void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
     work->field_7BC = 0;
     work->field_7BE = 0;
     func_actor_503500_80137074(arg0, arg1 == 3, 3);
-    D_80071090[0] = 0;
+    gDisplayState.otDepthShift = 0;
 }
 
 /// Asks slot `slot` to die: arms its `field_730` flag with `arg3` in

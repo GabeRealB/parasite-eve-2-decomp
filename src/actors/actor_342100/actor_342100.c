@@ -24,7 +24,6 @@
 /// Main-executable globals with no module header yet: `D_80073BA9` is the base
 /// weapon id records are numbered from, and `D_8007218A` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
-extern s8 D_8007218A;
 
 /// Single-entry spawn table of the screen-wave task
 /// `func_actor_342100_80161E70`: `func_actor_342100_80163408` starts entry 0
@@ -79,7 +78,6 @@ extern u16 D_actor_342100_801649A8[];
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
 
-extern u8       D_80070F87;
 extern s8       D_80114C11;
 extern s8       D_80114C12;
 extern u8       D_80114CF8;
@@ -255,7 +253,7 @@ void func_actor_342100_80161E70(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_actor_342100_80164E3C[D_80070F87];
+                grid    = D_actor_342100_80164E3C[gDisplayState.drawBuffer];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -436,7 +434,7 @@ s32 func_actor_342100_801629B8(Task* arg0)
     anim                = (u16)D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                   = (Actor342100Work*)arg0->work;
     weaponId            = Player_Status.weapon;
-    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     w->field_3C         = anim;
     msg.field_4         = anim;
@@ -797,7 +795,7 @@ void func_actor_342100_8016334C(s32 arg0)
     work                = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim                = arg0 + 0x2F;
     weaponId            = Player_Status.weapon;
-    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_3C      = anim;
     msg.field_4         = anim;

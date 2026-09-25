@@ -57,8 +57,6 @@ typedef struct {
     /* 0x0 */ s32 field_0;
 } AwehElevatorState;
 
-extern s8 D_8007272D;
-
 extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
 extern s32        D_acropolis_west_elevator_hall_80184620;
 extern s32        D_acropolis_west_elevator_hall_80184890;
@@ -874,8 +872,8 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, GpSaveLoc*
     *dst = *src;
     if (*(u16*)src == 1 && GameFlag_GetNibble(0x21) == 0 && src->field_5 == 0) {
         GameFlag_SetNibble(0x21, 1);
-        D_8007272D   = 1;
-        dst->field_2 = 7;
+        Mc_SaveData.sceneEvent = 1;
+        dst->field_2           = 7;
     }
     return 1;
 }

@@ -47,7 +47,6 @@ STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
 
 extern UiObjectDesc   D_800611E4;
 extern UiObject*      D_80067634;
-extern s8             D_8007272D;
 extern UiObjectDesc   D_8010EFA0;
 extern s16            D_80114D08;
 extern GpAreaApplyRec D_80188888[];
@@ -1537,7 +1536,7 @@ void func_acropolis_fire_escape_8017FE50(Task* task)
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
-    if (D_8007272D == 5) {
+    if (Mc_SaveData.sceneEvent == 5) {
         gGameSession->flowFlags = 8;
     }
     task->state = task->state + 1;

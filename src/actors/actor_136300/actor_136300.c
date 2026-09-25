@@ -22,7 +22,6 @@ extern s32 D_80114A34;
 
 extern TaskDesc D_actor_136300_8013B134;
 extern TaskDesc D_80183380;
-extern s8       D_8007272D;
 
 extern s32 D_actor_136300_8013B208;
 extern s32 D_actor_136300_8013B230;
@@ -61,7 +60,7 @@ extern TaskDesc D_actor_136300_80132AC4;
 /// of that amplitude, tinted when the context's tint flag is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `D_800691CA` store, which a member read lets GCC hoist above it.
+/// behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist above it.
 void func_actor_136300_80131E40(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -293,7 +292,7 @@ void func_actor_136300_80132854(Task* arg0)
 
 void func_actor_136300_801328D4(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 void func_actor_136300_801328E0(s32 arg0)

@@ -29,7 +29,6 @@
 #include "rooms/room_common.h"
 #include "rooms/shelter_b3_garbage_incinerator.h"
 
-extern s8       D_8007218A;
 extern s8       D_80114C12;
 extern TaskDesc D_80164FF8;
 
@@ -63,7 +62,6 @@ extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-extern u8              D_80070F87;
 extern s32             D_shelter_b3_garbage_incinerator_80185BC4;
 extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
 extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FC60[9];
@@ -194,7 +192,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                 if (Player_Status.weapon == 0x17) {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (D_8007218A == 1) {
+                    if (Mc_SaveData.characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -208,7 +206,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                 } else {
                     p = msg;
                     w = Player_Status.weapon;
-                    if (D_8007218A == 1) {
+                    if (Mc_SaveData.characterId == 1) {
                         v = w + 1;
                     } else {
                         v = w + 0x22;
@@ -660,7 +658,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_shelter_b3_garbage_incinerator_8018FEE0[D_80070F87];
+                grid    = D_shelter_b3_garbage_incinerator_8018FEE0[gDisplayState.drawBuffer];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -827,7 +825,7 @@ s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     anim                = (u16)D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork             = (GarbageIncineratorWork*)arg0->work;
     weaponId            = Player_Status.weapon;
-    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     msgWork->field_38   = anim;
     msg.field_4         = anim;
@@ -1005,7 +1003,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     work                = D_shelter_b3_garbage_incinerator_8018FC3C->work;
     anim                = arg0 + 0x2F;
     weaponId            = Player_Status.weapon;
-    setId               = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    setId               = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = setId;
     work->field_38      = anim;
     msg.field_4         = anim;

@@ -28,7 +28,6 @@ typedef struct DgsCutsceneSlot {
 } DgsCutsceneSlot;
 STATIC_ASSERT_SIZEOF(DgsCutsceneSlot, 0x4);
 
-extern s8       D_8007106B;
 extern void     Stage_RequestFromAreaTable(s32 arg0);
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern TaskDesc D_dryfield_gas_station_8018312C[];
@@ -193,7 +192,7 @@ L_case0:
         return;
     }
     Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     goto advance;
 

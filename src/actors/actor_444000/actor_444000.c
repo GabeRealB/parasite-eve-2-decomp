@@ -139,7 +139,6 @@ extern Task* D_actor_444000_80161878;
 /// Weapon class (1 is the class whose animations sit at the low base) and the
 /// equipped-weapon index within it; together they pick the player animation the
 /// action-1 cue installs.
-extern s8 D_8007218A;
 
 /// 0xFF-terminated area-record list this overlay applies on entry.
 extern GpAreaApplyRec D_8018FB6C[];
@@ -147,7 +146,6 @@ extern GpAreaApplyRec D_8018FB6C[];
 /// Main-executable globals with no module header yet: `D_80071075` gates the
 /// event on the "everything is dead" state, and `D_8007272D` is the ending
 /// selector the death sequence latches.
-extern s8 D_8007272D;
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_80187150` is the
 /// task table the successor is spawned from, `D_8018FBC8` the view id copied
@@ -272,7 +270,6 @@ extern GpDelayArg D_actor_444000_80161928;
 /// Global game-mode byte; sits inside a small flag block, so it is declared as
 /// an array -- the load has to keep aliasing the scratch stores beside it (see
 /// DECOMPILATION_LEARNINGS.md, "Declare a fixed-address global as an array").
-extern s8 D_8007218B[];
 
 /// Per-animation reset argument, a `[?][0x2D]` table of `field_7B3` indexed by
 /// the id that was playing before the switch.
@@ -332,7 +329,7 @@ void func_actor_444000_80132054(Task* task)
         case 1:
             /* Install the weapon-specific player animation on the slot-3 task. */
             anim = Player_Status.weapon;
-            if (D_8007218A == 1) {
+            if (Mc_SaveData.characterId == 1) {
                 anim += 1;
             } else {
                 anim += 0x22;
@@ -492,7 +489,7 @@ void func_actor_444000_80132358(Task* task)
                     Gp_StateF0.field_2       = 0;
                     Gp_StateF0.field_3       = 0;
                     gGameSession->flowFlags |= 0x80;
-                    D_8007272D               = 0xD;
+                    Mc_SaveData.sceneEvent   = 0xD;
                     other->field_30          = state;
                 }
                 task->killCountdown = 0;
@@ -587,7 +584,7 @@ void func_actor_444000_80132778(void)
         Gp_StateF0.field_2       = 0;
         Gp_StateF0.field_3       = 0;
         gGameSession->flowFlags |= 0x80;
-        D_8007272D               = 0xD;
+        Mc_SaveData.sceneEvent   = 0xD;
         work->field_30           = 1;
     }
 }
@@ -2588,7 +2585,7 @@ void func_actor_444000_801389EC(GpEnemy* enemy, Task* task)
             return;
         }
         D_actor_444000_80161694[2] =
-            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->sets[9];
+            ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->sets[9];
         work->anim.animBlock.ptr = D_actor_444000_80161694;
         work->anim.field_4       = 2;
         work->anim.field_8       = armed;
@@ -5221,7 +5218,7 @@ void func_actor_444000_8013E058(Task* task)
         sc->push.vx = sc->dir.vx;
         sc->push.vy = 0;
         sc->push.vz = sc->dir.vz;
-        if (D_8007218B[0] != 2 && D_8007218B[0] != 0xA && actor->field_954 != 2) {
+        if (Mc_SaveData.demoScene != 2 && Mc_SaveData.demoScene != 0xA && actor->field_954 != 2) {
             func_80105B74(&sc->push);
         }
     }

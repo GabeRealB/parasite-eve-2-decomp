@@ -122,14 +122,14 @@ void func_neo_ark_r31_8017D90C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Room task state 1: stores 2 into `D_800691CA` every tick.
+/// Room task state 1: stores 2 into `CdCmd_Queue.field_22A` every tick.
 void func_neo_ark_r31_8017D980(Task* task)
 {
     CdCmd_Queue.field_22A = 2;
 }
 
 /// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by
-/// `Task::state`: the set-up tick, the tick that stores 2 into `D_800691CA`,
+/// `Task::state`: the set-up tick, the tick that stores 2 into `CdCmd_Queue.field_22A`,
 /// and `taskKill`.
 const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
     {

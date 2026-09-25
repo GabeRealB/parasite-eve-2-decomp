@@ -31,7 +31,6 @@ extern TaskDesc   D_neo_ark_submarine_gallery_801818BC[];
 extern TaskDesc   D_neo_ark_submarine_gallery_801818AC;
 extern s16        D_neo_ark_submarine_gallery_801818B8;
 
-extern u8 D_80071090;
 extern s8 D_80115690;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
@@ -389,7 +388,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         }
         v    = (y0 + 0x78) + w;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otzOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;
@@ -678,7 +677,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
     SCRATCH_PUSH_BYTES(0x40);
-    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {

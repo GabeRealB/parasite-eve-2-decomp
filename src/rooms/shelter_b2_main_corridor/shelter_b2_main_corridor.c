@@ -732,7 +732,7 @@ void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 }
 
 /// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `D_8007217B`, and advances to the next state.
+/// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances to the next state.
 void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {

@@ -13,8 +13,6 @@
 
 extern TaskDesc D_shelter_r49_8017DA00;
 
-extern s8 D_8007106B;
-
 void func_shelter_r49_8017D71C(Task* arg0)
 {
     u8          slotParam[4];
@@ -104,7 +102,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
     switch (arg0->state) {
         case 0:
             Display_SpawnWithOt(&D_shelter_r49_8017DA00, 1, 0, 0);
-            D_8007106B = 1;
+            gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             arg0->state = arg0->state + 1;
             break;

@@ -30,11 +30,8 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern u8 D_80071090;
-
 /// The area-record id the event handler publishes, and the cutscene script
 /// blobs `func_800E8634` / `func_800E8614` are handed as `(s32)&blob`.
-extern s8  D_8007272D;
 extern s32 D_80135220;
 extern s32 D_80135FD0;
 extern s32 D_80136108;
@@ -413,7 +410,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
         }
         v    = (y0 + 0x78) + w;
         z    = otz;
-        otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+        otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
         otz += otzOff;
         if (v >= 0xEF) {
             v = 0x1DC - v;
@@ -703,7 +700,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     sinArg = task->killCountdown << 5;
     cosArg = task->killCountdown << 4;
     SCRATCH_PUSH_BYTES(0x40);
-    otz = ((0x3FFF << D_80071090) & 0x3FFF) >> 4;
+    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
 
     for (pass = 0; pass < passes; pass++) {
         if (pass == 1) {
@@ -964,7 +961,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
-        D_8007272D = 0x1A;
+        Mc_SaveData.sceneEvent = 0x1A;
         func_800E8634((s32)&D_80135220, 0, (s32)&D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {

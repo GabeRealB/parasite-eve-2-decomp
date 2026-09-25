@@ -8,7 +8,6 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s8  D_8007218B;
 extern s32 D_80133898;
 extern s32 D_801341E0;
 /// The room's message table, published in `Task::msgTable` for
@@ -46,14 +45,14 @@ s32 func_dryfield_night_r08_8017D628(void)
 
 /// The room task's set-up state: publishes the room's message table, claims
 /// pointer slot 7, places the stream buffer 0x20000 bytes into `D_8005C370`
-/// and, unless `D_8007218B` is 9, passes `D_80133898` and `D_801341E0` to
+/// and, unless `Mc_SaveData.demoScene` is 9, passes `D_80133898` and `D_801341E0` to
 /// `func_800E8634`. Then advances to the idle state.
 void func_dryfield_night_r08_8017D630(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_r08_80180544;
     Game_SetPtrSlot(arg0, 7);
     Gp_SetStreamBuf((u8*)D_8005C370 + 0x20000);
-    if (D_8007218B != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         func_800E8634((s32)&D_80133898, 0, (s32)&D_801341E0);
     }
     arg0->state = (s32)(arg0->state + 1);

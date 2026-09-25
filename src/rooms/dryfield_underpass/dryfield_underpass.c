@@ -207,7 +207,7 @@ void func_dryfield_underpass_8017DA00(Task* task)
 /// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
 /// same choice the switch task `func_dryfield_underpass_8017D5D0` makes when it
 /// toggles nibble 0x51, and writes it to the session's room and to
-/// `D_8007216D`, then flags the room objects dirty. Reached from the room's
+/// `Mc_SaveData.at4.loc.room`, then flags the room objects dirty. Reached from the room's
 /// script data.
 void func_dryfield_underpass_8017DA08(void)
 {

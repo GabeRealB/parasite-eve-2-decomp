@@ -38,8 +38,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelWork, 0xC);
 
 extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
-extern s8       D_8007218A;
-extern s8       D_8007272D;
 extern s8       D_80114C12;
 extern u8       D_80115690;
 extern s32      D_8011572C;
@@ -390,7 +388,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
         case 0:
             if (D_80114C12 != 1 && gDisplayState.pendingMode == 0) {
                 weaponId            = Player_Status.weapon;
-                id                  = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                  = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = id;
                 rec.field_4         = 1;
                 rec.field_8         = 0;
@@ -403,7 +401,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
             break;
         case 1:
             if (gGameSession->eventState == 0) {
-                D_8007272D = 0x1D;
+                Mc_SaveData.sceneEvent = 0x1D;
                 Task_RequestKill(task, 0);
             }
             break;

@@ -32,8 +32,6 @@ typedef struct {
 } Actor341300Shard;
 STATIC_ASSERT_SIZEOF(Actor341300Shard, 0x30);
 
-extern s8 D_8007272D;
-
 /// Spawn positions `func_actor_341300_80162878`'s shards start from, indexed
 /// by `Task::spawnArg1`.
 extern SVECTOR D_actor_341300_80165A38[];
@@ -275,7 +273,7 @@ void func_actor_341300_801625AC(void)
 
 void func_actor_341300_80162680(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }
 
 void func_actor_341300_8016268C(void)

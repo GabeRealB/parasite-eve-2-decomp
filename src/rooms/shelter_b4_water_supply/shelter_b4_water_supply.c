@@ -702,7 +702,7 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
 }
 
 /// The water task's opening state: clears the session's `field_80` or
-/// `field_7E`, chosen by `D_8007217B`, and advances the task to its next state.
+/// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances the task to its next state.
 void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
@@ -715,7 +715,7 @@ void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `D_8007217B`, then draws both
+/// slice of one of two primitive areas, chosen by `Mc_SaveData.companionType`, then draws both
 /// lists of water surfaces.
 void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {

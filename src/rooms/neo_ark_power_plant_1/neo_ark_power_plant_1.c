@@ -14,7 +14,6 @@ extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
-extern s8 D_8007272D;
 extern s8 D_80114C12;
 
 /// Script blobs in the overlay's `.data`, handed to `func_800E8634` /
@@ -68,7 +67,7 @@ void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         GameFlag_SetNibble(0xF6, 1);
                         GameFlag_SetNibble(0x1B2, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
-                        D_8007272D = 0x16;
+                        Mc_SaveData.sceneEvent = 0x16;
                         func_800E8634((s32)&D_neo_ark_power_plant_1_8017EB7C, 0, (s32)&D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }

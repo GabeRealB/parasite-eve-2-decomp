@@ -21,7 +21,6 @@ typedef struct {
     s32 travel;
 } ShelterElevatorCar;
 
-extern s8  D_8007218B;
 extern s32 D_801378D0;
 extern s32 D_801380F8;
 
@@ -40,7 +39,7 @@ void func_shelter_b2_elevator_8017DB08(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte
-/// `D_8007218B` is 9, it then either runs the first-visit sequence, setting
+/// `Mc_SaveData.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
 void func_shelter_b2_elevator_8017D5E8(Task* task)
@@ -49,7 +48,7 @@ void func_shelter_b2_elevator_8017D5E8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_shelter_b2_elevator_8017EA00[0] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 0, 0, -1);
     D_shelter_b2_elevator_8017EA00[1] = Task_SpawnFromTable(D_shelter_b2_elevator_8017DF70, 1, 0, 1);
-    if (D_8007218B != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
             func_800E8634((s32)&D_801378D0, 0, (s32)&D_801380F8);

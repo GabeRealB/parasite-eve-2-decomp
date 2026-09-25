@@ -35,7 +35,6 @@ typedef struct {
     /* 0x6 */ u16 field_6;
 } AcropolisPatioMsg8;
 
-extern s8       D_8007272D;
 extern TaskDesc D_acropolis_patio_801802BC;
 extern TaskDesc D_acropolis_patio_80182800;
 extern s32      D_acropolis_patio_8018028C;
@@ -240,7 +239,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634((s32)&D_acropolis_patio_80180484, 0, (s32)&D_acropolis_patio_801806AC);
-        D_8007272D              = 3;
+        Mc_SaveData.sceneEvent  = 3;
         gGameSession->flowFlags = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&

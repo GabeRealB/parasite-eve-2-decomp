@@ -24,7 +24,6 @@
 
 extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
-extern s8  D_8007272D;
 extern s8  D_80114C12;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -145,7 +144,7 @@ void func_neo_ark_power_plant_2_8017D758(Task* task)
             if (GameFlag_GetNibble(0xF3) != 0) {
                 Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
             }
-            D_8007272D = 0x17;
+            Mc_SaveData.sceneEvent = 0x17;
             func_800E3FAC(0xA2, 0x2E);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 7);

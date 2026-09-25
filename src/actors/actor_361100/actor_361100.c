@@ -64,7 +64,6 @@ STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
 
 extern u8  D_801156F9;
 extern s32 D_8016069C;
-extern u8  D_80071090;
 
 extern Task* D_actor_361100_80171BE0;
 
@@ -373,7 +372,7 @@ void func_actor_361100_80161FF8(Task* arg0)
             }
             v    = yTop + 0x78 + wave1;
             z    = otz;
-            otz  = ((z << D_80071090) & 0x3FFF) >> 4;
+            otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
             otz += otOff;
             if (v >= 0xEF) {
                 v = 0x1DC - v;

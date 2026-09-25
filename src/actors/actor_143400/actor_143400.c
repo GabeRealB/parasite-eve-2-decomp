@@ -1,8 +1,8 @@
 #include "common.h"
+#include "main/mc.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
-extern s8             D_8007272D;
 extern GpAreaApplyRec D_8018A638;
 
 /// With a non-zero `arg0`, clears `Gp_CapFile`, loads capture file 2 and
@@ -32,5 +32,5 @@ void func_actor_143400_80131E6C(void)
 /// function pointers in the actor's data.
 void func_actor_143400_80131E90(s8 arg0)
 {
-    D_8007272D = arg0;
+    Mc_SaveData.sceneEvent = arg0;
 }

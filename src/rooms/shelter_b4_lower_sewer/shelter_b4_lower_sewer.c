@@ -360,7 +360,7 @@ void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
 }
 
 /// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `D_8007217B`, and advances to the next state.
+/// `field_7E`, chosen by `Mc_SaveData.companionType`, and advances to the next state.
 void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 {
     if (Mc_SaveData.companionType == 0) {
@@ -373,7 +373,7 @@ void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
 
 /// Drawing state of the water task: points the primitive cursor
 /// `D_shelter_b4_lower_sewer_80183E14` at `D_8005C374` or `D_8005C370`, chosen
-/// by `D_8007217B`, plus 0xC000 bytes per `D_8007107C`, then draws both sets
+/// by `Mc_SaveData.companionType`, plus 0xC000 bytes per `gDisplayState.otBuffer`, then draws both sets
 /// of water surfaces.
 void func_shelter_b4_lower_sewer_8017E37C(Task* task)
 {

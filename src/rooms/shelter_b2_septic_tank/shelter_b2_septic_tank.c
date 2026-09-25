@@ -515,7 +515,7 @@ void func_shelter_b2_septic_tank_8017EA50(Task* task)
     gGameSession->waterY = D_shelter_b2_septic_tank_801832BC;
 }
 
-/// Clears the session's `field_80` or `field_7E`, chosen by `D_8007217B`, and
+/// Clears the session's `field_80` or `field_7E`, chosen by `Mc_SaveData.companionType`, and
 /// advances the task to its next state.
 void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 {
@@ -529,7 +529,7 @@ void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b2_septic_tank_80187054` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `D_8007217B`, then draws both
+/// slice of one of two primitive areas, chosen by `Mc_SaveData.companionType`, then draws both
 /// lists of water surfaces.
 void func_shelter_b2_septic_tank_8017EAF8(Task* task)
 {

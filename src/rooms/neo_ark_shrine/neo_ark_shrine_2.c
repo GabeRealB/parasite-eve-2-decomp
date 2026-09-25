@@ -448,7 +448,7 @@ void func_neo_ark_shrine_8017EF68(Task* task)
 
 /// The script step that runs while the shrine's pad is idle: it re-clears the
 /// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
-/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `D_8007216D` and the
+/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData.at4.loc.room` and the
 /// session, which makes the room rebuild its objects, and enters state 2.
 ///
 /// The same literal is stored in both arms on purpose: `gGameSession` is read

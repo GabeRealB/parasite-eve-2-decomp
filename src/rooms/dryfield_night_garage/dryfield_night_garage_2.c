@@ -23,8 +23,6 @@
 #include "rooms/dryfield_night_garage.h"
 #include "rooms/room_common.h"
 
-extern s8 D_8007106B;
-
 extern s32            D_dryfield_night_garage_80182DE0;
 extern s32            D_dryfield_night_garage_80182DE4;
 extern GpAreaApplyRec D_dryfield_night_garage_801875D8[];
@@ -201,12 +199,12 @@ void func_dryfield_night_garage_80180CEC(Task* arg0)
 }
 
 /// Spawns `D_dryfield_night_garage_80183380` with an ordering table, passing
-/// on the task's `spawnArg1`, sets `D_8007106B`, spawns the view tasks and
+/// on the task's `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, spawns the view tasks and
 /// kills itself.
 void func_dryfield_night_garage_80180D4C(Task* arg0)
 {
     Display_SpawnWithOt(&D_dryfield_night_garage_80183380, 1, arg0->spawnArg1, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

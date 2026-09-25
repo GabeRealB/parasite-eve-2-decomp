@@ -15,7 +15,7 @@
 /// The two caption flags the store's cutscene task raises: `Gp_StateF0.field_4` while
 /// the script owns the screen and `D_80115690` when CAP command 0xF showed the
 /// letterbox. `Mc_SaveData.at4.loc.view` is the area-record id the same task publishes, and
-/// `D_80071076` the "chapter advanced" halfword it sets on the way out.
+/// `gDisplayState.roomVariant` the "chapter advanced" halfword it sets on the way out.
 extern u8 D_80115690;
 extern u8 D_80115598;
 
@@ -259,7 +259,7 @@ s32 func_dryfield_general_store_8017D8D4(s32 arg0, s32 arg1, RoomEventMsg* in, R
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
-/// point and room, raises `D_80071076` and spawns helper task 0x11.
+/// point and room, raises `gDisplayState.roomVariant` and spawns helper task 0x11.
 ///
 /// Every arm that is finished with the task, state 5's and the cut-short arm of
 /// state 4's, leaves through the shared `taskKill` below the switch.

@@ -29,7 +29,7 @@ extern TaskDesc D_acropolis_observatory_8017FE6C;
 ///
 /// Message 9 (the telescope) and message 0xB (the door) both answer with a
 /// `field_2` refusal code — 5 and 1 respectively — while the disc has no stream
-/// file open (`D_8007107A < 0 || D_8006AC30.sector == 0`) or the message's
+/// file open (`gDisplayState.field_112 < 0 || D_8006AC30.sector == 0`) or the message's
 /// nibble is not in the state that lets it run once. The first pass through
 /// each also advances that nibble, so the refusal only shows on later visits.
 /// `field_5` non-zero means "report only", which suppresses both the nibble

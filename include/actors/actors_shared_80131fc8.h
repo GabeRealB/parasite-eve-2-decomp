@@ -14,7 +14,6 @@ typedef struct ActorsDrawScratch {
 STATIC_ASSERT_SIZEOF(ActorsDrawScratch, 0x14);
 
 /// Byte view of gDisplayState.drawBuffer at 0x80070F87.
-extern u8 D_80070F87[];
 
 void ActorsShared80131fc8(s32 otz);
 

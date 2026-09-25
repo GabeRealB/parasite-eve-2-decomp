@@ -291,7 +291,6 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0;
 
-extern s8 D_8007218A;
 extern s8 D_80114C12;
 
 void func_actor_560800_80133970(Task* arg0);
@@ -299,7 +298,6 @@ void func_actor_560800_80134258(Task* arg0);
 void func_actor_560800_80134384(Task* arg0);
 void func_actor_560800_80134BFC(Task* arg0);
 
-extern s8       D_8007106B;
 extern TaskDesc D_actor_560800_8016EA28;
 extern TaskDesc D_actor_560800_8017575C;
 extern void     D_actor_560800_8016EA74;
@@ -1133,7 +1131,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 0;
     msg[3] = 0;
@@ -1147,7 +1145,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     s32 val;
 
     val    = Player_Status.weapon;
-    msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+    msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 1;
     msg[3] = 0xA;
@@ -1894,7 +1892,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 Gp_LcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
                 val    = Player_Status.weapon;
-                msg[0] = (D_8007218A == 1) ? val + 1 : val + 0x22;
+                msg[0] = (Mc_SaveData.characterId == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
                 msg[2] = 0;
                 msg[3] = 0;
@@ -1926,7 +1924,7 @@ void func_actor_560800_80135D54(Task* arg0)
 void func_actor_560800_80135F50(Task* arg0)
 {
     Display_SpawnWithOt(&D_actor_560800_8016EA28, 1, arg0->spawnArg1, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }
@@ -2218,7 +2216,7 @@ void func_actor_560800_80136678(s32 arg0)
 }
 
 /// Task state handler for the second spawn mode: states 1 and 2 — and state 0,
-/// which first parks `D_8007106B` at 2 — only step the state, and state 3 runs
+/// which first parks `gDisplayState.at100.flags.flipMode` at 2 — only step the state, and state 3 runs
 /// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
 /// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
 /// other strip, then re-loads the chunk at `D_8006C45C` with
@@ -2234,7 +2232,7 @@ void func_actor_560800_801366B0(Task* arg0)
     work = (Actor560800Work*)D_actor_560800_8017578C->work;
     switch (arg0->state) {
         case 0:
-            D_8007106B = 2;
+            gDisplayState.at100.flags.flipMode = 2;
             /* fallthrough */
         case 1:
         case 2:
@@ -2352,7 +2350,7 @@ void func_actor_560800_80136930(s32 arg0)
 void func_actor_560800_801369A0(void)
 {
     Display_SpawnWithOt(&D_actor_560800_801718F0, 0xD, 0, 0);
-    D_8007106B = 2;
+    gDisplayState.at100.flags.flipMode = 2;
     Gp_SpawnViewTasks();
 }
 

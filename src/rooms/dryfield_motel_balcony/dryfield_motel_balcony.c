@@ -27,7 +27,6 @@
 #include "rooms/rooms_shared_8017e4f8.h"
 #include "rooms/dryfield_motel_balcony.h"
 
-extern s8  D_8007272D;
 extern s32 D_80115720;
 extern s32 D_80115728;
 extern s32 D_8011572C;
@@ -235,7 +234,7 @@ s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* ms
         ret         = func_dryfield_motel_balcony_8017D5E8(&req, out);
         if (D_dryfield_motel_balcony_8018672C != 0) {
             GameFlag_SetNibble(0x30, 1);
-            D_8007272D = 3;
+            Mc_SaveData.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);
         }
     } else {

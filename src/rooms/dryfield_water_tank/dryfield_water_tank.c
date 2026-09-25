@@ -77,7 +77,6 @@ STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
-extern s32 D_80070F6C[];
 
 extern s32            D_dryfield_water_tank_8017F114;
 extern s32            D_dryfield_water_tank_8017F21C;
@@ -301,7 +300,7 @@ void func_dryfield_water_tank_8017DB48(void)
 /// returning 1 tells the caller the model has arrived.
 ///
 /// Script state 0 lowers the model: its Z grows by 0x14 a frame, its Y snaps to
-/// the lowered record's `pos.vy` (nudged by the `D_80070F6C` flag), and once the
+/// the lowered record's `pos.vy` (nudged by the `gDisplayState.gameTick` flag), and once the
 /// Z has passed that record's `pos.vz` the script steps to state 1. Every frame
 /// of state 0 also spawns effect 0x60054 at the model, offset in X by the next
 /// entry of the wrapping `killCountdown` table. State 1 advances the settle
@@ -324,7 +323,7 @@ s32 func_dryfield_water_tank_8017DB98(Task* arg0)
         case 0:
             coord->coord.t[2] += 0x14;
             coord->coord.t[1]  = D_dryfield_water_tank_8017FD60[1].pos.vy;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] > D_dryfield_water_tank_8017FD60[1].pos.vz) {
@@ -349,7 +348,7 @@ s32 func_dryfield_water_tank_8017DB98(Task* arg0)
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tank_8017FD78.pos.vx;
-            if (D_80070F6C[0] & 4) {
+            if (gDisplayState.gameTick & 4) {
                 coord->coord.t[0] += 5;
             }
             break;

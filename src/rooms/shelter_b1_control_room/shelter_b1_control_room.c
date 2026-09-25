@@ -115,7 +115,6 @@ typedef struct {
 extern s32        func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void       func_80131FB8(void);
 extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
-extern s8         D_8007218B;
 extern s32        D_80132D70;
 extern s32        D_80133088;
 
@@ -640,7 +639,7 @@ void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gGameSession->at4.loc.place == 0xB) {
         func_80131FB8();
-        if (D_8007218B != 9) {
+        if (Mc_SaveData.demoScene != 9) {
             func_800E8634((s32)&D_80132D70, 0, (s32)&D_80133088);
         }
     }

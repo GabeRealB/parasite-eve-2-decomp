@@ -15,7 +15,6 @@
 #include "main/task.h"
 #include "psyq/strings.h"
 
-extern s32            D_80070F6C;
 extern GpAreaApplyRec D_80186488;
 extern GpAreaApplyRec D_8018649C;
 extern s32            D_actor_143000_80135124;
@@ -43,7 +42,7 @@ void func_actor_143000_80133EE4(Task* arg0)
     switch (arg0->state) {
         case 0:
             spawn->field_1 = 1;
-            srand(D_80070F6C);
+            srand(gDisplayState.gameTick);
             Gp_MsgPlayerWeapon(0);
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);

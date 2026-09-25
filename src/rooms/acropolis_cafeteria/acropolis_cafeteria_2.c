@@ -72,7 +72,6 @@ STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
 extern void Stage_RequestFromAreaTable(s32 arg0);
 
-extern s8  D_8007106B;
 extern s32 D_8011572C;
 extern s32 D_80115750;
 extern s32 D_80115758;
@@ -197,7 +196,7 @@ void func_acropolis_cafeteria_8017E658(Task* arg0)
 void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 {
     Display_SpawnWithOt(&D_acropolis_cafeteria_80184178, 2, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

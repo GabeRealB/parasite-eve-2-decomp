@@ -53,7 +53,6 @@ extern Task* D_dryfield_warehouse_801821C0;
 /// `DwhWork` block.
 extern Task* D_dryfield_warehouse_801821BC;
 
-extern s8  D_8007218A;
 extern s8  D_80114C12;
 extern s32 D_dryfield_warehouse_8017F848;
 extern s32 D_dryfield_warehouse_8017F850;
@@ -101,7 +100,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId            = Player_Status.weapon;
-            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animBlock.index = anim;
             rec.field_4         = 1;
             rec.field_8         = 0;
@@ -188,7 +187,7 @@ void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                = Player_Status.weapon;
-            anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.rec.animBlock.index = anim;
             msg.rec.field_4         = 1;
             msg.rec.field_8         = 0;
@@ -312,7 +311,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId            = Player_Status.weapon;
-                anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.animBlock.index = anim;
                 rec.field_4         = 1;
                 rec.field_8         = 0;

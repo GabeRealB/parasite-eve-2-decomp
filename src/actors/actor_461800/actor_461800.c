@@ -52,7 +52,6 @@ extern u8       D_actor_461800_80139F5C[];
 extern TaskDesc D_actor_461800_80139F8C;
 extern u8       D_actor_461800_80139FB0[];
 
-extern s8  D_8007218B;
 extern s32 D_8017DC54;
 extern s32 D_actor_461800_80143884;
 extern s32 D_actor_461800_80143888;
@@ -226,10 +225,10 @@ void func_actor_461800_8013223C(s32 arg0)
 /// been seen. With neither seen the session bails out (`field_128` / `field_12E`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
-/// when `D_8007218B` (the current screen id) is 9.
+/// when `Mc_SaveData.demoScene` (the current screen id) is 9.
 void func_actor_461800_8013229C(void)
 {
-    if (D_8007218B != 9) {
+    if (Mc_SaveData.demoScene != 9) {
         if (GameFlag_GetNibble(0xEA) == 2) {
             Gp_SetCollectedBit(0x130);
         }

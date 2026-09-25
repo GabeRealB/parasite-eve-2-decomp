@@ -49,10 +49,8 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// record is keyed on, and `D_8007218A` picks which of the two weapon-id bases
 /// that record uses.
 extern s8 D_80114C12;
-extern s8 D_8007218A;
 
 /// Main-executable flag set to 1 before the view tasks are respawned.
-extern s8 D_8007106B;
 
 /// Spawn table for the task that takes over once the intro stream is done.
 extern TaskDesc D_dryfield_water_tank_80180764;
@@ -301,7 +299,7 @@ void func_dryfield_water_tank_8017E78C(Task* task)
             switch (idx) {
                 case 0:
                     Display_SpawnWithOt(&D_dryfield_water_tank_80180764, 1, 0, 0);
-                    D_8007106B = 1;
+                    gDisplayState.at100.flags.flipMode = 1;
                     Gp_SpawnViewTasks();
                     work->field_6++;
                     return;
@@ -315,7 +313,7 @@ void func_dryfield_water_tank_8017E78C(Task* task)
                     // $a1 and `field_4` is stored through it.
                     rec                    = &script;
                     weaponId               = Player_Status.weapon;
-                    script.animBlock.index = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                    script.animBlock.index = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                     rec->field_4           = 1;
                     script.field_8         = 0;
                     script.field_C         = 0;
@@ -377,7 +375,7 @@ L_case0:
             D_dryfield_water_tank_80188D50 = task;
         }
         weaponId               = Player_Status.weapon;
-        anim                   = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+        anim                   = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         script.animBlock.index = anim;
         script.field_4         = 1;
         script.field_8         = 1;
@@ -426,7 +424,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     Gp_DispatchMsg(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                    (s32)&D_dryfield_water_tank_801804F4, 0);
     weaponId            = Player_Status.weapon;
-    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.animBlock.index = anim;
     rec.field_4         = 1;
     rec.field_8         = 0;

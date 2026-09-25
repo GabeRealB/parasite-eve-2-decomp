@@ -18,8 +18,6 @@
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
 
-extern s8 D_8007106B;
-
 extern GpXformArg D_mist_parking_8018FC3C;
 
 void func_mist_parking_80183634(s32 arg0)
@@ -182,11 +180,11 @@ L_case5:
 }
 
 /// Spawns the display task `D_mist_parking_8018FC24` with the task's
-/// `spawnArg1`, sets `D_8007106B`, respawns the view tasks and kills itself.
+/// `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, respawns the view tasks and kills itself.
 void func_mist_parking_8018397C(Task* arg0)
 {
     Display_SpawnWithOt(&D_mist_parking_8018FC24, 1, arg0->spawnArg1, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

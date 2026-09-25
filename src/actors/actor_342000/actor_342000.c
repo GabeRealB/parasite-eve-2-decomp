@@ -611,7 +611,6 @@ void func_actor_342000_801628C8(Task* arg0)
 
 /// Main-executable globals with no module header yet: `D_80073BA9` is the
 /// base weapon id, `D_8007218A` selects the alternate animation block.
-extern s8 D_8007218A;
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
 extern u8 D_actor_342000_801647E8[];
@@ -690,7 +689,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 0;
@@ -712,7 +711,7 @@ void func_actor_342000_80162BBC(Task* arg0)
             s32 anim;
 
             weaponId            = Player_Status.weapon;
-            anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.animBlock.index = anim;
             msg.field_4         = 1;
             msg.field_8         = 1;
@@ -1347,8 +1346,6 @@ void func_actor_342000_801642D4(s16 arg0)
     work->field_72 = 0;
 }
 
-extern s8 D_8007272D;
-
 void func_actor_342000_801642F4(void)
 {
     Actor342000EventWork* work;
@@ -1361,7 +1358,7 @@ void func_actor_342000_801642F4(void)
         Gp_StateF0.field_2       = 0;
         Gp_StateF0.field_3       = 0;
         gGameSession->flowFlags |= 0x80;
-        D_8007272D               = 0xD;
+        Mc_SaveData.sceneEvent   = 0xD;
         work->field_7C           = 1;
     }
 }
@@ -1390,7 +1387,7 @@ void func_actor_342000_8016439C(void)
     Gp_DispatchMsg(work->field_48, 0x3E9, (s32)&D_actor_342000_80164948, 0);
     func_8018507C();
     weaponId            = Player_Status.weapon;
-    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 1;
     msg.field_8         = 0;

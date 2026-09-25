@@ -27,7 +27,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-extern s8  D_8007106B;
 extern u8  D_80115690;
 extern s32 D_8011572C;
 extern s32 D_80115750;
@@ -330,7 +329,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
     switch (arg0->state) {
         case 0:
             Display_SpawnWithOt(&D_shelter_1f_bulwark_80180360, 1, 0, 0);
-            D_8007106B = 1;
+            gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             Gp_StateF0.field_4 = 1;
             /* fallthrough */

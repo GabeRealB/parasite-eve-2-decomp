@@ -335,7 +335,6 @@ extern s32 D_actor_356100_80173230;
 
 /// `s8` selector for those two blocks; same slot and role as
 /// `Actor403100AnimTable`'s base index.
-extern s8 D_8007218A;
 
 /// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
 /// The 0x74 bytes after it are zero in the image too, so the whole run is a
@@ -1840,7 +1839,7 @@ void func_actor_356100_80166018(Task* arg0)
     if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
         angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
-            if (D_8007218A == 1) {
+            if (Mc_SaveData.characterId == 1) {
                 D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173230;
             } else {
                 D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173228;

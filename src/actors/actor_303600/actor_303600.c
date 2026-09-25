@@ -103,7 +103,7 @@ extern u8 D_actor_303600_80162AF0[];
 extern u8 D_actor_303600_80162DD8[];
 
 /// Main-executable globals with no module header yet: a `D_80114C12` of 1 or a
-/// live `D_80071075` both mean a cutscene is already up, and `D_80071076` is the
+/// live `D_80071075` both mean a cutscene is already up, and `gDisplayState.roomVariant` is the
 /// latch state 2 below sets alongside `Mc_SaveData`.
 extern s8 D_80114C12;
 
@@ -227,7 +227,7 @@ void func_actor_303600_80161F40(Task* arg0)
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
 /// sets the saved location in `Mc_SaveData` to stage 5, area 0x1F, warp 1,
-/// room 1, raises the `D_80071076` latch, starts the stage-0 type-0x11 task and
+/// room 1, raises the `gDisplayState.roomVariant` latch, starts the stage-0 type-0x11 task and
 /// kills itself; while the cutscene is still up it steps the state machine
 /// instead.
 void func_actor_303600_8016216C(Task* arg0)

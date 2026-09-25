@@ -2353,7 +2353,7 @@ void func_actor_402200_80136D9C(s32 otz)
     } else {
     block_4:
         scratch->rect.x = 0;
-        scratch->rect.y = D_80070F87[0] * 0x110;
+        scratch->rect.y = gDisplayState.drawBuffer * 0x110;
         scratch->rect.w = 0x140;
         scratch->rect.h = 0xF0;
     }

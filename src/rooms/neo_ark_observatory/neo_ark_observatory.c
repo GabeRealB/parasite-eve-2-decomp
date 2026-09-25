@@ -69,7 +69,6 @@ typedef struct MapMarkerOut {
 /// room through the second.
 typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
 
-extern s8       D_8007272D;
 extern TaskDesc D_80137EE4;
 extern TaskDesc D_80138694;
 extern TaskDesc D_8013C72C;
@@ -1051,7 +1050,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
             GameFlag_SetNibble(0xE1, 1);
-            D_8007272D = 0x15;
+            Mc_SaveData.sceneEvent = 0x15;
             func_800E8634((s32)&D_8013FC58, 0, (s32)&D_80140078);
         }
     }

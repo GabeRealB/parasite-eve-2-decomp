@@ -18,7 +18,6 @@
 #include "main/task.h"
 #include "rooms/room_common.h"
 
-extern s8       D_8007106B;
 extern s32      D_80115730;
 extern s32      D_80115734;
 extern s32      D_80115754;
@@ -131,7 +130,7 @@ kill:
 void func_shelter_b1_control_room_8017F100(Task* arg0)
 {
     Display_SpawnWithOt(&D_shelter_b1_control_room_80181BBC, 1, 0, 0);
-    D_8007106B = 1;
+    gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
 }

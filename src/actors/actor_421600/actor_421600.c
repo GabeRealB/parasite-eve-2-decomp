@@ -414,7 +414,6 @@ typedef struct Actor421600AnimWord {
 
 extern GpAnimBlk*          Gp_PlayerAnimBlkTbl[];
 extern u16                 Gp_WeaponIdBase[];
-extern s8                  D_8007218A;
 extern u16                 D_801876A8, D_801876AA;
 extern Actor421600AnimWord D_actor_421600_801510A0;
 
@@ -5497,7 +5496,7 @@ void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* act
                 if (command == &D_actor_421600_801510A4) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->field_1C;
+                        command->field_10 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_1C;
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
@@ -5506,7 +5505,7 @@ void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* act
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->field_1C;
+                    D_actor_421600_801510A0.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_1C;
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
@@ -5554,9 +5553,9 @@ void                        func_actor_421600_8013D658(GpEnemy* enemy, Task* act
                         work->field_E80 = 5;
                         nextCommand     = (Actor421600AnimCommand*)work->field_E7C;
                         if (nextCommand == &D_actor_421600_801510A4) {
-                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->field_24;
+                            nextCommand->field_14 = (s32)(Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_24;
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + Player_Status.weapon])->field_24;
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.characterId - 1] + Player_Status.weapon])->field_24;
                         }
                         nextMessage = &work->field_E7C;
                         Gp_DispatchMsg(player, 0x3FF, nextMessage, 0);

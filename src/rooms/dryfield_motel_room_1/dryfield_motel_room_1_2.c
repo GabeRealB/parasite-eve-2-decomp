@@ -17,7 +17,6 @@
 /// `D_80071075` and `D_80114C12` (the cutscene mode flag) gate the room task's
 /// setup, and `D_8007218A` picks which of the two weapon-id bases that record
 /// uses.
-extern s8 D_8007218A;
 extern s8 D_80114C12;
 
 /// The cutscene script's two blocks, handed to `func_800E8634` by the room
@@ -76,7 +75,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 
                         rec    = &buf.shifted.rec;
                         weapon = cfg->weapon;
-                        if (D_8007218A == 1) {
+                        if (Mc_SaveData.characterId == 1) {
                             anim = weapon + 1;
                         } else {
                             anim = weapon + 0x22;
@@ -91,7 +90,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         work->field_2E += 1;
                     } else {
                         weaponId = cfg->weapon;
-                        if (D_8007218A == 1) {
+                        if (Mc_SaveData.characterId == 1) {
                             anim = weaponId + 1;
                         } else {
                             anim = weaponId + 0x22;
@@ -111,7 +110,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 > 0x1000) {
                         anim = Player_Status.weapon;
-                        if (D_8007218A == 1) {
+                        if (Mc_SaveData.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -133,7 +132,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 < 0) {
                         anim = Player_Status.weapon;
-                        if (D_8007218A == 1) {
+                        if (Mc_SaveData.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -154,7 +153,7 @@ void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_30 += 1;
                     if (work->field_30 >= 4) {
                         anim = Player_Status.weapon;
-                        if (D_8007218A == 1) {
+                        if (Mc_SaveData.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -213,7 +212,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             if ((D_80114C12 != 1) && (gDisplayState.pendingMode == 0)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 weaponId                = Player_Status.weapon;
-                anim                    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                    = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.rec.animBlock.index = anim;
                 buf.rec.field_4         = 1;
                 buf.rec.field_8         = 1;
@@ -282,7 +281,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
 
     work                = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
     weaponId            = Player_Status.weapon;
-    anim                = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                = (Mc_SaveData.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.animBlock.index = anim;
     msg.field_4         = 9;
     msg.field_8         = 0;
