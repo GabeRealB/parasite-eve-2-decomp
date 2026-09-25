@@ -14,6 +14,7 @@
 #include "gameplay/3FB8.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -42,14 +43,6 @@ typedef struct {
     /* 0x4 */ s16  items[3];
     /* 0xA */ byte pad_A[2];
 } _ShelterParkingShopTier;
-
-/// Spawn payload handed to `Task_Spawn(1, 0x31, ...)` as arg3 when caption key
-/// 0xB is answered. Only the three stores the caller makes are known.
-typedef struct {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} _ShelterParkingKeySpawnArg;
 
 extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void func_80131E38(void);
@@ -259,12 +252,12 @@ extern Task* D_shelter_b1_underground_parking_8018D754;
 /// The area records applied when the scene hands the Dryfield story on.
 extern GpAreaApplyRec D_shelter_b1_underground_parking_80188888;
 
-extern s32                        D_shelter_b1_underground_parking_8018D758;
-extern ShelterParkingSceneRec     D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc                   D_shelter_b1_underground_parking_80187200;
-extern TaskDesc                   D_shelter_b1_underground_parking_80187260[];
-extern TaskDesc                   D_shelter_b1_underground_parking_8018726C[];
-extern _ShelterParkingKeySpawnArg D_shelter_b1_underground_parking_8018D750;
+extern s32                    D_shelter_b1_underground_parking_8018D758;
+extern ShelterParkingSceneRec D_shelter_b1_underground_parking_8018D75C;
+extern TaskDesc               D_shelter_b1_underground_parking_80187200;
+extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
+extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
+extern GpStateBD8             D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
