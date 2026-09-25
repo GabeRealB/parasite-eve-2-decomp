@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "actors/actor.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
@@ -8,25 +9,6 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// Per-actor work block for the `actor_110300` overlay, reached through the
-/// global `func_actor_110300_80131F9C` publishes.
-///
-/// `anim` sits at offset 0, so `&D_actor_110300_8013A0A0->anim` compiles to the
-/// bare pointer load. `slots` follows it directly (0x28 apart, as
-/// `Gp_AnimResetSlot` is handed `work + i * 0x28`), and the animation-id pair
-/// sits at 0x476/0x478.
-typedef struct Actor110300Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0x14]; // the slot array `func_800B3F84` is handed
-    /* 0x334 */ byte       aux[0x140];  // `GpAnimCtx.poses`, one 0x10-byte record per slot
-    /* 0x474 */ s16        field_474;   // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x476 */ s16        field_476;   // copy of `animId`, kept for change detection
-    /* 0x478 */ u16        animId;      // animation id the slots are seeded with
-    /* 0x47A */ u16        field_47A;   // incremented by the step-0 handler, cleared by the animation-start handler
-    /* 0x47C */ byte       pad_47C[0xE0];
-} Actor110300Work;
-STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 
 /// Argument block of the 0x7D3 message: the animation to start, after a
 /// 4-byte field the handler does not read.
