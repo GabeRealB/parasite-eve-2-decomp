@@ -8,7 +8,6 @@
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "actors/actor_136300.h"
 #include "actors/actors_shared_80149ed0.h"
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
@@ -224,11 +223,10 @@ extern s16 D_dryfield_dilapidated_house_80189B80;
 /// `func_dryfield_dilapidated_house_8017E970` and swaps the two stores.
 extern s16 D_dryfield_dilapidated_house_80189B82[1];
 
-/// Shared in source with actor 136300: the spawn block, the latched countdown
-/// and the entry the handler starts.
-extern Actor136300Spawn D_dryfield_dilapidated_house_80189C94;
-extern s16              D_dryfield_dilapidated_house_80189C98;
-extern TaskDesc         D_dryfield_dilapidated_house_80183E48;
+/// Shared in source with actor 136300: the ramp context the message handler
+/// seeds and hands to the screen-wave task it starts, and that task's entry.
+extern ActorWaveCtx D_dryfield_dilapidated_house_80189C94;
+extern TaskDesc     D_dryfield_dilapidated_house_80183E48;
 
 extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
 extern s32        D_dryfield_dilapidated_house_80186804[16];
@@ -928,7 +926,7 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
             Task_SpawnFromTable(&D_dryfield_dilapidated_house_80183E48, 0, 0, (s32)&D_dryfield_dilapidated_house_80189C94);
         }
     } else {
-        D_dryfield_dilapidated_house_80189C98 = arg0;
+        D_dryfield_dilapidated_house_80189C94.field_4 = arg0;
     }
 }
 
@@ -984,7 +982,7 @@ void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
         D_dryfield_dilapidated_house_80189B78 =
             Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }
-    D_dryfield_dilapidated_house_80189C98 = 2;
+    D_dryfield_dilapidated_house_80189C94.field_4 = 2;
     D_dryfield_dilapidated_house_80189B7C =
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
     gGameSession->flowFlags = 0x83;
