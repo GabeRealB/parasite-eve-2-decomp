@@ -137,13 +137,8 @@ void func_gunblade_8011D70C(s16 slot, s16 flags)
     s32                  lo;
     s32                  fade;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(GunbladeBeamScratch);
-        blk                     = (GunbladeBeamScratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
-    }
+    SCRATCH_PUSH_BYTES(sizeof(GunbladeBeamScratch));
+    blk = SCRATCH_HEAD(GunbladeBeamScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -191,7 +186,7 @@ void func_gunblade_8011D70C(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(GunbladeBeamScratch);
+    SCRATCH_POP_BYTES(sizeof(GunbladeBeamScratch));
 }
 
 /// Charge-up / blast flash for the gunblade's three shot grades

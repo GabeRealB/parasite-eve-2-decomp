@@ -21,15 +21,10 @@ void func_m249_8011D1DC(Task* arg0)
     M249Scratch*   scratch;
     s32            anim;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - 0x68;
-        scratch                 = (M249Scratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
-    }
-    actor = arg0->work;
-    coord = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(0x68);
+    scratch = SCRATCH_HEAD(M249Scratch);
+    actor   = arg0->work;
+    coord   = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             anim              = 1;
@@ -90,5 +85,5 @@ void func_m249_8011D1DC(Task* arg0)
             break;
     }
     Gp_TrackLockTarget(arg0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+    SCRATCH_POP_BYTES(0x68);
 }

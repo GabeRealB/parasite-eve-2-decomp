@@ -288,9 +288,9 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     u8                       b;
     u16                      angle;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayPointPairScratch);
-    sc                    = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayPointPairScratch);
+    sc               = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -412,7 +412,7 @@ void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     } else {
         D_m4a1_javelin_8012EB64 = 1;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(OverlayPointPairScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayPointPairScratch));
 }
 
 /// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
@@ -440,9 +440,9 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
     u16                      ang;
     s32                      i;
 
-    head                  = *(u8**)G_SCRATCH_HEAD;
-    *(u8**)G_SCRATCH_HEAD = head - sizeof(OverlayPointPairScratch);
-    sc                    = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    head             = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8) = head - sizeof(OverlayPointPairScratch);
+    sc               = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -558,7 +558,7 @@ void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
 fail:
     D_m4a1_javelin_8012EB66 = 1;
 done:
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(OverlayPointPairScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayPointPairScratch));
 }
 
 /* `otz0` is taken before the branch on purpose: the address is the same one
@@ -571,10 +571,10 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     LINE_G2*                line;
     s32*                    otz0;
 
-    head                                      = *(u8**)G_SCRATCH_HEAD;
-    sc                                        = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
-    *(M4a1JavelinLineScratch**)G_SCRATCH_HEAD = sc;
-    otz0                                      = &sc->otz0;
+    head                                 = SCRATCH_HEAD(u8);
+    sc                                   = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
+    SCRATCH_HEAD(M4a1JavelinLineScratch) = sc;
+    otz0                                 = &sc->otz0;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -605,7 +605,7 @@ void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
         }
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(M4a1JavelinLineScratch);
+    SCRATCH_POP_BYTES(sizeof(M4a1JavelinLineScratch));
 }
 
 /// Links the billboarded muzzle-flare quad for one javelin launch frame into
@@ -669,7 +669,7 @@ void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *scratch = (u8*)*scratch + sizeof(GpFxQuadScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpFxQuadScratch));
 }
 
 void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
@@ -745,11 +745,11 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
     s32            tick;
     u16            count;
 
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x58;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
-    actor                   = arg0->work;
-    spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
-    spot->sub               = NULL;
+    SCRATCH_PUSH_BYTES(0x58);
+    coord     = ((TmdObject*)arg0->extra)->coords;
+    actor     = arg0->work;
+    spot      = SCRATCH_HEAD(GsCOORDINATE2);
+    spot->sub = NULL;
 
     switch (actor->field_95E) {
         case 0:
@@ -877,5 +877,5 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x58;
+    SCRATCH_POP_BYTES(0x58);
 }

@@ -32,13 +32,8 @@ void func_p08_8011D1D8(Task* arg0)
     GsCOORDINATE2* spot;
     s32            anim;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
-        spot                    = (GsCOORDINATE2*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
-    }
+    SCRATCH_PUSH_BYTES(0x50);
+    spot  = SCRATCH_HEAD(GsCOORDINATE2);
     actor = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
@@ -92,5 +87,5 @@ void func_p08_8011D1D8(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }

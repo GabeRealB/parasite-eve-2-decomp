@@ -32,10 +32,10 @@ void func_m4a1_8011D1C4(Task* arg0)
        the `field_97F == 1` compare below. */
     s16 shots;
 
-    spot                    = (GsCOORDINATE2*)((u8*)*(void**)G_SCRATCH_HEAD - 0x50);
-    *(void**)G_SCRATCH_HEAD = spot;
-    actor                   = arg0->work;
-    coord                   = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(0x50);
+    spot  = SCRATCH_HEAD(GsCOORDINATE2);
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -114,5 +114,5 @@ void func_m4a1_8011D1C4(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }

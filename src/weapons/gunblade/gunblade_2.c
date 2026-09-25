@@ -57,13 +57,13 @@ void func_gunblade_8011E040(Task* arg0)
     s16              spread;
     s32              shake;
 
-    shake                 = 0;
-    actor                 = arg0->work;
-    sfx                   = (D_80073BAA - 0xD) << 24;
-    rec                   = &actor->field_14C;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - sizeof(GunbladeScratch);
-    blk                   = (GunbladeScratch*)*(u8**)G_SCRATCH_HEAD;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
+    shake = 0;
+    actor = arg0->work;
+    sfx   = (D_80073BAA - 0xD) << 24;
+    rec   = &actor->field_14C;
+    SCRATCH_PUSH_BYTES(sizeof(GunbladeScratch));
+    blk   = SCRATCH_HEAD(GunbladeScratch);
+    coord = ((TmdObject*)arg0->extra)->coords;
     if (sfx < 0) {
         sfx = 0;
     }
@@ -197,12 +197,12 @@ void func_gunblade_8011E040(Task* arg0)
             break;
     }
     Gfx_MatrixCol2(&coord->coord, &blk->dir);
-    actor->field_973      = shake;
-    blk->step.vx          = (s16)(blk->dir.vx / 136) * shake;
-    blk->step.vy          = (s16)(blk->dir.vy / 136) * shake;
-    blk->step.vz          = (s16)(blk->dir.vz / 136) * shake;
-    coord->coord.t[0]    += blk->step.vx;
-    coord->coord.t[1]    += blk->step.vy;
-    coord->coord.t[2]    += blk->step.vz;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + sizeof(GunbladeScratch);
+    actor->field_973   = shake;
+    blk->step.vx       = (s16)(blk->dir.vx / 136) * shake;
+    blk->step.vy       = (s16)(blk->dir.vy / 136) * shake;
+    blk->step.vz       = (s16)(blk->dir.vz / 136) * shake;
+    coord->coord.t[0] += blk->step.vx;
+    coord->coord.t[1] += blk->step.vy;
+    coord->coord.t[2] += blk->step.vz;
+    SCRATCH_POP_BYTES(sizeof(GunbladeScratch));
 }

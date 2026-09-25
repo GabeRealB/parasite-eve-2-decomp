@@ -188,7 +188,7 @@ void func_mp5a5_8011D468(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + sizeof(OverlaySpriteScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(OverlaySpriteScratch));
 }
 
 /// Draws a gun's muzzle flash as one Gouraud quad: three corners on a 0x100
@@ -294,7 +294,7 @@ void func_mp5a5_8011D864(GsCOORDINATE2* arg0, s16 arg1, s16 arg2)
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
     }
-    *scratch = (u8*)*scratch + sizeof(WeaponQuadScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(WeaponQuadScratch));
 }
 
 /// Per-frame firing state machine for the MP5A5 and its upgrades. State 0 arms the shot and
@@ -316,16 +316,8 @@ void func_mp5a5_8011DDA4(Task* arg0)
     GpEffWork*     eff;
     s32            anim;
 
-    /* Pinned to `$v0`: the scratch block's address is stored back to
-       `G_SCRATCH_HEAD` from `$v0` and copied into the callee-saved `spot`,
-       so the two uses must not be coalesced into one register. */
-    {
-        register u8* tmp asm("v0");
-
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
-        spot                    = (GsCOORDINATE2*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
-    }
+    SCRATCH_PUSH_BYTES(0x50);
+    spot  = SCRATCH_HEAD(GsCOORDINATE2);
     actor = arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     switch (actor->field_95E) {
@@ -410,5 +402,5 @@ void func_mp5a5_8011DDA4(Task* arg0)
             break;
     }
     Gp_TrackLockTarget(arg0);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }

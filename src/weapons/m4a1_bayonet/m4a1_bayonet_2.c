@@ -38,11 +38,11 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
     s32            delay;
     s16            frames;
 
-    actor                 = arg0->work;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    rec                   = &actor->field_14C;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
-    spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    rec   = &actor->field_14C;
+    SCRATCH_PUSH_BYTES(0x50);
+    spot = SCRATCH_HEAD(GsCOORDINATE2);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;
@@ -161,5 +161,5 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
             }
             break;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }

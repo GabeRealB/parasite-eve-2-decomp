@@ -135,13 +135,8 @@ void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
     s32               lo;
     s32               fade;
 
-    {
-        register u8* tmp asm("v0");
-
-        tmp                     = (u8*)*(void**)G_SCRATCH_HEAD - sizeof(TonfaBeamScratch);
-        blk                     = (TonfaBeamScratch*)tmp;
-        *(void**)G_SCRATCH_HEAD = tmp;
-    }
+    SCRATCH_PUSH_BYTES(sizeof(TonfaBeamScratch));
+    blk = SCRATCH_HEAD(TonfaBeamScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -189,7 +184,7 @@ void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(TonfaBeamScratch);
+    SCRATCH_POP_BYTES(sizeof(TonfaBeamScratch));
 }
 
 void func_tonfa_baton_8011DA48(Task* arg0)
@@ -291,10 +286,10 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
     s32            fade;
     s32            swinging;
 
-    swinging              = 0;
-    actor                 = arg0->work;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x18;
-    swing                 = (TonfaSwing*)*(u8**)G_SCRATCH_HEAD;
+    swinging = 0;
+    actor    = arg0->work;
+    SCRATCH_PUSH_BYTES(0x18);
+    swing = SCRATCH_HEAD(TonfaSwing);
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;
@@ -408,11 +403,11 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
     }
     coord = (GsCOORDINATE2*)((TmdObject*)arg0->extra)->coords;
     Gfx_MatrixCol2(&coord->coord, &swing->dir);
-    swing->vx             = (s16)(swing->dir.vx / 84) * swinging;
-    swing->vy             = (s16)(swing->dir.vy / 84) * swinging;
-    swing->vz             = (s16)(swing->dir.vz / 84) * swinging;
-    coord->coord.t[0]    += swing->vx;
-    coord->coord.t[1]    += swing->vy;
-    coord->coord.t[2]    += swing->vz;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    swing->vx          = (s16)(swing->dir.vx / 84) * swinging;
+    swing->vy          = (s16)(swing->dir.vy / 84) * swinging;
+    swing->vz          = (s16)(swing->dir.vz / 84) * swinging;
+    coord->coord.t[0] += swing->vx;
+    coord->coord.t[1] += swing->vy;
+    coord->coord.t[2] += swing->vz;
+    SCRATCH_POP_BYTES(0x18);
 }

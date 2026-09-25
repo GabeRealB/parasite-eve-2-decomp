@@ -24,9 +24,6 @@
 /// (the muzzle), `(0, 0x240, 0x80)`.
 SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
-/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-#define SCRATCH_SP (*(u32*)G_SCRATCH_HEAD)
-
 void func_hypervelocity_8011F11C(Task* task);
 void func_hypervelocity_8011F6A0(Task* task);
 
@@ -447,7 +444,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
        for the same reason. `vert` reaches `hub[i]` through `rim[i]` rather
        than off `sc`, so the `gte_ldv0` / `gte_stsv` address stays a register
        of its own instead of being shared with the field stores. */
-    sc = (HyperTrailScratch*)(SCRATCH_SP -= sizeof(HyperTrailScratch));
+    sc = SCRATCH_PUSH(HyperTrailScratch);
     if (side != 0) {
         back    = (spin << 1) + (age << 8);
         hubSize = 0x80;
@@ -513,7 +510,7 @@ void func_hypervelocity_8011DF34(GsCOORDINATE2* coord, s16 age, s16 spin, s32 si
             addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
         }
     }
-    SCRATCH_SP += sizeof(HyperTrailScratch);
+    SCRATCH_POP(HyperTrailScratch);
 }
 
 /// Links the billboarded charge quad into `gGpuCurrentOt`, dropped entirely if
@@ -581,7 +578,7 @@ void func_hypervelocity_8011E494(GsCOORDINATE2* coord, s16 age, s16 spin, s16 an
         prim->y2  = *(u16*)&block->sy + *(u16*)&block->dy;
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *scratch = (u8*)*scratch + sizeof(GpFxQuadScratch);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(GpFxQuadScratch));
 }
 
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
@@ -677,7 +674,7 @@ void func_hypervelocity_8011E8A0(GsCOORDINATE2* ground, s32 spin)
         prim->y3    = sc->sxy3.vy;
         addPrim((u_long*)(((((u32)otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt), prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(OverlayGroundScratch);
+    SCRATCH_POP_BYTES(sizeof(OverlayGroundScratch));
 }
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
@@ -712,7 +709,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
        prologue's register assignment. `vert` reaches `hub[i]` through
        `rim[i]` so the `gte_ldv0` / `gte_stsv` address stays a register of its
        own instead of being shared with the field stores. */
-    sc    = (HyperConeScratch*)(SCRATCH_SP -= sizeof(HyperConeScratch));
+    sc    = SCRATCH_PUSH(HyperConeScratch);
     rise  = age;
     rise  = rise << 7;
     top   = 0x600 - rise;
@@ -783,7 +780,7 @@ void func_hypervelocity_8011EC1C(GsCOORDINATE2* coord, s16 age, s32 radius, u8* 
         }
         i++;
     } while (i < 2);
-    SCRATCH_SP += sizeof(HyperConeScratch);
+    SCRATCH_POP(HyperConeScratch);
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
@@ -897,7 +894,7 @@ void func_hypervelocity_8011F374(Task* arg0)
     extra->colorMtx = playerExtra->colorMtx;
     extra->lightMtx = playerExtra->lightMtx;
 
-    SCRATCH_SP -= 0x10;
+    SCRATCH_PUSH_BYTES(0x10);
     switch (arg0->spawnArg1 & 0xF) {
         case 0:
             if (*(u32*)&((GameActor*)work->work)->field_954 != 0x40000) {
@@ -941,7 +938,7 @@ void func_hypervelocity_8011F374(Task* arg0)
             RotMatrixX(coord->param.rot.vx, &coord->coord);
             break;
     }
-    SCRATCH_SP += 0x10;
+    SCRATCH_POP_BYTES(0x10);
 }
 
 void func_hypervelocity_8011F570(Task* arg0)
@@ -1108,5 +1105,5 @@ void func_hypervelocity_8011F724(Task* arg0)
             }
             break;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x18;
+    SCRATCH_POP_BYTES(0x18);
 }

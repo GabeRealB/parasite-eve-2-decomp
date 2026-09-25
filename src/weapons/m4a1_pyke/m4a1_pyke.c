@@ -224,7 +224,7 @@ void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x18;
+    SCRATCH_POP_BYTES_AT(scratch, 0x18);
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
@@ -442,7 +442,7 @@ void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
         addPrim((u_long*)(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (s32)gGpuCurrentOt),
                 prim);
     }
-    *scratch = (u8*)*scratch + 0x1C;
+    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
 /// Draws the dart's ground splash: the unit quad `D_80111E38` scaled to
@@ -521,7 +521,7 @@ void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
                           (s32)gGpuCurrentOt),
                 prim);
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    SCRATCH_POP_BYTES(0x30);
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
@@ -562,10 +562,10 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
     s32            delay;
     s32            spent;
 
-    actor                 = arg0->work;
-    coord                 = ((TmdObject*)arg0->extra)->coords;
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD - 0x50;
-    spot                  = (GsCOORDINATE2*)*(u8**)G_SCRATCH_HEAD;
+    actor = arg0->work;
+    coord = ((TmdObject*)arg0->extra)->coords;
+    SCRATCH_PUSH_BYTES(0x50);
+    spot = SCRATCH_HEAD(GsCOORDINATE2);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;
@@ -678,5 +678,5 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
             }
             break;
     }
-    *(u8**)G_SCRATCH_HEAD = *(u8**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }

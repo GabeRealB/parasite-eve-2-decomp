@@ -49,9 +49,9 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
        caller-saved register and the copy into `spot` is a second read of
        `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x50;
-    spot                    = (GsCOORDINATE2*)*(void**)G_SCRATCH_HEAD;
-    sfx                     = slot->attachId - 0x9F;
+    SCRATCH_PUSH_BYTES(0x50);
+    spot = SCRATCH_HEAD(GsCOORDINATE2);
+    sfx  = slot->attachId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
     }
@@ -157,7 +157,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             }
             break;
     }
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+    SCRATCH_POP_BYTES(0x50);
 }
 
 /// Spawn state: allocates the grenade's work block, places the projectile a
@@ -185,7 +185,7 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     work     = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec      = blk;
     if (work == NULL) {
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+        SCRATCH_POP_BYTES(0x28);
         taskKill(arg0);
         return;
     }
@@ -246,8 +246,8 @@ void func_m4a1_grenade_8011D654(Task* arg0)
     work->d4rec.end1.vy    = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
     Gp_InitRec18Table(work->d4rec.recs, 1, 0);
-    work->obj2.flags       |= 0x4400;
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    work->obj2.flags |= 0x4400;
+    SCRATCH_POP_BYTES(0x28);
 }
 
 /// Flight state: steps the grenade along `dir`, and detonates when it hits
@@ -277,13 +277,13 @@ void func_m4a1_grenade_8011D994(Task* arg0)
     work  = (WeaponGrenadeWork*)arg0->work;
     coord = ((TmdObject*)arg0->extra)->coords;
     slot  = Gp_GetItemSlot(D_80073BA9 + 0x7F);
-    head  = *(u8**)G_SCRATCH_HEAD;
+    head  = SCRATCH_HEAD(u8);
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`
        handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
-    *(void**)G_SCRATCH_HEAD = head - sizeof(M4a1GrenadeScratch);
-    blk                     = (M4a1GrenadeScratch*)(head - sizeof(M4a1GrenadeScratch));
-    coord->flg              = 0;
+    SCRATCH_HEAD(u8) = head - sizeof(M4a1GrenadeScratch);
+    blk              = (M4a1GrenadeScratch*)(head - sizeof(M4a1GrenadeScratch));
+    coord->flg       = 0;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->sfx = slot->attachId - 0x9F;
@@ -299,10 +299,10 @@ void func_m4a1_grenade_8011D994(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.w        = clip;
-        work->obj.flags        &= 0xBFFF;
-        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1GrenadeScratch);
-        work->obj.radius        = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
+        work->field_88.w = clip;
+        work->obj.flags &= 0xBFFF;
+        SCRATCH_POP_BYTES(sizeof(M4a1GrenadeScratch));
+        work->obj.radius = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
         return;
     }
 
@@ -364,7 +364,7 @@ move:
     }
     Gp_ClearRec18Occupied(work->rec0);
     Gp_ClearRec18Occupied(work->rec1);
-    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + sizeof(M4a1GrenadeScratch);
+    SCRATCH_POP_BYTES(sizeof(M4a1GrenadeScratch));
 }
 
 /// Flight state: steps the `field_88` flight timer down and moves the task to
